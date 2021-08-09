@@ -25,11 +25,11 @@ public class Kind implements ExpandableParameter {
     public static final Kind FILE_STORAGE = new Kind(Performance.PREMIUM, "FileStorage", "File Storage");
     public static final Kind PAGE_BLOB_STORAGE = new Kind(Performance.PREMIUM, "StorageV2", "Page Blobs Storage");
 
-    private static final List<Kind> values = new ImmutableList.Builder<Kind>().add(STORAGE_V2, BLOCK_BLOB_STORAGE, FILE_STORAGE, PAGE_BLOB_STORAGE).build();
+    private static final List<Kind> values = new ImmutableList.Builder<Kind>().add(STORAGE, STORAGE_V2, BLOCK_BLOB_STORAGE, FILE_STORAGE, PAGE_BLOB_STORAGE).build();
 
-    private Performance performance;
-    private String name;
-    private String label;
+    private final Performance performance;
+    private final String name;
+    private final String label;
 
     private Kind(Performance performance, String name, String label) {
         this.performance = performance;

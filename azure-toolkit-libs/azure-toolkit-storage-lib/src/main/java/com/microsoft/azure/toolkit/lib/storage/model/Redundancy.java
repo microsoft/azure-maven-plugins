@@ -28,9 +28,9 @@ public class Redundancy implements ExpandableParameter {
 
     private static final List<Redundancy> values = new ImmutableList.Builder<Redundancy>().add(STANDARD_ZRS, STANDARD_LRS, STANDARD_GRS, STANDARD_RAGZRS, PREMIUM_LRS, PREMIUM_ZRS).build();
 
-    private Performance performance;
-    private String name;
-    private String label;
+    private final Performance performance;
+    private final String name;
+    private final String label;
 
     private Redundancy(Performance performance, String name, String label) {
         this.performance = performance;
