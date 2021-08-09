@@ -23,8 +23,8 @@ public class Performance implements ExpandableParameter {
 
     private static final List<Performance> values = new ImmutableList.Builder<Performance>().add(STANDARD, PREMIUM).build();
 
-    private String name;
-    private String label;
+    private final String name;
+    private final String label;
 
     private Performance(String name, String label) {
         this.name = name;
