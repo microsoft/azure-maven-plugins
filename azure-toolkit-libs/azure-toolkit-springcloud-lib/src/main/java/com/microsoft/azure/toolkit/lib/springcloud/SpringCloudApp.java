@@ -15,6 +15,8 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
+import com.microsoft.azure.toolkit.lib.common.entity.Removable;
+import com.microsoft.azure.toolkit.lib.common.entity.Startable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -35,7 +37,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, SpringCloudAppEntity, SpringApp> implements AzureOperationEvent.Source<SpringCloudApp> {
+public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, SpringCloudAppEntity, SpringApp> implements AzureOperationEvent.Source<SpringCloudApp>,
+        Startable<SpringCloudAppEntity>, Removable {
     private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
 
     @Getter
@@ -59,7 +62,7 @@ public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, Spring
     @AzureOperation(name = "springcloud|app.load", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     protected SpringApp loadRemote() {
         try {
-            return Optional.ofNullable(this.cluster.remote()).map(r->r.apps().getByName(this.name())).orElse(null);
+            return Optional.ofNullable(this.cluster.remote()).map(r -> r.apps().getByName(this.name())).orElse(null);
         } catch (ManagementException e) { // if cluster with specified resourceGroup/name removed.
             if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatusCode()) {
                 return null;
@@ -113,29 +116,25 @@ public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, Spring
     }
 
     @AzureOperation(name = "springcloud|app.start", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudApp start() {
+    public void start() {
         this.deployment(this.activeDeploymentName()).start();
-        return this;
     }
 
     @AzureOperation(name = "springcloud|app.stop", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudApp stop() {
+    public void stop() {
         this.deployment(this.activeDeploymentName()).stop();
-        return this;
     }
 
     @AzureOperation(name = "springcloud|app.restart", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudApp restart() {
+    public void restart() {
         this.deployment(this.activeDeploymentName()).restart();
-        return this;
     }
 
     @AzureOperation(name = "springcloud|app.remove", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudApp remove() {
+    public void remove() {
         if (this.exists()) {
             Objects.requireNonNull(this.remote()).parent().apps().deleteByName(this.name());
         }
-        return this;
     }
 
     public Creator create() {
@@ -147,6 +146,14 @@ public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, Spring
     public Updater update() throws AzureToolkitRuntimeException {
         assert this.exists() : String.format("app(%s) not exist", this.name());
         return new Updater(this);
+    }
+
+    public String publicUrl() {
+        return this.entity.getApplicationUrl();
+    }
+
+    public String testUrl() {
+        return this.entity.getTestUrl();
     }
 
     public static abstract class Modifier implements ICommittable<SpringCloudApp>, AzureOperationEvent.Source<SpringCloudApp> {
