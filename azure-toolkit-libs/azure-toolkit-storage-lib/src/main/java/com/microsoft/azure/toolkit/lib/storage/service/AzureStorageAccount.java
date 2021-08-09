@@ -105,7 +105,9 @@ public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
                     .withRegion(config.getRegion().getName())
                     .withExistingResourceGroup(config.getResourceGroupName())
                     .withSku(StorageAccountSkuType.fromSkuName(SkuName.fromString(config.getRedundancy().getName())));
-            if (Objects.equals(Kind.FILE_STORAGE, config.getKind())) {
+            if (Objects.equals(Kind.STORAGE, config.getKind())) {
+                withCreate = withCreate.withGeneralPurposeAccountKind();
+            } else if (Objects.equals(Kind.FILE_STORAGE, config.getKind())) {
                 withCreate = withCreate.withFileStorageAccountKind();
             } else if (Objects.equals(Kind.BLOCK_BLOB_STORAGE, config.getKind())) {
                 withCreate = withCreate.withBlockBlobStorageAccountKind();
