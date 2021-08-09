@@ -40,7 +40,7 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
 - Support one deploy api
 
 ## 1.14.0
-- Support mutltiple tenants in authentication
+- Support multiple tenants in authentication
 - Fix oauth login issue: cannot select account
 - Switch to track 2 sdk for azure webapp service
 
