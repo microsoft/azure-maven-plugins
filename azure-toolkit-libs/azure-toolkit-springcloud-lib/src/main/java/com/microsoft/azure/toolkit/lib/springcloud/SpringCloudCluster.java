@@ -7,6 +7,7 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.core.management.exception.ManagementException;
+import com.azure.resourcemanager.appplatform.models.ProvisioningState;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.SpringServices;
@@ -94,5 +95,30 @@ public class SpringCloudCluster extends AbstractAzureResource<SpringCloudCluster
             return Objects.requireNonNull(this.remote()).apps().list().stream().map(this::app).collect(Collectors.toList());
         }
         return new ArrayList<>();
+    }
+
+    @Override
+    protected String loadStatus() {
+        final SpringService remote = this.remote();
+        if (Objects.isNull(remote)) {
+            return Status.UNKNOWN;
+        }
+        final ProvisioningState state = remote.refresh().innerModel().properties().provisioningState();
+        switch (state.toString().toUpperCase()) {
+            case "CREATING":
+            case "MOVING":
+            case "UPDATING":
+            case "DELETING":
+                return Status.PENDING;
+            case "SUCCEEDED":
+                return Status.RUNNING;
+            case "MOVEFAILED":
+            case "DELETED":
+            case "MOVED":
+            case "FAILED":
+                return Status.ERROR;
+            default:
+                return Status.UNKNOWN;
+        }
     }
 }

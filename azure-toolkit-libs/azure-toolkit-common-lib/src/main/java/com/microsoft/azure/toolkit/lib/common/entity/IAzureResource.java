@@ -27,12 +27,28 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 public interface IAzureResource<T extends IAzureResourceEntity> {
+    String PROPERTY_STATUS = "status";
+    String PROPERTY_CHILDREN = "children";
+
     IAzureResource<T> refresh();
 
     boolean exists();
 
     T entity();
+
+    default String status() {
+        return null;
+    }
+
+    default void refreshStatus() {
+    }
+
+    default void refreshChildren() {
+    }
 
     default String name() {
         return this.entity().getName();
@@ -50,7 +66,33 @@ public interface IAzureResource<T extends IAzureResourceEntity> {
         return ResourceId.fromString(id()).resourceGroupName();
     }
 
-    default Subscription subscription(){
+    default Subscription subscription() {
         return Azure.az(IAzureAccount.class).account().getSubscription(this.subscriptionId());
+    }
+
+    default String portalUrl() {
+        return null;
+    }
+
+    default void addPropertyChangeListener(PropertyChangeListener listener) {
+
+    }
+
+    default void removePropertyChangeListener(PropertyChangeListener listener) {
+
+    }
+
+    interface Status {
+        // unstable states
+        String UNSTABLE = "UNSTABLE";
+        String PENDING = "PENDING";
+
+        // stable states
+        String STABLE = "STABLE";
+        String LOADING = "LOADING";
+        String ERROR = "ERROR";
+        String RUNNING = "RUNNING";
+        String STOPPED = "STOPPED";
+        String UNKNOWN = "UNKNOWN";
     }
 }
