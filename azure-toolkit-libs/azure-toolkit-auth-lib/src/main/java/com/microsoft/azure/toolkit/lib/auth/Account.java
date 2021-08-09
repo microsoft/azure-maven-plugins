@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
+import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.Preloader;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -54,6 +55,10 @@ public abstract class Account implements IAccount {
 
     public AzureEnvironment getEnvironment() {
         return entity == null ? null : entity.getEnvironment();
+    }
+
+    public String portalUrl() {
+        return AzureEnvironmentUtils.getPortalUrl(this.getEnvironment());
     }
 
     protected abstract Mono<Boolean> preLoginCheck();
