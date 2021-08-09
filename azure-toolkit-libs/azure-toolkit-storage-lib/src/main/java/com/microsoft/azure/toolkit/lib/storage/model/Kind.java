@@ -18,6 +18,7 @@ import java.util.List;
 @EqualsAndHashCode
 public class Kind implements ExpandableParameter {
 
+    public static final Kind STORAGE = new Kind(Performance.STANDARD, "Storage", "General Purpose v1");
     public static final Kind STORAGE_V2 = new Kind(Performance.STANDARD, "StorageV2", "General Purpose v2");
     public static final Kind BLOB_STORAGE = new Kind(Performance.PREMIUM, "BlobStorage", "Blob Storage");
     public static final Kind BLOCK_BLOB_STORAGE = new Kind(Performance.PREMIUM, "BlockBlobStorage", "Block Blobs Storage");
