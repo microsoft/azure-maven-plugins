@@ -47,9 +47,6 @@ public interface IAzureResource<T extends IAzureResourceEntity> {
     default void refreshStatus() {
     }
 
-    default void refreshChildren() {
-    }
-
     default String name() {
         return this.entity().getName();
     }
@@ -72,14 +69,6 @@ public interface IAzureResource<T extends IAzureResourceEntity> {
 
     default String portalUrl() {
         return null;
-    }
-
-    default void addPropertyChangeListener(PropertyChangeListener listener) {
-
-    }
-
-    default void removePropertyChangeListener(PropertyChangeListener listener) {
-
     }
 
     interface Status {

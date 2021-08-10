@@ -7,6 +7,10 @@
 package com.microsoft.azure.toolkit.lib.common.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -15,17 +19,14 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.util.Objects;
 
 public abstract class AbstractAzureResource<T extends IAzureResource<E>, E extends AbstractAzureResource.RemoteAwareResourceEntity<R>, R>
-        implements IAzureResource<E> {
+        implements IAzureResource<E>, AzureOperationEvent.Source<T> {
 
     private boolean refreshed;
     @Nonnull
     protected final E entity;
-    protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private String status = null;
 
     protected AbstractAzureResource(@Nonnull E entity) {
@@ -41,8 +42,10 @@ public abstract class AbstractAzureResource<T extends IAzureResource<E>, E exten
 
     @Nonnull
     @Override
+    @CacheEvict(cacheName = "resource/{}/children", key = "${this.id()}")
+    @AzureOperation(name = "common|resource.refresh", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public synchronized T refresh() {
-        this.refreshStatus(Status.LOADING);
+        this.status(Status.LOADING);
         return this.refresh(this.loadRemote());
     }
 
@@ -64,11 +67,6 @@ public abstract class AbstractAzureResource<T extends IAzureResource<E>, E exten
         return this.entity.getRemote();
     }
 
-    public final void refreshChildren() {
-        this.refresh();
-        this.pcs.firePropertyChange(PROPERTY_CHILDREN, 0, 1);
-    }
-
     @Override
     public final String status() {
         if (Objects.nonNull(this.status)) {
@@ -80,14 +78,14 @@ public abstract class AbstractAzureResource<T extends IAzureResource<E>, E exten
     }
 
     public final void refreshStatus() {
-        AzureTaskManager.getInstance().runOnPooledThread(() -> this.refreshStatus(this.loadStatus()));
+        AzureTaskManager.getInstance().runOnPooledThread(() -> this.status(this.loadStatus()));
     }
 
-    protected final void refreshStatus(@Nonnull String status) {
+    protected final void status(@Nonnull String status) {
         final String oldStatus = this.status;
         this.status = status;
         if (!StringUtils.equalsIgnoreCase(oldStatus, this.status)) {
-            this.pcs.firePropertyChange(PROPERTY_STATUS, oldStatus, this.status);
+            AzureEventBus.emit("common|resource.status_changed", this);
         }
     }
 
@@ -99,16 +97,6 @@ public abstract class AbstractAzureResource<T extends IAzureResource<E>, E exten
      */
     protected String loadStatus() {
         return Status.RUNNING;
-    }
-
-    @Override
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
-        this.pcs.addPropertyChangeListener(listener);
-    }
-
-    @Override
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        this.pcs.removePropertyChangeListener(listener);
     }
 
     public abstract static class RemoteAwareResourceEntity<R> implements IAzureResourceEntity {

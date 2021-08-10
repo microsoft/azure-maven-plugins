@@ -72,7 +72,7 @@ public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, Spring
     }
 
     @Nonnull
-    @Cacheable(cacheName = "asc/app/{}/deployment/{}", key = "${this.name()}/$name")
+    @Cacheable(cacheName = "resource/{}/child/{}", key = "${this.id()}/$name")
     @AzureOperation(name = "springcloud|deployment.get", params = {"name", "this.name()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudDeployment deployment(final String name) {
         if (this.exists()) {
@@ -106,7 +106,7 @@ public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, Spring
     }
 
     @Nonnull
-    @Cacheable(cacheName = "asc/app/{}/deployments", key = "${this.name()}")
+    @Cacheable(cacheName = "resource/{}/children", key = "${this.id()}")
     @AzureOperation(name = "springcloud|deployment.list.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public List<SpringCloudDeployment> deployments() {
         if (this.exists()) {
@@ -117,21 +117,21 @@ public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, Spring
 
     @AzureOperation(name = "springcloud|app.start", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
-        this.refreshStatus(Status.PENDING);
+        this.status(Status.PENDING);
         this.deployment(this.activeDeploymentName()).start();
         this.refreshStatus();
     }
 
     @AzureOperation(name = "springcloud|app.stop", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void stop() {
-        this.refreshStatus(Status.PENDING);
+        this.status(Status.PENDING);
         this.deployment(this.activeDeploymentName()).stop();
         this.refreshStatus();
     }
 
     @AzureOperation(name = "springcloud|app.restart", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
-        this.refreshStatus(Status.PENDING);
+        this.status(Status.PENDING);
         this.deployment(this.activeDeploymentName()).restart();
         this.refreshStatus();
     }
@@ -139,9 +139,9 @@ public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, Spring
     @AzureOperation(name = "springcloud|app.remove", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void remove() {
         if (this.exists()) {
-            this.refreshStatus(Status.PENDING);
+            this.status(Status.PENDING);
             Objects.requireNonNull(this.remote()).parent().apps().deleteByName(this.name());
-            this.cluster.refreshChildren();
+            this.cluster.refresh();
         }
     }
 
@@ -254,7 +254,7 @@ public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, Spring
             final IAzureMessager messager = AzureMessager.getMessager();
             if (!this.skippable) {
                 messager.info(AzureString.format("Start updating app({0})...", this.app.name()));
-                this.app.refreshStatus(Status.PENDING);
+                this.app.status(Status.PENDING);
                 this.app.refresh(this.modifier.apply());
                 this.app.refreshStatus();
                 messager.success(AzureString.format("App({0}) is successfully updated.", this.app.name()));
@@ -278,7 +278,7 @@ public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, Spring
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start creating app({0})...", appName));
             this.app.refresh(this.modifier.create());
-            this.app.cluster.refreshChildren();
+            this.app.cluster.refresh();
             messager.success(AzureString.format("App({0}) is successfully created.", appName));
             return this.app;
         }
