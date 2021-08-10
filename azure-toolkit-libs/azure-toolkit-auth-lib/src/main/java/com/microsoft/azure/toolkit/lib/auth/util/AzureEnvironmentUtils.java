@@ -19,9 +19,6 @@ public class AzureEnvironmentUtils {
     private static final String CHINA_PORTAL = "https://portal.azure.cn";
     private static final String GLOBAL_PORTAL = "https://ms.portal.azure.com";
 
-    private static final String CHINA_SCM_SUFFIX = ".scm.chinacloudsites.cn";
-    private static final String GLOBAL_SCM_SUFFIX = ".scm.azurewebsites.net";
-
     static {
         // the first alias is the cloud name in azure cli
         // the second alias is the display name, all other aliases are only used in our toolkit
@@ -80,9 +77,9 @@ public class AzureEnvironmentUtils {
         } else if (AzureEnvironment.AZURE_CHINA.equals(env)) {
             return CHINA_PORTAL;
         } else if (AzureEnvironment.AZURE_GERMANY.equals(env)) {
-            return com.microsoft.azure.AzureEnvironment.AZURE_GERMANY.portal();
+            return AzureEnvironment.AZURE_GERMANY.getPortal();
         } else if (AzureEnvironment.AZURE_US_GOVERNMENT.equals(env)) {
-            return com.microsoft.azure.AzureEnvironment.AZURE_US_GOVERNMENT.portal();
+            return AzureEnvironment.AZURE_US_GOVERNMENT.getPortal();
         } else {
             return env.getPortal();
         }
