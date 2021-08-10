@@ -37,6 +37,7 @@ import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.cache.Preload;
+import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +52,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> implements AzureService {
+public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud>
+        implements AzureService, AzureOperationEvent.Source<AzureSpringCloud> {
     public AzureSpringCloud() { // for SPI
         super(AzureSpringCloud::new);
     }
@@ -103,6 +105,16 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
             }
             throw e;
         }
+    }
+
+    @AzureOperation(name = "common|service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    public void refresh() {
+        this.clusters(true);
+    }
+
+    @Override
+    public String name() {
+        return "Spring Cloud";
     }
 
     @Cacheable(cacheName = "asc/{}/client", key = "$subscriptionId")

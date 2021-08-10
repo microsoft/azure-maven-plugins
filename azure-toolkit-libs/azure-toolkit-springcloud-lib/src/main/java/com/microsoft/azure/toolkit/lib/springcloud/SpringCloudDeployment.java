@@ -66,7 +66,7 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
     @AzureOperation(name = "springcloud|deployment.start", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
         if (this.exists()) {
-            this.refreshStatus(Status.PENDING);
+            this.status(Status.PENDING);
             Objects.requireNonNull(this.remote()).start();
             this.refreshStatus();
         }
@@ -75,7 +75,7 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
     @AzureOperation(name = "springcloud|deployment.stop", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
     public void stop() {
         if (this.exists()) {
-            this.refreshStatus(Status.PENDING);
+            this.status(Status.PENDING);
             Objects.requireNonNull(this.remote()).stop();
             this.refreshStatus();
         }
@@ -84,7 +84,7 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
     @AzureOperation(name = "springcloud|deployment.restart", params = {"this.entity().getName()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
         if (this.exists()) {
-            this.refreshStatus(Status.PENDING);
+            this.status(Status.PENDING);
             Objects.requireNonNull(this.remote()).restart();
             this.refreshStatus();
         }
@@ -205,14 +205,14 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
             if (Objects.isNull(settings) || settings.isEmpty()) {
                 return this.deployment;
             }
-            this.deployment.refreshStatus(Status.PENDING);
+            this.deployment.status(Status.PENDING);
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start scaling deployment({0})...", this.deployment.name()));
             final SpringAppDeploymentImpl modifier = ((SpringAppDeploymentImpl) Objects.requireNonNull(this.deployment.remote()).update());
             modifier.withCpu(settings.getCpu()).withMemory(settings.getMemoryInGB()).withInstance(settings.getCapacity());
             this.deployment.entity.setRemote(modifier.apply());
             messager.success(AzureString.format("Deployment({0}) is successfully scaled.", this.deployment.name()));
-            this.deployment.app.refreshChildren();
+            this.deployment.app.refresh();
             return this.deployment;
         }
 
@@ -235,7 +235,7 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
             if (this.skippable) {
                 messager.info(AzureString.format("Skip updating deployment({0}) since its properties is not changed.", this.deployment.name()));
             } else {
-                this.deployment.refreshStatus(Status.PENDING);
+                this.deployment.status(Status.PENDING);
                 messager.info(AzureString.format("Start updating deployment({0})...", this.deployment.name()));
                 this.deployment.refresh(this.modifier.apply());
                 messager.success(AzureString.format("Deployment({0}) is successfully updated", this.deployment.name()));
@@ -253,13 +253,13 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
 
         @AzureOperation(name = "springcloud|deployment.create", params = {"this.deployment.name()", "this.deployment.app.name()"}, type = AzureOperation.Type.SERVICE)
         public SpringCloudDeployment commit() {
-            this.deployment.refreshStatus(Status.PENDING);
+            this.deployment.status(Status.PENDING);
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start creating deployment({0})...", this.deployment.name()));
             this.deployment.refresh(this.modifier.create());
             messager.success(AzureString.format("Deployment({0}) is successfully created", this.deployment.name()));
             final SpringCloudDeployment deployment = this.scale(this.newScaleSettings);
-            this.deployment.app.refreshChildren();
+            this.deployment.app.refresh();
             return deployment;
         }
     }
