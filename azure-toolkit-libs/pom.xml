@@ -43,6 +43,7 @@
         <module>azure-toolkit-sqlserver-lib</module>
         <module>azure-toolkit-mysql-lib</module>
         <module>azure-toolkit-applicationinsights-lib</module>
+        <module>azure-toolkit-storage-lib</module>
     </modules>
 
     <properties>
@@ -192,6 +193,11 @@
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-applicationinsights-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-storage-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
             <!-- azure libs -->
@@ -516,6 +522,11 @@
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-sql</artifactId>
+                <version>${azure.resourcemanager.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-storage</artifactId>
                 <version>${azure.resourcemanager.version}</version>
             </dependency>
             <dependency>
