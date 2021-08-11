@@ -1,6 +1,6 @@
 {
   "$schema": "<TBD>",
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.14.0",
   "templates": [
     {
       "id": "HttpTrigger-Java",
