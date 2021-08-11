@@ -18,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,15 +82,14 @@ public class AzureCliUtils {
     @Nonnull
     public static String executeAzureCli(@Nonnull String command) {
         try {
-            final AzureConfiguration az = Azure.az().config();
-            final InetSocketAddress proxy = az.getHttpProxy();
+            final AzureConfiguration config = Azure.az().config();
             Map<String, String> env = new HashMap<>();
-            if (proxy != null) {
+            if (StringUtils.isNotBlank(config.getProxySource())) {
                 String proxyAuthPrefix = StringUtils.EMPTY;
-                if (StringUtils.isNoneBlank(az.getProxyUsername(), az.getProxyPassword())) {
-                    proxyAuthPrefix = az.getProxyUsername() + ":" + az.getProxyPassword() + "@";
+                if (StringUtils.isNoneBlank(config.getProxyUsername(), config.getProxyPassword())) {
+                    proxyAuthPrefix = config.getProxyUsername() + ":" + config.getProxyPassword() + "@";
                 }
-                String proxyStr = String.format("http://%s%s:%s", proxyAuthPrefix, proxy.getHostString(), proxy.getPort());
+                String proxyStr = String.format("http://%s%s:%s", proxyAuthPrefix, config.getHttpProxyHost(), config.getHttpProxyPort());
                 env.put("HTTPS_PROXY", proxyStr);
                 env.put("HTTP_PROXY", proxyStr);
             }

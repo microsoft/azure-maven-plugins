@@ -5,13 +5,16 @@
 
 package com.microsoft.azure.toolkit.lib.common.proxy;
 
-import com.azure.core.util.Configuration;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import lombok.Getter;
 import lombok.SneakyThrows;
+import lombok.experimental.SuperBuilder;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import java.io.IOException;
 import java.net.Authenticator;
@@ -23,7 +26,6 @@ import java.net.SocketAddress;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 public class ProxyManager {
     private static final String PROPERTY_USE_SYSTEM_PROXY = "java.net.useSystemProxies";
@@ -43,36 +45,26 @@ public class ProxyManager {
         return ProxyManagerHolder.INSTANCE;
     }
 
-    private Proxy getSystemProxy() {
-        // we need to init at the program start before any internet access
-        if (isSystemProxyUnset) {
-            // to make ProxySelector return the system proxy, we need to set java.net.useSystemProxies = true
-            System.setProperty(PROPERTY_USE_SYSTEM_PROXY, "true");
-        }
-        final Proxy proxy = getSystemProxyInner();
-        if (isSystemProxyUnset) {
-            System.clearProperty(PROPERTY_USE_SYSTEM_PROXY);
-        }
-        return proxy;
-    }
-
     public void applyProxy() {
         final AzureConfiguration config = Azure.az().config();
         String source = config.getProxySource();
         if (StringUtils.isBlank(source)) {
-            Proxy proxy = getSystemProxy();
+            ProxyInfo proxy = ObjectUtils.firstNonNull(
+                getProxyFromProgramArgument("http"),
+                getProxyFromProgramArgument("https"),
+                getSystemProxy()
+            );
+
             if (proxy != null) {
-                source = "system";
-                config.setProxySource(source);
-                config.setHttpProxy((InetSocketAddress) proxy.address());
+                setActiveProxy(proxy);
+                source = config.getProxySource();
             }
         }
-        if (Objects.nonNull(config.getHttpProxy())) {
-            final String proxyHost = config.getHttpProxy().getAddress().getHostAddress();
-            final int proxyPort = config.getHttpProxy().getPort();
-            AzureMessager.getMessager().info(AzureString.format("Use %s proxy: %s", StringUtils.defaultString(source, ""),
-                proxyHost + ":" + proxyPort));
-            if (!StringUtils.equals(source, "system")) {
+        if (StringUtils.isNotBlank(source)) {
+            final String proxyHost = config.getHttpProxyHost();
+            final int proxyPort = config.getHttpProxyPort();
+            AzureMessager.getMessager().info(AzureString.format("Use %s proxy: %s", source, proxyHost + ":" + proxyPort));
+            if (!StringUtils.equals(source, "system") && !StringUtils.equals(source, "intellij")) {
                 final Proxy proxy = createHttpProxy(proxyHost, proxyPort);
                 ProxySelector.setDefault(new ProxySelector() {
                     @Override
@@ -102,16 +94,45 @@ public class ProxyManager {
                     );
                 }
             }
-            // set proxy for azure-identity according to https://docs.microsoft.com/en-us/azure/developer/java/sdk/proxying
-            String proxyAuthPrefix = StringUtils.EMPTY;
-            if (StringUtils.isNoneBlank(config.getProxyUsername(), config.getProxyPassword())) {
-                proxyAuthPrefix = config.getProxyUsername() + ":" + config.getProxyPassword() + "@";
-            }
-            final String proxyUrl = String.format("http://%s%s:%d", proxyAuthPrefix,
-                proxyHost, proxyPort);
-            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTP_PROXY, proxyUrl);
-            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTPS_PROXY, proxyUrl);
         }
+    }
+
+    public void setActiveProxy(ProxyInfo proxy) {
+        final AzureConfiguration config = Azure.az().config();
+        config.setProxySource(proxy.source);
+        config.setHttpProxyHost(proxy.host);
+        config.setHttpProxyPort(proxy.port);
+        config.setProxyUsername(proxy.username);
+        config.setProxyPassword(proxy.password);
+    }
+
+    private ProxyInfo getSystemProxy() {
+        // we need to init at the program start before any internet access
+        if (isSystemProxyUnset) {
+            // to make ProxySelector return the system proxy, we need to set java.net.useSystemProxies = true
+            System.setProperty(PROPERTY_USE_SYSTEM_PROXY, "true");
+        }
+        final ProxyInfo proxy = getSystemProxyInner();
+        if (isSystemProxyUnset) {
+            System.clearProperty(PROPERTY_USE_SYSTEM_PROXY);
+        }
+        return proxy;
+    }
+
+    private static ProxyInfo getProxyFromProgramArgument(String prefix) {
+        final String proxyHost = System.getProperty(prefix + ".proxyHost");
+        final String proxyPort = System.getProperty(prefix + ".proxyPort");
+        final String proxyUser = System.getProperty(prefix + ".proxyUser");
+        final String proxyPassword = System.getProperty(prefix + ".proxyPassword");
+
+        if (StringUtils.isNoneBlank(proxyHost, proxyPort) && NumberUtils.isCreatable(proxyPort)) {
+            return ProxyInfo.builder().source(String.format("${%s}", prefix + ".proxyHost"))
+                .host(proxyHost)
+                .port(Integer.parseInt(proxyPort))
+                .username(proxyUser)
+                .password(proxyPassword).build();
+        }
+        return null;
     }
 
     private static Proxy createHttpProxy(String httpProxyHost, Integer httpProxyPort) {
@@ -120,7 +141,7 @@ public class ProxyManager {
     }
 
     @SneakyThrows
-    private static Proxy getSystemProxyInner() {
+    private static ProxyInfo getSystemProxyInner() {
         final URI uri = new URI("https://login.microsoft.com");
         // modified version of find system proxy at
         // https://stackoverflow.com/questions/4933677/detecting-windows-ie-proxy-setting-using-java/4933746#4933746
@@ -128,8 +149,19 @@ public class ProxyManager {
             if (!(proxy.address() instanceof InetSocketAddress)) {
                 continue;
             }
-            return proxy;
+            final InetSocketAddress address = (InetSocketAddress) proxy.address();
+            return ProxyInfo.builder().source("system").host(address.getHostName()).port(address.getPort()).build();
         }
         return null;
+    }
+
+    @SuperBuilder
+    @Getter
+    public static class ProxyInfo {
+        private String source;
+        private String host;
+        private int port;
+        private String username;
+        private String password;
     }
 }

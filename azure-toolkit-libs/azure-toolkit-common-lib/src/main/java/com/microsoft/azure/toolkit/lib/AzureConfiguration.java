@@ -8,8 +8,6 @@ package com.microsoft.azure.toolkit.lib;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.net.InetSocketAddress;
-
 @Getter
 @Setter
 public class AzureConfiguration {
@@ -23,7 +21,8 @@ public class AzureConfiguration {
     private Boolean telemetryEnabled; // null means true
     private String functionCoreToolsPath;
     private String proxySource;
-    private InetSocketAddress httpProxy; // TODO: change to primitive type
+    private String httpProxyHost;
+    private int httpProxyPort;
     private String proxyUsername;
     private String proxyPassword;
 }
