@@ -9,8 +9,10 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.SqlServerManager;
 import com.microsoft.azure.toolkit.lib.common.database.FirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.common.database.JdbcUrl;
+import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlDatabaseEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
@@ -26,7 +28,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class SqlServer implements ISqlServer {
+public class SqlServer implements AzureOperationEvent.Source<SqlServer>, ISqlServer {
     private SqlServerEntity entity;
 
     private final SqlServerManager manager;
@@ -51,6 +53,7 @@ public class SqlServer implements ISqlServer {
     }
 
     @Override
+    @AzureOperation(name = "sqlserver|server.delete", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
         if (StringUtils.isNotBlank(entity.getId())) {
             SqlServer.this.manager.sqlServers().deleteById(entity.getId());
@@ -145,6 +148,7 @@ public class SqlServer implements ISqlServer {
     class SqlServerCreator extends ISqlServerCreator.AbstractSqlServerCreator<SqlServer> {
 
         @Override
+        @AzureOperation(name = "sqlserver|server.create", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
         public SqlServer commit() {
             // create
             sqlServerInner = SqlServer.this.manager.sqlServers().define(getName())
