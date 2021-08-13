@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib;
 
+import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,4 +26,12 @@ public class AzureConfiguration {
     private int httpProxyPort;
     private String proxyUsername;
     private String proxyPassword;
+
+    public void setProxyInfo(ProxyInfo proxy) {
+        this.setProxySource(proxy.getSource());
+        this.setHttpProxyHost(proxy.getHost());
+        this.setHttpProxyPort(proxy.getPort());
+        this.setProxyUsername(proxy.getUsername());
+        this.setProxyPassword(proxy.getPassword());
+    }
 }

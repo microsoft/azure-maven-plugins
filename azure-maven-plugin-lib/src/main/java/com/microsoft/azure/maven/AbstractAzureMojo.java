@@ -31,6 +31,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetryClient;
@@ -526,14 +527,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
                 final Proxy mavenProxy = mavenProxies.stream().filter(
                     proxy -> proxy.isActive() && proxy.getPort() > 0 && StringUtils.isNotBlank(proxy.getHost())).findFirst().orElse(null);
                 if (mavenProxy != null) {
-                    final ProxyManager.ProxyInfo mavenProxyInfo = ProxyManager.ProxyInfo.builder()
+                    final ProxyInfo mavenProxyInfo = ProxyInfo.builder()
                         .source("maven")
                         .host(mavenProxy.getHost())
                         .port(mavenProxy.getPort())
                         .username(mavenProxy.getUsername())
                         .password(mavenProxy.getPassword())
                         .build();
-                    ProxyManager.getInstance().setActiveProxy(mavenProxyInfo);
+                    Azure.az().config().setProxyInfo(mavenProxyInfo);
                 }
             }
         }

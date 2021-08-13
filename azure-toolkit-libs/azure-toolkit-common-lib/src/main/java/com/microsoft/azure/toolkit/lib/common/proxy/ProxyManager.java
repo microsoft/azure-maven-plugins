@@ -9,9 +9,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
-import lombok.Getter;
 import lombok.SneakyThrows;
-import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -56,7 +54,7 @@ public class ProxyManager {
             );
 
             if (proxy != null) {
-                setActiveProxy(proxy);
+                config.setProxyInfo(proxy);
                 source = config.getProxySource();
             }
         }
@@ -95,15 +93,6 @@ public class ProxyManager {
                 }
             }
         }
-    }
-
-    public void setActiveProxy(ProxyInfo proxy) {
-        final AzureConfiguration config = Azure.az().config();
-        config.setProxySource(proxy.source);
-        config.setHttpProxyHost(proxy.host);
-        config.setHttpProxyPort(proxy.port);
-        config.setProxyUsername(proxy.username);
-        config.setProxyPassword(proxy.password);
     }
 
     private ProxyInfo getSystemProxy() {
@@ -155,13 +144,4 @@ public class ProxyManager {
         return null;
     }
 
-    @SuperBuilder
-    @Getter
-    public static class ProxyInfo {
-        private String source;
-        private String host;
-        private int port;
-        private String username;
-        private String password;
-    }
 }
