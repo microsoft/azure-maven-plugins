@@ -85,7 +85,7 @@ public class AzureGroup extends SubscriptionScoped<AzureGroup> implements AzureS
     }
 
     public boolean checkNameAvailability(String subscriptionId, String name) {
-        return getResourceManager(subscriptionId).resourceGroups().contain(name);
+        return !getResourceManager(subscriptionId).resourceGroups().contain(name);
     }
 
     private static ResourceGroup fromResource(@Nonnull com.azure.resourcemanager.resources.models.ResourceGroup resource) {
