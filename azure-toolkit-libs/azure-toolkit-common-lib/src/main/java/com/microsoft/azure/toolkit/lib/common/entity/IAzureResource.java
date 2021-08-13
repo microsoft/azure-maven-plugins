@@ -24,15 +24,17 @@ package com.microsoft.azure.toolkit.lib.common.entity;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 public interface IAzureResource<T extends IAzureResourceEntity> {
     String PROPERTY_STATUS = "status";
     String PROPERTY_CHILDREN = "children";
+    String REST_SEGMENT_JOB_MANAGEMENT_TENANTID = "/#@";
+    String REST_SEGMENT_JOB_MANAGEMENT_RESOURCE = "/resource";
 
     IAzureResource<T> refresh();
 
@@ -68,7 +70,13 @@ public interface IAzureResource<T extends IAzureResourceEntity> {
     }
 
     default String portalUrl() {
-        return null;
+        final IAccount account = Azure.az(IAzureAccount.class).account();
+        Subscription subscription = account.getSubscription(this.subscriptionId());
+        return account.portalUrl()
+                + REST_SEGMENT_JOB_MANAGEMENT_TENANTID
+                + subscription.getTenantId()
+                + REST_SEGMENT_JOB_MANAGEMENT_RESOURCE
+                + this.id();
     }
 
     interface Status {
