@@ -84,6 +84,10 @@ public class AzureGroup extends SubscriptionScoped<AzureGroup> implements AzureS
                 .resourceGroups().deleteByName(name);
     }
 
+    public boolean checkNameAvailability(String subscriptionId, String name) {
+        return !getResourceManager(subscriptionId).resourceGroups().contain(name);
+    }
+
     private static ResourceGroup fromResource(@Nonnull com.azure.resourcemanager.resources.models.ResourceGroup resource) {
         final ResourceId resourceId = ResourceId.fromString(resource.id());
         String subscriptionId = resourceId.subscriptionId();
