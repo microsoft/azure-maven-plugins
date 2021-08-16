@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
-package com.microsoft.azure.toolkit.lib.sqlserver.service;
+package com.microsoft.azure.toolkit.lib.sqlserver;
 
 import com.azure.core.management.Region;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
@@ -11,13 +11,14 @@ import com.azure.resourcemanager.sql.models.CapabilityStatus;
 import com.azure.resourcemanager.sql.models.CheckNameAvailabilityResult;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
+import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
+import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.sqlserver.SqlServerManagerFactory;
-import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
-import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
-import com.microsoft.azure.toolkit.lib.sqlserver.service.impl.SqlServer;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
+import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerConfig;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -36,30 +37,27 @@ public class AzureSqlServer extends SubscriptionScoped<AzureSqlServer> implement
     }
 
     public SqlServer sqlServer(String id) {
-        final SqlServerEntity entity = SqlServerEntity.builder().id(id).build();
-        return sqlServer(entity);
+        final com.azure.resourcemanager.sql.models.SqlServer remote =
+                SqlServerManagerFactory.create(ResourceId.fromString(id).subscriptionId()).sqlServers().getById(id);
+        return new SqlServer(remote.manager(), remote);
     }
 
     public SqlServer sqlServer(String subscriptionId, String resourceGroup, String name) {
-        final SqlServerEntity entity = SqlServerEntity.builder().subscriptionId(subscriptionId).resourceGroup(resourceGroup).name(name).build();
-        return sqlServer(entity);
+        final com.azure.resourcemanager.sql.models.SqlServer remote =
+                SqlServerManagerFactory.create(subscriptionId).sqlServers().getByResourceGroup(resourceGroup, name);
+        return new SqlServer(remote.manager(), remote);
     }
 
-    public SqlServer sqlServer(SqlServerEntity entity) {
-        final String subscriptionId = getSubscriptionFromResourceEntity(entity);
-        return new SqlServer(entity, SqlServerManagerFactory.create(subscriptionId));
+    public Creator create(SqlServerConfig config) {
+        return new Creator(config);
     }
 
-    private SqlServer sqlServer(com.azure.resourcemanager.sql.models.SqlServer sqlServerInner) {
-        return new SqlServer(sqlServerInner, SqlServerManagerFactory.create(sqlServerInner.manager().subscriptionId()));
-    }
-
-    public List<SqlServer> sqlServers() {
+    public List<SqlServer> list() {
         return getSubscriptions().stream()
                 .map(subscription -> SqlServerManagerFactory.create(subscription.getId()))
                 .flatMap(manager -> manager.sqlServers().list().stream())
                 .collect(Collectors.toList()).stream()
-                .map(server -> sqlServer(server))
+                .map(remote -> new SqlServer(remote.manager(), remote))
                 .collect(Collectors.toList());
     }
 
@@ -84,4 +82,38 @@ public class AzureSqlServer extends SubscriptionScoped<AzureSqlServer> implement
         }
         throw new AzureToolkitRuntimeException("Subscription id is required for this request.");
     }
+
+    class Creator implements ICommittable<SqlServer>, AzureOperationEvent.Source<SqlServerConfig> {
+
+        private SqlServerConfig config;
+
+        Creator(SqlServerConfig config) {
+            this.config = config;
+        }
+
+        @Override
+        @AzureOperation(name = "sqlserver|server.create", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+        public SqlServer commit() {
+            // create
+            com.azure.resourcemanager.sql.models.SqlServer remote = SqlServerManagerFactory.create(config.getSubscriptionId()).sqlServers()
+                    .define(config.getName())
+                    .withRegion(config.getRegion().getName())
+                    .withExistingResourceGroup(config.getResourceGroupName())
+                    .withAdministratorLogin(config.getAdministratorLoginName())
+                    .withAdministratorPassword(config.getAdministratorLoginPassword())
+                    .create();
+            SqlServer server = new SqlServer(remote.manager(), remote);
+            // update firewall rules
+            server.update()
+                    .withEnableAccessFromAzureServices(config.isEnableAccessFromAzureServices())
+                    .withEnableAccessFromLocalMachine(config.isEnableAccessFromLocalMachine())
+                    .commit();
+            return server;
+        }
+
+        public AzureOperationEvent.Source<SqlServerConfig> getEventSource() {
+            return new AzureOperationEvent.Source<SqlServerConfig>() {};
+        }
+    }
+
 }
