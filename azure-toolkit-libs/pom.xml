@@ -68,7 +68,6 @@
         <azure.appplatform-sdk.version>1.0.0-beta</azure.appplatform-sdk.version>
         <azure.resourcemanager-applicationinsights.version>1.0.0-beta.1</azure.resourcemanager-applicationinsights.version>
         <azure.azure-mgmt-appplatform.version>1.0.0-beta</azure.azure-mgmt-appplatform.version>
-        <azure.mgmt-insights.version>1.0.0-beta</azure.mgmt-insights.version>
         <azure.client.version>1.7.12</azure.client.version>
         <azure.identity.version>1.3.0</azure.identity.version>
         <azure.resourcemanager.version>2.5.0</azure.resourcemanager.version>
@@ -301,11 +300,6 @@
                 <groupId>com.microsoft.azure.appplatform.v2020_07_01</groupId>
                 <artifactId>azure-mgmt-appplatform</artifactId>
                 <version>${azure.azure-mgmt-appplatform.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure.applicationinsights.v2015_05_01</groupId>
-                <artifactId>azure-mgmt-insights</artifactId>
-                <version>${azure.mgmt-insights.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.azure</groupId>

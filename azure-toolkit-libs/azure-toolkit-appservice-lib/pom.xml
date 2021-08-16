@@ -48,13 +48,6 @@
             <artifactId>azure-toolkit-auth-lib</artifactId>
         </dependency>
 
-
-        <!-- https://mvnrepository.com/artifact/com.microsoft.azure.applicationinsights.v2015_05_01/azure-mgmt-insights -->
-        <dependency>
-            <groupId>com.microsoft.azure.applicationinsights.v2015_05_01</groupId>
-            <artifactId>azure-mgmt-insights</artifactId>
-            <version>1.0.0-beta</version>
-        </dependency>
         <dependency>
             <groupId>com.microsoft.azure.functions</groupId>
             <artifactId>azure-functions-java-library</artifactId>
