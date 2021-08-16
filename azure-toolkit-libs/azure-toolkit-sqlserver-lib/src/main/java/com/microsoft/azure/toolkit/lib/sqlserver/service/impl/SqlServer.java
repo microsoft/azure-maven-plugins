@@ -7,16 +7,15 @@ package com.microsoft.azure.toolkit.lib.sqlserver.service.impl;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.SqlServerManager;
-import com.microsoft.azure.toolkit.lib.common.database.FirewallRuleEntity;
-import com.microsoft.azure.toolkit.lib.common.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
+import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
+import com.microsoft.azure.toolkit.lib.database.entity.FirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlDatabaseEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
-import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServer;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServerCreator;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServerUpdater;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +27,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class SqlServer implements AzureOperationEvent.Source<SqlServer>, ISqlServer {
+public class SqlServer implements AzureOperationEvent.Source<SqlServer> {
     private SqlServerEntity entity;
 
     private final SqlServerManager manager;
@@ -46,13 +45,11 @@ public class SqlServer implements AzureOperationEvent.Source<SqlServer>, ISqlSer
         this.entity = this.fromSqlServer(sqlServerInner);
     }
 
-    @Override
     public SqlServerEntity entity() {
         this.refreshInnerIfNotSet();
         return entity;
     }
 
-    @Override
     @AzureOperation(name = "sqlserver|server.delete", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
         if (StringUtils.isNotBlank(entity.getId())) {
@@ -64,8 +61,7 @@ public class SqlServer implements AzureOperationEvent.Source<SqlServer>, ISqlSer
         }
     }
 
-    @Override
-    public ISqlServerCreator<? extends ISqlServer> create() {
+    public ISqlServerCreator<? extends SqlServer> create() {
         return new SqlServerCreator()
             .withName(entity.getName())
             .withResourceGroup(entity.getResourceGroup())
@@ -75,20 +71,17 @@ public class SqlServer implements AzureOperationEvent.Source<SqlServer>, ISqlSer
             .withEnableAccessFromLocalMachine(entity.isEnableAccessFromLocalMachine());
     }
 
-    @Override
-    public ISqlServerUpdater<? extends ISqlServer> update() {
+    public ISqlServerUpdater<? extends SqlServer> update() {
         return new SqlServerUpdater()
             .withEnableAccessFromAzureServices(SqlServer.this.entity.isEnableAccessFromAzureServices())
             .withEnableAccessFromLocalMachine(SqlServer.this.entity.isEnableAccessFromLocalMachine());
     }
 
-    @Override
     public List<FirewallRuleEntity> firewallRules() {
         this.refreshInnerIfNotSet();
         return sqlServerInner.firewallRules().list().stream().map(this::formSqlServerFirewallRule).collect(Collectors.toList());
     }
 
-    @Override
     public List<SqlDatabaseEntity> databases() {
         this.refreshInnerIfNotSet();
         return sqlServerInner.databases().list().stream().map(this::formSqlDatabase).collect(Collectors.toList());

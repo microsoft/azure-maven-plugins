@@ -5,7 +5,7 @@
 package com.microsoft.azure.toolkit.lib.sqlserver.service.impl;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.common.database.FirewallRuleEntity;
+import com.microsoft.azure.toolkit.lib.database.entity.FirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlFirewallRule;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlFirewallRuleCreator;
 
