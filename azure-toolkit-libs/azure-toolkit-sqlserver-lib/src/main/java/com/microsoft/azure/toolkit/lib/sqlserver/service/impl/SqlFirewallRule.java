@@ -45,7 +45,8 @@ public class SqlFirewallRule implements ISqlFirewallRule {
 
         @Override
         public SqlFirewallRule commit() {
-            com.azure.resourcemanager.sql.models.SqlFirewallRule rule = sqlServerInner.firewallRules().define(getName()).withIpAddressRange(getStartIpAddress(), getEndIpAddress()).create();
+            com.azure.resourcemanager.sql.models.SqlFirewallRule rule = sqlServerInner.firewallRules()
+                    .define(getName()).withIpAddressRange(getStartIpAddress(), getEndIpAddress()).create();
             SqlFirewallRule.this.entity = fromSqlFirewallRule(rule);
             return SqlFirewallRule.this;
         }
