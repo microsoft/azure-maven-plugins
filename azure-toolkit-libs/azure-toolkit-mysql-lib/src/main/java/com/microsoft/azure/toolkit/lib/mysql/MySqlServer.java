@@ -43,15 +43,13 @@ public class MySqlServer extends AbstractAzureEntityManager<MySqlServer, MySqlSe
     @Override
     protected Server loadRemote() {
         try {
-            this.entity().setRemote(manager.servers().getById(this.entity.getId()));
+            return manager.servers().getById(this.entity.getId());
         } catch (ManagementException ex) {
             if (HttpStatus.SC_NOT_FOUND == ex.getResponse().getStatusCode()) {
-                this.entity().setRemote(null);
-            } else {
-                throw ex;
+                return null;
             }
+            throw ex;
         }
-        return this.entity.getRemote();
     }
 
     public String getPublicIpForLocalMachine() {
