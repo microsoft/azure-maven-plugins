@@ -22,12 +22,9 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
-import com.microsoft.azure.toolkit.lib.database.entity.FirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.mysql.model.MySqlServerConfig;
-import com.microsoft.azure.toolkit.lib.mysql.service.MySqlManagerFactory;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -70,6 +67,10 @@ public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureS
         MySqlManager manager = MySqlManagerFactory.create(getDefaultSubscription().getId());
         final Server server = MySqlManagerFactory.create(getDefaultSubscription().getId()).servers().getByResourceGroup(resourceGroup, name);
         return new MySqlServer(manager, server);
+    }
+
+    public ICommittable<MySqlServer> create(MySqlServerConfig config) {
+        return new Creator(config);
     }
 
     private static int getTierPriority(PerformanceTierProperties tier) {

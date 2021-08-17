@@ -15,9 +15,9 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
+import com.microsoft.azure.toolkit.lib.database.entity.IDatabaseServer;
 import com.microsoft.azure.toolkit.lib.mysql.model.MySqlDatabaseEntity;
 import com.microsoft.azure.toolkit.lib.mysql.model.MySqlServerEntity;
-import com.microsoft.azure.toolkit.lib.mysql.service.MySqlFirewallRules;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * See: https://docs.microsoft.com/en-us/cli/azure/mysql/server?view=azure-cli-latest
  */
 public class MySqlServer extends AbstractAzureEntityManager<MySqlServer, MySqlServerEntity, Server> implements AzureOperationEvent.Source<MySqlServer>,
-    IAzureEntityManager<MySqlServerEntity> {
+    IAzureEntityManager<MySqlServerEntity>, IDatabaseServer {
     @Nonnull
     private final MySqlManager manager;
 

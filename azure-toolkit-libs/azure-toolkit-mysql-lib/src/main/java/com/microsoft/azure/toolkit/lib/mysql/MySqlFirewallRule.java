@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.mysql.service;
+package com.microsoft.azure.toolkit.lib.mysql;
 
 import com.azure.resourcemanager.mysql.MySqlManager;
 import com.azure.resourcemanager.mysql.models.FirewallRule;
