@@ -48,7 +48,7 @@ public class AzureSqlServer extends SubscriptionScoped<AzureSqlServer> implement
         return new SqlServer(remote.manager(), remote);
     }
 
-    public Creator create(SqlServerConfig config) {
+    public ICommittable<SqlServer> create(SqlServerConfig config) {
         return new Creator(config);
     }
 

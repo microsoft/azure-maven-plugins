@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import com.microsoft.azure.toolkit.lib.database.IDatabaseServerUpdater;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.database.entity.FirewallRuleEntity;
+import com.microsoft.azure.toolkit.lib.database.entity.IDatabaseServer;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlDatabaseEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +29,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class SqlServer extends AbstractAzureEntityManager<SqlServer, SqlServerEntity, com.azure.resourcemanager.sql.models.SqlServer>
-        implements AzureOperationEvent.Source<SqlServer>, IAzureEntityManager<SqlServerEntity> {
+        implements AzureOperationEvent.Source<SqlServer>, IAzureEntityManager<SqlServerEntity>, IDatabaseServer {
 
     private final SqlServerManager manager;
 
