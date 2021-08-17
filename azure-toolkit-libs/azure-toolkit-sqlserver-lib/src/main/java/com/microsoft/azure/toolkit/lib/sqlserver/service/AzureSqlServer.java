@@ -35,26 +35,26 @@ public class AzureSqlServer extends SubscriptionScoped<AzureSqlServer> implement
         super(AzureSqlServer::new, subscriptions);
     }
 
-    public ISqlServer sqlServer(String id) {
+    public SqlServer sqlServer(String id) {
         final SqlServerEntity entity = SqlServerEntity.builder().id(id).build();
         return sqlServer(entity);
     }
 
-    public ISqlServer sqlServer(String subscriptionId, String resourceGroup, String name) {
+    public SqlServer sqlServer(String subscriptionId, String resourceGroup, String name) {
         final SqlServerEntity entity = SqlServerEntity.builder().subscriptionId(subscriptionId).resourceGroup(resourceGroup).name(name).build();
         return sqlServer(entity);
     }
 
-    public ISqlServer sqlServer(SqlServerEntity entity) {
+    public SqlServer sqlServer(SqlServerEntity entity) {
         final String subscriptionId = getSubscriptionFromResourceEntity(entity);
         return new SqlServer(entity, SqlServerManagerFactory.create(subscriptionId));
     }
 
-    private ISqlServer sqlServer(com.azure.resourcemanager.sql.models.SqlServer sqlServerInner) {
+    private SqlServer sqlServer(com.azure.resourcemanager.sql.models.SqlServer sqlServerInner) {
         return new SqlServer(sqlServerInner, SqlServerManagerFactory.create(sqlServerInner.manager().subscriptionId()));
     }
 
-    public List<ISqlServer> sqlServers() {
+    public List<SqlServer> sqlServers() {
         return getSubscriptions().stream()
                 .map(subscription -> SqlServerManagerFactory.create(subscription.getId()))
                 .flatMap(manager -> manager.sqlServers().list().stream())

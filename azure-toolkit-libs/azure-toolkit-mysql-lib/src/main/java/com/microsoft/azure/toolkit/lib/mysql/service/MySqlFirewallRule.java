@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.lib.mysql.service;
 
 import com.azure.resourcemanager.mysql.MySqlManager;
 import com.azure.resourcemanager.mysql.models.FirewallRule;
-import com.microsoft.azure.toolkit.lib.common.database.FirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
+import com.microsoft.azure.toolkit.lib.database.entity.FirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.mysql.model.MySqlEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

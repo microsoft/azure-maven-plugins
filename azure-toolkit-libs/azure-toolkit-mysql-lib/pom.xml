@@ -20,6 +20,11 @@
 
         <dependency>
             <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-toolkit-database-lib</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-toolkit-auth-lib</artifactId>
         </dependency>
 

@@ -5,7 +5,7 @@
 package com.microsoft.azure.toolkit.lib.sqlserver.service.impl;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.common.database.FirewallRuleEntity;
+import com.microsoft.azure.toolkit.lib.database.entity.FirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlFirewallRule;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlFirewallRuleCreator;
 
@@ -45,7 +45,8 @@ public class SqlFirewallRule implements ISqlFirewallRule {
 
         @Override
         public SqlFirewallRule commit() {
-            com.azure.resourcemanager.sql.models.SqlFirewallRule rule = sqlServerInner.firewallRules().define(getName()).withIpAddressRange(getStartIpAddress(), getEndIpAddress()).create();
+            com.azure.resourcemanager.sql.models.SqlFirewallRule rule = sqlServerInner.firewallRules()
+                    .define(getName()).withIpAddressRange(getStartIpAddress(), getEndIpAddress()).create();
             SqlFirewallRule.this.entity = fromSqlFirewallRule(rule);
             return SqlFirewallRule.this;
         }
