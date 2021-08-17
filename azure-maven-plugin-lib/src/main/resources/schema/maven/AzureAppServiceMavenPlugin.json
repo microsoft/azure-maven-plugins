@@ -63,16 +63,88 @@
     },
     "auth": {
       "title": "AuthConfiguration",
-      "description": "The auth config for accessing azure resources for maven",
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "description": "The auth config for accessing azure resources",
       "type": "object",
       "properties": {
+        "type": {
+          "$ref": "classpath:///schema/common/AuthConfiguration.json#/definitions/auth-type"
+        },
+        "client": {
+          "description": "Client ID",
+          "type": "string"
+        },
+        "tenant": {
+          "description": "Tenant ID",
+          "type": "string"
+        },
         "serverId": {
           "$ref": "classpath:///schema/common/NonEmptyString.json"
+        },
+        "key": {
+          "description": "Password",
+          "type": "string"
+        },
+        "certificate": {
+          "description": "The absolute path of your certificate",
+          "type": "string"
+        },
+        "certificatePassword": {
+          "description": "The password for your certificate, if there is any",
+          "type": "string"
+        },
+        "environment": {
+          "$ref": "classpath:///schema/common/AzureEnvironment.json"
         }
       },
       "allOf": [
-        {"$ref": "classpath:///schema/common/AuthConfiguration.json"}
-      ]
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "pattern": "(?i)^service_principal$"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": [
+                  "client",
+                  "tenant",
+                  "key"
+                ]
+              },
+              {
+                "required": [
+                  "client",
+                  "tenant",
+                  "certificate"
+                ]
+              },
+              {
+                "required": [
+                  "serverId"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "not": {
+        "required": [
+          "key",
+          "certificate"
+        ]
+      },
+      "dependencies": {
+        "certificatePassword": [
+          "certificate"
+        ]
+      }
     }
   }
 }
