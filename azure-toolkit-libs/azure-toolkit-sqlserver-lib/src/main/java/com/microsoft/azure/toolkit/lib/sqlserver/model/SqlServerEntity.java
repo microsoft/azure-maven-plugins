@@ -21,7 +21,7 @@ public class SqlServerEntity extends AbstractAzureEntityManager.RemoteAwareResou
     @Nonnull
     private final ResourceId resourceId;
 
-    public SqlServerEntity(SqlServer server) {
+    public SqlServerEntity(@Nonnull SqlServer server) {
         this.resourceId = ResourceId.fromString(server.id());
         this.remote = server;
     }
@@ -61,13 +61,13 @@ public class SqlServerEntity extends AbstractAzureEntityManager.RemoteAwareResou
     @Override
     public boolean isEnableAccessFromAzureServices() {
         return remoteOptional().map(remote -> remote.firewallRules().list().stream()
-                .anyMatch(e -> FirewallRuleEntity.ACCESS_FROM_AZURE_SERVICES_FIREWALL_RULE_NAME.equalsIgnoreCase(e.name()))).orElse(null);
+                .anyMatch(e -> FirewallRuleEntity.ACCESS_FROM_AZURE_SERVICES_FIREWALL_RULE_NAME.equalsIgnoreCase(e.name()))).orElse(false);
     }
 
     @Override
     public boolean isEnableAccessFromLocalMachine() {
         return remoteOptional().map(remote -> remote.firewallRules().list().stream()
-                .anyMatch(e -> StringUtils.equalsIgnoreCase(FirewallRuleEntity.getAccessFromLocalFirewallRuleName(), e.name()))).orElse(null);
+                .anyMatch(e -> StringUtils.equalsIgnoreCase(FirewallRuleEntity.getAccessFromLocalFirewallRuleName(), e.name()))).orElse(false);
     }
 
     @Override
