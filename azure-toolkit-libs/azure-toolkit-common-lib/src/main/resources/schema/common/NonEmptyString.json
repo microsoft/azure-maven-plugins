@@ -1,0 +1,7 @@
+{
+  "title": "None Empty String",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Schema for non-empty string",
+  "type": "string",
+  "minLength": 1
+}

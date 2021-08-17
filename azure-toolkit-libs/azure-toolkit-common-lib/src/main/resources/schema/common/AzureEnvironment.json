@@ -1,0 +1,8 @@
+{
+  "title": "Azure Environment",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "The Azure cloud environment",
+  "type": "string",
+  "default": "AZURE",
+  "pattern": "(?i)^(AZURE|AZURE_CHINA|AZURE_GERMANY|AZURE_US_GOVERNMENT)$"
+}
