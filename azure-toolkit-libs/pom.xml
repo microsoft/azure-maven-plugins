@@ -138,6 +138,7 @@
         <plexus-interpolation.version>1.26</plexus-interpolation.version>
         <powermock.version>2.0.9</powermock.version>
         <azure-resourcemanager-mysql.version>1.0.0</azure-resourcemanager-mysql.version>
+        <networknt.json-schema-validator.version>1.0.57</networknt.json-schema-validator.version>
     </properties>
 
     <dependencyManagement>
@@ -701,6 +702,11 @@
                 <groupId>org.glassfish.jaxb</groupId>
                 <artifactId>jaxb-runtime</artifactId>
                 <version>${jaxb.runtime.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.networknt</groupId>
+                <artifactId>json-schema-validator</artifactId>
+                <version>${networknt.json-schema-validator.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.java-json-tools</groupId>
