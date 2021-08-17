@@ -41,15 +41,13 @@ public class SqlServer extends AbstractAzureEntityManager<SqlServer, SqlServerEn
     @Override
     protected com.azure.resourcemanager.sql.models.SqlServer loadRemote() {
         try {
-            this.entity().setRemote(manager.sqlServers().getById(this.entity.getId()));
+            return manager.sqlServers().getById(this.entity.getId());
         } catch (ManagementException ex) {
             if (HttpStatus.SC_NOT_FOUND == ex.getResponse().getStatusCode()) {
                 this.entity().setRemote(null);
-            } else {
-                throw ex;
             }
+            throw ex;
         }
-        return entity.getRemote();
     }
 
     @AzureOperation(name = "sqlserver|server.delete", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
