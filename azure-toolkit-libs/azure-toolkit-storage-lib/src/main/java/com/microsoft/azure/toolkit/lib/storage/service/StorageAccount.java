@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.lib.storage.service;
 
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.storage.StorageManager;
-import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureEntityManager;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureResource;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountEntity;
@@ -16,8 +16,8 @@ import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
 
-public class StorageAccount extends AbstractAzureEntityManager<StorageAccount, StorageAccountEntity, com.azure.resourcemanager.storage.models.StorageAccount>
-        implements AzureOperationEvent.Source<StorageAccount>, IAzureEntityManager<StorageAccountEntity> {
+public class StorageAccount extends AbstractAzureResource<StorageAccount, StorageAccountEntity, com.azure.resourcemanager.storage.models.StorageAccount>
+        implements AzureOperationEvent.Source<StorageAccount>, IAzureResource<StorageAccountEntity> {
     @Nonnull
     private final StorageManager manager;
 

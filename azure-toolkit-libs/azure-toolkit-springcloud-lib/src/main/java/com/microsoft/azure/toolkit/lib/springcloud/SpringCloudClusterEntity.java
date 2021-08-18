@@ -1,23 +1,6 @@
 /*
- * Copyright (c) Microsoft Corporation
- *
- * All rights reserved.
- *
- * MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
- * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
- * the Software.
- *
- * THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
- * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
 package com.microsoft.azure.toolkit.lib.springcloud;
@@ -25,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.TestKeys;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureEntityManager.RemoteAwareResourceEntity;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource.RemoteAwareResourceEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudSku;
 import lombok.Getter;
 
@@ -42,9 +25,9 @@ public class SpringCloudClusterEntity extends RemoteAwareResourceEntity<SpringSe
 
     SpringCloudClusterEntity(@Nonnull final SpringService resource) {
         this.remote = resource;
-        final ResourceId id = ResourceId.fromString(this.remote.id());
-        this.resourceGroup = id.resourceGroupName();
-        this.subscriptionId = id.subscriptionId();
+        final ResourceId resourceId = ResourceId.fromString(this.remote.id());
+        this.resourceGroup = resourceId.resourceGroupName();
+        this.subscriptionId = resourceId.subscriptionId();
         this.name = resource.name();
         this.id = resource.id();
     }

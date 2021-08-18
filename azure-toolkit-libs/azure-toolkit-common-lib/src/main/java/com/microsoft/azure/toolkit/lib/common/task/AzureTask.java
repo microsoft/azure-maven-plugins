@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.common.task;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
-import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -36,6 +35,9 @@ public class AzureTask<T> implements IAzureOperation {
     private boolean backgroundable = true;
     @Nullable
     private Boolean backgrounded = null;
+    @Nonnull
+    @Builder.Default
+    private String type = "ASYNC";
 
     public AzureTask() {
         this((Supplier<T>) null);
@@ -130,19 +132,7 @@ public class AzureTask<T> implements IAzureOperation {
 
     @Nonnull
     public String getId() {
-        return "&" + Utils.getId(this);
-    }
-
-    @Override
-    @Nonnull
-    public String getName() {
-        return Optional.ofNullable(this.getTitle()).map(AzureString::getName).orElse(UNKNOWN_NAME);
-    }
-
-    @Override
-    @Nonnull
-    public String getType() {
-        return "ASYNC";
+        return "&" + IAzureOperation.super.getId();
     }
 
     @Override

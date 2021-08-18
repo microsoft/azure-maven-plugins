@@ -7,13 +7,13 @@ package com.microsoft.azure.toolkit.lib.storage.model;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.storage.models.StorageAccount;
-import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
-public class StorageAccountEntity extends AbstractAzureEntityManager.RemoteAwareResourceEntity<StorageAccount> implements IStorageAccountEntity {
+public class StorageAccountEntity extends AbstractAzureResource.RemoteAwareResourceEntity<StorageAccount> implements IStorageAccountEntity {
 
     @Nonnull
     private final ResourceId resourceId;
