@@ -64,10 +64,8 @@ public interface DataStore {
             thisStore.put(key, val);
         }
     }
-}
 
-//CHECKSTYLE:OFF: OneTopLevelClass
-final class Impl {
-    static final WeakHashMap<Object, Map<Object, Object>> store = new WeakHashMap<>();
+    final class Impl {
+        static final WeakHashMap<Object, Map<Object, Object>> store = new WeakHashMap<>();
+    }
 }
-//CHECKSTYLE:ON: OneTopLevelClass
