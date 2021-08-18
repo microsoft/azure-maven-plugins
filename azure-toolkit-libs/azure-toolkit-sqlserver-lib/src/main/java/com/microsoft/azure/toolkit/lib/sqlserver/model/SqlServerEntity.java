@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.sqlserver.model;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.models.SqlServer;
-import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.database.entity.FirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabaseServerEntity;
@@ -16,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
-public class SqlServerEntity extends AbstractAzureEntityManager.RemoteAwareResourceEntity<SqlServer> implements IDatabaseServerEntity {
+public class SqlServerEntity extends AbstractAzureResource.RemoteAwareResourceEntity<SqlServer> implements IDatabaseServerEntity {
 
     @Nonnull
     private final ResourceId resourceId;

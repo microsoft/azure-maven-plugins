@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.operation;
 
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureResource;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
@@ -70,6 +71,9 @@ public final class AzureOperationAspect {
             final AzureOperationEvent.Source<?> target = ((AzureOperationEvent.Source<?>) source).getEventSource();
             final AzureOperationEvent<?> event = new AzureOperationEvent(target, operation, AzureOperationEvent.Stage.ERROR);
             AzureEventBus.emit(operation.getName(), event);
+        }
+        if (source instanceof IAzureResource) {
+            ((IAzureResource<?>) source).refresh();
         }
         if (!(e instanceof RuntimeException)) {
             throw e; // do not wrap checked exception

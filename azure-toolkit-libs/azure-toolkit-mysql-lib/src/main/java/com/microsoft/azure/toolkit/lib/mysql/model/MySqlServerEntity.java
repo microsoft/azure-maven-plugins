@@ -12,7 +12,7 @@ import com.azure.resourcemanager.mysql.models.Sku;
 import com.azure.resourcemanager.mysql.models.SslEnforcementEnum;
 import com.azure.resourcemanager.mysql.models.StorageProfile;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.database.entity.FirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabaseServerEntity;
@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
-public class MySqlServerEntity extends AbstractAzureEntityManager.RemoteAwareResourceEntity<Server> implements IDatabaseServerEntity {
+public class MySqlServerEntity extends AbstractAzureResource.RemoteAwareResourceEntity<Server> implements IDatabaseServerEntity {
 
     @Nonnull
     private final MySqlManager manager;

@@ -10,7 +10,12 @@ import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import java.util.List;
 
 public interface IAccount {
+
     List<Subscription> getSubscriptions();
+
     List<Subscription> getSelectedSubscriptions();
+
     Subscription getSubscription(String subscriptionId);
+
+    String portalUrl();
 }

@@ -64,8 +64,8 @@ public class AzureBundle {
     @Nullable
     @Cacheable(cacheName = "bundle/package/{}/pattern/{}", key = "$pkg/$key")
     public static String pattern(@Nonnull final String pkg, @Nonnull final String key) {
-        final List<ResourceBundle> bundles = getBundles(pkg, key);
-        for (ResourceBundle bundle : bundles) {
+        final List<ResourceBundle> pkgBundles = getBundles(pkg, key);
+        for (ResourceBundle bundle : pkgBundles) {
             final String pattern = getPattern(key, bundle);
             if (Objects.nonNull(pattern)) {
                 return pattern;
@@ -80,10 +80,13 @@ public class AzureBundle {
         final String exSub = String.format("%s.%s", pkg, subClass);
         final String exSup = String.format("%s.%s", pkg, supClass);
         final String exIdx = String.format("%s.%s", pkg, INDEX);
+        final String ideSub = String.format("%s.ide.%s", pkg, subClass);
+        final String ideSup = String.format("%s.ide.%s", pkg, supClass);
+        final String ideIdx = String.format("%s.ide.%s", pkg, INDEX);
         final String sub = String.format("%s.base.%s", pkg, subClass);
         final String sup = String.format("%s.base.%s", pkg, supClass);
         final String idx = String.format("%s.base.%s", pkg, INDEX);
-        return Stream.of(exSub, exSup, exIdx, sub, sup, idx)
+        return Stream.of(exSub, exSup, exIdx, ideSub, ideSup, ideIdx, sub, sup, idx)
                 .map(fqn -> bundles.computeIfAbsent(fqn, k -> Optional.ofNullable(getBundle(fqn))))
                 .filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
     }

@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.lib.sqlserver;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.SqlServerManager;
-import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureEntityManager;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureResource;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -28,8 +28,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class SqlServer extends AbstractAzureEntityManager<SqlServer, SqlServerEntity, com.azure.resourcemanager.sql.models.SqlServer>
-        implements AzureOperationEvent.Source<SqlServer>, IAzureEntityManager<SqlServerEntity>, IDatabaseServer {
+public class SqlServer extends AbstractAzureResource<SqlServer, SqlServerEntity, com.azure.resourcemanager.sql.models.SqlServer>
+        implements AzureOperationEvent.Source<SqlServer>, IAzureResource<SqlServerEntity>, IDatabaseServer {
 
     private final SqlServerManager manager;
 

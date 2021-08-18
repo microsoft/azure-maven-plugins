@@ -9,8 +9,8 @@ import com.azure.resourcemanager.mysql.MySqlManager;
 import com.azure.resourcemanager.mysql.models.Database;
 import com.azure.resourcemanager.mysql.models.Server;
 import com.google.common.base.Preconditions;
-import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureEntityManager;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureResource;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
@@ -30,8 +30,8 @@ import java.util.stream.Collectors;
 /***
  * See: https://docs.microsoft.com/en-us/cli/azure/mysql/server?view=azure-cli-latest
  */
-public class MySqlServer extends AbstractAzureEntityManager<MySqlServer, MySqlServerEntity, Server> implements AzureOperationEvent.Source<MySqlServer>,
-    IAzureEntityManager<MySqlServerEntity>, IDatabaseServer {
+public class MySqlServer extends AbstractAzureResource<MySqlServer, MySqlServerEntity, Server> implements AzureOperationEvent.Source<MySqlServer>,
+        IAzureResource<MySqlServerEntity>, IDatabaseServer {
     @Nonnull
     private final MySqlManager manager;
 
