@@ -8,12 +8,10 @@
       "$ref": "#/definitions/auth-type"
     },
     "client": {
-      "description": "Client ID",
-      "type": "string"
+      "$ref": "classpath:///schema/common/UUID.json"
     },
     "tenant": {
-      "description": "Tenant ID",
-      "type": "string"
+      "$ref": "classpath:///schema/common/UUID.json"
     },
     "key": {
       "description": "Password",

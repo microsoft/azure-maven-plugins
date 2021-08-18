@@ -4,7 +4,7 @@
   "description": "Configuration for Maven plugin for Azure Web App",
   "properties": {
     "subscriptionId": {
-      "$ref": "classpath:///schema/common/NonEmptyString.json"
+      "$ref": "classpath:///schema/common/UUID.json"
     },
     "resourceGroup": {
       "$ref": "classpath:///schema/common/ResourceGroupName.json"
