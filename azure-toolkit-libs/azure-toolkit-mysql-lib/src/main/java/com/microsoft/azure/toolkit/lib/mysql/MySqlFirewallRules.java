@@ -3,13 +3,15 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.mysql.service;
+package com.microsoft.azure.toolkit.lib.mysql;
 
 import com.azure.resourcemanager.mysql.MySqlManager;
 import com.azure.resourcemanager.mysql.models.FirewallRule;
 import com.google.common.base.Preconditions;
+import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
+import com.microsoft.azure.toolkit.lib.database.entity.FirewallRuleConfig;
 import com.microsoft.azure.toolkit.lib.database.entity.FirewallRuleEntity;
-import com.microsoft.azure.toolkit.lib.mysql.model.MySqlEntity;
+import com.microsoft.azure.toolkit.lib.mysql.model.MySqlServerEntity;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,19 +23,19 @@ import java.util.stream.Collectors;
 public class MySqlFirewallRules {
 
     private final MySqlManager manager;
-    private final MySqlEntity mySqlEntity;
+    private final MySqlServerEntity serverEntity;
 
     public List<MySqlFirewallRule> list() {
-        return manager.firewallRules().listByServer(mySqlEntity.getResourceGroup(), this.mySqlEntity.getName()).stream()
+        return manager.firewallRules().listByServer(serverEntity.getResourceGroupName(), this.serverEntity.getName()).stream()
             .map(this::fromFirewallRule).collect(Collectors.toList());
     }
 
     private MySqlFirewallRule fromFirewallRule(FirewallRule firewallRule) {
-        return new MySqlFirewallRule(manager, mySqlEntity, MySqlFirewallRule.fromFirewallRule(firewallRule));
+        return new MySqlFirewallRule(manager, serverEntity, MySqlFirewallRule.fromFirewallRule(firewallRule));
     }
 
-    public AbstractMySqlFirewallRuleCreator create() {
-        return new MySqlFirewallRuleCreator();
+    public Creator create(FirewallRuleConfig config) {
+        return new Creator(config);
     }
 
     public MySqlFirewallRule enableLocalMachineAccessRule(String publicIp) {
@@ -47,9 +49,7 @@ public class MySqlFirewallRules {
             }
             return myFirewallRule.update(publicIp, publicIp).commit();
         } else {
-            return create().withName(name)
-                .wihStartIpAddress(publicIp)
-                .withEndIpAddress(publicIp).commit();
+            return create(FirewallRuleConfig.builder().name(name).startIpAddress(publicIp).endIpAddress(publicIp).build()).commit();
         }
     }
 
@@ -58,9 +58,10 @@ public class MySqlFirewallRules {
         if (allowAzureAccessRule != null) {
             return allowAzureAccessRule;
         }
-        return create().withName(FirewallRuleEntity.ACCESS_FROM_AZURE_SERVICES_FIREWALL_RULE_NAME)
-            .wihStartIpAddress(FirewallRuleEntity.IP_ALLOW_ACCESS_TO_AZURE_SERVICES)
-            .withEndIpAddress(FirewallRuleEntity.IP_ALLOW_ACCESS_TO_AZURE_SERVICES).commit();
+        return create(FirewallRuleConfig.builder()
+            .name(FirewallRuleEntity.ACCESS_FROM_AZURE_SERVICES_FIREWALL_RULE_NAME)
+            .startIpAddress(FirewallRuleEntity.IP_ALLOW_ACCESS_TO_AZURE_SERVICES)
+            .endIpAddress(FirewallRuleEntity.IP_ALLOW_ACCESS_TO_AZURE_SERVICES).build()).commit();
     }
 
     public void disableAzureAccessRule() {
@@ -76,7 +77,7 @@ public class MySqlFirewallRules {
     }
 
     private MySqlFirewallRule getAzureAccessRuleByName(String name) {
-        return manager.firewallRules().listByServer(mySqlEntity.getResourceGroup(), this.mySqlEntity.getName())
+        return manager.firewallRules().listByServer(serverEntity.getResourceGroupName(), this.serverEntity.getName())
             .stream().filter(e -> StringUtils.equals(name, e.name())).findFirst().map(this::fromFirewallRule).orElse(null);
     }
 
@@ -88,12 +89,21 @@ public class MySqlFirewallRules {
         return getAzureAccessRuleByName(FirewallRuleEntity.getAccessFromLocalFirewallRuleName()) != null;
     }
 
-    class MySqlFirewallRuleCreator extends AbstractMySqlFirewallRuleCreator {
+    class Creator implements ICommittable<MySqlFirewallRule> {
+
+        private final FirewallRuleConfig config;
+
+        Creator(FirewallRuleConfig config) {
+            this.config = config;
+        }
+
         @Override
         public MySqlFirewallRule commit() {
-            FirewallRule firewallRule = manager.firewallRules().define(this.getName()).withExistingServer(
-                MySqlFirewallRules.this.mySqlEntity.getResourceGroup(), MySqlFirewallRules.this.mySqlEntity.getName()).withStartIpAddress(getStartIpAddress())
-                .withEndIpAddress(getEndIpAddress()).create();
+            FirewallRule firewallRule = manager.firewallRules().define(config.getName())
+                .withExistingServer(MySqlFirewallRules.this.serverEntity.getResourceGroupName(), MySqlFirewallRules.this.serverEntity.getName())
+                .withStartIpAddress(config.getStartIpAddress())
+                .withEndIpAddress(config.getEndIpAddress())
+                .create();
             return fromFirewallRule(firewallRule);
         }
     }

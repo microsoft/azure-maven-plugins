@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
-package com.microsoft.azure.toolkit.lib.mysql.service;
+package com.microsoft.azure.toolkit.lib.mysql;
 
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.mysql.MySqlManager;
@@ -15,8 +15,9 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
+import com.microsoft.azure.toolkit.lib.database.entity.IDatabaseServer;
 import com.microsoft.azure.toolkit.lib.mysql.model.MySqlDatabaseEntity;
-import com.microsoft.azure.toolkit.lib.mysql.model.MySqlEntity;
+import com.microsoft.azure.toolkit.lib.mysql.model.MySqlServerEntity;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 
@@ -29,28 +30,26 @@ import java.util.stream.Collectors;
 /***
  * See: https://docs.microsoft.com/en-us/cli/azure/mysql/server?view=azure-cli-latest
  */
-public class MySqlServer extends AbstractAzureResource<MySqlServer, MySqlEntity, Server> implements AzureOperationEvent.Source<MySqlServer>,
-        IAzureResource<MySqlEntity> {
+public class MySqlServer extends AbstractAzureResource<MySqlServer, MySqlServerEntity, Server> implements AzureOperationEvent.Source<MySqlServer>,
+        IAzureResource<MySqlServerEntity>, IDatabaseServer {
     @Nonnull
     private final MySqlManager manager;
 
     public MySqlServer(@Nonnull MySqlManager manager, @Nonnull Server server) {
-        super(new MySqlEntity(server));
+        super(new MySqlServerEntity(manager, server));
         this.manager = manager;
     }
 
     @Override
     protected Server loadRemote() {
         try {
-            this.entity().setRemote(manager.servers().getById(this.entity.getId()));
+            return manager.servers().getById(this.entity.getId());
         } catch (ManagementException ex) {
             if (HttpStatus.SC_NOT_FOUND == ex.getResponse().getStatusCode()) {
-                this.entity().setRemote(null);
-            } else {
-                throw ex;
+                return null;
             }
+            throw ex;
         }
-        return this.entity.getRemote();
     }
 
     public String getPublicIpForLocalMachine() {
@@ -85,23 +84,23 @@ public class MySqlServer extends AbstractAzureResource<MySqlServer, MySqlEntity,
             StringUtils.equalsIgnoreCase("Stopped", entity().getState()) ||
                 StringUtils.equalsIgnoreCase("Disabled", entity().getState()),
             "Start action is not supported for non-disabled server.");
-        MySqlServer.this.manager.servers().start(this.entity.getResourceGroup(), this.entity.getName());
+        MySqlServer.this.manager.servers().start(this.entity.getResourceGroupName(), this.entity.getName());
     }
 
     @AzureOperation(name = "mysql|server.stop", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public void stop() {
         Preconditions.checkArgument(StringUtils.equalsIgnoreCase("Ready", entity().getState()), "Stop action is not supported for non-ready server.");
-        MySqlServer.this.manager.servers().stop(this.entity.getResourceGroup(), this.entity.getName());
+        MySqlServer.this.manager.servers().stop(this.entity.getResourceGroupName(), this.entity.getName());
     }
 
     @AzureOperation(name = "mysql|server.restart", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
         Preconditions.checkArgument(StringUtils.equalsIgnoreCase("Ready", entity().getState()), "Restart action is not supported for non-ready server.");
-        MySqlServer.this.manager.servers().restart(this.entity.getResourceGroup(), this.entity.getName());
+        MySqlServer.this.manager.servers().restart(this.entity.getResourceGroupName(), this.entity.getName());
     }
 
     public List<MySqlDatabaseEntity> databases() {
-        return manager.databases().listByServer(this.entity.getResourceGroup(), this.entity.getName())
+        return manager.databases().listByServer(this.entity.getResourceGroupName(), this.entity.getName())
             .stream().map(this::toMySqlDatabaseEntity).collect(Collectors.toList());
     }
 

@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
-package com.microsoft.azure.toolkit.lib.mysql.service;
+package com.microsoft.azure.toolkit.lib.mysql;
 
 import com.azure.core.util.ExpandableStringEnum;
 import com.azure.resourcemanager.mysql.MySqlManager;
@@ -21,9 +21,10 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
+import com.microsoft.azure.toolkit.lib.mysql.model.MySqlServerConfig;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -52,69 +53,29 @@ public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureS
     public List<MySqlServer> list() {
         return getSubscriptions().stream()
             .map(subscription -> MySqlManagerFactory.create(subscription.getId()))
-            .flatMap(manager -> manager.servers().list().stream())
-            .collect(Collectors.toList()).stream()
-            .map(this::toMysqlServer)
+            .flatMap(manager -> manager.servers().list().stream().map(server -> new MySqlServer(manager, server)))
             .collect(Collectors.toList());
     }
 
     public MySqlServer get(String id) {
-        final Server server = MySqlManagerFactory.create(ResourceId.fromString(id).subscriptionId()).servers().getById(id);
-        return toMysqlServer(server);
+        MySqlManager manager = MySqlManagerFactory.create(ResourceId.fromString(id).subscriptionId());
+        final Server server = manager.servers().getById(id);
+        return new MySqlServer(manager, server);
     }
 
     public MySqlServer get(final String resourceGroup, final String name) {
+        MySqlManager manager = MySqlManagerFactory.create(getDefaultSubscription().getId());
         final Server server = MySqlManagerFactory.create(getDefaultSubscription().getId()).servers().getByResourceGroup(resourceGroup, name);
-        return toMysqlServer(server);
+        return new MySqlServer(manager, server);
     }
 
-    public AbstractMySqlCreator create() {
-        final MySqlManager manager = MySqlManagerFactory.create(getDefaultSubscription().getId());
-        return new AbstractMySqlCreator() {
-
-            private MySqlServer app;
-            @Override
-            @AzureOperation(name = "mysql|server.create", params = {"this.app.name()"}, type = AzureOperation.Type.SERVICE)
-            public MySqlServer commit() {
-                ServerPropertiesForDefaultCreate parameters = new ServerPropertiesForDefaultCreate();
-                parameters.withAdministratorLogin(this.getAdministratorLogin())
-                    .withAdministratorLoginPassword(this.getAdministratorLoginPassword())
-                    .withVersion(validateServerVersion(this.getVersion()));
-
-                final List<PerformanceTierProperties> tiers =
-                    manager.locationBasedPerformanceTiers().list(getRegion().getName()).stream().collect(Collectors.toList());
-                PerformanceTierProperties tier = tiers.stream().filter(e -> CollectionUtils.isNotEmpty(e.serviceLevelObjectives())).min((o1, o2) -> {
-                    int priority1 = getTierPriority(o1);
-                    int priority2 = getTierPriority(o2);
-                    return priority1 > priority2 ? 1 : -1;
-                }).orElseThrow(() ->
-                    new AzureToolkitRuntimeException("Currently, the service is not available in this location for your subscription."));
-                Sku sku = new Sku().withName(tier.serviceLevelObjectives().get(0).id());
-                Server server = manager.servers().define(getName())
-                    .withRegion(getRegion().getName())
-                    .withExistingResourceGroup(getResourceGroupName())
-                    .withProperties(parameters)
-                    .withSku(sku)
-                    .create();
-                this.app = toMysqlServer(server);
-                return app;
-            }
-
-            @NotNull
-            @Override
-            public AzureOperationEvent.Source<MySqlServer> getEventSource() {
-                return this.app;
-            }
-        };
+    public ICommittable<MySqlServer> create(MySqlServerConfig config) {
+        return new Creator(config);
     }
 
     private static int getTierPriority(PerformanceTierProperties tier) {
         return StringUtils.equals("Basic", tier.id()) ? 1 :
             StringUtils.equals("GeneralPurpose", tier.id()) ? 2 : StringUtils.equals("MemoryOptimized", tier.id()) ? 3 : 4;
-    }
-
-    private MySqlServer toMysqlServer(Server sqlServerInner) {
-        return new MySqlServer(MySqlManagerFactory.create(ResourceId.fromString(sqlServerInner.id()).subscriptionId()), sqlServerInner);
     }
 
     public boolean checkNameAvailability(String name) {
@@ -150,5 +111,65 @@ public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureS
             return res;
         }
         return null;
+    }
+
+    class Creator implements ICommittable<MySqlServer>, AzureOperationEvent.Source<MySqlServerConfig> {
+
+        private final MySqlServerConfig config;
+
+        private final MySqlManager manager;
+
+        Creator(MySqlServerConfig config) {
+            this.config = config;
+            this.manager = MySqlManagerFactory.create(config.getSubscriptionId());
+        }
+
+        @Override
+        @AzureOperation(name = "mysql|server.create", params = {"this.app.name()"}, type = AzureOperation.Type.SERVICE)
+        public MySqlServer commit() {
+            // retrieve sku
+            ServerPropertiesForDefaultCreate parameters = new ServerPropertiesForDefaultCreate();
+            parameters.withAdministratorLogin(config.getAdministratorLoginName())
+                    .withAdministratorLoginPassword(config.getAdministratorLoginPassword())
+                    .withVersion(validateServerVersion(config.getVersion()));
+
+            final List<PerformanceTierProperties> tiers =
+                    manager.locationBasedPerformanceTiers().list(config.getRegion().getName()).stream().collect(Collectors.toList());
+            PerformanceTierProperties tier = tiers.stream().filter(e -> CollectionUtils.isNotEmpty(e.serviceLevelObjectives())).min((o1, o2) -> {
+                int priority1 = getTierPriority(o1);
+                int priority2 = getTierPriority(o2);
+                return priority1 > priority2 ? 1 : -1;
+            }).orElseThrow(() ->
+                    new AzureToolkitRuntimeException("Currently, the service is not available in this location for your subscription."));
+            Sku sku = new Sku().withName(tier.serviceLevelObjectives().get(0).id());
+            // create server
+            Server remote = manager.servers().define(config.getName())
+                    .withRegion(config.getRegion().getName())
+                    .withExistingResourceGroup(config.getResourceGroupName())
+                    .withProperties(parameters)
+                    .withSku(sku)
+                    .create();
+            MySqlServer server = new MySqlServer(this.manager, remote);
+            // update firewall rules
+            if (config.isEnableAccessFromAzureServices()) {
+                server.firewallRules().enableAzureAccessRule();
+            } else {
+                server.firewallRules().disableAzureAccessRule();
+            }
+            // update common rule
+            if (config.isEnableAccessFromLocalMachine()) {
+                // TODO
+                server.firewallRules().enableLocalMachineAccessRule(server.getPublicIpForLocalMachine());
+            } else {
+                server.firewallRules().disableLocalMachineAccessRule();
+            }
+            // refresh
+            server.loadRemote();
+            return server;
+        }
+
+        public AzureOperationEvent.Source<MySqlServerConfig> getEventSource() {
+            return new AzureOperationEvent.Source<MySqlServerConfig>() {};
+        }
     }
 }

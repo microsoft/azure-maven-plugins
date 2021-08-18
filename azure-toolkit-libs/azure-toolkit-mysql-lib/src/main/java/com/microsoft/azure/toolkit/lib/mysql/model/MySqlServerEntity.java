@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.mysql.model;
 
 import com.azure.core.util.ExpandableStringEnum;
+import com.azure.resourcemanager.mysql.MySqlManager;
 import com.azure.resourcemanager.mysql.models.Server;
 import com.azure.resourcemanager.mysql.models.Sku;
 import com.azure.resourcemanager.mysql.models.SslEnforcementEnum;
@@ -13,25 +14,29 @@ import com.azure.resourcemanager.mysql.models.StorageProfile;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.database.entity.FirewallRuleEntity;
+import com.microsoft.azure.toolkit.lib.database.entity.IDatabaseServerEntity;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
-public class MySqlEntity extends AbstractAzureResource.RemoteAwareResourceEntity<Server> {
+public class MySqlServerEntity extends AbstractAzureResource.RemoteAwareResourceEntity<Server> implements IDatabaseServerEntity {
 
-    public MySqlEntity(Server server) {
+    @Nonnull
+    private final MySqlManager manager;
+    @Nonnull
+    private final ResourceId resourceId;
+
+    public MySqlServerEntity(@Nonnull MySqlManager manager, @Nonnull Server server) {
         this.resourceId = ResourceId.fromString(server.id());
         this.remote = server;
+        this.manager = manager;
     }
 
-    private @Nonnull ResourceId resourceId;
-
+    @Override
     public String getId() {
         return resourceId.id();
-    }
-
-    public String getResourceGroup() {
-        return resourceId.resourceGroupName();
     }
 
     @Override
@@ -40,12 +45,13 @@ public class MySqlEntity extends AbstractAzureResource.RemoteAwareResourceEntity
     }
 
     @Override
-    public String getSubscriptionId() {
-        return resourceId.subscriptionId();
+    public String getResourceGroupName() {
+        return resourceId.resourceGroupName();
     }
 
-    private Optional<Server> remoteOptional() {
-        return Optional.ofNullable(this.remote);
+    @Override
+    public String getSubscriptionId() {
+        return resourceId.subscriptionId();
     }
 
     public Region getRegion() {
@@ -56,6 +62,22 @@ public class MySqlEntity extends AbstractAzureResource.RemoteAwareResourceEntity
         return remoteOptional().map(Server::administratorLogin).orElse(null);
     }
 
+    public String getFullyQualifiedDomainName() {
+        return remoteOptional().map(Server::fullyQualifiedDomainName).orElse(null);
+    }
+
+    @Override
+    public boolean isEnableAccessFromAzureServices() {
+        return remoteOptional().map(remote -> manager.firewallRules().listByServer(this.getResourceGroupName(), remote.name()).stream()
+                .anyMatch(e -> FirewallRuleEntity.ACCESS_FROM_AZURE_SERVICES_FIREWALL_RULE_NAME.equalsIgnoreCase(e.name()))).orElse(false);
+    }
+
+    @Override
+    public boolean isEnableAccessFromLocalMachine() {
+        return remoteOptional().map(remote -> manager.firewallRules().listByServer(this.getResourceGroupName(), remote.name()).stream()
+                .anyMatch(e -> StringUtils.equalsIgnoreCase(FirewallRuleEntity.getAccessFromLocalFirewallRuleName(), e.name()))).orElse(false);
+    }
+
     public String getVersion() {
         return remoteOptional().map(Server::version).map(ExpandableStringEnum::toString).orElse(null);
     }
@@ -64,8 +86,8 @@ public class MySqlEntity extends AbstractAzureResource.RemoteAwareResourceEntity
         return remoteOptional().map(Server::userVisibleState).map(ExpandableStringEnum::toString).orElse(null);
     }
 
-    public String getFullyQualifiedDomainName() {
-        return remoteOptional().map(Server::fullyQualifiedDomainName).orElse(null);
+    private Optional<Server> remoteOptional() {
+        return Optional.ofNullable(this.remote);
     }
 
     public String getType() {
