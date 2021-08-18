@@ -1,0 +1,77 @@
+{
+  "title": "Runtime",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Runtime configuration for Maven plugin for App Service",
+  "type": "object",
+  "properties": {
+    "os": {
+      "description": "The operating system for app service",
+      "type": "string",
+      "pattern": "(?i)^(windows|linux|docker)$"
+    },
+    "webContainer": {
+      "$ref": "classpath:///schema/common/NonEmptyString.json"
+    },
+    "javaVersion": {
+      "$ref": "classpath:///schema/common/NonEmptyString.json"
+    },
+    "image": {
+      "$ref": "classpath:///schema/common/NonEmptyString.json"
+    },
+    "serverId": {
+      "$ref": "classpath:///schema/common/NonEmptyString.json"
+    },
+    "registryUrl": {
+      "type": "string",
+      "pattern": "^https.*"
+    }
+  },
+  "dependencies": {
+    "serverId": [
+      "image"
+    ],
+    "registryUrl": [
+      "image"
+    ]
+  },
+  "required": [
+    "os"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "os": {
+            "pattern": "(?i)^(windows|linux)$"
+          }
+        },
+        "required": [
+          "os"
+        ]
+      },
+      "then": {
+        "required": [
+          "javaVersion",
+          "webContainer"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "os": {
+            "pattern": "(?i)^(docker)$"
+          }
+        },
+        "required": [
+          "os"
+        ]
+      },
+      "then": {
+        "required": [
+          "image"
+        ]
+      }
+    }
+  ]
+}
