@@ -14,7 +14,7 @@ import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureResource;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -322,7 +322,7 @@ public class ConfigMojo extends AbstractMojoBase {
         }
         final List<SpringCloudCluster> clusters = az.clusters();
         this.wrapper.putCommonVariable("clusters", clusters);
-        final SpringCloudCluster targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, IAzureEntityManager::name);
+        final SpringCloudCluster targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, IAzureResource::name);
         if (targetAppCluster != null) {
             this.appSettings.setClusterName(targetAppCluster.name());
             getLog().info(String.format("Using service: %s", TextUtils.blue(targetAppCluster.name())));
