@@ -175,11 +175,11 @@ public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, Spring
     public abstract static class Modifier implements ICommittable<SpringCloudApp>, AzureOperationEvent.Source<SpringCloudApp> {
         public static final String DEFAULT_DISK_MOUNT_PATH = "/persistent";
         /**
-         * See <a href="https://azure.microsoft.com/en-us/pricing/details/spring-cloud"/>Pricing - Azure Spring Cloud</a>
+         * @see <a href="https://azure.microsoft.com/en-us/pricing/details/spring-cloud/">Pricing - Azure Spring Cloud</a>
          */
         public static final int BASIC_TIER_DEFAULT_DISK_SIZE = 1;
         /**
-         * See <a href="https://azure.microsoft.com/en-us/pricing/details/spring-cloud"/>Pricing - Azure Spring Cloud</a>
+         * @see <a href="https://azure.microsoft.com/en-us/pricing/details/spring-cloud/">Pricing - Azure Spring Cloud</a>
          */
         public static final int STANDARD_TIER_DEFAULT_DISK_SIZE = 50;
 
