@@ -5,11 +5,10 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -17,6 +16,7 @@ import java.util.Arrays;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public enum OperatingSystem {
     WINDOWS("windows"),
     LINUX("linux"),

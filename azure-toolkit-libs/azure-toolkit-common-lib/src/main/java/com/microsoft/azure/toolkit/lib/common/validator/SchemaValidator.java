@@ -115,7 +115,7 @@ public class SchemaValidator {
         }
     }
 
-    private static final String getSchemaId(final String path) {
+    private static String getSchemaId(final String path) {
         try {
             final Path schemaPath = Paths.get(FilenameUtils.removeExtension(path));
             final Path relativePath = SCHEMA_ROOT.relativize(schemaPath);
