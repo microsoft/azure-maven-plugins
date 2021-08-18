@@ -41,6 +41,11 @@ public class SchemaValidator {
     private final ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
             .disable(AUTO_DETECT_CREATORS, AUTO_DETECT_GETTERS, AUTO_DETECT_IS_GETTERS);
 
+    static {
+        // disable invalid warning for schema key word `then`
+        System.setProperty("org.slf4j.simpleLogger.log.com.networknt.schema.JsonMetaSchema", "off");
+    }
+
     private SchemaValidator() {
         final Set<String> resources = new Reflections("schema", new ResourcesScanner()).getResources(Pattern.compile(".*\\.json"));
         resources.stream().map(resource -> Pair.of(resource, SchemaValidator.class.getResourceAsStream("/" + resource)))
