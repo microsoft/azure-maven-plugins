@@ -3,8 +3,9 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.common.database;
+package com.microsoft.azure.toolkit.lib.database.utils;
 
+import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import lombok.Builder;
 import org.apache.commons.lang3.StringUtils;
 

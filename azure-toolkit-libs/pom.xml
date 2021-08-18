@@ -44,6 +44,7 @@
         <module>azure-toolkit-mysql-lib</module>
         <module>azure-toolkit-applicationinsights-lib</module>
         <module>azure-toolkit-storage-lib</module>
+        <module>azure-toolkit-database-lib</module>
     </modules>
 
     <properties>
@@ -173,6 +174,11 @@
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-appservice-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-database-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
             <dependency>
