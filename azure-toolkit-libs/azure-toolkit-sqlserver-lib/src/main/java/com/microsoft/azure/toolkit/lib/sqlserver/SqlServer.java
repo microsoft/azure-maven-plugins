@@ -44,7 +44,7 @@ public class SqlServer extends AbstractAzureEntityManager<SqlServer, SqlServerEn
             return manager.sqlServers().getById(this.entity.getId());
         } catch (ManagementException ex) {
             if (HttpStatus.SC_NOT_FOUND == ex.getResponse().getStatusCode()) {
-                this.entity().setRemote(null);
+                return null;
             }
             throw ex;
         }
