@@ -36,8 +36,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, SpringCloudAppEntity, SpringApp> implements AzureOperationEvent.Source<SpringCloudApp>,
-        Startable<SpringCloudAppEntity>, Removable {
+public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, SpringCloudAppEntity, SpringApp>
+        implements AzureOperationEvent.Source<SpringCloudApp>, Startable<SpringCloudAppEntity>, Removable {
     private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
 
     @Getter
