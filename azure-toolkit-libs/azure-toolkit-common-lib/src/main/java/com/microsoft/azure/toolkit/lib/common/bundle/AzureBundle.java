@@ -64,8 +64,8 @@ public class AzureBundle {
     @Nullable
     @Cacheable(cacheName = "bundle/package/{}/pattern/{}", key = "$pkg/$key")
     public static String pattern(@Nonnull final String pkg, @Nonnull final String key) {
-        final List<ResourceBundle> bundles = getBundles(pkg, key);
-        for (ResourceBundle bundle : bundles) {
+        final List<ResourceBundle> pkgBundles = getBundles(pkg, key);
+        for (ResourceBundle bundle : pkgBundles) {
             final String pattern = getPattern(key, bundle);
             if (Objects.nonNull(pattern)) {
                 return pattern;

@@ -66,6 +66,7 @@ public interface DataStore {
     }
 }
 
+//CHECKSTYLE:OFF
 final class Impl {
     static final WeakHashMap<Object, Map<Object, Object>> store = new WeakHashMap<>();
 }

@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.common.operation;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.utils.aspect.ExpressionUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.aspect.MethodInvocation;
 import lombok.Getter;
