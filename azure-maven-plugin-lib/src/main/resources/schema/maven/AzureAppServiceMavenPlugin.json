@@ -7,7 +7,7 @@
       "$ref": "classpath:///schema/common/NonEmptyString.json"
     },
     "resourceGroup": {
-      "$ref": "classpath:///schema/common/ResourceGroup.json"
+      "$ref": "classpath:///schema/common/ResourceGroupName.json"
     },
     "appName": {
       "$ref": "classpath:///schema/appservice/AppServiceName.json"
@@ -16,7 +16,7 @@
       "$ref": "classpath:///schema/appservice/AppServicePlanName.json"
     },
     "appServicePlanResourceGroup": {
-      "$ref": "classpath:///schema/common/ResourceGroup.json"
+      "$ref": "classpath:///schema/common/ResourceGroupName.json"
     },
     "auth": {
       "$ref": "#/definitions/auth"

@@ -1,7 +1,7 @@
 {
-  "title": "App Service Name",
+  "title": "App Service Plan Name",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "description": "Name for Azure App Service",
+  "description": "Name for Azure App Service Plan",
   "type": "string",
   "pattern": "^[a-zA-Z0-9\\-]+$",
   "minLength": 1,
