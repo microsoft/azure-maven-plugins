@@ -11,11 +11,8 @@ import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 
-import java.beans.PropertyChangeListener;
-
 public interface IAzureResource<T extends IAzureResourceEntity> {
-    String PROPERTY_STATUS = "status";
-    String PROPERTY_CHILDREN = "children";
+
     String REST_SEGMENT_JOB_MANAGEMENT_TENANTID = "/#@";
     String REST_SEGMENT_JOB_MANAGEMENT_RESOURCE = "/resource";
 

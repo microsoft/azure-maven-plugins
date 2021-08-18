@@ -24,7 +24,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class SpringCloudCluster extends AbstractAzureResource<SpringCloudCluster, SpringCloudClusterEntity, SpringService> implements AzureOperationEvent.Source<SpringCloudCluster> {
+public class SpringCloudCluster
+        extends AbstractAzureResource<SpringCloudCluster, SpringCloudClusterEntity, SpringService>
+        implements AzureOperationEvent.Source<SpringCloudCluster> {
     @Getter
     @Nonnull
     final SpringServices client;

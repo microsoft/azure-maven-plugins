@@ -25,9 +25,9 @@ public class SpringCloudClusterEntity extends RemoteAwareResourceEntity<SpringSe
 
     SpringCloudClusterEntity(@Nonnull final SpringService resource) {
         this.remote = resource;
-        final ResourceId id = ResourceId.fromString(this.remote.id());
-        this.resourceGroup = id.resourceGroupName();
-        this.subscriptionId = id.subscriptionId();
+        final ResourceId resourceId = ResourceId.fromString(this.remote.id());
+        this.resourceGroup = resourceId.resourceGroupName();
+        this.subscriptionId = resourceId.subscriptionId();
         this.name = resource.name();
         this.id = resource.id();
     }

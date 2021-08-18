@@ -66,7 +66,8 @@ public interface DataStore {
     }
 }
 
-//CHECKSTYLE:OFF
+//CHECKSTYLE:OFF: OneTopLevelClass
 final class Impl {
     static final WeakHashMap<Object, Map<Object, Object>> store = new WeakHashMap<>();
 }
+//CHECKSTYLE:ON: OneTopLevelClass
