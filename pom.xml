@@ -90,11 +90,6 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.networknt</groupId>
-                <artifactId>json-schema-validator</artifactId>
-                <version>${json.schema-validator.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-libs</artifactId>
                 <version>0.11.0-SNAPSHOT</version>

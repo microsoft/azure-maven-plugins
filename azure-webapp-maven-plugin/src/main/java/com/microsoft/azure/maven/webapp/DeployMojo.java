@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -126,8 +127,15 @@ public class DeployMojo extends AbstractWebAppMojo {
                 az.appServicePlan(getServicePlanResourceGroup(webAppConfig), webAppConfig.getServicePlanName());
         if (!targetServicePlan.exists()) {
             targetServicePlan = getOrCreateAppServicePlan(webAppConfig);
-        } else if (webAppConfig.getPricingTier() != null) {
-            targetServicePlan.update().withPricingTier(webAppConfig.getPricingTier()).commit();
+        } else {
+            if (region != null && !Objects.equals(Region.fromName(region), Region.fromName(targetServicePlan.entity().getRegion()))) {
+                AzureMessager.getMessager().warning(String.format("Skip region update for existing service plan '%s' since it is not allowed.",
+                    targetServicePlan.name()));
+            }
+
+            if (webAppConfig.getPricingTier() != null) {
+                targetServicePlan.update().withPricingTier(webAppConfig.getPricingTier()).commit();
+            }
         }
 
         final IWebApp result = webApp.update().withPlan(targetServicePlan.id())

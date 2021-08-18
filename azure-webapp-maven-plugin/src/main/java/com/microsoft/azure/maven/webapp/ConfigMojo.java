@@ -97,8 +97,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     @Override
     protected void doExecute() throws AzureExecutionException {
-        if (!(Utils.isPomPackagingProject(this.project.getPackaging()) ||
-                Utils.isJarPackagingProject(this.project.getPackaging()) ||
+        if (!(Utils.isJarPackagingProject(this.project.getPackaging()) ||
                 Utils.isEarPackagingProject(this.project.getPackaging()) ||
                 Utils.isWarPackagingProject(this.project.getPackaging()))) {
             throw new UnsupportedOperationException(

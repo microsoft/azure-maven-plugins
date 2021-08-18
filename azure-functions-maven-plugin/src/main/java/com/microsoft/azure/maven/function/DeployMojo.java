@@ -53,6 +53,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -339,8 +340,14 @@ public class DeployMojo extends AbstractFunctionMojo {
                 az.appServicePlan(getServicePlanResourceGroup(), appServicePlanName);
         if (!targetServicePlan.exists()) {
             targetServicePlan = getOrCreateAppServicePlan();
-        } else if (StringUtils.isNotEmpty(pricingTier)) {
-            targetServicePlan.update().withPricingTier(getParsedPricingTier()).commit();
+        } else {
+            if (region != null && !Objects.equals(Region.fromName(region), Region.fromName(targetServicePlan.entity().getRegion()))) {
+                AzureMessager.getMessager().warning(String.format("Skip region update for existing service plan '%s' since it is not allowed.",
+                    targetServicePlan.name()));
+            }
+            if (StringUtils.isNotEmpty(pricingTier)) {
+                targetServicePlan.update().withPricingTier(getParsedPricingTier()).commit();
+            }
         }
         // update app settings
         final Map<String, String> appSettings = getAppSettings();
