@@ -9,12 +9,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
@@ -39,6 +41,8 @@ import static com.fasterxml.jackson.databind.MapperFeature.AUTO_DETECT_IS_GETTER
 
 public class SchemaValidator {
     private static final Path SCHEMA_ROOT = Paths.get("schema");
+    private static final String INVALID_PARAMETER_ERROR_MESSAGE = "Invalid parameters founded, please correct the value with messages below:";
+
     private final Map<String, JsonSchema> schemaMap = new HashMap<>();
     private final JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
     private final ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
@@ -87,20 +91,28 @@ public class SchemaValidator {
         return validate(schemaId, objectMapper.convertValue(value, JsonNode.class), pathPrefix);
     }
 
-    public List<ValidationMessage> validate(@Nonnull final String schemaId, @Nonnull final JsonNode value) {
-        return validate(schemaId, value, "$");
-    }
-
     public List<ValidationMessage> validate(@Nonnull final String schemaId, @Nonnull final JsonNode value, @Nullable final String pathPrefix) {
         if (!schemaMap.containsKey(schemaId)) {
             AzureMessager.getMessager().warning(AzureString.format("Skip validation as schema %s was not registered", schemaId));
             return Collections.emptyList();
         }
-        return validate(schemaMap.get(schemaId), value, pathPrefix);
+        return schemaMap.get(schemaId).validate(value, value, pathPrefix).stream().map(ValidationMessage::fromRawMessage).collect(Collectors.toList());
     }
 
-    private List<ValidationMessage> validate(@Nonnull final JsonSchema schema, @Nonnull final JsonNode value, @Nullable final String pathPrefix) {
-        return schema.validate(value, value, pathPrefix).stream().map(ValidationMessage::fromRawMessage).collect(Collectors.toList());
+    public void validateAndThrow(@Nonnull final String schemaId, @Nonnull final Object value) {
+        validateAndThrow(schemaId, value, "$");
+    }
+
+    public void validateAndThrow(@Nonnull final String schemaId, @Nonnull final Object value, @Nullable final String pathPrefix) {
+        validateAndThrow(schemaId, objectMapper.convertValue(value, JsonNode.class), pathPrefix);
+    }
+
+    public void validateAndThrow(@Nonnull final String schemaId, @Nonnull final JsonNode value, @Nullable final String pathPrefix) {
+        final List<ValidationMessage> result = validate(schemaId, value, pathPrefix);
+        if (CollectionUtils.isNotEmpty(result)) {
+            final String errorDetails = result.stream().map(message -> message.getMessage().toString()).collect(Collectors.joining(StringUtils.LF));
+            throw new AzureToolkitRuntimeException(String.join(StringUtils.LF, INVALID_PARAMETER_ERROR_MESSAGE, errorDetails));
+        }
     }
 
     private static final String getSchemaId(final String path) {
