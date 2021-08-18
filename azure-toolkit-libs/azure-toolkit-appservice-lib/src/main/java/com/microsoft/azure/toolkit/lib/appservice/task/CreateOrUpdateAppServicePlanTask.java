@@ -54,13 +54,17 @@ public class CreateOrUpdateAppServicePlanTask extends AzureTask<IAppServicePlan>
                 .withOperatingSystem(config.os())
                 .commit();
             AzureMessager.getMessager().info(String.format(CREATE_APP_SERVICE_PLAN_DONE, appServicePlan.name()));
-        } else if (config.pricingTier() != null) {
+        } else {
             if (config.region() != null && !Objects.equals(config.region(), Region.fromName(appServicePlan.entity().getRegion()))) {
-                AzureMessager.getMessager().warning(String.format("Ignore region update for existing service plan '%s' because it is not allowed.",
+                AzureMessager.getMessager().warning(String.format("Skip region update for existing service plan '%s' since it is not allowed.",
                     appServicePlan.name()));
             }
-            appServicePlan.update().withPricingTier(config.pricingTier()).commit();
+            if (config.pricingTier() != null) {
+                // apply pricing tier to service plan
+                appServicePlan.update().withPricingTier(config.pricingTier()).commit();
+            }
         }
+
         return appServicePlan;
     }
 }
