@@ -92,7 +92,7 @@ public class AzureSqlServer extends SubscriptionScoped<AzureSqlServer> implement
         }
 
         @Override
-        @AzureOperation(name = "sqlserver|server.create", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+        @AzureOperation(name = "sqlserver|server.create", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)
         public SqlServer commit() {
             // create
             com.azure.resourcemanager.sql.models.SqlServer remote = SqlServerManagerFactory.create(config.getSubscriptionId()).sqlServers()
