@@ -11,20 +11,26 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class AzureOperationEvent<T extends AzureOperationEvent.Source<T>> implements AzureEvent<Object> {
+public class AzureOperationEvent<T extends AzureOperationEvent.Source<T>> implements AzureEvent<T> {
     private final T source;
     private final AzureOperationRef operation;
     private final Stage stage;
-    private Object payload;
 
     @Nonnull
     @Override
     public String getType() {
         return operation.getName();
+    }
+
+    @Nullable
+    @Override
+    public T getPayload() {
+        return source;
     }
 
     public interface Source<T> {
