@@ -9,9 +9,9 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationRef;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 @Getter
 @Setter
