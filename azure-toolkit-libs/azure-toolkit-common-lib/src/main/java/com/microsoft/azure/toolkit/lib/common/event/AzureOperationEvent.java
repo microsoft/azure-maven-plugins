@@ -9,22 +9,28 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationRef;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class AzureOperationEvent<T extends AzureOperationEvent.Source<T>> implements AzureEvent<Object> {
+public class AzureOperationEvent<T extends AzureOperationEvent.Source<T>> implements AzureEvent<T> {
     private final T source;
     private final AzureOperationRef operation;
     private final Stage stage;
-    private Object payload;
 
     @Nonnull
     @Override
     public String getType() {
         return operation.getName();
+    }
+
+    @Nullable
+    @Override
+    public T getPayload() {
+        return source;
     }
 
     public interface Source<T> {
