@@ -125,7 +125,7 @@ public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureS
         }
 
         @Override
-        @AzureOperation(name = "mysql.server.create", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)
+        @AzureOperation(name = "mysql|server.create", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)
         public MySqlServer commit() {
             // retrieve sku
             ServerPropertiesForDefaultCreate parameters = new ServerPropertiesForDefaultCreate();
