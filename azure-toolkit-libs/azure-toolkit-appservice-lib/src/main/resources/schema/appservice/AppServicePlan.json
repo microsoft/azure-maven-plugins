@@ -12,9 +12,6 @@
     "servicePlanName": {
       "$ref": "classpath:///schema/appservice/AppServicePlanName.json"
     },
-    "region": {
-      "$ref": "classpath:///schema/common/NonEmptyString.json"
-    },
     "os": {
       "$ref": "classpath:///schema/appservice/Runtime.json#/definitions/os"
     },
