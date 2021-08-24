@@ -52,6 +52,17 @@ public class AzureEnvironmentUtils {
             // src/main/java/com/azure/identity/implementation/IdentityClientOptions.java#L42
             Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_AZURE_AUTHORITY_HOST, env.getActiveDirectoryEndpoint());
         }
+
+        final com.microsoft.azure.toolkit.lib.AzureConfiguration az = com.microsoft.azure.toolkit.lib.Azure.az().config();
+        if (StringUtils.isNotBlank(az.getProxySource())) {
+            String proxyAuthPrefix = StringUtils.EMPTY;
+            if (StringUtils.isNoneBlank(az.getProxyUsername(), az.getProxyPassword())) {
+                proxyAuthPrefix = az.getProxyUsername() + ":" + az.getProxyPassword() + "@";
+            }
+            final String proxy = String.format("http://%s%s:%d", proxyAuthPrefix, az.getHttpProxyHost(), az.getHttpProxyPort());
+            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTP_PROXY, proxy);
+            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTPS_PROXY, proxy);
+        }
     }
 
     public static String getAuthority(AzureEnvironment environment) {
