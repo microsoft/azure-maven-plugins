@@ -6,8 +6,6 @@
 package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.credential.TokenCredential;
-import com.azure.core.http.ProxyOptions;
-import com.azure.core.http.okhttp.OkHttpAsyncHttpClientBuilder;
 import com.azure.core.http.policy.FixedDelay;
 import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.http.policy.RetryPolicy;
@@ -17,7 +15,6 @@ import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.resources.models.Tenant;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Getter;
@@ -27,7 +24,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -103,21 +99,8 @@ public class TokenCredentialManager implements TenantProvider, SubscriptionProvi
      * TODO: share the same code for creating AzureResourceManager.Configurable
      */
     private static AzureResourceManager.Configurable configureAzure() {
-        OkHttpAsyncHttpClientBuilder builder = new OkHttpAsyncHttpClientBuilder();
-        final AzureConfiguration config = Azure.az().config();
-        if (StringUtils.isNotBlank(config.getProxySource())) {
-            final ProxyOptions proxyOptions = new ProxyOptions(ProxyOptions.Type.HTTP,
-                new InetSocketAddress(config.getHttpProxyHost(), config.getHttpProxyPort())
-            );
-            if (StringUtils.isNoneBlank(config.getProxyUsername(), config.getProxyPassword())) {
-                proxyOptions.setCredentials(config.getProxyUsername(), config.getProxyPassword());
-            }
-            builder.proxy(proxyOptions);
-        }
-
         // disable retry for getting tenant and subscriptions
         return AzureResourceManager.configure()
-                .withHttpClient(builder.build())
                 .withPolicy(createUserAgentPolicy())
                 .withRetryPolicy(new RetryPolicy(new FixedDelay(0, Duration.ofSeconds(0))));
     }

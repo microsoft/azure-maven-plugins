@@ -297,7 +297,7 @@ public class AzureAccount implements IAzureAccount {
         return AzureResourceManager.configure()
                 .withLogLevel(logDetailLevel)
                 .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
-            .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers
+                .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
                 .withSubscription(subscriptionId);
     }
