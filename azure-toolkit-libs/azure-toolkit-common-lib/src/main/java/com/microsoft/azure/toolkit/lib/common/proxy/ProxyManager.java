@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.proxy;
 
+import com.azure.core.util.Configuration;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -91,6 +92,17 @@ public class ProxyManager {
                         }
                     );
                 }
+            }
+
+            final AzureConfiguration az = Azure.az().config();
+            if (StringUtils.isNotBlank(az.getProxySource())) {
+                String proxyAuthPrefix = StringUtils.EMPTY;
+                if (StringUtils.isNoneBlank(az.getProxyUsername(), az.getProxyPassword())) {
+                    proxyAuthPrefix = az.getProxyUsername() + ":" + az.getProxyPassword() + "@";
+                }
+                final String proxy = String.format("http://%s%s:%d", proxyAuthPrefix, az.getHttpProxyHost(), az.getHttpProxyPort());
+                Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTP_PROXY, proxy);
+                Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTPS_PROXY, proxy);
             }
         }
     }
