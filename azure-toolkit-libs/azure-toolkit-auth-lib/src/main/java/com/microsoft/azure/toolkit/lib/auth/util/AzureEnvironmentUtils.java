@@ -59,7 +59,7 @@ public class AzureEnvironmentUtils {
             if (StringUtils.isNoneBlank(az.getProxyUsername(), az.getProxyPassword())) {
                 proxyAuthPrefix = az.getProxyUsername() + ":" + az.getProxyPassword() + "@";
             }
-            final String proxy = String.format("http://%s%s:%d", proxyAuthPrefix, az.getHttpProxyHost(), az.getProxyPassword());
+            final String proxy = String.format("http://%s%s:%d", proxyAuthPrefix, az.getHttpProxyHost(), az.getHttpProxyPort());
             Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTP_PROXY, proxy);
             Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTPS_PROXY, proxy);
         }
