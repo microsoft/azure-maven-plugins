@@ -35,6 +35,7 @@ import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.utils.HttpClientUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.AccessLevel;
 import lombok.Setter;
@@ -291,13 +292,15 @@ public class AzureAccount implements IAzureAccount {
         final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
 
         final Providers providers = AzureResourceManager.configure()
+            .withHttpClient(HttpClientUtils.build())
             .withPolicy(getUserAgentPolicy(userAgent))
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
             .withSubscription(subscriptionId).providers();
         return AzureResourceManager.configure()
+                .withHttpClient(HttpClientUtils.build())
                 .withLogLevel(logDetailLevel)
                 .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
-            .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers
+                .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
                 .withSubscription(subscriptionId);
     }

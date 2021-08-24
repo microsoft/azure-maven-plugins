@@ -33,6 +33,7 @@ import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.utils.HttpClientUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -203,6 +204,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
         return AzureResourceManager.configure()
+                .withHttpClient(HttpClientUtils.build())
                 .withLogLevel(logLevel)
                 .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
                 .authenticate(account.getTokenCredential(sid), azureProfile)

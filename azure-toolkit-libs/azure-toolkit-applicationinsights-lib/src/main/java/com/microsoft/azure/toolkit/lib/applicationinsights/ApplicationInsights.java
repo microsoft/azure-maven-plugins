@@ -21,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.utils.HttpClientUtils;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -105,11 +106,13 @@ public class ApplicationInsights extends SubscriptionScoped<ApplicationInsights>
         final AzureProfile azureProfile = new AzureProfile(tenantId, subscriptionId, account.getEnvironment());
         // todo: migrate resource provider related codes to common library
         final Providers providers = AzureResourceManager.configure()
+                .withHttpClient(HttpClientUtils.build())
                 .withPolicy(getUserAgentPolicy(userAgent))
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
                 .withSubscription(subscriptionId).providers();
         return ApplicationInsightsManager
                 .configure()
+                .withHttpClient(HttpClientUtils.build())
                 .withLogOptions(logOptions)
                 .withPolicy(getUserAgentPolicy(userAgent))
                 .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers

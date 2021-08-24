@@ -117,6 +117,10 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>adal4j</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-core-http-okhttp</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

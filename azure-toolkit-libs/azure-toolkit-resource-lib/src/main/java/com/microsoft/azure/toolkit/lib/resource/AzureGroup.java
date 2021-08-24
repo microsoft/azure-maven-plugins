@@ -21,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.utils.HttpClientUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -106,6 +107,7 @@ public class AzureGroup extends SubscriptionScoped<AzureGroup> implements AzureS
                 HttpLogDetailLevel.NONE : HttpLogDetailLevel.valueOf(config.getLogLevel());
         final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
         return ResourceManager.configure()
+                .withHttpClient(HttpClientUtils.build())
                 .withLogLevel(logDetailLevel)
                 .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
