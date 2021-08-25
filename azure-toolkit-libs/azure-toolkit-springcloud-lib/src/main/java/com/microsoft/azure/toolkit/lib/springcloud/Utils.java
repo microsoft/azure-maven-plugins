@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.models.DeploymentResourceStatus;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import rx.Observable;
 import rx.schedulers.Schedulers;
@@ -32,16 +31,12 @@ public class Utils {
         if (DEPLOYMENT_PROCESSING_STATUS.contains(deploymentResourceStatus)) {
             return false;
         }
-        final String finalDiscoverStatus = BooleanUtils.isTrue(deployment.entity().isActive()) ? "UP" : "OUT_OF_SERVICE";
         final List<SpringCloudDeploymentInstanceEntity> instanceList = deployment.entity().getInstances();
         if (CollectionUtils.isEmpty(instanceList)) {
             return false;
         }
-        final boolean isInstanceDeployed = instanceList.stream().noneMatch(instance ->
+        return instanceList.stream().noneMatch(instance ->
                 StringUtils.equalsIgnoreCase(instance.status(), "waiting") || StringUtils.equalsIgnoreCase(instance.status(), "pending"));
-        final boolean isInstanceDiscovered = instanceList.stream().allMatch(instance ->
-                StringUtils.equalsIgnoreCase(instance.discoveryStatus(), finalDiscoverStatus));
-        return isInstanceDeployed && isInstanceDiscovered;
     }
 
     /**
