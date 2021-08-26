@@ -1,0 +1,9 @@
+{
+  "title": "App Service Deployment Slot Name",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Name for Azure App Service deployment slot",
+  "type": "string",
+  "pattern": "^[A-Za-z0-9-]+$",
+  "minLength": 1,
+  "maxLength": 60
+}

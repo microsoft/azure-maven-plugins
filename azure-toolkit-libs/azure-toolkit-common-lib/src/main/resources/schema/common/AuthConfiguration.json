@@ -1,0 +1,81 @@
+{
+  "title": "AuthConfiguration",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "The auth config for accessing azure resources",
+  "type": "object",
+  "properties": {
+    "type": {
+      "$ref": "#/definitions/auth-type"
+    },
+    "client": {
+      "$ref": "classpath:///schema/common/UUID.json"
+    },
+    "tenant": {
+      "$ref": "classpath:///schema/common/UUID.json"
+    },
+    "key": {
+      "description": "Password",
+      "type": "string"
+    },
+    "certificate": {
+      "description": "The absolute path of your certificate",
+      "type": "string"
+    },
+    "certificatePassword": {
+      "description": "The password for your certificate, if there is any",
+      "type": "string"
+    },
+    "environment": {
+      "$ref": "classpath:///schema/common/AzureEnvironment.json"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "pattern": "(?i)^service_principal$"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "anyOf": [
+          {
+            "required": [
+              "client",
+              "tenant",
+              "key"
+            ]
+          },
+          {
+            "required": [
+              "client",
+              "tenant",
+              "certificate"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "not": {
+    "required": [
+      "key",
+      "certificate"
+    ]
+  },
+  "dependencies": {
+    "certificatePassword": [
+      "certificate"
+    ]
+  },
+  "definitions": {
+    "auth-type": {
+      "type": "string",
+      "pattern": "(?i)^(auto|service_principal|managed_identity|azure_cli|vscode|intellij|azure_auth_maven_plugin|device_code|oauth2|visual_studio)$"
+    }
+  }
+}

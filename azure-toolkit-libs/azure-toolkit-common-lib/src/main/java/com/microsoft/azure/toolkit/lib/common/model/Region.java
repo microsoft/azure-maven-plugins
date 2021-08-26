@@ -4,6 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.common.model;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -21,6 +22,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class Region implements ExpandableParameter {
     public static final Region US_EAST = new Region("eastus", "East US");
     public static final Region US_EAST2 = new Region("eastus2", "East US 2");

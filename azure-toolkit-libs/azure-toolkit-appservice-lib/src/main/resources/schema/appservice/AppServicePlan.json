@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "App Service Plan - Update",
+  "description": "Schema for AppServicePlanConfig when update existing service plan",
+  "properties": {
+    "subscriptionId": {
+      "$ref": "classpath:///schema/common/UUID.json"
+    },
+    "servicePlanResourceGroup": {
+      "$ref": "classpath:///schema/common/ResourceGroupName.json"
+    },
+    "servicePlanName": {
+      "$ref": "classpath:///schema/appservice/AppServicePlanName.json"
+    },
+    "os": {
+      "$ref": "classpath:///schema/appservice/Runtime.json#/definitions/os"
+    },
+    "region": {
+      "type": "object"
+    },
+    "pricingTier": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "subscriptionId",
+    "servicePlanName",
+    "servicePlanResourceGroup"
+  ]
+}
