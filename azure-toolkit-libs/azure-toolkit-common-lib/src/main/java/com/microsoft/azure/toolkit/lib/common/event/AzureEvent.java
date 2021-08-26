@@ -9,6 +9,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public interface AzureEvent<T> {
+    Object getSource();
+
     @Nonnull
     String getType();
 

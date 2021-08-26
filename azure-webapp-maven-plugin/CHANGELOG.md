@@ -1,6 +1,8 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure App Service" will be documented in this file.
 - [Change Log](#change-log)
+  - [2.1.0](#210)
+  - [2.0.0](#200)
   - [1.15.0](#1150)
   - [1.14.0](#1140)
   - [1.13.0](#1130)
@@ -24,11 +26,21 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
   - [1.1.0](#110)
   - [1.0.0](#100)
 
+## 2.1.0
+- Support static validation against json schema [#1647](https://github.com/microsoft/azure-maven-plugins/pull/1647)
+- Support custom values for pricingTier/region/webContainer/javaVersion [#1643](https://github.com/microsoft/azure-maven-plugins/pull/1643)
+- Fix a bug of cannot execute azure cli command under proxy [#1637](https://github.com/microsoft/azure-maven-plugins/pull/1637)
+
+## 2.0.0
+- Remove the legacy support for legacy v1 schema
+- Remove the azure track1 SDK dependency
+- Support *script* type in deploy configuration
+
 ## 1.15.0
 - Support one deploy api
 
 ## 1.14.0
-- Support mutltiple tenants in authentication
+- Support multiple tenants in authentication
 - Fix oauth login issue: cannot select account
 - Switch to track 2 sdk for azure webapp service
 

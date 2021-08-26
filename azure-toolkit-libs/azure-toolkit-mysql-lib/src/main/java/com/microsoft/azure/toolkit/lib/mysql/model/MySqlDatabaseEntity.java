@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.mysql.model;
 
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
@@ -12,7 +13,8 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode
-public class MySqlDatabaseEntity {
+public class MySqlDatabaseEntity implements IAzureResourceEntity {
     private String name;
     private String id;
+    private String subscriptionId;
 }

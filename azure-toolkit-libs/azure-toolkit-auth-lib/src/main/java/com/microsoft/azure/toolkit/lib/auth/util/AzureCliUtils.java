@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.auth.util;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.model.AzureCliSubscription;
 import com.microsoft.azure.toolkit.lib.common.utils.CommandUtils;
@@ -17,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -82,10 +82,14 @@ public class AzureCliUtils {
     @Nonnull
     public static String executeAzureCli(@Nonnull String command) {
         try {
-            final InetSocketAddress proxy = Azure.az().config().getHttpProxy();
+            final AzureConfiguration config = Azure.az().config();
             Map<String, String> env = new HashMap<>();
-            if (proxy != null) {
-                String proxyStr = String.format("http://%s:%s", proxy.getHostString(), proxy.getPort());
+            if (StringUtils.isNotBlank(config.getProxySource())) {
+                String proxyAuthPrefix = StringUtils.EMPTY;
+                if (StringUtils.isNoneBlank(config.getProxyUsername(), config.getProxyPassword())) {
+                    proxyAuthPrefix = config.getProxyUsername() + ":" + config.getProxyPassword() + "@";
+                }
+                String proxyStr = String.format("http://%s%s:%s", proxyAuthPrefix, config.getHttpProxyHost(), config.getHttpProxyPort());
                 env.put("HTTPS_PROXY", proxyStr);
                 env.put("HTTP_PROXY", proxyStr);
             }

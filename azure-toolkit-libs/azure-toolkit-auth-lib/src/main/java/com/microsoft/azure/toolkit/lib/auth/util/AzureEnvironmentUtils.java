@@ -16,6 +16,8 @@ import java.util.Map;
 
 public class AzureEnvironmentUtils {
     private static final Map<AzureEnvironment, String[]> AZURE_CLOUD_ALIAS_MAP = new HashMap<>();
+    private static final String CHINA_PORTAL = "https://portal.azure.cn";
+    private static final String GLOBAL_PORTAL = "https://ms.portal.azure.com";
 
     static {
         // the first alias is the cloud name in azure cli
@@ -50,6 +52,17 @@ public class AzureEnvironmentUtils {
             // src/main/java/com/azure/identity/implementation/IdentityClientOptions.java#L42
             Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_AZURE_AUTHORITY_HOST, env.getActiveDirectoryEndpoint());
         }
+
+        final com.microsoft.azure.toolkit.lib.AzureConfiguration az = com.microsoft.azure.toolkit.lib.Azure.az().config();
+        if (StringUtils.isNotBlank(az.getProxySource())) {
+            String proxyAuthPrefix = StringUtils.EMPTY;
+            if (StringUtils.isNoneBlank(az.getProxyUsername(), az.getProxyPassword())) {
+                proxyAuthPrefix = az.getProxyUsername() + ":" + az.getProxyPassword() + "@";
+            }
+            final String proxy = String.format("http://%s%s:%d", proxyAuthPrefix, az.getHttpProxyHost(), az.getHttpProxyPort());
+            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTP_PROXY, proxy);
+            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTPS_PROXY, proxy);
+        }
     }
 
     public static String getAuthority(AzureEnvironment environment) {
@@ -67,6 +80,20 @@ public class AzureEnvironmentUtils {
         return AZURE_CLOUD_ALIAS_MAP.entrySet().stream().filter(entry -> Utils.containsIgnoreCase(Arrays.asList(entry.getValue()), targetEnvironment))
             .map(Map.Entry::getKey)
             .findFirst().orElse(null);
+    }
+
+    public static String getPortalUrl(AzureEnvironment env) {
+        if (AzureEnvironment.AZURE.equals(env)) {
+            return GLOBAL_PORTAL;
+        } else if (AzureEnvironment.AZURE_CHINA.equals(env)) {
+            return CHINA_PORTAL;
+        } else if (AzureEnvironment.AZURE_GERMANY.equals(env)) {
+            return AzureEnvironment.AZURE_GERMANY.getPortal();
+        } else if (AzureEnvironment.AZURE_US_GOVERNMENT.equals(env)) {
+            return AzureEnvironment.AZURE_US_GOVERNMENT.getPortal();
+        } else {
+            return env.getPortal();
+        }
     }
 
     private static void putAliasMap(AzureEnvironment env, String... aliases) {

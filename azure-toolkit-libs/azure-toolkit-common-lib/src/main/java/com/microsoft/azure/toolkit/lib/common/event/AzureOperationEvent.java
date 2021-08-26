@@ -8,10 +8,13 @@ package com.microsoft.azure.toolkit.lib.common.event;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationRef;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 @Getter
+@Setter
 @RequiredArgsConstructor
 public class AzureOperationEvent<T extends AzureOperationEvent.Source<T>> implements AzureEvent<T> {
     private final T source;
@@ -24,8 +27,10 @@ public class AzureOperationEvent<T extends AzureOperationEvent.Source<T>> implem
         return operation.getName();
     }
 
+    @Nullable
+    @Override
     public T getPayload() {
-        return this.source;
+        return source;
     }
 
     public interface Source<T> {

@@ -8,19 +8,24 @@ package com.microsoft.azure.toolkit.lib.common.operation;
 import com.microsoft.azure.toolkit.lib.common.DataStore;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public interface IAzureOperation extends DataStore<IAzureOperation.IContext> {
+public interface IAzureOperation extends DataStore {
     String UNKNOWN_NAME = "<unknown>.<unknown>";
 
     @Nonnull
-    String getId();
+    default String getId() {
+        return Utils.getId(this);
+    }
 
     @Nonnull
-    String getName();
+    default String getName() {
+        return Optional.ofNullable(this.getTitle()).map(AzureString::getName).orElse(UNKNOWN_NAME);
+    }
 
     @Nonnull
     String getType();

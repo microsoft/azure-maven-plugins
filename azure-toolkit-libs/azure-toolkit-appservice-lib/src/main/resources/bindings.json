@@ -1,6 +1,6 @@
 {
   "$schema": "<TBD>",
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.14.0",
   "variables": {
     "storageConnStringLabel": "$variables_storageConnStringLabel",
     "appSettingsHelp": "$variables_appSettingsHelp",
@@ -102,15 +102,15 @@
           "value": "enum",
           "enum": [
             {
-              "value": "function",
+              "value": "FUNCTION",
               "display": "Function"
             },
             {
-              "value": "anonymous",
+              "value": "ANONYMOUS",
               "display": "Anonymous"
             },
             {
-              "value": "admin",
+              "value": "ADMIN",
               "display": "Admin"
             }
           ],

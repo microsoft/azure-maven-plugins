@@ -1,7 +1,6 @@
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for
- * license information.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
 package com.microsoft.azure.toolkit.lib.springcloud;
@@ -12,7 +11,9 @@ import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
 import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
+import com.azure.resourcemanager.resources.fluentcore.model.Refreshable;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -32,7 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringCloudDeployment, SpringCloudDeploymentEntity, SpringAppDeployment>
+public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDeployment, SpringCloudDeploymentEntity, SpringAppDeployment>
         implements AzureOperationEvent.Source<SpringCloudDeployment> {
     @Getter
     @Nonnull
@@ -45,7 +46,7 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
 
     @Override
     @AzureOperation(name = "springcloud|deployment.load", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
-    SpringAppDeployment loadRemote() {
+    protected SpringAppDeployment loadRemote() {
         try {
             return Optional.ofNullable(this.app.remote()).map(r -> r.deployments().getByName(this.name())).orElse(null);
         } catch (ManagementException e) { // if cluster with specified resourceGroup/name removed.
@@ -62,34 +63,60 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
     }
 
     @AzureOperation(name = "springcloud|deployment.start", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudDeployment start() {
+    public void start() {
         if (this.exists()) {
+            this.status(Status.PENDING);
             Objects.requireNonNull(this.remote()).start();
+            this.refreshStatus();
         }
-        return this;
     }
 
     @AzureOperation(name = "springcloud|deployment.stop", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudDeployment stop() {
+    public void stop() {
         if (this.exists()) {
+            this.status(Status.PENDING);
             Objects.requireNonNull(this.remote()).stop();
+            this.refreshStatus();
         }
-        return this;
     }
 
     @AzureOperation(name = "springcloud|deployment.restart", params = {"this.entity().getName()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudDeployment restart() {
+    public void restart() {
         if (this.exists()) {
+            this.status(Status.PENDING);
             Objects.requireNonNull(this.remote()).restart();
+            this.refreshStatus();
         }
-        return this;
     }
 
-    @AzureOperation(name = "springcloud|deployment.wait_until_ready", params = {"this.entity().getName()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(
+            name = "springcloud|deployment.wait_until_ready",
+            params = {"this.entity().getName()", "this.app.name()"},
+            type = AzureOperation.Type.SERVICE
+    )
     public boolean waitUntilReady(int timeoutInSeconds) {
         AzureMessager.getMessager().info("Getting deployment status...");
         final SpringCloudDeployment deployment = Utils.pollUntil(this::refresh, Utils::isDeploymentDone, timeoutInSeconds);
         return Utils.isDeploymentDone(deployment);
+    }
+
+    @Override
+    protected String loadStatus() {
+        Optional.ofNullable(this.entity().getRemote()).ifPresent(Refreshable::refresh);
+        switch (this.entity().getStatus()) {
+            case RUNNING:
+                return Status.RUNNING;
+            case STOPPED:
+                return Status.STOPPED;
+            case FAILED:
+                return Status.ERROR;
+            case ALLOCATING:
+            case UPGRADING:
+            case COMPILING:
+                return Status.PENDING;
+            default:
+                return Status.UNKNOWN;
+        }
     }
 
     public Creator create() {
@@ -176,17 +203,23 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
             return this;
         }
 
-        @AzureOperation(name = "springcloud|deployment.scale", params = {"this.deployment.name()", "this.deployment.app.name()"}, type = AzureOperation.Type.SERVICE)
+        @AzureOperation(
+                name = "springcloud|deployment.scale",
+                params = {"this.deployment.name()", "this.deployment.app.name()"},
+                type = AzureOperation.Type.SERVICE
+        )
         protected SpringCloudDeployment scale(ScaleSettings settings) {
             if (Objects.isNull(settings) || settings.isEmpty()) {
                 return this.deployment;
             }
+            this.deployment.status(Status.PENDING);
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start scaling deployment({0})...", this.deployment.name()));
-            final SpringAppDeploymentImpl modifier = ((SpringAppDeploymentImpl) Objects.requireNonNull(this.deployment.remote()).update());
-            modifier.withCpu(settings.getCpu()).withMemory(settings.getMemoryInGB()).withInstance(settings.getCapacity());
-            this.deployment.entity.setRemote(modifier.apply());
+            final SpringAppDeploymentImpl m = ((SpringAppDeploymentImpl) Objects.requireNonNull(this.deployment.remote()).update());
+            m.withCpu(settings.getCpu()).withMemory(settings.getMemoryInGB()).withInstance(settings.getCapacity());
+            this.deployment.entity.setRemote(m.apply());
             messager.success(AzureString.format("Deployment({0}) is successfully scaled.", this.deployment.name()));
+            this.deployment.app.refresh();
             return this.deployment;
         }
 
@@ -203,15 +236,21 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
             this.modifier = ((SpringAppDeploymentImpl) Objects.requireNonNull(this.deployment.remote()).update());
         }
 
-        @AzureOperation(name = "springcloud|deployment.update", params = {"this.deployment.name()", "this.deployment.app.name()"}, type = AzureOperation.Type.SERVICE)
+        @AzureOperation(
+                name = "springcloud|deployment.update",
+                params = {"this.deployment.name()", "this.deployment.app.name()"},
+                type = AzureOperation.Type.SERVICE
+        )
         public SpringCloudDeployment commit() {
             final IAzureMessager messager = AzureMessager.getMessager();
             if (this.skippable) {
                 messager.info(AzureString.format("Skip updating deployment({0}) since its properties is not changed.", this.deployment.name()));
             } else {
+                this.deployment.status(Status.PENDING);
                 messager.info(AzureString.format("Start updating deployment({0})...", this.deployment.name()));
                 this.deployment.refresh(this.modifier.apply());
                 messager.success(AzureString.format("Deployment({0}) is successfully updated", this.deployment.name()));
+                this.deployment.refreshStatus();
             }
             return this.scale(this.newScaleSettings);
         }
@@ -223,13 +262,20 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
             this.modifier = (SpringAppDeploymentImpl) Objects.requireNonNull(this.deployment.app.remote()).deployments().define(deployment.name());
         }
 
-        @AzureOperation(name = "springcloud|deployment.create", params = {"this.deployment.name()", "this.deployment.app.name()"}, type = AzureOperation.Type.SERVICE)
+        @AzureOperation(
+                name = "springcloud|deployment.create",
+                params = {"this.deployment.name()", "this.deployment.app.name()"},
+                type = AzureOperation.Type.SERVICE
+        )
         public SpringCloudDeployment commit() {
+            this.deployment.status(Status.PENDING);
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start creating deployment({0})...", this.deployment.name()));
             this.deployment.refresh(this.modifier.create());
             messager.success(AzureString.format("Deployment({0}) is successfully created", this.deployment.name()));
-            return this.scale(this.newScaleSettings);
+            final SpringCloudDeployment deployment = this.scale(this.newScaleSettings);
+            this.deployment.app.refresh();
+            return deployment;
         }
     }
 }

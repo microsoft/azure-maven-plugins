@@ -1,6 +1,9 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure Function" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.13.0](#1130)
+  - [1.12.0](#1120)
+  - [1.11.0](#1110)
   - [1.10.0](#1100)
   - [1.9.0](#190)
   - [1.8.0](#180)
@@ -18,6 +21,19 @@ All notable changes to the "Maven Plugin for Azure Function" will be documented 
   - [1.2.2](#122)
   - [1.2.1](#121)
   - [1.2.0](#120)
+
+## 1.13.0
+- Support skip function extensions installation [#1616](https://github.com/microsoft/azure-maven-plugins/issues/1616) (Thanks @sschmeck)
+
+## 1.12.0
+- Support mutltiple tenants in authentication
+- Fix oauth login issue: cannot select account
+- Migrate to Track2 Azure SDK for Azure Functions service
+
+## 1.11.0
+- Deprecate azure-auth-helper and use azure identity for authentication 
+- Start Function App after deployment 
+- Fix possible deadlock during `azure-functions:run` [#1383](https://github.com/microsoft/azure-maven-plugins/issues/1383) (Thanks @glqdlt)
 
 ## 1.10.0
 - Support function execution retry on invocation failures with @Retry annotation [PR#1203](https://github.com/microsoft/azure-maven-plugins/pull/1203)

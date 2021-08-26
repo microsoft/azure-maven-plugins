@@ -1,7 +1,6 @@
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for
- * license information.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
 package com.microsoft.azure.toolkit.lib.springcloud;
@@ -14,6 +13,9 @@ import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
+import com.microsoft.azure.toolkit.lib.common.entity.Removable;
+import com.microsoft.azure.toolkit.lib.common.entity.Startable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -34,7 +36,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, SpringCloudAppEntity, SpringApp> implements AzureOperationEvent.Source<SpringCloudApp> {
+public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, SpringCloudAppEntity, SpringApp>
+        implements AzureOperationEvent.Source<SpringCloudApp>, Startable<SpringCloudAppEntity>, Removable {
     private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
 
     @Getter
@@ -56,9 +59,9 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
 
     @Override
     @AzureOperation(name = "springcloud|app.load", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
-    SpringApp loadRemote() {
+    protected SpringApp loadRemote() {
         try {
-            return Optional.ofNullable(this.cluster.remote()).map(r->r.apps().getByName(this.name())).orElse(null);
+            return Optional.ofNullable(this.cluster.remote()).map(r -> r.apps().getByName(this.name())).orElse(null);
         } catch (ManagementException e) { // if cluster with specified resourceGroup/name removed.
             if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatusCode()) {
                 return null;
@@ -68,7 +71,7 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
     }
 
     @Nonnull
-    @Cacheable(cacheName = "asc/app/{}/deployment/{}", key = "${this.name()}/$name")
+    @Cacheable(cacheName = "resource/{}/child/{}", key = "${this.id()}/$name")
     @AzureOperation(name = "springcloud|deployment.get", params = {"name", "this.name()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudDeployment deployment(final String name) {
         if (this.exists()) {
@@ -102,7 +105,7 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
     }
 
     @Nonnull
-    @Cacheable(cacheName = "asc/app/{}/deployments", key = "${this.name()}")
+    @Cacheable(cacheName = "resource/{}/children", key = "${this.id()}")
     @AzureOperation(name = "springcloud|deployment.list.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public List<SpringCloudDeployment> deployments() {
         if (this.exists()) {
@@ -112,29 +115,42 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
     }
 
     @AzureOperation(name = "springcloud|app.start", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudApp start() {
+    public void start() {
+        this.status(Status.PENDING);
         this.deployment(this.activeDeploymentName()).start();
-        return this;
+        this.refreshStatus();
     }
 
     @AzureOperation(name = "springcloud|app.stop", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudApp stop() {
+    public void stop() {
+        this.status(Status.PENDING);
         this.deployment(this.activeDeploymentName()).stop();
-        return this;
+        this.refreshStatus();
     }
 
     @AzureOperation(name = "springcloud|app.restart", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudApp restart() {
+    public void restart() {
+        this.status(Status.PENDING);
         this.deployment(this.activeDeploymentName()).restart();
-        return this;
+        this.refreshStatus();
     }
 
     @AzureOperation(name = "springcloud|app.remove", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudApp remove() {
+    public void remove() {
         if (this.exists()) {
+            this.status(Status.PENDING);
             Objects.requireNonNull(this.remote()).parent().apps().deleteByName(this.name());
+            this.cluster.refresh();
         }
-        return this;
+    }
+
+    @Override
+    protected String loadStatus() {
+        final SpringCloudDeployment deployment = this.activeDeployment();
+        if (Objects.isNull(deployment)) {
+            return Status.ERROR;
+        }
+        return deployment.loadStatus();
     }
 
     public Creator create() {
@@ -148,14 +164,22 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
         return new Updater(this);
     }
 
-    public static abstract class Modifier implements ICommittable<SpringCloudApp>, AzureOperationEvent.Source<SpringCloudApp> {
+    public String publicUrl() {
+        return this.entity.getApplicationUrl();
+    }
+
+    public String testUrl() {
+        return this.entity.getTestUrl();
+    }
+
+    public abstract static class Modifier implements ICommittable<SpringCloudApp>, AzureOperationEvent.Source<SpringCloudApp> {
         public static final String DEFAULT_DISK_MOUNT_PATH = "/persistent";
         /**
-         * @see <a href=https://azure.microsoft.com/en-us/pricing/details/spring-cloud/>Pricing - Azure Spring Cloud</a>
+         * @see <a href="https://azure.microsoft.com/en-us/pricing/details/spring-cloud/">Pricing - Azure Spring Cloud</a>
          */
         public static final int BASIC_TIER_DEFAULT_DISK_SIZE = 1;
         /**
-         * @see <a href=https://azure.microsoft.com/en-us/pricing/details/spring-cloud/>Pricing - Azure Spring Cloud</a>
+         * @see <a href="https://azure.microsoft.com/en-us/pricing/details/spring-cloud/">Pricing - Azure Spring Cloud</a>
          */
         public static final int STANDARD_TIER_DEFAULT_DISK_SIZE = 50;
 
@@ -229,7 +253,9 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
             final IAzureMessager messager = AzureMessager.getMessager();
             if (!this.skippable) {
                 messager.info(AzureString.format("Start updating app({0})...", this.app.name()));
+                this.app.status(Status.PENDING);
                 this.app.refresh(this.modifier.apply());
+                this.app.refreshStatus();
                 messager.success(AzureString.format("App({0}) is successfully updated.", this.app.name()));
                 messager.warning(UPDATE_APP_WARNING);
             }
@@ -251,6 +277,7 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start creating app({0})...", appName));
             this.app.refresh(this.modifier.create());
+            this.app.cluster.refresh();
             messager.success(AzureString.format("App({0}) is successfully created.", appName));
             return this.app;
         }

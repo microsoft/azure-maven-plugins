@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-libs</artifactId>
-    <version>0.10.0</version>
+    <version>0.11.0</version>
     <packaging>pom</packaging>
     <name>Libs for Azure Toolkits</name>
     <description>Wrapped libs for Microsoft Azure Toolkits</description>
@@ -43,6 +43,8 @@
         <module>azure-toolkit-sqlserver-lib</module>
         <module>azure-toolkit-mysql-lib</module>
         <module>azure-toolkit-applicationinsights-lib</module>
+        <module>azure-toolkit-storage-lib</module>
+        <module>azure-toolkit-database-lib</module>
     </modules>
 
     <properties>
@@ -67,7 +69,6 @@
         <azure.appplatform-sdk.version>1.0.0-beta</azure.appplatform-sdk.version>
         <azure.resourcemanager-applicationinsights.version>1.0.0-beta.1</azure.resourcemanager-applicationinsights.version>
         <azure.azure-mgmt-appplatform.version>1.0.0-beta</azure.azure-mgmt-appplatform.version>
-        <azure.mgmt-insights.version>1.0.0-beta</azure.mgmt-insights.version>
         <azure.client.version>1.7.12</azure.client.version>
         <azure.identity.version>1.3.0</azure.identity.version>
         <azure.resourcemanager.version>2.5.0</azure.resourcemanager.version>
@@ -96,7 +97,7 @@
         <commons.lang3.version>3.12.0</commons.lang3.version>
         <commons.math3.version>3.6.1</commons.math3.version>
         <commons.net.version>3.8.0</commons.net.version>
-        <commons.compress.version>1.20</commons.compress.version>
+        <commons.compress.version>1.21</commons.compress.version>
         <commons.configuration2.version>2.7</commons.configuration2.version>
         <dom4j.version>2.1.3</dom4j.version>
         <error.prone.core.version>2.7.1</error.prone.core.version>
@@ -138,6 +139,7 @@
         <plexus-interpolation.version>1.26</plexus-interpolation.version>
         <powermock.version>2.0.9</powermock.version>
         <azure-resourcemanager-mysql.version>1.0.0</azure-resourcemanager-mysql.version>
+        <networknt.json-schema-validator.version>1.0.57</networknt.json-schema-validator.version>
     </properties>
 
     <dependencyManagement>
@@ -176,6 +178,11 @@
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-database-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-sqlserver-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
@@ -192,6 +199,11 @@
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-applicationinsights-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-storage-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
             <!-- azure libs -->
@@ -295,11 +307,6 @@
                 <groupId>com.microsoft.azure.appplatform.v2020_07_01</groupId>
                 <artifactId>azure-mgmt-appplatform</artifactId>
                 <version>${azure.azure-mgmt-appplatform.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure.applicationinsights.v2015_05_01</groupId>
-                <artifactId>azure-mgmt-insights</artifactId>
-                <version>${azure.mgmt-insights.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.azure</groupId>
@@ -520,6 +527,11 @@
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-storage</artifactId>
+                <version>${azure.resourcemanager.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-mysql</artifactId>
                 <version>${azure-resourcemanager-mysql.version}</version>
             </dependency>
@@ -696,6 +708,11 @@
                 <groupId>org.glassfish.jaxb</groupId>
                 <artifactId>jaxb-runtime</artifactId>
                 <version>${jaxb.runtime.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.networknt</groupId>
+                <artifactId>json-schema-validator</artifactId>
+                <version>${networknt.json-schema-validator.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.java-json-tools</groupId>

@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.event;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NonNls;
@@ -62,8 +63,8 @@ public class AzureEventBus {
         AzureEventBus.emit(type, new SimpleEvent<>(type, null));
     }
 
-    public static <T> void emit(@Nonnull final String type, @Nullable final T payload) {
-        AzureEventBus.emit(type, new SimpleEvent<>(type, payload));
+    public static void emit(@Nonnull final String type, @Nullable final Object source) {
+        AzureEventBus.emit(type, new SimpleEvent<>(type, source));
     }
 
     public static <T> void emit(@Nonnull final String type, @Nonnull AzureEvent<T> event) {
@@ -88,10 +89,13 @@ public class AzureEventBus {
 
     @Getter
     @RequiredArgsConstructor
+    @AllArgsConstructor
     private static class SimpleEvent<T> implements AzureEvent<T> {
         @Nonnull
         private final String type;
         @Nullable
-        private final T payload;
+        private final Object source;
+        @Nullable
+        private T payload;
     }
 }
