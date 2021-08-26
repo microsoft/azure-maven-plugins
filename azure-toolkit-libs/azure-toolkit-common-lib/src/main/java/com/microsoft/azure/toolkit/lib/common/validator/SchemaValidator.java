@@ -9,11 +9,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
@@ -22,11 +25,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -35,6 +40,8 @@ import static com.fasterxml.jackson.databind.MapperFeature.AUTO_DETECT_GETTERS;
 import static com.fasterxml.jackson.databind.MapperFeature.AUTO_DETECT_IS_GETTERS;
 
 public class SchemaValidator {
+    private static final Path SCHEMA_ROOT = Paths.get("schema");
+    private static final String INVALID_PARAMETER_ERROR_MESSAGE = "Invalid parameters founded, please correct the value with messages below:";
 
     private final Map<String, JsonSchema> schemaMap = new HashMap<>();
     private final JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
@@ -47,10 +54,13 @@ public class SchemaValidator {
     }
 
     private SchemaValidator() {
-        final Set<String> resources = new Reflections("schema", new ResourcesScanner()).getResources(Pattern.compile(".*\\.json"));
-        resources.stream().map(resource -> Pair.of(resource, SchemaValidator.class.getResourceAsStream("/" + resource)))
+        Optional.of(new Reflections("schema/", new ResourcesScanner()))
+                .filter(reflections -> CollectionUtils.isNotEmpty(reflections.getStore().keySet()))
+                .map(reflections -> reflections.getResources(Pattern.compile(".*\\.json")))
+                .orElse(Collections.emptySet())
+                .stream().map(resource -> Pair.of(resource, SchemaValidator.class.getResourceAsStream("/" + resource)))
                 .filter(pair -> pair.getValue() != null)
-                .forEach(pair -> registerSchema(FilenameUtils.getBaseName(pair.getKey()), pair.getValue()));
+                .forEach(pair -> registerSchema(getSchemaId(pair.getKey()), pair.getValue()));
     }
 
     public static SchemaValidator getInstance() {
@@ -81,20 +91,39 @@ public class SchemaValidator {
         return validate(schemaId, objectMapper.convertValue(value, JsonNode.class), pathPrefix);
     }
 
-    public List<ValidationMessage> validate(@Nonnull final String schemaId, @Nonnull final JsonNode value) {
-        return validate(schemaId, value, "$");
-    }
-
     public List<ValidationMessage> validate(@Nonnull final String schemaId, @Nonnull final JsonNode value, @Nullable final String pathPrefix) {
         if (!schemaMap.containsKey(schemaId)) {
             AzureMessager.getMessager().warning(AzureString.format("Skip validation as schema %s was not registered", schemaId));
             return Collections.emptyList();
         }
-        return validate(schemaMap.get(schemaId), value, pathPrefix);
+        return schemaMap.get(schemaId).validate(value, value, pathPrefix).stream().map(ValidationMessage::fromRawMessage).collect(Collectors.toList());
     }
 
-    private List<ValidationMessage> validate(@Nonnull final JsonSchema schema, @Nonnull final JsonNode value, @Nullable final String pathPrefix) {
-        return schema.validate(value, value, pathPrefix).stream().map(ValidationMessage::fromRawMessage).collect(Collectors.toList());
+    public void validateAndThrow(@Nonnull final String schemaId, @Nonnull final Object value) {
+        validateAndThrow(schemaId, value, "$");
+    }
+
+    public void validateAndThrow(@Nonnull final String schemaId, @Nonnull final Object value, @Nullable final String pathPrefix) {
+        validateAndThrow(schemaId, objectMapper.convertValue(value, JsonNode.class), pathPrefix);
+    }
+
+    public void validateAndThrow(@Nonnull final String schemaId, @Nonnull final JsonNode value, @Nullable final String pathPrefix) {
+        final List<ValidationMessage> result = validate(schemaId, value, pathPrefix);
+        if (CollectionUtils.isNotEmpty(result)) {
+            final String errorDetails = result.stream().map(message -> message.getMessage().toString()).collect(Collectors.joining(StringUtils.LF));
+            throw new AzureToolkitRuntimeException(String.join(StringUtils.LF, INVALID_PARAMETER_ERROR_MESSAGE, errorDetails));
+        }
+    }
+
+    private static String getSchemaId(final String path) {
+        try {
+            final Path schemaPath = Paths.get(FilenameUtils.removeExtension(path));
+            final Path relativePath = SCHEMA_ROOT.relativize(schemaPath);
+            return FilenameUtils.separatorsToUnix(relativePath.toString());
+        } catch (IllegalArgumentException e) {
+            // fallback to schema path for path parse issue
+            return path;
+        }
     }
 
     private static class LazyHolder {

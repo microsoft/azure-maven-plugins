@@ -5,9 +5,7 @@
   "type": "object",
   "properties": {
     "os": {
-      "description": "The operating system for app service",
-      "type": "string",
-      "pattern": "(?i)^(windows|linux|docker)$"
+      "$ref": "#/definitions/os"
     },
     "webContainer": {
       "$ref": "classpath:///schema/common/NonEmptyString.json"
@@ -73,5 +71,12 @@
         ]
       }
     }
-  ]
+  ],
+  "definitions": {
+    "os": {
+      "description": "The operating system for app service",
+      "type": "string",
+      "pattern": "(?i)^(windows|linux|docker)$"
+    }
+  }
 }

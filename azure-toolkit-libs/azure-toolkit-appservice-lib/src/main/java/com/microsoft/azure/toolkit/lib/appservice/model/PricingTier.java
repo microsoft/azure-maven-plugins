@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.google.common.collect.Sets;
 import com.microsoft.azure.toolkit.lib.common.model.ExpandableParameter;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class PricingTier implements ExpandableParameter {
     public static final PricingTier BASIC_B1 = new PricingTier("Basic", "B1");
     public static final PricingTier BASIC_B2 = new PricingTier("Basic", "B2");
