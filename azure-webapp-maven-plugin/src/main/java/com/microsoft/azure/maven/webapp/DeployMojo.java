@@ -5,9 +5,6 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.azure.core.management.exception.ManagementException;
-import com.azure.resourcemanager.AzureResourceManager;
-import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.utils.DeployUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
@@ -26,6 +23,8 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.model.ResourceGroup;
+import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -120,7 +119,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         final IAppServicePlan appServicePlan = getOrCreateAppServicePlan(webAppConfig);
         AzureMessager.getMessager().info(String.format(CREATE_WEBAPP, webAppConfig.getAppName()));
         final IWebApp result = webApp.create().withName(webAppConfig.getAppName())
-                .withResourceGroup(resourceGroup.name())
+                .withResourceGroup(resourceGroup.getName())
                 .withPlan(appServicePlan.id())
                 .withRuntime(webAppConfig.getRuntime())
                 .withDockerConfiguration(webAppConfig.getDockerConfiguration())
@@ -160,17 +159,7 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     private ResourceGroup getOrCreateResourceGroup(final WebAppConfig webAppConfig) {
         // todo: Extract resource group logic to library
-        final AzureResourceManager azureResourceManager = az.getAzureResourceManager(webAppConfig.getSubscriptionId());
-        try {
-            return azureResourceManager.resourceGroups().getByName(webAppConfig.getResourceGroup());
-        } catch (ManagementException e) {
-            AzureMessager.getMessager().info(String.format(CREATE_RESOURCE_GROUP, webAppConfig.getResourceGroup(), webAppConfig.getRegion().getName()));
-            getTelemetryProxy().addDefaultProperty(CREATE_NEW_RESOURCE_GROUP, String.valueOf(true));
-            final ResourceGroup result = azureResourceManager.resourceGroups().define(webAppConfig.getResourceGroup())
-                    .withRegion(webAppConfig.getRegion().getName()).create();
-            AzureMessager.getMessager().info(String.format(CREATE_RESOURCE_GROUP_DONE, webAppConfig.getResourceGroup()));
-            return result;
-        }
+        return new CreateResourceGroupTask(webAppConfig.getSubscriptionId(), webAppConfig.getResourceGroup(), webAppConfig.getRegion()).execute();
     }
 
     private IAppServicePlan getOrCreateAppServicePlan(final WebAppConfig webAppConfig) {
