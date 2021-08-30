@@ -18,6 +18,8 @@ import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation.Type;
@@ -56,12 +58,19 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
             tasks.add(new CreateResourceGroupTask(this.config.subscriptionId(), this.config.servicePlanResourceGroup(), this.config.region()));
         }
         final AzureString title = AzureString.format("Create new web app({0})", this.config.appName());
-
+        AzureAppService az = Azure.az(AzureAppService.class);
         tasks.add(new AzureTask<>(title, () -> {
-            final IWebApp target = Azure.az(AzureAppService.class).subscription(config.subscriptionId())
+            final IWebApp target = az.subscription(config.subscriptionId())
                 .webapp(config.resourceGroup(), config.appName());
             if (!target.exists()) {
+                CheckNameAvailabilityResultEntity result = az.checkNameAvailability(config.subscriptionId(), config.appName());
+                if (!result.isAvailable()) {
+                    throw new AzureToolkitRuntimeException(AzureString.format("Cannot create webapp {0} due to error: {1}",
+                            config.appName(),
+                            result.getUnavailabilityReason()).getString());
+                }
                 return create();
+
             }
             return update(target);
         }));
@@ -93,6 +102,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
         AzureMessager.getMessager().info(String.format(CREATE_WEB_APP_DONE, result.name()));
         return result;
     }
+
     @AzureOperation(name = "webapp.update", params = {"this.config.appName()"}, type = Type.SERVICE)
     private IWebApp update(final IWebApp webApp) {
         AzureMessager.getMessager().info(String.format(UPDATE_WEBAPP, webApp.name()));

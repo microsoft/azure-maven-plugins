@@ -20,7 +20,10 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.collections4.CollectionUtils;
@@ -104,6 +107,14 @@ public class DeployMojo extends AbstractWebAppMojo {
         if (webAppConfig.getRuntime() == null) {
             throw new AzureExecutionException(NO_RUNTIME_CONFIG);
         }
+
+        CheckNameAvailabilityResultEntity checkNameResult = az.checkNameAvailability(webAppConfig.getSubscriptionId(), webAppConfig.getAppName());
+        if (!checkNameResult.isAvailable()) {
+            throw new AzureToolkitRuntimeException(AzureString.format("Cannot create webapp {0} due to error: {1}",
+                    webAppConfig.getAppName(),
+                    checkNameResult.getUnavailabilityReason()).getString());
+        }
+
         getTelemetryProxy().addDefaultProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
         final ResourceGroup resourceGroup = getOrCreateResourceGroup(webAppConfig);
         final IAppServicePlan appServicePlan = getOrCreateAppServicePlan(webAppConfig);
