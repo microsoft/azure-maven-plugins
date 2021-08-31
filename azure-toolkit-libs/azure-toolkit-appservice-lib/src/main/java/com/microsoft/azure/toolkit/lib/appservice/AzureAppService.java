@@ -142,8 +142,8 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Nonnull
-    public @AzureOperation(name = "webapp|runtime.list.os|version", params = {"os.getValue()", "version.getValue()"}, type = AzureOperation.Type.SERVICE)
-    List<Runtime> listWebAppRuntimes(@Nonnull OperatingSystem os, @Nonnull JavaVersion version) {
+    @AzureOperation(name = "webapp|runtime.list.os|version", params = {"os.getValue()", "version.getValue()"}, type = AzureOperation.Type.SERVICE)
+    public List<Runtime> listWebAppRuntimes(@Nonnull OperatingSystem os, @Nonnull JavaVersion version) {
         return Runtime.WEBAPP_RUNTIME.stream()
                 .filter(runtime -> Objects.equals(os, runtime.getOperatingSystem()) && Objects.equals(version, runtime.getJavaVersion()))
                 .collect(Collectors.toList());

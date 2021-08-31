@@ -71,7 +71,7 @@ class AppServiceUtils {
         }
         final String linuxFxVersion = webAppBase.linuxFxVersion();
         return StringUtils.containsIgnoreCase(webAppBase.innerModel().kind(), "function") ?
-                getRuntimeFromLinuxFunctionApp(linuxFxVersion) :  Runtime.getRuntimeFromLinuxFxVersion(linuxFxVersion);
+                getRuntimeFromLinuxFunctionApp(linuxFxVersion) : Runtime.getRuntimeFromLinuxFxVersion(linuxFxVersion);
     }
 
     private static Runtime getRuntimeFromLinuxFunctionApp(String linuxFxVersion) {
