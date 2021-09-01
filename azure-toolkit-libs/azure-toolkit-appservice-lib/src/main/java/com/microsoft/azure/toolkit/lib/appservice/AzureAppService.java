@@ -54,7 +54,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         super(AzureAppService::new, subscriptions);
     }
 
-    @Cacheable(cacheName = "appservcie/functionapp/{}", key = "$id")
+    @Cacheable(cacheName = "appservice/functionapp/{}", key = "$id")
     @AzureOperation(name = "functionapp.get.id", params = {"id"}, type = AzureOperation.Type.SERVICE)
     public IFunctionApp functionApp(String id) {
         return new FunctionApp(id, getAppServiceManager(Utils.getSubscriptionId(id)));
@@ -64,7 +64,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         return functionApp(getDefaultSubscription().getId(), resourceGroup, name);
     }
 
-    @Cacheable(cacheName = "appservcie/{}/rg/{}/functionapp/{}", key = "$sid/$rg/$name")
+    @Cacheable(cacheName = "appservice/{}/rg/{}/functionapp/{}", key = "$sid/$rg/$name")
     @AzureOperation(name = "functionapp.get.name|rg|sid", params = {"name", "rg", "sid"}, type = AzureOperation.Type.SERVICE)
     public IFunctionApp functionApp(String sid, String rg, String name) {
         return new FunctionApp(sid, rg, name, getAppServiceManager(sid));
@@ -83,7 +83,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
                 .collect(Collectors.toList());
     }
 
-    @Cacheable(cacheName = "appservcie/{}/functionapps", key = "$sid", condition = "!(force&&force[0])")
+    @Cacheable(cacheName = "appservice/{}/functionapps", key = "$sid", condition = "!(force&&force[0])")
     @AzureOperation(name = "functionapp.list.subscription", params = "sid", type = AzureOperation.Type.SERVICE)
     private List<IFunctionApp> functionApps(String sid, boolean... force) {
         final AppServiceManager azureResourceManager = getAppServiceManager(sid);
@@ -94,7 +94,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
                 .collect(Collectors.toList());
     }
 
-    @Cacheable(cacheName = "appservcie/webapp/{}", key = "$id")
+    @Cacheable(cacheName = "appservice/webapp/{}", key = "$id")
     @AzureOperation(name = "webapp.get.id", params = "id", type = AzureOperation.Type.SERVICE)
     public IWebApp webapp(String id) {
         return new WebApp(id, getAppServiceManager(Utils.getSubscriptionId(id)));
@@ -104,7 +104,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         return webapp(getDefaultSubscription().getId(), resourceGroup, name);
     }
 
-    @Cacheable(cacheName = "appservcie/{}/rg/{}/webapp/{}", key = "$sid/$rg/$name")
+    @Cacheable(cacheName = "appservice/{}/rg/{}/webapp/{}", key = "$sid/$rg/$name")
     @AzureOperation(name = "webapp.get.name|rg|sid", params = {"name", "rg", "sid"}, type = AzureOperation.Type.SERVICE)
     public IWebApp webapp(String sid, String rg, String name) {
         return new WebApp(sid, rg, name, getAppServiceManager(sid));
@@ -131,7 +131,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         return new CheckNameAvailabilityResultEntity(result.nameAvailable(), result.reason().toString(), result.message());
     }
 
-    @Cacheable(cacheName = "appservcie/{}/webapps", key = "$sid", condition = "!(force&&force[0])")
+    @Cacheable(cacheName = "appservice/{}/webapps", key = "$sid", condition = "!(force&&force[0])")
     @AzureOperation(name = "webapp.list.subscription", params = "sid", type = AzureOperation.Type.SERVICE)
     private List<IWebApp> webapps(String sid, boolean... force) {
         final AppServiceManager azureResourceManager = getAppServiceManager(sid);
@@ -149,7 +149,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
                 .collect(Collectors.toList());
     }
 
-    @Cacheable(cacheName = "appservcie/plan/{}", key = "$id")
+    @Cacheable(cacheName = "appservice/plan/{}", key = "$id")
     @AzureOperation(name = "appservice|plan.get.id", params = "id", type = AzureOperation.Type.SERVICE)
     public IAppServicePlan appServicePlan(String id) {
         return new AppServicePlan(id, getAppServiceManager(Utils.getSubscriptionId(id)));
@@ -159,7 +159,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         return appServicePlan(getDefaultSubscription().getId(), resourceGroup, name);
     }
 
-    @Cacheable(cacheName = "appservcie/{}/rg/{}/plan/{}", key = "$sid/$rg/$name")
+    @Cacheable(cacheName = "appservice/{}/rg/{}/plan/{}", key = "$sid/$rg/$name")
     @AzureOperation(name = "appservice|plan.get.name|rg|sid", params = {"name", "rg", "sid"}, type = AzureOperation.Type.SERVICE)
     public IAppServicePlan appServicePlan(String sid, String rg, String name) {
         return new AppServicePlan(sid, rg, name, getAppServiceManager(sid));
@@ -178,7 +178,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
                 .collect(Collectors.toList());
     }
 
-    @Cacheable(cacheName = "appservcie/{}/plans", key = "$sid", condition = "!(force&&force[0])")
+    @Cacheable(cacheName = "appservice/{}/plans", key = "$sid", condition = "!(force&&force[0])")
     @AzureOperation(name = "appservice|plan.list.subscription", params = "sid", type = AzureOperation.Type.SERVICE)
     public List<IAppServicePlan> appServicePlans(String sid, boolean... force) {
         final AppServiceManager azureResourceManager = getAppServiceManager(sid);
@@ -187,7 +187,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
                 .collect(Collectors.toList());
     }
 
-    @Cacheable(cacheName = "appservcie/rg/{}/plans", key = "$rg", condition = "!(force&&force[0])")
+    @Cacheable(cacheName = "appservice/rg/{}/plans", key = "$rg", condition = "!(force&&force[0])")
     @AzureOperation(name = "appservice|plan.list.rg", params = "rg", type = AzureOperation.Type.SERVICE)
     public List<IAppServicePlan> appServicePlansByResourceGroup(String rg, boolean... force) {
         return getSubscriptions().stream().parallel()
@@ -198,7 +198,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Deprecated
-    @Cacheable(cacheName = "appservcie/slot/{}", key = "$id")
+    @Cacheable(cacheName = "appservice/slot/{}", key = "$id")
     @AzureOperation(name = "appservice|deployment.get.id", params = "id", type = AzureOperation.Type.SERVICE)
     public IWebAppDeploymentSlot deploymentSlot(String id) {
         return new WebAppDeploymentSlot(id, getAppServiceManager(Utils.getSubscriptionId(id)));
