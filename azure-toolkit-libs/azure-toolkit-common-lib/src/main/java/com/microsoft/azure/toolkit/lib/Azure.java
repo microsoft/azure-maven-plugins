@@ -19,15 +19,21 @@ public class Azure {
     }
 
     public static synchronized <T extends AzureService> T az(final Class<T> clazz) {
-        T service = getService(clazz);
-        if (service == null) {
-            Holder.loader.reload();
-            service = getService(clazz);
+        long start = System.currentTimeMillis();
+        try {
+            T service = getService(clazz);
+            if (service == null) {
+                Holder.loader.reload();
+                service = getService(clazz);
+            }
+            if (service != null) {
+                return service;
+            }
+            throw new AzureToolkitRuntimeException(String.format("Azure service(%s) not supported", clazz.getSimpleName()));
+        } finally {
+            long end = System.currentTimeMillis();
+
         }
-        if (service != null) {
-            return service;
-        }
-        throw new AzureToolkitRuntimeException(String.format("Azure service(%s) not supported", clazz.getSimpleName()));
     }
 
     @Nullable

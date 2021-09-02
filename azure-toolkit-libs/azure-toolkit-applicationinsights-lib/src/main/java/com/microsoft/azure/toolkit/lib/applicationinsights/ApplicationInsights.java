@@ -94,7 +94,7 @@ public class ApplicationInsights extends SubscriptionScoped<ApplicationInsights>
         getApplicationInsightsManager(subscriptionId).components().deleteByResourceGroup(resourceGroup, name);
     }
 
-    @Cacheable(cacheName = "ApplicationInsightsManager", key = "$subscriptionId")
+    @Cacheable(cacheName = "AzureResourceManager", key = "$subscriptionId")
     private ApplicationInsightsManager getApplicationInsightsManager(String subscriptionId) {
         final Account account = Azure.az(AzureAccount.class).account();
         final String tenantId = account.getSubscription(subscriptionId).getTenantId();

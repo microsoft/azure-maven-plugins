@@ -5,13 +5,12 @@
 package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.core.util.logging.ClientLogger;
-import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.models.AppServicePlan;
 import com.azure.resourcemanager.appservice.models.DeployOptions;
 import com.azure.resourcemanager.appservice.models.WebApp.DefinitionStages;
 import com.azure.resourcemanager.appservice.models.WebApp.Update;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
-import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
@@ -48,20 +47,20 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     private static final ClientLogger LOGGER = new ClientLogger(WebApp.class);
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
 
-    private final AzureResourceManager azureClient;
+    private final AppServiceManager azureClient;
 
-    public WebApp(@Nonnull final String id, @Nonnull final AzureResourceManager azureClient) {
+    public WebApp(@Nonnull final String id, @Nonnull final AppServiceManager azureClient) {
         super(id);
         this.azureClient = azureClient;
     }
 
     public WebApp(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name,
-                              @Nonnull final AzureResourceManager azureClient) {
+                              @Nonnull final AppServiceManager azureClient) {
         super(subscriptionId, resourceGroup, name);
         this.azureClient = azureClient;
     }
 
-    public WebApp(@Nonnull WebSiteBase webAppBasic, @Nonnull final AzureResourceManager azureClient) {
+    public WebApp(@Nonnull WebSiteBase webAppBasic, @Nonnull final AppServiceManager azureClient) {
         super(webAppBasic);
         this.azureClient = azureClient;
     }
@@ -166,18 +165,17 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             if (appServicePlan == null) {
                 throw new AzureToolkitRuntimeException("Target app service plan not exists");
             }
-            final ResourceGroup resourceGroup = WebApp.this.azureClient.resourceGroups().getByName(getResourceGroup());
             final DefinitionStages.WithCreate withCreate;
             switch (runtime.getOperatingSystem()) {
                 case LINUX:
-                    withCreate = createLinuxWebApp(blank, resourceGroup, appServicePlan, runtime);
+                    withCreate = createLinuxWebApp(blank, appServicePlan, runtime);
                     break;
                 case WINDOWS:
-                    withCreate = createWindowsWebApp(blank, resourceGroup, appServicePlan, runtime);
+                    withCreate = createWindowsWebApp(blank, appServicePlan, runtime);
                     break;
                 case DOCKER:
                     final DockerConfiguration dockerConfiguration = getDockerConfiguration().get();
-                    withCreate = createDockerWebApp(blank, resourceGroup, appServicePlan, dockerConfiguration);
+                    withCreate = createDockerWebApp(blank, appServicePlan, dockerConfiguration);
                     break;
                 default:
                     throw new AzureToolkitRuntimeException(String.format(UNSUPPORTED_OPERATING_SYSTEM, runtime.getOperatingSystem()));
@@ -194,23 +192,20 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             return WebApp.this;
         }
 
-        DefinitionStages.WithCreate createWindowsWebApp(DefinitionStages.Blank blank, ResourceGroup resourceGroup, AppServicePlan appServicePlan,
-                                                        Runtime runtime) {
+        DefinitionStages.WithCreate createWindowsWebApp(DefinitionStages.Blank blank, AppServicePlan appServicePlan, Runtime runtime) {
             return (DefinitionStages.WithCreate) blank.withExistingWindowsPlan(appServicePlan)
                 .withExistingResourceGroup(resourceGroup)
                 .withJavaVersion(AppServiceUtils.toJavaVersion(runtime.getJavaVersion()))
                 .withWebContainer(AppServiceUtils.toWebContainer(runtime));
         }
 
-        DefinitionStages.WithCreate createLinuxWebApp(DefinitionStages.Blank blank, ResourceGroup resourceGroup, AppServicePlan appServicePlan,
-                                                      Runtime runtime) {
+        DefinitionStages.WithCreate createLinuxWebApp(DefinitionStages.Blank blank, AppServicePlan appServicePlan, Runtime runtime) {
             return blank.withExistingLinuxPlan(appServicePlan)
                 .withExistingResourceGroup(resourceGroup)
                 .withBuiltInImage(AppServiceUtils.toRuntimeStack(runtime));
         }
 
-        DefinitionStages.WithCreate createDockerWebApp(DefinitionStages.Blank blank, ResourceGroup resourceGroup, AppServicePlan appServicePlan,
-                                                       DockerConfiguration dockerConfiguration) {
+        DefinitionStages.WithCreate createDockerWebApp(DefinitionStages.Blank blank, AppServicePlan appServicePlan, DockerConfiguration dockerConfiguration) {
             final DefinitionStages.WithLinuxAppFramework withLinuxAppFramework =
                     blank.withExistingLinuxPlan(appServicePlan).withExistingResourceGroup(resourceGroup);
             final DefinitionStages.WithStartUpCommand draft;

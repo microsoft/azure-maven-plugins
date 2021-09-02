@@ -4,14 +4,13 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
-import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.models.AppServicePlan;
 import com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages.Blank;
 import com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages.WithCreate;
 import com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages.WithDockerContainerImage;
 import com.azure.resourcemanager.appservice.models.FunctionApp.Update;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
-import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
@@ -52,20 +51,20 @@ import java.util.stream.Collectors;
 public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appservice.models.FunctionApp, FunctionAppEntity> implements IFunctionApp {
     public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8;
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
-    private final AzureResourceManager azureClient;
+    private final AppServiceManager azureClient;
 
-    public FunctionApp(@Nonnull final String id, @Nonnull final AzureResourceManager azureClient) {
+    public FunctionApp(@Nonnull final String id, @Nonnull final AppServiceManager azureClient) {
         super(id);
         this.azureClient = azureClient;
     }
 
     public FunctionApp(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name,
-                  @Nonnull final AzureResourceManager azureClient) {
+                  @Nonnull final AppServiceManager azureClient) {
         super(subscriptionId, resourceGroup, name);
         this.azureClient = azureClient;
     }
 
-    public FunctionApp(@Nonnull WebSiteBase webSiteBase, @Nonnull final AzureResourceManager azureClient) {
+    public FunctionApp(@Nonnull WebSiteBase webSiteBase, @Nonnull final AppServiceManager azureClient) {
         super(webSiteBase);
         this.azureClient = azureClient;
     }
@@ -199,18 +198,17 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
             if (appServicePlan == null) {
                 throw new AzureToolkitRuntimeException("Target app service plan not exists");
             }
-            final ResourceGroup resourceGroup = FunctionApp.this.azureClient.resourceGroups().getByName(getResourceGroup());
             final WithCreate withCreate;
             switch (runtime.getOperatingSystem()) {
                 case LINUX:
-                    withCreate = createLinuxFunctionApp(blank, resourceGroup, appServicePlan, runtime);
+                    withCreate = createLinuxFunctionApp(blank, appServicePlan, runtime);
                     break;
                 case WINDOWS:
-                    withCreate = createWindowsFunctionApp(blank, resourceGroup, appServicePlan, runtime);
+                    withCreate = createWindowsFunctionApp(blank, appServicePlan, runtime);
                     break;
                 case DOCKER:
                     final DockerConfiguration dockerConfiguration = getDockerConfiguration().get();
-                    withCreate = createDockerFunctionApp(blank, resourceGroup, appServicePlan, dockerConfiguration);
+                    withCreate = createDockerFunctionApp(blank, appServicePlan, dockerConfiguration);
                     break;
                 default:
                     throw new AzureToolkitRuntimeException(String.format(UNSUPPORTED_OPERATING_SYSTEM, runtime.getOperatingSystem()));
@@ -227,22 +225,20 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
             return FunctionApp.this;
         }
 
-        WithCreate createWindowsFunctionApp(Blank blank, ResourceGroup resourceGroup, com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan,
-                                            Runtime runtime) {
+        WithCreate createWindowsFunctionApp(Blank blank, com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan, Runtime runtime) {
             return (WithCreate) blank.withExistingAppServicePlan(appServicePlan)
                     .withExistingResourceGroup(resourceGroup)
                     .withJavaVersion(AppServiceUtils.toJavaVersion(runtime.getJavaVersion()))
                     .withWebContainer(null);
         }
 
-        WithCreate createLinuxFunctionApp(Blank blank, ResourceGroup resourceGroup, com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan,
-                                          Runtime runtime) {
+        WithCreate createLinuxFunctionApp(Blank blank, com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan, Runtime runtime) {
             return blank.withExistingLinuxAppServicePlan(appServicePlan)
                     .withExistingResourceGroup(resourceGroup)
                     .withBuiltInImage(AppServiceUtils.toFunctionRuntimeStack(runtime));
         }
 
-        WithCreate createDockerFunctionApp(Blank blank, ResourceGroup resourceGroup, com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan,
+        WithCreate createDockerFunctionApp(Blank blank, com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan,
                                            DockerConfiguration dockerConfiguration) {
             // check service plan, consumption is not supported
             if (StringUtils.equalsIgnoreCase(appServicePlan.pricingTier().toSkuDescription().tier(), "Dynamic")) {

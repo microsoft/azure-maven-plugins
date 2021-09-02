@@ -119,10 +119,10 @@ public abstract class Account implements IAccount {
         }
         if (entity.getSubscriptions().stream().anyMatch(s -> Utils.containsIgnoreCase(selectedSubscriptionIds, s.getId()))) {
             selectSubscriptionInner(this.getSubscriptions(), selectedSubscriptionIds);
-            final AzureTaskManager manager = AzureTaskManager.getInstance();
-            if (Objects.nonNull(manager)) {
-                manager.runOnPooledThread(Preloader::load);
-            }
+//            final AzureTaskManager manager = AzureTaskManager.getInstance();
+//            if (Objects.nonNull(manager)) {
+//                manager.runOnPooledThread(Preloader::load);
+//            }
         } else {
             throw new AzureToolkitAuthenticationException("no subscriptions are selected, " +
                     "make sure you have provided valid subscription list");

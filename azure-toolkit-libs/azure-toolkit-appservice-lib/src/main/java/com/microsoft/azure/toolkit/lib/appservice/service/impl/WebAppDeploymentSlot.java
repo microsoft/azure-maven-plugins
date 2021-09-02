@@ -5,7 +5,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.core.management.exception.ManagementException;
-import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.models.DeployOptions;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
@@ -38,7 +38,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
     @Nonnull
     private final WebApp parent;
 
-    public WebAppDeploymentSlot(@Nonnull final String id, @Nonnull final AzureResourceManager azureClient) {
+    public WebAppDeploymentSlot(@Nonnull final String id, @Nonnull final AppServiceManager azureClient) {
         super(id);
         this.parent = azureClient.webApps().getById(ResourceId.fromString(id).parent().id());
     }
