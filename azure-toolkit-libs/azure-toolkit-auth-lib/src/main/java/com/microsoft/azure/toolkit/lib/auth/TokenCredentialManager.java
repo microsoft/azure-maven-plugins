@@ -14,7 +14,7 @@ import com.azure.core.http.policy.RetryPolicy;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.core.util.logging.ClientLogger;
-import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.models.Tenant;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
@@ -70,7 +70,7 @@ public class TokenCredentialManager implements TenantProvider, SubscriptionProvi
                         .collect(Collectors.toList()));
     }
 
-    private static Mono<List<Subscription>> listSubscriptionsInTenant(AzureResourceManager.Authenticated client, String tenantId) {
+    private static Mono<List<Subscription>> listSubscriptionsInTenant(ResourceManager.Authenticated client, String tenantId) {
         return client.subscriptions().listAsync()
                 .map(s -> toSubscriptionEntity(tenantId, s)).collectList().onErrorResume(ex -> {
                     // warn and ignore, should modify here if IMessage is ready
@@ -89,12 +89,12 @@ public class TokenCredentialManager implements TenantProvider, SubscriptionProvi
         return subscriptionEntity;
     }
 
-    private AzureResourceManager.Authenticated createAzureClient(AzureEnvironment env, String tenantId) {
+    private ResourceManager.Authenticated createAzureClient(AzureEnvironment env, String tenantId) {
         AzureProfile profile = new AzureProfile(env);
         return configureAzure().authenticate(this.createTokenCredentialForTenant(tenantId), profile);
     }
 
-    private AzureResourceManager.Authenticated createAzureClient(AzureEnvironment env) {
+    private ResourceManager.Authenticated createAzureClient(AzureEnvironment env) {
         AzureProfile profile = new AzureProfile(env);
         return configureAzure().authenticate(this.rootCredentialSupplier.get(), profile);
     }
@@ -102,7 +102,7 @@ public class TokenCredentialManager implements TenantProvider, SubscriptionProvi
     /**
      * TODO: share the same code for creating AzureResourceManager.Configurable
      */
-    private static AzureResourceManager.Configurable configureAzure() {
+    private static ResourceManager.Configurable configureAzure() {
         OkHttpAsyncHttpClientBuilder builder = new OkHttpAsyncHttpClientBuilder();
         final AzureConfiguration config = Azure.az().config();
         if (StringUtils.isNotBlank(config.getProxySource())) {
@@ -116,7 +116,7 @@ public class TokenCredentialManager implements TenantProvider, SubscriptionProvi
         }
 
         // disable retry for getting tenant and subscriptions
-        return AzureResourceManager.configure()
+        return ResourceManager.configure()
                 .withHttpClient(builder.build())
                 .withPolicy(createUserAgentPolicy())
                 .withRetryPolicy(new RetryPolicy(new FixedDelay(0, Duration.ofSeconds(0))));
