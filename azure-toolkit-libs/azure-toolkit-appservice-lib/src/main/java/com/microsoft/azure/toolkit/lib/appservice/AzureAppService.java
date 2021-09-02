@@ -8,6 +8,8 @@ import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.appservice.fluent.models.ResourceNameAvailabilityInner;
+import com.azure.resourcemanager.appservice.models.CheckNameResourceTypes;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
@@ -31,6 +33,7 @@ import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.cache.Preload;
+import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.lang3.StringUtils;
@@ -120,6 +123,14 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
                 .collect(Collectors.toList());
     }
 
+    @AzureOperation(name = "appservice.check_name", params = "name", type = AzureOperation.Type.SERVICE)
+    public CheckNameAvailabilityResultEntity checkNameAvailability(String subscriptionId, String name) {
+        final AzureResourceManager azureResourceManager = getAzureResourceManager(subscriptionId);
+        final ResourceNameAvailabilityInner result = azureResourceManager.webApps().manager()
+                .serviceClient().getResourceProviders().checkNameAvailability(name, CheckNameResourceTypes.MICROSOFT_WEB_SITES);
+        return new CheckNameAvailabilityResultEntity(result.nameAvailable(), result.reason().toString(), result.message());
+    }
+
     @Cacheable(cacheName = "appservcie/{}/webapps", key = "$sid", condition = "!(force&&force[0])")
     @AzureOperation(name = "webapp.list.subscription", params = "sid", type = AzureOperation.Type.SERVICE)
     private List<IWebApp> webapps(String sid, boolean... force) {
@@ -130,8 +141,8 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
                 .collect(Collectors.toList());
     }
 
-    public @Nonnull
-    @AzureOperation(name = "webapp|runtime.list.os|version", params = {"os.getValue()", "version.getValue()"}, type = AzureOperation.Type.SERVICE)
+    @Nonnull
+    public @AzureOperation(name = "webapp|runtime.list.os|version", params = {"os.getValue()", "version.getValue()"}, type = AzureOperation.Type.SERVICE)
     List<Runtime> listWebAppRuntimes(@Nonnull OperatingSystem os, @Nonnull JavaVersion version) {
         return Runtime.WEBAPP_RUNTIME.stream()
                 .filter(runtime -> Objects.equals(os, runtime.getOperatingSystem()) && Objects.equals(version, runtime.getJavaVersion()))
