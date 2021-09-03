@@ -13,7 +13,7 @@ import com.azure.core.management.profile.AzureProfile;
 import com.azure.identity.SharedTokenCacheCredential;
 import com.azure.identity.SharedTokenCacheCredentialBuilder;
 import com.azure.identity.TokenCachePersistenceOptions;
-import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.policy.ProviderRegistrationPolicy;
 import com.azure.resourcemanager.resources.models.Location;
 import com.azure.resourcemanager.resources.models.Providers;
@@ -276,12 +276,11 @@ public class AzureAccount implements IAzureAccount {
     // todo: share codes with other library which leverage track2 mgmt sdk
     @Cacheable(cacheName = "Subscription", key = "$subscriptionId")
     private Subscription getSubscription(String subscriptionId) {
-        return getAzureResourceManager(subscriptionId).subscriptions().getById(subscriptionId);
+        return getResourceManager(subscriptionId).subscriptions().getById(subscriptionId);
     }
 
-    // todo: share codes with other library which leverage track2 mgmt sdk
-    @Cacheable(cacheName = "AzureResourceManager", key = "$subscriptionId")
-    private AzureResourceManager getAzureResourceManager(String subscriptionId) {
+    @Cacheable(cacheName = "resource/{}/manager", key = "$subscriptionId")
+    private ResourceManager getResourceManager(String subscriptionId) {
         // make sure it is signed in.
         account();
         final AzureConfiguration config = Azure.az().config();
@@ -290,11 +289,11 @@ public class AzureAccount implements IAzureAccount {
                 HttpLogDetailLevel.NONE : HttpLogDetailLevel.valueOf(config.getLogLevel());
         final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
 
-        final Providers providers = AzureResourceManager.configure()
+        final Providers providers = ResourceManager.configure()
             .withPolicy(getUserAgentPolicy(userAgent))
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
             .withSubscription(subscriptionId).providers();
-        return AzureResourceManager.configure()
+        return ResourceManager.configure()
                 .withLogLevel(logDetailLevel)
                 .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
             .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers

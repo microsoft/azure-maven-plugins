@@ -100,7 +100,7 @@ public class TokenCredentialManager implements TenantProvider, SubscriptionProvi
     }
 
     /**
-     * TODO: share the same code for creating AzureResourceManager.Configurable
+     * TODO: share the same code for creating ResourceManager.Configurable
      */
     private static ResourceManager.Configurable configureAzure() {
         OkHttpAsyncHttpClientBuilder builder = new OkHttpAsyncHttpClientBuilder();
