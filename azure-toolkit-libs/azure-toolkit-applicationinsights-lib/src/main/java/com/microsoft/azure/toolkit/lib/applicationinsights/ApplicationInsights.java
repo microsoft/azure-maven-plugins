@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ */
 package com.microsoft.azure.toolkit.lib.applicationinsights;
 
 import com.azure.core.http.policy.HttpLogDetailLevel;
@@ -94,7 +98,7 @@ public class ApplicationInsights extends SubscriptionScoped<ApplicationInsights>
         getApplicationInsightsManager(subscriptionId).components().deleteByResourceGroup(resourceGroup, name);
     }
 
-    @Cacheable(cacheName = "ApplicationInsightsManager", key = "$subscriptionId")
+    @Cacheable(cacheName = "applicationinsights/{}/manager", key = "$subscriptionId")
     private ApplicationInsightsManager getApplicationInsightsManager(String subscriptionId) {
         final Account account = Azure.az(AzureAccount.class).account();
         final String tenantId = account.getSubscription(subscriptionId).getTenantId();

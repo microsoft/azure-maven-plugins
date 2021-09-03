@@ -4,7 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
-import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
@@ -23,21 +23,21 @@ public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanag
     private static final String APP_SERVICE_PLAN_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/serverfarms/%s";
 
     private AppServicePlanEntity entity;
-    private final AzureResourceManager azureClient;
+    private final AppServiceManager azureClient;
 
 
-    public AppServicePlan(@Nonnull final String id, @Nonnull final AzureResourceManager azureClient) {
+    public AppServicePlan(@Nonnull final String id, @Nonnull final AppServiceManager azureClient) {
         super(id);
         this.azureClient = azureClient;
     }
 
     public AppServicePlan(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name,
-                       @Nonnull final AzureResourceManager azureClient) {
+                       @Nonnull final AppServiceManager azureClient) {
         super(subscriptionId, resourceGroup, name);
         this.azureClient = azureClient;
     }
 
-    public AppServicePlan(com.azure.resourcemanager.appservice.models.AppServicePlan remote, AzureResourceManager azureClient) {
+    public AppServicePlan(com.azure.resourcemanager.appservice.models.AppServicePlan remote, AppServiceManager azureClient) {
         super(remote);
         this.entity = AppServiceUtils.fromAppServicePlan(remote);
         this.azureClient = azureClient;
