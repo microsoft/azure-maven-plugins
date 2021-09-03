@@ -5,7 +5,9 @@
 
 package com.microsoft.azure.toolkit.redis;
 
+import com.azure.resourcemanager.redis.models.RedisCache;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
 import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 
@@ -42,6 +44,34 @@ public class RedisCacheEntity extends AbstractAzureResource.RemoteAwareResourceE
 
     public Region getRegion() {
         return remoteOptional().map(remote -> Region.fromName(remote.regionName())).orElse(null);
+    }
+
+    public String getType() {
+        return remoteOptional().map(Resource::type).orElse(null);
+    }
+
+    public int getSSLPort() {
+        return remoteOptional().map(RedisCache::sslPort).orElse(-1);
+    }
+
+    public boolean getNonSslPortEnabled() {
+        return remoteOptional().map(RedisCache::nonSslPort).orElse(false);
+    }
+
+    public String getRedisVersion() {
+        return remoteOptional().map(RedisCache::redisVersion).orElse(null);
+    }
+
+    public String getPrimaryKey() {
+        return remoteOptional().map(remote -> remote.keys().primaryKey()).orElse(null);
+    }
+
+    public String getSecondaryKey() {
+        return remoteOptional().map(remote -> remote.keys().secondaryKey()).orElse(null);
+    }
+
+    public String getHostName() {
+        return remoteOptional().map(RedisCache::hostname).orElse(null);
     }
 
     private Optional<com.azure.resourcemanager.redis.models.RedisCache> remoteOptional() {

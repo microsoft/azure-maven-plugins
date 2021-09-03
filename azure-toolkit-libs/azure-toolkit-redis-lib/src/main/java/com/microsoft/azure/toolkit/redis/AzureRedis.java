@@ -10,6 +10,7 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.redis.RedisManager;
 import com.azure.resourcemanager.redis.fluent.RedisClient;
 import com.azure.resourcemanager.redis.models.CheckNameAvailabilityParameters;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
 import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
@@ -41,6 +42,13 @@ public class AzureRedis extends SubscriptionScoped<AzureRedis> implements AzureS
             .flatMap(manager -> manager.redisCaches().list().stream())
             .map(redis -> new RedisCache(redis.manager(), redis))
             .collect(Collectors.toList());
+    }
+
+    @AzureOperation(name = "redis.get.id", params = {"id"}, type = AzureOperation.Type.SERVICE)
+    public RedisCache get(@Nonnull String id) {
+        com.azure.resourcemanager.redis.models.RedisCache redisCache =
+                RedisManagerFactory.create(ResourceId.fromString(id).subscriptionId()).redisCaches().getById(id);
+        return new RedisCache(redisCache.manager(), redisCache);
     }
 
     @AzureOperation(name = "redis.check_name", params = "name", type = AzureOperation.Type.SERVICE)
