@@ -67,12 +67,12 @@ public class AzureRedis extends SubscriptionScoped<AzureRedis> implements AzureS
         }
     }
 
-    public Creator create(RedisConfig config) {
-        return new Creator(config);
+    public RedisCache create(RedisConfig config) {
+        return new Creator(config).commit();
     }
 
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public class Creator implements ICommittable<RedisCache>, AzureOperationEvent.Source<RedisConfig> {
+    private class Creator implements ICommittable<RedisCache>, AzureOperationEvent.Source<RedisConfig> {
 
         private RedisConfig config;
 
