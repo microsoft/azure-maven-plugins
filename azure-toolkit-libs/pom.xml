@@ -208,6 +208,11 @@
                 <artifactId>azure-toolkit-storage-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-redis-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
             <!-- azure libs -->
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
