@@ -5,13 +5,12 @@
 
 package com.microsoft.azure.toolkit.lib.common.messager;
 
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureBundle;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.bundle.CustomDecoratable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -35,7 +34,7 @@ public interface IAzureMessage {
     Object getPayload();
 
     @Nullable
-    Action[] getActions();
+    Action<?>[] getActions();
 
     default boolean show() {
         return AzureMessager.getMessager().show(this);
@@ -81,11 +80,5 @@ public interface IAzureMessage {
 
     interface ValueDecorator {
         String decorateValue(@Nonnull Object p, @Nullable IAzureMessage message);
-    }
-
-    interface Action {
-        String name();
-
-        void actionPerformed(IAzureMessage message);
     }
 }

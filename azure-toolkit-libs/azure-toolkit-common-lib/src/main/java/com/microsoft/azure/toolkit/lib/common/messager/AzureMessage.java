@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.messager;
 import com.azure.core.exception.HttpResponseException;
 import com.azure.core.management.exception.ManagementException;
 import com.google.common.collect.Streams;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
@@ -52,7 +53,7 @@ public class AzureMessage implements IAzureMessage {
     @Nullable
     protected Object payload;
     @Nullable
-    protected Action[] actions;
+    protected Action<?>[] actions;
     protected ValueDecorator valueDecorator;
 
     @Nonnull
@@ -189,7 +190,7 @@ public class AzureMessage implements IAzureMessage {
 
     @Nonnull
     @Override
-    public Action[] getActions() {
+    public Action<?>[] getActions() {
         return ObjectUtils.firstNonNull(this.actions, new Action[0]);
     }
 
