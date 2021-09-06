@@ -63,7 +63,7 @@ public class PricingTier {
     }
 
     public int getSize() {
-        return Integer.getInteger(this.capacity.substring(1));
+        return Integer.parseInt(this.capacity.substring(1));
     }
 
     private static final List<PricingTier> values = new ImmutableList.Builder<PricingTier>().add(
