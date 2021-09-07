@@ -45,6 +45,7 @@
         <module>azure-toolkit-applicationinsights-lib</module>
         <module>azure-toolkit-storage-lib</module>
         <module>azure-toolkit-database-lib</module>
+        <module>azure-toolkit-redis-lib</module>
     </modules>
 
     <properties>
@@ -140,6 +141,7 @@
         <powermock.version>2.0.9</powermock.version>
         <azure-resourcemanager-mysql.version>1.0.0</azure-resourcemanager-mysql.version>
         <networknt.json-schema-validator.version>1.0.57</networknt.json-schema-validator.version>
+        <azure-resourcemanager-redis.version>2.7.0</azure-resourcemanager-redis.version>
     </properties>
 
     <dependencyManagement>
@@ -204,6 +206,11 @@
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-storage-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-redis-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
             <!-- azure libs -->
@@ -534,6 +541,11 @@
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-mysql</artifactId>
                 <version>${azure-resourcemanager-mysql.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-redis</artifactId>
+                <version>${azure-resourcemanager-redis.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
