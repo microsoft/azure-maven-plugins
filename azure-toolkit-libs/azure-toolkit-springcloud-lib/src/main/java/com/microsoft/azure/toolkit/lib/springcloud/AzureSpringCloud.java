@@ -18,6 +18,8 @@ import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
@@ -32,6 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -68,16 +71,16 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud>
     @Nonnull
     @Preload
     @AzureOperation(name = "springcloud|cluster.list.subscription|selected", type = AzureOperation.Type.SERVICE)
-    public List<SpringCloudCluster> clusters(boolean... force) {
+    public List<SpringCloudCluster> clusters() {
         return this.getSubscriptions().stream().parallel()
-                .flatMap(s -> clusters(s.getId(), force).stream())
+                .flatMap(s -> clusters(s.getId()).stream())
                 .collect(Collectors.toList());
     }
 
     @Nonnull
-    @Cacheable(cacheName = "asc/{}/clusters", key = "$subscriptionId", condition = "!(force&&force[0])")
+    @Cacheable(cacheName = "asc/{}/clusters", key = "$subscriptionId")
     @AzureOperation(name = "springcloud|cluster.list.subscription", params = "subscriptionId", type = AzureOperation.Type.SERVICE)
-    private List<SpringCloudCluster> clusters(@Nonnull String subscriptionId, boolean... force) {
+    private List<SpringCloudCluster> clusters(@Nonnull String subscriptionId) {
         try {
             return getClient(subscriptionId).list().stream()
                     .map(this::cluster)
@@ -93,7 +96,11 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud>
 
     @AzureOperation(name = "common|service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
     public void refresh() {
-        this.clusters(true);
+        try {
+            CacheManager.evictCache("asc/{}/clusters", CacheEvict.ALL);
+        } catch (ExecutionException e) {
+            log.warn("failed to evict cache", e);
+        }
     }
 
     @Override
