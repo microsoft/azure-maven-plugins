@@ -22,7 +22,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-public abstract class SubscriptionScoped<T> {
+public abstract class SubscriptionScoped<T extends AzureService> {
     @Nonnull
     private final Function<List<Subscription>, T> creator;
     @Nullable
