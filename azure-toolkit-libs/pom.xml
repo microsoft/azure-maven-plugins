@@ -713,6 +713,16 @@
                 <groupId>com.networknt</groupId>
                 <artifactId>json-schema-validator</artifactId>
                 <version>${networknt.json-schema-validator.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.sun.mail</groupId>
+                        <artifactId>mailapi</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.mozilla</groupId>
+                        <artifactId>rhino</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.github.java-json-tools</groupId>
