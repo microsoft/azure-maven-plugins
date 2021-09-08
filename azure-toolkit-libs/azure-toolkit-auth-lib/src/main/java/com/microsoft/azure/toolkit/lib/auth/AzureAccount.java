@@ -241,7 +241,8 @@ public class AzureAccount implements IAzureAccount {
      * see doc for: az account list-locations -o table
      */
     public List<Region> listRegions() {
-        return Flux.fromIterable(getSubscriptions()).parallel().map(com.microsoft.azure.toolkit.lib.common.model.Subscription::getId)
+        return Flux.fromIterable(Azure.az(IAzureAccount.class).account().getSelectedSubscriptions())
+                .parallel().map(com.microsoft.azure.toolkit.lib.common.model.Subscription::getId)
                 .map(this::listRegions)
                 .sequential().collectList()
                 .map(regionSet -> regionSet.stream()
