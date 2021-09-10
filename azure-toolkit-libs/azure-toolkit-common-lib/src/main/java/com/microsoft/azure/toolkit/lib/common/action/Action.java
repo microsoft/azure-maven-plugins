@@ -71,19 +71,26 @@ public class Action<D> {
     }
 
     @SuppressWarnings("unchecked")
-    public void handle(D source, Object e) {
+    public BiConsumer<D, Object> handler(D source, Object e) {
         for (int i = this.handlers.size() - 1; i >= 0; i--) {
             final AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>> p = this.handlers.get(i);
             final BiPredicate<D, Object> condition = (BiPredicate<D, Object>) p.getKey();
             final BiConsumer<D, Object> handler = (BiConsumer<D, Object>) p.getValue();
             if (condition.test(source, e)) {
-                final AzureString title = Optional.ofNullable(this.view).map(b -> b.title).map(t -> t.apply(source))
-                        .orElse(AzureString.fromString(IAzureOperation.UNKNOWN_NAME));
-                final AzureTask<Void> task = new AzureTask<>(title, () -> handle(source, e, handler));
-                task.setType(AzureOperation.Type.ACTION.name());
-                AzureTaskManager.getInstance().runInBackground(task);
-                return;
+                return handler;
             }
+        }
+        return null;
+    }
+
+    public void handle(D source, Object e) {
+        final BiConsumer<D, Object> handler = this.handler(source, e);
+        if (Objects.nonNull(handler)) {
+            final AzureString title = Optional.ofNullable(this.view).map(b -> b.title).map(t -> t.apply(source))
+                    .orElse(AzureString.fromString(IAzureOperation.UNKNOWN_NAME));
+            final AzureTask<Void> task = new AzureTask<>(title, () -> handle(source, e, handler));
+            task.setType(AzureOperation.Type.ACTION.name());
+            AzureTaskManager.getInstance().runInBackground(task);
         }
     }
 
