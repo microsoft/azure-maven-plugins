@@ -38,6 +38,7 @@ public class AzureTask<T> implements IAzureOperation {
     @Nonnull
     @Builder.Default
     private String type = "ASYNC";
+    private Monitor monitor;
 
     public AzureTask() {
         this((Supplier<T>) null);
@@ -126,6 +127,7 @@ public class AzureTask<T> implements IAzureOperation {
         this.project = project;
         this.title = title;
         this.cancellable = cancellable;
+        this.monitor = new DefaultMonitor();
         this.supplier = supplier;
         this.modality = modality;
     }
@@ -151,5 +153,25 @@ public class AzureTask<T> implements IAzureOperation {
 
     public enum Modality {
         DEFAULT, ANY, NONE
+    }
+
+    public interface Monitor {
+        void cancel();
+
+        boolean isCancelled();
+    }
+
+    public static class DefaultMonitor implements Monitor {
+        private boolean cancelled = false;
+
+        @Override
+        public void cancel() {
+            this.cancelled = true;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return this.cancelled;
+        }
     }
 }

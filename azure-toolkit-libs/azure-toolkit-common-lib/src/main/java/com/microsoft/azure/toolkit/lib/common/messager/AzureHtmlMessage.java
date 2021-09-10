@@ -46,7 +46,7 @@ public class AzureHtmlMessage extends AzureMessage {
     protected String getCause(@Nonnull Throwable throwable) {
         final String color = getErrorColor();
         return Optional.ofNullable(super.getCause(throwable))
-                .map(cause -> String.format("<span style=\"color: #%s;\">%s</span>", color, cause))
+                .map(cause -> String.format("<span style=\"color: %s;\">%s</span>", color, cause))
                 .orElse(null);
     }
 
@@ -69,7 +69,7 @@ public class AzureHtmlMessage extends AzureMessage {
         if (Objects.isNull(result)) {
             final String color = getValueColor();
             final String font = "'JetBrains Mono', Consolas, 'Liberation Mono', Menlo, Courier, monospace";
-            result = String.format("<span style=\"color: #%s;font-family: %s;\">%s</span>", color, font, p.toString());
+            result = String.format("<span style=\"color: %s;font-family: %s;\">%s</span>", color, font, p);
         }
         return Objects.isNull(result) && Objects.nonNull(dft) ? dft.get() : result;
     }
