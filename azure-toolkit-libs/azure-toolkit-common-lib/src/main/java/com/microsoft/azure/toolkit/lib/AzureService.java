@@ -12,7 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 
 import java.util.List;
 
-public interface AzureService<T extends IAzureBaseResource, P extends IAzureBaseResource> extends IAzureModule<T, P> {
+public interface AzureService<T extends IAzureBaseResource> extends IAzureModule<T, IAzureBaseResource> {
     default List<Subscription> getSubscriptions() {
         return Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
     }
