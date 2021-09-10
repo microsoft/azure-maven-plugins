@@ -5,29 +5,13 @@
 
 package com.microsoft.azure.toolkit.lib.common.entity;
 
-import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.account.IAccount;
-import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import org.apache.commons.lang3.NotImplementedException;
+import javax.annotation.Nullable;
 
-public interface IAzureResource<T extends IAzureResourceEntity> {
-
-    String REST_SEGMENT_JOB_MANAGEMENT_TENANTID = "/#@";
-    String REST_SEGMENT_JOB_MANAGEMENT_RESOURCE = "/resource";
-
+public interface IAzureResource<T extends IAzureResourceEntity> extends IAzureBaseResource<IAzureBaseResource, IAzureBaseResource> {
     IAzureResource<T> refresh();
 
-    boolean exists();
-
     T entity();
-
-    default String status() {
-        return null;
-    }
-
-    default void refreshStatus() {
-    }
 
     default String name() {
         return this.entity().getName();
@@ -37,39 +21,13 @@ public interface IAzureResource<T extends IAzureResourceEntity> {
         return this.entity().getId();
     }
 
-    default String subscriptionId() {
-        return ResourceId.fromString(id()).subscriptionId();
+    @Nullable
+    default IAzureBaseResource parent() {
+        throw new NotImplementedException();
     }
 
-    default String resourceGroup() {
-        return ResourceId.fromString(id()).resourceGroupName();
-    }
-
-    default Subscription subscription() {
-        return Azure.az(IAzureAccount.class).account().getSubscription(this.subscriptionId());
-    }
-
-    default String portalUrl() {
-        final IAccount account = Azure.az(IAzureAccount.class).account();
-        Subscription subscription = account.getSubscription(this.subscriptionId());
-        return account.portalUrl()
-                + REST_SEGMENT_JOB_MANAGEMENT_TENANTID
-                + subscription.getTenantId()
-                + REST_SEGMENT_JOB_MANAGEMENT_RESOURCE
-                + this.id();
-    }
-
-    interface Status {
-        // unstable states
-        String UNSTABLE = "UNSTABLE";
-        String PENDING = "PENDING";
-
-        // stable states
-        String STABLE = "STABLE";
-        String LOADING = "LOADING";
-        String ERROR = "ERROR";
-        String RUNNING = "RUNNING";
-        String STOPPED = "STOPPED";
-        String UNKNOWN = "UNKNOWN";
+    @Nullable
+    default IAzureModule<IAzureBaseResource, IAzureBaseResource> module() {
+        throw new NotImplementedException();
     }
 }

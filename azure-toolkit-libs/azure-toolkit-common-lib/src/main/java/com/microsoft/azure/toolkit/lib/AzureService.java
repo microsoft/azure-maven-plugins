@@ -6,21 +6,15 @@
 package com.microsoft.azure.toolkit.lib;
 
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import java.util.List;
 
-public interface AzureService {
+public interface AzureService<T extends IAzureBaseResource> extends IAzureModule<T, IAzureBaseResource> {
     default List<Subscription> getSubscriptions() {
         return Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
     }
-
-    default String name() {
-        return this.getClass().getSimpleName();
-    }
-
-    @AzureOperation(name = "common|service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
-    default void refresh() {
-    }
 }
+
