@@ -4,14 +4,13 @@
  */
 package com.microsoft.azure.toolkit.lib.compute;
 
+import com.azure.core.credential.TokenCredential;
 import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.management.profile.AzureProfile;
-import com.azure.resourcemanager.appservice.models.LogLevel;
-import com.azure.resourcemanager.compute.ComputeManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.AzureConfigurable;
+import com.azure.resourcemanager.resources.fluentcore.arm.Manager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.azure.resourcemanager.resources.fluentcore.arm.implementation.AzureConfigurableImpl;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
@@ -27,6 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class AbstractAzureResourceModule<T extends IAzureBaseResource> extends SubscriptionScoped<AbstractAzureResourceModule<T>>
@@ -63,16 +63,21 @@ public abstract class AbstractAzureResourceModule<T extends IAzureBaseResource> 
     @Nonnull
     protected abstract T get(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name);
 
-    protected static <R extends AzureConfigurable<R>> R getResourceManager(String subscriptionId, AzureConfigurableImpl<R> configurable) {
+    protected static <R extends AzureConfigurable<R>, T extends Manager> T getResourceManager(
+            final String subscriptionId, Supplier<AzureConfigurable<R>> configurableSupplier, AuthenticationMethod<R, T> authenticationMethod) {
+        final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
         final String userAgent = config.getUserAgent();
         final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
-        return configurable.withLogLevel(logLevel).withPolicy(getUserAgentPolicy(userAgent));
+        final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
+        final TokenCredential tokenCredential = account.getTokenCredential(subscriptionId);
+        final R configurable = configurableSupplier.get().withPolicy(getUserAgentPolicy(userAgent)).withLogLevel(logLevel);
+        return authenticationMethod.apply(configurable, tokenCredential, azureProfile);
     }
 
-    protected static AzureProfile getAzureProfile(final String subscriptionId) {
-        final Account account = Azure.az(AzureAccount.class).account();
-        return new AzureProfile(null, subscriptionId, account.getEnvironment());
+    @FunctionalInterface
+    protected interface AuthenticationMethod<R extends AzureConfigurable<R>, T extends Manager> {
+        T apply(R configurable, TokenCredential tokenCredential, AzureProfile azureProfile);
     }
 
     protected static HttpPipelinePolicy getUserAgentPolicy(String userAgent) {
