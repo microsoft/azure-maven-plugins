@@ -11,35 +11,12 @@ import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Optional;
 
 public interface IView {
 
     void dispose();
 
-    interface Dynamic extends IView {
-
-        default void updateView() {
-            Optional.ofNullable(this.getUpdater()).ifPresent(Updater::updateView);
-        }
-
-        default void updateChildren() {
-            Optional.ofNullable(this.getUpdater()).ifPresent(Updater::updateChildren);
-        }
-
-        void setUpdater(Updater updater);
-
-        @Nullable
-        Updater getUpdater();
-
-        interface Updater {
-            default void updateView() {
-            }
-
-            default void updateChildren() {
-            }
-        }
-    }
+    void refresh();
 
     interface Label extends IView {
         String getLabel();
@@ -50,6 +27,9 @@ public interface IView {
 
         default boolean isEnabled() {
             return true;
+        }
+
+        default void refresh() {
         }
 
         @Getter
