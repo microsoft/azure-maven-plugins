@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.compute.ip;
 
 import com.azure.resourcemanager.compute.ComputeManager;
 import com.azure.resourcemanager.network.models.PublicIpAddresses;
+import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResourceModule;
 
@@ -14,7 +15,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class AzurePublicIpAddress extends AbstractAzureResourceModule<PublicIpAddress> {
+public class AzurePublicIpAddress extends AbstractAzureResourceModule<PublicIpAddress> implements AzureOperationEvent.Source<AzurePublicIpAddress> {
 
     public AzurePublicIpAddress() {
         super(AzurePublicIpAddress::new);
@@ -40,7 +41,7 @@ public class AzurePublicIpAddress extends AbstractAzureResourceModule<PublicIpAd
         return draftPublicIpAddress.create(this);
     }
 
-    public PublicIpAddresses getPublicIpAddressManager(String subscriptionId) {
+    PublicIpAddresses getPublicIpAddressManager(String subscriptionId) {
         return getResourceManager(subscriptionId, ComputeManager::configure, ComputeManager.Configurable::authenticate).networkManager().publicIpAddresses();
     }
 

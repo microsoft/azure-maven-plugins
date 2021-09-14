@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.compute.network;
 
 import com.azure.resourcemanager.compute.ComputeManager;
 import com.azure.resourcemanager.network.models.Networks;
+import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResourceModule;
 
@@ -14,7 +15,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class AzureNetwork extends AbstractAzureResourceModule<Network> {
+public class AzureNetwork extends AbstractAzureResourceModule<Network> implements AzureOperationEvent.Source<AzureNetwork> {
     public AzureNetwork() {
         super(AzureNetwork::new);
     }
@@ -39,7 +40,7 @@ public class AzureNetwork extends AbstractAzureResourceModule<Network> {
         return draftNetwork.create(this);
     }
 
-    public Networks getNetworkManager(@Nonnull final String subscriptionId) {
+    Networks getNetworkManager(@Nonnull final String subscriptionId) {
         return getResourceManager(subscriptionId, ComputeManager::configure, ComputeManager.Configurable::authenticate).networkManager().networks();
     }
 

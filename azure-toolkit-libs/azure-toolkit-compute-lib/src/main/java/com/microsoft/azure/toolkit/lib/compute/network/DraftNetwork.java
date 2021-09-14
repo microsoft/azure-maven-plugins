@@ -25,9 +25,6 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 public class DraftNetwork extends Network implements AzureResourceDraft<Network> {
 
-    private String subscriptionId;
-    private String resourceGroup;
-    private String name;
     private Region region;
     private String addressSpace;
 
@@ -49,23 +46,24 @@ public class DraftNetwork extends Network implements AzureResourceDraft<Network>
         }
         this.remote = withCreateAndSubnet.create();
         refreshStatus();
+        module.refresh();
         return this;
     }
 
     @Override
     public List<Subnet> subnets() {
-        return Optional.ofNullable(module).map(ignore -> super.subnets()).orElseGet(() -> Collections.singletonList(new Subnet(subnet, subnetAddressSpace)));
+        return Optional.ofNullable(remote).map(ignore -> super.subnets()).orElseGet(() -> Collections.singletonList(new Subnet(subnet, subnetAddressSpace)));
     }
 
     @Override
     protected String loadStatus() {
-        return Optional.ofNullable(module).map(ignore -> super.loadStatus()).orElse(Status.DRAFT);
+        return Optional.ofNullable(remote).map(ignore -> super.loadStatus()).orElse(Status.DRAFT);
     }
 
     @Nullable
     @Override
     protected com.azure.resourcemanager.network.models.Network loadRemote() {
-        return Optional.ofNullable(module).map(ignore -> super.loadRemote()).orElse(null);
+        return Optional.ofNullable(remote).map(ignore -> super.loadRemote()).orElse(null);
     }
 
     private static String getResourceId(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name) {

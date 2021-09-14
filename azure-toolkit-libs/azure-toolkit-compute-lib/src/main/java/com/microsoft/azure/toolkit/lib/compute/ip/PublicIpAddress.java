@@ -7,14 +7,17 @@ package com.microsoft.azure.toolkit.lib.compute.ip;
 
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
+import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResource;
+import com.microsoft.azure.toolkit.lib.compute.vm.VirtualMachine;
 import lombok.EqualsAndHashCode;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 @EqualsAndHashCode(callSuper = true)
-public class PublicIpAddress extends AbstractAzureResource<com.azure.resourcemanager.network.models.PublicIpAddress, IAzureBaseResource> {
+public class PublicIpAddress extends AbstractAzureResource<com.azure.resourcemanager.network.models.PublicIpAddress, IAzureBaseResource>
+        implements AzureOperationEvent.Source<PublicIpAddress> {
 
     protected AzurePublicIpAddress module;
 
