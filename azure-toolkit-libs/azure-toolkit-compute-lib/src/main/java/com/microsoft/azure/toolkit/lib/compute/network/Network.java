@@ -10,7 +10,6 @@ import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResource;
 import com.microsoft.azure.toolkit.lib.compute.network.model.Subnet;
-import com.microsoft.azure.toolkit.lib.compute.vm.VirtualMachine;
 import lombok.EqualsAndHashCode;
 
 import javax.annotation.Nonnull;
@@ -20,7 +19,7 @@ import java.util.stream.Collectors;
 
 @EqualsAndHashCode(callSuper = true)
 public class Network extends AbstractAzureResource<com.azure.resourcemanager.network.models.Network, IAzureBaseResource>
-        implements AzureOperationEvent.Source<Network>{
+        implements AzureOperationEvent.Source<Network> {
     protected AzureNetwork module;
 
     public Network(@Nonnull String id, @Nullable final AzureNetwork module) {
