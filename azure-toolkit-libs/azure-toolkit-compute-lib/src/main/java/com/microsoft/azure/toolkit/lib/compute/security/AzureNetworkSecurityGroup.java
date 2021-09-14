@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.compute.security;
 
 import com.azure.resourcemanager.compute.ComputeManager;
 import com.azure.resourcemanager.network.models.NetworkSecurityGroups;
+import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResourceModule;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +17,8 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class AzureNetworkSecurityGroup extends AbstractAzureResourceModule<NetworkSecurityGroup> {
+public class AzureNetworkSecurityGroup extends AbstractAzureResourceModule<NetworkSecurityGroup>
+        implements AzureOperationEvent.Source<AzureNetworkSecurityGroup> {
     public AzureNetworkSecurityGroup() {
         super(AzureNetworkSecurityGroup::new);
     }
@@ -41,7 +43,7 @@ public class AzureNetworkSecurityGroup extends AbstractAzureResourceModule<Netwo
         return draftNetworkSecurityGroup.create(this);
     }
 
-    public NetworkSecurityGroups getSecurityGroupManager(final String subscriptionId) {
+    NetworkSecurityGroups getSecurityGroupManager(final String subscriptionId) {
         return getResourceManager(subscriptionId, ComputeManager::configure, ComputeManager.Configurable::authenticate).networkManager().networkSecurityGroups();
     }
 
