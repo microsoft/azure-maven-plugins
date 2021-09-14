@@ -7,13 +7,16 @@ package com.microsoft.azure.toolkit.lib.compute.security;
 
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
+import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResource;
+import com.microsoft.azure.toolkit.lib.compute.vm.VirtualMachine;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 
-public class NetworkSecurityGroup extends AbstractAzureResource<com.azure.resourcemanager.network.models.NetworkSecurityGroup, IAzureBaseResource> {
+public class NetworkSecurityGroup extends AbstractAzureResource<com.azure.resourcemanager.network.models.NetworkSecurityGroup, IAzureBaseResource>
+        implements AzureOperationEvent.Source<NetworkSecurityGroup> {
 
     protected AzureNetworkSecurityGroup module;
 
