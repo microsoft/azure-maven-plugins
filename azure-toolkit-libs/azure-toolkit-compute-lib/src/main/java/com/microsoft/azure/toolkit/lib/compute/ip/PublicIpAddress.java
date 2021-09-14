@@ -9,7 +9,6 @@ import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResource;
-import com.microsoft.azure.toolkit.lib.compute.vm.VirtualMachine;
 import lombok.EqualsAndHashCode;
 
 import javax.annotation.Nonnull;
