@@ -28,24 +28,25 @@ public class DraftPublicIpAddress extends PublicIpAddress implements AzureResour
 
     PublicIpAddress create(AzurePublicIpAddress module) {
         this.module = module;
-        module.getPublicIpAddressManager(subscriptionId).define(name)
+        this.remote = module.getPublicIpAddressManager(subscriptionId).define(name)
                 .withRegion(region.getName())
                 .withExistingResourceGroup(resourceGroup)
                 .withLeafDomainLabel(leafDomainLabel)
                 .create();
         refreshStatus();
+        module.refresh();
         return this;
     }
 
     @Override
     protected String loadStatus() {
-        return Optional.ofNullable(module).map(ignore -> super.loadStatus()).orElse(Status.DRAFT);
+        return Optional.ofNullable(remote).map(ignore -> super.loadStatus()).orElse(Status.DRAFT);
     }
 
     @Nullable
     @Override
     protected com.azure.resourcemanager.network.models.PublicIpAddress loadRemote() {
-        return Optional.ofNullable(module).map(ignore -> super.loadRemote()).orElse(null);
+        return Optional.ofNullable(remote).map(ignore -> super.loadRemote()).orElse(null);
     }
 
     private static String getResourceId(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name) {
