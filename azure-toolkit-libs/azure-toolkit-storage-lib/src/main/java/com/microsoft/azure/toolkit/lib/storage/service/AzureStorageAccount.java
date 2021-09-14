@@ -7,10 +7,7 @@ package com.microsoft.azure.toolkit.lib.storage.service;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.storage.StorageManager;
-import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
-import com.azure.resourcemanager.storage.models.Reason;
-import com.azure.resourcemanager.storage.models.SkuName;
-import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
+import com.azure.resourcemanager.storage.models.*;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
@@ -129,6 +126,9 @@ public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
                 withCreate = withCreate.withFileStorageAccountKind();
             } else if (Objects.equals(Kind.BLOCK_BLOB_STORAGE, config.getKind())) {
                 withCreate = withCreate.withBlockBlobStorageAccountKind();
+            } else if (Objects.equals(Kind.BLOB_STORAGE, config.getKind())) {
+                withCreate = withCreate.withBlobStorageAccountKind().withAccessTier(
+                        Optional.ofNullable(config.getAccessTier()).map(t -> AccessTier.fromString(t.toString())).orElse(null));
             } else {
                 withCreate = withCreate.withGeneralPurposeAccountKindV2();
             }

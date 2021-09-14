@@ -28,6 +28,7 @@ public class StorageAccountConfig implements IStorageAccountEntity {
     private Performance performance;
     private Kind kind;
     private Redundancy redundancy;
+    private AccessTier accessTier;
 
     @Override
     public String getSubscriptionId() {
