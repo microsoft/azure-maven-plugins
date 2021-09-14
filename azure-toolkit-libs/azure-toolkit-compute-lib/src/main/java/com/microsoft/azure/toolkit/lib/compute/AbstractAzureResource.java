@@ -95,16 +95,14 @@ public abstract class AbstractAzureResource<T extends HasId, P extends IAzureBas
 
     @Override
     public final String status() {
-        if (Objects.nonNull(this.status)) {
-            return this.status;
-        } else {
-            this.refreshStatus();
-            return Status.LOADING;
+        if (Objects.isNull(this.status)) {
+            this.status(loadStatus());
         }
+        return this.status;
     }
 
     public final void refreshStatus() {
-        AzureTaskManager.getInstance().runOnPooledThread(() -> this.status(this.loadStatus()));
+        AzureTaskManager.getInstance().runOnPooledThread(() -> this.status(this.refresh().loadStatus()));
     }
 
     protected final void status(@Nonnull String status) {
