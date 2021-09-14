@@ -108,6 +108,14 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-toolkit-common-lib</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-toolkit-storage-lib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-toolkit-resource-lib</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
