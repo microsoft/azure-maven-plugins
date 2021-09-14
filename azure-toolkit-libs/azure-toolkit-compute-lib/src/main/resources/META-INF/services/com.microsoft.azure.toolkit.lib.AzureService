@@ -1,0 +1,4 @@
+com.microsoft.azure.toolkit.lib.compute.vm.AzureVirtualMachine
+com.microsoft.azure.toolkit.lib.compute.network.AzureNetwork
+com.microsoft.azure.toolkit.lib.compute.ip.AzurePublicIpAddress
+com.microsoft.azure.toolkit.lib.compute.security.AzureNetworkSecurityGroup
