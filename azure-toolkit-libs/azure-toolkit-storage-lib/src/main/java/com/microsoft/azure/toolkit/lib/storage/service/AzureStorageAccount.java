@@ -7,14 +7,21 @@ package com.microsoft.azure.toolkit.lib.storage.service;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.storage.StorageManager;
-import com.azure.resourcemanager.storage.models.*;
+import com.azure.resourcemanager.storage.models.AccessTier;
+import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
+import com.azure.resourcemanager.storage.models.Reason;
+import com.azure.resourcemanager.storage.models.SkuName;
+import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
@@ -76,6 +83,10 @@ public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
         CheckNameAvailabilityResult result = manager.storageAccounts().checkNameAvailability(name);
         return new CheckNameAvailabilityResultEntity(result.isAvailable(),
                 Optional.ofNullable(result.reason()).map(Reason::toString).orElse(null), result.message());
+    }
+
+    public List<Region> listSupportedRegions(String subscriptionId) {
+        return Azure.az(AzureAccount.class).listSupportedRegions(subscriptionId, "Microsoft.Storage", "storageAccounts");
     }
 
     public List<Performance> listSupportedPerformances() {

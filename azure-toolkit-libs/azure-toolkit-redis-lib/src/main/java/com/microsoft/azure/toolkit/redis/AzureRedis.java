@@ -11,10 +11,13 @@ import com.azure.resourcemanager.redis.RedisManager;
 import com.azure.resourcemanager.redis.fluent.RedisClient;
 import com.azure.resourcemanager.redis.models.CheckNameAvailabilityParameters;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
@@ -67,14 +70,18 @@ public class AzureRedis extends SubscriptionScoped<AzureRedis> implements AzureS
         }
     }
 
+    public List<Region> listSupportedRegions(String subscriptionId) {
+        return Azure.az(AzureAccount.class).listSupportedRegions(subscriptionId, "Microsoft.Cache", "Redis");
+    }
+
     public RedisCache create(RedisConfig config) {
         return new Creator(config).commit();
     }
 
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    private class Creator implements ICommittable<RedisCache>, AzureOperationEvent.Source<RedisConfig> {
+    private static class Creator implements ICommittable<RedisCache>, AzureOperationEvent.Source<RedisConfig> {
 
-        private RedisConfig config;
+        private final RedisConfig config;
 
         @Override
         @AzureOperation(name = "redis.create", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)

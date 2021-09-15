@@ -17,4 +17,3 @@ public interface AzureService<T extends IAzureBaseResource> extends IAzureModule
         return Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
     }
 }
-
