@@ -20,43 +20,43 @@ import javax.annotation.Nonnull;
 public class AzureImage {
     @Nonnull
     @Getter(value = AccessLevel.PACKAGE)
+    @EqualsAndHashCode.Exclude
     private final ImageReference imageReference;
+
     @Nonnull
     @Getter
     private final OperatingSystem operatingSystem;
+    @Getter
+    private final String id;
+    @Getter
+    private final String publisherName;
+    @Getter
+    private final String offer;
+    @Getter
+    private final String sku;
+    @Getter
+    private final String version;
 
-    AzureImage(@Nonnull VirtualMachineImage virtualMachineImage) {
-        this.operatingSystem = OperatingSystem.fromString(virtualMachineImage.osDiskImage().operatingSystem().name());
-        this.imageReference = virtualMachineImage.imageReference();
+    public AzureImage(@Nonnull VirtualMachineImage virtualMachineImage) {
+        this(OperatingSystem.fromString(virtualMachineImage.osDiskImage().operatingSystem().name()), virtualMachineImage.imageReference());
     }
 
     public AzureImage(@Nonnull KnownWindowsVirtualMachineImage windowsVirtualMachineImage) {
-        this.operatingSystem = OperatingSystem.Windows;
-        this.imageReference = windowsVirtualMachineImage.imageReference();
+        this(OperatingSystem.Windows, windowsVirtualMachineImage.imageReference());
     }
 
-    AzureImage(@Nonnull KnownLinuxVirtualMachineImage linuxVirtualMachineImage) {
-        this.operatingSystem = OperatingSystem.Linux;
-        this.imageReference = linuxVirtualMachineImage.imageReference();
+    public AzureImage(@Nonnull KnownLinuxVirtualMachineImage linuxVirtualMachineImage) {
+        this(OperatingSystem.Linux, linuxVirtualMachineImage.imageReference());
     }
 
-    public String id() {
-        return imageReference.id();
-    }
+    public AzureImage(final OperatingSystem operatingSystem, final ImageReference imageReference) {
+        this.operatingSystem = operatingSystem;
+        this.id = imageReference.id();
+        this.publisherName = imageReference.publisher();
+        this.offer = imageReference.offer();
+        this.sku = imageReference.sku();
+        this.version = imageReference.version();
 
-    public String publisherName() {
-        return imageReference.publisher();
-    }
-
-    public String offer() {
-        return imageReference.offer();
-    }
-
-    public String sku() {
-        return imageReference.sku();
-    }
-
-    public String version() {
-        return imageReference.version();
+        this.imageReference = imageReference;
     }
 }
