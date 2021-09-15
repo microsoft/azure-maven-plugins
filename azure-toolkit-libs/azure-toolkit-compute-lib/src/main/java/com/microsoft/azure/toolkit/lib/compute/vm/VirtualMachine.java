@@ -11,11 +11,13 @@ import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
 import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResource;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+@NoArgsConstructor
 public class VirtualMachine extends AbstractAzureResource<com.azure.resourcemanager.compute.models.VirtualMachine, IAzureBaseResource>
         implements AzureOperationEvent.Source<VirtualMachine>, Removable {
 

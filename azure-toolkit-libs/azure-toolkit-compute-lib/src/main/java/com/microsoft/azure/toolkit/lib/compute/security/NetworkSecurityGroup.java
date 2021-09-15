@@ -9,11 +9,14 @@ import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResource;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class NetworkSecurityGroup extends AbstractAzureResource<com.azure.resourcemanager.network.models.NetworkSecurityGroup, IAzureBaseResource>
         implements AzureOperationEvent.Source<NetworkSecurityGroup> {
 
