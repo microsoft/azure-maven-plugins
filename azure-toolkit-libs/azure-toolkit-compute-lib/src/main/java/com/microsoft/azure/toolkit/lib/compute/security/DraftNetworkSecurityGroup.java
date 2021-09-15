@@ -11,12 +11,15 @@ import com.azure.resourcemanager.network.models.NetworkSecurityRule.DefinitionSt
 import com.azure.resourcemanager.network.models.NetworkSecurityRule.DefinitionStages.WithSourceAddressOrSecurityGroup;
 import com.azure.resourcemanager.network.models.NetworkSecurityRule.DefinitionStages.WithSourcePort;
 import com.azure.resourcemanager.network.models.SecurityRuleProtocol;
+import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.compute.AzureResourceDraft;
 import com.microsoft.azure.toolkit.lib.compute.security.model.SecurityRule;
 import io.jsonwebtoken.lang.Collections;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.annotation.Nonnull;
@@ -26,6 +29,8 @@ import java.util.Optional;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class DraftNetworkSecurityGroup extends NetworkSecurityGroup implements AzureResourceDraft<NetworkSecurityGroup> {
     private static final int BASE_PRIORITY = 300;
     private static final int PRIORITY_STEP = 20;
@@ -35,6 +40,23 @@ public class DraftNetworkSecurityGroup extends NetworkSecurityGroup implements A
 
     public DraftNetworkSecurityGroup(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name) {
         super(getResourceId(subscriptionId, resourceGroup, name), null);
+    }
+
+    public void setSubscriptionId(final String subscriptionId) {
+        this.subscriptionId = subscriptionId;
+    }
+
+    public void setResourceGroup(final String resourceGroup) {
+        this.resourceGroup = resourceGroup;
+    }
+
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String getId() {
+        return Optional.ofNullable(remote).map(HasId::id).orElseGet(() -> getResourceId(subscriptionId, resourceGroup, name));
     }
 
     NetworkSecurityGroup create(final AzureNetworkSecurityGroup module) {

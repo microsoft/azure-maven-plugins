@@ -5,10 +5,12 @@
 
 package com.microsoft.azure.toolkit.lib.compute.ip;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.compute.AzureResourceDraft;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,6 +19,7 @@ import java.util.Optional;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class DraftPublicIpAddress extends PublicIpAddress implements AzureResourceDraft<PublicIpAddress> {
     private Region region;
@@ -24,6 +27,23 @@ public class DraftPublicIpAddress extends PublicIpAddress implements AzureResour
 
     public DraftPublicIpAddress(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name) {
         super(getResourceId(subscriptionId, resourceGroup, name), null);
+    }
+
+    public void setSubscriptionId(final String subscriptionId) {
+        this.subscriptionId = subscriptionId;
+    }
+
+    public void setResourceGroup(final String resourceGroup) {
+        this.resourceGroup = resourceGroup;
+    }
+
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String getId() {
+        return Optional.ofNullable(remote).map(HasId::id).orElseGet(() -> getResourceId(subscriptionId, resourceGroup, name));
     }
 
     PublicIpAddress create(AzurePublicIpAddress module) {
