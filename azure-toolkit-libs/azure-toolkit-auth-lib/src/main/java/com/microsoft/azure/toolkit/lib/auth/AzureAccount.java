@@ -16,6 +16,7 @@ import com.azure.identity.TokenCachePersistenceOptions;
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.policy.ProviderRegistrationPolicy;
 import com.azure.resourcemanager.resources.models.Location;
+import com.azure.resourcemanager.resources.models.ProviderResourceType;
 import com.azure.resourcemanager.resources.models.Providers;
 import com.azure.resourcemanager.resources.models.RegionType;
 import com.azure.resourcemanager.resources.models.Subscription;
@@ -52,6 +53,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import static com.microsoft.azure.toolkit.lib.Azure.az;
 
 public class AzureAccount implements IAzureAccount {
 
@@ -235,6 +238,23 @@ public class AzureAccount implements IAzureAccount {
         return getSubscription(subscriptionId).listLocations().stream()
                 .filter(l -> l.regionType() == RegionType.PHYSICAL) // use distinct since com.azure.core.management.Region impls equals
                 .map(Location::region).distinct().map(AzureAccount::toRegion).collect(Collectors.toList());
+    }
+
+    public List<Region> listSupportedRegions(String subscriptionId, String provider, String resourceType) {
+        List<Region> regionList = az(AzureAccount.class).listRegions(subscriptionId);
+        final ResourceManager resourceManager = getResourceManager(subscriptionId);
+        final ProviderResourceType redisResourceType =
+            resourceManager.providers().getByName(provider).resourceTypes()
+                .stream().filter(type -> StringUtils.equalsIgnoreCase(type.resourceType(), resourceType)).findFirst().orElse(null);
+        if (redisResourceType == null) {
+            return regionList;
+        }
+        final List<Region> validRegions = redisResourceType.locations().stream().map(Region::fromName).collect(Collectors.toList());
+
+        return regionList.stream()
+            .filter(validRegions::contains)
+            .distinct()
+            .collect(Collectors.toList());
     }
 
     /**

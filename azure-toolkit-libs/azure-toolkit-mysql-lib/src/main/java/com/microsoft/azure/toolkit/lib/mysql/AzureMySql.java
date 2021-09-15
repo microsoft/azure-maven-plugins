@@ -13,6 +13,7 @@ import com.azure.resourcemanager.mysql.models.ServerPropertiesForDefaultCreate;
 import com.azure.resourcemanager.mysql.models.ServerVersion;
 import com.azure.resourcemanager.mysql.models.Sku;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
@@ -27,19 +28,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.microsoft.azure.toolkit.lib.Azure.az;
-
 public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureService {
-    private static final List<String> MYSQL_SUPPORTED_REGIONS = Arrays.asList(
-        "australiacentral", "australiacentral2", "australiaeast", "australiasoutheast", "brazilsouth", "canadacentral", "canadaeast", "centralindia",
-        "centralus", "eastasia", "eastus2", "eastus", "francecentral", "francesouth", "germanywestcentral", "japaneast", "japanwest", "koreacentral",
-        "koreasouth", "northcentralus", "northeurope", "southafricanorth", "southafricawest", "southcentralus", "southindia", "southeastasia",
-        "norwayeast", "switzerlandnorth", "uaenorth", "uksouth", "ukwest", "westcentralus", "westeurope", "westindia", "westus", "westus2",
-        "centraluseuap", "eastus2euap");
     private static final String NAME_AVAILABILITY_CHECK_TYPE = "Microsoft.DBforMySQL/servers";
 
     public AzureMySql() {
@@ -85,11 +77,11 @@ public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureS
     }
 
     public List<Region> listSupportedRegions() {
-        List<Region> locationList = az(AzureAccount.class).listRegions(getDefaultSubscription().getId());
-        return locationList.stream()
-            .filter(e -> MYSQL_SUPPORTED_REGIONS.contains(e.getName()))
-            .distinct()
-            .collect(Collectors.toList());
+        return listSupportedRegions(getDefaultSubscription().getId());
+    }
+
+    public List<Region> listSupportedRegions(String subscriptionId) {
+        return Azure.az(AzureAccount.class).listSupportedRegions(subscriptionId, "Microsoft.DBforMySQL", "servers");
     }
 
     public List<String> listSupportedVersions() {
