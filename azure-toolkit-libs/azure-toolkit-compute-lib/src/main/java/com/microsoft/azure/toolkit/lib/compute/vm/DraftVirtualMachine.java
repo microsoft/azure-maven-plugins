@@ -103,7 +103,9 @@ public class DraftVirtualMachine extends VirtualMachine implements AzureResource
             // todo: implement azure spot related configs
         }
         this.remote = withCreate.create();
-        this.remote.getPrimaryNetworkInterface().update().withExistingNetworkSecurityGroup(getSecurityGroupClient()).apply();
+        if (securityGroup != null) {
+            this.remote.getPrimaryNetworkInterface().update().withExistingNetworkSecurityGroup(getSecurityGroupClient()).apply();
+        }
         refreshStatus();
         module.refresh();
         return this;
