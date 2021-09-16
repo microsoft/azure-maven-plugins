@@ -136,7 +136,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     private boolean isRuntimeInjected = false;
 
     @JsonIgnore
-    protected ConfigParser configParser;
+    @Getter
+    protected ConfigParser configParser = new ConfigParser(this);
 
     //endregion
 
@@ -236,13 +237,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             final String errorDetails = validate.stream().map(message -> message.getMessage().toString()).collect(Collectors.joining(StringUtils.LF));
             throw new AzureToolkitRuntimeException(String.join(StringUtils.LF, INVALID_PARAMETER_ERROR_MESSAGE, errorDetails));
         }
-    }
-
-    public ConfigParser getConfigParser() {
-        if (configParser == null) {
-            configParser = new ConfigParser(this);
-        }
-        return configParser;
     }
 
     @Override
