@@ -10,7 +10,7 @@ import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages.
 import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages.WithLinuxCreateManagedOrUnmanaged;
 import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages.WithLinuxRootPasswordOrPublicKeyManagedOrUnmanaged;
 import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages.WithProximityPlacementGroup;
-import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages.WithPublicIPAddress;
+import com.azure.resourcemanager.network.models.NetworkInterface;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.compute.AzureResourceDraft;
@@ -84,14 +84,23 @@ public class DraftVirtualMachine extends VirtualMachine implements AzureResource
 
     VirtualMachine create(final AzureVirtualMachine module) {
         this.module = module;
-        final WithPublicIPAddress withPublicIPAddress = module.getVirtualMachinesManager(subscriptionId).define(this.getName())
+        final NetworkInterface.DefinitionStages.WithCreate interfaceWithCreate = module.getVirtualMachinesManager(subscriptionId).manager().networkManager().networkInterfaces().define(name + "-interface")
                 .withRegion(this.getRegion().getName())
                 .withExistingResourceGroup(this.getResourceGroup())
                 .withExistingPrimaryNetwork(this.getNetworkClient())
                 .withSubnet(subnet.getName())
                 .withPrimaryPrivateIPAddressDynamic();
-        final WithProximityPlacementGroup withProximityPlacementGroup = ipAddress != null ?
-                withPublicIPAddress.withExistingPrimaryPublicIPAddress(getPublicIpAddressClient()) : withPublicIPAddress.withoutPrimaryPublicIPAddress();
+        if (ipAddress != null) {
+            interfaceWithCreate.withExistingPrimaryPublicIPAddress(getPublicIpAddressClient());
+        }
+        if (securityGroup != null) {
+            interfaceWithCreate.withExistingNetworkSecurityGroup(getSecurityGroupClient());
+        }
+        final NetworkInterface networkInterface = interfaceWithCreate.create();
+        final WithProximityPlacementGroup withProximityPlacementGroup = module.getVirtualMachinesManager(subscriptionId).define(this.getName())
+                .withRegion(this.getRegion().getName())
+                .withExistingResourceGroup(this.getResourceGroup())
+                .withExistingPrimaryNetworkInterface(networkInterface);
         final WithCreate withCreate = configureImage(withProximityPlacementGroup);
         if (StringUtils.isNotEmpty(availabilitySet)) {
             withCreate.withExistingAvailabilitySet(getAvailabilitySetClient());
@@ -103,9 +112,6 @@ public class DraftVirtualMachine extends VirtualMachine implements AzureResource
             // todo: implement azure spot related configs
         }
         this.remote = withCreate.create();
-        if (securityGroup != null) {
-            this.remote.getPrimaryNetworkInterface().update().withExistingNetworkSecurityGroup(getSecurityGroupClient()).apply();
-        }
         refreshStatus();
         module.refresh();
         return this;
