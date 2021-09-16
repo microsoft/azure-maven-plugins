@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.compute.network;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResource;
 import com.microsoft.azure.toolkit.lib.compute.network.model.Subnet;
 import lombok.EqualsAndHashCode;
@@ -42,6 +43,10 @@ public class Network extends AbstractAzureResource<com.azure.resourcemanager.net
     public IAzureModule<? extends AbstractAzureResource<com.azure.resourcemanager.network.models.Network, IAzureBaseResource>,
             ? extends IAzureBaseResource> module() {
         return module;
+    }
+
+    public Region getRegion() {
+        return Region.fromName(remote().regionName());
     }
 
     @Nullable

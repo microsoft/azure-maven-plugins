@@ -10,6 +10,7 @@ import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
 import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResource;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +43,28 @@ public class VirtualMachine extends AbstractAzureResource<com.azure.resourcemana
         return module;
     }
 
+    public void start() {
+        this.status(Status.PENDING);
+        remote().start();
+        this.refreshStatus();
+    }
+
+    public void stop() {
+        this.status(Status.PENDING);
+        remote().powerOff();
+        this.refreshStatus();
+    }
+
+    public void restart() {
+        this.status(Status.PENDING);
+        remote().restart();
+        this.refreshStatus();
+    }
+
+    public Region getRegion() {
+        return Region.fromName(remote().regionName());
+    }
+
     @Override
     protected String loadStatus() {
         final String powerState = Optional.ofNullable(remote().powerState()).map(Objects::toString).orElse(StringUtils.EMPTY);
@@ -61,24 +84,6 @@ public class VirtualMachine extends AbstractAzureResource<com.azure.resourcemana
     @Override
     protected com.azure.resourcemanager.compute.models.VirtualMachine loadRemote() {
         return module.getVirtualMachinesManager(subscriptionId).getByResourceGroup(resourceGroup, name);
-    }
-
-    public void start() {
-        this.status(Status.PENDING);
-        remote().start();
-        this.refreshStatus();
-    }
-
-    public void stop() {
-        this.status(Status.PENDING);
-        remote().powerOff();
-        this.refreshStatus();
-    }
-
-    public void restart() {
-        this.status(Status.PENDING);
-        remote().restart();
-        this.refreshStatus();
     }
 
     @Override
