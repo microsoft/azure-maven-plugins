@@ -16,6 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
+import java.util.Optional;
 
 @NoArgsConstructor
 public class VirtualMachine extends AbstractAzureResource<com.azure.resourcemanager.compute.models.VirtualMachine, IAzureBaseResource>
@@ -42,7 +44,7 @@ public class VirtualMachine extends AbstractAzureResource<com.azure.resourcemana
 
     @Override
     protected String loadStatus() {
-        final String powerState = remote().powerState().toString();
+        final String powerState = Optional.ofNullable(remote().powerState()).map(Objects::toString).orElse(StringUtils.EMPTY);
         if (StringUtils.equalsIgnoreCase(powerState, PowerState.RUNNING.toString())) {
             return Status.RUNNING;
         } else if (StringUtils.equalsAnyIgnoreCase(powerState, PowerState.DEALLOCATING.toString(), PowerState.STOPPING.toString(),
