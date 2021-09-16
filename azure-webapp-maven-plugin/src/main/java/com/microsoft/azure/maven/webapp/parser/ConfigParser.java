@@ -216,23 +216,17 @@ public class ConfigParser {
             return null;
         }
         final OperatingSystem os = getOs(runtime);
-        return os == OperatingSystem.DOCKER ? getRuntimeConfigForDocker(runtime) : getRuntimeConfigForWebContainer(runtime, os);
-    }
-
-    private RuntimeConfig getRuntimeConfigForWebContainer(final MavenRuntimeConfig runtime, final OperatingSystem os) {
         final JavaVersion javaVersion = StringUtils.isEmpty(runtime.getJavaVersion()) ? null :
                 parseExpandableParameter(JavaVersion::fromString, runtime.getJavaVersion(), EXPANDABLE_JAVA_VERSION_WARNING);
         final WebContainer webContainer = StringUtils.isEmpty(runtime.getWebContainer()) ? null :
                 parseExpandableParameter(WebContainer::fromString, runtime.getWebContainer(), EXPANDABLE_WEB_CONTAINER_WARNING);
-        return new RuntimeConfig().os(os).javaVersion(javaVersion).webContainer(webContainer);
-    }
-
-    private RuntimeConfig getRuntimeConfigForDocker(final MavenRuntimeConfig runtime) throws AzureExecutionException {
-        final MavenDockerCredentialProvider credentialProvider = getDockerCredential(runtime.getServerId());
-        return new RuntimeConfig().image(runtime.getImage())
-                .registryUrl(runtime.getRegistryUrl())
-                .username(credentialProvider.getUsername())
-                .password(credentialProvider.getPassword());
+        final RuntimeConfig result = new RuntimeConfig().os(os).javaVersion(javaVersion).webContainer(webContainer)
+                .image(runtime.getImage()).registryUrl(runtime.getRegistryUrl());
+        if (StringUtils.isNotEmpty(runtime.getServerId())) {
+            final MavenDockerCredentialProvider credentialProvider = getDockerCredential(runtime.getServerId());
+            result.username(credentialProvider.getUsername()).password(credentialProvider.getPassword());
+        }
+        return result;
     }
 
     protected MavenDockerCredentialProvider getDockerCredential(String serverId) {
