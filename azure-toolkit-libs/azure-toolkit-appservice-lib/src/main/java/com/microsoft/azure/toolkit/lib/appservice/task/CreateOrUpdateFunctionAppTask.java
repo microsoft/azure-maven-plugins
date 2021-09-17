@@ -20,7 +20,9 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
@@ -54,6 +56,13 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     private static final String FUNCTIONS_EXTENSION_VERSION_VALUE = "~3";
     private static final String SET_FUNCTIONS_EXTENSION_VERSION = "Functions extension version " +
             "isn't configured, setting up the default value.";
+    private static final String FUNCTION_APP_NOT_EXIST_FOR_SLOT = "The Function App specified in pom.xml does not exist. " +
+            "Please make sure the Web App name is correct.";
+    private static final String FUNCTION_SLOT_CREATE_START = "The specified function slot does not exist. " +
+            "Creating a new slot...";
+    private static final String FUNCTION_SLOT_CREATED = "Successfully created the function slot: %s.";
+    private static final String FUNCTION_SLOT_UPDATE = "Updating the specified function slot...";
+    private static final String FUNCTION_SLOT_UPDATE_DONE = "Successfully updated the function slot: %s.";
 
     private final FunctionAppConfig functionAppConfig;
     private final List<AzureTask<?>> tasks = new ArrayList<>();
@@ -62,6 +71,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     private IAppServicePlan appServicePlan;
     private ApplicationInsightsEntity applicationInsights;
     private IFunctionAppBase<?> functionApp;
+
 
     public CreateOrUpdateFunctionAppTask(@Nonnull final FunctionAppConfig config) {
         this.functionAppConfig = config;
@@ -72,13 +82,25 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
         final IFunctionApp functionApp = Azure.az(AzureAppService.class).functionApp(functionAppConfig.resourceGroup(), functionAppConfig.appName());
         registerSubTask(getResourceGroupTask(), result -> this.resourceGroup = result);
         registerSubTask(getServicePlanTask(functionApp), result -> this.appServicePlan = result);
+        // get/create ai instances only if user didn't specify ai connection string in app settings
         if (!functionAppConfig.disableAppInsights() && !functionAppConfig.appSettings().containsKey(APPINSIGHTS_INSTRUMENTATION_KEY)) {
-            // get/create ai instances only if user didn't specify ai connection string in app settings
-            registerSubTask(getApplicationInsightsTask(), result -> this.applicationInsights = result);
+            if (StringUtils.isNotEmpty(functionAppConfig.appInsightsKey())) {
+                this.applicationInsights = ApplicationInsightsEntity.builder().instrumentationKey(functionAppConfig.appInsightsKey()).build();
+            } else if (StringUtils.isNotEmpty(functionAppConfig.appInsightsInstance()) || !functionApp.exists()) {
+                // create ai instance by default when create new function
+                registerSubTask(getApplicationInsightsTask(), result -> this.applicationInsights = result);
+            }
         }
-        final AzureTask<IFunctionAppBase<?>> functionTask = functionApp.exists() ?
-                getCreateFunctionAppTask(functionApp) : getUpdateFunctionAppTask(functionApp);
-        registerSubTask(functionTask, result -> this.functionApp = result);
+        if (StringUtils.isEmpty(functionAppConfig.deploymentSlotName())) {
+            final AzureTask<IFunctionApp> functionTask = functionApp.exists() ?
+                    getCreateFunctionAppTask(functionApp) : getUpdateFunctionAppTask(functionApp);
+            registerSubTask(functionTask, result -> this.functionApp = result);
+        } else {
+            final IFunctionAppDeploymentSlot deploymentSlot = getFunctionDeploymentSlot(functionApp);
+            final AzureTask<IFunctionAppDeploymentSlot> slotTask = deploymentSlot.exists() ?
+                    getCreateFunctionSlotTask(deploymentSlot) : getUpdateFunctionSlotTask(deploymentSlot);
+            registerSubTask(slotTask, result -> this.functionApp = result);
+        }
     }
 
     private <T> void registerSubTask(AzureTask<T> task, Consumer<T> consumer) {
@@ -89,7 +111,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
         }));
     }
 
-    private AzureTask<IFunctionAppBase<?>> getCreateFunctionAppTask(final IFunctionApp functionApp) {
+    private AzureTask<IFunctionApp> getCreateFunctionAppTask(final IFunctionApp functionApp) {
         final AzureString title = AzureString.format("Create new app({0}) on subscription({1})",
                 functionAppConfig.appName(), functionAppConfig.subscriptionId());
         return new AzureTask<>(title, () -> {
@@ -133,9 +155,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
         }
     }
 
-    private AzureTask<IFunctionAppBase<?>> getUpdateFunctionAppTask(final IFunctionApp functionApp) {
-        final AzureString title = AzureString.format("Create new app({0}) on subscription({1})",
-                functionAppConfig.appName(), functionAppConfig.subscriptionId());
+    private AzureTask<IFunctionApp> getUpdateFunctionAppTask(final IFunctionApp functionApp) {
+        final AzureString title = AzureString.format("Update function app({0})", functionAppConfig.appName());
         return new AzureTask<>(title, () -> {
             AzureMessager.getMessager().info(String.format(UPDATE_FUNCTION_APP, functionApp.name()));
             // update app settings
@@ -156,19 +177,55 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
         });
     }
 
+    private AzureTask<IFunctionAppDeploymentSlot> getCreateFunctionSlotTask(IFunctionAppDeploymentSlot deploymentSlot) {
+        final AzureString title = AzureString.format("Create new slot({0}) on function app ({1})",
+                functionAppConfig.deploymentSlotName(), functionAppConfig.appName());
+        return new AzureTask<>(title, () -> {
+            AzureMessager.getMessager().info(FUNCTION_SLOT_CREATE_START);
+            final Map<String, String> appSettings = processAppSettingsWithDefaultValue();
+            Optional.ofNullable(applicationInsights).ifPresent(insights ->
+                    appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, applicationInsights.getInstrumentationKey()));
+            final IFunctionAppDeploymentSlot result = deploymentSlot.create().withAppSettings(appSettings)
+                    .withConfigurationSource(functionAppConfig.deploymentSlotConfigurationSource())
+                    .withName(functionAppConfig.deploymentSlotName()).commit();
+            AzureMessager.getMessager().info(String.format(FUNCTION_SLOT_CREATED, result.name()));
+            return result;
+        });
+    }
+
+    private AzureTask<IFunctionAppDeploymentSlot> getUpdateFunctionSlotTask(IFunctionAppDeploymentSlot deploymentSlot) {
+        final AzureString title = AzureString.format("Update function deployment slot({0})", functionAppConfig.deploymentSlotName());
+        return new AzureTask<>(title, () -> {
+            AzureMessager.getMessager().info(FUNCTION_SLOT_UPDATE);
+            final Map<String, String> appSettings = processAppSettingsWithDefaultValue();
+            final IFunctionAppDeploymentSlot.Updater update = deploymentSlot.update();
+            if (functionAppConfig.disableAppInsights()) {
+                update.withoutAppSettings(APPINSIGHTS_INSTRUMENTATION_KEY);
+            } else if (applicationInsights != null) {
+                appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, applicationInsights.getInstrumentationKey());
+            }
+            final IFunctionAppDeploymentSlot result = update.withAppSettings(appSettings).commit();
+            AzureMessager.getMessager().info(String.format(FUNCTION_SLOT_UPDATE_DONE, result.name()));
+            return deploymentSlot;
+        });
+    }
+
+    private IFunctionAppDeploymentSlot getFunctionDeploymentSlot(final IFunctionApp functionApp) {
+        if (!functionApp.exists()) {
+            throw new AzureToolkitRuntimeException(FUNCTION_APP_NOT_EXIST_FOR_SLOT);
+        }
+        return functionApp.deploymentSlot(functionAppConfig.appName());
+    }
+
     private AzureTask<ApplicationInsightsEntity> getApplicationInsightsTask() {
         return new AzureTask<>(() -> {
-            if (StringUtils.isNotEmpty(functionAppConfig.appInsightsKey())) {
-                // validate insights key with schema validator
-                return ApplicationInsightsEntity.builder().instrumentationKey(functionAppConfig.appInsightsKey()).build();
-            } else {
-                try {
-                    return new GetOrCreateApplicationInsightsTask(functionAppConfig.subscriptionId(), functionAppConfig.resourceGroup(),
-                            functionAppConfig.region(), functionAppConfig.appInsightsInstance()).execute();
-                } catch (final Exception e) {
-                    AzureMessager.getMessager().warning(String.format(APPLICATION_INSIGHTS_CREATE_FAILED, e.getMessage()));
-                    return null;
-                }
+            try {
+                final String name = StringUtils.firstNonEmpty(functionAppConfig.appInsightsInstance(), functionAppConfig.appName());
+                return new GetOrCreateApplicationInsightsTask(functionAppConfig.subscriptionId(),
+                        functionAppConfig.resourceGroup(), functionAppConfig.region(), name).execute();
+            } catch (final Exception e) {
+                AzureMessager.getMessager().warning(String.format(APPLICATION_INSIGHTS_CREATE_FAILED, e.getMessage()));
+                return null;
             }
         });
     }
