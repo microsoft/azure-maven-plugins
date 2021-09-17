@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.task;
 
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
+import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class DeployWebAppTask extends AzureTask<IWebApp> {
+public class DeployWebAppTask extends AzureTask<IWebAppBase<?>> {
     private static final String SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE = "Skip deployment for docker webapp, " +
         "you can navigate to %s to access your docker webapp.";
     private static final String DEPLOY_START = "Trying to deploy artifact to %s...";
@@ -28,15 +28,15 @@ public class DeployWebAppTask extends AzureTask<IWebApp> {
     private static final String STOP_APP_DONE = "Successfully stopped Web App.";
     private static final String START_APP_DONE = "Successfully started Web App.";
     private static final String RUNNING = "Running";
-    private IWebApp webApp;
-    private List<WebAppArtifact> artifacts;
-    private boolean isStopAppDuringDeployment;
+    private final IWebAppBase<?> webApp;
+    private final List<WebAppArtifact> artifacts;
+    private final boolean isStopAppDuringDeployment;
 
-    public DeployWebAppTask(IWebApp webApp, List<WebAppArtifact> artifacts) {
+    public DeployWebAppTask(IWebAppBase<?> webApp, List<WebAppArtifact> artifacts) {
         this(webApp, artifacts, false);
     }
 
-    public DeployWebAppTask(IWebApp webApp, List<WebAppArtifact> artifacts, boolean isStopAppDuringDeployment) {
+    public DeployWebAppTask(IWebAppBase<?> webApp, List<WebAppArtifact> artifacts, boolean isStopAppDuringDeployment) {
         this.webApp = webApp;
         this.artifacts = artifacts;
         this.isStopAppDuringDeployment = isStopAppDuringDeployment;
@@ -44,7 +44,7 @@ public class DeployWebAppTask extends AzureTask<IWebApp> {
 
     @Override
     @AzureOperation(name = "webapp.deploy", params = {"this.webApp.entity().getName()"}, type = AzureOperation.Type.SERVICE)
-    public IWebApp execute() {
+    public IWebAppBase<?> execute() {
         if (webApp.getRuntime().isDocker()) {
             AzureMessager.getMessager().info(AzureString.format(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE, "https://" + webApp.hostName()));
             return webApp;
@@ -73,7 +73,7 @@ public class DeployWebAppTask extends AzureTask<IWebApp> {
         artifactsOneDeploy.forEach(resource -> webApp.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
     }
 
-    private static void stopAppService(IWebApp target) {
+    private static void stopAppService(IWebAppBase<?> target) {
         AzureMessager.getMessager().info(STOP_APP);
         target.stop();
         // workaround for the resources release problem.
@@ -86,7 +86,7 @@ public class DeployWebAppTask extends AzureTask<IWebApp> {
         AzureMessager.getMessager().info(STOP_APP_DONE);
     }
 
-    private static void startAppService(IWebApp target) {
+    private static void startAppService(IWebAppBase<?> target) {
         if (!StringUtils.equalsIgnoreCase(target.state(), RUNNING)) {
             AzureMessager.getMessager().info(START_APP);
             target.start();

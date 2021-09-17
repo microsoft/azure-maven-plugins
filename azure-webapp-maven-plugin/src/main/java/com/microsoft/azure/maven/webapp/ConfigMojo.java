@@ -14,7 +14,6 @@ import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
 import com.microsoft.azure.maven.webapp.models.WebAppOption;
-import com.microsoft.azure.maven.webapp.parser.ConfigParser;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
@@ -466,7 +465,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private WebAppConfiguration getWebAppConfiguration() {
         validateConfiguration(message -> AzureMessager.getMessager().warning(message.getMessage()), false);
-        return new ConfigParser(this).getWebAppConfiguration();
+        return getConfigParser().getWebAppConfiguration();
     }
 
     private WebAppConfiguration chooseExistingWebappForConfiguration()
