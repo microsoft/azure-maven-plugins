@@ -45,7 +45,6 @@ public class Runtime {
     public static final Runtime LINUX_JAVA8_TOMCAT85 = new Runtime(OperatingSystem.LINUX, WebContainer.TOMCAT_85, JavaVersion.JAVA_8);
     public static final Runtime LINUX_JAVA8_JBOSS7 = new Runtime(OperatingSystem.LINUX, WebContainer.JBOSS_7, JavaVersion.JAVA_8);
     public static final Runtime LINUX_JAVA11_JBOSS7 = new Runtime(OperatingSystem.LINUX, WebContainer.JBOSS_7, JavaVersion.JAVA_11);
-    public static final Runtime LINUX_JAVA8_JBOSS72 = new Runtime(OperatingSystem.LINUX, WebContainer.JBOSS_72, JavaVersion.JAVA_8);
     public static final Runtime LINUX_JAVA11_TOMCAT9 = new Runtime(OperatingSystem.LINUX, WebContainer.TOMCAT_9, JavaVersion.JAVA_11);
     public static final Runtime LINUX_JAVA11_TOMCAT85 = new Runtime(OperatingSystem.LINUX, WebContainer.TOMCAT_85, JavaVersion.JAVA_11);
     // Function
@@ -58,7 +57,7 @@ public class Runtime {
 
     public static final List<Runtime> WEBAPP_RUNTIME = Collections.unmodifiableList(Arrays.asList(WINDOWS_JAVA8, WINDOWS_JAVA11, WINDOWS_JAVA8_TOMCAT9,
             WINDOWS_JAVA8_TOMCAT85, WINDOWS_JAVA11_TOMCAT9, WINDOWS_JAVA11_TOMCAT85, LINUX_JAVA8, LINUX_JAVA11, LINUX_JAVA8_TOMCAT9, LINUX_JAVA8_TOMCAT85,
-            LINUX_JAVA8_JBOSS72, LINUX_JAVA11_JBOSS7, LINUX_JAVA8_JBOSS7, LINUX_JAVA11_TOMCAT9, LINUX_JAVA11_TOMCAT85));
+            LINUX_JAVA11_JBOSS7, LINUX_JAVA8_JBOSS7, LINUX_JAVA11_TOMCAT9, LINUX_JAVA11_TOMCAT85));
     public static final List<Runtime> FUNCTION_APP_RUNTIME = Collections.unmodifiableList(Arrays.asList(FUNCTION_LINUX_JAVA8, FUNCTION_LINUX_JAVA11,
             FUNCTION_WINDOWS_JAVA8, FUNCTION_WINDOWS_JAVA11));
     private static final List<Runtime> values =
