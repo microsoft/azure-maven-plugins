@@ -150,6 +150,10 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-toolkit-common-lib</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-toolkit-applicationinsights-lib</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
