@@ -100,6 +100,9 @@ class AppServiceUtils {
                 return new RuntimeStack("JAVA", getJavaVersionValueForJavaSERuntimeStack(runtime.getJavaVersion()));
             }
             final String[] containerInfo = runtime.getWebContainer().getValue().split(" ");
+            if (containerInfo.length != 2) {
+                throw new AzureToolkitRuntimeException(String.format("Invalid webContainer '%s'.", runtime.getWebContainer()));
+            }
             final String stack = containerInfo[0];
             final String stackVersion = containerInfo[1];
             final String javaVersion = getJavaVersionValueForContainerRuntimeStack(runtime.getJavaVersion());

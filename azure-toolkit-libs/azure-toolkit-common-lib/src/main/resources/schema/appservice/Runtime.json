@@ -32,46 +32,6 @@
       "image"
     ]
   },
-  "required": [
-    "os"
-  ],
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "os": {
-            "pattern": "(?i)^(windows|linux)$"
-          }
-        },
-        "required": [
-          "os"
-        ]
-      },
-      "then": {
-        "required": [
-          "javaVersion",
-          "webContainer"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "os": {
-            "pattern": "(?i)^(docker)$"
-          }
-        },
-        "required": [
-          "os"
-        ]
-      },
-      "then": {
-        "required": [
-          "image"
-        ]
-      }
-    }
-  ],
   "definitions": {
     "os": {
       "description": "The operating system for app service",

@@ -8,15 +8,27 @@ package com.microsoft.azure.maven.webapp;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotConfig;
 import com.microsoft.azure.maven.webapp.task.DeployExternalResourcesTask;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateWebAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -45,13 +57,35 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     private IWebAppBase<?> createOrUpdateResource() throws AzureExecutionException {
         if (!isDeployToDeploymentSlot()) {
-            return new CreateOrUpdateWebAppTask(getConfigParser().getAppServiceConfig()).execute();
+            final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
+            return new CreateOrUpdateWebAppTask(appServiceConfig, buildDefaultConfig(appServiceConfig.subscriptionId())).execute();
         } else {
             // todo: New CreateOrUpdateDeploymentSlotTask
             final DeploymentSlotConfig config = getConfigParser().getDeploymentSlotConfig();
             final IWebAppDeploymentSlot slot = getDeploymentSlot(config);
             return slot.exists() ? updateDeploymentSlot(slot, config) : createDeploymentSlot(slot, config);
         }
+    }
+
+    private AppServiceConfig buildDefaultConfig(String subscriptionId) {
+        final ComparableVersion javaVersionForProject = new ComparableVersion(System.getProperty("java.version"));
+        // get java version according to project java version
+        JavaVersion javaVersion = javaVersionForProject.compareTo(new ComparableVersion("9")) < 0 ? JavaVersion.JAVA_8 : JavaVersion.JAVA_11;
+        RuntimeConfig runtimeConfig = new RuntimeConfig().os(OperatingSystem.LINUX).webContainer(StringUtils.equalsIgnoreCase(this.project.getPackaging(), "jar") ?
+            WebContainer.JAVA_SE : (StringUtils.equalsIgnoreCase(this.project.getPackaging(), "ear") ? WebContainer.JBOSS_7 : WebContainer.TOMCAT_85))
+            .javaVersion(javaVersion);
+        AppServiceConfig appServiceConfig = new AppServiceConfig();
+        appServiceConfig.region(getRegionOrDefault(Azure.az(AzureAccount.class).listRegions(subscriptionId)));
+        appServiceConfig.runtime(runtimeConfig);
+        appServiceConfig.pricingTier(runtimeConfig.webContainer() == WebContainer.JBOSS_7 ? PricingTier.PREMIUM_P1V3 : PricingTier.PREMIUM_P1V2);
+        return appServiceConfig;
+    }
+
+    private static Region getRegionOrDefault(List<Region> regions) {
+        if (regions.isEmpty()) {
+            throw new AzureToolkitRuntimeException("No region is available.");
+        }
+        return regions.contains(Region.US_CENTRAL) ? Region.US_CENTRAL : regions.get(0);
     }
 
     private IWebAppDeploymentSlot getDeploymentSlot(final DeploymentSlotConfig config) throws AzureExecutionException {

@@ -10,6 +10,7 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 
@@ -43,8 +44,8 @@ public class AppServiceConfig {
     public AppServicePlanConfig getServicePlanConfig() {
         return new AppServicePlanConfig()
             .subscriptionId(subscriptionId())
-            .servicePlanResourceGroup(servicePlanResourceGroup())
-            .servicePlanName(servicePlanName())
+            .servicePlanResourceGroup(StringUtils.firstNonBlank(servicePlanResourceGroup(), resourceGroup))
+            .servicePlanName(StringUtils.firstNonBlank(servicePlanName(), String.format("asp-%s", appName)))
             .region(region())
             .os(runtime() == null ? null : runtime().os())
             .pricingTier(pricingTier());
