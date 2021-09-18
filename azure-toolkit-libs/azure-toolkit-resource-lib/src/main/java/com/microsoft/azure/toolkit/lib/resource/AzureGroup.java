@@ -5,17 +5,9 @@
 
 package com.microsoft.azure.toolkit.lib.resource;
 
-import com.azure.core.http.policy.HttpLogDetailLevel;
-import com.azure.core.http.policy.HttpPipelinePolicy;
-import com.azure.core.management.profile.AzureProfile;
-import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
-import com.microsoft.azure.toolkit.lib.auth.Account;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -95,28 +87,5 @@ public class AzureGroup extends SubscriptionScoped<AzureGroup> implements AzureS
         String region = resource.regionName();
         String id = resource.id();
         return ResourceGroup.builder().subscriptionId(subscriptionId).id(id).name(name).region(region).build();
-    }
-
-    @Cacheable(cacheName = "resource/{}/manager", key = "$subscriptionId")
-    private ResourceManager getResourceManager(String subscriptionId) {
-        final Account account = Azure.az(AzureAccount.class).account();
-        final AzureConfiguration config = Azure.az().config();
-        final String userAgent = config.getUserAgent();
-        final HttpLogDetailLevel logDetailLevel = config.getLogLevel() == null ?
-                HttpLogDetailLevel.NONE : HttpLogDetailLevel.valueOf(config.getLogLevel());
-        final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
-        return ResourceManager.configure()
-                .withLogLevel(logDetailLevel)
-                .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
-                .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
-                .withSubscription(subscriptionId);
-    }
-
-    private HttpPipelinePolicy getUserAgentPolicy(String userAgent) {
-        return (httpPipelineCallContext, httpPipelineNextPolicy) -> {
-            final String previousUserAgent = httpPipelineCallContext.getHttpRequest().getHeaders().getValue("User-Agent");
-            httpPipelineCallContext.getHttpRequest().setHeader("User-Agent", String.format("%s %s", userAgent, previousUserAgent));
-            return httpPipelineNextPolicy.process();
-        };
     }
 }

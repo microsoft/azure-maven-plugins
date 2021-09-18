@@ -5,6 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.account;
 
+import com.azure.core.credential.TokenCredential;
+import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 
 import java.util.List;
@@ -18,4 +20,8 @@ public interface IAccount {
     Subscription getSubscription(String subscriptionId);
 
     String portalUrl();
+
+    AzureEnvironment getEnvironment();
+
+    TokenCredential getTokenCredential(String subscriptionId);
 }
