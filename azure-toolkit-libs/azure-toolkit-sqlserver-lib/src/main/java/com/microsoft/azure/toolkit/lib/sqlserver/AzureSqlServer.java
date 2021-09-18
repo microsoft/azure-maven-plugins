@@ -4,7 +4,6 @@
  */
 package com.microsoft.azure.toolkit.lib.sqlserver;
 
-import com.azure.core.management.Region;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.SqlServerManager;
 import com.azure.resourcemanager.sql.models.CapabilityStatus;
@@ -69,7 +68,7 @@ public class AzureSqlServer extends SubscriptionScoped<AzureSqlServer> implement
 
     public boolean checkRegionCapability(String subscriptionId, String region) {
         SqlServerManager manager = SqlServerManagerFactory.create(subscriptionId);
-        com.azure.resourcemanager.sql.models.RegionCapabilities capabilities = manager.sqlServers().getCapabilitiesByRegion(Region.fromName(region));
+        com.azure.resourcemanager.sql.models.RegionCapabilities capabilities = manager.sqlServers().getCapabilitiesByRegion(com.azure.core.management.Region.fromName(region));
         return Objects.nonNull(capabilities.status()) && CapabilityStatus.AVAILABLE == capabilities.status();
     }
 
@@ -116,4 +115,7 @@ public class AzureSqlServer extends SubscriptionScoped<AzureSqlServer> implement
         }
     }
 
+    public String name() {
+        return "Microsoft.SQL/servers";
+    }
 }
