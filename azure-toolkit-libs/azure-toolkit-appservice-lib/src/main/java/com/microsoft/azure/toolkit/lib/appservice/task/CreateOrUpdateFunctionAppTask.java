@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
@@ -24,6 +25,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeployment
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
@@ -64,6 +66,11 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     private static final String FUNCTION_SLOT_UPDATE = "Updating the specified function slot...";
     private static final String FUNCTION_SLOT_UPDATE_DONE = "Successfully updated the function slot: %s.";
 
+    public static final JavaVersion DEFAULT_FUNCTION_JAVA_VERSION = JavaVersion.JAVA_8;
+    public static final OperatingSystem DEFAULT_FUNCTION_OS = OperatingSystem.WINDOWS;
+    public static final PricingTier DEFAULT_FUNCTION_PRICING = PricingTier.CONSUMPTION;
+    public static final Region DEFAULT_FUNCTION_REGION = Region.US_WEST;
+
     private final FunctionAppConfig functionAppConfig;
     private final List<AzureTask<?>> tasks = new ArrayList<>();
 
@@ -75,11 +82,28 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
 
     public CreateOrUpdateFunctionAppTask(@Nonnull final FunctionAppConfig config) {
         this.functionAppConfig = config;
+        normalizeConfiguration(config);
         initTasks();
     }
 
+    private void normalizeConfiguration(FunctionAppConfig config) {
+        if (config.region() == null) {
+            config.region(DEFAULT_FUNCTION_REGION);
+        }
+        if (config.pricingTier() == null) {
+            config.pricingTier(DEFAULT_FUNCTION_PRICING);
+        }
+        if (config.runtime() != null && config.runtime().os() == null) {
+            config.runtime().os(DEFAULT_FUNCTION_OS);
+        }
+        if (config.runtime() != null && config.runtime().javaVersion() == null) {
+            config.runtime().javaVersion(DEFAULT_FUNCTION_JAVA_VERSION);
+        }
+    }
+
     private void initTasks() {
-        final IFunctionApp functionApp = Azure.az(AzureAppService.class).functionApp(functionAppConfig.resourceGroup(), functionAppConfig.appName());
+        final IFunctionApp functionApp = Azure.az(AzureAppService.class).subscription(functionAppConfig.subscriptionId())
+                .functionApp(functionAppConfig.resourceGroup(), functionAppConfig.appName());
         registerSubTask(getResourceGroupTask(), result -> this.resourceGroup = result);
         registerSubTask(getServicePlanTask(functionApp), result -> this.appServicePlan = result);
         // get/create ai instances only if user didn't specify ai connection string in app settings
@@ -93,19 +117,19 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
         }
         if (StringUtils.isEmpty(functionAppConfig.deploymentSlotName())) {
             final AzureTask<IFunctionApp> functionTask = functionApp.exists() ?
-                    getCreateFunctionAppTask(functionApp) : getUpdateFunctionAppTask(functionApp);
+                    getUpdateFunctionAppTask(functionApp) : getCreateFunctionAppTask(functionApp);
             registerSubTask(functionTask, result -> this.functionApp = result);
         } else {
             final IFunctionAppDeploymentSlot deploymentSlot = getFunctionDeploymentSlot(functionApp);
             final AzureTask<IFunctionAppDeploymentSlot> slotTask = deploymentSlot.exists() ?
-                    getCreateFunctionSlotTask(deploymentSlot) : getUpdateFunctionSlotTask(deploymentSlot);
+                    getUpdateFunctionSlotTask(deploymentSlot) : getCreateFunctionSlotTask(deploymentSlot);
             registerSubTask(slotTask, result -> this.functionApp = result);
         }
     }
 
     private <T> void registerSubTask(AzureTask<T> task, Consumer<T> consumer) {
         tasks.add(new AzureTask<>(() -> {
-            T result = task.execute();
+            T result = task.getSupplier().get();
             consumer.accept(result);
             return result;
         }));
@@ -222,7 +246,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
             try {
                 final String name = StringUtils.firstNonEmpty(functionAppConfig.appInsightsInstance(), functionAppConfig.appName());
                 return new GetOrCreateApplicationInsightsTask(functionAppConfig.subscriptionId(),
-                        functionAppConfig.resourceGroup(), functionAppConfig.region(), name).execute();
+                        functionAppConfig.resourceGroup(), functionAppConfig.region(), name).getSupplier().get();
             } catch (final Exception e) {
                 AzureMessager.getMessager().warning(String.format(APPLICATION_INSIGHTS_CREATE_FAILED, e.getMessage()));
                 return null;
@@ -236,7 +260,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
 
     private CreateOrUpdateAppServicePlanTask getServicePlanTask(final IFunctionApp functionApp) {
         final String servicePlanName = functionApp.exists() ? functionApp.plan().name() :
-                StringUtils.firstNonBlank(functionAppConfig.servicePlanName(), String.format("asp-%s", appServicePlan.name()));
+                StringUtils.firstNonBlank(functionAppConfig.servicePlanName(), String.format("asp-%s", functionAppConfig.appName()));
         final String servicePlanGroup = functionApp.exists() ? functionApp.plan().resourceGroup() :
                 StringUtils.firstNonBlank(functionAppConfig.resourceGroup(), functionAppConfig.servicePlanResourceGroup());
         final AppServicePlanConfig servicePlanConfig = functionAppConfig.getServicePlanConfig().servicePlanName(servicePlanName)
