@@ -5,38 +5,24 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.azure.core.management.AzureEnvironment;
-import com.azure.core.management.exception.ManagementException;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
-import com.microsoft.azure.maven.MavenDockerCredentialProvider;
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsights;
-import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsightsEntity;
-import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
+import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServiceBaseEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
-import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
-import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeploymentSlot;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
-import com.microsoft.azure.toolkit.lib.common.model.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
-import com.microsoft.azure.toolkit.lib.resource.AzureGroup;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,10 +38,7 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
@@ -63,31 +46,11 @@ import java.util.stream.Collectors;
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
-
     private static final String DEPLOY_START = "Starting deployment...";
-    private static final String DEPLOY_FINISH =
-            "Deployment done, you may access your resource through %s";
-    private static final String FUNCTION_SLOT_CREATE_START = "The specified function slot does not exist. " +
-            "Creating a new slot...";
-    private static final String FUNCTION_SLOT_CREATED = "Successfully created the function slot: %s.";
-    private static final String FUNCTION_SLOT_UPDATE = "Updating the specified function slot...";
-    private static final String FUNCTION_SLOT_UPDATE_DONE = "Successfully updated the function slot: %s.";
-    private static final String APPINSIGHTS_INSTRUMENTATION_KEY = "APPINSIGHTS_INSTRUMENTATIONKEY";
+    private static final String DEPLOY_FINISH = "Deployment done, you may access your resource through %s";
     private static final String APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT = "Contradictory configurations for application insights," +
             " specify 'appInsightsKey' or 'appInsightsInstance' if you want to enable it, and specify " +
             "'disableAppInsights=true' if you want to disable it.";
-    private static final String FAILED_TO_GET_APPLICATION_INSIGHTS = "The application insights %s cannot be found, " +
-            "will create it in resource group %s.";
-    private static final String SKIP_CREATING_APPLICATION_INSIGHTS = "Skip creating application insights";
-    private static final String APPLICATION_INSIGHTS_CREATE_START = "Creating application insights...";
-    private static final String APPLICATION_INSIGHTS_CREATED = "Successfully created the application insights %s " +
-            "for this Function App. You can visit %s/#@/resource%s/overview to view your " +
-            "Application Insights component.";
-    private static final String APPLICATION_INSIGHTS_CREATE_FAILED = "Unable to create the Application Insights " +
-            "for the Function App due to error %s. Please use the Azure Portal to manually create and configure the " +
-            "Application Insights if needed.";
-    private static final String INSTRUMENTATION_KEY_IS_NOT_VALID = "Instrumentation key is not valid, " +
-            "please update the application insights configuration";
     private static final String UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS = "Some http trigger urls cannot be displayed " +
             "because they are non-anonymous. To access the non-anonymous triggers, please refer to https://aka.ms/azure-functions-key.";
     private static final String HTTP_TRIGGER_URLS = "HTTP Trigger Urls:";
@@ -98,27 +61,7 @@ public class DeployMojo extends AbstractFunctionMojo {
             "configuration.";
     private static final String ARTIFACT_INCOMPATIBLE_ERROR = "Your function app artifact compile version {0} is not compatible with java version {1} in " +
             "configuration, please downgrade the project compile version and try again.";
-    private static final String FUNCTIONS_WORKER_RUNTIME_NAME = "FUNCTIONS_WORKER_RUNTIME";
-    private static final String FUNCTIONS_WORKER_RUNTIME_VALUE = "java";
-    private static final String SET_FUNCTIONS_WORKER_RUNTIME = "Set function worker runtime to java.";
-    private static final String CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING = "App setting `FUNCTIONS_WORKER_RUNTIME` doesn't " +
-            "meet the requirement of Azure Java Functions, the value should be `java`.";
-    private static final String FUNCTIONS_EXTENSION_VERSION_NAME = "FUNCTIONS_EXTENSION_VERSION";
-    private static final String FUNCTIONS_EXTENSION_VERSION_VALUE = "~3";
-    private static final String SET_FUNCTIONS_EXTENSION_VERSION = "Functions extension version " +
-            "isn't configured, setting up the default value.";
     private static final String RUNNING = "Running";
-    private static final String CREATE_FUNCTION_APP = "Creating function app %s...";
-    private static final String CREATE_FUNCTION_APP_DONE = "Successfully created function app %s.";
-    private static final String CREATE_APP_SERVICE_PLAN = "Creating app service plan...";
-    private static final String CREATE_APP_SERVICE_DONE = "Successfully created app service plan %s.";
-    private static final String CREATE_RESOURCE_GROUP = "Creating resource group %s in region %s...";
-    private static final String CREATE_RESOURCE_GROUP_DONE = "Successfully created resource group %s.";
-    private static final String CREATE_NEW_FUNCTION_APP = "isCreateNewFunctionApp";
-    private static final String CREATE_NEW_APP_SERVICE_PLAN = "createNewAppServicePlan";
-    private static final String CREATE_NEW_RESOURCE_GROUP = "createNewResourceGroup";
-    private static final String UPDATE_FUNCTION_APP = "Updating target Function App %s...";
-    private static final String UPDATE_FUNCTION_DONE = "Successfully updated Function App %s.";
     private static final String NO_ARTIFACT_FOUNDED = "Failed to find function artifact '%s.jar' in folder '%s', please re-package the project and try again.";
     private static final String LOCAL_SETTINGS_FILE = "local.settings.json";
     private static final int LIST_TRIGGERS_MAX_RETRY = 5;
@@ -151,16 +94,12 @@ public class DeployMojo extends AbstractFunctionMojo {
             "please refer to https://aka.ms/maven_function_configuration#supported-regions for valid values";
     private static final String EXPANDABLE_JAVA_VERSION_WARNING = "'%s' may not be a valid java version, recommended values are `Java 8` and `Java 11`";
 
-    private AzureAppService az;
-
     @Override
     protected void doExecute() throws AzureExecutionException {
         doValidate();
-        processAppSettingsWithDefaultValue();
+        getOrCreateAzureAppServiceClient();
 
-        az = getOrCreateAzureAppServiceClient();
-        final IFunctionAppBase<? extends AppServiceBaseEntity> target = createOrUpdateResource();
-
+        final IFunctionAppBase<?> target = createOrUpdateResource(getParser().parseConfig());
         deployArtifact(target);
 
         if (target instanceof IFunctionApp) {
@@ -228,174 +167,8 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected IFunctionAppBase<? extends AppServiceBaseEntity> createOrUpdateResource() throws AzureExecutionException {
-        final String deploymentSlotName = Optional.ofNullable(deploymentSlotSetting)
-                .map(DeploymentSlotSetting::getName).orElse(null);
-        final IFunctionApp functionApp = az.functionApp(getResourceGroup(), getAppName());
-        if (StringUtils.isEmpty(deploymentSlotName)) {
-            return functionApp.exists() ? updateFunctionApp(functionApp) : createFunctionApp(functionApp);
-        } else {
-            final IFunctionAppDeploymentSlot slot = functionApp.deploymentSlot(deploymentSlotName);
-            return slot.exists() ? updateDeploymentSlot(slot) : createDeploymentSlot(slot);
-        }
-    }
-
-    protected IFunctionApp createFunctionApp(final IFunctionApp functionApp) throws AzureExecutionException {
-        getTelemetryProxy().addDefaultProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
-        final ResourceGroup resourceGroup = getOrCreateResourceGroup();
-        final IAppServicePlan appServicePlan = getOrCreateAppServicePlan();
-        AzureMessager.getMessager().info(String.format(CREATE_FUNCTION_APP, getAppName()));
-        final Runtime runtime = getRuntimeOrDefault();
-        final Map<String, String> appSettings = getAppSettings();
-        // get/create ai instances only if user didn't specify ai connection string in app settings
-        bindApplicationInsights(appSettings, true);
-        final IFunctionApp result = functionApp.create().withName(getAppName())
-                .withResourceGroup(resourceGroup.getName())
-                .withPlan(appServicePlan.id())
-                .withRuntime(runtime)
-                .withDockerConfiguration(getDockerConfiguration())
-                .withAppSettings(appSettings)
-                .commit();
-        AzureMessager.getMessager().info(String.format(CREATE_FUNCTION_APP_DONE, result.name()));
-        return result;
-    }
-
-    private IAppServicePlan getOrCreateAppServicePlan() {
-        final String servicePlanName = StringUtils.isEmpty(getAppServicePlanName()) ?
-                String.format("asp-%s", getAppName()) : getAppServicePlanName();
-        final String servicePlanGroup = getServicePlanResourceGroup();
-        final IAppServicePlan appServicePlan = az.appServicePlan(servicePlanGroup, servicePlanName);
-        if (!appServicePlan.exists()) {
-            AzureMessager.getMessager().info(CREATE_APP_SERVICE_PLAN);
-            getTelemetryProxy().addDefaultProperty(CREATE_NEW_APP_SERVICE_PLAN, String.valueOf(true));
-            appServicePlan.create()
-                    .withName(servicePlanName)
-                    .withResourceGroup(servicePlanGroup)
-                    .withRegion(getParsedRegion())
-                    .withPricingTier(getParsedPricingTier())
-                    .withOperatingSystem(getRuntimeOrDefault().getOperatingSystem())
-                    .commit();
-            AzureMessager.getMessager().info(String.format(CREATE_APP_SERVICE_DONE, appServicePlan.name()));
-        }
-        return appServicePlan;
-    }
-
-    private Region getParsedRegion() {
-        return Optional.ofNullable(region).map(Region::fromName).orElse(Region.US_WEST);
-    }
-
-    private PricingTier getParsedPricingTier() {
-        if (StringUtils.isEmpty(pricingTier)) {
-            return PricingTier.CONSUMPTION;
-        }
-        return Optional.ofNullable(PricingTier.fromString(pricingTier))
-                .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("Invalid pricing tier %s", pricingTier)));
-    }
-
-    private ResourceGroup getOrCreateResourceGroup() {
-        try {
-            return Azure.az(AzureGroup.class).getByName(getResourceGroup());
-        } catch (ManagementException e) {
-            AzureMessager.getMessager().info(String.format(CREATE_RESOURCE_GROUP, getResourceGroup(), getRegion()));
-            getTelemetryProxy().addDefaultProperty(CREATE_NEW_RESOURCE_GROUP, String.valueOf(true));
-            final ResourceGroup result = Azure.az(AzureGroup.class).create(getResourceGroup(), getRegion());
-            AzureMessager.getMessager().info(String.format(CREATE_RESOURCE_GROUP_DONE, result.getName()));
-            return result;
-        }
-    }
-
-    private Runtime getRuntimeOrDefault() {
-        final OperatingSystem os = Optional.ofNullable(runtime.getOs()).map(OperatingSystem::fromString).orElse(OperatingSystem.WINDOWS);
-        final JavaVersion javaVersion = Optional.ofNullable(runtime.getJavaVersion()).map(JavaVersion::fromString).orElse(JavaVersion.JAVA_8);
-        return Runtime.getRuntime(os, WebContainer.JAVA_OFF, javaVersion);
-    }
-
-    private Runtime getRuntime() {
-        if (StringUtils.isEmpty(runtime.getOs()) && StringUtils.isEmpty(runtime.getJavaVersion())) {
-            return null;
-        }
-        final OperatingSystem os = OperatingSystem.fromString(runtime.getOs());
-        final JavaVersion javaVersion = JavaVersion.fromString(runtime.getJavaVersion());
-        return Runtime.getRuntime(os, WebContainer.JAVA_OFF, javaVersion);
-    }
-
-    private DockerConfiguration getDockerConfiguration() throws AzureExecutionException {
-        final OperatingSystem os = Optional.ofNullable(runtime.getOs()).map(OperatingSystem::fromString).orElse(null);
-        if (os != OperatingSystem.DOCKER) {
-            return null;
-        }
-        final MavenDockerCredentialProvider credentialProvider = MavenDockerCredentialProvider.fromMavenSettings(getSettings(), runtime.getServerId());
-        return DockerConfiguration.builder()
-                .registryUrl(runtime.getRegistryUrl())
-                .image(runtime.getImage())
-                .userName(credentialProvider.getUsername())
-                .password(credentialProvider.getPassword()).build();
-    }
-
-    protected IFunctionApp updateFunctionApp(final IFunctionApp functionApp) throws AzureExecutionException {
-        // update app service plan
-        AzureMessager.getMessager().info(String.format(UPDATE_FUNCTION_APP, functionApp.name()));
-        final IAppServicePlan currentPlan = functionApp.plan();
-        IAppServicePlan targetServicePlan = StringUtils.isEmpty(appServicePlanName) ? currentPlan :
-                az.appServicePlan(getServicePlanResourceGroup(), appServicePlanName);
-        if (!targetServicePlan.exists()) {
-            targetServicePlan = getOrCreateAppServicePlan();
-        } else {
-            if (region != null && !Objects.equals(Region.fromName(region), Region.fromName(targetServicePlan.entity().getRegion()))) {
-                AzureMessager.getMessager().warning(String.format("Skip region update for existing service plan '%s' since it is not allowed.",
-                    targetServicePlan.name()));
-            }
-            if (StringUtils.isNotEmpty(pricingTier)) {
-                targetServicePlan.update().withPricingTier(getParsedPricingTier()).commit();
-            }
-        }
-        // update app settings
-        final Map<String, String> appSettings = getAppSettings();
-        final IAppServiceUpdater<? extends IFunctionApp> update = functionApp.update();
-        if (isDisableAppInsights()) {
-            update.withoutAppSettings(APPINSIGHTS_INSTRUMENTATION_KEY);
-        } else {
-            bindApplicationInsights(appSettings, false);
-        }
-        final IFunctionApp result = update.withPlan(targetServicePlan.id())
-                .withRuntime(getRuntime())
-                .withDockerConfiguration(getDockerConfiguration())
-                .withAppSettings(appSettings)
-                .commit();
-        AzureMessager.getMessager().info(String.format(UPDATE_FUNCTION_DONE, functionApp.name()));
-        return result;
-    }
-
-    private String getServicePlanResourceGroup() {
-        return StringUtils.isEmpty(getAppServicePlanResourceGroup()) ? getResourceGroup() : getAppServicePlanResourceGroup();
-    }
-
-    protected IFunctionAppDeploymentSlot createDeploymentSlot(final IFunctionAppDeploymentSlot deploymentSlot)
-            throws AzureExecutionException {
-        AzureMessager.getMessager().info(FUNCTION_SLOT_CREATE_START);
-        final DeploymentSlotSetting slotSetting = getDeploymentSlotSetting();
-        final Map<String, String> appSettings = getAppSettings();
-        bindApplicationInsights(appSettings, false);
-        final IFunctionAppDeploymentSlot result = deploymentSlot.create().withAppSettings(appSettings)
-                .withConfigurationSource(slotSetting.getConfigurationSource())
-                .withName(slotSetting.getName()).commit();
-        AzureMessager.getMessager().info(String.format(FUNCTION_SLOT_CREATED, result.name()));
-        return result;
-    }
-
-    protected IFunctionAppDeploymentSlot updateDeploymentSlot(final IFunctionAppDeploymentSlot deploymentSlot) throws AzureExecutionException {
-        AzureMessager.getMessager().info(FUNCTION_SLOT_UPDATE);
-        final Map<String, String> appSettings = getAppSettings();
-        final IFunctionAppDeploymentSlot.Updater update = deploymentSlot.update();
-        // todo: remove duplicate codes with update function
-        if (isDisableAppInsights()) {
-            update.withoutAppSettings(APPINSIGHTS_INSTRUMENTATION_KEY);
-        } else {
-            bindApplicationInsights(appSettings, false);
-        }
-        final IFunctionAppDeploymentSlot result = update.withAppSettings(appSettings).commit();
-        AzureMessager.getMessager().info(String.format(FUNCTION_SLOT_UPDATE_DONE, result.name()));
-        return deploymentSlot;
+    protected IFunctionAppBase<?> createOrUpdateResource(final FunctionAppConfig config) {
+        return new CreateOrUpdateFunctionAppTask(config).execute();
     }
 
     private void deployArtifact(IFunctionAppBase<? extends AppServiceBaseEntity> target) throws AzureExecutionException {
@@ -464,48 +237,25 @@ public class DeployMojo extends AbstractFunctionMojo {
                     .filter(CollectionUtils::isNotEmpty)
                     .orElseThrow(() -> new AzureToolkitRuntimeException(NO_TRIGGERS_FOUNDED));
         }).subscribeOn(Schedulers.boundedElastic())
-                .retryWhen(Retry.fixedDelay(LIST_TRIGGERS_MAX_RETRY - 1, Duration.ofSeconds(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS))).block();
+        .retryWhen(Retry.fixedDelay(LIST_TRIGGERS_MAX_RETRY - 1, Duration.ofSeconds(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS))).block();
     }
 
     protected void validateArtifactCompileVersion() throws AzureExecutionException {
-        final Runtime runtime = getRuntimeOrDefault();
-        if (runtime.isDocker()) {
+        final RuntimeConfig runtimeConfig = getParser().getRuntimeConfig();
+        if (runtimeConfig.os() == OperatingSystem.DOCKER) {
             return;
         }
-        final ComparableVersion runtimeVersion = new ComparableVersion(runtime.getJavaVersion().getValue());
+        final JavaVersion javaVersion = Optional.ofNullable(runtimeConfig.javaVersion()).orElse(CreateOrUpdateFunctionAppTask.DEFAULT_FUNCTION_JAVA_VERSION);
+        final ComparableVersion runtimeVersion = new ComparableVersion(javaVersion.getValue());
         final ComparableVersion artifactVersion = new ComparableVersion(Utils.getArtifactCompileVersion(getArtifactToDeploy()));
         if (runtimeVersion.compareTo(artifactVersion) >= 0) {
             return;
         }
-        if (runtime.getJavaVersion().isExpandedValue()) {
+        if (javaVersion.isExpandedValue()) {
             AzureMessager.getMessager().warning(AzureString.format(ARTIFACT_INCOMPATIBLE_WARNING, artifactVersion.toString(), runtimeVersion.toString()));
         } else {
             final String errorMessage = AzureString.format(ARTIFACT_INCOMPATIBLE_ERROR, artifactVersion.toString(), runtimeVersion.toString()).toString();
             throw new AzureExecutionException(errorMessage);
-        }
-    }
-
-    public void processAppSettingsWithDefaultValue() {
-        if (appSettings == null) {
-            appSettings = new Properties();
-        }
-        setDefaultAppSetting(appSettings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
-                FUNCTIONS_WORKER_RUNTIME_VALUE, CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING);
-        setDefaultAppSetting(appSettings, FUNCTIONS_EXTENSION_VERSION_NAME, SET_FUNCTIONS_EXTENSION_VERSION,
-                FUNCTIONS_EXTENSION_VERSION_VALUE, null);
-    }
-
-    private void setDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
-                                      String defaultValue, String warningMessage) {
-        final String setting = (String) result.get(settingName);
-        if (StringUtils.isEmpty(setting)) {
-            AzureMessager.getMessager().info(settingIsEmptyMessage);
-            result.put(settingName, defaultValue);
-            return;
-        }
-        // Show warning message when user set a different value
-        if (!StringUtils.equalsIgnoreCase(setting, defaultValue) && StringUtils.isNotEmpty(warningMessage)) {
-            AzureMessager.getMessager().warning(warningMessage);
         }
     }
 
@@ -517,73 +267,9 @@ public class DeployMojo extends AbstractFunctionMojo {
                 .orElseThrow(() -> new AzureExecutionException(String.format(NO_ARTIFACT_FOUNDED, this.getFinalName(), stagingFolder)));
     }
 
-    /**
-     * Binding Function App with Application Insights
-     * Will follow the below sequence appInsightsKey -&gt; appInsightsInstance -&gt; Create New AI Instance (Function creation only)
-     *
-     * @param appSettings App settings map
-     * @param isCreation  Define the stage of function app, as we only create ai instance by default when create new function apps
-     * @throws AzureExecutionException When there are conflicts in configuration or meet errors while finding/creating application insights instance
-     */
-    private void bindApplicationInsights(Map appSettings, boolean isCreation) throws AzureExecutionException {
-        // Skip app insights creation when user specify ai connection string in app settings
-        if (appSettings.containsKey(APPINSIGHTS_INSTRUMENTATION_KEY)) {
-            return;
-        }
-        final String instrumentationKey;
-        if (StringUtils.isNotEmpty(getAppInsightsKey())) {
-            instrumentationKey = getAppInsightsKey();
-            if (!Utils.isGUID(instrumentationKey)) {
-                throw new AzureExecutionException(INSTRUMENTATION_KEY_IS_NOT_VALID);
-            }
-        } else {
-            final ApplicationInsightsEntity applicationInsightsComponent = getOrCreateApplicationInsights(isCreation);
-            instrumentationKey = applicationInsightsComponent == null ? null : applicationInsightsComponent.getInstrumentationKey();
-        }
-        if (StringUtils.isNotEmpty(instrumentationKey)) {
-            appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, instrumentationKey);
-        }
-    }
-
     private void validateApplicationInsightsConfiguration() throws AzureExecutionException {
         if (isDisableAppInsights() && (StringUtils.isNotEmpty(getAppInsightsKey()) || StringUtils.isNotEmpty(getAppInsightsInstance()))) {
             throw new AzureExecutionException(APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT);
-        }
-    }
-
-    private ApplicationInsightsEntity getOrCreateApplicationInsights(boolean enableCreation) {
-        return StringUtils.isNotEmpty(getAppInsightsInstance()) ? getApplicationInsights(getAppInsightsInstance()) :
-                enableCreation ? createApplicationInsights(getAppName()) : null;
-    }
-
-    private ApplicationInsightsEntity getApplicationInsights(String appInsightsInstance) {
-        ApplicationInsightsEntity resource;
-        try {
-            resource = Azure.az(ApplicationInsights.class).get(getResourceGroup(), appInsightsInstance);
-        } catch (ManagementException e) {
-            resource = null;
-        }
-        if (resource == null) {
-            AzureMessager.getMessager().warning(String.format(FAILED_TO_GET_APPLICATION_INSIGHTS, appInsightsInstance, getResourceGroup()));
-            return createApplicationInsights(appInsightsInstance);
-        }
-        return resource;
-    }
-
-    private ApplicationInsightsEntity createApplicationInsights(String name) {
-        if (isDisableAppInsights()) {
-            AzureMessager.getMessager().info(SKIP_CREATING_APPLICATION_INSIGHTS);
-            return null;
-        }
-        try {
-            AzureMessager.getMessager().info(APPLICATION_INSIGHTS_CREATE_START);
-            final AzureEnvironment environment = Azure.az(AzureAccount.class).account().getEnvironment();
-            final ApplicationInsightsEntity resource = Azure.az(ApplicationInsights.class).create(getResourceGroup(), Region.fromName(getRegion()), name);
-            AzureMessager.getMessager().info(String.format(APPLICATION_INSIGHTS_CREATED, resource.getName(), getPortalUrl(environment), resource.getId()));
-            return resource;
-        } catch (Exception e) {
-            AzureMessager.getMessager().warning(String.format(APPLICATION_INSIGHTS_CREATE_FAILED, e.getMessage()));
-            return null;
         }
     }
 }
