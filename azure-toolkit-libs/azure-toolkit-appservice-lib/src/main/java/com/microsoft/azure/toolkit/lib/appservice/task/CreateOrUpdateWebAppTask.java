@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
@@ -21,6 +22,8 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.model.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation.Type;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
@@ -43,20 +46,17 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
     private static final String UPDATE_WEBAPP_DONE = "Successfully updated Web App %s.";
 
     private final AppServiceConfig config;
+    private final AppServiceConfig defaultConfig;
     private final List<AzureTask<?>> subTasks;
 
-    public CreateOrUpdateWebAppTask(AppServiceConfig config) {
+    public CreateOrUpdateWebAppTask(AppServiceConfig config, AppServiceConfig defaultConfig) {
         this.config = config;
+        this.defaultConfig = defaultConfig;
         this.subTasks = this.initTasks();
     }
 
     private List<AzureTask<?>> initTasks() {
         final List<AzureTask<?>> tasks = new ArrayList<>();
-        tasks.add(new CreateResourceGroupTask(this.config.subscriptionId(), this.config.resourceGroup(), this.config.region()));
-        if (StringUtils.isNotBlank(this.config.servicePlanResourceGroup())
-            && !StringUtils.equalsIgnoreCase(this.config.servicePlanResourceGroup(), this.config.resourceGroup())) {
-            tasks.add(new CreateResourceGroupTask(this.config.subscriptionId(), this.config.servicePlanResourceGroup(), this.config.region()));
-        }
         final AzureString title = AzureString.format("Create new web app({0})", this.config.appName());
         AzureAppService az = Azure.az(AzureAppService.class);
         tasks.add(new AzureTask<>(title, () -> {
@@ -70,7 +70,6 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
                             result.getUnavailabilityReason()).getString());
                 }
                 return create();
-
             }
             return update(target);
         }));
@@ -81,22 +80,24 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
     private IWebApp create() {
         AzureTelemetry.getActionContext().setProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
         AzureMessager.getMessager().info(String.format(CREATE_WEBAPP, config.appName()));
+
+        // handle default region for resource group
+        final Region region = ObjectUtils.firstNonNull(this.config.region(), this.defaultConfig.region());
+        final ResourceGroup resourceGroup = new CreateResourceGroupTask(this.config.subscriptionId(), this.config.resourceGroup(), region).execute();
+
         final AzureAppService az = Azure.az(AzureAppService.class).subscription(config.subscriptionId());
         final IWebApp webapp = az.webapp(config.resourceGroup(), config.appName());
         final AppServicePlanConfig servicePlanConfig = config.getServicePlanConfig();
-        // initialize default value for service plan creation
-        if (StringUtils.isBlank(servicePlanConfig.servicePlanResourceGroup())) {
-            servicePlanConfig.servicePlanResourceGroup(config.resourceGroup());
-        }
-        if (StringUtils.isBlank(servicePlanConfig.servicePlanName())) {
-            servicePlanConfig.servicePlanName(String.format("asp-%s", config.appName()));
-        }
-        final IAppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig).execute();
+        final RuntimeConfig runtimeConfigOrDefault = getRuntimeConfigOrDefault(config.runtime(), defaultConfig.runtime());
+        final Runtime runtime = getRuntime(runtimeConfigOrDefault);
+        final IAppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig,
+            buildDefaultAppServicePlanConfig(Region.fromName(resourceGroup.getRegion()), runtime)).execute();
+
         final IWebApp result = webapp.create().withName(config.appName())
             .withResourceGroup(config.resourceGroup())
             .withPlan(appServicePlan.id())
-            .withRuntime(getRuntime(config.runtime()))
-            .withDockerConfiguration(getDockerConfiguration(config.runtime()))
+            .withRuntime(runtime)
+            .withDockerConfiguration(getDockerConfiguration(runtimeConfigOrDefault))
             .withAppSettings(config.appSettings())
             .commit();
         AzureMessager.getMessager().info(String.format(CREATE_WEB_APP_DONE, result.name()));
@@ -109,33 +110,50 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
         final IAppServicePlan currentPlan = webApp.plan();
         final AppServicePlanConfig servicePlanConfig = config.getServicePlanConfig();
 
-        if (StringUtils.isAllBlank(servicePlanConfig.servicePlanResourceGroup(), servicePlanConfig.servicePlanName())) {
+        if (StringUtils.isAllBlank(config.servicePlanResourceGroup(), config.servicePlanName())) {
             // initialize service plan creation from exising webapp if user doesn't specify it in config
             servicePlanConfig.servicePlanResourceGroup(currentPlan.resourceGroup());
             servicePlanConfig.servicePlanName(currentPlan.name());
-        } else if (StringUtils.isAnyBlank(servicePlanConfig.servicePlanResourceGroup(), servicePlanConfig.servicePlanName())) {
-            if (StringUtils.isBlank(servicePlanConfig.servicePlanResourceGroup())) {
-                if (StringUtils.equalsIgnoreCase(servicePlanConfig.servicePlanName(), currentPlan.name())) {
-                    servicePlanConfig.servicePlanResourceGroup(currentPlan.resourceGroup());
-                } else {
-                    servicePlanConfig.servicePlanResourceGroup(config.resourceGroup());
-                }
-            } else if (StringUtils.isBlank(servicePlanConfig.servicePlanName())) {
-                if (StringUtils.equalsIgnoreCase(servicePlanConfig.servicePlanResourceGroup(), currentPlan.resourceGroup())) {
-                    servicePlanConfig.servicePlanName(currentPlan.name());
-                } else {
-                    servicePlanConfig.servicePlanName(String.format("asp-%s", config.appName()));
-                }
-            }
+        } else if (StringUtils.equalsIgnoreCase(config.servicePlanName(), currentPlan.name()) && StringUtils.isBlank(config.servicePlanResourceGroup())) {
+            servicePlanConfig.servicePlanResourceGroup(currentPlan.resourceGroup());
+        } else if (StringUtils.equalsIgnoreCase(servicePlanConfig.servicePlanResourceGroup(), currentPlan.resourceGroup()) &&
+                StringUtils.isBlank(config.servicePlanName())) {
+            servicePlanConfig.servicePlanName(currentPlan.name());
         }
-        final IAppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig).execute();
+        final Runtime runtime = getRuntime(config.runtime(), webApp.entity().getRuntime());
+        final IAppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig,
+            buildDefaultAppServicePlanConfig(webApp.entity().getRegion(), ObjectUtils.firstNonNull(runtime, webApp.entity().getRuntime()))).execute();
         final IWebApp result = webApp.update().withPlan(appServicePlan.id())
-            .withRuntime(getRuntime(config.runtime()))
+            .withRuntime(runtime)
             .withDockerConfiguration(getDockerConfiguration(config.runtime()))
             .withAppSettings(ObjectUtils.firstNonNull(config.appSettings(), new HashMap<>()))
             .commit();
         AzureMessager.getMessager().info(String.format(UPDATE_WEBAPP_DONE, webApp.name()));
         return result;
+    }
+
+    private Runtime getRuntime(RuntimeConfig runtime, Runtime remote) {
+        if (runtime == null) {
+            return null;
+        }
+        if (runtime.os() == null) {
+            runtime.os(remote.getOperatingSystem());
+        }
+        if (OperatingSystem.DOCKER == runtime.os()) {
+            return Runtime.getRuntime(OperatingSystem.DOCKER, WebContainer.JAVA_OFF, JavaVersion.OFF);
+        } else {
+            return Runtime.getRuntime(runtime.os(),
+                ObjectUtils.firstNonNull(runtime.webContainer(), remote.getWebContainer()),
+                ObjectUtils.firstNonNull(runtime.javaVersion(), remote.getJavaVersion()));
+        }
+    }
+
+    private AppServicePlanConfig buildDefaultAppServicePlanConfig(Region region, Runtime runtime) {
+        final AppServicePlanConfig defaultServicePlanConfig = new AppServicePlanConfig();
+        defaultServicePlanConfig.region(region);
+        defaultServicePlanConfig.os(OperatingSystem.LINUX);
+        defaultServicePlanConfig.pricingTier(runtime.getWebContainer().equals(WebContainer.JBOSS_7) ? PricingTier.PREMIUM_P1V3 : PricingTier.PREMIUM_P1V2);
+        return defaultServicePlanConfig;
     }
 
     private DockerConfiguration getDockerConfiguration(RuntimeConfig runtime) {
@@ -150,6 +168,23 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
         }
         return null;
 
+    }
+
+    private RuntimeConfig getRuntimeConfigOrDefault(RuntimeConfig runtime, RuntimeConfig defaultRuntime) {
+        if (runtime == null) {
+            return defaultRuntime;
+        }
+
+        final RuntimeConfig result = new RuntimeConfig();
+        result.os(ObjectUtils.firstNonNull(runtime.os(), defaultRuntime.os()));
+        result.image(ObjectUtils.firstNonNull(runtime.image(), defaultRuntime.image()));
+        result.username(ObjectUtils.firstNonNull(runtime.username(), defaultRuntime.username()));
+        result.password(ObjectUtils.firstNonNull(runtime.password(), defaultRuntime.password()));
+        result.startUpCommand(ObjectUtils.firstNonNull(runtime.startUpCommand(), defaultRuntime.startUpCommand()));
+        result.registryUrl(ObjectUtils.firstNonNull(runtime.registryUrl(), defaultRuntime.registryUrl()));
+        result.javaVersion(ObjectUtils.firstNonNull(runtime.javaVersion(), defaultRuntime.javaVersion()));
+        result.webContainer(ObjectUtils.firstNonNull(runtime.webContainer(), defaultRuntime.webContainer()));
+        return result;
     }
 
     private Runtime getRuntime(RuntimeConfig runtime) {
