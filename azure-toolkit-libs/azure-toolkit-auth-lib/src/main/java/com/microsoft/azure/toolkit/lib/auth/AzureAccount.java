@@ -6,23 +6,15 @@
 package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.credential.TokenCredential;
-import com.azure.core.http.policy.HttpLogDetailLevel;
-import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.management.AzureEnvironment;
-import com.azure.core.management.profile.AzureProfile;
 import com.azure.identity.SharedTokenCacheCredential;
 import com.azure.identity.SharedTokenCacheCredentialBuilder;
 import com.azure.identity.TokenCachePersistenceOptions;
-import com.azure.resourcemanager.resources.ResourceManager;
-import com.azure.resourcemanager.resources.fluentcore.policy.ProviderRegistrationPolicy;
 import com.azure.resourcemanager.resources.models.Location;
-import com.azure.resourcemanager.resources.models.ProviderResourceType;
-import com.azure.resourcemanager.resources.models.Providers;
 import com.azure.resourcemanager.resources.models.RegionType;
 import com.azure.resourcemanager.resources.models.Subscription;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.azurecli.AzureCliAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.devicecode.DeviceCodeAccount;
@@ -53,8 +45,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import static com.microsoft.azure.toolkit.lib.Azure.az;
 
 public class AzureAccount implements IAzureAccount {
 
@@ -240,23 +230,6 @@ public class AzureAccount implements IAzureAccount {
                 .map(Location::region).distinct().map(AzureAccount::toRegion).collect(Collectors.toList());
     }
 
-    public List<Region> listSupportedRegions(String subscriptionId, String provider, String resourceType) {
-        List<Region> regionList = az(AzureAccount.class).listRegions(subscriptionId);
-        final ResourceManager resourceManager = getResourceManager(subscriptionId);
-        final ProviderResourceType redisResourceType =
-            resourceManager.providers().getByName(provider).resourceTypes()
-                .stream().filter(type -> StringUtils.equalsIgnoreCase(type.resourceType(), resourceType)).findFirst().orElse(null);
-        if (redisResourceType == null) {
-            return regionList;
-        }
-        final List<Region> validRegions = redisResourceType.locations().stream().map(Region::fromName).collect(Collectors.toList());
-
-        return regionList.stream()
-            .filter(validRegions::contains)
-            .distinct()
-            .collect(Collectors.toList());
-    }
-
     /**
      * see doc for: az account list-locations -o table
      */
@@ -300,33 +273,4 @@ public class AzureAccount implements IAzureAccount {
         return getResourceManager(subscriptionId).subscriptions().getById(subscriptionId);
     }
 
-    @Cacheable(cacheName = "resource/{}/manager", key = "$subscriptionId")
-    private ResourceManager getResourceManager(String subscriptionId) {
-        // make sure it is signed in.
-        account();
-        final AzureConfiguration config = Azure.az().config();
-        final String userAgent = config.getUserAgent();
-        final HttpLogDetailLevel logDetailLevel = config.getLogLevel() == null ?
-                HttpLogDetailLevel.NONE : HttpLogDetailLevel.valueOf(config.getLogLevel());
-        final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
-
-        final Providers providers = ResourceManager.configure()
-            .withPolicy(getUserAgentPolicy(userAgent))
-            .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
-            .withSubscription(subscriptionId).providers();
-        return ResourceManager.configure()
-                .withLogLevel(logDetailLevel)
-                .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
-            .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers
-                .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
-                .withSubscription(subscriptionId);
-    }
-
-    private HttpPipelinePolicy getUserAgentPolicy(String userAgent) {
-        return (httpPipelineCallContext, httpPipelineNextPolicy) -> {
-            final String previousUserAgent = httpPipelineCallContext.getHttpRequest().getHeaders().getValue("User-Agent");
-            httpPipelineCallContext.getHttpRequest().setHeader("User-Agent", String.format("%s %s", userAgent, previousUserAgent));
-            return httpPipelineNextPolicy.process();
-        };
-    }
 }

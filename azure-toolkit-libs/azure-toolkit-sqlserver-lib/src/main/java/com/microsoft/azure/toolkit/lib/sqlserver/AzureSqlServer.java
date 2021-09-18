@@ -8,15 +8,12 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.SqlServerManager;
 import com.azure.resourcemanager.sql.models.CapabilityStatus;
 import com.azure.resourcemanager.sql.models.CheckNameAvailabilityResult;
-import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
@@ -75,10 +72,6 @@ public class AzureSqlServer extends SubscriptionScoped<AzureSqlServer> implement
         return Objects.nonNull(capabilities.status()) && CapabilityStatus.AVAILABLE == capabilities.status();
     }
 
-    public List<Region> listSupportedRegions(String subscriptionId) {
-        return Azure.az(AzureAccount.class).listSupportedRegions(subscriptionId, "Microsoft.SQL", "servers");
-    }
-
     private String getSubscriptionFromResourceEntity(@Nonnull IAzureResourceEntity resourceEntity) {
         if (StringUtils.isNotEmpty(resourceEntity.getId())) {
             return ResourceId.fromString(resourceEntity.getId()).subscriptionId();
@@ -122,4 +115,7 @@ public class AzureSqlServer extends SubscriptionScoped<AzureSqlServer> implement
         }
     }
 
+    public String name() {
+        return "Microsoft.SQL/servers";
+    }
 }

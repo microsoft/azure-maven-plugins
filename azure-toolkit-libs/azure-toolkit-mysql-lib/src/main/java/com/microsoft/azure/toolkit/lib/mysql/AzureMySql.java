@@ -13,10 +13,8 @@ import com.azure.resourcemanager.mysql.models.ServerPropertiesForDefaultCreate;
 import com.azure.resourcemanager.mysql.models.ServerVersion;
 import com.azure.resourcemanager.mysql.models.Sku;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -32,7 +30,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureService {
-    private static final String NAME_AVAILABILITY_CHECK_TYPE = "Microsoft.DBforMySQL/servers";
+    private static final String MYSQL_PROVIDER_AND_RESOURCE = "Microsoft.DBforMySQL/servers";
 
     public AzureMySql() {
         super(AzureMySql::new);
@@ -72,16 +70,12 @@ public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureS
 
     public boolean checkNameAvailability(String name) {
         MySqlManager mySqlManager = MySqlManagerFactory.create(getDefaultSubscription().getId());
-        NameAvailabilityRequest request = new NameAvailabilityRequest().withName(name).withType(NAME_AVAILABILITY_CHECK_TYPE);
+        NameAvailabilityRequest request = new NameAvailabilityRequest().withName(name).withType(MYSQL_PROVIDER_AND_RESOURCE);
         return mySqlManager.checkNameAvailabilities().execute(request).nameAvailable();
     }
 
     public List<Region> listSupportedRegions() {
         return listSupportedRegions(getDefaultSubscription().getId());
-    }
-
-    public List<Region> listSupportedRegions(String subscriptionId) {
-        return Azure.az(AzureAccount.class).listSupportedRegions(subscriptionId, "Microsoft.DBforMySQL", "servers");
     }
 
     public List<String> listSupportedVersions() {
@@ -163,5 +157,9 @@ public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureS
         public AzureOperationEvent.Source<MySqlServerConfig> getEventSource() {
             return new AzureOperationEvent.Source<MySqlServerConfig>() {};
         }
+    }
+
+    public String name() {
+        return MYSQL_PROVIDER_AND_RESOURCE;
     }
 }
