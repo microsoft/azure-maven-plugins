@@ -7,7 +7,11 @@ package com.microsoft.azure.toolkit.lib.storage.service;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.storage.StorageManager;
-import com.azure.resourcemanager.storage.models.*;
+import com.azure.resourcemanager.storage.models.AccessTier;
+import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
+import com.azure.resourcemanager.storage.models.Reason;
+import com.azure.resourcemanager.storage.models.SkuName;
+import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
@@ -145,4 +149,7 @@ public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
         }
     }
 
+    public String name() {
+        return "Microsoft.Storage/storageAccounts";
+    }
 }

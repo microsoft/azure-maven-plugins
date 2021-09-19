@@ -72,9 +72,9 @@ public class AzureRedis extends SubscriptionScoped<AzureRedis> implements AzureS
     }
 
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    private class Creator implements ICommittable<RedisCache>, AzureOperationEvent.Source<RedisConfig> {
+    private static class Creator implements ICommittable<RedisCache>, AzureOperationEvent.Source<RedisConfig> {
 
-        private RedisConfig config;
+        private final RedisConfig config;
 
         @Override
         @AzureOperation(name = "redis.create", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)
@@ -105,6 +105,6 @@ public class AzureRedis extends SubscriptionScoped<AzureRedis> implements AzureS
 
     @Override
     public String name() {
-        return "Redis Caches";
+        return "Microsoft.Cache/redis";
     }
 }

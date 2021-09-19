@@ -15,7 +15,6 @@ import com.azure.resourcemanager.mysql.models.Sku;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -27,20 +26,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.microsoft.azure.toolkit.lib.Azure.az;
-
 public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureService {
-    private static final List<String> MYSQL_SUPPORTED_REGIONS = Arrays.asList(
-        "australiacentral", "australiacentral2", "australiaeast", "australiasoutheast", "brazilsouth", "canadacentral", "canadaeast", "centralindia",
-        "centralus", "eastasia", "eastus2", "eastus", "francecentral", "francesouth", "germanywestcentral", "japaneast", "japanwest", "koreacentral",
-        "koreasouth", "northcentralus", "northeurope", "southafricanorth", "southafricawest", "southcentralus", "southindia", "southeastasia",
-        "norwayeast", "switzerlandnorth", "uaenorth", "uksouth", "ukwest", "westcentralus", "westeurope", "westindia", "westus", "westus2",
-        "centraluseuap", "eastus2euap");
-    private static final String NAME_AVAILABILITY_CHECK_TYPE = "Microsoft.DBforMySQL/servers";
+    private static final String MYSQL_PROVIDER_AND_RESOURCE = "Microsoft.DBforMySQL/servers";
 
     public AzureMySql() {
         super(AzureMySql::new);
@@ -80,16 +70,12 @@ public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureS
 
     public boolean checkNameAvailability(String name) {
         MySqlManager mySqlManager = MySqlManagerFactory.create(getDefaultSubscription().getId());
-        NameAvailabilityRequest request = new NameAvailabilityRequest().withName(name).withType(NAME_AVAILABILITY_CHECK_TYPE);
+        NameAvailabilityRequest request = new NameAvailabilityRequest().withName(name).withType(MYSQL_PROVIDER_AND_RESOURCE);
         return mySqlManager.checkNameAvailabilities().execute(request).nameAvailable();
     }
 
     public List<Region> listSupportedRegions() {
-        List<Region> locationList = az(AzureAccount.class).listRegions(getDefaultSubscription().getId());
-        return locationList.stream()
-            .filter(e -> MYSQL_SUPPORTED_REGIONS.contains(e.getName()))
-            .distinct()
-            .collect(Collectors.toList());
+        return listSupportedRegions(getDefaultSubscription().getId());
     }
 
     public List<String> listSupportedVersions() {
@@ -171,5 +157,9 @@ public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureS
         public AzureOperationEvent.Source<MySqlServerConfig> getEventSource() {
             return new AzureOperationEvent.Source<MySqlServerConfig>() {};
         }
+    }
+
+    public String name() {
+        return MYSQL_PROVIDER_AND_RESOURCE;
     }
 }

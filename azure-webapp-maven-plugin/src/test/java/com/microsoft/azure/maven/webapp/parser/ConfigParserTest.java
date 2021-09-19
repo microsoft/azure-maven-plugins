@@ -106,8 +106,8 @@ public class ConfigParserTest {
     public void getLinuxRuntime() {
         doReturn("linux").when(runtimeSetting).getOs();
         doReturn("Java 8").when(runtimeSetting).getJavaVersion();
-        doReturn("JBosseap 7.2").when(runtimeSetting).getWebContainer();
-        assertEquals(parser.getRuntime(), Runtime.LINUX_JAVA8_JBOSS72);
+        doReturn("JBosseap 7").when(runtimeSetting).getWebContainer();
+        assertEquals(parser.getRuntime(), Runtime.LINUX_JAVA8_JBOSS7);
 
         doReturn("linux").when(runtimeSetting).getOs();
         doReturn("Java 11").when(runtimeSetting).getJavaVersion();
