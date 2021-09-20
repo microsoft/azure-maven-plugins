@@ -17,7 +17,6 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
@@ -29,15 +28,12 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
-import com.microsoft.azure.toolkit.lib.common.utils.Utils;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Deploy an Azure Web App, either Windows-based or Linux-based.
@@ -49,9 +45,6 @@ public class DeployMojo extends AbstractWebAppMojo {
     private static final String CREATE_DEPLOYMENT_SLOT = "Creating deployment slot %s in web app %s";
     private static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created the Deployment Slot.";
     private static final String CREATE_NEW_DEPLOYMENT_SLOT = "createNewDeploymentSlot";
-    private static final String SETTING_DOCKER_IMAGE = "DOCKER_CUSTOM_IMAGE_NAME";
-    private static final String SETTING_REGISTRY_SERVER = "DOCKER_REGISTRY_SERVER_URL";
-    private static final String SETTING_REGISTRY_USERNAME = "DOCKER_REGISTRY_SERVER_USERNAME";
 
     @Override
     protected void doExecute() throws AzureExecutionException {
@@ -80,44 +73,6 @@ public class DeployMojo extends AbstractWebAppMojo {
             final IWebAppDeploymentSlot slot = getDeploymentSlot(config);
             return slot.exists() ? updateDeploymentSlot(slot, config) : createDeploymentSlot(slot, config);
         }
-    }
-
-    static AppServiceConfig getAppServiceConfigFromExisting(IWebApp webapp) {
-        IAppServicePlan servicePlan = webapp.plan();
-        AppServiceConfig config = new AppServiceConfig();
-        config.appName(webapp.name());
-
-        config.resourceGroup(webapp.entity().getResourceGroup());
-        config.subscriptionId(Utils.getSubscriptionId(webapp.id()));
-        config.region(webapp.entity().getRegion());
-        config.pricingTier(servicePlan.entity().getPricingTier());
-        RuntimeConfig runtimeConfig = new RuntimeConfig();
-        if (AppServiceUtils.isDockerAppService(webapp)) {
-            runtimeConfig.os(OperatingSystem.DOCKER);
-            final Map<String, String> settings = webapp.entity().getAppSettings();
-
-            final String imageSetting = settings.get(SETTING_DOCKER_IMAGE);
-            if (StringUtils.isNotBlank(imageSetting)) {
-                runtimeConfig.image(imageSetting);
-            } else {
-                runtimeConfig.image(webapp.entity().getDockerImageName());
-            }
-            final String registryServerSetting = settings.get(SETTING_REGISTRY_SERVER);
-            if (StringUtils.isNotBlank(registryServerSetting)) {
-                runtimeConfig.registryUrl(registryServerSetting);
-            }
-        } else {
-            runtimeConfig.os(webapp.getRuntime().getOperatingSystem());
-            runtimeConfig.webContainer(webapp.getRuntime().getWebContainer());
-            runtimeConfig.javaVersion(webapp.getRuntime().getJavaVersion());
-        }
-        config.runtime(runtimeConfig);
-        if (servicePlan.entity() != null) {
-            config.pricingTier(servicePlan.entity().getPricingTier());
-            config.servicePlanName(servicePlan.name());
-            config.servicePlanResourceGroup(servicePlan.entity().getResourceGroup());
-        }
-        return config;
     }
 
     private AppServiceConfig buildDefaultConfig(String subscriptionId, String resourceGroup, String appName) {
