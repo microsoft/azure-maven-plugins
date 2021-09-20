@@ -9,6 +9,7 @@ import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotConfig;
 import com.microsoft.azure.maven.webapp.task.DeployExternalResourcesTask;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
@@ -16,6 +17,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
@@ -27,12 +29,15 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Deploy an Azure Web App, either Windows-based or Linux-based.
@@ -44,6 +49,9 @@ public class DeployMojo extends AbstractWebAppMojo {
     private static final String CREATE_DEPLOYMENT_SLOT = "Creating deployment slot %s in web app %s";
     private static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created the Deployment Slot.";
     private static final String CREATE_NEW_DEPLOYMENT_SLOT = "createNewDeploymentSlot";
+    private static final String SETTING_DOCKER_IMAGE = "DOCKER_CUSTOM_IMAGE_NAME";
+    private static final String SETTING_REGISTRY_SERVER = "DOCKER_REGISTRY_SERVER_URL";
+    private static final String SETTING_REGISTRY_USERNAME = "DOCKER_REGISTRY_SERVER_USERNAME";
 
     @Override
     protected void doExecute() throws AzureExecutionException {
@@ -58,7 +66,14 @@ public class DeployMojo extends AbstractWebAppMojo {
     private IWebAppBase<?> createOrUpdateResource() throws AzureExecutionException {
         if (!isDeployToDeploymentSlot()) {
             final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
-            return new CreateOrUpdateWebAppTask(appServiceConfig, buildDefaultConfig(appServiceConfig.subscriptionId())).execute();
+            IWebApp app = Azure.az(AzureAppService.class).webapp(appServiceConfig.resourceGroup(), appServiceConfig.appName());
+            AppServiceConfig defaultConfig = app.exists() ? getAppServiceConfigFromExisting(app) : buildDefaultConfig(appServiceConfig.subscriptionId(),
+                appServiceConfig.resourceGroup(), appServiceConfig.appName());
+            mergeConfig(appServiceConfig, defaultConfig);
+            if (appServiceConfig.pricingTier() == null) {
+                appServiceConfig.pricingTier(appServiceConfig.runtime().webContainer() == WebContainer.JBOSS_7 ? PricingTier.PREMIUM_P1V3 : PricingTier.PREMIUM_P1V2);
+            }
+            return new CreateOrUpdateWebAppTask(appServiceConfig).execute();
         } else {
             // todo: New CreateOrUpdateDeploymentSlotTask
             final DeploymentSlotConfig config = getConfigParser().getDeploymentSlotConfig();
@@ -67,7 +82,45 @@ public class DeployMojo extends AbstractWebAppMojo {
         }
     }
 
-    private AppServiceConfig buildDefaultConfig(String subscriptionId) {
+    static AppServiceConfig getAppServiceConfigFromExisting(IWebApp webapp) {
+        IAppServicePlan servicePlan = webapp.plan();
+        AppServiceConfig config = new AppServiceConfig();
+        config.appName(webapp.name());
+
+        config.resourceGroup(webapp.entity().getResourceGroup());
+        config.subscriptionId(Utils.getSubscriptionId(webapp.id()));
+        config.region(webapp.entity().getRegion());
+        config.pricingTier(servicePlan.entity().getPricingTier());
+        RuntimeConfig runtimeConfig = new RuntimeConfig();
+        if (AppServiceUtils.isDockerAppService(webapp)) {
+            runtimeConfig.os(OperatingSystem.DOCKER);
+            final Map<String, String> settings = webapp.entity().getAppSettings();
+
+            final String imageSetting = settings.get(SETTING_DOCKER_IMAGE);
+            if (StringUtils.isNotBlank(imageSetting)) {
+                runtimeConfig.image(imageSetting);
+            } else {
+                runtimeConfig.image(webapp.entity().getDockerImageName());
+            }
+            final String registryServerSetting = settings.get(SETTING_REGISTRY_SERVER);
+            if (StringUtils.isNotBlank(registryServerSetting)) {
+                runtimeConfig.registryUrl(registryServerSetting);
+            }
+        } else {
+            runtimeConfig.os(webapp.getRuntime().getOperatingSystem());
+            runtimeConfig.webContainer(webapp.getRuntime().getWebContainer());
+            runtimeConfig.javaVersion(webapp.getRuntime().getJavaVersion());
+        }
+        config.runtime(runtimeConfig);
+        if (servicePlan.entity() != null) {
+            config.pricingTier(servicePlan.entity().getPricingTier());
+            config.servicePlanName(servicePlan.name());
+            config.servicePlanResourceGroup(servicePlan.entity().getResourceGroup());
+        }
+        return config;
+    }
+
+    private AppServiceConfig buildDefaultConfig(String subscriptionId, String resourceGroup, String appName) {
         final ComparableVersion javaVersionForProject = new ComparableVersion(System.getProperty("java.version"));
         // get java version according to project java version
         JavaVersion javaVersion = javaVersionForProject.compareTo(new ComparableVersion("9")) < 0 ? JavaVersion.JAVA_8 : JavaVersion.JAVA_11;
@@ -75,9 +128,13 @@ public class DeployMojo extends AbstractWebAppMojo {
             WebContainer.JAVA_SE : (StringUtils.equalsIgnoreCase(this.project.getPackaging(), "ear") ? WebContainer.JBOSS_7 : WebContainer.TOMCAT_85))
             .javaVersion(javaVersion);
         AppServiceConfig appServiceConfig = new AppServiceConfig();
+        //TODO: use listSupportedRegions
         appServiceConfig.region(getRegionOrDefault(Azure.az(AzureAccount.class).listRegions(subscriptionId)));
         appServiceConfig.runtime(runtimeConfig);
-        appServiceConfig.pricingTier(runtimeConfig.webContainer() == WebContainer.JBOSS_7 ? PricingTier.PREMIUM_P1V3 : PricingTier.PREMIUM_P1V2);
+        appServiceConfig.resourceGroup(resourceGroup);
+        appServiceConfig.appName(appName);
+        appServiceConfig.servicePlanResourceGroup(resourceGroup);
+        appServiceConfig.servicePlanName(String.format("asp-%s", appName));
         return appServiceConfig;
     }
 

@@ -11,6 +11,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
@@ -21,6 +23,7 @@ import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.IOException;
@@ -209,5 +212,40 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         if (subscription != null) {
             Log.info(String.format(SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.getName()), TextUtils.cyan(subscription.getId())));
         }
+    }
+
+    protected void mergeConfig(AppServiceConfig config1, AppServiceConfig config2) {
+        if (config1.region() == null) {
+            config1.region(config2.region());
+        }
+
+        if (config1.servicePlanResourceGroup() == null) {
+            config1.servicePlanResourceGroup(config2.servicePlanResourceGroup());
+        }
+
+        if (config1.servicePlanName() == null) {
+            config1.servicePlanName(config2.servicePlanName());
+        }
+
+        if (config1.runtime() == null) {
+            config1.runtime(config2.runtime());
+        } else {
+            mergeRuntime(config1.runtime(), config2.runtime());
+        }
+
+        if (config1.pricingTier() == null) {
+            config1.pricingTier(config2.pricingTier());
+        }
+    }
+
+    private void mergeRuntime(RuntimeConfig runtime1, RuntimeConfig runtime2) {
+        runtime1.os(ObjectUtils.firstNonNull(runtime1.os(), runtime2.os()));
+        runtime1.image(ObjectUtils.firstNonNull(runtime1.image(), runtime2.image()));
+        runtime1.username(ObjectUtils.firstNonNull(runtime1.username(), runtime2.username()));
+        runtime1.password(ObjectUtils.firstNonNull(runtime1.password(), runtime2.password()));
+        runtime1.startUpCommand(ObjectUtils.firstNonNull(runtime1.startUpCommand(), runtime2.startUpCommand()));
+        runtime1.registryUrl(ObjectUtils.firstNonNull(runtime1.registryUrl(), runtime2.registryUrl()));
+        runtime1.javaVersion(ObjectUtils.firstNonNull(runtime1.javaVersion(), runtime2.javaVersion()));
+        runtime1.webContainer(ObjectUtils.firstNonNull(runtime1.webContainer(), runtime2.webContainer()));
     }
 }
