@@ -99,7 +99,7 @@ public class ConfigParser {
         return builder.appName(getAppName())
                 .resourceGroup(getResourceGroup())
                 .region(getRegion())
-                .pricingTier(getPricingTier().getSize())
+                .pricingTier(Optional.ofNullable(getPricingTier()).map(PricingTier::getSize).orElse(null))
                 .servicePlanName(mojo.getAppServicePlanName())
                 .servicePlanResourceGroup(mojo.getAppServicePlanResourceGroup())
                 .deploymentSlotSetting(mojo.getDeploymentSlotSetting())

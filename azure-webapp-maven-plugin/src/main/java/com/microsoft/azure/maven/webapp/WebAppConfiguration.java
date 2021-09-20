@@ -29,7 +29,7 @@ import java.util.Objects;
 @SuperBuilder(toBuilder = true)
 public class WebAppConfiguration {
     public static final PricingTier DEFAULT_JBOSS_PRICING_TIER = PricingTier.PREMIUM_P1V3;
-    public static final Region DEFAULT_REGION = Region.EUROPE_WEST;
+    public static final Region DEFAULT_REGION = Region.US_CENTRAL;
     public static final PricingTier DEFAULT_PRICINGTIER = PricingTier.PREMIUM_P1V2;
     public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8;
     public static final WebContainer DEFAULT_CONTAINER = WebContainer.TOMCAT_85;
