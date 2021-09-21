@@ -528,7 +528,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private WebAppConfiguration getConfigurationFromExisting(IWebApp webapp,
                                                                     WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder) {
-        final AppServiceConfig appServiceConfig = getAppServiceConfigFromExisting(webapp);
+        final AppServiceConfig appServiceConfig = getAppServiceConfigFromExisting(webapp, webapp.plan());
         // common configuration
         builder.appName(appServiceConfig.appName())
                 .resourceGroup(appServiceConfig.resourceGroup())

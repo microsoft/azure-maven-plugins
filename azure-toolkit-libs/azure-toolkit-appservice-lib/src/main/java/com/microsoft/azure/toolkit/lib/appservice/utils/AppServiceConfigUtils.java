@@ -11,8 +11,8 @@ import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -25,8 +25,7 @@ public class AppServiceConfigUtils {
     private static final String SETTING_DOCKER_IMAGE = "DOCKER_CUSTOM_IMAGE_NAME";
     private static final String SETTING_REGISTRY_SERVER = "DOCKER_REGISTRY_SERVER_URL";
 
-    public static AppServiceConfig getAppServiceConfigFromExisting(IWebApp webapp) {
-        IAppServicePlan servicePlan = webapp.plan();
+    public static AppServiceConfig getAppServiceConfigFromExisting(IAppService<?> webapp, IAppServicePlan servicePlan) {
         AppServiceConfig config = new AppServiceConfig();
         config.appName(webapp.name());
 
@@ -64,7 +63,7 @@ public class AppServiceConfigUtils {
     }
 
     public static AppServiceConfig buildDefaultConfig(String subscriptionId, String resourceGroup, String appName, String packaging, JavaVersion javaVersion) {
-        final AppServiceConfig appServiceConfig = AppServiceConfig.buildDefaultConfig(resourceGroup, appName, packaging, javaVersion);
+        final AppServiceConfig appServiceConfig = AppServiceConfig.buildDefaultWebAppConfig(resourceGroup, appName, packaging, javaVersion);
         final List<Region> regions = Azure.az(AzureAppService.class).listSupportedRegions(subscriptionId);
         // replace with first region when the default region is not present
         appServiceConfig.region(Utils.selectFirstOptionIfCurrentInvalid("region", regions, appServiceConfig.region()));

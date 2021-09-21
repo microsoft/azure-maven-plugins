@@ -59,7 +59,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
             IWebApp app = Azure.az(AzureAppService.class).webapp(appServiceConfig.resourceGroup(), appServiceConfig.appName());
             final boolean newWebApp = !app.exists();
-            AppServiceConfig defaultConfig = !newWebApp ? getAppServiceConfigFromExisting(app) : buildDefaultConfig(appServiceConfig.subscriptionId(),
+            AppServiceConfig defaultConfig = !newWebApp ? getAppServiceConfigFromExisting(app, app.plan()) : buildDefaultConfig(appServiceConfig.subscriptionId(),
                 appServiceConfig.resourceGroup(), appServiceConfig.appName());
             mergeAppServiceConfig(appServiceConfig, defaultConfig);
             if (appServiceConfig.pricingTier() == null) {

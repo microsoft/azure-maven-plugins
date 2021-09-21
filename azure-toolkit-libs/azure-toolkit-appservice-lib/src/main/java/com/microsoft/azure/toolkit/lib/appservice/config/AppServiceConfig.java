@@ -15,6 +15,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 
 @Getter
@@ -54,13 +55,29 @@ public class AppServiceConfig {
             .pricingTier(pricingTier());
     }
 
-    public static AppServiceConfig buildDefaultConfig(String resourceGroup, String appName, String packaging, JavaVersion javaVersion) {
+    public static AppServiceConfig buildDefaultWebAppConfig(String resourceGroup, String appName, String packaging, JavaVersion javaVersion) {
         RuntimeConfig runtimeConfig = new RuntimeConfig().os(OperatingSystem.LINUX).webContainer(StringUtils.equalsIgnoreCase(packaging, "war") ?
             WebContainer.TOMCAT_85 : (StringUtils.equalsIgnoreCase(packaging, "ear") ? WebContainer.JBOSS_7 : WebContainer.JAVA_SE))
             .javaVersion(javaVersion);
+        AppServiceConfig appServiceConfig = buildCommonAppServiceConfig(resourceGroup, appName);
+        appServiceConfig.runtime(runtimeConfig);
+        return appServiceConfig;
+    }
+
+    public static AppServiceConfig buildDefaultFunctionConfig(String resourceGroup, String appName, JavaVersion javaVersion) {
+        RuntimeConfig runtimeConfig = new RuntimeConfig().os(OperatingSystem.WINDOWS).webContainer(WebContainer.JAVA_OFF)
+            .javaVersion(javaVersion);
+        AppServiceConfig appServiceConfig = buildCommonAppServiceConfig(resourceGroup, appName);
+        appServiceConfig.runtime(runtimeConfig);
+        appServiceConfig.pricingTier(PricingTier.CONSUMPTION);
+        return appServiceConfig;
+    }
+
+    @Nonnull
+    private static AppServiceConfig buildCommonAppServiceConfig(String resourceGroup, String appName) {
         AppServiceConfig appServiceConfig = new AppServiceConfig();
         appServiceConfig.region(Region.US_CENTRAL);
-        appServiceConfig.runtime(runtimeConfig);
+
         appServiceConfig.resourceGroup(resourceGroup);
         appServiceConfig.appName(appName);
         appServiceConfig.servicePlanResourceGroup(resourceGroup);
