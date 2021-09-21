@@ -78,7 +78,6 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
         AzureTelemetry.getActionContext().setProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
         AzureMessager.getMessager().info(String.format(CREATE_WEBAPP, config.appName()));
 
-        // handle default region for resource group
         final Region region = this.config.region();
         new CreateResourceGroupTask(this.config.subscriptionId(), this.config.resourceGroup(), region).execute();
         final AzureAppService az = Azure.az(AzureAppService.class).subscription(config.subscriptionId());
@@ -106,7 +105,8 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
         final Runtime runtime = getRuntime(config.runtime());
         final IAppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig).execute();
         final IAppServiceUpdater<? extends IWebApp> draft = webApp.update();
-        if (!StringUtils.equalsIgnoreCase(config.servicePlanName(), currentPlan.name())) {
+        if (!(StringUtils.equalsIgnoreCase(config.servicePlanResourceGroup(), currentPlan.resourceGroup()) &&
+            StringUtils.equalsIgnoreCase(config.servicePlanName(), currentPlan.name()))) {
             draft.withPlan(appServicePlan.id());
         }
         if (!webApp.getRuntime().equals(runtime)) {

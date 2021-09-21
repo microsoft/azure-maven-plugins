@@ -59,7 +59,6 @@ public class AppServiceConfig {
             WebContainer.TOMCAT_85 : (StringUtils.equalsIgnoreCase(packaging, "ear") ? WebContainer.JBOSS_7 : WebContainer.JAVA_SE))
             .javaVersion(javaVersion);
         AppServiceConfig appServiceConfig = new AppServiceConfig();
-        //TODO: use listSupportedRegions
         appServiceConfig.region(Region.US_CENTRAL);
         appServiceConfig.runtime(runtimeConfig);
         appServiceConfig.resourceGroup(resourceGroup);
