@@ -226,4 +226,8 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
             return httpPipelineNextPolicy.process();
         };
     }
+
+    public String name() {
+        return "Microsoft.Web/sites";
+    }
 }

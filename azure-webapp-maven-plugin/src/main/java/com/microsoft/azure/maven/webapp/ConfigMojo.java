@@ -55,6 +55,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.microsoft.azure.maven.webapp.utils.Utils.findStringInCollectionIgnoreCase;
+import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.getAppServiceConfigFromExisting;
 
 /**
  * Init or edit the configuration of azure webapp maven plugin.

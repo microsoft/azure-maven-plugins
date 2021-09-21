@@ -13,14 +13,9 @@ import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.maven.webapp.parser.ConfigParser;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
-import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
-import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.validator.SchemaValidator;
 import com.microsoft.azure.toolkit.lib.common.validator.ValidationMessage;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
@@ -52,8 +47,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public static final String SCHEMA_VERSION_KEY = "schemaVersion";
     public static final String DEPLOY_TO_SLOT_KEY = "isDeployToSlot";
     public static final String INVALID_PARAMETER_ERROR_MESSAGE = "Invalid values found in configuration, please correct the value with messages below:";
-    public static final String SETTING_DOCKER_IMAGE = "DOCKER_CUSTOM_IMAGE_NAME";
-    public static final String SETTING_REGISTRY_SERVER = "DOCKER_REGISTRY_SERVER_URL";
     //region Properties
 
     /**
@@ -242,44 +235,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             final String errorDetails = validate.stream().map(message -> message.getMessage().toString()).collect(Collectors.joining(StringUtils.LF));
             throw new AzureToolkitRuntimeException(String.join(StringUtils.LF, INVALID_PARAMETER_ERROR_MESSAGE, errorDetails));
         }
-    }
-
-    protected AppServiceConfig getAppServiceConfigFromExisting(IWebApp webapp) {
-        IAppServicePlan servicePlan = webapp.plan();
-        AppServiceConfig config = new AppServiceConfig();
-        config.appName(webapp.name());
-
-        config.resourceGroup(webapp.entity().getResourceGroup());
-        config.subscriptionId(Utils.getSubscriptionId(webapp.id()));
-        config.region(webapp.entity().getRegion());
-        config.pricingTier(servicePlan.entity().getPricingTier());
-        RuntimeConfig runtimeConfig = new RuntimeConfig();
-        if (AppServiceUtils.isDockerAppService(webapp)) {
-            runtimeConfig.os(OperatingSystem.DOCKER);
-            final Map<String, String> settings = webapp.entity().getAppSettings();
-
-            final String imageSetting = settings.get(SETTING_DOCKER_IMAGE);
-            if (StringUtils.isNotBlank(imageSetting)) {
-                runtimeConfig.image(imageSetting);
-            } else {
-                runtimeConfig.image(webapp.entity().getDockerImageName());
-            }
-            final String registryServerSetting = settings.get(SETTING_REGISTRY_SERVER);
-            if (StringUtils.isNotBlank(registryServerSetting)) {
-                runtimeConfig.registryUrl(registryServerSetting);
-            }
-        } else {
-            runtimeConfig.os(webapp.getRuntime().getOperatingSystem());
-            runtimeConfig.webContainer(webapp.getRuntime().getWebContainer());
-            runtimeConfig.javaVersion(webapp.getRuntime().getJavaVersion());
-        }
-        config.runtime(runtimeConfig);
-        if (servicePlan.entity() != null) {
-            config.pricingTier(servicePlan.entity().getPricingTier());
-            config.servicePlanName(servicePlan.name());
-            config.servicePlanResourceGroup(servicePlan.entity().getResourceGroup());
-        }
-        return config;
     }
 
     @Override
