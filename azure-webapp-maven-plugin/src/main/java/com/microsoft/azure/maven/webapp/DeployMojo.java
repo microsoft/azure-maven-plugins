@@ -25,7 +25,6 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -83,7 +82,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         ComparableVersion javaVersionForProject = null;
         final String outputFileName = project.getBuild().getFinalName() + "." + project.getPackaging();
         File outputFile = new File(project.getBuild().getDirectory(), outputFileName);
-        if (outputFile.exists() && StringUtils.equalsIgnoreCase("jar", FilenameUtils.getExtension(outputFile.getName()))) {
+        if (outputFile.exists() && StringUtils.equalsIgnoreCase("jar", project.getPackaging())) {
             try {
                 javaVersionForProject = new ComparableVersion(Utils.getArtifactCompileVersion(outputFile));
             } catch (Exception e) {
