@@ -13,7 +13,7 @@ import com.microsoft.azure.maven.prompt.IPrompter;
 import com.microsoft.azure.maven.prompt.InputValidateResult;
 import com.microsoft.azure.maven.prompt.SchemaValidator;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
-import com.microsoft.azure.maven.utils.TemplateUtils;
+import com.microsoft.azure.maven.springcloud.TemplateUtils;
 
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import lombok.Lombok;
@@ -37,12 +37,12 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class ConfigurationPrompter {
-    private ExpressionEvaluator expressionEvaluator;
+    private final ExpressionEvaluator expressionEvaluator;
     private IPrompter prompt;
     private Map<String, Map<String, Object>> templates;
     private Map<String, Object> commonVariables;
     private SchemaValidator validator;
-    private Log log;
+    private final Log log;
 
     public ConfigurationPrompter(ExpressionEvaluator expressionEvaluator, Log log) {
         this.expressionEvaluator = expressionEvaluator;
@@ -191,9 +191,9 @@ public class ConfigurationPrompter {
         }
         final Map<String, Object> schema = validator.getSchemaMap(resourceName, propertyName);
         variables.put("schema", schema);
-        Object defaultObj = variables.get("default");
+        Object defaultObj = variables.get("default_val");
         if (defaultObj instanceof String) {
-            defaultObj = TemplateUtils.evalPlainText("default", variables);
+            defaultObj = TemplateUtils.evalPlainText("default_val", variables);
         } else {
             if (defaultObj == null) {
                 defaultObj = schema.get("default");
@@ -209,7 +209,7 @@ public class ConfigurationPrompter {
                 return cliParameter.toString();
             }
             System.out.println(
-                    TextUtils.yellow(String.format("Validation failure for %s[%s]: %s", propertyName, cliParameter.toString(), errorMessage)));
+                    TextUtils.yellow(String.format("Validation failure for %s[%s]: %s", propertyName, cliParameter, errorMessage)));
         }
 
         if (autoApplyDefault) {
@@ -263,7 +263,7 @@ public class ConfigurationPrompter {
         }
 
         final Boolean userConfirm = prompt.promoteYesNo(TemplateUtils.evalText("promote.footer", variables),
-                TemplateUtils.evalBoolean("default", variables), TemplateUtils.evalBoolean("required", variables));
+                TemplateUtils.evalBoolean("default_val", variables), TemplateUtils.evalBoolean("required", variables));
         if (userConfirm == null || !userConfirm) {
             log.info(TemplateUtils.evalText("message.skip", variables));
             return;
