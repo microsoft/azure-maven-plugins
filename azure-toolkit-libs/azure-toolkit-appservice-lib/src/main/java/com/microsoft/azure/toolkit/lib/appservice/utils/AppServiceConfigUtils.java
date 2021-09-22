@@ -23,6 +23,8 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
+import static com.microsoft.azure.toolkit.lib.appservice.utils.Utils.mergeObjects;
+
 public class AppServiceConfigUtils {
     private static final String SETTING_DOCKER_IMAGE = "DOCKER_CUSTOM_IMAGE_NAME";
     private static final String SETTING_REGISTRY_SERVER = "DOCKER_REGISTRY_SERVER_URL";
@@ -64,8 +66,16 @@ public class AppServiceConfigUtils {
         return config;
     }
 
-    public static AppServiceConfig buildDefaultConfig(String subscriptionId, String resourceGroup, String appName, String packaging, JavaVersion javaVersion) {
+    public static AppServiceConfig buildDefaultWebAppConfig(String subscriptionId, String resourceGroup, String appName, String packaging, JavaVersion javaVersion) {
         final AppServiceConfig appServiceConfig = AppServiceConfig.buildDefaultWebAppConfig(resourceGroup, appName, packaging, javaVersion);
+        final List<Region> regions = Azure.az(AzureAppService.class).listSupportedRegions(subscriptionId);
+        // replace with first region when the default region is not present
+        appServiceConfig.region(Utils.selectFirstOptionIfCurrentInvalid("region", regions, appServiceConfig.region()));
+        return appServiceConfig;
+    }
+
+    public static AppServiceConfig buildDefaultFunctionConfig(String subscriptionId, String resourceGroup, String appName, JavaVersion javaVersion) {
+        final AppServiceConfig appServiceConfig = AppServiceConfig.buildDefaultFunctionConfig(resourceGroup, appName, javaVersion);
         final List<Region> regions = Azure.az(AzureAppService.class).listSupportedRegions(subscriptionId);
         // replace with first region when the default region is not present
         appServiceConfig.region(Utils.selectFirstOptionIfCurrentInvalid("region", regions, appServiceConfig.region()));
@@ -89,18 +99,6 @@ public class AppServiceConfigUtils {
             mergeObjects(to, from);
         } catch (IllegalAccessException e) {
             throw new AzureToolkitRuntimeException("Cannot copy object for class RuntimeConfig.", e);
-        }
-    }
-
-    private static <T> void mergeObjects(T to, T from) throws IllegalAccessException {
-        for (Field field : FieldUtils.getAllFields(to.getClass())) {
-            if (FieldUtils.readField(field, to, true) == null) {
-                final Object value = FieldUtils.readField(field, from, true);
-                if (value != null) {
-                    FieldUtils.writeField(field, to, value, true);
-                }
-            }
-
         }
     }
 }

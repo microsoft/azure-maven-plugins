@@ -5,15 +5,20 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask;
+import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -21,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -29,6 +35,9 @@ import org.apache.maven.plugins.annotations.Mojo;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Optional;
+
+import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.fromAppService;
+import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.mergeAppServiceConfig;
 
 /**
  * Deploy artifacts to target Azure Functions in Azure. If target Azure Functions doesn't exist, it will be created.
@@ -135,7 +144,43 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     protected IFunctionAppBase<?> createOrUpdateResource(final FunctionAppConfig config) {
+        IFunctionApp app = Azure.az(AzureAppService.class).functionApp(config.resourceGroup(), config.appName());
+        final boolean newFunctionApp = !app.exists();
+        AppServiceConfig defaultConfig = !newFunctionApp ? fromAppService(app, app.plan()) : buildDefaultConfig(config.subscriptionId(),
+            config.resourceGroup(), config.appName());
+
+        mergeAppServiceConfig(config, defaultConfig);
+        if (config.pricingTier() == null) {
+            config.pricingTier(PricingTier.CONSUMPTION);
+        }
+        try {
+            com.microsoft.azure.toolkit.lib.appservice.utils.Utils.mergeObjects(config, defaultConfig);
+        } catch (IllegalAccessException e) {
+            throw new AzureToolkitRuntimeException("Cannot copy object for class AppServiceConfig.", e);
+        }
+        if (!newFunctionApp && !config.disableAppInsights()) {
+            // fill ai key from existing app settings
+            config.appInsightsKey(app.entity().getAppSettings().get(CreateOrUpdateFunctionAppTask.APPINSIGHTS_INSTRUMENTATION_KEY));
+        }
         return new CreateOrUpdateFunctionAppTask(config).execute();
+    }
+
+    private AppServiceConfig buildDefaultConfig(String subscriptionId, String resourceGroup, String appName) {
+        ComparableVersion javaVersionForProject = null;
+        final String outputFileName = project.getBuild().getFinalName() + "." + project.getPackaging();
+        File outputFile = new File(project.getBuild().getDirectory(), outputFileName);
+        if (outputFile.exists() && StringUtils.equalsIgnoreCase("jar", FilenameUtils.getExtension(outputFile.getName()))) {
+            try {
+                javaVersionForProject = new ComparableVersion(Utils.getArtifactCompileVersion(outputFile));
+            } catch (Exception e) {
+                // it is acceptable that java version from jar file cannot be retrieved
+            }
+        }
+
+        javaVersionForProject = ObjectUtils.firstNonNull(javaVersionForProject, new ComparableVersion(System.getProperty("java.version")));
+        // get java version according to project java version
+        JavaVersion javaVersion = javaVersionForProject.compareTo(new ComparableVersion("9")) < 0 ? JavaVersion.JAVA_8 : JavaVersion.JAVA_11;
+        return AppServiceConfigUtils.buildDefaultFunctionConfig(subscriptionId, resourceGroup, appName, javaVersion);
     }
 
     private void deployArtifact(final IFunctionAppBase<?> target) {
