@@ -6,7 +6,6 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.RuntimeConfiguration;
 import lombok.Getter;
@@ -111,10 +110,6 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     public boolean isDisableAppInsights() {
         return disableAppInsights;
-    }
-
-    public IFunctionApp getFunctionApp() {
-        return getOrCreateAzureAppServiceClient().functionApp(getResourceGroup(), getAppName());
     }
 
     public RuntimeConfiguration getRuntimeConfiguration() {
