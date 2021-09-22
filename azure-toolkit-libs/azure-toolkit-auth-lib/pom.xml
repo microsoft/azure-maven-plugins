@@ -64,11 +64,6 @@
             <artifactId>azure-client-runtime</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.azure.resourcemanager</groupId>
-            <artifactId>azure-resourcemanager</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.azure</groupId>
             <artifactId>azure-identity</artifactId>
         </dependency>
