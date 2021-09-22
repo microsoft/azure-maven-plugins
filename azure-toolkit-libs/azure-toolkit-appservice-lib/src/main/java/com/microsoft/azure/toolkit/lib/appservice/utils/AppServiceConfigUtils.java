@@ -27,33 +27,33 @@ public class AppServiceConfigUtils {
     private static final String SETTING_DOCKER_IMAGE = "DOCKER_CUSTOM_IMAGE_NAME";
     private static final String SETTING_REGISTRY_SERVER = "DOCKER_REGISTRY_SERVER_URL";
 
-    public static AppServiceConfig fromAppService(IAppService<?> webapp, IAppServicePlan servicePlan) {
+    public static AppServiceConfig fromAppService(IAppService<?> appService, IAppServicePlan servicePlan) {
         AppServiceConfig config = new AppServiceConfig();
-        config.appName(webapp.name());
+        config.appName(appService.name());
 
-        config.resourceGroup(webapp.entity().getResourceGroup());
-        config.subscriptionId(Utils.getSubscriptionId(webapp.id()));
-        config.region(webapp.entity().getRegion());
+        config.resourceGroup(appService.entity().getResourceGroup());
+        config.subscriptionId(Utils.getSubscriptionId(appService.id()));
+        config.region(appService.entity().getRegion());
         config.pricingTier(servicePlan.entity().getPricingTier());
         RuntimeConfig runtimeConfig = new RuntimeConfig();
-        if (AppServiceUtils.isDockerAppService(webapp)) {
+        if (AppServiceUtils.isDockerAppService(appService)) {
             runtimeConfig.os(OperatingSystem.DOCKER);
-            final Map<String, String> settings = webapp.entity().getAppSettings();
+            final Map<String, String> settings = appService.entity().getAppSettings();
 
             final String imageSetting = settings.get(SETTING_DOCKER_IMAGE);
             if (StringUtils.isNotBlank(imageSetting)) {
                 runtimeConfig.image(imageSetting);
             } else {
-                runtimeConfig.image(webapp.entity().getDockerImageName());
+                runtimeConfig.image(appService.entity().getDockerImageName());
             }
             final String registryServerSetting = settings.get(SETTING_REGISTRY_SERVER);
             if (StringUtils.isNotBlank(registryServerSetting)) {
                 runtimeConfig.registryUrl(registryServerSetting);
             }
         } else {
-            runtimeConfig.os(webapp.getRuntime().getOperatingSystem());
-            runtimeConfig.webContainer(webapp.getRuntime().getWebContainer());
-            runtimeConfig.javaVersion(webapp.getRuntime().getJavaVersion());
+            runtimeConfig.os(appService.getRuntime().getOperatingSystem());
+            runtimeConfig.webContainer(appService.getRuntime().getWebContainer());
+            runtimeConfig.javaVersion(appService.getRuntime().getJavaVersion());
         }
         config.runtime(runtimeConfig);
         if (servicePlan.entity() != null) {
