@@ -87,6 +87,14 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     @Parameter(property = "webapp.skip", defaultValue = "false")
     protected boolean skip;
 
+    @JsonIgnore
+    @Parameter(property = "azure.webapp.create.skip", defaultValue = "false")
+    protected boolean skipWebAppCreate;
+
+    @JsonIgnore
+    @Parameter(property = "skipCreateWebApp")
+    protected boolean skipCreateWebApp;
+
     /**
      * App Service region, which will only be used to create App Service at the first time.
      */
