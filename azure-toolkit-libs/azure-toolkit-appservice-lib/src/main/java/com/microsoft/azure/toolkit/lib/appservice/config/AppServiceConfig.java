@@ -59,7 +59,7 @@ public class AppServiceConfig {
         RuntimeConfig runtimeConfig = new RuntimeConfig().os(OperatingSystem.LINUX).webContainer(StringUtils.equalsIgnoreCase(packaging, "war") ?
             WebContainer.TOMCAT_85 : (StringUtils.equalsIgnoreCase(packaging, "ear") ? WebContainer.JBOSS_7 : WebContainer.JAVA_SE))
             .javaVersion(javaVersion);
-        AppServiceConfig appServiceConfig = buildCommonAppServiceConfig(resourceGroup, appName);
+        AppServiceConfig appServiceConfig = buildDefaultAppServiceConfig(resourceGroup, appName);
         appServiceConfig.runtime(runtimeConfig);
         return appServiceConfig;
     }
@@ -67,14 +67,14 @@ public class AppServiceConfig {
     public static AppServiceConfig buildDefaultFunctionConfig(String resourceGroup, String appName, JavaVersion javaVersion) {
         RuntimeConfig runtimeConfig = new RuntimeConfig().os(OperatingSystem.WINDOWS).webContainer(WebContainer.JAVA_OFF)
             .javaVersion(javaVersion);
-        AppServiceConfig appServiceConfig = buildCommonAppServiceConfig(resourceGroup, appName);
+        AppServiceConfig appServiceConfig = buildDefaultAppServiceConfig(resourceGroup, appName);
         appServiceConfig.runtime(runtimeConfig);
         appServiceConfig.pricingTier(PricingTier.CONSUMPTION);
         return appServiceConfig;
     }
 
     @Nonnull
-    private static AppServiceConfig buildCommonAppServiceConfig(String resourceGroup, String appName) {
+    private static AppServiceConfig buildDefaultAppServiceConfig(String resourceGroup, String appName) {
         AppServiceConfig appServiceConfig = new AppServiceConfig();
         appServiceConfig.region(Region.US_CENTRAL);
 

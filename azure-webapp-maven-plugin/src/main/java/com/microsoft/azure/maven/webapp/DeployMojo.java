@@ -30,7 +30,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 
 import java.util.List;
 
-import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.getAppServiceConfigFromExisting;
+import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.fromAppService;
 import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.mergeAppServiceConfig;
 
 /**
@@ -59,7 +59,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
             IWebApp app = Azure.az(AzureAppService.class).webapp(appServiceConfig.resourceGroup(), appServiceConfig.appName());
             final boolean newWebApp = !app.exists();
-            AppServiceConfig defaultConfig = !newWebApp ? getAppServiceConfigFromExisting(app, app.plan()) : buildDefaultConfig(appServiceConfig.subscriptionId(),
+            AppServiceConfig defaultConfig = !newWebApp ? fromAppService(app, app.plan()) : buildDefaultConfig(appServiceConfig.subscriptionId(),
                 appServiceConfig.resourceGroup(), appServiceConfig.appName());
             mergeAppServiceConfig(appServiceConfig, defaultConfig);
             if (appServiceConfig.pricingTier() == null) {

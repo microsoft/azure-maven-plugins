@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.microsoft.azure.maven.webapp.utils.Utils.findStringInCollectionIgnoreCase;
-import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.getAppServiceConfigFromExisting;
+import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.fromAppService;
 
 /**
  * Init or edit the configuration of azure webapp maven plugin.
@@ -528,7 +528,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private WebAppConfiguration getConfigurationFromExisting(IWebApp webapp,
                                                                     WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder) {
-        final AppServiceConfig appServiceConfig = getAppServiceConfigFromExisting(webapp, webapp.plan());
+        final AppServiceConfig appServiceConfig = fromAppService(webapp, webapp.plan());
         // common configuration
         builder.appName(appServiceConfig.appName())
                 .resourceGroup(appServiceConfig.resourceGroup())

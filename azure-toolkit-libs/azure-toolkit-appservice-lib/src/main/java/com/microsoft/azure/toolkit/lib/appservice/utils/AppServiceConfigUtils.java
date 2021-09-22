@@ -13,11 +13,13 @@ import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +27,7 @@ public class AppServiceConfigUtils {
     private static final String SETTING_DOCKER_IMAGE = "DOCKER_CUSTOM_IMAGE_NAME";
     private static final String SETTING_REGISTRY_SERVER = "DOCKER_REGISTRY_SERVER_URL";
 
-    public static AppServiceConfig getAppServiceConfigFromExisting(IAppService<?> webapp, IAppServicePlan servicePlan) {
+    public static AppServiceConfig fromAppService(IAppService<?> webapp, IAppServicePlan servicePlan) {
         AppServiceConfig config = new AppServiceConfig();
         config.appName(webapp.name());
 
@@ -70,38 +72,35 @@ public class AppServiceConfigUtils {
         return appServiceConfig;
     }
 
-    public static void mergeAppServiceConfig(AppServiceConfig config1, AppServiceConfig config2) {
-        if (config1.region() == null) {
-            config1.region(config2.region());
+    public static void mergeAppServiceConfig(AppServiceConfig to, AppServiceConfig from) {
+        try {
+            mergeObjects(to, from);
+        } catch (IllegalAccessException e) {
+            throw new AzureToolkitRuntimeException("Cannot copy object for class AppServiceConfig.", e);
         }
 
-        if (config1.servicePlanResourceGroup() == null) {
-            config1.servicePlanResourceGroup(config2.servicePlanResourceGroup());
-        }
-
-        if (config1.servicePlanName() == null) {
-            config1.servicePlanName(config2.servicePlanName());
-        }
-
-        if (config1.runtime() == null) {
-            config1.runtime(config2.runtime());
-        } else {
-            mergeRuntime(config1.runtime(), config2.runtime());
-        }
-
-        if (config1.pricingTier() == null) {
-            config1.pricingTier(config2.pricingTier());
+        if (to.runtime() != from.runtime()) {
+            mergeRuntime(to.runtime(), from.runtime());
         }
     }
 
-    private static void mergeRuntime(RuntimeConfig runtime1, RuntimeConfig runtime2) {
-        runtime1.os(ObjectUtils.firstNonNull(runtime1.os(), runtime2.os()));
-        runtime1.image(ObjectUtils.firstNonNull(runtime1.image(), runtime2.image()));
-        runtime1.username(ObjectUtils.firstNonNull(runtime1.username(), runtime2.username()));
-        runtime1.password(ObjectUtils.firstNonNull(runtime1.password(), runtime2.password()));
-        runtime1.startUpCommand(ObjectUtils.firstNonNull(runtime1.startUpCommand(), runtime2.startUpCommand()));
-        runtime1.registryUrl(ObjectUtils.firstNonNull(runtime1.registryUrl(), runtime2.registryUrl()));
-        runtime1.javaVersion(ObjectUtils.firstNonNull(runtime1.javaVersion(), runtime2.javaVersion()));
-        runtime1.webContainer(ObjectUtils.firstNonNull(runtime1.webContainer(), runtime2.webContainer()));
+    private static void mergeRuntime(RuntimeConfig to, RuntimeConfig from) {
+        try {
+            mergeObjects(to, from);
+        } catch (IllegalAccessException e) {
+            throw new AzureToolkitRuntimeException("Cannot copy object for class RuntimeConfig.", e);
+        }
+    }
+
+    private static <T> void mergeObjects(T to, T from) throws IllegalAccessException {
+        for (Field field : FieldUtils.getAllFields(to.getClass())) {
+            if (FieldUtils.readField(field, to, true) == null) {
+                final Object value = FieldUtils.readField(field, from, true);
+                if (value != null) {
+                    FieldUtils.writeField(field, to, value, true);
+                }
+            }
+
+        }
     }
 }
