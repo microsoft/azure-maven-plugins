@@ -23,6 +23,7 @@ import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -63,6 +64,10 @@ public class DeployMojo extends AbstractWebAppMojo {
             final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
             IWebApp app = Azure.az(AzureAppService.class).webapp(appServiceConfig.resourceGroup(), appServiceConfig.appName());
             final boolean newWebApp = !app.exists();
+            if (newWebApp && (skipWebAppCreate || skipCreateWebApp)) {
+                throw new AzureToolkitRuntimeException(String.format("Web app(%s) cannot be found, if you want to create please remove these maven arguments: " +
+                    "`-Dazure.webapp.create.skip=true` or `-DskipCreateWebApp`.", appName));
+            }
             AppServiceConfig defaultConfig = !newWebApp ? fromAppService(app, app.plan()) : buildDefaultConfig(appServiceConfig.subscriptionId(),
                 appServiceConfig.resourceGroup(), appServiceConfig.appName());
             mergeAppServiceConfig(appServiceConfig, defaultConfig);
