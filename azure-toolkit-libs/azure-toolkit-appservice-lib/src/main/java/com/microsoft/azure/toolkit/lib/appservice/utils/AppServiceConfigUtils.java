@@ -17,9 +17,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
