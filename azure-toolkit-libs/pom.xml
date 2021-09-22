@@ -135,7 +135,6 @@
         <jaxb.version>3.0.2-b01</jaxb.version>
         <jaxb-runtime.version>3.0.2</jaxb-runtime.version>
         <jakarta.xml.bind-api.version>3.0.1</jakarta.xml.bind-api.version>
-        <jtwig-core.version>5.87.0.RELEASE</jtwig-core.version>
         <semver.version>0.9.0</semver.version>
         <text-io.version>3.4.1</text-io.version>
         <zt-zip.version>1.15</zt-zip.version>
@@ -769,11 +768,6 @@
                 <groupId>org.atteo</groupId>
                 <artifactId>evo-inflector</artifactId>
                 <version>${evo-inflector.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jtwig</groupId>
-                <artifactId>jtwig-core</artifactId>
-                <version>${jtwig-core.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ow2.asm</groupId>

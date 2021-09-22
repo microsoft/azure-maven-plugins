@@ -138,10 +138,6 @@
             <artifactId>dom4j</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.jtwig</groupId>
-            <artifactId>jtwig-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-toolkit-auth-lib</artifactId>
         </dependency>

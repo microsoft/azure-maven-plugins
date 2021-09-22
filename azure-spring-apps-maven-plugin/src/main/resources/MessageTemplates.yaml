@@ -3,7 +3,7 @@ id:               select-projects
 promote:
        header:    "The following child modules are not configured:"
        many:      "Select child modules to configure"
-       one:       "There is only one project (***{{ projects[0].name }}***) which is not configured, would you like to select it to config? (Y/n):"
+       one:       "There is only one project (***${ projects[0].name }***) which is not configured, would you like to select it to config? (Y/n):"
 message:
   empty_options:  "There are no projects in current folder which are not configured yet."
   select_none:    "You have not selected any projects, 'config' will terminate."
@@ -16,7 +16,7 @@ id:               configure-public-list
 promote:
   header:         "Project list:"
   many:           "Select apps to expose public access:"
-  one:            "Expose public access for this app: ***{{projects[0].getName()}}***? (y/N):"
+  one:            "Expose public access for this app: ***${projects[0].getName()}***? (y/N):"
 allow_empty:      true
 default_selected: false
 
@@ -29,7 +29,7 @@ required:         true
 auto_select:      true
 message:
   empty_options:  "Cannot find any subscriptions."
-  auto_select:    "There is only one subscription (***{{ subscriptions[0].displayName() }}***) in your account, will use it automatically."
+  auto_select:    "There is only one subscription (***${ subscriptions[0].displayName() }***) in your account, will use it automatically."
   select_none:    "You have not selected any subscriptions, 'config' will terminate."
 default_index:    0
 
@@ -40,7 +40,7 @@ promote:
     many:         "Select Azure Spring Apps for deployment:"
 message:
   empty_options:  "There are no Azure Spring Apps in current subscription, please create it in Azure Portal."
-  auto_select:    "There is only one Azure Spring Apps (***{{ clusters[0].name() }}***) in current subscription, will use it automatically."
+  auto_select:    "There is only one Azure Spring Apps (***${ clusters[0].name() }***) in current subscription, will use it automatically."
   select_none:    "You have not selected any Azure Spring Apps, 'config' will terminate."
 required:         true
 auto_select:      true
@@ -48,46 +48,46 @@ default_index:    0
 
 ---
 id:               configure-app-name
-promote:          "Input the app name (***{{default}}***):"
+promote:          "Input the app name (***${default_val}***):"
 resource:         App
 property:         appName
-default:          '{{project.getArtifactId().replaceAll("[^-a-z0-9]", "")|slice(0,32)|lower}}'
+default_val:          '${project.getArtifactId().replaceAll("[^-a-z0-9]", "").toLowerCase()}'
 expression:       true
 required:         true
 
 ---
 id:               configure-public
-promote:          "Expose public access for this app ***{{project.getName()}}***? (y/N):"
+promote:          "Expose public access for this app (***${project.getName()}***)? (y/N):"
 resource:         App
 property:         isPublic
 required:         false
 ---
 id:               configure-instance-count
-promote:          "Input instance count [***{{schema.minimum}}***-***{{schema.maximum}}***] (***{{schema.default}}***):"
+promote:          "Input instance count [***${schema.minimum}***-***${schema.maximum}***] (***${schema.default}***):"
 resource:         Deployment
 property:         instanceCount
 
 ---
 id:               configure-cpu
-promote:          "Input cpu count per instance [***0.5***, ***1***-***4***] (***{{schema.default}}***):"
+promote:          "Input cpu count per instance [***0.5***, ***1***-***4***] (***${schema.default}***):"
 resource:         Deployment
 property:         cpu
 
 ---
 id:               configure-memory
-promote:          "Input the memory size(GB) [***0.5***, ***1***-***8***] (***{{schema.default}}***):"
+promote:          "Input the memory size(GB) [***0.5***, ***1***-***8***] (***${schema.default}***):"
 resource:         Deployment
 property:         memoryInGB
 
 ---
 id:               configure-jvm-options
-promote:          "Input JVM options{{(schema.default) ? '(***' ~ schema.default ~ '***)' : ''}}:"
+promote:          "Input JVM options${(schema.default) ? '(***' ~ schema.default ~ '***)' : ''}:"
 resource:         Deployment
 property:         jvmOptions
 
 ---
 id:               configure-java-version
-promote:          "Input runtime Java version{{(schema.default) ? '(***' ~ schema.default ~ '***)' : ''}}:"
+promote:          "Input runtime Java version${(schema.default) ? '(***' ~ schema.default ~ '***)' : ''}:"
 resource:         Deployment
 property:         runtimeVersion
 
@@ -97,12 +97,12 @@ promote:
       header:     'Summary of properties:'
       footer:     "Confirm to save all the above configurations (Y/n):"
 message:
-    one: 'Configurations are saved to: ***{{projects[0].getFile().toString()}}***'
+    one: 'Configurations are saved to: ***${projects[0].getFile().toString()}***'
     many:         >-
-      Configurations are saved to the following pom.xml files:{{"\n"}}
-      {% for project in projects %}
-      ***{{ project.getFile().toString()}}***{{"\n"}}
-      {% endfor %}
+      Configurations are saved to the following pom.xml files:${"\n"}
+      <% for(project in projects){ %>
+      ***${ project.getFile().toString()}***${"\n"}
+      <% } %>
     skip:         'You have quit the config goal, your pom files will not be changed.'
-default:          true
+default_val:          true
 required:         true
