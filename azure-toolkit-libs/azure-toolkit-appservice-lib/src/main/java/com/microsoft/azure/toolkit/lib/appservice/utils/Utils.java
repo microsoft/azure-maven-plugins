@@ -60,4 +60,11 @@ public class Utils {
                 throw new AzureToolkitRuntimeException("Unsupported file type, please set the deploy type.");
         }
     }
+
+    public static <T> T selectFirstOptionIfCurrentInvalid(String name, List<T> options, T value) {
+        if (options.isEmpty()) {
+            throw new AzureToolkitRuntimeException(String.format("No %s is available.", name));
+        }
+        return options.contains(value) ? value : options.get(0);
+    }
 }

@@ -6,9 +6,9 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.RuntimeConfiguration;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -44,6 +44,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      *     <li>P3V2</li>
      * </ul>
      */
+    @Getter
     @Parameter(property = "functions.pricingTier")
     protected String pricingTier;
 
@@ -79,6 +80,9 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter(property = "functions.disableAppInsights", defaultValue = "false")
     protected boolean disableAppInsights;
 
+    @Getter
+    protected ConfigParser parser = new ConfigParser(this);
+
     //endregion
 
     //region Getter
@@ -106,10 +110,6 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     public boolean isDisableAppInsights() {
         return disableAppInsights;
-    }
-
-    public IFunctionApp getFunctionApp() {
-        return getOrCreateAzureAppServiceClient().functionApp(getResourceGroup(), getAppName());
     }
 
     public RuntimeConfiguration getRuntimeConfiguration() {

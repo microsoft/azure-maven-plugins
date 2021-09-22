@@ -5,12 +5,17 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.config;
 
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 
 @Getter
@@ -46,7 +51,37 @@ public class AppServiceConfig {
             .servicePlanResourceGroup(servicePlanResourceGroup())
             .servicePlanName(servicePlanName())
             .region(region())
-            .os(runtime() == null ? null : runtime().os())
+            .os(runtime().os())
             .pricingTier(pricingTier());
+    }
+
+    public static AppServiceConfig buildDefaultWebAppConfig(String resourceGroup, String appName, String packaging, JavaVersion javaVersion) {
+        RuntimeConfig runtimeConfig = new RuntimeConfig().os(OperatingSystem.LINUX).webContainer(StringUtils.equalsIgnoreCase(packaging, "war") ?
+            WebContainer.TOMCAT_85 : (StringUtils.equalsIgnoreCase(packaging, "ear") ? WebContainer.JBOSS_7 : WebContainer.JAVA_SE))
+            .javaVersion(javaVersion);
+        AppServiceConfig appServiceConfig = buildDefaultAppServiceConfig(resourceGroup, appName);
+        appServiceConfig.runtime(runtimeConfig);
+        return appServiceConfig;
+    }
+
+    public static AppServiceConfig buildDefaultFunctionConfig(String resourceGroup, String appName, JavaVersion javaVersion) {
+        RuntimeConfig runtimeConfig = new RuntimeConfig().os(OperatingSystem.WINDOWS).webContainer(WebContainer.JAVA_OFF)
+            .javaVersion(javaVersion);
+        AppServiceConfig appServiceConfig = buildDefaultAppServiceConfig(resourceGroup, appName);
+        appServiceConfig.runtime(runtimeConfig);
+        appServiceConfig.pricingTier(PricingTier.CONSUMPTION);
+        return appServiceConfig;
+    }
+
+    @Nonnull
+    private static AppServiceConfig buildDefaultAppServiceConfig(String resourceGroup, String appName) {
+        AppServiceConfig appServiceConfig = new AppServiceConfig();
+        appServiceConfig.region(Region.US_CENTRAL);
+
+        appServiceConfig.resourceGroup(resourceGroup);
+        appServiceConfig.appName(appName);
+        appServiceConfig.servicePlanResourceGroup(resourceGroup);
+        appServiceConfig.servicePlanName(String.format("asp-%s", appName));
+        return appServiceConfig;
     }
 }

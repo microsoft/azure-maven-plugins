@@ -9,12 +9,13 @@ import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.WebAppConfig;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotConfig;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
-import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
@@ -59,107 +60,19 @@ public class ConfigParser {
         this.mojo = mojo;
     }
 
-    public String getAppName() {
-        return mojo.getAppName();
-    }
-
-    public String getResourceGroup() {
-        return mojo.getResourceGroup();
-    }
-
-    public String getDeploymentSlotName() {
-        return mojo.getDeploymentSlotSetting() == null ? null : mojo.getDeploymentSlotSetting().getName();
-    }
-
-    public String getDeploymentSlotConfigurationSource() {
-        return mojo.getDeploymentSlotSetting() == null ? null : mojo.getDeploymentSlotSetting().getConfigurationSource();
-    }
-
-    public PricingTier getPricingTier() {
-        return parseExpandableParameter(input -> {
-            if (StringUtils.contains(mojo.getPricingTier(), "_")) {
-                final String[] pricingParams = mojo.getPricingTier().split("_");
-                return PricingTier.fromString(pricingParams[0], pricingParams[1]);
-            } else {
-                return PricingTier.fromString(mojo.getPricingTier());
-            }
-        }, mojo.getPricingTier(), EXPANDABLE_PRICING_TIER_WARNING);
-    }
-
-    public String getAppServicePlanName() {
-        return mojo.getAppServicePlanName();
-    }
-
-    public String getAppServicePlanResourceGroup() {
-        return mojo.getAppServicePlanResourceGroup();
-    }
-
-    public String getSubscriptionId() {
-        return mojo.getSubscriptionId();
-    }
-
-    public Region getRegion() {
-        return parseExpandableParameter(Region::fromName, mojo.getRegion(), EXPANDABLE_REGION_WARNING);
-    }
-
-    public DockerConfiguration getDockerConfiguration() throws AzureExecutionException {
-        final MavenRuntimeConfig runtime = mojo.getRuntime();
-        if (runtime == null) {
-            return null;
-        }
-        final OperatingSystem os = getOs(runtime);
-        if (os != OperatingSystem.DOCKER) {
-            return null;
-        }
-        final MavenDockerCredentialProvider credentialProvider = getDockerCredential(runtime.getServerId());
-        return DockerConfiguration.builder()
-                .registryUrl(runtime.getRegistryUrl())
-                .image(runtime.getImage())
-                .userName(credentialProvider.getUsername())
-                .password(credentialProvider.getPassword()).build();
-    }
-
-    public List<WebAppArtifact> getMavenArtifacts() throws AzureExecutionException {
-        if (mojo.getDeployment() == null || mojo.getDeployment().getResources() == null) {
-            return Collections.emptyList();
-        }
-        return convertResourceToArtifacts(mojo.getDeployment().getResources());
-    }
-
-    public Runtime getRuntime() {
-        final MavenRuntimeConfig runtime = mojo.getRuntime();
-        if (runtime == null || runtime.isEmpty()) {
-            return null;
-        }
-        final OperatingSystem os = getOs(runtime);
-        if (os == OperatingSystem.DOCKER) {
-            return Runtime.DOCKER;
-        }
-        final JavaVersion javaVersion = parseExpandableParameter(JavaVersion::fromString, runtime.getJavaVersion(), EXPANDABLE_JAVA_VERSION_WARNING);
-        final WebContainer webContainer = parseExpandableParameter(WebContainer::fromString, runtime.getWebContainer(), EXPANDABLE_WEB_CONTAINER_WARNING);
-        return Runtime.getRuntime(os, webContainer, javaVersion);
-    }
-
-    private OperatingSystem getOs(final MavenRuntimeConfig runtime) {
-        return OperatingSystem.fromString(runtime.getOs());
-    }
-
-    public WebAppConfig parse() throws AzureExecutionException {
-        return WebAppConfig.builder()
+    public AppServiceConfig getAppServiceConfig() throws AzureExecutionException {
+        return new AppServiceConfig()
                 .subscriptionId(getSubscriptionId())
-                .appName(getAppName())
                 .resourceGroup(getResourceGroup())
+                .appName(getAppName())
                 .servicePlanName(getAppServicePlanName())
                 .servicePlanResourceGroup(getAppServicePlanResourceGroup())
-                .pricingTier(getPricingTier())
-                .region(getRegion())
-                .runtime(getRuntime())
-                .dockerConfiguration(getDockerConfiguration())
                 .deploymentSlotName(getDeploymentSlotName())
                 .deploymentSlotConfigurationSource(getDeploymentSlotConfigurationSource())
-                .webAppArtifacts(getMavenArtifacts())
-                .appSettings(this.mojo.getAppSettings())
-                .build();
+                .pricingTier(getPricingTier())
+                .region(getRegion())
+                .runtime(getRuntimeConfig())
+                .appSettings(mojo.getAppSettings());
     }
 
     // todo: replace WebAppConfiguration with WebAppConfig
@@ -186,7 +99,7 @@ public class ConfigParser {
         return builder.appName(getAppName())
                 .resourceGroup(getResourceGroup())
                 .region(getRegion())
-                .pricingTier(getPricingTier().getSize())
+                .pricingTier(Optional.ofNullable(getPricingTier()).map(PricingTier::getSize).orElse(null))
                 .servicePlanName(mojo.getAppServicePlanName())
                 .servicePlanResourceGroup(mojo.getAppServicePlanResourceGroup())
                 .deploymentSlotSetting(mojo.getDeploymentSlotSetting())
@@ -200,6 +113,120 @@ public class ConfigParser {
                 .filtering(mojo.getMavenResourcesFiltering())
                 .schemaVersion("v2")
                 .build();
+    }
+
+    public DeploymentSlotConfig getDeploymentSlotConfig() {
+        return DeploymentSlotConfig.builder()
+                .subscriptionId(getSubscriptionId())
+                .resourceGroup(getResourceGroup())
+                .appName(getAppName())
+                .name(getDeploymentSlotName())
+                .configurationSource(getDeploymentSlotConfigurationSource())
+                .appSettings(mojo.getAppSettings())
+                .build();
+    }
+
+    public List<WebAppArtifact> getArtifacts() throws AzureExecutionException {
+        if (mojo.getDeployment() == null || mojo.getDeployment().getResources() == null) {
+            return Collections.emptyList();
+        }
+        return convertResourceToArtifacts(mojo.getDeployment().getResources());
+    }
+
+    public List<DeploymentResource> getExternalArtifacts() {
+        if (mojo.getDeployment() == null || mojo.getDeployment().getResources() == null) {
+            return Collections.emptyList();
+        }
+        return mojo.getDeployment().getResources().stream()
+                .filter(DeploymentResource::isExternalResource).collect(Collectors.toList());
+    }
+
+    public String getAppName() {
+        return mojo.getAppName();
+    }
+
+    public String getResourceGroup() {
+        return mojo.getResourceGroup();
+    }
+
+    public String getDeploymentSlotName() {
+        return mojo.getDeploymentSlotSetting() == null ? null : mojo.getDeploymentSlotSetting().getName();
+    }
+
+    public String getDeploymentSlotConfigurationSource() {
+        return mojo.getDeploymentSlotSetting() == null ? null : mojo.getDeploymentSlotSetting().getConfigurationSource();
+    }
+
+    public PricingTier getPricingTier() {
+        if (StringUtils.isEmpty(mojo.getPricingTier())) {
+            return null;
+        }
+        return parseExpandableParameter(input -> {
+            if (StringUtils.contains(mojo.getPricingTier(), "_")) {
+                final String[] pricingParams = mojo.getPricingTier().split("_");
+                return PricingTier.fromString(pricingParams[0], pricingParams[1]);
+            } else {
+                return PricingTier.fromString(mojo.getPricingTier());
+            }
+        }, mojo.getPricingTier(), EXPANDABLE_PRICING_TIER_WARNING);
+    }
+
+    public String getAppServicePlanName() {
+        return mojo.getAppServicePlanName();
+    }
+
+    public String getAppServicePlanResourceGroup() {
+        return mojo.getAppServicePlanResourceGroup();
+    }
+
+    public String getSubscriptionId() {
+        return mojo.getSubscriptionId();
+    }
+
+    public Region getRegion() {
+        if (StringUtils.isEmpty(mojo.getRegion())) {
+            return null;
+        }
+        return parseExpandableParameter(Region::fromName, mojo.getRegion(), EXPANDABLE_REGION_WARNING);
+    }
+
+    public Runtime getRuntime() {
+        final MavenRuntimeConfig runtime = mojo.getRuntime();
+        if (runtime == null || runtime.isEmpty()) {
+            return null;
+        }
+        final OperatingSystem os = getOs(runtime);
+        if (os == OperatingSystem.DOCKER) {
+            return Runtime.DOCKER;
+        }
+        final JavaVersion javaVersion = StringUtils.isEmpty(runtime.getJavaVersion()) ? null :
+                parseExpandableParameter(JavaVersion::fromString, runtime.getJavaVersion(), EXPANDABLE_JAVA_VERSION_WARNING);
+        final WebContainer webContainer = StringUtils.isEmpty(runtime.getWebContainer()) ? null :
+                parseExpandableParameter(WebContainer::fromString, runtime.getWebContainer(), EXPANDABLE_WEB_CONTAINER_WARNING);
+        return Runtime.getRuntime(os, webContainer, javaVersion);
+    }
+
+    private OperatingSystem getOs(final MavenRuntimeConfig runtime) {
+        return OperatingSystem.fromString(runtime.getOs());
+    }
+
+    private RuntimeConfig getRuntimeConfig() throws AzureExecutionException {
+        final MavenRuntimeConfig runtime = mojo.getRuntime();
+        if (runtime == null || runtime.isEmpty()) {
+            return null;
+        }
+        final OperatingSystem os = getOs(runtime);
+        final JavaVersion javaVersion = StringUtils.isEmpty(runtime.getJavaVersion()) ? null :
+                parseExpandableParameter(JavaVersion::fromString, runtime.getJavaVersion(), EXPANDABLE_JAVA_VERSION_WARNING);
+        final WebContainer webContainer = StringUtils.isEmpty(runtime.getWebContainer()) ? null :
+                parseExpandableParameter(WebContainer::fromString, runtime.getWebContainer(), EXPANDABLE_WEB_CONTAINER_WARNING);
+        final RuntimeConfig result = new RuntimeConfig().os(os).javaVersion(javaVersion).webContainer(webContainer)
+                .image(runtime.getImage()).registryUrl(runtime.getRegistryUrl());
+        if (StringUtils.isNotEmpty(runtime.getServerId())) {
+            final MavenDockerCredentialProvider credentialProvider = getDockerCredential(runtime.getServerId());
+            result.username(credentialProvider.getUsername()).password(credentialProvider.getPassword());
+        }
+        return result;
     }
 
     protected MavenDockerCredentialProvider getDockerCredential(String serverId) {
@@ -253,12 +280,10 @@ public class ConfigParser {
         }
 
         if (artifacts.isEmpty()) {
-            Log.warn(String.format("Cannot find any files defined by resource(%s)",
-                    StringUtils.firstNonBlank(resource.toString())));
+            Log.warn(String.format("Cannot find any files defined by resource(%s)", StringUtils.firstNonBlank(resource.toString())));
         }
         if (type.ignorePath() && StringUtils.isNotBlank(resource.getTargetPath())) {
-            throw new AzureToolkitRuntimeException(String.format("'<targetPath>' is not allowed for deployable type('%s').",
-                    type));
+            throw new AzureToolkitRuntimeException(String.format("'<targetPath>' is not allowed for deployable type('%s').", type));
         }
         if (StringUtils.isNotBlank(type.getFileExt())) {
             final String expectFileExtension = type.getFileExt();
@@ -307,5 +332,4 @@ public class ConfigParser {
         }
         return StringUtils.removeEnd(path.replaceAll("([\\\\/])+", Matcher.quoteReplacement("/")), "/");
     }
-
 }
