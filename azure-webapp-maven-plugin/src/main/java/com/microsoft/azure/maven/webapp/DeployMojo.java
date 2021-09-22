@@ -24,10 +24,15 @@ import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
+import java.io.File;
 import java.util.List;
 
 import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.fromAppService;
@@ -75,7 +80,18 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private AppServiceConfig buildDefaultConfig(String subscriptionId, String resourceGroup, String appName) {
-        final ComparableVersion javaVersionForProject = new ComparableVersion(System.getProperty("java.version"));
+        ComparableVersion javaVersionForProject = null;
+        final String outputFileName = project.getBuild().getFinalName() + "." + project.getPackaging();
+        File outputFile = new File(project.getBuild().getDirectory(), outputFileName);
+        if (outputFile.exists() && StringUtils.equalsIgnoreCase("jar", FilenameUtils.getExtension(outputFile.getName()))) {
+            try {
+                javaVersionForProject = new ComparableVersion(Utils.getArtifactCompileVersion(outputFile));
+            } catch (Exception e) {
+                // it is acceptable that java version from jar file cannot be retrieved
+            }
+        }
+
+        javaVersionForProject = ObjectUtils.firstNonNull(javaVersionForProject, new ComparableVersion(System.getProperty("java.version")));
         // get java version according to project java version
         JavaVersion javaVersion = javaVersionForProject.compareTo(new ComparableVersion("9")) < 0 ? JavaVersion.JAVA_8 : JavaVersion.JAVA_11;
         return AppServiceConfigUtils.buildDefaultConfig(subscriptionId, resourceGroup, appName, this.project.getPackaging(), javaVersion);
