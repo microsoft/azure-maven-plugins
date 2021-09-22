@@ -3,22 +3,19 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.maven.utils;
+package com.microsoft.azure.maven.springcloud;
 
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
-
-import org.jtwig.parser.ParseException;
 import org.junit.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.microsoft.azure.maven.utils.TemplateUtils.evalBoolean;
-import static com.microsoft.azure.maven.utils.TemplateUtils.evalPlainText;
-import static com.microsoft.azure.maven.utils.TemplateUtils.evalText;
+import static com.microsoft.azure.maven.springcloud.TemplateUtils.evalBoolean;
+import static com.microsoft.azure.maven.springcloud.TemplateUtils.evalPlainText;
+import static com.microsoft.azure.maven.springcloud.TemplateUtils.evalText;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 public class TemplateUtilsTest {
 
@@ -32,7 +29,7 @@ public class TemplateUtilsTest {
     @Test
     public void testEvalBooleanVariable() {
         final Map<String, Object> map = new HashMap<>();
-        map.put("foo", "{{bar}}");
+        map.put("foo", "${bar}");
         map.put("bar", "true");
         assertEquals(Boolean.TRUE, evalBoolean("foo", map));
     }
@@ -57,7 +54,7 @@ public class TemplateUtilsTest {
     @Test
     public void testEvalPlainTextVariable() {
         final Map<String, Object> map = new HashMap<>();
-        map.put("foo", "{{bar}}");
+        map.put("foo", "${bar}");
         map.put("bar", "hello world");
         assertEquals("hello world", evalPlainText("foo", map));
     }
@@ -65,7 +62,7 @@ public class TemplateUtilsTest {
     @Test
     public void testEvalText() {
         final Map<String, Object> map = new HashMap<>();
-        map.put("foo", "hello ***{{name}}***");
+        map.put("foo", "hello ***${name}***");
         map.put("name", "Jack");
         assertEquals(String.format("hello %s", TextUtils.blue("Jack")), evalText("foo", map));
     }
@@ -73,22 +70,8 @@ public class TemplateUtilsTest {
     @Test
     public void testEndlessEval() {
         final Map<String, Object> map = new HashMap<>();
-        map.put("foo", "hello {{name}}");
-        map.put("name", "{{foo}}");
-        assertEquals("hello hello hello hello {{name}}", evalPlainText("foo", map));
-    }
-
-    @Test
-    public void testBadExpression() {
-        final Map<String, Object> map = new HashMap<>();
-        map.put("foo", "{{bar}");
-        map.put("bar", "hello world");
-        try {
-            evalPlainText("foo", map);
-            fail("Should report error when evaluate text is not valid.");
-        } catch (ParseException ex) {
-            // expected
-        }
-
+        map.put("foo", "hello ${name}");
+        map.put("name", "${foo}");
+        assertEquals("hello hello hello hello ${name}", evalPlainText("foo", map));
     }
 }
