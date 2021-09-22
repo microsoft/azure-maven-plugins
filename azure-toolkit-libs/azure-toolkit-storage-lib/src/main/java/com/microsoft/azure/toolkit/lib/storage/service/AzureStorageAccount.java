@@ -12,6 +12,7 @@ import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
 import com.azure.resourcemanager.storage.models.Reason;
 import com.azure.resourcemanager.storage.models.SkuName;
 import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
@@ -137,6 +138,7 @@ public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
                 withCreate = withCreate.withGeneralPurposeAccountKindV2();
             }
             com.azure.resourcemanager.storage.models.StorageAccount account = withCreate.create();
+            Azure.az(AzureStorageAccount.class).refresh();
             return new StorageAccount(account);
         }
 
