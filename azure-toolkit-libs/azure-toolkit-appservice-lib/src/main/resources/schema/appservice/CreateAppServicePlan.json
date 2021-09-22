@@ -6,10 +6,5 @@
     {
       "$ref": "classpath:///schema/appservice/AppServicePlan.json"
     }
-  ],
-  "required": [
-    "os",
-    "region",
-    "pricingTier"
   ]
 }

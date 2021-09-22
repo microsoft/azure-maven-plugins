@@ -8,19 +8,34 @@ package com.microsoft.azure.maven.webapp;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotConfig;
 import com.microsoft.azure.maven.webapp.task.DeployExternalResourcesTask;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateWebAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask;
+import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
+import java.io.File;
 import java.util.List;
+
+import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.fromAppService;
+import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.mergeAppServiceConfig;
 
 /**
  * Deploy an Azure Web App, either Windows-based or Linux-based.
@@ -45,13 +60,40 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     private IWebAppBase<?> createOrUpdateResource() throws AzureExecutionException {
         if (!isDeployToDeploymentSlot()) {
-            return new CreateOrUpdateWebAppTask(getConfigParser().getAppServiceConfig()).execute();
+            final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
+            IWebApp app = Azure.az(AzureAppService.class).webapp(appServiceConfig.resourceGroup(), appServiceConfig.appName());
+            final boolean newWebApp = !app.exists();
+            AppServiceConfig defaultConfig = !newWebApp ? fromAppService(app, app.plan()) : buildDefaultConfig(appServiceConfig.subscriptionId(),
+                appServiceConfig.resourceGroup(), appServiceConfig.appName());
+            mergeAppServiceConfig(appServiceConfig, defaultConfig);
+            if (appServiceConfig.pricingTier() == null) {
+                appServiceConfig.pricingTier(appServiceConfig.runtime().webContainer() == WebContainer.JBOSS_7 ? PricingTier.PREMIUM_P1V3 : PricingTier.PREMIUM_P1V2);
+            }
+            return new CreateOrUpdateWebAppTask(appServiceConfig).execute();
         } else {
             // todo: New CreateOrUpdateDeploymentSlotTask
             final DeploymentSlotConfig config = getConfigParser().getDeploymentSlotConfig();
             final IWebAppDeploymentSlot slot = getDeploymentSlot(config);
             return slot.exists() ? updateDeploymentSlot(slot, config) : createDeploymentSlot(slot, config);
         }
+    }
+
+    private AppServiceConfig buildDefaultConfig(String subscriptionId, String resourceGroup, String appName) {
+        ComparableVersion javaVersionForProject = null;
+        final String outputFileName = project.getBuild().getFinalName() + "." + project.getPackaging();
+        File outputFile = new File(project.getBuild().getDirectory(), outputFileName);
+        if (outputFile.exists() && StringUtils.equalsIgnoreCase("jar", project.getPackaging())) {
+            try {
+                javaVersionForProject = new ComparableVersion(Utils.getArtifactCompileVersion(outputFile));
+            } catch (Exception e) {
+                // it is acceptable that java version from jar file cannot be retrieved
+            }
+        }
+
+        javaVersionForProject = ObjectUtils.firstNonNull(javaVersionForProject, new ComparableVersion(System.getProperty("java.version")));
+        // get java version according to project java version
+        JavaVersion javaVersion = javaVersionForProject.compareTo(new ComparableVersion("9")) < 0 ? JavaVersion.JAVA_8 : JavaVersion.JAVA_11;
+        return AppServiceConfigUtils.buildDefaultConfig(subscriptionId, resourceGroup, appName, this.project.getPackaging(), javaVersion);
     }
 
     private IWebAppDeploymentSlot getDeploymentSlot(final DeploymentSlotConfig config) throws AzureExecutionException {

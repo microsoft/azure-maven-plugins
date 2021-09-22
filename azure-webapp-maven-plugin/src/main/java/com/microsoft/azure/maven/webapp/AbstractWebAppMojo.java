@@ -44,11 +44,9 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public static final String DOCKER_IMAGE_TYPE_KEY = "dockerImageType";
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
     public static final String OS_KEY = "os";
-    public static final String INVALID_CONFIG_KEY = "invalidConfiguration";
     public static final String SCHEMA_VERSION_KEY = "schemaVersion";
     public static final String DEPLOY_TO_SLOT_KEY = "isDeployToSlot";
-    private static final String INVALID_PARAMETER_ERROR_MESSAGE = "Invalid values found in configuration, please correct the value with messages below:";
-
+    public static final String INVALID_PARAMETER_ERROR_MESSAGE = "Invalid values found in configuration, please correct the value with messages below:";
     //region Properties
 
     /**

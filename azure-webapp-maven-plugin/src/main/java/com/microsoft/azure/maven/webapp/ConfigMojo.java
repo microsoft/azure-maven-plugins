@@ -16,12 +16,12 @@ import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
 import com.microsoft.azure.maven.webapp.models.WebAppOption;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
@@ -51,11 +51,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.microsoft.azure.maven.webapp.utils.Utils.findStringInCollectionIgnoreCase;
+import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.fromAppService;
 
 /**
  * Init or edit the configuration of azure webapp maven plugin.
@@ -83,8 +83,6 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private static final String NO_JAVA_WEB_APPS = "There are no Java Web Apps in current subscription, please follow the following steps to create a new one.";
     private static final String LONG_LOADING_HINT = "It may take a few minutes to load all Java Web Apps, please be patient.";
     private static final String[] configTypes = {"Application", "Runtime", "DeploymentSlot"};
-    private static final String SETTING_DOCKER_IMAGE = "DOCKER_CUSTOM_IMAGE_NAME";
-    private static final String SETTING_REGISTRY_SERVER = "DOCKER_REGISTRY_SERVER_URL";
     private static final String SETTING_REGISTRY_USERNAME = "DOCKER_REGISTRY_SERVER_USERNAME";
     private static final String SERVER_ID_TEMPLATE = "Please add a server in Maven settings.xml related to username: %s and put the serverId here";
 
@@ -500,17 +498,12 @@ public class ConfigMojo extends AbstractWebAppMojo {
             }
 
             final IWebApp webapp = az.webapp(selectedApp.getId());
-            final String serverPlanId = selectedApp.getServicePlanId();
-            IAppServicePlan servicePlan = null;
-            if (StringUtils.isNotBlank(serverPlanId)) {
-                servicePlan = az.appServicePlan(serverPlanId);
-            }
 
             final WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder = WebAppConfiguration.builder();
             if (!AppServiceUtils.isDockerAppService(webapp)) {
                 builder.resources(Deployment.getDefaultDeploymentConfiguration(getProject().getPackaging()).getResources());
             }
-            return getConfigurationFromExisting(webapp, servicePlan, builder);
+            return getConfigurationFromExisting(webapp, builder);
         } catch (AzureToolkitAuthenticationException ex) {
             // if is valid for config goal to have error in authentication
             getLog().warn(String.format("Cannot authenticate due to error: %s, select existing webapp is skipped.", ex.getMessage()));
@@ -533,43 +526,30 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 .read(String.format("%s Web Apps in subscription %s:", webAppType, TextUtils.blue(targetSubscription.getName())));
     }
 
-    private static WebAppConfiguration getConfigurationFromExisting(IWebApp webapp, IAppServicePlan servicePlan,
+    private WebAppConfiguration getConfigurationFromExisting(IWebApp webapp,
                                                                     WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder) {
+        final AppServiceConfig appServiceConfig = fromAppService(webapp, webapp.plan());
         // common configuration
-        builder.appName(webapp.name())
-                .resourceGroup(webapp.entity().getResourceGroup())
-                .subscriptionId(Utils.getSubscriptionId(webapp.id()))
-                .region(webapp.entity().getRegion());
-
+        builder.appName(appServiceConfig.appName())
+                .resourceGroup(appServiceConfig.resourceGroup())
+                .subscriptionId(appServiceConfig.subscriptionId())
+                .region(appServiceConfig.region());
+        builder.os(appServiceConfig.runtime().os());
         if (AppServiceUtils.isDockerAppService(webapp)) {
-            builder.os(OperatingSystem.DOCKER);
             final Map<String, String> settings = webapp.entity().getAppSettings();
-
-            final String imageSetting = settings.get(SETTING_DOCKER_IMAGE);
-            if (StringUtils.isNotBlank(imageSetting)) {
-                builder.image(imageSetting);
-            } else {
-                builder.image(webapp.entity().getDockerImageName());
-            }
-            final String registryServerSetting = settings.get(SETTING_REGISTRY_SERVER);
-            if (StringUtils.isNotBlank(registryServerSetting)) {
-                builder.registryUrl(registryServerSetting);
-            }
-
+            builder.image(appServiceConfig.runtime().image());
+            builder.registryUrl(appServiceConfig.runtime().registryUrl());
             final String dockerUsernameSetting = settings.get(SETTING_REGISTRY_USERNAME);
             if (StringUtils.isNotBlank(dockerUsernameSetting)) {
                 builder.serverId(String.format(SERVER_ID_TEMPLATE, dockerUsernameSetting));
             }
         } else {
-            builder.os(webapp.getRuntime().getOperatingSystem());
-            builder.webContainer(Objects.toString(webapp.getRuntime().getWebContainer()));
-            builder.javaVersion(Objects.toString(webapp.getRuntime().getJavaVersion()));
+            builder.webContainer(Objects.toString(appServiceConfig.runtime().webContainer()));
+            builder.javaVersion(Objects.toString(appServiceConfig.runtime().javaVersion()));
         }
-        if (servicePlan != null && servicePlan.entity() != null) {
-            builder.pricingTier(Optional.ofNullable(servicePlan.entity().getPricingTier()).map(Object::toString).orElse(null));
-            builder.servicePlanName(servicePlan.name());
-            builder.servicePlanResourceGroup(servicePlan.entity().getResourceGroup());
-        }
+        builder.servicePlanName(appServiceConfig.servicePlanName());
+        builder.servicePlanResourceGroup(appServiceConfig.servicePlanResourceGroup());
+        builder.pricingTier(Objects.toString(appServiceConfig.pricingTier()));
         return builder.build();
     }
 

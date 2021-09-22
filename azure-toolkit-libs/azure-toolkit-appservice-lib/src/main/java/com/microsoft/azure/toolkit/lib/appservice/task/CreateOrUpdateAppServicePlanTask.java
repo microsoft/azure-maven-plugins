@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.common.validator.SchemaValidator;
+import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
 import lombok.AllArgsConstructor;
 
 import java.util.Objects;
@@ -36,7 +37,7 @@ public class CreateOrUpdateAppServicePlanTask extends AzureTask<IAppServicePlan>
             SchemaValidator.getInstance().validateAndThrow("appservice/CreateAppServicePlan", config);
             AzureMessager.getMessager().info(String.format(CREATE_APP_SERVICE_PLAN, servicePlanName));
             AzureTelemetry.getActionContext().setProperty(CREATE_NEW_APP_SERVICE_PLAN, String.valueOf(true));
-
+            new CreateResourceGroupTask(this.config.subscriptionId(), config.servicePlanResourceGroup(), config.region()).execute();
             appServicePlan.create()
                 .withName(servicePlanName)
                 .withResourceGroup(config.servicePlanResourceGroup())
@@ -50,7 +51,7 @@ public class CreateOrUpdateAppServicePlanTask extends AzureTask<IAppServicePlan>
                 AzureMessager.getMessager().warning(String.format("Skip region update for existing service plan '%s' since it is not allowed.",
                     appServicePlan.name()));
             }
-            if (config.pricingTier() != null) {
+            if (config.pricingTier() != null && !Objects.equals(config.pricingTier(), appServicePlan.entity().getPricingTier())) {
                 // apply pricing tier to service plan
                 appServicePlan.update().withPricingTier(config.pricingTier()).commit();
             }
