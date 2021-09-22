@@ -153,11 +153,6 @@ public class DeployMojo extends AbstractFunctionMojo {
         if (config.pricingTier() == null) {
             config.pricingTier(PricingTier.CONSUMPTION);
         }
-        try {
-            com.microsoft.azure.toolkit.lib.appservice.utils.Utils.mergeObjects(config, defaultConfig);
-        } catch (IllegalAccessException e) {
-            throw new AzureToolkitRuntimeException("Cannot copy object for class AppServiceConfig.", e);
-        }
         if (!newFunctionApp && !config.disableAppInsights()) {
             // fill ai key from existing app settings
             config.appInsightsKey(app.entity().getAppSettings().get(CreateOrUpdateFunctionAppTask.APPINSIGHTS_INSTRUMENTATION_KEY));
