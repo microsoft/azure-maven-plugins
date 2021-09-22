@@ -73,11 +73,11 @@ Property | Required | Description
 `<resourceGroup>` | true | Azure Resource Group for your Web App. |
 `<appName>` | true | The name of your Web App. |
 `<pricingTier>`| false | The pricing tier for your Web App. The default value is **P1V2**(**P1v3** for JBoss).|
-`<region>`| false | Specifies the region where your Web App will be hosted; the default value is **westeurope**(or the first region available in your subscription). All valid regions at [Supported Regions](#region) section. |
-`<os>`| false | Specifies the os, supported values are *Linux*, *Windows* and *Docker*. The default value is **linux**|
-`<webContainer>`| false | Specifies the runtime stack, values for Linux are: *Tomcat 8.5*, *Tomcat 9.0*, *Java SE*, *JbossEAP 7.2*, The default value would be  **Tomcat 8.5** or **Java SE** according to your project type |
-`<javaVersion>`| false | Specifies the java version, values are: *Java 8* or *Java 11*. The default value is **Java 11**|
-`<deployment>`| false | Specifies the target file to be deployed. If it is not specified, a default webapp is created. |
+`<region>`| false | Specifies the region where your Web App will be hosted; the default value is **centralus**(or the first region if centralus is not available in your subscription). All valid regions at [Supported Regions](#region) section. |
+ `<os>`| false | Specifies the os, supported values are *Linux*, *Windows* and *Docker*. The default value is **linux**|
+`<webContainer>`| false | Specifies the runtime stack, values for Linux are: *Tomcat 8.5*, *Tomcat 9.0*, *Java SE*, *JBossEAP 7*, The default value would be  **Tomcat 8.5** or **Java SE** or **JBossEAP 7** according to your project type |
+`<javaVersion>`| false | Specifies the java version, values are: *Java 8* or *Java 11*. The default value is your project compiler level|
+`<deployment>`| false | Specifies the target file to be deployed. If it is not specified, a default webapp is created without any deployments. |
 
 ## Feedback and Questions
 To report bugs or request new features, file issues on [Issues](https://github.com/microsoft/azure-maven-plugins/issues). Or, ask questions on [Stack Overflow with tag azure-java-tools](https://stackoverflow.com/questions/tagged/azure-java-tools).
