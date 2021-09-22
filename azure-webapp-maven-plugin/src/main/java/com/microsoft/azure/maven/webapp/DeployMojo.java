@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.azure.core.management.exception.ManagementException;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotConfig;
 import com.microsoft.azure.maven.webapp.task.DeployExternalResourcesTask;
@@ -23,8 +24,10 @@ import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import com.microsoft.azure.toolkit.lib.resource.AzureGroup;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -63,11 +66,33 @@ public class DeployMojo extends AbstractWebAppMojo {
             final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
             IWebApp app = Azure.az(AzureAppService.class).webapp(appServiceConfig.resourceGroup(), appServiceConfig.appName());
             final boolean newWebApp = !app.exists();
+            final boolean skipCreate = skipAzureResourceCreate || skipCreateAzureResource;
+            if (skipCreate) {
+                if (newWebApp) {
+                    throwForbidCreateResourceWarning("Web app", appName);
+                }
+                if (StringUtils.isNotBlank(appServiceConfig.servicePlanResourceGroup())) {
+                    final AzureGroup az = Azure.az(AzureGroup.class).subscription(subscriptionId);
+                    try {
+                        // check servicePlanResourceGroup for existence
+                        az.getByName(appServiceConfig.servicePlanResourceGroup());
+                    } catch (ManagementException e) {
+                        if (e.getResponse().getStatusCode() == 404) {
+                            throwForbidCreateResourceWarning("Resource group", appServiceConfig.servicePlanResourceGroup());
+                        }
+                    }
+                }
+            }
             AppServiceConfig defaultConfig = !newWebApp ? fromAppService(app, app.plan()) : buildDefaultConfig(appServiceConfig.subscriptionId(),
                 appServiceConfig.resourceGroup(), appServiceConfig.appName());
             mergeAppServiceConfig(appServiceConfig, defaultConfig);
             if (appServiceConfig.pricingTier() == null) {
                 appServiceConfig.pricingTier(appServiceConfig.runtime().webContainer() == WebContainer.JBOSS_7 ? PricingTier.PREMIUM_P1V3 : PricingTier.PREMIUM_P1V2);
+            }
+            if (skipCreate) {
+                if (!Azure.az(AzureAppService.class).appServicePlan(appServiceConfig.servicePlanResourceGroup(), appServiceConfig.servicePlanName()).exists()) {
+                    throwForbidCreateResourceWarning("Service plan", appServiceConfig.servicePlanName());
+                }
             }
             return new CreateOrUpdateWebAppTask(appServiceConfig).execute();
         } else {
@@ -76,6 +101,11 @@ public class DeployMojo extends AbstractWebAppMojo {
             final IWebAppDeploymentSlot slot = getDeploymentSlot(config);
             return slot.exists() ? updateDeploymentSlot(slot, config) : createDeploymentSlot(slot, config);
         }
+    }
+
+    private static void throwForbidCreateResourceWarning(String resourceType, String name) {
+        throw new AzureToolkitRuntimeException(String.format("%s(%s) cannot be found, if you want to create please remove these maven arguments: " +
+            "`-Dazure.resource.create.skip=true` or `-DskipCreateAzureResource`.", resourceType, name));
     }
 
     private AppServiceConfig buildDefaultConfig(String subscriptionId, String resourceGroup, String appName) {
