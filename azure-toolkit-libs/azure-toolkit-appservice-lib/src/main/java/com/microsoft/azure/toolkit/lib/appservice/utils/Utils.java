@@ -12,10 +12,12 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -66,5 +68,16 @@ public class Utils {
             throw new AzureToolkitRuntimeException(String.format("No %s is available.", name));
         }
         return options.contains(value) ? value : options.get(0);
+    }
+
+    public static <T> void mergeObjects(T to, T from) throws IllegalAccessException {
+        for (Field field : FieldUtils.getAllFields(from.getClass())) {
+            if (FieldUtils.readField(field, to, true) == null) {
+                final Object value = FieldUtils.readField(field, from, true);
+                if (value != null) {
+                    FieldUtils.writeField(field, to, value, true);
+                }
+            }
+        }
     }
 }
