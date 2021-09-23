@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.compute.vm;
 
-import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.compute.models.AvailabilitySet;
 import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages.WithCreate;
 import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages.WithLinuxCreateManagedOrUnmanaged;

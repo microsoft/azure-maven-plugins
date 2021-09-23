@@ -49,6 +49,11 @@ public class DraftPublicIpAddress extends PublicIpAddress implements AzureResour
     }
 
     @Override
+    public boolean hasAssignedNetworkInterface() {
+        return Optional.ofNullable(remote).map(ignore -> super.hasAssignedNetworkInterface()).orElse(false);
+    }
+
+    @Override
     public String getId() {
         return Optional.ofNullable(remote).map(HasId::id).orElseGet(() -> getResourceId(subscriptionId, resourceGroup, name));
     }
