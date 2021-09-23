@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.entity;
 
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
@@ -25,5 +26,9 @@ public class AppServiceBaseEntity implements IAzureResourceEntity {
     private final String appServicePlanId;
     private final String defaultHostName;
     private final String dockerImageName;
-    private final Map<String, String> appSettings;
+    private final IAppService appService;
+
+    public Map<String, String> getAppSettings() {
+        return appService.appSettings();
+    }
 }

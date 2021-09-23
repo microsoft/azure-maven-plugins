@@ -72,7 +72,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
     @NotNull
     @Override
     protected WebAppDeploymentSlotEntity getEntityFromRemoteResource(@NotNull DeploymentSlot remote) {
-        return AppServiceUtils.fromWebAppDeploymentSlot(remote);
+        return AppServiceUtils.fromWebAppDeploymentSlot(remote, this);
     }
 
     @Override
@@ -168,7 +168,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
                 AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, getDiagnosticConfig());
             }
             WebAppDeploymentSlot.this.remote = withCreate.create();
-            WebAppDeploymentSlot.this.entity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.remote);
+            WebAppDeploymentSlot.this.entity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.remote, WebAppDeploymentSlot.this);
             return WebAppDeploymentSlot.this;
         }
     }
@@ -210,7 +210,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
                 AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, getDiagnosticConfig());
             }
             WebAppDeploymentSlot.this.remote = update.apply();
-            WebAppDeploymentSlot.this.entity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.remote);
+            WebAppDeploymentSlot.this.entity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.remote, WebAppDeploymentSlot.this);
             return WebAppDeploymentSlot.this;
         }
     }

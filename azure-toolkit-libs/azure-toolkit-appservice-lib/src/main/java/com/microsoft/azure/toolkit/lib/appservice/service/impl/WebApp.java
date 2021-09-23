@@ -78,7 +78,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     @NotNull
     @Override
     protected WebAppEntity getEntityFromRemoteResource(@NotNull com.azure.resourcemanager.appservice.models.WebApp remote) {
-        return AppServiceUtils.fromWebApp(remote);
+        return AppServiceUtils.fromWebApp(remote, this);
     }
 
     @Override
@@ -188,7 +188,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
                 AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, getDiagnosticConfig().get());
             }
             WebApp.this.remote = withCreate.create();
-            WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.remote);
+            WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.remote, WebApp.this);
             return WebApp.this;
         }
 
@@ -254,7 +254,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             if (modified) {
                 WebApp.this.remote = update.apply();
             }
-            WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.remote);
+            WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.remote, WebApp.this);
             return WebApp.this;
         }
 

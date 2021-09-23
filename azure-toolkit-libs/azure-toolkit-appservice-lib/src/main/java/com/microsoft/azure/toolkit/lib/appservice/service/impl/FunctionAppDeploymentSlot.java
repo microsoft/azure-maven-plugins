@@ -66,7 +66,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
     @NotNull
     @Override
     protected FunctionAppDeploymentSlotEntity getEntityFromRemoteResource(@NotNull FunctionDeploymentSlot remote) {
-        return AppServiceUtils.fromFunctionAppDeploymentSlot(remote);
+        return AppServiceUtils.fromFunctionAppDeploymentSlot(remote, this);
     }
 
     @Override
@@ -163,7 +163,8 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
                 AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, getDiagnosticConfig());
             }
             FunctionAppDeploymentSlot.this.remote = withCreate.create();
-            FunctionAppDeploymentSlot.this.entity = AppServiceUtils.fromFunctionAppDeploymentSlot(FunctionAppDeploymentSlot.this.remote);
+            FunctionAppDeploymentSlot.this.entity = AppServiceUtils.fromFunctionAppDeploymentSlot(FunctionAppDeploymentSlot.this.remote,
+                    FunctionAppDeploymentSlot.this);
             return FunctionAppDeploymentSlot.this;
         }
     }
@@ -204,7 +205,8 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
                 AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, getDiagnosticConfig());
             }
             FunctionAppDeploymentSlot.this.remote = update.apply();
-            FunctionAppDeploymentSlot.this.entity = AppServiceUtils.fromFunctionAppDeploymentSlot(FunctionAppDeploymentSlot.this.remote);
+            FunctionAppDeploymentSlot.this.entity = AppServiceUtils.fromFunctionAppDeploymentSlot(FunctionAppDeploymentSlot.this.remote,
+                    FunctionAppDeploymentSlot.this);
             return FunctionAppDeploymentSlot.this;
         }
     }

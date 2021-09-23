@@ -13,7 +13,6 @@ import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.FileSystemApplicationLogsConfig;
 import com.azure.resourcemanager.appservice.models.FileSystemHttpLogsConfig;
 import com.azure.resourcemanager.appservice.models.FunctionApp;
-import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.azure.resourcemanager.appservice.models.FunctionEnvelope;
 import com.azure.resourcemanager.appservice.models.FunctionRuntimeStack;
@@ -21,7 +20,6 @@ import com.azure.resourcemanager.appservice.models.HttpLogsConfig;
 import com.azure.resourcemanager.appservice.models.RuntimeStack;
 import com.azure.resourcemanager.appservice.models.SkuDescription;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
-import com.azure.resourcemanager.appservice.models.WebAppBasic;
 import com.azure.resourcemanager.appservice.models.WebAppDiagnosticLogs;
 import com.azure.resourcemanager.resources.fluentcore.model.HasInnerModel;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
@@ -186,87 +184,63 @@ class AppServiceUtils {
         return com.azure.resourcemanager.appservice.models.JavaVersion.fromString(value);
     }
 
-    static FunctionAppEntity fromFunctionApp(FunctionApp functionApp) {
-        return FunctionAppEntity.builder().name(functionApp.name())
-                .id(functionApp.id())
-                .region(Region.fromName(functionApp.regionName()))
-                .resourceGroup(functionApp.resourceGroupName())
-                .subscriptionId(Utils.getSubscriptionId(functionApp.id()))
-                .runtime(getRuntimeFromAppService(functionApp))
-                .appServicePlanId(functionApp.appServicePlanId())
-                .defaultHostName(functionApp.defaultHostname())
-                .appSettings(Utils.normalizeAppSettings(functionApp.getAppSettings()))
+    static FunctionAppEntity fromFunctionApp(FunctionApp remote, com.microsoft.azure.toolkit.lib.appservice.service.impl.FunctionApp functionApp) {
+        return FunctionAppEntity.builder().name(remote.name())
+                .id(remote.id())
+                .region(Region.fromName(remote.regionName()))
+                .resourceGroup(remote.resourceGroupName())
+                .subscriptionId(Utils.getSubscriptionId(remote.id()))
+                .runtime(getRuntimeFromAppService(remote))
+                .appServicePlanId(remote.appServicePlanId())
+                .defaultHostName(remote.defaultHostname())
+                .appService(functionApp)
                 .build();
     }
 
-    static FunctionAppEntity fromFunctionAppBasic(FunctionAppBasic functionApp) {
-        return FunctionAppEntity.builder().name(functionApp.name())
-                .id(functionApp.id())
-                .region(Region.fromName(functionApp.regionName()))
-                .resourceGroup(functionApp.resourceGroupName())
-                .subscriptionId(Utils.getSubscriptionId(functionApp.id()))
-                .runtime(null)
-                .appServicePlanId(functionApp.appServicePlanId())
-                .defaultHostName(functionApp.defaultHostname())
-                .build();
-    }
-
-    static WebAppEntity fromWebApp(WebAppBase webAppBase) {
-        final WebAppEntity.WebAppEntityBuilder<?, ?> builder = WebAppEntity.builder().name(webAppBase.name())
-            .id(webAppBase.id())
-            .region(Region.fromName(webAppBase.regionName()))
-            .resourceGroup(webAppBase.resourceGroupName())
-            .subscriptionId(Utils.getSubscriptionId(webAppBase.id()))
-            .runtime(getRuntimeFromAppService(webAppBase))
-            .appServicePlanId(webAppBase.appServicePlanId())
-            .defaultHostName(webAppBase.defaultHostname())
-            .appSettings(Utils.normalizeAppSettings(webAppBase.getAppSettings()));
-
-        final String linuxFxVersion = webAppBase.linuxFxVersion();
+    static WebAppEntity fromWebApp(WebAppBase remote, WebApp webApp) {
+        final WebAppEntity.WebAppEntityBuilder<?, ?> builder = WebAppEntity.builder().name(remote.name())
+            .id(remote.id())
+            .region(Region.fromName(remote.regionName()))
+            .resourceGroup(remote.resourceGroupName())
+            .subscriptionId(Utils.getSubscriptionId(remote.id()))
+            .runtime(getRuntimeFromAppService(remote))
+            .appServicePlanId(remote.appServicePlanId())
+            .defaultHostName(remote.defaultHostname())
+            .appService(webApp);
+        final String linuxFxVersion = remote.linuxFxVersion();
         if (StringUtils.startsWithIgnoreCase(linuxFxVersion, "docker")) {
             builder.dockerImageName(getDockerImageNameFromLinuxFxVersion(linuxFxVersion));
         }
         return builder.build();
     }
 
-    static WebAppEntity fromWebAppBasic(WebAppBasic webAppBasic) {
-        return WebAppEntity.builder().name(webAppBasic.name())
-            .id(webAppBasic.id())
-            .region(Region.fromName(webAppBasic.regionName()))
-            .resourceGroup(webAppBasic.resourceGroupName())
-            .subscriptionId(Utils.getSubscriptionId(webAppBasic.id()))
-            .appServicePlanId(webAppBasic.appServicePlanId())
-            .defaultHostName(webAppBasic.defaultHostname())
-            .build();
-    }
-
-    static FunctionAppDeploymentSlotEntity fromFunctionAppDeploymentSlot(FunctionDeploymentSlot deploymentSlot) {
+    static FunctionAppDeploymentSlotEntity fromFunctionAppDeploymentSlot(FunctionDeploymentSlot remote, FunctionAppDeploymentSlot deploymentSlot) {
         return FunctionAppDeploymentSlotEntity.builder()
-                .name(deploymentSlot.name())
-                .functionAppName(deploymentSlot.parent().name())
-                .id(deploymentSlot.id())
-                .resourceGroup(deploymentSlot.resourceGroupName())
-                .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
-                .region(Region.fromName(deploymentSlot.regionName()))
-                .runtime(getRuntimeFromAppService(deploymentSlot))
-                .appServicePlanId(deploymentSlot.appServicePlanId())
-                .defaultHostName(deploymentSlot.defaultHostname())
-                .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))
+                .name(remote.name())
+                .functionAppName(remote.parent().name())
+                .id(remote.id())
+                .resourceGroup(remote.resourceGroupName())
+                .subscriptionId(Utils.getSubscriptionId(remote.id()))
+                .region(Region.fromName(remote.regionName()))
+                .runtime(getRuntimeFromAppService(remote))
+                .appServicePlanId(remote.appServicePlanId())
+                .defaultHostName(remote.defaultHostname())
+                .appService(deploymentSlot)
                 .build();
     }
 
-    static WebAppDeploymentSlotEntity fromWebAppDeploymentSlot(DeploymentSlot deploymentSlot) {
+    static WebAppDeploymentSlotEntity fromWebAppDeploymentSlot(DeploymentSlot remote, WebAppDeploymentSlot deploymentSlot) {
         return WebAppDeploymentSlotEntity.builder()
-                .name(deploymentSlot.name())
-                .webappName(deploymentSlot.parent().name())
-                .id(deploymentSlot.id())
-                .resourceGroup(deploymentSlot.resourceGroupName())
-                .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
-                .region(Region.fromName(deploymentSlot.regionName()))
-                .runtime(getRuntimeFromAppService(deploymentSlot))
-                .appServicePlanId(deploymentSlot.appServicePlanId())
-                .defaultHostName(deploymentSlot.defaultHostname())
-                .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))
+                .name(remote.name())
+                .webappName(remote.parent().name())
+                .id(remote.id())
+                .resourceGroup(remote.resourceGroupName())
+                .subscriptionId(Utils.getSubscriptionId(remote.id()))
+                .region(Region.fromName(remote.regionName()))
+                .runtime(getRuntimeFromAppService(remote))
+                .appServicePlanId(remote.appServicePlanId())
+                .defaultHostName(remote.defaultHostname())
+                .appService(deploymentSlot)
                 .build();
     }
 

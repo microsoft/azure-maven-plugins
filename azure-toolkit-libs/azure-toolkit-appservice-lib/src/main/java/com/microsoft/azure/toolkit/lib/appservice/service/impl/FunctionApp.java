@@ -164,7 +164,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     @Nonnull
     @Override
     protected FunctionAppEntity getEntityFromRemoteResource(@NotNull com.azure.resourcemanager.appservice.models.FunctionApp remote) {
-        return AppServiceUtils.fromFunctionApp(remote);
+        return AppServiceUtils.fromFunctionApp(remote, this);
     }
 
     @Nullable
@@ -221,7 +221,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
                 AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, getDiagnosticConfig().get());
             }
             FunctionApp.this.remote = withCreate.create();
-            FunctionApp.this.entity = AppServiceUtils.fromFunctionApp(FunctionApp.this.remote);
+            FunctionApp.this.entity = AppServiceUtils.fromFunctionApp(FunctionApp.this.remote, FunctionApp.this);
             return FunctionApp.this;
         }
 
@@ -300,7 +300,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
             if (modified) {
                 FunctionApp.this.remote = update.apply();
             }
-            FunctionApp.this.entity = AppServiceUtils.fromFunctionApp(FunctionApp.this.remote);
+            FunctionApp.this.entity = AppServiceUtils.fromFunctionApp(FunctionApp.this.remote, FunctionApp.this);
             return FunctionApp.this;
         }
 
