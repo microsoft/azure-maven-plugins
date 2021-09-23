@@ -88,6 +88,20 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected boolean skip;
 
     /**
+     * TODO(andxu): move this flag to AbstractAzureMojo
+     */
+    @JsonIgnore
+    @Parameter(property = "azure.resource.create.skip", defaultValue = "false")
+    protected boolean skipAzureResourceCreate;
+
+    /**
+     * TODO(andxu): move this flag to AbstractAzureMojo
+     */
+    @JsonIgnore
+    @Parameter(property = "skipCreateAzureResource")
+    protected boolean skipCreateAzureResource;
+
+    /**
      * App Service region, which will only be used to create App Service at the first time.
      */
     @JsonProperty

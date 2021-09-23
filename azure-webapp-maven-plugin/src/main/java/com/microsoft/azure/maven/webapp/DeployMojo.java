@@ -36,6 +36,7 @@ import java.util.List;
 
 import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.fromAppService;
 import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.mergeAppServiceConfig;
+import static com.microsoft.azure.toolkit.lib.appservice.utils.Utils.throwForbidCreateResourceWarning;
 
 /**
  * Deploy an Azure Web App, either Windows-based or Linux-based.
@@ -59,6 +60,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private IWebAppBase<?> createOrUpdateResource() throws AzureExecutionException {
+        final boolean skipCreate = skipAzureResourceCreate || skipCreateAzureResource;
         if (!isDeployToDeploymentSlot()) {
             final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
             IWebApp app = Azure.az(AzureAppService.class).webapp(appServiceConfig.resourceGroup(), appServiceConfig.appName());
@@ -69,12 +71,18 @@ public class DeployMojo extends AbstractWebAppMojo {
             if (appServiceConfig.pricingTier() == null) {
                 appServiceConfig.pricingTier(appServiceConfig.runtime().webContainer() == WebContainer.JBOSS_7 ? PricingTier.PREMIUM_P1V3 : PricingTier.PREMIUM_P1V2);
             }
-            return new CreateOrUpdateWebAppTask(appServiceConfig).execute();
+            final CreateOrUpdateWebAppTask task = new CreateOrUpdateWebAppTask(appServiceConfig);
+            task.setSkipCreateAzureResource(skipCreate);
+            return task.execute();
         } else {
             // todo: New CreateOrUpdateDeploymentSlotTask
             final DeploymentSlotConfig config = getConfigParser().getDeploymentSlotConfig();
             final IWebAppDeploymentSlot slot = getDeploymentSlot(config);
-            return slot.exists() ? updateDeploymentSlot(slot, config) : createDeploymentSlot(slot, config);
+            final boolean slotExists = slot.exists();
+            if (!slotExists && skipCreate) {
+                throwForbidCreateResourceWarning("Deployment slot", config.getName());
+            }
+            return slotExists ? updateDeploymentSlot(slot, config) : createDeploymentSlot(slot, config);
         }
     }
 
@@ -117,6 +125,7 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     // update existing slot is not supported in current version, will implement it later
     private IWebAppDeploymentSlot updateDeploymentSlot(final IWebAppDeploymentSlot slot, final DeploymentSlotConfig slotConfig) {
+        AzureMessager.getMessager().warning("update existing slot is not supported in current version");
         return slot;
     }
 

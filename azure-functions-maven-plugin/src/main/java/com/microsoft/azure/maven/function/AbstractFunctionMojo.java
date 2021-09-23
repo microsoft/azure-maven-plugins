@@ -65,7 +65,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     /**
      * App Service region, which will only be used to create App Service at the first time.
      */
-    @Parameter(property = "functions.region", defaultValue = "westeurope")
+    @Parameter(property = "functions.region")
     protected String region;
 
     @Parameter(property = "functions.runtime")

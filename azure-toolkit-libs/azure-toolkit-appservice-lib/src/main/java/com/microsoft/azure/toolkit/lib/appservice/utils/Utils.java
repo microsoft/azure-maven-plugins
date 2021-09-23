@@ -80,4 +80,9 @@ public class Utils {
             }
         }
     }
+
+    public static void throwForbidCreateResourceWarning(String resourceType, String name) {
+        throw new AzureToolkitRuntimeException(String.format("%s(%s) cannot be found, if you want to create azure resources please remove command line arguments: " +
+            "`-Dazure.resource.create.skip=true` or `-DskipCreateAzureResource`.", resourceType, name));
+    }
 }
