@@ -28,6 +28,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation.Type;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
+import lombok.Setter;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
@@ -35,6 +36,8 @@ import reactor.core.publisher.Flux;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import static com.microsoft.azure.toolkit.lib.appservice.utils.Utils.throwForbidCreateResourceWarning;
 
 public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
     private static final String CREATE_NEW_WEB_APP = "createNewWebApp";
@@ -46,6 +49,9 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
 
     private final AppServiceConfig config;
     private final List<AzureTask<?>> subTasks;
+
+    @Setter
+    private boolean skipCreateAzureResource;
 
     public CreateOrUpdateWebAppTask(AppServiceConfig config) {
         this.config = config;
@@ -60,6 +66,9 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
             final IWebApp target = az.subscription(config.subscriptionId())
                 .webapp(config.resourceGroup(), config.appName());
             if (!target.exists()) {
+                if (skipCreateAzureResource) {
+                    throwForbidCreateResourceWarning("Web app", config.appName());
+                }
                 CheckNameAvailabilityResultEntity result = az.checkNameAvailability(config.subscriptionId(), config.appName());
                 if (!result.isAvailable()) {
                     throw new AzureToolkitRuntimeException(AzureString.format("Cannot create webapp {0} due to error: {1}",
@@ -101,6 +110,11 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
         AzureMessager.getMessager().info(String.format(UPDATE_WEBAPP, webApp.name()));
         final IAppServicePlan currentPlan = webApp.plan();
         final AppServicePlanConfig servicePlanConfig = config.getServicePlanConfig();
+
+        if (skipCreateAzureResource && !Azure.az(AzureAppService.class).appServicePlan(servicePlanConfig.servicePlanResourceGroup(), servicePlanConfig.servicePlanName()).exists()) {
+            throwForbidCreateResourceWarning("Service plan", servicePlanConfig.servicePlanName());
+        }
+        throwForbidCreateResourceWarning("Web app", config.appName());
 
         final Runtime runtime = getRuntime(config.runtime());
         final IAppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig).execute();

@@ -34,7 +34,6 @@ public interface AzureService<T extends IAzureBaseResource> extends IAzureModule
         return Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
     }
 
-    @SuppressWarnings("checkstyle:Indentation")
     default List<Region> listSupportedRegions(String subscriptionId) {
         String[] names = StringUtils.split(name(), "/");
         if (names.length != 2) {
