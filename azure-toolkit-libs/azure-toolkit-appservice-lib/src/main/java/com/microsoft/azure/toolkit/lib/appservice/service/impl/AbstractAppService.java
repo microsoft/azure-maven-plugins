@@ -22,7 +22,10 @@ import com.microsoft.azure.toolkit.lib.appservice.model.TunnelStatus;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.service.IProcessClient;
+import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
+import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
@@ -30,11 +33,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBaseEntity> extends AbstractAzureManager<T> implements IAppService<R>,
-    AzureOperationEvent.Source<AbstractAppService<T, R>> {
+        AzureOperationEvent.Source<AbstractAppService<T, R>> {
 
     protected static final String APP_SERVICE_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s";
     protected AppServiceKuduManager kuduManager;
@@ -86,11 +91,28 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
 
     @Override
     @Nonnull
+    @Deprecated
     public synchronized R entity() {
         if (entity == null) {
             entity = getEntityFromRemoteResource(remote());
         }
         return entity;
+    }
+
+    @Override
+    @Cacheable(cacheName = "appservice/{}/appSettings", key = "$(this.id())", condition = "!(force&&force[0])") // add cache as each call will send a request
+    public Map<String, String> appSettings(boolean... force) {
+        return Optional.ofNullable(remote().getAppSettings()).map(Utils::normalizeAppSettings).orElse(Collections.emptyMap());
+    }
+
+    @Override
+    public Runtime getRuntime() {
+        return AppServiceUtils.getRuntimeFromAppService(remote());
+    }
+
+    @Override
+    public Region region() {
+        return Region.fromName(remote().regionName());
     }
 
     @Override
@@ -101,11 +123,6 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     @Override
     public String state() {
         return remote().state();
-    }
-
-    @Override
-    public Runtime getRuntime() {
-        return entity().getRuntime();
     }
 
     @Override

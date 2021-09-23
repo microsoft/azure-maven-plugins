@@ -17,6 +17,7 @@ import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
+import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
@@ -82,6 +83,11 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
     @Override
     public void delete() {
         remote().parent().deploymentSlots().deleteById(this.id());
+    }
+
+    @Override
+    public IAppServicePlan plan() {
+        return webApp().plan();
     }
 
     @Override

@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
+import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
@@ -73,6 +74,11 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
         parent.deploymentSlots().deleteById(this.id());
     }
 
+    @Override
+    public IAppServicePlan plan() {
+        return functionApp().plan();
+    }
+
     @Nullable
     @Override
     protected FunctionDeploymentSlot loadRemote() {
@@ -81,9 +87,8 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
     @Override
     public String getMasterKey() {
-        final String resourceGroup = entity().getResourceGroup();
-        final String name = String.format("%s/slots/%s", entity().getFunctionAppName(), entity().getName());
-        return remote().manager().serviceClient().getWebApps().listHostKeysAsync(resourceGroup, name).map(HostKeysInner::masterKey).block();
+        final String resourceName = String.format("%s/slots/%s", parent.name(), name);
+        return remote().manager().serviceClient().getWebApps().listHostKeysAsync(resourceGroup, resourceName).map(HostKeysInner::masterKey).block();
     }
 
     @Override

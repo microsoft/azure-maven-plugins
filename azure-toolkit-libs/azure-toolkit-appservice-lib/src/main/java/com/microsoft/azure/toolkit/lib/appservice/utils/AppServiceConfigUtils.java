@@ -31,14 +31,14 @@ public class AppServiceConfigUtils {
         AppServiceConfig config = new AppServiceConfig();
         config.appName(appService.name());
 
-        config.resourceGroup(appService.entity().getResourceGroup());
+        config.resourceGroup(appService.resourceGroup());
         config.subscriptionId(Utils.getSubscriptionId(appService.id()));
-        config.region(appService.entity().getRegion());
+        config.region(appService.region());
         config.pricingTier(servicePlan.entity().getPricingTier());
         RuntimeConfig runtimeConfig = new RuntimeConfig();
         if (AppServiceUtils.isDockerAppService(appService)) {
             runtimeConfig.os(OperatingSystem.DOCKER);
-            final Map<String, String> settings = appService.entity().getAppSettings();
+            final Map<String, String> settings = appService.appSettings();
 
             final String imageSetting = settings.get(SETTING_DOCKER_IMAGE);
             if (StringUtils.isNotBlank(imageSetting)) {

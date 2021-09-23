@@ -536,7 +536,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 .region(appServiceConfig.region());
         builder.os(appServiceConfig.runtime().os());
         if (AppServiceUtils.isDockerAppService(webapp)) {
-            final Map<String, String> settings = webapp.entity().getAppSettings();
+            final Map<String, String> settings = webapp.appSettings();
             builder.image(appServiceConfig.runtime().image());
             builder.registryUrl(appServiceConfig.runtime().registryUrl());
             final String dockerUsernameSetting = settings.get(SETTING_REGISTRY_USERNAME);

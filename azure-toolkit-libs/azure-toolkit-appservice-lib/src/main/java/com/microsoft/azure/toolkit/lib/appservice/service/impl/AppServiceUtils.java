@@ -121,7 +121,7 @@ class AppServiceUtils {
         if (Objects.equals(javaVersion, JavaVersion.JAVA_8)) {
             return "java8";
         }
-        if (Objects.equals(javaVersion, JavaVersion.JAVA_8)) {
+        if (Objects.equals(javaVersion, JavaVersion.JAVA_11)) {
             return "java11";
         }
         if (StringUtils.startsWithAny(javaVersion.getValue().toLowerCase(), "java", "jre")) {

@@ -9,9 +9,8 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
 import java.util.List;
 
 public interface IWebApp extends IWebAppBase<WebAppEntity> {
+    @Deprecated
     WebAppEntity entity();
-
-    IAppServicePlan plan();
 
     IAppServiceCreator<? extends IWebApp> create();
 

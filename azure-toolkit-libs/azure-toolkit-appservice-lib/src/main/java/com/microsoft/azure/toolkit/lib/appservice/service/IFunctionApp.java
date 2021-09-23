@@ -11,9 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 public interface IFunctionApp extends IFunctionAppBase<FunctionAppEntity> {
+    @Deprecated
     FunctionAppEntity entity();
-
-    IAppServicePlan plan();
 
     IAppServiceCreator<? extends IFunctionApp> create();
 
