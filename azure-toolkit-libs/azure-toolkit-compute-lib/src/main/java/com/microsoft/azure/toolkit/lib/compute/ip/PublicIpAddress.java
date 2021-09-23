@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.compute.ip;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResource;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -35,6 +36,10 @@ public class PublicIpAddress extends AbstractAzureResource<com.azure.resourceman
     @Override
     public IAzureModule<? extends AbstractAzureResource<com.azure.resourcemanager.network.models.PublicIpAddress, IAzureBaseResource>, ? extends IAzureBaseResource> module() {
         return module;
+    }
+
+    public Region getRegion() {
+        return Region.fromName(remote().regionName());
     }
 
     @Nullable

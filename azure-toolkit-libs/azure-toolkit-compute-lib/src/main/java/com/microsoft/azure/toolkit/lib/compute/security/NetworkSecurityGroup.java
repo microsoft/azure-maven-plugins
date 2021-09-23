@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.compute.security;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResource;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -37,6 +38,10 @@ public class NetworkSecurityGroup extends AbstractAzureResource<com.azure.resour
     public IAzureModule<? extends AbstractAzureResource<com.azure.resourcemanager.network.models.NetworkSecurityGroup, IAzureBaseResource>,
             ? extends IAzureBaseResource> module() {
         return module;
+    }
+
+    public Region getRegion() {
+        return Region.fromName(remote().regionName());
     }
 
     @Nullable
