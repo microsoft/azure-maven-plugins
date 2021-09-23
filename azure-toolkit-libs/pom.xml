@@ -78,7 +78,6 @@
         <azure.core.http.okhttp.version>1.6.2</azure.core.http.okhttp.version>
         <azure.storage-file-share.version>12.9.1</azure.storage-file-share.version>
         <azure.function.version>1.4.2</azure.function.version>
-        <azure.storage-blob.version>11.0.1</azure.storage-blob.version>
         <azure.security.keyvault.keys.version>4.2.8</azure.security.keyvault.keys.version>
         <azure.security.keyvault.secrets.version> 4.2.8</azure.security.keyvault.secrets.version>
         <azure.security.keyvault.certificates.version>4.1.8</azure.security.keyvault.certificates.version>
