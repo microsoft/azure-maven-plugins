@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.compute.vm;
 
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.compute.models.AvailabilitySet;
 import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages.WithCreate;
 import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages.WithLinuxCreateManagedOrUnmanaged;
@@ -26,6 +27,7 @@ import com.microsoft.azure.toolkit.lib.compute.network.Network;
 import com.microsoft.azure.toolkit.lib.compute.network.model.Subnet;
 import com.microsoft.azure.toolkit.lib.compute.security.DraftNetworkSecurityGroup;
 import com.microsoft.azure.toolkit.lib.compute.security.NetworkSecurityGroup;
+import com.microsoft.azure.toolkit.lib.compute.security.model.SecurityRule;
 import com.microsoft.azure.toolkit.lib.compute.vm.model.AuthenticationType;
 import com.microsoft.azure.toolkit.lib.compute.vm.model.AzureSpotConfig;
 import com.microsoft.azure.toolkit.lib.compute.vm.model.OperatingSystem;
@@ -38,6 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import java.util.Arrays;
 import java.util.Optional;
 
 import static com.azure.resourcemanager.compute.models.VirtualMachineEvictionPolicyTypes.DEALLOCATE;
@@ -74,7 +77,9 @@ public class DraftVirtualMachine extends VirtualMachine implements AzureResource
         virtualMachine.setSize(AzureVirtualMachineSize.Standard_D2s_v3);
         virtualMachine.setNetwork(DraftNetwork.getDefaultNetworkDraft());
         virtualMachine.setIpAddress(DraftPublicIpAddress.getDefaultPublicIpAddressDraft());
-        virtualMachine.setSecurityGroup(new DraftNetworkSecurityGroup());
+        final DraftNetworkSecurityGroup defaultSecurityGroup = new DraftNetworkSecurityGroup();
+        defaultSecurityGroup.setSecurityRuleList(Arrays.asList(SecurityRule.SSH_RULE));
+        virtualMachine.setSecurityGroup(defaultSecurityGroup);
         return virtualMachine;
     }
 
@@ -143,7 +148,13 @@ public class DraftVirtualMachine extends VirtualMachine implements AzureResource
             final VirtualMachineEvictionPolicyTypes evictionPolicyTypes = azureSpotConfig.getPolicy() == StopAndDeallocate ? DEALLOCATE : DELETE;
             withCreate.withSpotPriority(evictionPolicyTypes).withMaxPrice(azureSpotConfig.getMaximumPrice());
         }
-        this.remote = withCreate.create();
+        try {
+            this.remote = withCreate.create();
+        } catch (Exception e) {
+            // clean up resource once creation failed
+            networkInterface.manager().networkInterfaces().deleteById(networkInterface.id());
+            throw e;
+        }
         refreshStatus();
         module.refresh();
         return this;
