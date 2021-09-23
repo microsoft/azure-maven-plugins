@@ -23,7 +23,6 @@ import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -126,7 +125,8 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     // update existing slot is not supported in current version, will implement it later
     private IWebAppDeploymentSlot updateDeploymentSlot(final IWebAppDeploymentSlot slot, final DeploymentSlotConfig slotConfig) {
-        throw new AzureToolkitRuntimeException("update existing slot is not supported in current version");
+        AzureMessager.getMessager().warning("update existing slot is not supported in current version");
+        return slot;
     }
 
     private void deploy(IWebAppBase<?> target, List<WebAppArtifact> artifacts) {
