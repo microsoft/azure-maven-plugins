@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.compute.network;
 import com.azure.resourcemanager.network.models.Network.DefinitionStages.WithCreateAndSubnet;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.compute.AzureResourceDraft;
 import com.microsoft.azure.toolkit.lib.compute.network.model.Subnet;
 import lombok.EqualsAndHashCode;
@@ -36,6 +37,15 @@ public class DraftNetwork extends Network implements AzureResourceDraft<Network>
 
     public DraftNetwork(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name) {
         super(getResourceId(subscriptionId, resourceGroup, name), null);
+    }
+
+    public static DraftNetwork getDefaultNetworkDraft() {
+        final DraftNetwork draftNetwork = new DraftNetwork();
+        draftNetwork.setName(String.format("network-%s", Utils.getTimestamp()));
+        draftNetwork.setAddressSpace("10.0.2.0/24");
+        draftNetwork.setSubnet("default");
+        draftNetwork.setSubnetAddressSpace("10.0.2.0/24");
+        return draftNetwork;
     }
 
     public void setSubscriptionId(final String subscriptionId) {
