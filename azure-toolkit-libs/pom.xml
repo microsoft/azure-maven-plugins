@@ -218,17 +218,6 @@
             <!-- azure libs -->
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure</artifactId>
-                <version>${azure.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>javax.xml.bind</groupId>
-                        <artifactId>jaxb-api</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-annotations</artifactId>
                 <version>1.10.0</version>
             </dependency>
@@ -246,11 +235,6 @@
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-client-authentication</artifactId>
                 <version>${azure.client.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-mgmt-storage</artifactId>
-                <version>${azure.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
@@ -316,11 +300,6 @@
                 <groupId>com.azure</groupId>
                 <artifactId>azure-core-http-netty</artifactId>
                 <version>${azure.core-http-netty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-mgmt-resources</artifactId>
-                <version>${azure.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.nimbusds</groupId>
@@ -516,7 +495,7 @@
             <!-- azure sdk -->
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
-                <artifactId>azure-resourcemanager</artifactId>
+                <artifactId>azure-resourcemanager-appservice</artifactId>
                 <version>${azure.resourcemanager.version}</version>
             </dependency>
             <dependency>

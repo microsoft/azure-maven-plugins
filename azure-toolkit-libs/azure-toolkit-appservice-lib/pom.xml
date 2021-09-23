@@ -35,7 +35,7 @@
 
         <dependency>
             <groupId>com.azure.resourcemanager</groupId>
-            <artifactId>azure-resourcemanager</artifactId>
+            <artifactId>azure-resourcemanager-appservice</artifactId>
         </dependency>
 
         <dependency>

@@ -138,4 +138,3 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
 
 ## 1.0.0
 - Add the support for deploying Web App to an existing App Service Plan
-
