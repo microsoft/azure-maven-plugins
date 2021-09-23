@@ -39,7 +39,6 @@ public class AzureImage {
     public static final AzureImage REDHAT_RHEL_8_2 = new AzureImage(KnownLinuxVirtualMachineImage.REDHAT_RHEL_8_2);
     public static final AzureImage ORACLE_LINUX_8_1 = new AzureImage(KnownLinuxVirtualMachineImage.ORACLE_LINUX_8_1);
 
-
     @Nonnull
     @Getter(value = AccessLevel.PACKAGE)
     @EqualsAndHashCode.Exclude
