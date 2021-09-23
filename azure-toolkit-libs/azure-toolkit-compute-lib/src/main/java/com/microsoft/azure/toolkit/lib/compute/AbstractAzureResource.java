@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 
@@ -20,16 +21,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 
+@NoArgsConstructor
 public abstract class AbstractAzureResource<T extends HasId, P extends IAzureBaseResource> implements IAzureBaseResource<AbstractAzureResource<T, P>, P> {
-    @Nonnull
     @Getter
-    protected final String name;
+    protected String name;
     @Getter
-    @Nonnull
-    protected final String resourceGroup;
+    protected String resourceGroup;
     @Getter
-    @Nonnull
-    protected final String subscriptionId;
+    protected String subscriptionId;
     @Getter
     protected String id;
 

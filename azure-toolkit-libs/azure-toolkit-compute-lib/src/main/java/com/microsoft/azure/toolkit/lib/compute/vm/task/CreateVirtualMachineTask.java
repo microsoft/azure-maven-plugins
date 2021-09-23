@@ -22,6 +22,9 @@ import com.microsoft.azure.toolkit.lib.compute.vm.AzureVirtualMachine;
 import com.microsoft.azure.toolkit.lib.compute.vm.DraftVirtualMachine;
 import com.microsoft.azure.toolkit.lib.compute.vm.VirtualMachine;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
+import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountConfig;
+import com.microsoft.azure.toolkit.lib.storage.service.AzureStorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.service.StorageAccount;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -58,6 +61,17 @@ public class CreateVirtualMachineTask extends AzureTask<VirtualMachine> {
             final AzureString title = AzureString.format("Create security group ({0})", securityGroup.getName());
             tasks.add(new AzureTask<DraftNetworkSecurityGroup>(title, () ->
                     Azure.az(AzureNetworkSecurityGroup.class).create((DraftNetworkSecurityGroup) securityGroup)));
+        }
+        // Create Storage Account
+        // todo: migrate storage account to draft style
+        final StorageAccountConfig storageAccount = draftVirtualMachine.getStorageAccount();
+        if (storageAccount != null && StringUtils.isEmpty(storageAccount.getId())) {
+            tasks.add(new CreateResourceGroupTask(storageAccount.getSubscriptionId(), storageAccount.getResourceGroupName(), storageAccount.getRegion()));
+            final AzureString title = AzureString.format("Create storage account ({0})", storageAccount.getName());
+            tasks.add(new AzureTask<StorageAccountConfig>(title, () -> {
+                final StorageAccount result = Azure.az(AzureStorageAccount.class).create(storageAccount).commit();
+                storageAccount.setId(result.id());
+            }));
         }
         // Create VM
         final AzureString title = AzureString.format("Create virtual machine ({0})", draftVirtualMachine.getName());

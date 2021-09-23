@@ -10,12 +10,17 @@ import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
 import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResource;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
+import java.util.Optional;
 
+@NoArgsConstructor
 public class VirtualMachine extends AbstractAzureResource<com.azure.resourcemanager.compute.models.VirtualMachine, IAzureBaseResource>
         implements AzureOperationEvent.Source<VirtualMachine>, Removable {
 
@@ -38,27 +43,6 @@ public class VirtualMachine extends AbstractAzureResource<com.azure.resourcemana
         return module;
     }
 
-    @Override
-    protected String loadStatus() {
-        final String powerState = remote().powerState().toString();
-        if (StringUtils.equalsIgnoreCase(powerState, PowerState.RUNNING.toString())) {
-            return Status.RUNNING;
-        } else if (StringUtils.equalsAnyIgnoreCase(powerState, PowerState.DEALLOCATING.toString(), PowerState.STOPPING.toString(),
-                PowerState.STARTING.toString())) {
-            return Status.PENDING;
-        } else if (StringUtils.equalsAnyIgnoreCase(powerState, PowerState.STOPPED.toString(), PowerState.DEALLOCATED.toString())) {
-            return Status.STOPPED;
-        } else {
-            return Status.UNKNOWN;
-        }
-    }
-
-    @Nullable
-    @Override
-    protected com.azure.resourcemanager.compute.models.VirtualMachine loadRemote() {
-        return module.getVirtualMachinesManager(subscriptionId).getByResourceGroup(resourceGroup, name);
-    }
-
     public void start() {
         this.status(Status.PENDING);
         remote().start();
@@ -75,6 +59,31 @@ public class VirtualMachine extends AbstractAzureResource<com.azure.resourcemana
         this.status(Status.PENDING);
         remote().restart();
         this.refreshStatus();
+    }
+
+    public Region getRegion() {
+        return Region.fromName(remote().regionName());
+    }
+
+    @Override
+    protected String loadStatus() {
+        final String powerState = Optional.ofNullable(remote().powerState()).map(Objects::toString).orElse(StringUtils.EMPTY);
+        if (StringUtils.equalsIgnoreCase(powerState, PowerState.RUNNING.toString())) {
+            return Status.RUNNING;
+        } else if (StringUtils.equalsAnyIgnoreCase(powerState, PowerState.DEALLOCATING.toString(), PowerState.STOPPING.toString(),
+                PowerState.STARTING.toString())) {
+            return Status.PENDING;
+        } else if (StringUtils.equalsAnyIgnoreCase(powerState, PowerState.STOPPED.toString(), PowerState.DEALLOCATED.toString())) {
+            return Status.STOPPED;
+        } else {
+            return Status.UNKNOWN;
+        }
+    }
+
+    @Nullable
+    @Override
+    protected com.azure.resourcemanager.compute.models.VirtualMachine loadRemote() {
+        return module.getVirtualMachinesManager(subscriptionId).getByResourceGroup(resourceGroup, name);
     }
 
     @Override

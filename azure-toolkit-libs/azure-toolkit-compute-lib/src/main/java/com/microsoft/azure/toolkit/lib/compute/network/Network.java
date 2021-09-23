@@ -8,15 +8,18 @@ package com.microsoft.azure.toolkit.lib.compute.network;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResource;
 import com.microsoft.azure.toolkit.lib.compute.network.model.Subnet;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class Network extends AbstractAzureResource<com.azure.resourcemanager.network.models.Network, IAzureBaseResource>
         implements AzureOperationEvent.Source<Network> {
@@ -40,6 +43,10 @@ public class Network extends AbstractAzureResource<com.azure.resourcemanager.net
     public IAzureModule<? extends AbstractAzureResource<com.azure.resourcemanager.network.models.Network, IAzureBaseResource>,
             ? extends IAzureBaseResource> module() {
         return module;
+    }
+
+    public Region getRegion() {
+        return Region.fromName(remote().regionName());
     }
 
     @Nullable

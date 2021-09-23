@@ -10,18 +10,29 @@ import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages.
 import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages.WithLinuxCreateManagedOrUnmanaged;
 import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages.WithLinuxRootPasswordOrPublicKeyManagedOrUnmanaged;
 import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages.WithProximityPlacementGroup;
-import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages.WithPublicIPAddress;
+import com.azure.resourcemanager.compute.models.VirtualMachineEvictionPolicyTypes;
+import com.azure.resourcemanager.network.models.NetworkInterface;
+import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
+import com.azure.resourcemanager.storage.models.StorageAccount;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.compute.AzureResourceDraft;
+import com.microsoft.azure.toolkit.lib.compute.ip.DraftPublicIpAddress;
 import com.microsoft.azure.toolkit.lib.compute.ip.PublicIpAddress;
+import com.microsoft.azure.toolkit.lib.compute.network.DraftNetwork;
 import com.microsoft.azure.toolkit.lib.compute.network.Network;
 import com.microsoft.azure.toolkit.lib.compute.network.model.Subnet;
+import com.microsoft.azure.toolkit.lib.compute.security.DraftNetworkSecurityGroup;
 import com.microsoft.azure.toolkit.lib.compute.security.NetworkSecurityGroup;
 import com.microsoft.azure.toolkit.lib.compute.vm.model.AuthenticationType;
 import com.microsoft.azure.toolkit.lib.compute.vm.model.AzureSpotConfig;
 import com.microsoft.azure.toolkit.lib.compute.vm.model.OperatingSystem;
-import com.microsoft.azure.toolkit.lib.storage.service.StorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.StorageManagerFactory;
+import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountConfig;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -29,8 +40,13 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
+import static com.azure.resourcemanager.compute.models.VirtualMachineEvictionPolicyTypes.DEALLOCATE;
+import static com.azure.resourcemanager.compute.models.VirtualMachineEvictionPolicyTypes.DELETE;
+import static com.microsoft.azure.toolkit.lib.compute.vm.model.AzureSpotConfig.EvictionPolicy.StopAndDeallocate;
+
 @Getter
 @Setter
+@NoArgsConstructor
 public class DraftVirtualMachine extends VirtualMachine implements AzureResourceDraft<VirtualMachine> {
     private Region region;
     private AzureImage image;
@@ -44,11 +60,39 @@ public class DraftVirtualMachine extends VirtualMachine implements AzureResource
     private String sshKey;
     private AzureVirtualMachineSize size;
     private String availabilitySet;
-    private StorageAccount storageAccount;
+    private StorageAccountConfig storageAccount;
     private AzureSpotConfig azureSpotConfig;
 
     public DraftVirtualMachine(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name) {
         super(getResourceId(subscriptionId, resourceGroup, name), null);
+    }
+
+    public static DraftVirtualMachine getDefaultVirtualMachineDraft() {
+        final DraftVirtualMachine virtualMachine = new DraftVirtualMachine();
+        virtualMachine.setRegion(Region.US_CENTRAL);
+        virtualMachine.setImage(AzureImage.UBUNTU_SERVER_18_04_LTS);
+        virtualMachine.setSize(AzureVirtualMachineSize.Standard_D2s_v3);
+        virtualMachine.setNetwork(DraftNetwork.getDefaultNetworkDraft());
+        virtualMachine.setIpAddress(DraftPublicIpAddress.getDefaultPublicIpAddressDraft());
+        virtualMachine.setSecurityGroup(new DraftNetworkSecurityGroup());
+        return virtualMachine;
+    }
+
+    public void setSubscriptionId(final String subscriptionId) {
+        this.subscriptionId = subscriptionId;
+    }
+
+    public void setResourceGroup(final String resourceGroup) {
+        this.resourceGroup = resourceGroup;
+    }
+
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String getId() {
+        return Optional.ofNullable(remote).map(HasId::id).orElseGet(() -> getResourceId(subscriptionId, resourceGroup, name));
     }
 
     @Override
@@ -64,29 +108,49 @@ public class DraftVirtualMachine extends VirtualMachine implements AzureResource
 
     VirtualMachine create(final AzureVirtualMachine module) {
         this.module = module;
-        final WithPublicIPAddress withPublicIPAddress = module.getVirtualMachinesManager(subscriptionId).define(this.getName())
+        final NetworkInterface.DefinitionStages.WithCreate interfaceWithCreate = module.getVirtualMachinesManager(subscriptionId).manager().networkManager()
+                .networkInterfaces().define(name + "-interface-" + Utils.getTimestamp())
                 .withRegion(this.getRegion().getName())
                 .withExistingResourceGroup(this.getResourceGroup())
                 .withExistingPrimaryNetwork(this.getNetworkClient())
                 .withSubnet(subnet.getName())
                 .withPrimaryPrivateIPAddressDynamic();
-        final WithProximityPlacementGroup withProximityPlacementGroup = ipAddress != null ?
-                withPublicIPAddress.withExistingPrimaryPublicIPAddress(getPublicIpAddressClient()) : withPublicIPAddress.withoutPrimaryPublicIPAddress();
+        if (ipAddress != null) {
+            final com.azure.resourcemanager.network.models.PublicIpAddress publicIpAddressClient = getPublicIpAddressClient();
+            if (publicIpAddressClient.hasAssignedNetworkInterface()) {
+                AzureMessager.getMessager().warning(AzureString.format("Can not assign public ip %s to vm %s, which has been assigned to %s",
+                        ipAddress.getName(), name, publicIpAddressClient.getAssignedNetworkInterfaceIPConfiguration().name()));
+            } else {
+                interfaceWithCreate.withExistingPrimaryPublicIPAddress(getPublicIpAddressClient());
+            }
+        }
+        if (securityGroup != null) {
+            interfaceWithCreate.withExistingNetworkSecurityGroup(getSecurityGroupClient());
+        }
+        final NetworkInterface networkInterface = interfaceWithCreate.create();
+        final WithProximityPlacementGroup withProximityPlacementGroup = module.getVirtualMachinesManager(subscriptionId).define(this.getName())
+                .withRegion(this.getRegion().getName())
+                .withExistingResourceGroup(this.getResourceGroup())
+                .withExistingPrimaryNetworkInterface(networkInterface);
         final WithCreate withCreate = configureImage(withProximityPlacementGroup);
         if (StringUtils.isNotEmpty(availabilitySet)) {
             withCreate.withExistingAvailabilitySet(getAvailabilitySetClient());
         }
         if (storageAccount != null) {
-            // todo: implement storage account
+            withCreate.withExistingStorageAccount(getStorageAccountClient());
         }
         if (azureSpotConfig != null) {
-            // todo: implement azure spot related configs
+            final VirtualMachineEvictionPolicyTypes evictionPolicyTypes = azureSpotConfig.getPolicy() == StopAndDeallocate ? DEALLOCATE : DELETE;
+            withCreate.withSpotPriority(evictionPolicyTypes).withMaxPrice(azureSpotConfig.getMaximumPrice());
         }
         this.remote = withCreate.create();
-        this.remote.getPrimaryNetworkInterface().update().withExistingNetworkSecurityGroup(getSecurityGroupClient()).apply();
         refreshStatus();
         module.refresh();
         return this;
+    }
+
+    private StorageAccount getStorageAccountClient() {
+        return StorageManagerFactory.create(subscriptionId).storageAccounts().getById(storageAccount.getId());
     }
 
     private WithCreate configureImage(final WithProximityPlacementGroup withCreate) {

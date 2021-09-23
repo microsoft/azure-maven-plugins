@@ -18,18 +18,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
 
 public class Utils {
     private static final boolean isWindows = System.getProperty("os.name").contains("Windows");
@@ -38,6 +40,11 @@ public class Utils {
     private static final String WAR = "war";
     private static final String EAR = "ear";
     private static final String SUBSCRIPTIONS = "subscriptions";
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyMMddHHmmss");
+
+    public static String getTimestamp() {
+        return DATE_FORMAT.format(new Date());
+    }
 
     public static String getArtifactCompileVersion(File artifact) throws AzureExecutionException {
         try (JarFile jarFile = new JarFile(artifact)) {

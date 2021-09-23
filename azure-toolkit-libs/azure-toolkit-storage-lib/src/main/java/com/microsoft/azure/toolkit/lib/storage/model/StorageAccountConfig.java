@@ -9,6 +9,7 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,6 +18,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @Builder
+@EqualsAndHashCode
 public class StorageAccountConfig implements IStorageAccountEntity {
 
     private String name;
