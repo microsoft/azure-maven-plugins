@@ -22,6 +22,13 @@ All notable changes to the "Maven Plugin for Azure Function" will be documented 
   - [1.2.1](#121)
   - [1.2.0](#120)
 
+## 1.14.0
+- Support default value for region/pricing tier/javaVersion [#1755](https://github.com/microsoft/azure-maven-plugins/pull/1761)
+- Extract common tasks for function creation and deployment [#1759](https://github.com/microsoft/azure-maven-plugins/pull/1759)
+- Support username and password in proxy [#1677](https://github.com/microsoft/azure-maven-plugins/pull/1677)
+- Fix warning message of `illegal reflective access from groovy` [#1763](https://github.com/microsoft/azure-maven-plugins/pull/1763)
+- Fix wrong value for authLevel in function schema [#1693](https://github.com/microsoft/azure-maven-plugins/pull/1693)
+
 ## 1.13.0
 - Support skip function extensions installation [#1616](https://github.com/microsoft/azure-maven-plugins/issues/1616) (Thanks @sschmeck)
 
