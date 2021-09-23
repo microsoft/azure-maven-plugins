@@ -114,7 +114,6 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
         if (skipCreateAzureResource && !Azure.az(AzureAppService.class).appServicePlan(servicePlanConfig.servicePlanResourceGroup(), servicePlanConfig.servicePlanName()).exists()) {
             throwForbidCreateResourceWarning("Service plan", servicePlanConfig.servicePlanResourceGroup() + "/" + servicePlanConfig.servicePlanName());
         }
-        throwForbidCreateResourceWarning("Web app", config.appName());
 
         final Runtime runtime = getRuntime(config.runtime());
         final IAppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig).execute();
