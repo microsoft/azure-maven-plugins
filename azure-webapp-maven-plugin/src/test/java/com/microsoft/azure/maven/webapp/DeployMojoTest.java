@@ -94,7 +94,7 @@ public class DeployMojoTest {
         ReflectionUtils.setVariableValueInObject(spyMojo, "plugin", plugin);
         doReturn("azure-webapp-maven-plugin").when(plugin).getArtifactId();
         final Map map = spyMojo.getTelemetryProperties();
-        assertEquals(12, map.size());
+        assertEquals(13, map.size());
         assertTrue(map.containsKey(JAVA_VERSION_KEY));
         assertTrue(map.containsKey(JAVA_WEB_CONTAINER_KEY));
         assertTrue(map.containsKey(DOCKER_IMAGE_TYPE_KEY));

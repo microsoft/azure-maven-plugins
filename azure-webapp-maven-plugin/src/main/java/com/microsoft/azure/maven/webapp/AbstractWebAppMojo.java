@@ -46,6 +46,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public static final String OS_KEY = "os";
     public static final String SCHEMA_VERSION_KEY = "schemaVersion";
     public static final String DEPLOY_TO_SLOT_KEY = "isDeployToSlot";
+    public static final String SKIP_CREATE_RESOURCE_KEY = "skipCreateResource";
     public static final String INVALID_PARAMETER_ERROR_MESSAGE = "Invalid values found in configuration, please correct the value with messages below:";
     //region Properties
 
@@ -239,6 +240,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         final boolean isDeployToSlot = Optional.ofNullable(getDeploymentSlotSetting()).map(DeploymentSlotSetting::getName)
                 .map(StringUtils::isNotEmpty).orElse(false);
         map.put(DEPLOY_TO_SLOT_KEY, String.valueOf(isDeployToSlot));
+
+        map.put(SKIP_CREATE_RESOURCE_KEY, String.valueOf(skipAzureResourceCreate || skipCreateAzureResource));
         return map;
     }
 
