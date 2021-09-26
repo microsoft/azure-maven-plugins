@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -66,11 +67,12 @@ public class DeployWebAppTask extends AzureTask<IWebAppBase<?>> {
         if (artifacts.stream().anyMatch(artifact -> artifact.getDeployType() == null)) {
             throw new AzureToolkitRuntimeException("missing deployment type for some artifacts.");
         }
-
+        final long startTime = System.currentTimeMillis();
         final List<WebAppArtifact> artifactsOneDeploy = this.artifacts.stream()
             .filter(artifact -> artifact.getDeployType() != null)
             .collect(Collectors.toList());
         artifactsOneDeploy.forEach(resource -> webApp.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
+        AzureTelemetry.getActionContext().setProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
     }
 
     private static void stopAppService(IWebAppBase<?> target) {

@@ -34,6 +34,7 @@ import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetryClient;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
@@ -691,4 +692,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         }
     }
 
+    protected void updateTelemetryProperties() {
+        Optional.ofNullable(AzureTelemetry.getActionContext().getProperties()).ifPresent(properties ->
+                properties.forEach((key, value) -> telemetryProxy.addDefaultProperty(key, value)));
+    }
 }

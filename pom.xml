@@ -80,7 +80,7 @@
         <maven.invoker-plugin.version>3.1.0</maven.invoker-plugin.version>
         <maven.javadoc-plugin.version>2.9.1</maven.javadoc-plugin.version>
         <maven.checkstyle-plugin.version>3.1.2</maven.checkstyle-plugin.version>
-
+        <maven.aspectj-plugin.version>1.12.6</maven.aspectj-plugin.version>
         <azure.maven-plugin-lib.version>1.14.0</azure.maven-plugin-lib.version>
         <jacoco.version>0.8.7</jacoco.version>
 
@@ -191,6 +191,11 @@
             <!-- lock down plugins versions to avoid using Maven defaults (may be
                 moved to parent pom) -->
             <plugins>
+                <plugin>
+                    <groupId>com.nickwongdev</groupId>
+                    <artifactId>aspectj-maven-plugin</artifactId>
+                    <version>${maven.aspectj-plugin.version}</version>
+                </plugin>
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>
                     <version>${maven.clean-plugin.version}</version>

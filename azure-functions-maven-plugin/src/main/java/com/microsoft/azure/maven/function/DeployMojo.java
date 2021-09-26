@@ -24,6 +24,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -75,12 +76,14 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String EXPANDABLE_JAVA_VERSION_WARNING = "'%s' may not be a valid java version, recommended values are `Java 8` and `Java 11`";
 
     @Override
+    @AzureOperation(name = "functionapp|mojo.deploy", type = AzureOperation.Type.ACTION)
     protected void doExecute() throws AzureExecutionException {
         doValidate();
         getOrCreateAzureAppServiceClient();
 
         final IFunctionAppBase<?> target = createOrUpdateResource(getParser().parseConfig());
         deployArtifact(target);
+        updateTelemetryProperties();
     }
 
     protected void doValidate() throws AzureExecutionException {
