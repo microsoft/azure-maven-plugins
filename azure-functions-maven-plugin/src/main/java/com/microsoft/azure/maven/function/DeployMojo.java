@@ -149,7 +149,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         AppServiceConfig defaultConfig = !newFunctionApp ? fromAppService(app, app.plan()) : buildDefaultConfig(config.subscriptionId(),
             config.resourceGroup(), config.appName());
         mergeAppServiceConfig(config, defaultConfig);
-        if (!newFunctionApp && !config.disableAppInsights()) {
+        if (!newFunctionApp && !config.disableAppInsights() && StringUtils.isEmpty(config.appInsightsKey())) {
             // fill ai key from existing app settings
             config.appInsightsKey(app.entity().getAppSettings().get(CreateOrUpdateFunctionAppTask.APPINSIGHTS_INSTRUMENTATION_KEY));
         }
