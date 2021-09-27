@@ -71,8 +71,8 @@ public class DraftPublicIpAddress extends PublicIpAddress implements AzureResour
     }
 
     @Override
-    protected String loadStatus() {
-        return Optional.ofNullable(remote).map(ignore -> super.loadStatus()).orElse(Status.DRAFT);
+    public String status() {
+        return Optional.ofNullable(remote).map(ignore -> super.status()).orElse(Status.DRAFT);
     }
 
     @Nullable
