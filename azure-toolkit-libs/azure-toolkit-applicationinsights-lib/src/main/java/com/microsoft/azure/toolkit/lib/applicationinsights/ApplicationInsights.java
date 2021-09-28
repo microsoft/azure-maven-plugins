@@ -109,11 +109,13 @@ public class ApplicationInsights extends SubscriptionScoped<ApplicationInsights>
         final AzureProfile azureProfile = new AzureProfile(tenantId, subscriptionId, account.getEnvironment());
         // todo: migrate resource provider related codes to common library
         final Providers providers = ResourceManager.configure()
+                .withHttpClient(AzureService.getDefaultHttpClient())
                 .withPolicy(getUserAgentPolicy(userAgent))
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
                 .withSubscription(subscriptionId).providers();
         return ApplicationInsightsManager
                 .configure()
+                .withHttpClient(AzureService.getDefaultHttpClient())
                 .withLogOptions(logOptions)
                 .withPolicy(getUserAgentPolicy(userAgent))
                 .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers

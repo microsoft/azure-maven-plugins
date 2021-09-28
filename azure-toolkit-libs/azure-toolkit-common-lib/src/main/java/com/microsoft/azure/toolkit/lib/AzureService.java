@@ -5,6 +5,9 @@
 
 package com.microsoft.azure.toolkit.lib;
 
+import com.azure.core.http.HttpClient;
+import com.azure.core.http.ProxyOptions;
+import com.azure.core.http.netty.NettyAsyncHttpClientBuilder;
 import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.management.profile.AzureProfile;
@@ -20,8 +23,10 @@ import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import io.netty.resolver.DefaultAddressResolverGroup;
 import org.apache.commons.lang3.StringUtils;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -61,10 +66,12 @@ public interface AzureService<T extends IAzureBaseResource> extends IAzureModule
         final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
 
         final Providers providers = ResourceManager.configure()
+            .withHttpClient(getDefaultHttpClient())
             .withPolicy(getUserAgentPolicy(userAgent))
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
             .withSubscription(subscriptionId).providers();
         return ResourceManager.configure()
+            .withHttpClient(getDefaultHttpClient())
             .withLogLevel(logDetailLevel)
             .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
             .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers
@@ -78,5 +85,36 @@ public interface AzureService<T extends IAzureBaseResource> extends IAzureModule
             httpPipelineCallContext.getHttpRequest().setHeader("User-Agent", String.format("%s %s", userAgent, previousUserAgent));
             return httpPipelineNextPolicy.process();
         };
+    }
+
+    class HttpClientHolder {
+        private static HttpClient defaultHttpClient = null;
+
+        private static synchronized HttpClient createHttpClient() {
+            if (defaultHttpClient != null) {
+                return defaultHttpClient;
+            }
+
+            reactor.netty.http.client.HttpClient nettyHttpClient =
+                reactor.netty.http.client.HttpClient.create()
+                    .resolver(DefaultAddressResolverGroup.INSTANCE);
+            NettyAsyncHttpClientBuilder builder = new NettyAsyncHttpClientBuilder(nettyHttpClient);
+            final AzureConfiguration config = Azure.az().config();
+            if (StringUtils.isNotBlank(config.getProxySource())) {
+                final ProxyOptions proxyOptions = new ProxyOptions(ProxyOptions.Type.HTTP,
+                    new InetSocketAddress(config.getHttpProxyHost(), config.getHttpProxyPort())
+                );
+                if (StringUtils.isNoneBlank(config.getProxyUsername(), config.getProxyPassword())) {
+                    proxyOptions.setCredentials(config.getProxyUsername(), config.getProxyPassword());
+                }
+                builder.proxy(proxyOptions);
+            }
+            defaultHttpClient = builder.build();
+            return defaultHttpClient;
+        }
+    }
+
+    static HttpClient getDefaultHttpClient() {
+        return HttpClientHolder.createHttpClient();
     }
 }
