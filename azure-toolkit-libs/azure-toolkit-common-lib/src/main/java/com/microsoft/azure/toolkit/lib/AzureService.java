@@ -20,7 +20,6 @@ import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -47,10 +46,7 @@ public interface AzureService<T extends IAzureBaseResource> extends IAzureModule
         resourceManager.providers().getByName(provider).resourceTypes()
             .stream().filter(type -> StringUtils.equalsIgnoreCase(type.resourceType(), resourceType))
             .findAny().map(ProviderResourceType::locations)
-            .ifPresent(list -> {
-                final List<Region> regionListByResource = list.stream().map(Region::fromName).collect(Collectors.toList());
-                result.addAll(CollectionUtils.intersection(regionListByResource, allRegionList));
-            });
+            .ifPresent(list -> result.addAll(list.stream().map(Region::fromName).filter(allRegionList::contains).collect(Collectors.toList())));
         return result.isEmpty() ? allRegionList : result;
     }
 
