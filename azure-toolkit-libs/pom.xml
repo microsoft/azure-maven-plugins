@@ -78,7 +78,6 @@
         <azure.core.http.okhttp.version>1.6.2</azure.core.http.okhttp.version>
         <azure.storage-file-share.version>12.9.1</azure.storage-file-share.version>
         <azure.function.version>1.4.2</azure.function.version>
-        <azure.storage-blob.version>11.0.1</azure.storage-blob.version>
         <azure.security.keyvault.keys.version>4.2.8</azure.security.keyvault.keys.version>
         <azure.security.keyvault.secrets.version> 4.2.8</azure.security.keyvault.secrets.version>
         <azure.security.keyvault.certificates.version>4.1.8</azure.security.keyvault.certificates.version>
@@ -219,17 +218,6 @@
             <!-- azure libs -->
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure</artifactId>
-                <version>${azure.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>javax.xml.bind</groupId>
-                        <artifactId>jaxb-api</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-annotations</artifactId>
                 <version>1.10.0</version>
             </dependency>
@@ -247,11 +235,6 @@
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-client-authentication</artifactId>
                 <version>${azure.client.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-mgmt-storage</artifactId>
-                <version>${azure.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
@@ -317,11 +300,6 @@
                 <groupId>com.azure</groupId>
                 <artifactId>azure-core-http-netty</artifactId>
                 <version>${azure.core-http-netty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-mgmt-resources</artifactId>
-                <version>${azure.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.nimbusds</groupId>
@@ -517,7 +495,7 @@
             <!-- azure sdk -->
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
-                <artifactId>azure-resourcemanager</artifactId>
+                <artifactId>azure-resourcemanager-appservice</artifactId>
                 <version>${azure.resourcemanager.version}</version>
             </dependency>
             <dependency>
