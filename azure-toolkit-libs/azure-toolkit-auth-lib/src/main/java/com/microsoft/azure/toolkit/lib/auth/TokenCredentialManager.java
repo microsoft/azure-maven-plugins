@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.http.ProxyOptions;
-import com.azure.core.http.okhttp.OkHttpAsyncHttpClientBuilder;
+import com.azure.core.http.netty.NettyAsyncHttpClientBuilder;
 import com.azure.core.http.policy.FixedDelay;
 import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.http.policy.RetryPolicy;
@@ -20,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import io.netty.resolver.DefaultAddressResolverGroup;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -103,7 +104,10 @@ public class TokenCredentialManager implements TenantProvider, SubscriptionProvi
      * TODO: share the same code for creating ResourceManager.Configurable
      */
     private static ResourceManager.Configurable configureAzure() {
-        OkHttpAsyncHttpClientBuilder builder = new OkHttpAsyncHttpClientBuilder();
+        reactor.netty.http.client.HttpClient nettyHttpClient =
+            reactor.netty.http.client.HttpClient.create()
+                .resolver(DefaultAddressResolverGroup.INSTANCE);
+        NettyAsyncHttpClientBuilder builder = new NettyAsyncHttpClientBuilder(nettyHttpClient);
         final AzureConfiguration config = Azure.az().config();
         if (StringUtils.isNotBlank(config.getProxySource())) {
             final ProxyOptions proxyOptions = new ProxyOptions(ProxyOptions.Type.HTTP,
