@@ -13,10 +13,6 @@
     <dependencies>
         <dependency>
             <groupId>com.azure</groupId>
-            <artifactId>azure-core-http-netty</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.azure</groupId>
             <artifactId>azure-core</artifactId>
         </dependency>
         <dependency>

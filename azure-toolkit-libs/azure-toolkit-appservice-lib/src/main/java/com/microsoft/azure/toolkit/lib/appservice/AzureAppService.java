@@ -214,6 +214,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, sid, account.getEnvironment());
         return AppServiceManager.configure()
+                .withHttpClient(AzureService.getDefaultHttpClient())
                 .withLogLevel(logLevel)
                 .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
                 .authenticate(account.getTokenCredential(sid), azureProfile);
