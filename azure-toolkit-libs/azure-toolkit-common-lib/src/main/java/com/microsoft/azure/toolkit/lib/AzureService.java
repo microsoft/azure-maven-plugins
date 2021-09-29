@@ -23,12 +23,15 @@ import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import io.netty.resolver.AddressResolverGroup;
 import io.netty.resolver.DefaultAddressResolverGroup;
+import io.netty.resolver.NoopAddressResolverGroup;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.lib.Azure.az;
@@ -95,20 +98,25 @@ public interface AzureService<T extends IAzureBaseResource> extends IAzureModule
                 return defaultHttpClient;
             }
 
-            reactor.netty.http.client.HttpClient nettyHttpClient =
-                reactor.netty.http.client.HttpClient.create()
-                    .resolver(DefaultAddressResolverGroup.INSTANCE);
-            NettyAsyncHttpClientBuilder builder = new NettyAsyncHttpClientBuilder(nettyHttpClient);
+            AddressResolverGroup resolverGroup;
+            ProxyOptions proxyOptions = null;
             final AzureConfiguration config = Azure.az().config();
             if (StringUtils.isNotBlank(config.getProxySource())) {
-                final ProxyOptions proxyOptions = new ProxyOptions(ProxyOptions.Type.HTTP,
+                proxyOptions = new ProxyOptions(ProxyOptions.Type.HTTP,
                     new InetSocketAddress(config.getHttpProxyHost(), config.getHttpProxyPort())
                 );
                 if (StringUtils.isNoneBlank(config.getProxyUsername(), config.getProxyPassword())) {
                     proxyOptions.setCredentials(config.getProxyUsername(), config.getProxyPassword());
                 }
-                builder.proxy(proxyOptions);
+                resolverGroup = NoopAddressResolverGroup.INSTANCE;
+            } else {
+                resolverGroup = DefaultAddressResolverGroup.INSTANCE;
             }
+            reactor.netty.http.client.HttpClient nettyHttpClient =
+                reactor.netty.http.client.HttpClient.create()
+                    .resolver(resolverGroup);
+            NettyAsyncHttpClientBuilder builder = new NettyAsyncHttpClientBuilder(nettyHttpClient);
+            Optional.ofNullable(proxyOptions).map(proxy -> builder.proxy(proxy));
             defaultHttpClient = builder.build();
             return defaultHttpClient;
         }
