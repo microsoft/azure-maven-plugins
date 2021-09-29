@@ -75,6 +75,11 @@ public class SqlServerEntity extends AbstractAzureResource.RemoteAwareResourceEn
         return remoteOptional().map(SqlServer::state).orElse(null);
     }
 
+    @Override
+    public String getVersion() {
+        return remoteOptional().map(SqlServer::version).orElse(null);
+    }
+
     private Optional<SqlServer> remoteOptional() {
         return Optional.ofNullable(this.remote);
     }
