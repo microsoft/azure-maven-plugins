@@ -222,6 +222,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
             }
             FunctionApp.this.remote = withCreate.create();
             FunctionApp.this.entity = AppServiceUtils.fromFunctionApp(FunctionApp.this.remote);
+            Azure.az(AzureAppService.class).refreshFunctionApp(FunctionApp.this.subscriptionId);
             return FunctionApp.this;
         }
 
