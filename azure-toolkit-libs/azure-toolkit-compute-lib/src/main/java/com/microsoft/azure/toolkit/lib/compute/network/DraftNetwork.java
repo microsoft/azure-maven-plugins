@@ -86,8 +86,8 @@ public class DraftNetwork extends Network implements AzureResourceDraft<Network>
     }
 
     @Override
-    protected String loadStatus() {
-        return Optional.ofNullable(remote).map(ignore -> super.loadStatus()).orElse(Status.DRAFT);
+    public String status() {
+        return Optional.ofNullable(remote).map(ignore -> super.status()).orElse(Status.DRAFT);
     }
 
     @Nullable

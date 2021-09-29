@@ -12,7 +12,6 @@ import com.azure.resourcemanager.network.models.NetworkSecurityRule.DefinitionSt
 import com.azure.resourcemanager.network.models.NetworkSecurityRule.DefinitionStages.WithSourcePort;
 import com.azure.resourcemanager.network.models.SecurityRuleProtocol;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.compute.AzureResourceDraft;
 import com.microsoft.azure.toolkit.lib.compute.security.model.SecurityRule;
@@ -96,8 +95,8 @@ public class DraftNetworkSecurityGroup extends NetworkSecurityGroup implements A
     }
 
     @Override
-    protected String loadStatus() {
-        return Optional.ofNullable(remote).map(ignore -> super.loadStatus()).orElse(IAzureBaseResource.Status.DRAFT);
+    public String status() {
+        return Optional.ofNullable(remote).map(ignore -> super.status()).orElse(Status.DRAFT);
     }
 
     @Nullable

@@ -42,6 +42,10 @@ public class PublicIpAddress extends AbstractAzureResource<com.azure.resourceman
         return Region.fromName(remote().regionName());
     }
 
+    public boolean hasAssignedNetworkInterface() {
+        return remote().hasAssignedNetworkInterface();
+    }
+
     @Nullable
     @Override
     protected com.azure.resourcemanager.network.models.PublicIpAddress loadRemote() {
