@@ -217,7 +217,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
         if (!functionApp.exists()) {
             throw new AzureToolkitRuntimeException(FUNCTION_APP_NOT_EXIST_FOR_SLOT);
         }
-        return functionApp.deploymentSlot(functionAppConfig.appName());
+        return functionApp.deploymentSlot(functionAppConfig.deploymentSlotName());
     }
 
     private AzureTask<ApplicationInsightsEntity> getApplicationInsightsTask() {

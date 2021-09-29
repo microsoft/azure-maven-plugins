@@ -93,11 +93,13 @@ public abstract class AbstractAzureResource<T extends HasId, P extends IAzureBas
     }
 
     @Override
-    public final String status() {
-        if (Objects.isNull(this.status)) {
-            this.status(loadStatus());
+    public String status() {
+        if (Objects.nonNull(this.status)) {
+            return this.status;
+        } else {
+            this.refreshStatus();
+            return Status.LOADING;
         }
-        return this.status;
     }
 
     public final void refreshStatus() {

@@ -117,6 +117,7 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud>
         final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         return AppPlatformManager.configure()
+                .withHttpClient(AzureService.getDefaultHttpClient())
                 .withLogLevel(logLevel)
                 .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile)

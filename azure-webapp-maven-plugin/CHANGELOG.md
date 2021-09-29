@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure App Service" will be documented in this file.
 - [Change Log](#change-log)
+  - [2.2.0](#210)
   - [2.1.0](#210)
   - [2.0.0](#200)
   - [1.15.0](#1150)
@@ -25,6 +26,14 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
   - [1.2.0](#120)
   - [1.1.0](#110)
   - [1.0.0](#100)
+
+## 2.2.0
+- Support default value for region/pricing tier/webContainer/javaVersion [#1755](https://github.com/microsoft/azure-maven-plugins/pull/1755)
+- Support flag to skip create azure resources PR [#1762](https://github.com/microsoft/azure-maven-plugins/pull/1762), Issue [#1651](https://github.com/microsoft/azure-maven-plugins/issues/1651)
+- Support username and password in proxy [#1677](https://github.com/microsoft/azure-maven-plugins/pull/1677)
+- Check whether webapp name is available before creating webapp [#1728](https://github.com/microsoft/azure-maven-plugins/pull/1728)
+- Remove unsupported JBoss 7.2 Runtime(use JBoss 7 instead) [#1751](https://github.com/microsoft/azure-maven-plugins/pull/1751)
+- Fix warning message of `illegal reflective access from groovy`  [#1763](https://github.com/microsoft/azure-maven-plugins/pull/1763)
 
 ## 2.1.0
 - Support static validation against json schema [#1647](https://github.com/microsoft/azure-maven-plugins/pull/1647)
@@ -138,4 +147,3 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
 
 ## 1.0.0
 - Add the support for deploying Web App to an existing App Service Plan
-

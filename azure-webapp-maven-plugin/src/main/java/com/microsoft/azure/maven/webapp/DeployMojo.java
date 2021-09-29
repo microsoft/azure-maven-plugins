@@ -24,6 +24,7 @@ import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -50,6 +51,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     private static final String CREATE_NEW_DEPLOYMENT_SLOT = "createNewDeploymentSlot";
 
     @Override
+    @AzureOperation(name = "webapp|mojo.deploy", type = AzureOperation.Type.ACTION)
     protected void doExecute() throws AzureExecutionException {
         validateConfiguration(message -> AzureMessager.getMessager().error(message.getMessage()), true);
         // initialize library client
@@ -57,6 +59,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         final IWebAppBase<?> target = createOrUpdateResource();
         deployExternalResources(target, getConfigParser().getExternalArtifacts());
         deploy(target, getConfigParser().getArtifacts());
+        updateTelemetryProperties();
     }
 
     private IWebAppBase<?> createOrUpdateResource() throws AzureExecutionException {

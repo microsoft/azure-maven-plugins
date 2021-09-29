@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.common.action;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureResource;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 
@@ -32,11 +33,14 @@ import java.util.function.Predicate;
 @Accessors(chain = true, fluent = true)
 public class Action<D> {
     public static final String SOURCE = "ACTION_SOURCE";
+    public static final Id<Runnable> REQUIRE_AUTH = Id.of("action.common.requireAuth");
     @Nonnull
     private List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
     @Nullable
     @Getter
     private ActionView.Builder view;
+    @Setter
+    private boolean authRequired = true;
 
     public Action(@Nullable ActionView.Builder view) {
         this.view = view;
@@ -84,19 +88,29 @@ public class Action<D> {
     }
 
     public void handle(D source, Object e) {
-        final BiConsumer<D, Object> handler = this.handler(source, e);
-        if (Objects.nonNull(handler)) {
-            final AzureString title = Optional.ofNullable(this.view).map(b -> b.title).map(t -> t.apply(source))
-                    .orElse(AzureString.fromString(IAzureOperation.UNKNOWN_NAME));
-            final AzureTask<Void> task = new AzureTask<>(title, () -> handle(source, e, handler));
-            task.setType(AzureOperation.Type.ACTION.name());
-            AzureTaskManager.getInstance().runInBackground(task);
+        final Runnable runnable = () -> {
+            final BiConsumer<D, Object> handler = this.handler(source, e);
+            if (Objects.nonNull(handler)) {
+                final AzureString title = Optional.ofNullable(this.view).map(b -> b.title).map(t -> t.apply(source))
+                        .orElse(AzureString.fromString(IAzureOperation.UNKNOWN_NAME));
+                final AzureTask<Void> task = new AzureTask<>(title, () -> handle(source, e, handler));
+                task.setType(AzureOperation.Type.ACTION.name());
+                AzureTaskManager.getInstance().runInBackground(task);
+            }
+        };
+        if (this.authRequired) {
+            final Action<Runnable> requireAuth = AzureActionManager.getInstance().getAction(REQUIRE_AUTH);
+            if (Objects.nonNull(requireAuth)) {
+                requireAuth.handle(runnable, e);
+            }
+        } else {
+            runnable.run();
         }
     }
 
     protected void handle(D source, Object e, BiConsumer<D, Object> handler) {
-        if (source instanceof IAzureResource) {
-            AzureTelemetry.getActionContext().setProperty("subscriptionId", ((IAzureResource<?>) source).subscriptionId());
+        if (source instanceof IAzureBaseResource) {
+            AzureTelemetry.getActionContext().setProperty("subscriptionId", ((IAzureBaseResource<?, ?>) source).subscriptionId());
             AzureTelemetry.getActionContext().setProperty("resourceType", source.getClass().getSimpleName());
         }
         handler.accept(source, e);
@@ -112,21 +126,6 @@ public class Action<D> {
 
     public <E> void registerHandler(@Nonnull BiPredicate<D, E> condition, @Nonnull BiConsumer<D, E> handler) {
         this.handlers.add(new AbstractMap.SimpleEntry<>(condition, handler));
-    }
-
-    @Getter
-    @Accessors(chain = true, fluent = true)
-    public static class Delegate<D> extends Action<D> {
-        @Nonnull
-        private final String id;
-        @Nonnull
-        private final Action<D> action;
-
-        public Delegate(@Nonnull Action<D> action, @Nonnull String id) {
-            super(action.handlers, action.view);
-            this.id = id;
-            this.action = action;
-        }
     }
 
     public static class Id<D> {

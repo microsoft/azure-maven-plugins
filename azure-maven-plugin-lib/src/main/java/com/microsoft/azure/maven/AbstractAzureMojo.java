@@ -34,6 +34,7 @@ import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetryClient;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
@@ -220,9 +221,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
 
     @JsonIgnore
     private Account azureAccount;
-
-    @JsonIgnore
-    private com.microsoft.azure.management.Azure azure;
 
     @Getter
     @JsonIgnore
@@ -440,16 +438,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     }
 
     //endregion
-    protected static void printCurrentSubscription(com.microsoft.azure.management.Azure azure) {
-        if (azure == null) {
-            return;
-        }
-        final com.microsoft.azure.management.resources.Subscription subscription = azure.getCurrentSubscription();
-        if (subscription != null) {
-            Log.info(String.format(SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.displayName()), TextUtils.cyan(subscription.subscriptionId())));
-        }
-    }
-
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> map = new HashMap<>();
         map.put(INSTALLATION_ID_KEY, getInstallationId());
@@ -691,4 +679,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         }
     }
 
+    protected void updateTelemetryProperties() {
+        Optional.ofNullable(AzureTelemetry.getActionContext().getProperties()).ifPresent(properties ->
+                properties.forEach((key, value) -> telemetryProxy.addDefaultProperty(key, value)));
+    }
 }

@@ -35,7 +35,12 @@
 
         <dependency>
             <groupId>com.azure.resourcemanager</groupId>
-            <artifactId>azure-resourcemanager</artifactId>
+            <artifactId>azure-resourcemanager-appservice</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-storage</artifactId>
         </dependency>
 
         <dependency>
@@ -139,11 +144,6 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-arm-client-runtime</artifactId>
             <version>1.7.12</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure</artifactId>
             <scope>compile</scope>
         </dependency>
         <dependency>
