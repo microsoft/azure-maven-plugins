@@ -5,17 +5,13 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -36,16 +32,6 @@ public class DeployMojoTest extends MojoTestBase {
         assertEquals("appName", mojo.getAppName());
 
         assertEquals("westeurope", mojo.getRegion());
-    }
-
-    @Ignore
-    @Test(expected = AzureExecutionException.class)
-    public void testDeploymentSlotThrowExceptionIfFunctionNotExists() throws AzureExecutionException {
-        final DeploymentSlotSetting slotSetting = new DeploymentSlotSetting();
-        slotSetting.setName("Exception");
-        doReturn(slotSetting).when(mojoSpy).getDeploymentSlotSetting();
-        doReturn(null).when(mojoSpy).getFunctionApp();
-        mojoSpy.doExecute();
     }
 
     private DeployMojo getMojoFromPom() throws Exception {

@@ -5,15 +5,19 @@
 
 package com.microsoft.azure.toolkit.lib.storage.service;
 
-
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.storage.StorageManager;
+import com.azure.resourcemanager.storage.models.AccessTier;
 import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
 import com.azure.resourcemanager.storage.models.Reason;
 import com.azure.resourcemanager.storage.models.SkuName;
 import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
+import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -24,15 +28,20 @@ import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Performance;
 import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountConfig;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount> implements AzureService {
+@Slf4j
+public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
+        implements AzureService, AzureOperationEvent.Source<AzureStorageAccount> {
 
     public AzureStorageAccount() {
         super(AzureStorageAccount::new);
@@ -44,22 +53,27 @@ public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
 
     public List<StorageAccount> list() {
         return getSubscriptions().stream()
-                .map(subscription -> StorageManagerFactory.create(subscription.getId()))
-                .flatMap(manager -> manager.storageAccounts().list().stream())
-                .map(account -> new StorageAccount(account.manager(), account))
+                .flatMap(s -> list(s.getId()).stream())
+                .collect(Collectors.toList());
+    }
+
+    @Cacheable(cacheName = "storage/{}/accounts", key = "$sid")
+    public List<StorageAccount> list(String sid) {
+        return StorageManagerFactory.create(sid).storageAccounts().list().stream()
+                .map(StorageAccount::new)
                 .collect(Collectors.toList());
     }
 
     public StorageAccount get(@Nonnull String id) {
         final com.azure.resourcemanager.storage.models.StorageAccount account =
                 StorageManagerFactory.create(ResourceId.fromString(id).subscriptionId()).storageAccounts().getById(id);
-        return new StorageAccount(account.manager(), account);
+        return new StorageAccount(account);
     }
 
     public StorageAccount get(@Nonnull final String resourceGroup, @Nonnull final String name) {
         final com.azure.resourcemanager.storage.models.StorageAccount account =
                 StorageManagerFactory.create(getDefaultSubscription().getId()).storageAccounts().getByResourceGroup(resourceGroup, name);
-        return new StorageAccount(account.manager(), account);
+        return new StorageAccount(account);
     }
 
     public CheckNameAvailabilityResultEntity checkNameAvailability(String subscriptionId, String name) {
@@ -84,17 +98,23 @@ public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
                 .collect(Collectors.toList());
     }
 
+    @AzureOperation(name = "common|service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    public void refresh() {
+        try {
+            CacheManager.evictCache("storage/{}/accounts", CacheEvict.ALL);
+        } catch (ExecutionException e) {
+            log.warn("failed to evict cache", e);
+        }
+    }
+
     public Creator create(StorageAccountConfig config) {
         return new Creator(config);
     }
 
-    public class Creator implements ICommittable<StorageAccount>, AzureOperationEvent.Source<StorageAccountConfig> {
+    @RequiredArgsConstructor
+    public static class Creator implements ICommittable<StorageAccount>, AzureOperationEvent.Source<StorageAccountConfig> {
 
-        private StorageAccountConfig config;
-
-        Creator(StorageAccountConfig config) {
-            this.config = config;
-        }
+        private final StorageAccountConfig config;
 
         @Override
         @AzureOperation(name = "storage|account.create", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)
@@ -111,16 +131,25 @@ public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
                 withCreate = withCreate.withFileStorageAccountKind();
             } else if (Objects.equals(Kind.BLOCK_BLOB_STORAGE, config.getKind())) {
                 withCreate = withCreate.withBlockBlobStorageAccountKind();
+            } else if (Objects.equals(Kind.BLOB_STORAGE, config.getKind())) {
+                withCreate = withCreate.withBlobStorageAccountKind().withAccessTier(
+                        Optional.ofNullable(config.getAccessTier()).map(t -> AccessTier.fromString(t.toString())).orElse(null));
             } else {
                 withCreate = withCreate.withGeneralPurposeAccountKindV2();
             }
             com.azure.resourcemanager.storage.models.StorageAccount account = withCreate.create();
-            return new StorageAccount(account.manager(), account);
+            Azure.az(AzureStorageAccount.class).refresh();
+            return new StorageAccount(account);
         }
 
+        @Nonnull
         public AzureOperationEvent.Source<StorageAccountConfig> getEventSource() {
-            return new AzureOperationEvent.Source<StorageAccountConfig>() {};
+            return new AzureOperationEvent.Source<StorageAccountConfig>() {
+            };
         }
     }
 
+    public String name() {
+        return "Microsoft.Storage/storageAccounts";
+    }
 }

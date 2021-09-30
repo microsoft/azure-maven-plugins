@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.microsoft.azure</groupId>
         <artifactId>azure-maven-plugins</artifactId>
-        <version>1.14.0-SNAPSHOT</version>
+        <version>1.14.0</version>
     </parent>
 
     <artifactId>azure-maven-plugin-lib</artifactId>
@@ -160,11 +160,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>com.github.java-json-tools</groupId>
             <artifactId>json-schema-validator</artifactId>
             <exclusions>
@@ -177,6 +172,15 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>schema/**/*.json</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

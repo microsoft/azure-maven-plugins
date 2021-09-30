@@ -12,10 +12,12 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -59,5 +61,28 @@ public class Utils {
             default:
                 throw new AzureToolkitRuntimeException("Unsupported file type, please set the deploy type.");
         }
+    }
+
+    public static <T> T selectFirstOptionIfCurrentInvalid(String name, List<T> options, T value) {
+        if (options.isEmpty()) {
+            throw new AzureToolkitRuntimeException(String.format("No %s is available.", name));
+        }
+        return options.contains(value) ? value : options.get(0);
+    }
+
+    public static <T> void mergeObjects(T to, T from) throws IllegalAccessException {
+        for (Field field : FieldUtils.getAllFields(from.getClass())) {
+            if (FieldUtils.readField(field, to, true) == null) {
+                final Object value = FieldUtils.readField(field, from, true);
+                if (value != null) {
+                    FieldUtils.writeField(field, to, value, true);
+                }
+            }
+        }
+    }
+
+    public static void throwForbidCreateResourceWarning(String resourceType, String name) {
+        throw new AzureToolkitRuntimeException(String.format("%s(%s) cannot be found, if you want to create azure resources please remove command line arguments: " +
+            "`-Dazure.resource.create.skip=true` or `-DskipCreateAzureResource`.", resourceType, name));
     }
 }

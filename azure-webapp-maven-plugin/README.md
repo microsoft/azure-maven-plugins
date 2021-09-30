@@ -25,7 +25,7 @@ Mavan plugins supports Azure Cli and some other auth methods, see [Authenticatio
 You can prepare your application for Azure Web App easily with one command:
 
 ```shell
-mvn com.microsoft.azure:azure-webapp-maven-plugin:1.14.0:config
+mvn com.microsoft.azure:azure-webapp-maven-plugin:2.2.0:config
 ```
 
 This command adds a `azure-webapp-maven-plugin` plugin and related configuration by prompting you to select an existing Azure Web App or create a new one. Then you can deploy your Java app to Azure using the following command:
@@ -39,7 +39,7 @@ Here is a typical configuration for Azure Web App Maven Plugin:
 <plugin> 
   <groupId>com.microsoft.azure</groupId>  
   <artifactId>azure-webapp-maven-plugin</artifactId>  
-  <version>2.1.0</version>  
+  <version>2.2.0</version>  
   <configuration>
     <subscriptionId>111111-11111-11111-1111111</subscriptionId>
     <resourceGroup>spring-boot-xxxxxxxxxx-rg</resourceGroup>
@@ -72,12 +72,12 @@ Property | Required | Description
 `<subscriptionId>` | false | Specifies the target subscription.<br>Use this setting when you have multiple subscriptions in your authentication file.|
 `<resourceGroup>` | true | Azure Resource Group for your Web App. |
 `<appName>` | true | The name of your Web App. |
-`<pricingTier>`| false | The pricing tier for your Web App. The default value is **P1V2**.|
-`<region>`| false | Specifies the region where your Web App will be hosted; the default value is **westeurope**. All valid regions at [Supported Regions](#region) section. |
-`<os>`| false | Specifies the os, supported values are *Linux*, *Windows* and *Docker*. |
-`<webContainer>`| false | Specifies the runtime stack, values for Linux are: *Tomcat 8.5*, *Tomcat 9.0*, *Java SE*, *JbossEAP 7.2*|
-`<javaVersion>`| false | Specifies the java version, values are: *Java 8* or *Java 11*|
-`<deployment>`| false | Specifies the target file to be deployed |
+`<pricingTier>`| false | The pricing tier for your Web App. The default value is **P1V2**(**P1v3** for JBoss).|
+`<region>`| false | Specifies the region where your Web App will be hosted; the default value is **centralus**(or the first region if centralus is not available in your subscription). All valid regions at [Supported Regions](#region) section. |
+ `<os>`| false | Specifies the os, supported values are *Linux*, *Windows* and *Docker*. The default value is **linux**|
+`<webContainer>`| false | Specifies the runtime stack, values for Linux are: *Tomcat 8.5*, *Tomcat 9.0*, *Java SE*, *JBossEAP 7*, The default value would be  **Tomcat 8.5** or **Java SE** or **JBossEAP 7** according to your project type |
+`<javaVersion>`| false | Specifies the java version, values are: *Java 8* or *Java 11*. The default value is your project compiler level|
+`<deployment>`| false | Specifies the target file to be deployed. If it is not specified, a default webapp is created without any deployments. |
 
 ## Feedback and Questions
 To report bugs or request new features, file issues on [Issues](https://github.com/microsoft/azure-maven-plugins/issues). Or, ask questions on [Stack Overflow with tag azure-java-tools](https://stackoverflow.com/questions/tagged/azure-java-tools).

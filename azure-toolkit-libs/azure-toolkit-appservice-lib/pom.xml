@@ -5,7 +5,7 @@
     <parent>
         <artifactId>azure-toolkit-libs</artifactId>
         <groupId>com.microsoft.azure</groupId>
-        <version>0.11.0</version>
+        <version>0.12.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -35,7 +35,12 @@
 
         <dependency>
             <groupId>com.azure.resourcemanager</groupId>
-            <artifactId>azure-resourcemanager</artifactId>
+            <artifactId>azure-resourcemanager-appservice</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-storage</artifactId>
         </dependency>
 
         <dependency>
@@ -77,17 +82,6 @@
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.errorprone</groupId>
-            <artifactId>error_prone_core</artifactId>
-            <version>${error.prone.core.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.zeroturnaround</groupId>
@@ -154,12 +148,11 @@
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure</artifactId>
-            <scope>compile</scope>
+            <artifactId>azure-toolkit-common-lib</artifactId>
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-toolkit-common-lib</artifactId>
+            <artifactId>azure-toolkit-applicationinsights-lib</artifactId>
         </dependency>
     </dependencies>
 

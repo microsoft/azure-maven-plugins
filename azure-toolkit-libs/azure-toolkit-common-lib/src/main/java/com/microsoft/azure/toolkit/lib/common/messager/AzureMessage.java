@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.messager;
 import com.azure.core.exception.HttpResponseException;
 import com.azure.core.management.exception.ManagementException;
 import com.google.common.collect.Streams;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
@@ -52,7 +53,7 @@ public class AzureMessage implements IAzureMessage {
     @Nullable
     protected Object payload;
     @Nullable
-    protected Action[] actions;
+    protected Action<?>[] actions;
     protected ValueDecorator valueDecorator;
 
     @Nonnull
@@ -64,14 +65,8 @@ public class AzureMessage implements IAzureMessage {
         final List<IAzureOperation> operations = this.getOperations();
         final String failure = operations.stream().findFirst().map(IAzureOperation::getTitle)
                 .map(azureString -> "Failed to " + this.decorateText(azureString, azureString::getString)).orElse("Failed to proceed");
-        final String cause = Optional.ofNullable(this.getCause(throwable))
-                .map(StringUtils::uncapitalize)
-                .map(c -> "," + (c.endsWith(".") ? c : c + '.'))
-                .orElse("");
-        final String errorAction = Optional.ofNullable(this.getErrorAction(throwable))
-                .map(StringUtils::capitalize)
-                .map(c -> System.lineSeparator() + (c.endsWith(".") ? c : c + '.'))
-                .orElse("");
+        final String cause = Optional.ofNullable(this.getCause(throwable)).map(c -> ", " + c).orElse("");
+        final String errorAction = Optional.ofNullable(this.getErrorAction(throwable)).map(c -> System.lineSeparator() + c).orElse("");
         return failure + cause + errorAction;
     }
 
@@ -112,7 +107,12 @@ public class AzureMessage implements IAzureMessage {
         } else if (root instanceof HttpResponseException) {
             cause = ((HttpResponseException) root).getResponse().getBodyAsString().block();
         }
-        return StringUtils.firstNonBlank(cause, root.getMessage());
+        final String causeMsg = StringUtils.firstNonBlank(cause, root.getMessage());
+        return Optional.ofNullable(causeMsg)
+                .filter(StringUtils::isNotBlank)
+                .map(StringUtils::uncapitalize)
+                .map(c -> c.endsWith(".") ? c : c + '.')
+                .orElse(null);
     }
 
     @Nullable
@@ -138,6 +138,8 @@ public class AzureMessage implements IAzureMessage {
                 .map(t -> t instanceof AzureToolkitRuntimeException ? ((AzureToolkitRuntimeException) t).getAction() : ((AzureToolkitException) t).getAction())
                 .filter(StringUtils::isNotBlank)
                 .findFirst()
+                .map(StringUtils::capitalize)
+                .map(c -> c.endsWith(".") ? c : c + '.')
                 .orElse(null);
     }
 
@@ -189,7 +191,7 @@ public class AzureMessage implements IAzureMessage {
 
     @Nonnull
     @Override
-    public Action[] getActions() {
+    public Action<?>[] getActions() {
         return ObjectUtils.firstNonNull(this.actions, new Action[0]);
     }
 

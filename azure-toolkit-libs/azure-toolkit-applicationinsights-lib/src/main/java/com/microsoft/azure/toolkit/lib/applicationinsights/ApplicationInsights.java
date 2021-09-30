@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ */
 package com.microsoft.azure.toolkit.lib.applicationinsights;
 
 import com.azure.core.http.policy.HttpLogDetailLevel;
@@ -5,10 +9,10 @@ import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.core.management.profile.AzureProfile;
-import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.applicationinsights.ApplicationInsightsManager;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsComponent;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationType;
+import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.policy.ProviderRegistrationPolicy;
 import com.azure.resourcemanager.resources.models.Providers;
@@ -94,7 +98,7 @@ public class ApplicationInsights extends SubscriptionScoped<ApplicationInsights>
         getApplicationInsightsManager(subscriptionId).components().deleteByResourceGroup(resourceGroup, name);
     }
 
-    @Cacheable(cacheName = "ApplicationInsightsManager", key = "$subscriptionId")
+    @Cacheable(cacheName = "applicationinsights/{}/manager", key = "$subscriptionId")
     private ApplicationInsightsManager getApplicationInsightsManager(String subscriptionId) {
         final Account account = Azure.az(AzureAccount.class).account();
         final String tenantId = account.getSubscription(subscriptionId).getTenantId();
@@ -104,12 +108,14 @@ public class ApplicationInsights extends SubscriptionScoped<ApplicationInsights>
         logOptions.setLogLevel(Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE));
         final AzureProfile azureProfile = new AzureProfile(tenantId, subscriptionId, account.getEnvironment());
         // todo: migrate resource provider related codes to common library
-        final Providers providers = AzureResourceManager.configure()
+        final Providers providers = ResourceManager.configure()
+                .withHttpClient(AzureService.getDefaultHttpClient())
                 .withPolicy(getUserAgentPolicy(userAgent))
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
                 .withSubscription(subscriptionId).providers();
         return ApplicationInsightsManager
                 .configure()
+                .withHttpClient(AzureService.getDefaultHttpClient())
                 .withLogOptions(logOptions)
                 .withPolicy(getUserAgentPolicy(userAgent))
                 .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers

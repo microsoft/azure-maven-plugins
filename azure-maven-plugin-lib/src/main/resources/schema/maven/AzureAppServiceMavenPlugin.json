@@ -1,0 +1,148 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Configuration",
+  "description": "Configuration for Maven plugin for Azure Web App",
+  "properties": {
+    "subscriptionId": {
+      "$ref": "classpath:///schema/common/UUID.json"
+    },
+    "resourceGroup": {
+      "$ref": "classpath:///schema/common/ResourceGroupName.json"
+    },
+    "appName": {
+      "$ref": "classpath:///schema/appservice/AppServiceName.json"
+    },
+    "appServicePlanName": {
+      "$ref": "classpath:///schema/appservice/AppServicePlanName.json"
+    },
+    "appServicePlanResourceGroup": {
+      "$ref": "classpath:///schema/common/ResourceGroupName.json"
+    },
+    "auth": {
+      "$ref": "#/definitions/auth"
+    },
+    "deploymentSlot": {
+      "$ref": "#/definitions/deployment-slot"
+    },
+    "appSettings": {
+      "type": "object"
+    },
+    "allowTelemetry": {
+      "type": "boolean",
+      "default": true
+    },
+    "failsOnError": {
+      "type": "boolean",
+      "default": true
+    },
+    "authType": {
+      "$ref": "classpath:///schema/common/AuthConfiguration.json#/definitions/auth-type",
+      "deprecationMessage": "Please set auth related properties like type in <auth>"
+    }
+  },
+  "required": [
+    "appName",
+    "resourceGroup"
+  ],
+  "definitions": {
+    "deployment-slot": {
+      "title": "DeploymentSlotConfiguration",
+      "description": "Deployment slot configuration for Maven plugin for Azure Web App",
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "classpath:///schema/appservice/DeploymentSlotName.json"
+        },
+        "configurationSource": {
+          "$ref": "classpath:///schema/common/NonEmptyString.json"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "auth": {
+      "title": "AuthConfiguration",
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "description": "The auth config for accessing azure resources",
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "classpath:///schema/common/AuthConfiguration.json#/definitions/auth-type"
+        },
+        "client": {
+          "$ref": "classpath:///schema/common/UUID.json"
+        },
+        "tenant": {
+          "$ref": "classpath:///schema/common/UUID.json"
+        },
+        "serverId": {
+          "$ref": "classpath:///schema/common/NonEmptyString.json"
+        },
+        "key": {
+          "description": "Password",
+          "type": "string"
+        },
+        "certificate": {
+          "description": "The absolute path of your certificate",
+          "type": "string"
+        },
+        "certificatePassword": {
+          "description": "The password for your certificate, if there is any",
+          "type": "string"
+        },
+        "environment": {
+          "$ref": "classpath:///schema/common/AzureEnvironment.json"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "pattern": "(?i)^service_principal$"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": [
+                  "client",
+                  "tenant",
+                  "key"
+                ]
+              },
+              {
+                "required": [
+                  "client",
+                  "tenant",
+                  "certificate"
+                ]
+              },
+              {
+                "required": [
+                  "serverId"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "not": {
+        "required": [
+          "key",
+          "certificate"
+        ]
+      },
+      "dependencies": {
+        "certificatePassword": [
+          "certificate"
+        ]
+      }
+    }
+  }
+}

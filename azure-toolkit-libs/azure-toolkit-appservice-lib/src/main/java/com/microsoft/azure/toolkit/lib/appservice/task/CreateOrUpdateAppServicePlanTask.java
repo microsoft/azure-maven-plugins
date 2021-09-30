@@ -9,12 +9,13 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import com.microsoft.azure.toolkit.lib.common.validator.SchemaValidator;
+import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
 import lombok.AllArgsConstructor;
 
 import java.util.Objects;
@@ -28,24 +29,15 @@ public class CreateOrUpdateAppServicePlanTask extends AzureTask<IAppServicePlan>
 
     @AzureOperation(name = "appservice|plan.create_update", params = {"this.config.servicePlanName()"}, type = AzureOperation.Type.SERVICE)
     public IAppServicePlan execute() {
+        SchemaValidator.getInstance().validateAndThrow("appservice/AppServicePlan", config);
         final AzureAppService az = Azure.az(AzureAppService.class).subscription(config.subscriptionId());
         final IAppServicePlan appServicePlan = az.appServicePlan(config.servicePlanResourceGroup(), config.servicePlanName());
         final String servicePlanName = config.servicePlanName();
         if (!appServicePlan.exists()) {
+            SchemaValidator.getInstance().validateAndThrow("appservice/CreateAppServicePlan", config);
             AzureMessager.getMessager().info(String.format(CREATE_APP_SERVICE_PLAN, servicePlanName));
             AzureTelemetry.getActionContext().setProperty(CREATE_NEW_APP_SERVICE_PLAN, String.valueOf(true));
-            if (config.os() == null) {
-                throw new AzureToolkitRuntimeException("Missing required configuration for 'runtime.os'.");
-            }
-
-            if (config.region() == null) {
-                throw new AzureToolkitRuntimeException("Missing required configuration for 'region'.");
-            }
-
-            if (config.pricingTier() == null) {
-                throw new AzureToolkitRuntimeException("Missing required configuration for 'pricingTier'.");
-            }
-
+            new CreateResourceGroupTask(this.config.subscriptionId(), config.servicePlanResourceGroup(), config.region()).execute();
             appServicePlan.create()
                 .withName(servicePlanName)
                 .withResourceGroup(config.servicePlanResourceGroup())
@@ -59,7 +51,7 @@ public class CreateOrUpdateAppServicePlanTask extends AzureTask<IAppServicePlan>
                 AzureMessager.getMessager().warning(String.format("Skip region update for existing service plan '%s' since it is not allowed.",
                     appServicePlan.name()));
             }
-            if (config.pricingTier() != null) {
+            if (config.pricingTier() != null && !Objects.equals(config.pricingTier(), appServicePlan.entity().getPricingTier())) {
                 // apply pricing tier to service plan
                 appServicePlan.update().withPricingTier(config.pricingTier()).commit();
             }

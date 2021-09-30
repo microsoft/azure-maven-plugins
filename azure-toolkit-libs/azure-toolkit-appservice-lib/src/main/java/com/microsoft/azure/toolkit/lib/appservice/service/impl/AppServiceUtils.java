@@ -5,7 +5,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.core.management.exception.ManagementException;
-import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.fluent.models.SiteLogsConfigInner;
 import com.azure.resourcemanager.appservice.models.AppServicePlan;
 import com.azure.resourcemanager.appservice.models.ApplicationLogsConfig;
@@ -71,7 +71,7 @@ class AppServiceUtils {
         }
         final String linuxFxVersion = webAppBase.linuxFxVersion();
         return StringUtils.containsIgnoreCase(webAppBase.innerModel().kind(), "function") ?
-                getRuntimeFromLinuxFunctionApp(linuxFxVersion) :  Runtime.getRuntimeFromLinuxFxVersion(linuxFxVersion);
+                getRuntimeFromLinuxFunctionApp(linuxFxVersion) : Runtime.getRuntimeFromLinuxFxVersion(linuxFxVersion);
     }
 
     private static Runtime getRuntimeFromLinuxFunctionApp(String linuxFxVersion) {
@@ -100,6 +100,9 @@ class AppServiceUtils {
                 return new RuntimeStack("JAVA", getJavaVersionValueForJavaSERuntimeStack(runtime.getJavaVersion()));
             }
             final String[] containerInfo = runtime.getWebContainer().getValue().split(" ");
+            if (containerInfo.length != 2) {
+                throw new AzureToolkitRuntimeException(String.format("Invalid webContainer '%s'.", runtime.getWebContainer()));
+            }
             final String stack = containerInfo[0];
             final String stackVersion = containerInfo[1];
             final String javaVersion = getJavaVersionValueForContainerRuntimeStack(runtime.getJavaVersion());
@@ -279,7 +282,7 @@ class AppServiceUtils {
             .build();
     }
 
-    static AppServicePlan getAppServicePlan(AppServicePlanEntity entity, AzureResourceManager azureClient) {
+    static AppServicePlan getAppServicePlan(AppServicePlanEntity entity, AppServiceManager azureClient) {
         try {
             return StringUtils.isNotEmpty(entity.getId()) ?
                 azureClient.appServicePlans().getById(entity.getId()) :

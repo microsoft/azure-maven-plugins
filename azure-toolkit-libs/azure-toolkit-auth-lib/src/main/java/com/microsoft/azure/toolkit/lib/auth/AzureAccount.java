@@ -6,22 +6,15 @@
 package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.credential.TokenCredential;
-import com.azure.core.http.policy.HttpLogDetailLevel;
-import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.management.AzureEnvironment;
-import com.azure.core.management.profile.AzureProfile;
 import com.azure.identity.SharedTokenCacheCredential;
 import com.azure.identity.SharedTokenCacheCredentialBuilder;
 import com.azure.identity.TokenCachePersistenceOptions;
-import com.azure.resourcemanager.AzureResourceManager;
-import com.azure.resourcemanager.resources.fluentcore.policy.ProviderRegistrationPolicy;
 import com.azure.resourcemanager.resources.models.Location;
-import com.azure.resourcemanager.resources.models.Providers;
 import com.azure.resourcemanager.resources.models.RegionType;
 import com.azure.resourcemanager.resources.models.Subscription;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.azurecli.AzureCliAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.devicecode.DeviceCodeAccount;
@@ -241,7 +234,8 @@ public class AzureAccount implements IAzureAccount {
      * see doc for: az account list-locations -o table
      */
     public List<Region> listRegions() {
-        return Flux.fromIterable(getSubscriptions()).parallel().map(com.microsoft.azure.toolkit.lib.common.model.Subscription::getId)
+        return Flux.fromIterable(Azure.az(IAzureAccount.class).account().getSelectedSubscriptions())
+                .parallel().map(com.microsoft.azure.toolkit.lib.common.model.Subscription::getId)
                 .map(this::listRegions)
                 .sequential().collectList()
                 .map(regionSet -> regionSet.stream()
@@ -276,37 +270,7 @@ public class AzureAccount implements IAzureAccount {
     // todo: share codes with other library which leverage track2 mgmt sdk
     @Cacheable(cacheName = "Subscription", key = "$subscriptionId")
     private Subscription getSubscription(String subscriptionId) {
-        return getAzureResourceManager(subscriptionId).subscriptions().getById(subscriptionId);
+        return getResourceManager(subscriptionId).subscriptions().getById(subscriptionId);
     }
 
-    // todo: share codes with other library which leverage track2 mgmt sdk
-    @Cacheable(cacheName = "AzureResourceManager", key = "$subscriptionId")
-    private AzureResourceManager getAzureResourceManager(String subscriptionId) {
-        // make sure it is signed in.
-        account();
-        final AzureConfiguration config = Azure.az().config();
-        final String userAgent = config.getUserAgent();
-        final HttpLogDetailLevel logDetailLevel = config.getLogLevel() == null ?
-                HttpLogDetailLevel.NONE : HttpLogDetailLevel.valueOf(config.getLogLevel());
-        final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
-
-        final Providers providers = AzureResourceManager.configure()
-            .withPolicy(getUserAgentPolicy(userAgent))
-            .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
-            .withSubscription(subscriptionId).providers();
-        return AzureResourceManager.configure()
-                .withLogLevel(logDetailLevel)
-                .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
-            .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers
-                .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
-                .withSubscription(subscriptionId);
-    }
-
-    private HttpPipelinePolicy getUserAgentPolicy(String userAgent) {
-        return (httpPipelineCallContext, httpPipelineNextPolicy) -> {
-            final String previousUserAgent = httpPipelineCallContext.getHttpRequest().getHeaders().getValue("User-Agent");
-            httpPipelineCallContext.getHttpRequest().setHeader("User-Agent", String.format("%s %s", userAgent, previousUserAgent));
-            return httpPipelineNextPolicy.process();
-        };
-    }
 }
