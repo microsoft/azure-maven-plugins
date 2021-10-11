@@ -31,6 +31,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebAppDeploymentS
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
@@ -42,6 +43,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class AzureAppService extends SubscriptionScoped<AzureAppService> implements AzureService {
@@ -218,6 +220,30 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
                 .withLogLevel(logLevel)
                 .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
                 .authenticate(account.getTokenCredential(sid), azureProfile);
+    }
+
+    public void refreshWebApp(final String subscriptionId) {
+        try {
+            CacheManager.evictCache("appservice/{}/webapps", subscriptionId);
+        } catch (ExecutionException e) {
+            // swallow exception while clean up cache
+        }
+    }
+
+    public void refreshFunctionApp(final String subscriptionId) {
+        try {
+            CacheManager.evictCache("appservice/{}/functionapps", subscriptionId);
+        } catch (ExecutionException e) {
+            // swallow exception while clean up cache
+        }
+    }
+
+    public void refreshAppServicePlan(final String subscriptionId) {
+        try {
+            CacheManager.evictCache("appservice/{}/plans", subscriptionId);
+        } catch (ExecutionException e) {
+            // swallow exception while clean up cache
+        }
     }
 
     private HttpPipelinePolicy getUserAgentPolicy(String userAgent) {
