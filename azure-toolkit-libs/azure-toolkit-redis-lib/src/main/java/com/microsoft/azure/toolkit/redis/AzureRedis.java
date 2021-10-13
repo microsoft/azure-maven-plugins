@@ -149,15 +149,7 @@ public class AzureRedis extends SubscriptionScoped<AzureRedis> implements AzureS
         return RedisManager.configure()
                 .withHttpClient(AzureService.getDefaultHttpClient())
                 .withLogLevel(logLevel)
-                .withPolicy(getUserAgentPolicy(userAgent))
+                .withPolicy(AzureService.getUserAgentPolicy(userAgent))
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
-    }
-
-    private static HttpPipelinePolicy getUserAgentPolicy(String userAgent) {
-        return (httpPipelineCallContext, httpPipelineNextPolicy) -> {
-            final String previousUserAgent = httpPipelineCallContext.getHttpRequest().getHeaders().getValue("User-Agent");
-            httpPipelineCallContext.getHttpRequest().setHeader("User-Agent", String.format("%s %s", userAgent, previousUserAgent));
-            return httpPipelineNextPolicy.process();
-        };
     }
 }
