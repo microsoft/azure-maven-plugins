@@ -64,7 +64,7 @@ public class StorageAccount extends AbstractAzureResource<StorageAccount, Storag
 
     @AzureOperation(name = "storage|account.get_key", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public String getKey() {
-        return Objects.requireNonNull(this.remote()).getKeys().get(0).keyName();
+        return Objects.requireNonNull(this.remote()).getKeys().get(0).value();
     }
 
     @Override
