@@ -78,13 +78,13 @@
         <azure.storage-file-share.version>12.9.1</azure.storage-file-share.version>
         <azure.function.version>1.4.2</azure.function.version>
         <azure.security.keyvault.keys.version>4.2.8</azure.security.keyvault.keys.version>
-        <azure.security.keyvault.secrets.version> 4.2.8</azure.security.keyvault.secrets.version>
+        <azure.security.keyvault.secrets.version>4.2.8</azure.security.keyvault.secrets.version>
         <azure.security.keyvault.certificates.version>4.1.8</azure.security.keyvault.certificates.version>
         <azure.storage.file.share.version>12.9.1</azure.storage.file.share.version>
         <azure.storage.queue.version>12.9.1</azure.storage.queue.version>
         <azure.storage.blob.version>12.11.1</azure.storage.blob.version>
         <azure.storage.blob.batch.version>12.9.1</azure.storage.blob.batch.version>
-        <azure.storage.file.datalake.version> 12.5.1</azure.storage.file.datalake.version>
+        <azure.storage.file.datalake.version>12.5.1</azure.storage.file.datalake.version>
         <azure.core.http.netty.version>1.9.2</azure.core.http.netty.version>
         <aspectj.version>1.9.7.M3</aspectj.version>
         <codehaus.plexus-utils.version>3.3.0</codehaus.plexus-utils.version>
@@ -138,6 +138,7 @@
         <azure-resourcemanager-mysql.version>1.0.0</azure-resourcemanager-mysql.version>
         <networknt.json-schema-validator.version>1.0.57</networknt.json-schema-validator.version>
         <azure-resourcemanager-redis.version>2.7.0</azure-resourcemanager-redis.version>
+        <jedis.version>3.6.3</jedis.version>
     </properties>
 
     <dependencyManagement>
@@ -761,6 +762,11 @@
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-interpolation</artifactId>
                 <version>${plexus-interpolation.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>redis.clients</groupId>
+                <artifactId>jedis</artifactId>
+                <version>${jedis.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.powermock</groupId>
