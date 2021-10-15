@@ -12,7 +12,8 @@ import com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages.
 import com.azure.resourcemanager.appservice.models.FunctionApp.Update;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
+import com.microsoft.azure.toolkit.lib.appservice.AzureAppServicePlan;
+import com.microsoft.azure.toolkit.lib.appservice.AzureFunction;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
@@ -71,7 +72,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
 
     @Override
     public IAppServicePlan plan() {
-        return Azure.az(AzureAppService.class).appServicePlan(remote().appServicePlanId());
+        return Azure.az(AzureAppServicePlan.class).get(remote().appServicePlanId());
     }
 
     @Override
@@ -222,7 +223,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
             }
             FunctionApp.this.remote = withCreate.create();
             FunctionApp.this.entity = AppServiceUtils.fromFunctionApp(FunctionApp.this.remote);
-            Azure.az(AzureAppService.class).refreshFunctionApp(FunctionApp.this.subscriptionId);
+            Azure.az(AzureFunction.class).refresh(); // todo: refactor to support refresh single subscription
             return FunctionApp.this;
         }
 
@@ -307,7 +308,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
 
         private Update updateAppServicePlan(Update update, AppServicePlanEntity newServicePlan) {
             final String servicePlanId = remote().appServicePlanId();
-            final AppServicePlanEntity currentServicePlan = Azure.az(AzureAppService.class).appServicePlan(servicePlanId).entity();
+            final AppServicePlanEntity currentServicePlan = Azure.az(AzureAppServicePlan.class).get(servicePlanId).entity();
             if (StringUtils.equalsIgnoreCase(currentServicePlan.getId(), newServicePlan.getId()) ||
                     (StringUtils.equalsIgnoreCase(currentServicePlan.getName(), newServicePlan.getName()) &&
                             StringUtils.equalsIgnoreCase(currentServicePlan.getResourceGroup(), newServicePlan.getResourceGroup()))) {

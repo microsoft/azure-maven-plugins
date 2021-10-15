@@ -12,7 +12,8 @@ import com.azure.resourcemanager.appservice.models.WebApp.DefinitionStages;
 import com.azure.resourcemanager.appservice.models.WebApp.Update;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
+import com.microsoft.azure.toolkit.lib.appservice.AzureAppServicePlan;
+import com.microsoft.azure.toolkit.lib.appservice.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
@@ -67,7 +68,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
 
     @Override
     public IAppServicePlan plan() {
-        return Azure.az(AzureAppService.class).appServicePlan(remote().appServicePlanId());
+        return Azure.az(AzureAppServicePlan.class).get(remote().appServicePlanId());
     }
 
     @Override
@@ -255,13 +256,13 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
                 WebApp.this.remote = update.apply();
             }
             WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.remote);
-            Azure.az(AzureAppService.class).refreshWebApp(WebApp.this.subscriptionId);
+            Azure.az(AzureWebApp.class).refresh(); // todo: refactor to support refresh single subscription
             return WebApp.this;
         }
 
         private Update updateAppServicePlan(Update update, AppServicePlanEntity newServicePlan) {
             final String servicePlanId = remote().appServicePlanId();
-            final AppServicePlanEntity currentServicePlan = Azure.az(AzureAppService.class).appServicePlan(servicePlanId).entity();
+            final AppServicePlanEntity currentServicePlan = Azure.az(AzureAppServicePlan.class).get(servicePlanId).entity();
             if (StringUtils.equalsIgnoreCase(currentServicePlan.getId(), newServicePlan.getId()) ||
                 (StringUtils.equalsIgnoreCase(currentServicePlan.getName(), newServicePlan.getName()) &&
                     StringUtils.equalsIgnoreCase(currentServicePlan.getResourceGroup(), newServicePlan.getResourceGroup()))) {

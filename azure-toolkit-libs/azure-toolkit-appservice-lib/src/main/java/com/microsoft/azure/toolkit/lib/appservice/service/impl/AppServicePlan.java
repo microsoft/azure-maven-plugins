@@ -6,7 +6,7 @@ package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
+import com.microsoft.azure.toolkit.lib.appservice.AzureAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
@@ -145,7 +145,7 @@ public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanag
                 .withPricingTier(AppServiceUtils.toPricingTier(pricingTier))
                 .withOperatingSystem(convertOS(operatingSystem)).create();
             AppServicePlan.this.entity = AppServiceUtils.fromAppServicePlan(AppServicePlan.this.remote);
-            Azure.az(AzureAppService.class).refreshAppServicePlan(AppServicePlan.this.subscriptionId);
+            Azure.az(AzureAppServicePlan.class).refresh(); // todo: refactor to support refresh single subscription
             return AppServicePlan.this;
         }
 
