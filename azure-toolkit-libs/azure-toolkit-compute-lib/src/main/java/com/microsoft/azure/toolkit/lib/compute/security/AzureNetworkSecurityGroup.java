@@ -28,7 +28,7 @@ public class AzureNetworkSecurityGroup extends AbstractAzureResourceModule<Netwo
     }
 
     @Override
-    public List<NetworkSecurityGroup> list(@Nonnull String subscriptionId) {
+    public List<NetworkSecurityGroup> list(@Nonnull String subscriptionId, boolean... force) {
         return getSecurityGroupManager(subscriptionId).list().stream().map(group -> new NetworkSecurityGroup(group, this)).collect(Collectors.toList());
     }
 

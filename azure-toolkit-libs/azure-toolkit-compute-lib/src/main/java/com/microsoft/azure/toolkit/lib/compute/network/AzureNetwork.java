@@ -25,7 +25,7 @@ public class AzureNetwork extends AbstractAzureResourceModule<Network> implement
     }
 
     @Override
-    public List<Network> list(@Nonnull String subscriptionId) {
+    public List<Network> list(@Nonnull String subscriptionId, boolean... force) {
         return getNetworkManager(subscriptionId).list().stream().map(network -> new Network(network, this)).collect(Collectors.toList());
     }
 

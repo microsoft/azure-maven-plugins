@@ -13,6 +13,7 @@ import com.azure.resourcemanager.resources.fluentcore.arm.Manager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import org.jetbrains.annotations.NotNull;
@@ -37,9 +38,14 @@ public abstract class AbstractAzureResourceModule<T extends IAzureBaseResource> 
         super(creator);
     }
 
-    public List<T> list() {
+    @Preload
+    private static void preload() {
+        Azure.getServices(AbstractAzureResourceModule.class).stream().parallel().forEach(AbstractAzureResourceModule::list);
+    }
+
+    public List<T> list(boolean... force) {
         return getSubscriptions().stream().parallel()
-                .flatMap(subscription -> list(subscription.getId()).stream())
+                .flatMap(subscription -> list(subscription.getId(), force).stream())
                 .collect(Collectors.toList());
     }
 
@@ -54,10 +60,10 @@ public abstract class AbstractAzureResourceModule<T extends IAzureBaseResource> 
         return get(getDefaultSubscription().getId(), resourceGroup, name);
     }
 
-    protected abstract List<T> list(@Nonnull final String subscriptionId);
+    public abstract List<T> list(@Nonnull final String subscriptionId, boolean... force);
 
     @Nonnull
-    protected abstract T get(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name);
+    public abstract T get(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name);
 
     protected static <R extends AzureConfigurable<R>, T extends Manager> T getResourceManager(
             final String subscriptionId, Supplier<AzureConfigurable<R>> configurableSupplier, AuthenticationMethod<R, T> authenticationMethod) {

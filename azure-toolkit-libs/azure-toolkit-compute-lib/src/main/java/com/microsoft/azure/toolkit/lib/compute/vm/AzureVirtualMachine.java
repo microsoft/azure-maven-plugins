@@ -48,7 +48,7 @@ public class AzureVirtualMachine extends AbstractAzureResourceModule<VirtualMach
     }
 
     @Cacheable(cacheName = "compute/{}/vm", key = "$subscriptionId")
-    public List<VirtualMachine> list(@Nonnull final String subscriptionId) {
+    public List<VirtualMachine> list(@Nonnull final String subscriptionId, boolean... force) {
         final VirtualMachines virtualMachines = getVirtualMachinesManager(subscriptionId);
         return virtualMachines.list().stream()
                 .map(vm -> new VirtualMachine(vm, this)).collect(Collectors.toList());

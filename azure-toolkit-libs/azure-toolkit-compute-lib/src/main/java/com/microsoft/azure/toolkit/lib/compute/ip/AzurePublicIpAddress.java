@@ -26,7 +26,7 @@ public class AzurePublicIpAddress extends AbstractAzureResourceModule<PublicIpAd
     }
 
     @Override
-    public List<PublicIpAddress> list(@Nonnull String subscriptionId) {
+    public List<PublicIpAddress> list(@Nonnull String subscriptionId, boolean... force) {
         return getPublicIpAddressManager(subscriptionId).list().stream().map(ip -> new PublicIpAddress(ip, this)).collect(Collectors.toList());
     }
 
