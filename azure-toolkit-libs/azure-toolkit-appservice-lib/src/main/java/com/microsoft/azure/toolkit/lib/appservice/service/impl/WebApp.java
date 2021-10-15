@@ -190,6 +190,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             }
             WebApp.this.remote = withCreate.create();
             WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.remote);
+            WebApp.this.refreshStatus();
             return WebApp.this;
         }
 
@@ -257,6 +258,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             }
             WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.remote);
             Azure.az(AzureWebApp.class).refresh(); // todo: refactor to support refresh single subscription
+            WebApp.this.refreshStatus();
             return WebApp.this;
         }
 

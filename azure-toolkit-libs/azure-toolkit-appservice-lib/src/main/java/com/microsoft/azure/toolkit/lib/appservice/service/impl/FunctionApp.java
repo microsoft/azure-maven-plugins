@@ -223,6 +223,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
             }
             FunctionApp.this.remote = withCreate.create();
             FunctionApp.this.entity = AppServiceUtils.fromFunctionApp(FunctionApp.this.remote);
+            FunctionApp.this.refreshStatus();
             Azure.az(AzureFunction.class).refresh(); // todo: refactor to support refresh single subscription
             return FunctionApp.this;
         }
@@ -303,6 +304,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
                 FunctionApp.this.remote = update.apply();
             }
             FunctionApp.this.entity = AppServiceUtils.fromFunctionApp(FunctionApp.this.remote);
+            FunctionApp.this.refreshStatus();
             return FunctionApp.this;
         }
 

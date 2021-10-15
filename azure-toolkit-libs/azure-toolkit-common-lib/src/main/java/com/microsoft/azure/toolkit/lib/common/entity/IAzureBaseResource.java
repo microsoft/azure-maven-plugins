@@ -12,6 +12,8 @@ import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.List;
 
 public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzureBaseResource> {
     String REST_SEGMENT_JOB_MANAGEMENT_TENANTID = "/#@";
@@ -76,5 +78,7 @@ public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzu
         String RUNNING = "RUNNING";
         String STOPPED = "STOPPED";
         String UNKNOWN = "UNKNOWN";
+
+        List<String> status = Arrays.asList(UNSTABLE, PENDING, DRAFT, STABLE, LOADING, ERROR, RUNNING, STOPPED, UNKNOWN);
     }
 }

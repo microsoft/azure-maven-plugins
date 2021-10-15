@@ -146,6 +146,7 @@ public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanag
                 .withOperatingSystem(convertOS(operatingSystem)).create();
             AppServicePlan.this.entity = AppServiceUtils.fromAppServicePlan(AppServicePlan.this.remote);
             Azure.az(AzureAppServicePlan.class).refresh(); // todo: refactor to support refresh single subscription
+            AppServicePlan.this.refreshStatus();
             return AppServicePlan.this;
         }
 
@@ -179,6 +180,7 @@ public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanag
                 AppServicePlan.this.remote = update.apply();
             }
             AppServicePlan.this.entity = AppServiceUtils.fromAppServicePlan(AppServicePlan.this.remote);
+            AppServicePlan.this.refreshStatus();
             return AppServicePlan.this;
         }
     }

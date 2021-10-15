@@ -163,6 +163,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
             }
             WebAppDeploymentSlot.this.remote = withCreate.create();
             WebAppDeploymentSlot.this.entity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.remote);
+            WebAppDeploymentSlot.this.refreshStatus();
             return WebAppDeploymentSlot.this;
         }
     }
@@ -205,6 +206,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
             }
             WebAppDeploymentSlot.this.remote = update.apply();
             WebAppDeploymentSlot.this.entity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.remote);
+            WebAppDeploymentSlot.this.refreshStatus();
             return WebAppDeploymentSlot.this;
         }
     }
