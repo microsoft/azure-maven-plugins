@@ -9,7 +9,7 @@ import com.azure.resourcemanager.compute.ComputeManager;
 import com.azure.resourcemanager.network.models.Networks;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResourceModule;
+import com.microsoft.azure.toolkit.lib.AbstractAzureResourceModule;
 
 import javax.annotation.Nonnull;
 import java.util.List;
