@@ -24,6 +24,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.service.IProcessClient;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
@@ -62,6 +63,7 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     }
 
     @Override
+    @AzureOperation(name = "common|resource.refresh", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public AbstractAppService<T, R> refresh() {
         super.refresh();
         this.entity = Optional.ofNullable(this.remote).map(this::getEntityFromRemoteResource).orElse(null);

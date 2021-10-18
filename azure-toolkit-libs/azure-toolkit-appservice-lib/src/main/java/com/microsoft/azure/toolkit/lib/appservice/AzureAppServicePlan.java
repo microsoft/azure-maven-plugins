@@ -16,17 +16,16 @@ import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class AzureAppServicePlan extends AbstractAzureResourceModule<IAppServicePlan> implements AzureOperationEvent.Source<AzureAppServicePlan> {
-    public AzureAppServicePlan(@NotNull Function<List<Subscription>, AbstractAzureResourceModule<AppServicePlan>> creator, @Nullable List<Subscription> subscriptions) {
+
+    public AzureAppServicePlan() { // for SPI
         super(AzureAppServicePlan::new);
     }
 

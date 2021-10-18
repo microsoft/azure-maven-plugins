@@ -1,1 +1,4 @@
 com.microsoft.azure.toolkit.lib.appservice.AzureAppService
+com.microsoft.azure.toolkit.lib.appservice.AzureWebApp
+com.microsoft.azure.toolkit.lib.appservice.AzureAppServicePlan
+com.microsoft.azure.toolkit.lib.appservice.AzureFunction

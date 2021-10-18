@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.appservice;
 import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.microsoft.azure.toolkit.lib.AbstractAzureResourceModule;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
-import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.FunctionApp;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
@@ -18,17 +17,15 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class AzureFunction extends AbstractAzureResourceModule<IFunctionApp> implements AzureOperationEvent.Source<AzureFunction> {
-    public AzureFunction(@NotNull Function<List<Subscription>, AbstractAzureResourceModule<AppServicePlan>> creator, @Nullable List<Subscription> subscriptions) {
+    public AzureFunction() { // for SPI
         super(AzureFunction::new);
     }
 

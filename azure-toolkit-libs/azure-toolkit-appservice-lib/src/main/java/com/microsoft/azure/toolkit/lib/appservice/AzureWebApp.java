@@ -20,19 +20,21 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class AzureWebApp extends AbstractAzureResourceModule<IWebApp> implements AzureOperationEvent.Source<AzureWebApp> {
-    public AzureWebApp(@NotNull Function<List<Subscription>, AbstractAzureResourceModule<IWebApp>> creator, @Nullable List<Subscription> subscriptions) {
-        super(creator, subscriptions);
+    public AzureWebApp() { // for SPI
+        super(AzureWebApp::new);
+    }
+
+    private AzureWebApp(@Nonnull final List<Subscription> subscriptions) {
+        super(AzureWebApp::new, subscriptions);
     }
 
     @Override
