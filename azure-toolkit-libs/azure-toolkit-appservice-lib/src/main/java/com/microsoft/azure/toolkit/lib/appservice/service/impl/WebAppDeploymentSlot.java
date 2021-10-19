@@ -36,26 +36,31 @@ import java.util.Optional;
 public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, WebAppDeploymentSlotEntity> implements IWebAppDeploymentSlot {
     private static final String WEB_APP_DEPLOYMENT_SLOT_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s";
     @Nonnull
-    private final WebApp parent;
+    private final IWebApp parent;
+    @Nonnull
+    private final WebApp webAppClient;
 
     public WebAppDeploymentSlot(@Nonnull final String id, @Nonnull final AppServiceManager azureClient) {
         super(id);
-        this.parent = azureClient.webApps().getById(ResourceId.fromString(id).parent().id());
+        this.webAppClient = azureClient.webApps().getById(ResourceId.fromString(id).parent().id());
+        this.parent = Azure.az(AzureAppService.class).webapp(subscriptionId, resourceGroup, webAppClient.name());
     }
 
-    public WebAppDeploymentSlot(@Nonnull final WebApp webApp, @Nonnull final String slotName) {
-        super(Utils.getSubscriptionId(webApp.id()), webApp.resourceGroupName(), slotName);
-        this.parent = webApp;
+    public WebAppDeploymentSlot(@Nonnull final IWebApp parent, @Nonnull final WebApp webAppClient, @Nonnull final String slotName) {
+        super(Utils.getSubscriptionId(webAppClient.id()), webAppClient.resourceGroupName(), slotName);
+        this.webAppClient = webAppClient;
+        this.parent = parent;
     }
 
-    public WebAppDeploymentSlot(@Nonnull final WebApp webApp, @Nonnull final WebDeploymentSlotBasic slotBasic) {
+    public WebAppDeploymentSlot(@Nonnull final IWebApp parent, @Nonnull final WebApp webAppClient, @Nonnull final WebDeploymentSlotBasic slotBasic) {
         super(slotBasic);
-        this.parent = webApp;
+        this.webAppClient = webAppClient;
+        this.parent = parent;
     }
 
     @Override
     public IWebApp webApp() {
-        return Azure.az(AzureAppService.class).webapp(subscriptionId, resourceGroup, parent.name());
+        return parent;
     }
 
     @Override
@@ -76,7 +81,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
 
     @Override
     protected DeploymentSlot loadRemote() {
-        return parent.deploymentSlots().getByName(name);
+        return webAppClient.deploymentSlots().getByName(name);
     }
 
     @Override
@@ -92,7 +97,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
 
     @Override
     public String id() {
-        return String.format(WEB_APP_DEPLOYMENT_SLOT_ID_TEMPLATE, subscriptionId, resourceGroup, parent.name(), name);
+        return String.format(WEB_APP_DEPLOYMENT_SLOT_ID_TEMPLATE, subscriptionId, resourceGroup, webAppClient.name(), name);
     }
 
     @Getter
@@ -133,7 +138,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
 
         @Override
         public WebAppDeploymentSlot commit() {
-            final WebApp webApp = parent;
+            final WebApp webApp = WebAppDeploymentSlot.this.webAppClient;
             final DeploymentSlot.DefinitionStages.Blank blank = webApp.deploymentSlots().define(getName());
             final DeploymentSlot.DefinitionStages.WithCreate withCreate;
             // Using configuration from parent by default

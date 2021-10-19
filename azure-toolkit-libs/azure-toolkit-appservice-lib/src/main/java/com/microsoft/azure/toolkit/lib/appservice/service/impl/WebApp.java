@@ -142,13 +142,13 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     @Override
     @Cacheable(cacheName = "appservice/webapp/{}/slot/{}", key = "${this.name()}/$slotName")
     public IWebAppDeploymentSlot deploymentSlot(String slotName) {
-        return new WebAppDeploymentSlot(remote(), slotName);
+        return new WebAppDeploymentSlot(this, remote(), slotName);
     }
 
     @Override
     @Cacheable(cacheName = "appservice/webapp/{}/slots", key = "${this.name()}", condition = "!(force&&force[0])")
     public List<IWebAppDeploymentSlot> deploymentSlots(boolean... force) {
-        return remote().deploymentSlots().list().stream().map(slot -> new WebAppDeploymentSlot(remote(), slot)).collect(Collectors.toList());
+        return remote().deploymentSlots().list().stream().map(slot -> new WebAppDeploymentSlot(this, remote(), slot)).collect(Collectors.toList());
     }
 
     @Override
