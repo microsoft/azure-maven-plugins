@@ -65,8 +65,10 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     @Override
     @AzureOperation(name = "common|resource.refresh", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public AbstractAppService<T, R> refresh() {
+        this.status(Status.PENDING);
         super.refresh();
         this.entity = Optional.ofNullable(this.remote).map(this::getEntityFromRemoteResource).orElse(null);
+        this.refreshStatus();
         return this;
     }
 
@@ -74,6 +76,7 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     public void start() {
         this.status(Status.PENDING);
         remote().start();
+        super.refresh(); // workaround as web app manager in sdk will not update status with start/stop/restart
         this.refreshStatus();
     }
 
@@ -81,6 +84,7 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     public void stop() {
         this.status(Status.PENDING);
         remote().stop();
+        super.refresh(); // workaround as web app manager in sdk will not update status with start/stop/restart
         this.refreshStatus();
     }
 
@@ -88,6 +92,7 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     public void restart() {
         this.status(Status.PENDING);
         remote().restart();
+        super.refresh(); // workaround as web app manager in sdk will not update status with start/stop/restart
         this.refreshStatus();
     }
 
@@ -216,7 +221,7 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     }
 
     public final void refreshStatus() {
-        AzureTaskManager.getInstance().runOnPooledThread(() -> this.status(this.refresh().loadStatus()));
+        AzureTaskManager.getInstance().runOnPooledThread(() -> this.status(this.loadStatus()));
     }
 
     protected final void status(@Nonnull String status) {
