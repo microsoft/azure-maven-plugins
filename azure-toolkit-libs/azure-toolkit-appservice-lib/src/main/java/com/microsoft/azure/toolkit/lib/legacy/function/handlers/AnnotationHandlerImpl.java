@@ -18,7 +18,7 @@ import com.microsoft.azure.toolkit.lib.legacy.function.configurations.Retry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
-import org.reflections.scanners.MethodAnnotationsScanner;
+import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
 
 import java.lang.annotation.Annotation;
@@ -47,8 +47,8 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
         return new Reflections(
                 new ConfigurationBuilder()
                         .addUrls(urls)
-                        .setScanners(new MethodAnnotationsScanner())
-                        .addClassLoader(getClassLoader(urls)))
+                        .setScanners(Scanners.MethodsAnnotated)
+                        .addClassLoaders(getClassLoader(urls)))
                 .getMethodsAnnotatedWith(FunctionName.class);
     }
 

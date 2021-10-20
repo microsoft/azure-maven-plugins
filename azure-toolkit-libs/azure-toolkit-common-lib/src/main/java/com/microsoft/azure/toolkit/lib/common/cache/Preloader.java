@@ -9,7 +9,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import lombok.extern.java.Log;
 import org.reflections.Reflections;
-import org.reflections.scanners.MethodAnnotationsScanner;
+import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
 
 import javax.annotation.Nullable;
@@ -90,7 +90,7 @@ public class Preloader {
     private static Set<Method> getPreloadingMethods() {
         final ConfigurationBuilder configuration = new ConfigurationBuilder()
                 .forPackages("com.microsoft.azure.toolkit", "com.microsoft.azuretools")
-                .setScanners(new MethodAnnotationsScanner());
+                .setScanners(Scanners.MethodsAnnotated);
         final Reflections reflections = new Reflections(configuration);
         return reflections.getMethodsAnnotatedWith(Preload.class);
     }
