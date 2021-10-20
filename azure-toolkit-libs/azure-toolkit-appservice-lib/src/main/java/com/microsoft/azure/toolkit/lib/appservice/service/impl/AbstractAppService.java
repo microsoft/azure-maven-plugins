@@ -22,7 +22,10 @@ import com.microsoft.azure.toolkit.lib.appservice.model.TunnelStatus;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.service.IProcessClient;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
@@ -31,6 +34,7 @@ import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBaseEntity> extends AbstractAzureManager<T> implements IAppService<R>,
@@ -39,6 +43,7 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     protected static final String APP_SERVICE_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s";
     protected AppServiceKuduManager kuduManager;
     protected R entity;
+    protected String status = null;
 
     public AbstractAppService(@Nonnull final String id) {
         super(id);
@@ -58,25 +63,37 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     }
 
     @Override
+    @AzureOperation(name = "common|resource.refresh", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public AbstractAppService<T, R> refresh() {
+        this.status(Status.PENDING);
         super.refresh();
         this.entity = Optional.ofNullable(this.remote).map(this::getEntityFromRemoteResource).orElse(null);
+        this.refreshStatus();
         return this;
     }
 
     @Override
     public void start() {
+        this.status(Status.PENDING);
         remote().start();
+        super.refresh(); // workaround as web app manager in sdk will not update status with start/stop/restart
+        this.refreshStatus();
     }
 
     @Override
     public void stop() {
+        this.status(Status.PENDING);
         remote().stop();
+        super.refresh(); // workaround as web app manager in sdk will not update status with start/stop/restart
+        this.refreshStatus();
     }
 
     @Override
     public void restart() {
+        this.status(Status.PENDING);
         remote().restart();
+        super.refresh(); // workaround as web app manager in sdk will not update status with start/stop/restart
+        this.refreshStatus();
     }
 
     @Override
@@ -191,6 +208,33 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     @Override
     public String resourceGroup() {
         return this.resourceGroup;
+    }
+
+    @Override
+    public String status() {
+        if (Objects.nonNull(this.status)) {
+            return this.status;
+        } else {
+            this.refreshStatus();
+            return Status.LOADING;
+        }
+    }
+
+    public final void refreshStatus() {
+        AzureTaskManager.getInstance().runOnPooledThread(() -> this.status(this.loadStatus()));
+    }
+
+    protected final void status(@Nonnull String status) {
+        final String oldStatus = this.status;
+        this.status = status;
+        if (!StringUtils.equalsIgnoreCase(oldStatus, this.status)) {
+            AzureEventBus.emit("common|resource.status_changed", this);
+        }
+    }
+
+    protected String loadStatus() {
+        final String state = Optional.ofNullable(remote().state()).map(Objects::toString).orElse(StringUtils.EMPTY);
+        return Status.status.stream().filter(status -> StringUtils.equalsIgnoreCase(status, state)).findFirst().orElse(Status.UNKNOWN);
     }
 
     protected IFileClient getFileClient() {

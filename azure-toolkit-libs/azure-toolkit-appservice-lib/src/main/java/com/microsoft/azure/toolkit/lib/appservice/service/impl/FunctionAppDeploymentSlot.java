@@ -159,6 +159,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
             }
             FunctionAppDeploymentSlot.this.remote = withCreate.create();
             FunctionAppDeploymentSlot.this.entity = AppServiceUtils.fromFunctionAppDeploymentSlot(FunctionAppDeploymentSlot.this.remote);
+            FunctionAppDeploymentSlot.this.refreshStatus();
             return FunctionAppDeploymentSlot.this;
         }
     }
@@ -200,6 +201,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
             }
             FunctionAppDeploymentSlot.this.remote = update.apply();
             FunctionAppDeploymentSlot.this.entity = AppServiceUtils.fromFunctionAppDeploymentSlot(FunctionAppDeploymentSlot.this.remote);
+            FunctionAppDeploymentSlot.this.refreshStatus();
             return FunctionAppDeploymentSlot.this;
         }
     }

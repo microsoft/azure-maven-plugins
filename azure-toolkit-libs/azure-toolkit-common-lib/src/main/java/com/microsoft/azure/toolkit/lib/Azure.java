@@ -8,6 +8,8 @@ package com.microsoft.azure.toolkit.lib;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ServiceLoader;
 
 public class Azure {
@@ -38,6 +40,17 @@ public class Azure {
             }
         }
         return null;
+    }
+
+    @Nullable
+    public static <T extends AzureService> List<T> getServices(Class<T> clazz) {
+        final List<T> result = new ArrayList<>();
+        for (AzureService service : Holder.loader) {
+            if (clazz.isInstance(service)) {
+                result.add(clazz.cast(service));
+            }
+        }
+        return result;
     }
 
     public static Azure az() {

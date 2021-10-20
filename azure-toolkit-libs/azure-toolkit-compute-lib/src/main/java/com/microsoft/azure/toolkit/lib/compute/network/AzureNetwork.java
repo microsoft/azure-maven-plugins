@@ -9,7 +9,7 @@ import com.azure.resourcemanager.compute.ComputeManager;
 import com.azure.resourcemanager.network.models.Networks;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResourceModule;
+import com.microsoft.azure.toolkit.lib.AbstractAzureResourceModule;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -25,7 +25,7 @@ public class AzureNetwork extends AbstractAzureResourceModule<Network> implement
     }
 
     @Override
-    public List<Network> list(@Nonnull String subscriptionId) {
+    public List<Network> list(@Nonnull String subscriptionId, boolean... force) {
         return getNetworkManager(subscriptionId).list().stream().map(network -> new Network(network, this)).collect(Collectors.toList());
     }
 

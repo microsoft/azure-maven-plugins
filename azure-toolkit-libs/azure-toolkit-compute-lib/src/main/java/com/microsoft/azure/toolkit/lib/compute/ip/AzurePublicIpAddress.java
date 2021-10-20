@@ -9,7 +9,7 @@ import com.azure.resourcemanager.compute.ComputeManager;
 import com.azure.resourcemanager.network.models.PublicIpAddresses;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResourceModule;
+import com.microsoft.azure.toolkit.lib.AbstractAzureResourceModule;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -26,7 +26,7 @@ public class AzurePublicIpAddress extends AbstractAzureResourceModule<PublicIpAd
     }
 
     @Override
-    public List<PublicIpAddress> list(@Nonnull String subscriptionId) {
+    public List<PublicIpAddress> list(@Nonnull String subscriptionId, boolean... force) {
         return getPublicIpAddressManager(subscriptionId).list().stream().map(ip -> new PublicIpAddress(ip, this)).collect(Collectors.toList());
     }
 
