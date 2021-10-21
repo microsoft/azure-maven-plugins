@@ -117,7 +117,7 @@
         <google.jsr305.version>3.0.2</google.jsr305.version>
         <free.port.finder.version>1.1.1</free.port.finder.version>
         <jjwt.version>0.9.1</jjwt.version>
-        <reflections.version>0.9.12</reflections.version>
+        <reflections.version>0.10.1</reflections.version>
         <reactor.netty.version>1.0.6</reactor.netty.version>
         <azure.core-http-netty.version>1.9.2</azure.core-http-netty.version>
         <nimbusds.oauth2.oidc.sdk.version>9.15</nimbusds.oauth2.oidc.sdk.version>
