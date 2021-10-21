@@ -10,6 +10,7 @@ import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.fluent.models.ResourceNameAvailabilityInner;
 import com.azure.resourcemanager.appservice.models.CheckNameResourceTypes;
+import com.azure.resourcemanager.appservice.models.ResourceNameAvailabilityRequest;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
@@ -127,7 +128,8 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     public CheckNameAvailabilityResultEntity checkNameAvailability(String subscriptionId, String name) {
         final AppServiceManager azureResourceManager = getAppServiceManager(subscriptionId);
         final ResourceNameAvailabilityInner result = azureResourceManager.webApps().manager()
-                .serviceClient().getResourceProviders().checkNameAvailability(name, CheckNameResourceTypes.MICROSOFT_WEB_SITES);
+                .serviceClient().getResourceProviders().checkNameAvailability(new ResourceNameAvailabilityRequest()
+                        .withName(name).withType(CheckNameResourceTypes.MICROSOFT_WEB_SITES));
         return new CheckNameAvailabilityResultEntity(result.nameAvailable(), result.reason().toString(), result.message());
     }
 
