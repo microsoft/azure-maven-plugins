@@ -4,7 +4,6 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
-import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.models.AppServicePlan;
 import com.azure.resourcemanager.appservice.models.DeployOptions;
@@ -25,11 +24,12 @@ import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceUpda
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import io.jsonwebtoken.lang.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -45,7 +45,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class WebApp extends AbstractAppService<com.azure.resourcemanager.appservice.models.WebApp, WebAppEntity> implements IWebApp {
-    private static final ClientLogger LOGGER = new ClientLogger(WebApp.class);
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
 
     private final AppServiceManager azureClient;
@@ -115,9 +114,9 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     @Override
     public void deploy(@Nonnull DeployType deployType, @Nonnull File targetFile, @Nullable String targetPath) {
         final DeployOptions options = new DeployOptions().withPath(targetPath);
-        LOGGER.info(String.format("Deploying (%s)[%s] %s ...", TextUtils.cyan(targetFile.toString()),
-                TextUtils.cyan(deployType.toString()),
-                StringUtils.isBlank(targetPath) ? "" : (" to " + TextUtils.green(targetPath))));
+        AzureMessager.getMessager().info(AzureString.format("Deploying (%s)[%s] %s ...", targetFile.toString(),
+                (deployType.toString()),
+                StringUtils.isBlank(targetPath) ? "" : (" to " + (targetPath))));
         remote().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
     }
 
