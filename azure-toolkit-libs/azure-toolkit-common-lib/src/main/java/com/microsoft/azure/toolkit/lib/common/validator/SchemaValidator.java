@@ -56,7 +56,13 @@ public class SchemaValidator {
     private SchemaValidator() {
         Optional.of(new Reflections("schema/", new ResourcesScanner()))
                 .filter(reflections -> CollectionUtils.isNotEmpty(reflections.getStore().keySet()))
-                .map(reflections -> reflections.getResources(Pattern.compile(".*\\.json")))
+                .map(reflections -> {
+                    try {
+                        return reflections.getResources(Pattern.compile(".*\\.json"));
+                    } catch (Exception exception) {
+                        return null;
+                    }
+                })
                 .orElse(Collections.emptySet())
                 .stream().map(resource -> Pair.of(resource, SchemaValidator.class.getResourceAsStream("/" + resource)))
                 .filter(pair -> pair.getValue() != null)
