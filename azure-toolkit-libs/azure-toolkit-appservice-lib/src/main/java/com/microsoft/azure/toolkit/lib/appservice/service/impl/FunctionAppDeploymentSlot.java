@@ -10,8 +10,6 @@ import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
 import com.azure.resourcemanager.appservice.models.FunctionApp;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlotBasic;
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
@@ -35,21 +33,25 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
     private static final String FUNCTION_DEPLOYMENT_SLOT_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s";
 
     @Nonnull
-    private final FunctionApp parent;
+    private final IFunctionApp parent;
+    @Nonnull
+    private final FunctionApp functionAppClient;
 
-    public FunctionAppDeploymentSlot(@Nonnull final FunctionApp functionApp, @Nonnull final String slotName) {
+    public FunctionAppDeploymentSlot(@Nonnull final IFunctionApp parent, @Nonnull final FunctionApp functionApp, @Nonnull final String slotName) {
         super(Utils.getSubscriptionId(functionApp.id()), functionApp.resourceGroupName(), slotName);
-        this.parent = functionApp;
+        this.parent = parent;
+        this.functionAppClient = functionApp;
     }
 
-    public FunctionAppDeploymentSlot(@Nonnull final FunctionApp functionApp, @Nonnull final FunctionDeploymentSlotBasic slotBasic) {
+    public FunctionAppDeploymentSlot(@Nonnull final IFunctionApp parent, @Nonnull final FunctionApp functionApp, @Nonnull final FunctionDeploymentSlotBasic slotBasic) {
         super(slotBasic);
-        this.parent = functionApp;
+        this.parent = parent;
+        this.functionAppClient = functionApp;
     }
 
     @Override
     public IFunctionApp functionApp() {
-        return Azure.az(AzureAppService.class).functionApp(resourceGroup, parent.name());
+        return parent;
     }
 
     @Override
@@ -70,13 +72,14 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
     @Override
     public void delete() {
-        parent.deploymentSlots().deleteById(this.id());
+        functionAppClient.deploymentSlots().deleteById(this.id());
+        functionApp().refresh();
     }
 
     @Nullable
     @Override
     protected FunctionDeploymentSlot loadRemote() {
-        return parent.deploymentSlots().getByName(name);
+        return functionAppClient.deploymentSlots().getByName(name);
     }
 
     @Override
@@ -88,7 +91,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
     @Override
     public String id() {
-        return String.format(FUNCTION_DEPLOYMENT_SLOT_ID_TEMPLATE, subscriptionId, resourceGroup, parent.name(), name);
+        return String.format(FUNCTION_DEPLOYMENT_SLOT_ID_TEMPLATE, subscriptionId, resourceGroup, functionAppClient.name(), name);
     }
 
     @Getter
@@ -129,7 +132,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
         @Override
         public IFunctionAppDeploymentSlot commit() {
-            final FunctionApp functionApp = parent;
+            final FunctionApp functionApp = functionAppClient;
             final FunctionDeploymentSlot.DefinitionStages.Blank blank = functionApp.deploymentSlots().define(getName());
             final FunctionDeploymentSlot.DefinitionStages.WithCreate withCreate;
             // Using configuration from parent by default
@@ -160,6 +163,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
             FunctionAppDeploymentSlot.this.remote = withCreate.create();
             FunctionAppDeploymentSlot.this.entity = AppServiceUtils.fromFunctionAppDeploymentSlot(FunctionAppDeploymentSlot.this.remote);
             FunctionAppDeploymentSlot.this.refreshStatus();
+            FunctionAppDeploymentSlot.this.parent.refresh();
             return FunctionAppDeploymentSlot.this;
         }
     }

@@ -88,14 +88,14 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     @Override
     @Cacheable(cacheName = "appservice/functionapp/{}/slot/{}", key = "${this.name()}/$slotName")
     public IFunctionAppDeploymentSlot deploymentSlot(String slotName) {
-        return new FunctionAppDeploymentSlot(remote(), slotName);
+        return new FunctionAppDeploymentSlot(this, remote(), slotName);
     }
 
     @Override
     @Cacheable(cacheName = "appservice/functionapp/{}/slots", key = "${this.name()}", condition = "!(force&&force[0])")
     public List<IFunctionAppDeploymentSlot> deploymentSlots(boolean... force) {
         return remote().deploymentSlots().list().stream().parallel()
-                .map(functionSlotBasic -> new FunctionAppDeploymentSlot(remote(), functionSlotBasic))
+                .map(functionSlotBasic -> new FunctionAppDeploymentSlot(this, remote(), functionSlotBasic))
                 .collect(Collectors.toList());
     }
 
