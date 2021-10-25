@@ -127,8 +127,11 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     @Override
     @AzureOperation(name = "function.delete", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
-        azureClient.functionApps().deleteById(this.id());
-        refresh();
+        if (this.exists()) {
+            this.status(Status.PENDING);
+            azureClient.functionApps().deleteById(this.id());
+            Azure.az(AzureFunction.class).refresh();
+        }
     }
 
     @Override
@@ -138,6 +141,8 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
         } finally {
             try {
                 CacheManager.evictCache("appservice/functionapp/{}", this.id());
+                CacheManager.evictCache("appservice/functionapp/{}/slots", this.name());
+                CacheManager.evictCache("appservice/{}/rg/{}/functionapp/{}", String.format("%s/%s/%s", subscriptionId, resourceGroup, name));
             } catch (Throwable e) {
                 log.warn("failed to evict cache", e);
             }
