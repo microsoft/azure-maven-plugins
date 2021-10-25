@@ -190,6 +190,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             WebApp.this.remote = withCreate.create();
             WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.remote);
             WebApp.this.refreshStatus();
+            Azure.az(AzureWebApp.class).refresh();
             return WebApp.this;
         }
 

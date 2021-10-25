@@ -233,6 +233,9 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     }
 
     protected String loadStatus() {
+        if (!exists()) {
+            return Status.UNKNOWN;
+        }
         final String state = Optional.ofNullable(remote().state()).map(Objects::toString).orElse(StringUtils.EMPTY);
         return Status.status.stream().filter(status -> StringUtils.equalsIgnoreCase(status, state)).findFirst().orElse(Status.UNKNOWN);
     }
