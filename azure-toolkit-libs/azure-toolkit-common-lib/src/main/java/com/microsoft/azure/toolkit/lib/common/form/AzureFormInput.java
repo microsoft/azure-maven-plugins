@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.common.form;
 
 import com.microsoft.azure.toolkit.lib.common.DataStore;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -41,7 +40,7 @@ public interface AzureFormInput<T> extends Validatable, DataStore {
     }
 
     default void fireValueChangedEvent(T val) {
-        AzureTaskManager.getInstance().runLater(() -> this.getValueChangedListeners().forEach(l -> l.accept(val)));
+        this.getValueChangedListeners().forEach(l -> l.accept(val));
     }
 
     @Nonnull
