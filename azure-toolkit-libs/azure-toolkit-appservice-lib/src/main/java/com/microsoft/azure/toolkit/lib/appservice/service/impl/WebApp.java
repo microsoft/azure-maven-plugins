@@ -89,8 +89,11 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     @Override
     @AzureOperation(name = "webapp.delete", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
-        azureClient.webApps().deleteById(this.id());
-        refresh();
+        if (this.exists()) {
+            this.status(Status.PENDING);
+            azureClient.functionApps().deleteById(this.id());
+            Azure.az(AzureWebApp.class).refresh();
+        }
     }
 
     @Override
@@ -132,6 +135,8 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
         } finally {
             try {
                 CacheManager.evictCache("appservice/webapp/{}", this.id());
+                CacheManager.evictCache("appservice/webapp/{}/slots", this.name());
+                CacheManager.evictCache("appservice/{}/rg/{}/webapp/{}", String.format("%s/%s/%s", subscriptionId, resourceGroup, name));
             } catch (Throwable e) {
                 log.warn("failed to evict cache", e);
             }
