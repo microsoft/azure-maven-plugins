@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.compute.vm;
 
+import com.azure.resourcemanager.compute.models.OSProfile;
 import com.azure.resourcemanager.compute.models.PowerState;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
@@ -63,6 +64,36 @@ public class VirtualMachine extends AbstractAzureResource<com.azure.resourcemana
 
     public Region getRegion() {
         return Region.fromName(remote().regionName());
+    }
+
+    public boolean isSshEnabled() {
+        // TODO: @wangmi check if ssh is enabled, possible solution: INBOUND/TCP/22
+        // return remote().getPrimaryNetworkInterface().getNetworkSecurityGroup().securityRules().entrySet().stream()
+        //    .anyMatch(e -> SecurityRuleProtocol.TCP.equals(e.getValue().protocol()) &&
+        //        SecurityRuleDirection.INBOUND.equals(e.getValue().direction()) &&
+        //        "22".equals(e.getValue().destinationPortRange()) &&
+        //        "*".equals(e.getValue().destinationPortRange()));
+        return true;
+    }
+
+    public String getHostIp() {
+        return remote().getPrimaryPublicIPAddress().ipAddress();
+    }
+
+    public String getAdminUserName() {
+        return remote().innerModel().osProfile().adminUsername();
+    }
+
+    public String getAdminPassword() {
+        return remote().innerModel().osProfile().adminPassword();
+    }
+
+    public boolean isPasswordAuthenticationDisabled() {
+        final OSProfile profile = remote().innerModel().osProfile();
+        if (Objects.nonNull(profile.linuxConfiguration())) {
+            return profile.linuxConfiguration().disablePasswordAuthentication();
+        }
+        return true;
     }
 
     @Override
