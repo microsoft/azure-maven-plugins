@@ -73,7 +73,7 @@ public class VirtualMachine extends AbstractAzureResource<com.azure.resourcemana
         //        SecurityRuleDirection.INBOUND.equals(e.getValue().direction()) &&
         //        "22".equals(e.getValue().destinationPortRange()) &&
         //        "*".equals(e.getValue().destinationPortRange()));
-        return true;
+        return Objects.nonNull(this.getHostIp());
     }
 
     public String getHostIp() {
