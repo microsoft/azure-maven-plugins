@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.compute.vm;
 
 import com.azure.resourcemanager.compute.models.OSProfile;
 import com.azure.resourcemanager.compute.models.PowerState;
+import com.azure.resourcemanager.network.models.PublicIpAddress;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureModule;
 import com.microsoft.azure.toolkit.lib.common.entity.Removable;
@@ -23,7 +24,7 @@ import java.util.Optional;
 
 @NoArgsConstructor
 public class VirtualMachine extends AbstractAzureResource<com.azure.resourcemanager.compute.models.VirtualMachine, IAzureBaseResource>
-        implements AzureOperationEvent.Source<VirtualMachine>, Removable {
+    implements AzureOperationEvent.Source<VirtualMachine>, Removable {
 
     protected AzureVirtualMachine module;
 
@@ -40,7 +41,7 @@ public class VirtualMachine extends AbstractAzureResource<com.azure.resourcemana
     @Nonnull
     @Override
     public IAzureModule<? extends AbstractAzureResource<com.azure.resourcemanager.compute.models.VirtualMachine, IAzureBaseResource>,
-            ? extends IAzureBaseResource> module() {
+        ? extends IAzureBaseResource> module() {
         return module;
     }
 
@@ -76,16 +77,13 @@ public class VirtualMachine extends AbstractAzureResource<com.azure.resourcemana
         return Objects.nonNull(this.getHostIp());
     }
 
+    @Nullable
     public String getHostIp() {
-        return remote().getPrimaryPublicIPAddress().ipAddress();
+        return Optional.ofNullable(remote().getPrimaryPublicIPAddress()).map(PublicIpAddress::ipAddress).orElse(null);
     }
 
     public String getAdminUserName() {
         return remote().innerModel().osProfile().adminUsername();
-    }
-
-    public String getAdminPassword() {
-        return remote().innerModel().osProfile().adminPassword();
     }
 
     public boolean isPasswordAuthenticationDisabled() {
@@ -102,7 +100,7 @@ public class VirtualMachine extends AbstractAzureResource<com.azure.resourcemana
         if (StringUtils.equalsIgnoreCase(powerState, PowerState.RUNNING.toString())) {
             return Status.RUNNING;
         } else if (StringUtils.equalsAnyIgnoreCase(powerState, PowerState.DEALLOCATING.toString(), PowerState.STOPPING.toString(),
-                PowerState.STARTING.toString())) {
+            PowerState.STARTING.toString())) {
             return Status.PENDING;
         } else if (StringUtils.equalsAnyIgnoreCase(powerState, PowerState.STOPPED.toString(), PowerState.DEALLOCATED.toString())) {
             return Status.STOPPED;
