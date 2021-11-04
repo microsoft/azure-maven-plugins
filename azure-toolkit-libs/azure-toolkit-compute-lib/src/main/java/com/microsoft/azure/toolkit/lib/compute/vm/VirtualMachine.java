@@ -93,7 +93,7 @@ public class VirtualMachine extends AbstractAzureResource<com.azure.resourcemana
         if (Objects.nonNull(profile.linuxConfiguration())) {
             return profile.linuxConfiguration().disablePasswordAuthentication();
         }
-        return true;
+        return false;
     }
 
     @Override
