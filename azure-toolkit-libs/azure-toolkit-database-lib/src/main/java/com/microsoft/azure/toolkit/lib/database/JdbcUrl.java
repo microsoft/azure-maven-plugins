@@ -20,6 +20,7 @@ import java.util.Objects;
 public abstract class JdbcUrl {
 
     private static final int MYSQL_DEFAULT_PORT = 3306;
+    private static final int POSTGRE_SQL_DEFAULT_PORT = 5432;
     private static final int SQL_SERVER_DEFAULT_PORT = 1433;
 
     protected final URIBuilder uri;
@@ -52,6 +53,16 @@ public abstract class JdbcUrl {
     public static JdbcUrl mysql(String serverHost) {
         return new MySQLJdbcUrl(String.format("jdbc:mysql://%s:%s?serverTimezone=UTC&useSSL=true&requireSSL=false",
             encode(serverHost), MYSQL_DEFAULT_PORT));
+    }
+
+    public static JdbcUrl postgre(String serverHost, String database) {
+        return new MySQLJdbcUrl(String.format("jdbc:postgresql://%s:%s/%s?ssl=true&sslmode=require",
+                encode(serverHost), POSTGRE_SQL_DEFAULT_PORT, encode(database)));
+    }
+
+    public static JdbcUrl postgre(String serverHost) {
+        return new MySQLJdbcUrl(String.format("jdbc:postgresql://%s:%s?ssl=true&sslmode=require",
+                encode(serverHost), POSTGRE_SQL_DEFAULT_PORT));
     }
 
     public static JdbcUrl sqlserver(String serverHost, String database) {

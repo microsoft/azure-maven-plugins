@@ -55,7 +55,7 @@ public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureS
 
     public MySqlServer get(final String resourceGroup, final String name) {
         MySqlManager manager = MySqlManagerFactory.create(getDefaultSubscription().getId());
-        final Server server = MySqlManagerFactory.create(getDefaultSubscription().getId()).servers().getByResourceGroup(resourceGroup, name);
+        final Server server = manager.servers().getByResourceGroup(resourceGroup, name);
         return new MySqlServer(manager, server);
     }
 
