@@ -88,7 +88,7 @@ public interface AzureFormInput<T> extends DataStore {
         } else if (CollectionUtils.isNotEmpty(validators)) {
             for (Validator validator : validators) {
                 final AzureValidationInfo info = validator.doValidate();
-                if (info.isValid()) {
+                if (!info.isValid()) {
                     return info;
                 }
             }
