@@ -14,13 +14,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public interface AzureForm<T> extends AzureFormInput<T> {
-    default T getValue() {
-        return this.getData();
-    }
+    T getValue();
 
-    default void setValue(T data) {
-        setData(data);
-    }
+    void setValue(T data);
 
     @Override
     @Nonnull
@@ -49,18 +45,6 @@ public interface AzureForm<T> extends AzureFormInput<T> {
     }
 
     List<AzureFormInput<?>> getInputs();
-
-    /**
-     * implement/use {@link #getValue()} instead
-     */
-    @Deprecated
-    T getData();
-
-    /**
-     * implement/use {@link #setValue(Object)} instead
-     */
-    @Deprecated
-    void setData(T data);
 
     /**
      * use {@link #validateAllInputs()} instead
