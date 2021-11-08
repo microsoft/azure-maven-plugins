@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.common.form;
 
 import com.microsoft.azure.toolkit.lib.common.DataStore;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.MutableTriple;
@@ -56,7 +55,7 @@ public interface AzureFormInput<T> extends DataStore {
     }
 
     default List<Consumer<T>> getValueChangedListeners() {
-        return this.get(FIELD_VALUE_LISTENERS, new CopyOnWriteArrayList<>());
+        return new ArrayList<>(this.get(FIELD_VALUE_LISTENERS, new CopyOnWriteArrayList<>()));
     }
 
     default void fireValueChangedEvent(T val) {
@@ -80,20 +79,25 @@ public interface AzureFormInput<T> extends DataStore {
     }
 
     default AzureValidationInfo validateInternal(T v) {
-        final Collection<Validator> validators = this.getValidators();
         if (this.isRequired() && ObjectUtils.isEmpty(v)) {
             final String message = StringUtils.isEmpty(this.getLabel()) ?
                 MSG_REQUIRED : String.format("\"%s\" is required.", this.getLabel());
             return AzureValidationInfo.error(message, this);
-        } else if (CollectionUtils.isNotEmpty(validators)) {
+        } else {
+            AzureValidationInfo result = AzureValidationInfo.none(this);
+            final Collection<Validator> validators = this.getValidators();
+            validators.add(() -> this.doValidate(v));
             for (Validator validator : validators) {
                 final AzureValidationInfo info = validator.doValidate();
+                if (info.getType().ordinal() < result.getType().ordinal()) {
+                    result = info;
+                }
                 if (!info.isValid()) {
-                    return info;
+                    break;
                 }
             }
+            return result;
         }
-        return doValidate(v);
     }
 
     /**
@@ -179,7 +183,7 @@ public interface AzureFormInput<T> extends DataStore {
 
     @Nonnull
     default Collection<Validator> getValidators() {
-        return this.get(FIELD_VALIDATORS, new ArrayList<>());
+        return new ArrayList<>(this.get(FIELD_VALIDATORS, new ArrayList<>()));
     }
 
     @Deprecated
@@ -188,7 +192,7 @@ public interface AzureFormInput<T> extends DataStore {
     }
 
     default void addValidator(Validator validator) {
-        final Collection<Validator> validators = this.getValidators();
+        final Collection<Validator> validators = this.get(FIELD_VALIDATORS, new ArrayList<>());
         validators.add(validator);
     }
 

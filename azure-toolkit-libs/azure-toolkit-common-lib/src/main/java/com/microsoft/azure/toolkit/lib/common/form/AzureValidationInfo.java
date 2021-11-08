@@ -8,6 +8,8 @@ package com.microsoft.azure.toolkit.lib.common.form;
 import lombok.Builder;
 import lombok.Getter;
 
+import javax.annotation.Nonnull;
+
 @Getter
 @Builder
 public class AzureValidationInfo {
@@ -26,11 +28,11 @@ public class AzureValidationInfo {
         return AzureValidationInfo.builder().type(Type.PENDING).message("Validating...").input(input).build();
     }
 
-    public static AzureValidationInfo error(String message, AzureFormInput<?> input) {
+    public static AzureValidationInfo error(@Nonnull String message, AzureFormInput<?> input) {
         return AzureValidationInfo.builder().type(Type.ERROR).message(message).input(input).build();
     }
 
-    public static AzureValidationInfo warning(String message, AzureFormInput<?> input) {
+    public static AzureValidationInfo warning(@Nonnull String message, AzureFormInput<?> input) {
         return AzureValidationInfo.builder().type(Type.WARNING).message(message).input(input).build();
     }
 
