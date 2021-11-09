@@ -41,6 +41,8 @@ public abstract class JdbcUrl {
             return new MySQLJdbcUrl(connectionString);
         } else if (StringUtils.startsWith(connectionString, "jdbc:sqlserver:")) {
             return new SQLServerJdbcUrl(connectionString);
+        } else if (StringUtils.startsWith(connectionString, "jdbc:postgresql:")) {
+            return new PostgreSQLJdbcUrl(connectionString);
         }
         throw new AzureToolkitRuntimeException("Unsupported jdbc url: %s", connectionString);
     }
@@ -175,6 +177,19 @@ public abstract class JdbcUrl {
         @Override
         int getDefaultPort() {
             return MYSQL_DEFAULT_PORT;
+        }
+
+    }
+
+    private static class PostgreSQLJdbcUrl extends JdbcUrl {
+
+        private PostgreSQLJdbcUrl(String url) {
+            super(url);
+        }
+
+        @Override
+        int getDefaultPort() {
+            return POSTGRE_SQL_DEFAULT_PORT;
         }
 
     }

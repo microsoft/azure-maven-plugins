@@ -5,16 +5,42 @@
 
 package com.microsoft.azure.toolkit.lib.postgre.model;
 
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
+import com.azure.resourcemanager.postgresql.PostgreSqlManager;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.experimental.SuperBuilder;
+
+import javax.annotation.Nonnull;
 
 @Getter
-@SuperBuilder(toBuilder = true)
 @EqualsAndHashCode
-public class PostgreSqlDatabaseEntity implements IAzureResourceEntity {
-    private String name;
-    private String id;
-    private String subscriptionId;
+public class PostgreSqlDatabaseEntity extends AbstractAzureResource.RemoteAwareResourceEntity<com.azure.resourcemanager.postgresql.models.Database> {
+    @Nonnull
+    private final ResourceId resourceId;
+    @Nonnull final PostgreSqlManager manager;
+
+    public PostgreSqlDatabaseEntity(PostgreSqlManager manager, com.azure.resourcemanager.postgresql.models.Database database) {
+        this.resourceId = ResourceId.fromString(database.id());
+        this.manager = manager;
+        this.remote = database;
+    }
+
+    @Override
+    public String getSubscriptionId() {
+        return resourceId.subscriptionId();
+    }
+
+    public String getId() {
+        return resourceId.id();
+    }
+
+    @Override
+    public String getName() {
+        return resourceId.name();
+    }
+
+    public String getResourceGroupName() {
+        return resourceId.resourceGroupName();
+    }
 }
