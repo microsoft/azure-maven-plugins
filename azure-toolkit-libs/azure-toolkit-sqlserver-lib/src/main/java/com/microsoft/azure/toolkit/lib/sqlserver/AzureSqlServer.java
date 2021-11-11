@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResult
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
@@ -66,9 +67,9 @@ public class AzureSqlServer extends SubscriptionScoped<AzureSqlServer> implement
         return new CheckNameAvailabilityResultEntity(result.isAvailable(), result.unavailabilityReason(), result.unavailabilityMessage());
     }
 
-    public boolean checkRegionCapability(String subscriptionId, String region) {
+    public boolean checkRegionCapability(String subscriptionId, Region region) {
         SqlServerManager manager = SqlServerManagerFactory.create(subscriptionId);
-        com.azure.resourcemanager.sql.models.RegionCapabilities capabilities = manager.sqlServers().getCapabilitiesByRegion(com.azure.core.management.Region.fromName(region));
+        com.azure.resourcemanager.sql.models.RegionCapabilities capabilities = manager.sqlServers().getCapabilitiesByRegion(com.azure.core.management.Region.fromName(region.getName()));
         return Objects.nonNull(capabilities.status()) && CapabilityStatus.AVAILABLE == capabilities.status();
     }
 

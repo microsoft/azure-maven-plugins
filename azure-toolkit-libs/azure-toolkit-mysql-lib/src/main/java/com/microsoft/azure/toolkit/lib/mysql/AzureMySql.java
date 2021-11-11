@@ -6,15 +6,11 @@ package com.microsoft.azure.toolkit.lib.mysql;
 
 import com.azure.core.util.ExpandableStringEnum;
 import com.azure.resourcemanager.mysql.MySqlManager;
-import com.azure.resourcemanager.mysql.models.NameAvailabilityRequest;
-import com.azure.resourcemanager.mysql.models.PerformanceTierProperties;
-import com.azure.resourcemanager.mysql.models.Server;
-import com.azure.resourcemanager.mysql.models.ServerPropertiesForDefaultCreate;
-import com.azure.resourcemanager.mysql.models.ServerVersion;
-import com.azure.resourcemanager.mysql.models.Sku;
+import com.azure.resourcemanager.mysql.models.*;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
+import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -55,7 +51,7 @@ public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureS
 
     public MySqlServer get(final String resourceGroup, final String name) {
         MySqlManager manager = MySqlManagerFactory.create(getDefaultSubscription().getId());
-        final Server server = MySqlManagerFactory.create(getDefaultSubscription().getId()).servers().getByResourceGroup(resourceGroup, name);
+        final Server server = manager.servers().getByResourceGroup(resourceGroup, name);
         return new MySqlServer(manager, server);
     }
 
@@ -68,10 +64,11 @@ public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureS
             StringUtils.equals("GeneralPurpose", tier.id()) ? 2 : StringUtils.equals("MemoryOptimized", tier.id()) ? 3 : 4;
     }
 
-    public boolean checkNameAvailability(String name) {
-        MySqlManager mySqlManager = MySqlManagerFactory.create(getDefaultSubscription().getId());
-        NameAvailabilityRequest request = new NameAvailabilityRequest().withName(name).withType(MYSQL_PROVIDER_AND_RESOURCE);
-        return mySqlManager.checkNameAvailabilities().execute(request).nameAvailable();
+    public CheckNameAvailabilityResultEntity checkNameAvailability(@Nonnull String subscriptionId, @Nonnull String name) {
+        final MySqlManager mySqlManager = MySqlManagerFactory.create(subscriptionId);
+        final NameAvailabilityRequest request = new NameAvailabilityRequest().withName(name).withType(MYSQL_PROVIDER_AND_RESOURCE);
+        final NameAvailability result = mySqlManager.checkNameAvailabilities().execute(request);
+        return new CheckNameAvailabilityResultEntity(result.nameAvailable(), result.reason(), result.message());
     }
 
     public List<Region> listSupportedRegions() {

@@ -63,6 +63,7 @@ public class Utils {
         }
     }
 
+    @Deprecated
     public static <T> T selectFirstOptionIfCurrentInvalid(String name, List<T> options, T value) {
         if (options.isEmpty()) {
             throw new AzureToolkitRuntimeException(String.format("No %s is available.", name));
@@ -70,6 +71,7 @@ public class Utils {
         return options.contains(value) ? value : options.get(0);
     }
 
+    @Deprecated
     public static <T> void mergeObjects(T to, T from) throws IllegalAccessException {
         for (Field field : FieldUtils.getAllFields(from.getClass())) {
             if (FieldUtils.readField(field, to, true) == null) {

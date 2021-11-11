@@ -21,7 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.Map;
 
-import static com.microsoft.azure.toolkit.lib.appservice.utils.Utils.mergeObjects;
+import static com.microsoft.azure.toolkit.lib.common.utils.Utils.mergeObjects;
+import static com.microsoft.azure.toolkit.lib.common.utils.Utils.selectFirstOptionIfCurrentInvalid;
 
 public class AppServiceConfigUtils {
     private static final String SETTING_DOCKER_IMAGE = "DOCKER_CUSTOM_IMAGE_NAME";
@@ -68,7 +69,7 @@ public class AppServiceConfigUtils {
         final AppServiceConfig appServiceConfig = AppServiceConfig.buildDefaultWebAppConfig(resourceGroup, appName, packaging, javaVersion);
         final List<Region> regions = Azure.az(AzureAppService.class).listSupportedRegions(subscriptionId);
         // replace with first region when the default region is not present
-        appServiceConfig.region(Utils.selectFirstOptionIfCurrentInvalid("region", regions, appServiceConfig.region()));
+        appServiceConfig.region(selectFirstOptionIfCurrentInvalid("region", regions, appServiceConfig.region()));
         return appServiceConfig;
     }
 
@@ -76,7 +77,7 @@ public class AppServiceConfigUtils {
         final AppServiceConfig appServiceConfig = AppServiceConfig.buildDefaultFunctionConfig(resourceGroup, appName, javaVersion);
         final List<Region> regions = Azure.az(AzureAppService.class).listSupportedRegions(subscriptionId);
         // replace with first region when the default region is not present
-        appServiceConfig.region(Utils.selectFirstOptionIfCurrentInvalid("region", regions, appServiceConfig.region()));
+        appServiceConfig.region(selectFirstOptionIfCurrentInvalid("region", regions, appServiceConfig.region()));
         return appServiceConfig;
     }
 

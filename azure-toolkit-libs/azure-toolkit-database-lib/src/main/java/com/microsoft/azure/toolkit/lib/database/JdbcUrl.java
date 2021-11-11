@@ -20,6 +20,7 @@ import java.util.Objects;
 public abstract class JdbcUrl {
 
     private static final int MYSQL_DEFAULT_PORT = 3306;
+    private static final int POSTGRE_SQL_DEFAULT_PORT = 5432;
     private static final int SQL_SERVER_DEFAULT_PORT = 1433;
 
     protected final URIBuilder uri;
@@ -40,6 +41,8 @@ public abstract class JdbcUrl {
             return new MySQLJdbcUrl(connectionString);
         } else if (StringUtils.startsWith(connectionString, "jdbc:sqlserver:")) {
             return new SQLServerJdbcUrl(connectionString);
+        } else if (StringUtils.startsWith(connectionString, "jdbc:postgresql:")) {
+            return new PostgreSQLJdbcUrl(connectionString);
         }
         throw new AzureToolkitRuntimeException("Unsupported jdbc url: %s", connectionString);
     }
@@ -52,6 +55,16 @@ public abstract class JdbcUrl {
     public static JdbcUrl mysql(String serverHost) {
         return new MySQLJdbcUrl(String.format("jdbc:mysql://%s:%s?serverTimezone=UTC&useSSL=true&requireSSL=false",
             encode(serverHost), MYSQL_DEFAULT_PORT));
+    }
+
+    public static JdbcUrl postgre(String serverHost, String database) {
+        return new MySQLJdbcUrl(String.format("jdbc:postgresql://%s:%s/%s?ssl=true&sslmode=require",
+                encode(serverHost), POSTGRE_SQL_DEFAULT_PORT, encode(database)));
+    }
+
+    public static JdbcUrl postgre(String serverHost) {
+        return new MySQLJdbcUrl(String.format("jdbc:postgresql://%s:%s?ssl=true&sslmode=require",
+                encode(serverHost), POSTGRE_SQL_DEFAULT_PORT));
     }
 
     public static JdbcUrl sqlserver(String serverHost, String database) {
@@ -164,6 +177,19 @@ public abstract class JdbcUrl {
         @Override
         int getDefaultPort() {
             return MYSQL_DEFAULT_PORT;
+        }
+
+    }
+
+    private static class PostgreSQLJdbcUrl extends JdbcUrl {
+
+        private PostgreSQLJdbcUrl(String url) {
+            super(url);
+        }
+
+        @Override
+        int getDefaultPort() {
+            return POSTGRE_SQL_DEFAULT_PORT;
         }
 
     }

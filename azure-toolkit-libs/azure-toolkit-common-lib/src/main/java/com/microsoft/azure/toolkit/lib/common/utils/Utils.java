@@ -7,15 +7,18 @@ package com.microsoft.azure.toolkit.lib.common.utils;
 
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.exception.CommandExecuteException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -164,5 +167,23 @@ public class Utils {
     public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
         Set<Object> seen = ConcurrentHashMap.newKeySet();
         return t -> seen.add(keyExtractor.apply(t));
+    }
+
+    public static <T> T selectFirstOptionIfCurrentInvalid(String name, List<T> options, T value) {
+        if (options.isEmpty()) {
+            throw new AzureToolkitRuntimeException(String.format("No %s is available.", name));
+        }
+        return options.contains(value) ? value : options.get(0);
+    }
+
+    public static <T> void mergeObjects(T to, T from) throws IllegalAccessException {
+        for (Field field : FieldUtils.getAllFields(from.getClass())) {
+            if (FieldUtils.readField(field, to, true) == null) {
+                final Object value = FieldUtils.readField(field, from, true);
+                if (value != null) {
+                    FieldUtils.writeField(field, to, value, true);
+                }
+            }
+        }
     }
 }

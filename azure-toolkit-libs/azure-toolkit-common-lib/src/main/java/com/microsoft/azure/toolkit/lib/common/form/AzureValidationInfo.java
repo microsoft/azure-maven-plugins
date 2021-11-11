@@ -6,25 +6,49 @@
 package com.microsoft.azure.toolkit.lib.common.form;
 
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
+
+import javax.annotation.Nonnull;
 
 @Getter
 @Builder
-@Data
 public class AzureValidationInfo {
-    public static final AzureValidationInfo PENDING =
-        AzureValidationInfo.builder().type(Type.PENDING).message("PENDING").build();
-    public static final AzureValidationInfo OK =
-        AzureValidationInfo.builder().type(Type.INFO).message("OK").build();
-    public static final AzureValidationInfo UNINITIALIZED =
-        AzureValidationInfo.builder().type(Type.INFO).message("UNINITIALIZED").build();
+    private final Object value;
     private final AzureFormInput<?> input;
     private final String message;
     @Builder.Default
     private final Type type = Type.ERROR;
 
     public enum Type {
-        ERROR, WARNING, INFO, PENDING
+        // don't change the order, see `AzureForm#doValidate`
+        PENDING, ERROR, WARNING, SUCCESS
+    }
+
+    public static AzureValidationInfo pending(AzureFormInput<?> input) {
+        return AzureValidationInfo.builder().type(Type.PENDING).message("Validating...").input(input).build();
+    }
+
+    public static AzureValidationInfo error(@Nonnull String message, AzureFormInput<?> input) {
+        return AzureValidationInfo.builder().type(Type.ERROR).message(message).input(input).build();
+    }
+
+    public static AzureValidationInfo warning(@Nonnull String message, AzureFormInput<?> input) {
+        return AzureValidationInfo.builder().type(Type.WARNING).message(message).input(input).build();
+    }
+
+    public static AzureValidationInfo success(AzureFormInput<?> input) {
+        return AzureValidationInfo.builder().type(Type.SUCCESS).message("Validation passed!").input(input).build();
+    }
+
+    public static AzureValidationInfo ok(AzureFormInput<?> input) {
+        return success(input);
+    }
+
+    public static AzureValidationInfo none(AzureFormInput<?> input) {
+        return AzureValidationInfo.builder().type(Type.SUCCESS).message("No need to validate.").input(input).build();
+    }
+
+    public boolean isValid() {
+        return this.getType() != Type.PENDING && this.getType() != Type.ERROR;
     }
 }
