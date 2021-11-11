@@ -116,7 +116,11 @@ public class PostgreSqlServer extends AbstractAzureResource<PostgreSqlServer, Po
     @AzureOperation(name = "postgre|server.restart", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
         Preconditions.checkArgument(StringUtils.equalsIgnoreCase("Ready", entity().getState()), "Restart action is not supported for non-ready server.");
-        PostgreSqlServer.this.manager.servers().restart(this.entity.getResourceGroupName(), this.entity.getName());
+        if (this.exists()) {
+            this.status(Status.PENDING);
+            PostgreSqlServer.this.manager.servers().restart(this.entity.getResourceGroupName(), this.entity.getName());
+            this.refresh();
+        }
     }
 
     public List<PostgreSqlDatabaseEntity> databases() {
@@ -124,8 +128,21 @@ public class PostgreSqlServer extends AbstractAzureResource<PostgreSqlServer, Po
             .stream().map(this::toPostgreSqlDatabaseEntity).collect(Collectors.toList());
     }
 
+    public List<PostgreSqlDatabase> databasesV2() {
+        return manager.databases().listByServer(this.entity.getResourceGroupName(), this.entity.getName())
+                .stream().map(this::toPostgreSqlDatabase).collect(Collectors.toList());
+    }
+
+    public PostgreSqlDatabase database(@Nonnull String databaseName) {
+        return toPostgreSqlDatabase(manager.databases().get(this.entity.getResourceGroupName(), this.entity.getName(), databaseName));
+    }
+
+    private PostgreSqlDatabase toPostgreSqlDatabase(Database database) {
+        return new PostgreSqlDatabase(manager, toPostgreSqlDatabaseEntity(database));
+    }
+
     private PostgreSqlDatabaseEntity toPostgreSqlDatabaseEntity(Database database) {
-        return PostgreSqlDatabaseEntity.builder().id(database.id()).name(database.name()).build();
+        return new PostgreSqlDatabaseEntity(manager, database);
     }
 
     @Override

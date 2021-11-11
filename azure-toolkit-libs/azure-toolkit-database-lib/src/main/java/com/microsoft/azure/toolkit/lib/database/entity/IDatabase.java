@@ -7,16 +7,10 @@ package com.microsoft.azure.toolkit.lib.database.entity;
 
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 
-import java.util.List;
+public interface IDatabase {
+    IAzureResourceEntity entity();
 
-public interface IDatabaseServer {
-
-    IDatabaseServerEntity entity();
-
-    List<? extends IAzureResourceEntity> databases();
-
-    default List<? extends IDatabase> databasesV2() {
-        return null;
+    default String getName() {
+        return entity().getName();
     }
-
 }
