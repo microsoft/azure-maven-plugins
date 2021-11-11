@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.bundle;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -23,7 +24,7 @@ public class AzureString {
     private final AzureBundle bundle;
     @Nonnull
     private final String name;
-    @Nonnull
+    @Nullable
     private final Object[] params;
 
     @Nonnull
@@ -33,7 +34,7 @@ public class AzureString {
 
     @Nonnull
     public static AzureString format(@Nonnull String pattern, Object... params) {
-        return new AzureString(null, pattern, ObjectUtils.firstNonNull(params, new Object[0]));
+        return new AzureString(null, pattern, params);
     }
 
     @Nonnull
@@ -46,6 +47,9 @@ public class AzureString {
     }
 
     public String getString(Object... params) {
+        if (StringUtils.isBlank(this.name) || (Objects.isNull(bundle) && ArrayUtils.isEmpty(params))) { // no need to resolve.
+            return this.name;
+        }
         final String pattern = Objects.nonNull(bundle) ? bundle.getPattern(name) : name;
         try {
             if (StringUtils.isBlank(pattern)) {
