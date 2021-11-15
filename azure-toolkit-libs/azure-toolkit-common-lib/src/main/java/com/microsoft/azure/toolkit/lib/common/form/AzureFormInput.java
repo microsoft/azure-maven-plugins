@@ -37,7 +37,10 @@ public interface AzureFormInput<T> extends DataStore {
     String FIELD_TRACKING = "tracking";
     String FIELD_VALIDATING = "validating";
 
-    default T getValue() {
+    /**
+     * @throws RuntimeException if can not get a valid value.
+     */
+    default T getValue() throws RuntimeException {
         return this.get(FIELD_VALUE);
     }
 
@@ -77,6 +80,24 @@ public interface AzureFormInput<T> extends DataStore {
         return changed;
     }
 
+    /**
+     * @return {@code true} if event is really fired(when value is really changed from last time), {@code false} otherwise
+     */
+    default boolean fireValueChangedEvent() {
+        final Field<MutableTriple<T, Mono<AzureValidationInfo>, Disposable>> VALIDATING = Field.of(FIELD_VALIDATING);
+        final MutableTriple<T, Mono<AzureValidationInfo>, Disposable> validating = this.get(VALIDATING);
+        T value = null;
+        try {
+            value = this.getValue(); // parsing value may throw exception
+        } catch (Exception e) {
+            Optional.ofNullable(validating).ifPresent(v -> v.getRight().dispose());
+            final String msg = StringUtils.isBlank(e.getMessage()) ? "invalid value." : e.getMessage();
+            final AzureValidationInfo info = AzureValidationInfo.error(msg, this);
+            this.setValidationInfo(info);
+        }
+        return this.fireValueChangedEvent(value);
+    }
+
     default String getLabel() {
         return this.getClass().getSimpleName();
     }
@@ -98,7 +119,7 @@ public interface AzureFormInput<T> extends DataStore {
                 MSG_REQUIRED : String.format("\"%s\" is required.", this.getLabel());
             return AzureValidationInfo.error(message, this);
         } else {
-            AzureValidationInfo result = AzureValidationInfo.none(this);
+            AzureValidationInfo result = null;
             final Collection<Validator> validators = this.getValidators();
             validators.add(() -> this.doValidate(v));
             for (Validator validator : validators) {
@@ -108,14 +129,14 @@ public interface AzureFormInput<T> extends DataStore {
                 } catch (Exception e) {
                     info = AzureValidationInfo.error(e.getMessage(), this);
                 }
-                if (info.getType().ordinal() < result.getType().ordinal()) {
+                if (result == null || info.getType().ordinal() < result.getType().ordinal()) {
                     result = info;
                 }
                 if (!info.isValid()) {
                     break;
                 }
             }
-            return result;
+            return ObjectUtils.firstNonNull(result, AzureValidationInfo.none(this));
         }
     }
 
@@ -136,35 +157,51 @@ public interface AzureFormInput<T> extends DataStore {
      */
     default Mono<AzureValidationInfo> validateValueAsync() {
         synchronized (this) {
-            final T value = this.getValue();
             final Field<MutableTriple<T, Mono<AzureValidationInfo>, Disposable>> VALIDATING = Field.of(FIELD_VALIDATING);
-            final MutableTriple<T, Mono<AzureValidationInfo>, Disposable> validating = this.get(VALIDATING, MutableTriple.of(value, null, null));
-            if (Objects.nonNull(validating.getMiddle()) && Objects.equals(validating.getLeft(), value)) {
-                return validating.getMiddle();
-            } else if (Objects.nonNull(validating.getRight())) {
-                validating.setMiddle(null);
-                validating.getRight().dispose();
-                validating.setRight(null);
+            final MutableTriple<T, Mono<AzureValidationInfo>, Disposable> validating = this.get(VALIDATING);
+            T value = null;
+            try {
+                value = this.getValue(); // parsing value may throw exception
+            } catch (Exception e) {
+                Optional.ofNullable(validating).ifPresent(v -> v.getRight().dispose());
+                final String msg = StringUtils.isBlank(e.getMessage()) ? "invalid value." : e.getMessage();
+                final AzureValidationInfo info = AzureValidationInfo.error(msg, this);
+                this.setValidationInfo(info);
+                return Mono.just(info);
             }
-            this.setValidationInfo(AzureValidationInfo.pending(this));
-            final AzureString title = AzureString.format("validating \"%s\"...", this.getLabel());
-            final Mono<AzureValidationInfo> flux = Mono.just(Optional.ofNullable(value)) // value may be null
-                .publishOn(Schedulers.fromExecutor(command -> AzureTaskManager.getInstance().runInBackground(new AzureTask<>(title, command))))
-                .map(ov -> this.validateInternal(ov.orElse(null)))
-                .doFinally(s -> {
-                    if (Objects.equals(validating, this.get(VALIDATING))) {
-                        this.set(VALIDATING, null);
-                    }
-                }).share();
-            validating.setMiddle(flux);
-            validating.setRight(flux.subscribe(info -> {
-                if (Objects.equals(value, this.getValue())) {
-                    this.setValidationInfo(info);
+            if (Objects.nonNull(validating)) {
+                if (Objects.equals(validating.getLeft(), value)) {
+                    return validating.getMiddle();
+                } else if (!validating.getRight().isDisposed()) {
+                    validating.getRight().dispose();
                 }
-            }));
-            this.set(VALIDATING, validating);
-            return flux;
+            }
+            return validateInternalAsync(value);
         }
+    }
+
+    @Nonnull
+    default Mono<AzureValidationInfo> validateInternalAsync(final T value) {
+        final Field<MutableTriple<T, Mono<AzureValidationInfo>, Disposable>> VALIDATING = Field.of(FIELD_VALIDATING);
+        final MutableTriple<T, Mono<AzureValidationInfo>, Disposable> validating = MutableTriple.of(value, null, null);
+        this.setValidationInfo(AzureValidationInfo.pending(this));
+        final AzureString title = AzureString.format("validating \"%s\"...", this.getLabel());
+        final Mono<AzureValidationInfo> flux = Mono.just(Optional.ofNullable(value)) // value may be null
+            .publishOn(Schedulers.fromExecutor(command -> AzureTaskManager.getInstance().runInBackground(new AzureTask<>(title, command))))
+            .map(ov -> this.validateInternal(ov.orElse(null)))
+            .doFinally(s -> {
+                if (Objects.equals(validating, this.get(VALIDATING))) {
+                    this.set(VALIDATING, null);
+                }
+            }).share();
+        validating.setMiddle(flux);
+        validating.setRight(flux.subscribe(info -> {
+            if (Objects.equals(value, this.getValue())) {
+                this.setValidationInfo(info);
+            }
+        }));
+        this.set(VALIDATING, validating);
+        return flux;
     }
 
     default void trackValidation() {
