@@ -5,52 +5,32 @@
 
 package com.microsoft.azure.toolkit.lib.common.bundle;
 
-import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.MessageFormat;
-import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 public class AzureBundle {
-    private static final Map<String, Optional<ResourceBundle>> bundles = new ConcurrentHashMap<>();
-    private static final String INDEX = "index";
-    private final String pkg;
+    private final ResourceBundle bundle;
 
-    @Nonnull
-    public AzureString text(@Nonnull final String key, final Object... params) {
-        return AzureString.format(this, key, params);
+    public AzureBundle(@Nonnull String bundleName) {
+        this.bundle = getBundle(bundleName, this.getClass());
+    }
+
+    public AzureBundle(@Nonnull String bundleName, Class<?> clazz) {
+        this.bundle = getBundle(bundleName, clazz);
     }
 
     @Nonnull
-    public String message(@Nonnull final String key, final Object... params) {
-        return message(this.pkg, key, params);
-    }
-
-    @Nullable
-    public String pattern(@Nonnull final String key) {
-        return pattern(this.pkg, key);
-    }
-
-    @Nonnull
-    public static AzureString text(@Nonnull final String pkg, @Nonnull final String key, final Object... params) {
-        return AzureString.format(new AzureBundle(pkg), key, params);
-    }
-
-    @Nonnull
-    public static String message(@Nonnull final String pkg, @Nonnull final String key, final Object... params) {
-        final String pattern = pattern(pkg, key);
+    public String getMessage(@Nonnull final String key, final Object... params) {
+        final String pattern = getPattern(key);
         if (StringUtils.isBlank(pattern)) {
             return String.format("!%s!", key);
         }
@@ -62,37 +42,7 @@ public class AzureBundle {
     }
 
     @Nullable
-    @Cacheable(cacheName = "bundle/package/{}/pattern/{}", key = "$pkg/$key")
-    public static String pattern(@Nonnull final String pkg, @Nonnull final String key) {
-        final List<ResourceBundle> pkgBundles = getBundles(pkg, key);
-        for (ResourceBundle bundle : pkgBundles) {
-            final String pattern = getPattern(key, bundle);
-            if (Objects.nonNull(pattern)) {
-                return pattern;
-            }
-        }
-        return null;
-    }
-
-    private static List<ResourceBundle> getBundles(@Nonnull final String pkg, @Nonnull final String key) {
-        final String supClass = key.split("[|.]")[0].toLowerCase();
-        final String subClass = key.split("\\.")[0].replaceAll("\\|", "_").toLowerCase();
-        final String exSub = String.format("%s.%s", pkg, subClass);
-        final String exSup = String.format("%s.%s", pkg, supClass);
-        final String exIdx = String.format("%s.%s", pkg, INDEX);
-        final String ideSub = String.format("%s.ide.%s", pkg, subClass);
-        final String ideSup = String.format("%s.ide.%s", pkg, supClass);
-        final String ideIdx = String.format("%s.ide.%s", pkg, INDEX);
-        final String sub = String.format("%s.base.%s", pkg, subClass);
-        final String sup = String.format("%s.base.%s", pkg, supClass);
-        final String idx = String.format("%s.base.%s", pkg, INDEX);
-        return Stream.of(exSub, exSup, exIdx, ideSub, ideSup, ideIdx, sub, sup, idx)
-                .map(fqn -> bundles.computeIfAbsent(fqn, k -> Optional.ofNullable(getBundle(fqn))))
-                .filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
-    }
-
-    @Nullable
-    private static String getPattern(@Nonnull String key, @Nullable ResourceBundle bundle) {
+    public String getPattern(@Nonnull String key) {
         if (StringUtils.isBlank(key) || Objects.isNull(bundle)) {
             return null;
         }
@@ -104,9 +54,9 @@ public class AzureBundle {
     }
 
     @Nullable
-    private static ResourceBundle getBundle(String bundleName) {
+    private static ResourceBundle getBundle(String bundleName, Class<?> clazz) {
         try {
-            return ResourceBundle.getBundle(bundleName);
+            return ResourceBundle.getBundle(bundleName, Locale.getDefault(), clazz.getClassLoader());
         } catch (final Exception e) {
             return null;
         }
