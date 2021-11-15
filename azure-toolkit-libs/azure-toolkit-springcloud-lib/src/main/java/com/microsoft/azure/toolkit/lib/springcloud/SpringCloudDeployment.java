@@ -12,6 +12,7 @@ import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
 import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.azure.resourcemanager.resources.fluentcore.model.Refreshable;
+import com.google.common.base.Charsets;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
@@ -20,18 +21,28 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
+import io.netty.handler.codec.http.HttpHeaders;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.utils.URIBuilder;
 import org.jetbrains.annotations.NotNull;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDeployment, SpringCloudDeploymentEntity, SpringAppDeployment>
         implements AzureOperationEvent.Source<SpringCloudDeployment> {
@@ -127,6 +138,36 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
     public Updater update() {
         assert this.exists() : String.format("deployment(%s) not exist", this.name());
         return new Updater(this);
+    }
+
+    @SneakyThrows
+    public Flux<String> streamLogs(final String instance) {
+        return streamLogs(instance, 0, 10, 0, true);
+    }
+
+    @SneakyThrows
+    public Flux<String> streamLogs(final String instance, int sinceSeconds, int tailLines, int limitBytes, boolean follow) {
+        final HttpClient client = HttpClient.create().keepAlive(true);
+        final URIBuilder endpoint = new URIBuilder(app.entity().getLogStreamingEndpoint(instance));
+        endpoint.addParameter("follow", String.valueOf(follow));
+        if (sinceSeconds > 0) {
+            endpoint.addParameter("sinceSeconds", String.valueOf(sinceSeconds));
+        }
+        if (tailLines > 0) {
+            endpoint.addParameter("tailLines", String.valueOf(tailLines));
+        }
+        if (limitBytes > 0) {
+            endpoint.addParameter("limitBytes", String.valueOf(limitBytes));
+        }
+        final String password = app.getCluster().entity().getTestKey();
+        final String userPass = "primary:" + password;
+        final String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userPass.getBytes()));
+        final Consumer<? super HttpHeaders> headerBuilder = header -> header.set("Authorization", basicAuth);
+        return client.headers(headerBuilder)
+                .responseTimeout(Duration.of(10, ChronoUnit.MINUTES))
+                .get()
+                .uri(endpoint.build())
+                .response((resp, cont) -> resp.status().code() == 200 ? cont.asString(Charsets.UTF_8) : Mono.empty());
     }
 
     public SpringCloudDeployment scale(final ScaleSettings scaleSettings) {
