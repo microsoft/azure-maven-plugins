@@ -9,6 +9,7 @@ import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.postgresql.models.*;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.AbstractAzureResourceModule;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
@@ -173,6 +174,7 @@ public class AzurePostgreSql extends AbstractAzureResourceModule<PostgreSqlServe
             }
             // refresh
             server.loadRemote();
+            Azure.az(AzurePostgreSql.class).refresh();
             return server;
         }
 
