@@ -40,7 +40,7 @@ public interface AzureFormInput<T> extends DataStore {
     /**
      * @throws RuntimeException if can not get a valid value.
      */
-    default T getValue() throws RuntimeException {
+    default T getValue() {
         return this.get(FIELD_VALUE);
     }
 
