@@ -51,4 +51,9 @@ public class AzureValidationInfo {
     public boolean isValid() {
         return this.getType() != Type.PENDING && this.getType() != Type.ERROR;
     }
+
+    @Override
+    public String toString() {
+        return String.format("[%s]%s", this.type, this.message);
+    }
 }
