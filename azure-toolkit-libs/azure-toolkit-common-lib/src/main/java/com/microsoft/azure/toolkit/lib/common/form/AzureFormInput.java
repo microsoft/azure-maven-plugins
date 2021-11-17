@@ -167,6 +167,7 @@ public interface AzureFormInput<T> extends DataStore {
                 final String msg = StringUtils.isBlank(e.getMessage()) ? "invalid value." : e.getMessage();
                 final AzureValidationInfo info = AzureValidationInfo.error(msg, this);
                 this.setValidationInfo(info);
+                this.set(VALIDATING, null);
                 return Mono.just(info);
             }
             if (Objects.nonNull(validating)) {
@@ -176,8 +177,9 @@ public interface AzureFormInput<T> extends DataStore {
                     validating.getRight().dispose();
                 }
             }
+            this.set(VALIDATING, null);
             if (!this.needValidation()) {
-                final AzureValidationInfo info = AzureValidationInfo.pending(this);
+                final AzureValidationInfo info = AzureValidationInfo.none(this);
                 this.setValidationInfo(info);
                 return Mono.just(info);
             }
@@ -275,7 +277,7 @@ public interface AzureFormInput<T> extends DataStore {
     }
 
     default boolean needValidation() {
-        return this.isRequired() && !this.getValidators().isEmpty();
+        return this.isRequired() || !this.getValidators().isEmpty();
     }
 
     @FunctionalInterface
