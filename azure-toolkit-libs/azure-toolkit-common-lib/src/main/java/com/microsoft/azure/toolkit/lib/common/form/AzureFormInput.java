@@ -159,7 +159,7 @@ public interface AzureFormInput<T> extends DataStore {
         synchronized (this) {
             final Field<MutableTriple<T, Mono<AzureValidationInfo>, Disposable>> VALIDATING = Field.of(FIELD_VALIDATING);
             final MutableTriple<T, Mono<AzureValidationInfo>, Disposable> validating = this.get(VALIDATING);
-            T value = null;
+            T value;
             try {
                 value = this.getValue(); // parsing value may throw exception
             } catch (Exception e) {
@@ -175,6 +175,11 @@ public interface AzureFormInput<T> extends DataStore {
                 } else if (!validating.getRight().isDisposed()) {
                     validating.getRight().dispose();
                 }
+            }
+            if (!this.needValidation()) {
+                final AzureValidationInfo info = AzureValidationInfo.pending(this);
+                this.setValidationInfo(info);
+                return Mono.just(info);
             }
             return validateInternalAsync(value);
         }
