@@ -8,7 +8,7 @@ The Maven Plugin for Azure App Service helps Java developers to deploy Maven pro
 
 ## Documentation
 
-Please go through [Quickstart](https://docs.microsoft.com/en-us/azure/app-service/quickstart-java) to create your first Java app on Azure App Service, there are more [Java documents](https://github.com/microsoft/azure-maven-plugins/wiki/Java-App-Service-Documents-List) for Azure App Serice.
+Please go through [Quickstart](https://docs.microsoft.com/en-us/azure/app-service/quickstart-java) to create your first Java app on Azure App Service, there are more [Java documents](https://github.com/microsoft/azure-maven-plugins/wiki/Java-App-Service-Documents-List) for Azure App Service.
 
 :book: You can also visit our [Wiki](https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Web-App) for detailed documentation about Maven Webapp plugin.
 
