@@ -6,12 +6,11 @@
 package com.microsoft.azure.maven.queryer;
 
 import org.apache.maven.settings.Settings;
-import org.beryx.textio.TextIoFactory;
 
 public class QueryFactory {
     public static MavenPluginQueryer getQueryer(Settings settings) {
         return (settings != null && !settings.isInteractiveMode()) ?
             new MavenPluginQueryerBatchModeDefaultImpl() :
-            new TextIOMavenPluginQueryer(TextIoFactory.getTextIO());
+            new TextIOMavenPluginQueryer();
     }
 }

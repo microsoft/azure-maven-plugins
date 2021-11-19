@@ -5,20 +5,22 @@
 package com.microsoft.azure.maven.queryer;
 
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
-import org.beryx.textio.TextIO;
+import org.beryx.textio.GenericInputReader;
+import org.beryx.textio.StringInputReader;
+import org.beryx.textio.console.ConsoleTextTerminal;
 
 import java.util.List;
 
 public class TextIOMavenPluginQueryer extends MavenPluginQueryer {
     private static final String FOUND_VALID_VALUE = "Found valid value. Skip user input.";
     private static final String PROMPT_STRING_WITHOUT_DEFAULTVALUE = "Define value for %s";
-    private TextIO textIO;
 
-    public TextIOMavenPluginQueryer(TextIO textIO) {
-        this.textIO = textIO;
+    private ConsoleTextTerminal terminal;
+
+    public TextIOMavenPluginQueryer() {
+        this.terminal = new ConsoleTextTerminal();
     }
 
     @Override
@@ -29,7 +31,7 @@ public class TextIOMavenPluginQueryer extends MavenPluginQueryer {
             return initValue;
         }
         prompt = StringUtils.isEmpty(prompt) ? getPromptString(attribute) : prompt;
-        return textIO.<String>newGenericInputReader(null)
+        return new GenericInputReader<String>(() -> terminal, null)
                 .withNumberedPossibleValues(options).withDefaultValue(defaultValue).withEqualsFunc(StringUtils::equalsIgnoreCase).read(prompt);
     }
 
@@ -43,7 +45,7 @@ public class TextIOMavenPluginQueryer extends MavenPluginQueryer {
         }
 
         prompt = StringUtils.isEmpty(prompt) ? getPromptString(attribute) : prompt;
-        return textIO.newStringInputReader().withPattern(regex).withDefaultValue(defaultValue).withMinLength(0).read(prompt);
+        return new StringInputReader(() -> terminal).withPattern(regex).withDefaultValue(defaultValue).withMinLength(0).read(prompt);
     }
 
     private String getPromptString(String attributeName) {
@@ -52,6 +54,6 @@ public class TextIOMavenPluginQueryer extends MavenPluginQueryer {
 
     @Override
     public void close() {
-        textIO.dispose();
+        terminal.dispose();
     }
 }
