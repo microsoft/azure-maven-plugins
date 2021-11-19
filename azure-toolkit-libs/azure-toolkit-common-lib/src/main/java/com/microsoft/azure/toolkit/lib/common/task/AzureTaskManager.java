@@ -61,6 +61,10 @@ public abstract class AzureTaskManager {
         this.runInObservable(this::doWrite, task).subscribe();
     }
 
+    public final void runImmediately(Runnable task) {
+        this.runImmediatelyAsObservable(task).subscribe();
+    }
+
     public final void runLater(Runnable task) {
         this.runLater(new AzureTask<>(task));
     }
@@ -225,6 +229,14 @@ public abstract class AzureTaskManager {
         return this.runInObservable(this::doWrite, task);
     }
 
+    public final Observable<Void> runImmediatelyAsObservable(Runnable task) {
+        return this.runImmediatelyAsObservable(new AzureTask<>(task));
+    }
+
+    public final <T> Observable<T> runImmediatelyAsObservable(AzureTask<T> task) {
+        return this.runInObservable(this::doRunImmediately, task);
+    }
+
     public final Observable<Void> runLaterAsObservable(Runnable task) {
         return this.runLaterAsObservable(new AzureTask<>(task));
     }
@@ -382,6 +394,10 @@ public abstract class AzureTaskManager {
     protected abstract void doRead(Runnable runnable, AzureTask<?> task);
 
     protected abstract void doWrite(Runnable runnable, AzureTask<?> task);
+
+    protected void doRunImmediately(Runnable runnable, AzureTask<?> task) {
+        runnable.run();
+    }
 
     protected abstract void doRunLater(Runnable runnable, AzureTask<?> task);
 
