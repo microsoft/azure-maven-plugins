@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.microsoft.azure</groupId>
         <artifactId>azure-maven-plugins</artifactId>
-        <version>1.14.1</version>
+        <version>1.14.2</version>
     </parent>
 
     <artifactId>azure-functions-maven-plugin</artifactId>

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-maven-plugins</artifactId>
-    <version>1.14.1</version>
+    <version>1.14.2</version>
     <packaging>pom</packaging>
     <name>Maven Plugins for Azure</name>
     <description>Maven plugins for Microsoft Azure services</description>
@@ -81,7 +81,7 @@
         <maven.javadoc-plugin.version>2.9.1</maven.javadoc-plugin.version>
         <maven.checkstyle-plugin.version>3.1.2</maven.checkstyle-plugin.version>
         <maven.aspectj-plugin.version>1.12.6</maven.aspectj-plugin.version>
-        <azure.maven-plugin-lib.version>1.14.1</azure.maven-plugin-lib.version>
+        <azure.maven-plugin-lib.version>1.14.2</azure.maven-plugin-lib.version>
         <jacoco.version>0.8.7</jacoco.version>
 
         <json.schema-validator.version>1.0.56</json.schema-validator.version>
@@ -258,7 +258,7 @@
                         <dependency>
                             <groupId>com.microsoft.azure</groupId>
                             <artifactId>maven-plugins-build-tools</artifactId>
-                            <version>1.14.1</version>
+                            <version>1.14.2</version>
                         </dependency>
                         <dependency>
                             <groupId>com.puppycrawl.tools</groupId>
