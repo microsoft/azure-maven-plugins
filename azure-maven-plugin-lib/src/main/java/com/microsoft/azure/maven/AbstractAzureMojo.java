@@ -57,8 +57,7 @@ import org.apache.maven.settings.Proxy;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
-import org.beryx.textio.TextIO;
-import org.beryx.textio.TextIoFactory;
+import org.beryx.textio.console.ConsoleTextTerminal;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
@@ -282,8 +281,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
                 .sorted()
                 .collect(Collectors.toList());
         final SubscriptionOption defaultValue = wrapSubs.get(0);
-        final TextIO textIO = TextIoFactory.getTextIO();
-        final SubscriptionOption subscriptionOptionSelected = new CustomTextIoStringListReader<SubscriptionOption>(textIO::getTextTerminal, null)
+        final SubscriptionOption subscriptionOptionSelected = new CustomTextIoStringListReader<SubscriptionOption>(ConsoleTextTerminal::new, null)
                 .withCustomPrompt(String.format("Please choose a subscription%s: ",
                         highlightDefaultValue(defaultValue == null ? null : defaultValue.getSubscriptionName())))
                 .withNumberedPossibleValues(wrapSubs).withDefaultValue(defaultValue).read("Available subscriptions:");
