@@ -17,6 +17,7 @@ import com.microsoft.azure.maven.model.SubscriptionOption;
 import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
 import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
+import com.microsoft.azure.maven.utils.TextIOUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
@@ -57,7 +58,7 @@ import org.apache.maven.settings.Proxy;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
-import org.beryx.textio.console.ConsoleTextTerminal;
+import org.beryx.textio.TextTerminal;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
@@ -281,7 +282,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
                 .sorted()
                 .collect(Collectors.toList());
         final SubscriptionOption defaultValue = wrapSubs.get(0);
-        final SubscriptionOption subscriptionOptionSelected = new CustomTextIoStringListReader<SubscriptionOption>(ConsoleTextTerminal::new, null)
+        final SubscriptionOption subscriptionOptionSelected = new CustomTextIoStringListReader<SubscriptionOption>(TextIOUtils::getTextTerminal, null)
                 .withCustomPrompt(String.format("Please choose a subscription%s: ",
                         highlightDefaultValue(defaultValue == null ? null : defaultValue.getSubscriptionName())))
                 .withNumberedPossibleValues(wrapSubs).withDefaultValue(defaultValue).read("Available subscriptions:");
@@ -496,6 +497,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             // into endless loop when close, we need to call it in main thread.
             // Refer here for detail codes: https://github.com/Microsoft/ApplicationInsights-Java/blob/master/core/src
             // /main/java/com/microsoft/applicationinsights/internal/channel/common/ApacheSender43.java#L103
+            Optional.ofNullable(TextIOUtils.getTextTerminal()).ifPresent(TextTerminal::dispose);
             try {
                 // Sleep to wait ai sdk flush telemetries
                 Thread.sleep(2 * 1000);
