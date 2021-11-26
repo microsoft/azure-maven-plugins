@@ -38,8 +38,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.beryx.textio.TextIO;
-import org.beryx.textio.TextIoFactory;
+import org.beryx.textio.console.ConsoleTextTerminal;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.dom4j.DocumentException;
 
@@ -490,8 +489,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             final List<WebAppOption> javaOrDockerWebapps = webAppOptionList.stream().filter(app -> app.isJavaWebApp() || app.isDockerWebapp())
                     .filter(app -> checkWebAppVisible(isContainer, isDockerOnly, app.isJavaSE(), app.isDockerWebapp())).sorted()
                     .collect(Collectors.toList());
-            final TextIO textIO = TextIoFactory.getTextIO();
-            final WebAppOption selectedApp = selectAzureWebApp(textIO, javaOrDockerWebapps,
+            final WebAppOption selectedApp = selectAzureWebApp(javaOrDockerWebapps,
                     getWebAppTypeByPackaging(this.project.getPackaging()), az.getDefaultSubscription());
             if (selectedApp == null || selectedApp.isCreateNew()) {
                 return null;
@@ -511,7 +509,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         }
     }
 
-    private static WebAppOption selectAzureWebApp(TextIO textIO, List<WebAppOption> javaOrDockerWebapps, String webAppType, Subscription targetSubscription) {
+    private static WebAppOption selectAzureWebApp(List<WebAppOption> javaOrDockerWebapps, String webAppType, Subscription targetSubscription) {
         final List<WebAppOption> options = new ArrayList<>();
         options.add(WebAppOption.CREATE_NEW);
         // check empty: second time
@@ -520,7 +518,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             return null;
         }
         options.addAll(javaOrDockerWebapps);
-        return new CustomTextIoStringListReader<WebAppOption>(textIO::getTextTerminal, null)
+        return new CustomTextIoStringListReader<WebAppOption>(ConsoleTextTerminal::new, null)
                 .withCustomPrompt(String.format("Please choose a %s Web App%s: ", webAppType, highlightDefaultValue(WebAppOption.CREATE_NEW.toString())))
                 .withNumberedPossibleValues(options).withDefaultValue(WebAppOption.CREATE_NEW)
                 .read(String.format("%s Web Apps in subscription %s:", webAppType, TextUtils.blue(targetSubscription.getName())));

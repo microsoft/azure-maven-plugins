@@ -30,6 +30,7 @@ import java.util.function.Consumer;
 public interface AzureFormInput<T> extends DataStore {
     String MSG_REQUIRED = "This field is required.";
     String FIELD_VALUE = "value";
+    String FIELD_DEFAULT_VALUE = "defaultValue";
     String FIELD_VALIDATORS = "validators";
     String FIELD_REQUIRED = "required";
     String FIELD_VALIDATION_INFO = "validationInfo";
@@ -46,6 +47,14 @@ public interface AzureFormInput<T> extends DataStore {
 
     default void setValue(final T val) {
         this.set(FIELD_VALUE, val);
+    }
+
+    default T getDefaultValue() {
+        return this.get(FIELD_DEFAULT_VALUE);
+    }
+
+    default void setDefaultValue(final T val) {
+        this.set(FIELD_DEFAULT_VALUE, val);
     }
 
     default void addValueChangedListener(Consumer<T> listener) {
@@ -159,30 +168,30 @@ public interface AzureFormInput<T> extends DataStore {
         synchronized (this) {
             final Field<MutableTriple<T, Mono<AzureValidationInfo>, Disposable>> VALIDATING = Field.of(FIELD_VALIDATING);
             final MutableTriple<T, Mono<AzureValidationInfo>, Disposable> validating = this.get(VALIDATING);
-            T value;
-            try {
-                value = this.getValue(); // parsing value may throw exception
-            } catch (Exception e) {
+            final Runnable cancelValidating = () -> {
                 Optional.ofNullable(validating).ifPresent(v -> v.getRight().dispose());
-                final String msg = StringUtils.isBlank(e.getMessage()) ? "invalid value." : e.getMessage();
-                final AzureValidationInfo info = AzureValidationInfo.error(msg, this);
-                this.setValidationInfo(info);
                 this.set(VALIDATING, null);
-                return Mono.just(info);
-            }
-            if (Objects.nonNull(validating)) {
-                if (Objects.equals(validating.getLeft(), value)) {
-                    return validating.getMiddle();
-                } else if (!validating.getRight().isDisposed()) {
-                    validating.getRight().dispose();
-                }
-            }
-            this.set(VALIDATING, null);
+            };
             if (!this.needValidation()) {
+                cancelValidating.run();
                 final AzureValidationInfo info = AzureValidationInfo.none(this);
                 this.setValidationInfo(info);
                 return Mono.just(info);
             }
+            T value;
+            try {
+                value = this.getValue(); // parsing value may throw exception
+            } catch (Exception e) {
+                cancelValidating.run();
+                final String msg = StringUtils.isBlank(e.getMessage()) ? "invalid value." : e.getMessage();
+                final AzureValidationInfo info = AzureValidationInfo.error(msg, this);
+                this.setValidationInfo(info);
+                return Mono.just(info);
+            }
+            if (Objects.nonNull(validating) && Objects.equals(validating.getLeft(), value)) {
+                return validating.getMiddle();
+            }
+            cancelValidating.run();
             return validateInternalAsync(value);
         }
     }
