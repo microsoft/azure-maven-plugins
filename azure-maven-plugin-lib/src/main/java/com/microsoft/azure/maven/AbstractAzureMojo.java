@@ -34,12 +34,14 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetryClient;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.maven.common.messager.MavenAzureMessager;
+import com.microsoft.azure.toolkit.maven.common.task.MavenAzureTaskManager;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
@@ -460,6 +462,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException {
         try {
+            AzureTaskManager.register(new MavenAzureTaskManager());
             AzureMessager.setDefaultMessager(new MavenAzureMessager());
             Azure.az().config().setLogLevel(HttpLogDetailLevel.NONE.name());
             Azure.az().config().setUserAgent(getUserAgent());
