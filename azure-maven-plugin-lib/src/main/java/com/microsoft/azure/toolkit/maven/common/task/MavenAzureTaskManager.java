@@ -13,12 +13,12 @@ import reactor.core.scheduler.Schedulers;
 public class MavenAzureTaskManager extends AzureTaskManager {
     @Override
     protected void doRead(Runnable runnable, AzureTask<?> task) {
-        runnable.run();
+        throw new UnsupportedOperationException("not support");
     }
 
     @Override
     protected void doWrite(Runnable runnable, AzureTask<?> task) {
-        runnable.run();
+        throw new UnsupportedOperationException("not support");
     }
 
     @Override
@@ -43,6 +43,6 @@ public class MavenAzureTaskManager extends AzureTaskManager {
 
     @Override
     protected void doRunInModal(Runnable runnable, AzureTask<?> task) {
-        doRunOnPooledThread(runnable, task);
+        throw new UnsupportedOperationException("not support");
     }
 }
