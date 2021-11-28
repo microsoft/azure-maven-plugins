@@ -27,7 +27,7 @@ public class CreateOrUpdateAppServicePlanTask extends AzureTask<IAppServicePlan>
     private static final String CREATE_NEW_APP_SERVICE_PLAN = "createNewAppServicePlan";
     private AppServicePlanConfig config;
 
-    @AzureOperation(name = "appservice|plan.create_update", params = {"this.config.servicePlanName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "appservice.create_update_plan", params = {"this.config.servicePlanName()"}, type = AzureOperation.Type.SERVICE)
     public IAppServicePlan execute() {
         SchemaValidator.getInstance().validateAndThrow("appservice/AppServicePlan", config);
         final AzureAppService az = Azure.az(AzureAppService.class).subscription(config.subscriptionId());

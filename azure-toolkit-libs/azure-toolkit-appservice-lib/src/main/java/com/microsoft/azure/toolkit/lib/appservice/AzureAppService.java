@@ -137,7 +137,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
 
     @Deprecated
     @Cacheable(cacheName = "appservice/slot/{}", key = "$id")
-    @AzureOperation(name = "appservice|deployment.get.id", params = "id", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "appservice.get_deployment.id", params = "id", type = AzureOperation.Type.SERVICE)
     public IWebAppDeploymentSlot deploymentSlot(String id) {
         return new WebAppDeploymentSlot(id, getAppServiceManager(Utils.getSubscriptionId(id)));
     }

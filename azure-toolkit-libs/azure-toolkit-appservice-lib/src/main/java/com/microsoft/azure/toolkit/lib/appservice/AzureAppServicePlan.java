@@ -49,7 +49,7 @@ public class AzureAppServicePlan extends AbstractAzureResourceModule<IAppService
 
     @Override
     @Cacheable(cacheName = "appservice/{}/plans", key = "$subscriptionId", condition = "!(force&&force[0])")
-    @AzureOperation(name = "appservice|plan.list.subscription", params = "subscriptionId", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "appservice.list_plan.subscription", params = "subscriptionId", type = AzureOperation.Type.SERVICE)
     public List<IAppServicePlan> list(@NotNull String subscriptionId, boolean... force) {
         final AppServiceManager azureResourceManager = getAppServiceManager(subscriptionId);
         return azureResourceManager.appServicePlans().list().stream().parallel()
@@ -58,7 +58,7 @@ public class AzureAppServicePlan extends AbstractAzureResourceModule<IAppService
     }
 
     @Cacheable(cacheName = "appservice/rg/{}/plans", key = "$rg", condition = "!(force&&force[0])")
-    @AzureOperation(name = "appservice|plan.list.rg", params = "rg", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "appservice.list_plan.rg", params = "rg", type = AzureOperation.Type.SERVICE)
     public List<IAppServicePlan> appServicePlansByResourceGroup(String rg, boolean... force) {
         return getSubscriptions().stream().parallel()
                 .map(subscription -> getAppServiceManager(subscription.getId()))
@@ -70,7 +70,7 @@ public class AzureAppServicePlan extends AbstractAzureResourceModule<IAppService
     @NotNull
     @Override
     @Cacheable(cacheName = "appservice/{}/rg/{}/plan/{}", key = "$subscriptionId/$resourceGroup/$name")
-    @AzureOperation(name = "appservice|plan.get.name|rg|sid", params = {"name", "resourceGroup"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "appservice.get_plan.name|rg|sid", params = {"name", "resourceGroup"}, type = AzureOperation.Type.SERVICE)
     public IAppServicePlan get(@NotNull String subscriptionId, @NotNull String resourceGroup, @NotNull String name) {
         return new AppServicePlan(subscriptionId, resourceGroup, name, getAppServiceManager(subscriptionId));
     }
