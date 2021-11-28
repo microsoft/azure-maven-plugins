@@ -101,7 +101,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     }
 
     @Override
-    @AzureOperation(name = "springcloud|app.create_update", params = {"this.config.getAppName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud.create_update_app", params = {"this.config.getAppName()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudDeployment execute() {
         this.subTasks.forEach(t->t.getSupplier().get());
         return this.deployment;
