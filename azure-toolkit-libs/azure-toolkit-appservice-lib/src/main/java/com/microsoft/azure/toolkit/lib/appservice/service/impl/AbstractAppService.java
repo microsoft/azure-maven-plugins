@@ -63,7 +63,7 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     }
 
     @Override
-    @AzureOperation(name = "common.refresh_resource", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.refresh", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public AbstractAppService<T, R> refresh() {
         this.status(Status.PENDING);
         super.refresh();

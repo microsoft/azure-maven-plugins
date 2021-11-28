@@ -71,7 +71,7 @@ public class AzureWebApp extends AbstractAzureResourceModule<IWebApp> implements
         return getResourceManager(subscriptionId, AppServiceManager::configure, AppServiceManager.Configurable::authenticate);
     }
 
-    @AzureOperation(name = "common.refresh_service", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
     public void refresh() {
         try {
             CacheManager.evictCache("appservice/{}/webapps", CacheEvict.ALL);

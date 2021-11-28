@@ -86,7 +86,7 @@ public class AzureRedis extends SubscriptionScoped<AzureRedis> implements AzureS
         }
     }
 
-    @AzureOperation(name = "common.refresh_service", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
     public void refresh() {
         try {
             CacheManager.evictCache("redis/{}/cache", CacheEvict.ALL);

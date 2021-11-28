@@ -100,7 +100,7 @@ public class AzureVirtualMachine extends AbstractAzureResourceModule<VirtualMach
         return getResourceManager(subscriptionId, ComputeManager::configure, ComputeManager.Configurable::authenticate).virtualMachines();
     }
 
-    @AzureOperation(name = "common.refresh_service", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
     public void refresh() {
         try {
             CacheManager.evictCache("compute/{}/vm", CacheEvict.ALL);
