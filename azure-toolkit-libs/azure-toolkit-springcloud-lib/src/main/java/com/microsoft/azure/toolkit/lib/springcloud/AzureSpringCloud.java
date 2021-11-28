@@ -51,7 +51,7 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud>
 
     @Nullable
     @Cacheable(cacheName = "asc/cluster/{}", key = "$name")
-    @AzureOperation(name = "springcloud.get_cluster.name", params = {"name"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud.get_cluster.cluster", params = {"name"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudCluster cluster(@Nonnull String name) {
         return this.clusters().stream()
                 .filter((s) -> Objects.equals(s.name(), name))
@@ -70,7 +70,7 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud>
 
     @Nonnull
     @Preload
-    @AzureOperation(name = "springcloud.list_cluster.subscription|selected", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud.list_clusters", type = AzureOperation.Type.SERVICE)
     public List<SpringCloudCluster> clusters() {
         return this.getSubscriptions().stream().parallel()
                 .flatMap(s -> clusters(s.getId()).stream())
@@ -79,7 +79,7 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud>
 
     @Nonnull
     @Cacheable(cacheName = "asc/{}/clusters", key = "$subscriptionId")
-    @AzureOperation(name = "springcloud.list_cluster.subscription", params = "subscriptionId", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud.list_clusters.subscription", params = "subscriptionId", type = AzureOperation.Type.SERVICE)
     private List<SpringCloudCluster> clusters(@Nonnull String subscriptionId) {
         try {
             return getClient(subscriptionId).list().stream()
@@ -94,7 +94,7 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud>
         }
     }
 
-    @AzureOperation(name = "service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "service.refresh.service", params = "this.name()", type = AzureOperation.Type.SERVICE)
     public void refresh() {
         try {
             CacheManager.evictCache("asc/{}/clusters", CacheEvict.ALL);

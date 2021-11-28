@@ -82,7 +82,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
         return tasks;
     }
 
-    @AzureOperation(name = "webapp.create", params = {"this.config.appName()"}, type = Type.SERVICE)
+    @AzureOperation(name = "webapp.create.app", params = {"this.config.appName()"}, type = Type.SERVICE)
     private IWebApp create() {
         AzureTelemetry.getActionContext().setProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
         AzureMessager.getMessager().info(String.format(CREATE_WEBAPP, config.appName()));
@@ -105,7 +105,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
         return result;
     }
 
-    @AzureOperation(name = "webapp.update", params = {"this.config.appName()"}, type = Type.SERVICE)
+    @AzureOperation(name = "webapp.update.app", params = {"this.config.appName()"}, type = Type.SERVICE)
     private IWebApp update(final IWebApp webApp) {
         AzureMessager.getMessager().info(String.format(UPDATE_WEBAPP, webApp.name()));
         final IAppServicePlan currentPlan = webApp.plan();
@@ -159,7 +159,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
     }
 
     @Override
-    @AzureOperation(name = "webapp.create_update", params = {"this.config.appName()"}, type = Type.SERVICE)
+    @AzureOperation(name = "webapp.create_update.app", params = {"this.config.appName()"}, type = Type.SERVICE)
     public IWebApp execute() {
         return (IWebApp) Flux.fromStream(this.subTasks.stream().map(t -> t.getSupplier().get())).last().block();
     }

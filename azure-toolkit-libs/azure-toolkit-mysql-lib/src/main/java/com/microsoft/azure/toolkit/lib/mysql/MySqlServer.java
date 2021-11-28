@@ -73,12 +73,12 @@ public class MySqlServer extends AbstractAzureResource<MySqlServer, MySqlServerE
         return new MySqlFirewallRules(this.manager, this.entity);
     }
 
-    @AzureOperation(name = "mysql.delete_server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "mysql.delete_server.server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
         MySqlServer.this.manager.servers().deleteById(entity.getId());
     }
 
-    @AzureOperation(name = "mysql.start_server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "mysql.start_server.server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
         Preconditions.checkArgument(
             StringUtils.equalsIgnoreCase("Stopped", entity().getState()) ||
@@ -87,13 +87,13 @@ public class MySqlServer extends AbstractAzureResource<MySqlServer, MySqlServerE
         MySqlServer.this.manager.servers().start(this.entity.getResourceGroupName(), this.entity.getName());
     }
 
-    @AzureOperation(name = "mysql.stop_server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "mysql.stop_server.server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public void stop() {
         Preconditions.checkArgument(StringUtils.equalsIgnoreCase("Ready", entity().getState()), "Stop action is not supported for non-ready server.");
         MySqlServer.this.manager.servers().stop(this.entity.getResourceGroupName(), this.entity.getName());
     }
 
-    @AzureOperation(name = "mysql.restart_server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "mysql.restart_server.server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
         Preconditions.checkArgument(StringUtils.equalsIgnoreCase("Ready", entity().getState()), "Restart action is not supported for non-ready server.");
         MySqlServer.this.manager.servers().restart(this.entity.getResourceGroupName(), this.entity.getName());

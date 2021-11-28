@@ -46,7 +46,7 @@ public class StorageAccount extends AbstractAzureResource<StorageAccount, Storag
         return entity.getRemote();
     }
 
-    @AzureOperation(name = "storage.delete_account", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "storage.delete_account.account", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
         if (this.exists()) {
             this.status(Status.PENDING);

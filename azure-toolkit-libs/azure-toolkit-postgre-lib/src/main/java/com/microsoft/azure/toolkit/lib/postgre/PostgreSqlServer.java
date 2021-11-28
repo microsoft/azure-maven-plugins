@@ -94,7 +94,7 @@ public class PostgreSqlServer extends AbstractAzureResource<PostgreSqlServer, Po
         return new PostgreSqlFirewallRules(this.manager, this.entity);
     }
 
-    @AzureOperation(name = "postgre.delete_server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "postgre.delete_server.server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
         if (this.exists()) {
             this.status(Status.PENDING);
@@ -113,7 +113,7 @@ public class PostgreSqlServer extends AbstractAzureResource<PostgreSqlServer, Po
         throw new UnsupportedOperationException(NOT_SUPPORTED_BY_AZURE_POSTGRE_SQL);
     }
 
-    @AzureOperation(name = "postgre.restart_server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "postgre.restart_server.server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
         Preconditions.checkArgument(StringUtils.equalsIgnoreCase("Ready", entity().getState()), "Restart action is not supported for non-ready server.");
         if (this.exists()) {

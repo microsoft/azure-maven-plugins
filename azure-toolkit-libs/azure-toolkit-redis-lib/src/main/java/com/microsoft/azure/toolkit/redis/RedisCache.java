@@ -35,7 +35,7 @@ public class RedisCache extends AbstractAzureResource<RedisCache, RedisCacheEnti
         this.manager = redis.manager();
     }
 
-    @AzureOperation(name = "redis.delete", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "redis.delete.redis", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
         if (this.exists()) {
             this.status(Status.PENDING);

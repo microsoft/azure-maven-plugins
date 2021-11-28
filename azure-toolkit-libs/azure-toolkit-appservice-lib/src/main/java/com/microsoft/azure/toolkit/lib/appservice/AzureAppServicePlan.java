@@ -33,7 +33,7 @@ public class AzureAppServicePlan extends AbstractAzureResourceModule<IAppService
         super(AzureAppServicePlan::new, subscriptions);
     }
 
-    @AzureOperation(name = "service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "service.refresh.service", params = "this.name()", type = AzureOperation.Type.SERVICE)
     public void refresh() {
         try {
             CacheManager.evictCache("appservice/{}/plans", CacheEvict.ALL);
@@ -70,7 +70,7 @@ public class AzureAppServicePlan extends AbstractAzureResourceModule<IAppService
     @NotNull
     @Override
     @Cacheable(cacheName = "appservice/{}/rg/{}/plan/{}", key = "$subscriptionId/$resourceGroup/$name")
-    @AzureOperation(name = "appservice.get_plan.name|rg|sid", params = {"name", "resourceGroup"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "appservice.get_plan.plan&rg", params = {"name", "resourceGroup"}, type = AzureOperation.Type.SERVICE)
     public IAppServicePlan get(@NotNull String subscriptionId, @NotNull String resourceGroup, @NotNull String name) {
         return new AppServicePlan(subscriptionId, resourceGroup, name, getAppServiceManager(subscriptionId));
     }

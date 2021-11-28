@@ -51,13 +51,13 @@ public class AzureWebApp extends AbstractAzureResourceModule<IWebApp> implements
     @NotNull
     @Override
     @Cacheable(cacheName = "appservice/{}/rg/{}/webapp/{}", key = "$sid/$rg/$name")
-    @AzureOperation(name = "webapp.get.name|rg|sid", params = {"name", "rg"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "webapp.get.app&rg", params = {"name", "rg"}, type = AzureOperation.Type.SERVICE)
     public IWebApp get(@NotNull String sid, @NotNull String rg, @NotNull String name) {
         return new WebApp(sid, rg, name, getAppServiceManager(sid));
     }
 
     @Nonnull
-    @AzureOperation(name = "webapp.list_runtime.os|version", params = {"os.getValue()", "version.getValue()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "webapp.list_runtimes.os&version", params = {"os.getValue()", "version.getValue()"}, type = AzureOperation.Type.SERVICE)
     public List<Runtime> listWebAppRuntimes(@Nonnull OperatingSystem os, @Nonnull JavaVersion version) {
         return Runtime.WEBAPP_RUNTIME.stream()
                 .filter(runtime -> Objects.equals(os, runtime.getOperatingSystem()) && Objects.equals(version, runtime.getJavaVersion()))
@@ -71,7 +71,7 @@ public class AzureWebApp extends AbstractAzureResourceModule<IWebApp> implements
         return getResourceManager(subscriptionId, AppServiceManager::configure, AppServiceManager.Configurable::authenticate);
     }
 
-    @AzureOperation(name = "service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "service.refresh.service", params = "this.name()", type = AzureOperation.Type.SERVICE)
     public void refresh() {
         try {
             CacheManager.evictCache("appservice/{}/webapps", CacheEvict.ALL);

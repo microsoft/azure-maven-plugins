@@ -48,7 +48,7 @@ public class AzureFunction extends AbstractAzureResourceModule<IFunctionApp> imp
     @NotNull
     @Override
     @Cacheable(cacheName = "appservice/{}/rg/{}/functionapp/{}", key = "$sid/$rg/$name")
-    @AzureOperation(name = "functionapp.get.name|rg|sid", params = {"name", "rg"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "functionapp.get.app&rg", params = {"name", "rg"}, type = AzureOperation.Type.SERVICE)
     public IFunctionApp get(@NotNull String sid, @NotNull String rg, @NotNull String name) {
         return new FunctionApp(sid, rg, name, getAppServiceManager(sid));
     }
@@ -60,7 +60,7 @@ public class AzureFunction extends AbstractAzureResourceModule<IFunctionApp> imp
         return getResourceManager(subscriptionId, AppServiceManager::configure, AppServiceManager.Configurable::authenticate);
     }
 
-    @AzureOperation(name = "service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "service.refresh.service", params = "this.name()", type = AzureOperation.Type.SERVICE)
     public void refresh() {
         try {
             CacheManager.evictCache("appservice/{}/functionapps", CacheEvict.ALL);

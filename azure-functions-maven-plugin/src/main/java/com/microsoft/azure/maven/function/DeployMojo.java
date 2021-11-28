@@ -76,7 +76,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String EXPANDABLE_JAVA_VERSION_WARNING = "'%s' may not be a valid java version, recommended values are `Java 8` and `Java 11`";
 
     @Override
-    @AzureOperation(name = "functionapp.deploy.mojo", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "functionapp.deploy", type = AzureOperation.Type.ACTION)
     protected void doExecute() throws AzureExecutionException {
         doValidate();
         getOrCreateAzureAppServiceClient();

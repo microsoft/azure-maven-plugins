@@ -43,7 +43,7 @@ public class AzurePostgreSql extends AbstractAzureResourceModule<PostgreSqlServe
     }
 
     @Cacheable(cacheName = "postgre/{}", key = "$sid")
-    @AzureOperation(name = "postgre.list.subscription", params = "sid", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "postgre.list_servers.subscription", params = "sid", type = AzureOperation.Type.SERVICE)
     public List<PostgreSqlServer> list(@Nonnull String sid, boolean... force) {
         return getSubscriptions().stream()
             .map(subscription -> PostgreSqlManagerFactory.create(subscription.getId()))
@@ -54,7 +54,7 @@ public class AzurePostgreSql extends AbstractAzureResourceModule<PostgreSqlServe
     @Nonnull
     @Override
     @Cacheable(cacheName = "postgre/{}/rg/{}/posgre/{}", key = "$sid/$rg/$name")
-    @AzureOperation(name = "postgre.get_server.server|rg", params = {"name", "rg"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "postgre.get_server.server&rg", params = {"name", "rg"}, type = AzureOperation.Type.SERVICE)
     public PostgreSqlServer get(@Nonnull String sid, @Nonnull String rg, @Nonnull String name) {
         final PostgreSqlManager postgreSqlManager = PostgreSqlManagerFactory.create(sid);
         final Server server = postgreSqlManager.servers().getByResourceGroup(rg, name);
@@ -67,7 +67,7 @@ public class AzurePostgreSql extends AbstractAzureResourceModule<PostgreSqlServe
         return new PostgreSqlServer(manager, server);
     }
 
-    @AzureOperation(name = "service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "service.refresh.service", params = "this.name()", type = AzureOperation.Type.SERVICE)
     public void refresh() {
         try {
             CacheManager.evictCache("postgre/{}", CacheEvict.ALL);
@@ -134,7 +134,7 @@ public class AzurePostgreSql extends AbstractAzureResourceModule<PostgreSqlServe
         }
 
         @Override
-        @AzureOperation(name = "postgre.create_server", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)
+        @AzureOperation(name = "postgre.create_server.server", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)
         public PostgreSqlServer commit() {
             // retrieve sku
             ServerPropertiesForDefaultCreate parameters = new ServerPropertiesForDefaultCreate();
