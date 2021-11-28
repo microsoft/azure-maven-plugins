@@ -134,7 +134,7 @@ public class AzurePostgreSql extends AbstractAzureResourceModule<PostgreSqlServe
         }
 
         @Override
-        @AzureOperation(name = "postgre|server.create", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)
+        @AzureOperation(name = "postgre.create_server", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)
         public PostgreSqlServer commit() {
             // retrieve sku
             ServerPropertiesForDefaultCreate parameters = new ServerPropertiesForDefaultCreate();

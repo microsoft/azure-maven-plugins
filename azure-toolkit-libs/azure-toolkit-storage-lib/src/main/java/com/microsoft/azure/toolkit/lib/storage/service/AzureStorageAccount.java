@@ -117,7 +117,7 @@ public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
         private final StorageAccountConfig config;
 
         @Override
-        @AzureOperation(name = "storage|account.create", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)
+        @AzureOperation(name = "storage.create_account", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)
         public StorageAccount commit() {
             com.azure.resourcemanager.storage.models.StorageAccount.DefinitionStages.WithCreate withCreate = StorageManagerFactory
                     .create(config.getSubscriptionId()).storageAccounts()
