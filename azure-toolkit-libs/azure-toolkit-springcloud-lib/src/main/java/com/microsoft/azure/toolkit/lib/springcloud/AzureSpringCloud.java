@@ -94,7 +94,7 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud>
         }
     }
 
-    @AzureOperation(name = "common|service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "common.refresh_service", params = "this.name()", type = AzureOperation.Type.SERVICE)
     public void refresh() {
         try {
             CacheManager.evictCache("asc/{}/clusters", CacheEvict.ALL);

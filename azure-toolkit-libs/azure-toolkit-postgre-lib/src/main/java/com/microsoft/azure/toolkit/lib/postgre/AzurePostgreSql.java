@@ -67,7 +67,7 @@ public class AzurePostgreSql extends AbstractAzureResourceModule<PostgreSqlServe
         return new PostgreSqlServer(manager, server);
     }
 
-    @AzureOperation(name = "common|service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "common.refresh_service", params = "this.name()", type = AzureOperation.Type.SERVICE)
     public void refresh() {
         try {
             CacheManager.evictCache("postgre/{}", CacheEvict.ALL);

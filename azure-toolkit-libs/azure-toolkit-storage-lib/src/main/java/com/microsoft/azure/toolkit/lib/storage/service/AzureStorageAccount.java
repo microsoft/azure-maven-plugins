@@ -98,7 +98,7 @@ public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
                 .collect(Collectors.toList());
     }
 
-    @AzureOperation(name = "common|service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "common.refresh_service", params = "this.name()", type = AzureOperation.Type.SERVICE)
     public void refresh() {
         try {
             CacheManager.evictCache("storage/{}/accounts", CacheEvict.ALL);

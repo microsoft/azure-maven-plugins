@@ -60,7 +60,7 @@ public class AzureFunction extends AbstractAzureResourceModule<IFunctionApp> imp
         return getResourceManager(subscriptionId, AppServiceManager::configure, AppServiceManager.Configurable::authenticate);
     }
 
-    @AzureOperation(name = "common|service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "common.refresh_service", params = "this.name()", type = AzureOperation.Type.SERVICE)
     public void refresh() {
         try {
             CacheManager.evictCache("appservice/{}/functionapps", CacheEvict.ALL);

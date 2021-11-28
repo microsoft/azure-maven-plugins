@@ -33,7 +33,7 @@ public class AzureAppServicePlan extends AbstractAzureResourceModule<IAppService
         super(AzureAppServicePlan::new, subscriptions);
     }
 
-    @AzureOperation(name = "common|service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "common.refresh_service", params = "this.name()", type = AzureOperation.Type.SERVICE)
     public void refresh() {
         try {
             CacheManager.evictCache("appservice/{}/plans", CacheEvict.ALL);
