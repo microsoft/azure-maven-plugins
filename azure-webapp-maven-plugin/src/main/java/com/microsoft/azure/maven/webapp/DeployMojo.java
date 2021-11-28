@@ -51,7 +51,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     private static final String CREATE_NEW_DEPLOYMENT_SLOT = "createNewDeploymentSlot";
 
     @Override
-    @AzureOperation(name = "webapp.deploy", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "webapp.deploy_app", type = AzureOperation.Type.ACTION)
     protected void doExecute() throws AzureExecutionException {
         validateConfiguration(message -> AzureMessager.getMessager().error(message.getMessage()), true);
         // initialize library client

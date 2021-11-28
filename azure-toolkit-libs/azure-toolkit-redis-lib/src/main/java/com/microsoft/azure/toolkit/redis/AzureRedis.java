@@ -49,7 +49,7 @@ public class AzureRedis extends SubscriptionScoped<AzureRedis> implements AzureS
     }
 
     @Nonnull
-    @AzureOperation(name = "redis.list", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "redis.list_redis", type = AzureOperation.Type.SERVICE)
     public List<RedisCache> list() {
         return getSubscriptions().stream()
                 .flatMap(s -> list(s.getId()).stream())
@@ -63,7 +63,7 @@ public class AzureRedis extends SubscriptionScoped<AzureRedis> implements AzureS
                 .collect(Collectors.toList());
     }
 
-    @AzureOperation(name = "redis.get.redis", params = {"id"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "redis.get_redis.redis", params = {"id"}, type = AzureOperation.Type.SERVICE)
     public RedisCache get(@Nonnull String id) {
         com.azure.resourcemanager.redis.models.RedisCache redisCache =
                 create(ResourceId.fromString(id).subscriptionId()).redisCaches().getById(id);
@@ -105,7 +105,7 @@ public class AzureRedis extends SubscriptionScoped<AzureRedis> implements AzureS
         private final RedisConfig config;
 
         @Override
-        @AzureOperation(name = "redis.create.redis", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)
+        @AzureOperation(name = "redis.create_redis.redis", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)
         public RedisCache commit() {
             final com.azure.resourcemanager.redis.models.RedisCache.DefinitionStages.WithSku toCreate =
                     create(config.getSubscription().getId()).redisCaches().define(config.getName())

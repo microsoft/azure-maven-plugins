@@ -39,7 +39,7 @@ public class AzureWebApp extends AbstractAzureResourceModule<IWebApp> implements
 
     @Override
     @Cacheable(cacheName = "appservice/{}/webapps", key = "$sid", condition = "!(force&&force[0])")
-    @AzureOperation(name = "webapp.list.subscription", params = "sid", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "webapp.list_apps.subscription", params = "sid", type = AzureOperation.Type.SERVICE)
     public List<IWebApp> list(@NotNull String sid, boolean... force) {
         final AppServiceManager azureResourceManager = getAppServiceManager(sid);
         return azureResourceManager.webApps().list().stream().parallel()
@@ -51,7 +51,7 @@ public class AzureWebApp extends AbstractAzureResourceModule<IWebApp> implements
     @NotNull
     @Override
     @Cacheable(cacheName = "appservice/{}/rg/{}/webapp/{}", key = "$sid/$rg/$name")
-    @AzureOperation(name = "webapp.get.app&rg", params = {"name", "rg"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "webapp.get_app.app&rg", params = {"name", "rg"}, type = AzureOperation.Type.SERVICE)
     public IWebApp get(@NotNull String sid, @NotNull String rg, @NotNull String name) {
         return new WebApp(sid, rg, name, getAppServiceManager(sid));
     }
