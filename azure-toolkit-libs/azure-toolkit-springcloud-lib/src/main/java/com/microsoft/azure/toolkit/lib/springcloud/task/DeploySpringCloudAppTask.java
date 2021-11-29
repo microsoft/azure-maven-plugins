@@ -44,7 +44,6 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     }
 
     private List<AzureTask<?>> initTasks() {
-        final IAzureMessager messager = AzureMessager.getMessager();
         // Init spring clients, and prompt users to confirm
         final SpringCloudDeploymentConfig deploymentConfig = config.getDeployment();
         final File file = Optional.ofNullable(deploymentConfig.getArtifact()).map(IArtifact::getFile).orElse(null);
@@ -103,7 +102,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     @Override
     @AzureOperation(name = "springcloud.create_update_app.app", params = {"this.config.getAppName()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudDeployment execute() {
-        this.subTasks.forEach(t->t.getSupplier().get());
+        this.subTasks.forEach(t -> t.getSupplier().get());
         return this.deployment;
     }
 }
