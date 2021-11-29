@@ -106,7 +106,7 @@ public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, Spring
 
     @Nonnull
     @Cacheable(cacheName = "resource/{}/children", key = "${this.id()}")
-    @AzureOperation(name = "springcloud.list_deployment.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud.list_deployments.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public List<SpringCloudDeployment> deployments() {
         if (this.exists()) {
             return Objects.requireNonNull(this.remote()).deployments().list().stream().map(this::deployment).collect(Collectors.toList());

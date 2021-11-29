@@ -49,7 +49,7 @@ public class AzureAppServicePlan extends AbstractAzureResourceModule<IAppService
 
     @Override
     @Cacheable(cacheName = "appservice/{}/plans", key = "$subscriptionId", condition = "!(force&&force[0])")
-    @AzureOperation(name = "appservice.list_plan.subscription", params = "subscriptionId", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "appservice.list_plans.subscription", params = "subscriptionId", type = AzureOperation.Type.SERVICE)
     public List<IAppServicePlan> list(@NotNull String subscriptionId, boolean... force) {
         final AppServiceManager azureResourceManager = getAppServiceManager(subscriptionId);
         return azureResourceManager.appServicePlans().list().stream().parallel()
@@ -58,7 +58,7 @@ public class AzureAppServicePlan extends AbstractAzureResourceModule<IAppService
     }
 
     @Cacheable(cacheName = "appservice/rg/{}/plans", key = "$rg", condition = "!(force&&force[0])")
-    @AzureOperation(name = "appservice.list_plan.rg", params = "rg", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "appservice.list_plans.rg", params = "rg", type = AzureOperation.Type.SERVICE)
     public List<IAppServicePlan> appServicePlansByResourceGroup(String rg, boolean... force) {
         return getSubscriptions().stream().parallel()
                 .map(subscription -> getAppServiceManager(subscription.getId()))
