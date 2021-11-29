@@ -10,7 +10,9 @@ import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.implementation.util.ScopeUtil;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.microsoft.azure.toolkit.lib.auth.TokenCredentialManagerWithCache;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureCliUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
@@ -23,8 +25,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-
-import com.microsoft.azure.toolkit.lib.auth.TokenCredentialManagerWithCache;
+import java.util.Optional;
 
 class AzureCliTokenCredentialManager extends TokenCredentialManagerWithCache {
     public AzureCliTokenCredentialManager(AzureEnvironment env) {
@@ -56,13 +57,14 @@ class AzureCliTokenCredentialManager extends TokenCredentialManagerWithCache {
             // copied from https://github.com/Azure/azure-sdk-for-java/blob/master/sdk/identity/azure-identity
             // /src/main/java/com/azure/identity/implementation/IdentityClient.java#L487
             String accessToken = result.get("accessToken").getAsString();
-            String time = result.get("expiresOn").getAsString();
-            String timeToSecond = time.substring(0, time.indexOf("."));
-            String timeJoinedWithT = String.join("T", timeToSecond.split(" "));
-            OffsetDateTime expiresOn = LocalDateTime.parse(timeJoinedWithT, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                    .atZone(ZoneId.systemDefault())
-                    .toOffsetDateTime().withOffsetSameInstant(ZoneOffset.UTC);
-            return Mono.just(new AccessToken(accessToken, expiresOn));
+            final OffsetDateTime expiresDateTime = Optional.ofNullable(result.get("expiresOn"))
+                    .filter(jsonElement -> !jsonElement.isJsonNull())
+                    .map(JsonElement::getAsString)
+                    .map(value -> value.substring(0, value.indexOf(".")))
+                    .map(value -> String.join("T", value.split(" "))).map(value -> LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                            .atZone(ZoneId.systemDefault()).toOffsetDateTime().withOffsetSameInstant(ZoneOffset.UTC))
+                    .orElse(OffsetDateTime.MAX);
+            return Mono.just(new AccessToken(accessToken, expiresDateTime));
         }
 
         boolean isInCloudShell() {

@@ -65,14 +65,16 @@
         <maven.javadoc-plugin.version>2.9.1</maven.javadoc-plugin.version>
         <maven.aspectj-plugin.version>1.12.6</maven.aspectj-plugin.version>
 
-        <azure.core.version>1.16.0</azure.core.version>
+        <azure.core.version>1.23.0</azure.core.version>
         <azure.aad.version>1.6.7</azure.aad.version>
         <azure.applicationinsights.version>2.6.3</azure.applicationinsights.version>
         <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
+        <azure.resourcemanager.version>2.10.0</azure.resourcemanager.version>
         <azure.resourcemanager-applicationinsights.version>1.0.0-beta.1</azure.resourcemanager-applicationinsights.version>
+        <azure-resourcemanager-mysql.version>1.0.0</azure-resourcemanager-mysql.version>
+        <azure-resourcemanager-postgre.version>1.0.1</azure-resourcemanager-postgre.version>
         <azure.client.version>1.7.12</azure.client.version>
         <azure.identity.version>1.3.0</azure.identity.version>
-        <azure.resourcemanager.version>2.8.0</azure.resourcemanager.version>
         <azure.storage.version>8.6.6</azure.storage.version>
         <azure.version>1.41.1</azure.version>
         <azure.eventhubs.version>3.2.2</azure.eventhubs.version>
@@ -86,7 +88,7 @@
         <azure.storage.blob.version>12.11.1</azure.storage.blob.version>
         <azure.storage.blob.batch.version>12.9.1</azure.storage.blob.batch.version>
         <azure.storage.file.datalake.version>12.5.1</azure.storage.file.datalake.version>
-        <azure.core.http.netty.version>1.9.2</azure.core.http.netty.version>
+        <azure.core.http.netty.version>1.11.3</azure.core.http.netty.version>
         <aspectj.version>1.9.7.M3</aspectj.version>
         <codehaus.plexus-utils.version>3.3.0</codehaus.plexus-utils.version>
         <commons.codec.version>1.15</commons.codec.version>
@@ -120,7 +122,6 @@
         <jjwt.version>0.9.1</jjwt.version>
         <reflections.version>0.10.1</reflections.version>
         <reactor.netty.version>1.0.6</reactor.netty.version>
-        <azure.core-http-netty.version>1.9.2</azure.core-http-netty.version>
         <nimbusds.oauth2.oidc.sdk.version>9.15</nimbusds.oauth2.oidc.sdk.version>
         <semver4j.version>3.1.0</semver4j.version>
         <nimbus-jose-jwt.version>9.9.3</nimbus-jose-jwt.version>
@@ -136,10 +137,7 @@
         <zt.zip.version>1.14</zt.zip.version>
         <plexus-interpolation.version>1.26</plexus-interpolation.version>
         <powermock.version>2.0.9</powermock.version>
-        <azure-resourcemanager-mysql.version>1.0.0</azure-resourcemanager-mysql.version>
-        <azure-resourcemanager-postgre.version>1.0.1</azure-resourcemanager-postgre.version>
         <networknt.json-schema-validator.version>1.0.57</networknt.json-schema-validator.version>
-        <azure-resourcemanager-redis.version>2.7.0</azure-resourcemanager-redis.version>
         <jedis.version>3.6.3</jedis.version>
     </properties>
 
@@ -216,6 +214,11 @@
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-redis-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>redis.clients</groupId>
+                <artifactId>jedis</artifactId>
+                <version>${jedis.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
@@ -307,11 +310,6 @@
                 <groupId>com.azure</groupId>
                 <artifactId>azure-security-keyvault-certificates</artifactId>
                 <version>${azure.security.keyvault.certificates.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-core-http-netty</artifactId>
-                <version>${azure.core-http-netty.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.nimbusds</groupId>
@@ -538,7 +536,7 @@
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-redis</artifactId>
-                <version>${azure-resourcemanager-redis.version}</version>
+                <version>${azure.resourcemanager.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
@@ -774,11 +772,6 @@
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-interpolation</artifactId>
                 <version>${plexus-interpolation.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>redis.clients</groupId>
-                <artifactId>jedis</artifactId>
-                <version>${jedis.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.powermock</groupId>
