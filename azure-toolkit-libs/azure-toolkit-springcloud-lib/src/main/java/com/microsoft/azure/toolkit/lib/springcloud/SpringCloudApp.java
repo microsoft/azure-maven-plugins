@@ -72,7 +72,7 @@ public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, Spring
 
     @Nonnull
     @Cacheable(cacheName = "resource/{}/child/{}", key = "${this.id()}/$name")
-    @AzureOperation(name = "springcloud.get_deployment.deployment&app", params = {"name", "this.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud.get_deployment.deployment|app", params = {"name", "this.name()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudDeployment deployment(final String name) {
         if (this.exists()) {
             try {

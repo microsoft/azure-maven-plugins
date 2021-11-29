@@ -48,7 +48,7 @@ public class AzureFunction extends AbstractAzureResourceModule<IFunctionApp> imp
     @NotNull
     @Override
     @Cacheable(cacheName = "appservice/{}/rg/{}/functionapp/{}", key = "$sid/$rg/$name")
-    @AzureOperation(name = "functionapp.get_app.app&rg", params = {"name", "rg"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "functionapp.get_app.app|rg", params = {"name", "rg"}, type = AzureOperation.Type.SERVICE)
     public IFunctionApp get(@NotNull String sid, @NotNull String rg, @NotNull String name) {
         return new FunctionApp(sid, rg, name, getAppServiceManager(sid));
     }

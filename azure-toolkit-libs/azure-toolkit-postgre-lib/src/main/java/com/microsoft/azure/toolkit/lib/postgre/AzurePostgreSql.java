@@ -54,7 +54,7 @@ public class AzurePostgreSql extends AbstractAzureResourceModule<PostgreSqlServe
     @Nonnull
     @Override
     @Cacheable(cacheName = "postgre/{}/rg/{}/posgre/{}", key = "$sid/$rg/$name")
-    @AzureOperation(name = "postgre.get_server.server&rg", params = {"name", "rg"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "postgre.get_server.server|rg", params = {"name", "rg"}, type = AzureOperation.Type.SERVICE)
     public PostgreSqlServer get(@Nonnull String sid, @Nonnull String rg, @Nonnull String name) {
         final PostgreSqlManager postgreSqlManager = PostgreSqlManagerFactory.create(sid);
         final Server server = postgreSqlManager.servers().getByResourceGroup(rg, name);

@@ -56,7 +56,7 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
     }
 
     @Override
-    @AzureOperation(name = "springcloud.load_deployment.deployment&app", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud.load_deployment.deployment|app", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
     protected SpringAppDeployment loadRemote() {
         try {
             return Optional.ofNullable(this.app.remote()).map(r -> r.deployments().getByName(this.name())).orElse(null);
@@ -73,7 +73,7 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
         return this.app;
     }
 
-    @AzureOperation(name = "springcloud.start_deployment.deployment&app", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud.start_deployment.deployment|app", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
         if (this.exists()) {
             this.status(Status.PENDING);
@@ -82,7 +82,7 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
         }
     }
 
-    @AzureOperation(name = "springcloud.stop_deployment.deployment&app", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud.stop_deployment.deployment|app", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
     public void stop() {
         if (this.exists()) {
             this.status(Status.PENDING);
@@ -91,7 +91,7 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
         }
     }
 
-    @AzureOperation(name = "springcloud.restart_deployment.deployment&app", params = {"this.entity().getName()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud.restart_deployment.deployment|app", params = {"this.entity().getName()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
         if (this.exists()) {
             this.status(Status.PENDING);
@@ -101,7 +101,7 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
     }
 
     @AzureOperation(
-            name = "springcloud.wait_until_deployment_ready.deployment&app",
+            name = "springcloud.wait_until_deployment_ready.deployment|app",
             params = {"this.entity().getName()", "this.app.name()"},
             type = AzureOperation.Type.SERVICE
     )
@@ -245,7 +245,7 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
         }
 
         @AzureOperation(
-                name = "springcloud.scale_deployment.deployment&app",
+                name = "springcloud.scale_deployment.deployment|app",
                 params = {"this.deployment.name()", "this.deployment.app.name()"},
                 type = AzureOperation.Type.SERVICE
         )
@@ -278,7 +278,7 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
         }
 
         @AzureOperation(
-                name = "springcloud.update_deployment.deployment&app",
+                name = "springcloud.update_deployment.deployment|app",
                 params = {"this.deployment.name()", "this.deployment.app.name()"},
                 type = AzureOperation.Type.SERVICE
         )
@@ -304,7 +304,7 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
         }
 
         @AzureOperation(
-                name = "springcloud.create_deployment.deployment&app",
+                name = "springcloud.create_deployment.deployment|app",
                 params = {"this.deployment.name()", "this.deployment.app.name()"},
                 type = AzureOperation.Type.SERVICE
         )
