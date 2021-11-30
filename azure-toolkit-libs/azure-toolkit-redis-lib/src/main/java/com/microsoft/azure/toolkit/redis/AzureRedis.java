@@ -49,7 +49,7 @@ public class AzureRedis extends SubscriptionScoped<AzureRedis> implements AzureS
     }
 
     @Nonnull
-    @AzureOperation(name = "redis.list.subscription|selected", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "redis.list_redis", type = AzureOperation.Type.SERVICE)
     public List<RedisCache> list() {
         return getSubscriptions().stream()
                 .flatMap(s -> list(s.getId()).stream())
@@ -63,14 +63,14 @@ public class AzureRedis extends SubscriptionScoped<AzureRedis> implements AzureS
                 .collect(Collectors.toList());
     }
 
-    @AzureOperation(name = "redis.get.id", params = {"id"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "redis.get_redis.redis", params = {"id"}, type = AzureOperation.Type.SERVICE)
     public RedisCache get(@Nonnull String id) {
         com.azure.resourcemanager.redis.models.RedisCache redisCache =
                 create(ResourceId.fromString(id).subscriptionId()).redisCaches().getById(id);
         return new RedisCache(redisCache);
     }
 
-    @AzureOperation(name = "redis.check_name", params = "name", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "redis.check_name.redis", params = "name", type = AzureOperation.Type.SERVICE)
     public CheckNameAvailabilityResultEntity checkNameAvailability(String subscriptionId, String name) {
         final RedisManager redisManager = create(subscriptionId);
         RedisClient redis = redisManager.redisCaches().manager().serviceClient().getRedis();
@@ -86,7 +86,7 @@ public class AzureRedis extends SubscriptionScoped<AzureRedis> implements AzureS
         }
     }
 
-    @AzureOperation(name = "common|service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "service.refresh.service", params = "this.name()", type = AzureOperation.Type.SERVICE)
     public void refresh() {
         try {
             CacheManager.evictCache("redis/{}/cache", CacheEvict.ALL);
@@ -105,7 +105,7 @@ public class AzureRedis extends SubscriptionScoped<AzureRedis> implements AzureS
         private final RedisConfig config;
 
         @Override
-        @AzureOperation(name = "redis.create", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)
+        @AzureOperation(name = "redis.create_redis.redis", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)
         public RedisCache commit() {
             final com.azure.resourcemanager.redis.models.RedisCache.DefinitionStages.WithSku toCreate =
                     create(config.getSubscription().getId()).redisCaches().define(config.getName())

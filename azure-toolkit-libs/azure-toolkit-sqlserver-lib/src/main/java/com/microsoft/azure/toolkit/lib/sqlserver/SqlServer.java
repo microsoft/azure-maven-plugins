@@ -50,7 +50,7 @@ public class SqlServer extends AbstractAzureResource<SqlServer, SqlServerEntity,
         }
     }
 
-    @AzureOperation(name = "sqlserver|server.delete", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "sqlserver.delete_server.server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
         if (StringUtils.isNotBlank(entity.getId())) {
             SqlServer.this.manager.sqlServers().deleteById(entity.getId());

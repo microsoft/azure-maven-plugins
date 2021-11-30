@@ -97,7 +97,7 @@ public class AzureTelemeter {
         final Map<String, String> actionProperties = getActionProperties(context.getOperation());
         final Optional<IAzureOperation> parent = Optional.ofNullable(op.getParent());
         final Map<String, String> properties = new HashMap<>();
-        final String name = op.getName().replaceAll("\\(.+\\)", "(***)"); // e.g. `appservice|file.list.dir`
+        final String name = op.getName().replaceAll("\\(.+\\)", "(***)"); // e.g. `appservice.list_file.dir`
         final String[] parts = name.split("\\."); // ["appservice|file", "list", "dir"]
         if (parts.length > 1) {
             final String[] compositeServiceName = parts[0].split("\\|"); // ["appservice", "file"]

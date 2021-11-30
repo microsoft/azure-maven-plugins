@@ -37,7 +37,7 @@ public class SpringCloudCluster
     }
 
     @Override
-    @AzureOperation(name = "springcloud|cluster.load", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud.load_cluster.cluster", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     protected SpringService loadRemote() {
         try {
             return this.client.getByResourceGroup(entity.getResourceGroup(), entity.getName());
@@ -51,7 +51,7 @@ public class SpringCloudCluster
 
     @Nonnull
     @Cacheable(cacheName = "resource/{}/child/{}", key = "${this.id()}/$name")
-    @AzureOperation(name = "springcloud|app.get.name", params = {"name"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud.get_app.app", params = {"name"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp app(final String name) {
         if (this.exists()) {
             try {
@@ -81,7 +81,7 @@ public class SpringCloudCluster
 
     @Nonnull
     @Cacheable(cacheName = "resource/{}/children", key = "${this.id()}")
-    @AzureOperation(name = "springcloud|app.list.cluster", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud.list_apps.cluster", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public List<SpringCloudApp> apps() {
         if (this.exists()) {
             return Objects.requireNonNull(this.remote()).apps().list().stream().map(this::app).collect(Collectors.toList());

@@ -20,7 +20,7 @@ public interface IAzureModule<T extends IAzureBaseResource, P extends IAzureBase
         return this.getClass().getSimpleName();
     }
 
-    @AzureOperation(name = "common|service.refresh", params = "this.name()", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "service.refresh.service", params = "this.name()", type = AzureOperation.Type.SERVICE)
     default void refresh() {
     }
 }

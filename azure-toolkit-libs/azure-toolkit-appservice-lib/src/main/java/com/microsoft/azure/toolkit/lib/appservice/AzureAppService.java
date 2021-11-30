@@ -92,7 +92,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         return Azure.az(AzureWebApp.class).subscriptions(getSubscriptions()).list(force);
     }
 
-    @AzureOperation(name = "appservice.check_name", params = "name", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "appservice.check_name.app", params = "name", type = AzureOperation.Type.SERVICE)
     public CheckNameAvailabilityResultEntity checkNameAvailability(String subscriptionId, String name) {
         final AppServiceManager azureResourceManager = getAppServiceManager(subscriptionId);
         final ResourceNameAvailabilityInner result = azureResourceManager.webApps().manager()
@@ -137,7 +137,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
 
     @Deprecated
     @Cacheable(cacheName = "appservice/slot/{}", key = "$id")
-    @AzureOperation(name = "appservice|deployment.get.id", params = "id", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "appservice.get_deployment.id", params = "id", type = AzureOperation.Type.SERVICE)
     public IWebAppDeploymentSlot deploymentSlot(String id) {
         return new WebAppDeploymentSlot(id, getAppServiceManager(Utils.getSubscriptionId(id)));
     }

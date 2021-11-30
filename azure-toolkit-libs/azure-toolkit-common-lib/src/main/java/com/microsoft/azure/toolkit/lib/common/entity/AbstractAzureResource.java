@@ -42,7 +42,7 @@ public abstract class AbstractAzureResource<T extends IAzureResource<E>, E exten
     @Nonnull
     @Override
     @CacheEvict(cacheName = "resource/{}/children", key = "${this.id()}")
-    @AzureOperation(name = "common|resource.refresh", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.refresh.resource", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public synchronized T refresh() {
         this.status(Status.LOADING);
         return this.refresh(this.loadRemote());
