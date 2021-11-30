@@ -4,6 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.common.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -18,8 +19,12 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode
 @SuperBuilder
 public class Subscription {
+    @JsonProperty
     private String id;
+    @JsonProperty
     private String name;
+    @JsonProperty
     private String tenantId;
+    @JsonProperty
     private boolean selected;
 }

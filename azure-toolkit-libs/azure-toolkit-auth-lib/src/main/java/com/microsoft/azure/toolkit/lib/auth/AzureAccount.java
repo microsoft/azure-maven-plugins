@@ -157,6 +157,8 @@ public class AzureAccount implements IAzureAccount {
             this.entity.setType(accountEntity.getType());
             this.entity.setEmail(accountEntity.getEmail());
             this.entity.setEnvironment(accountEntity.getEnvironment());
+            this.entity.setTenantIds(accountEntity.getTenantIds());
+            this.entity.setSubscriptions(accountEntity.getSubscriptions());
             this.credential = credential;
         }
         protected Mono<TokenCredentialManager> createTokenCredentialManager() {

@@ -34,7 +34,7 @@ public class AzureCliAccount extends Account {
     protected Mono<Boolean> preLoginCheck() {
         return Mono.fromCallable(() -> {
             AzureCliUtils.ensureMinimumCliVersion();
-            AzureCliUtils.executeAzureCli("az account get-access-token --output json");
+            AzureCliUtils.executeAzureCli("az group exists -n a"); // test whether az command is available
 
             List<AzureCliSubscription> subscriptions = AzureCliUtils.listSubscriptions();
             if (subscriptions.isEmpty()) {
