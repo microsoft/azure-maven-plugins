@@ -71,30 +71,30 @@
         <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
         <azure.resourcemanager.version>2.10.0</azure.resourcemanager.version>
         <azure.resourcemanager-applicationinsights.version>1.0.0-beta.1</azure.resourcemanager-applicationinsights.version>
-        <azure-resourcemanager-mysql.version>1.0.0</azure-resourcemanager-mysql.version>
+        <azure-resourcemanager-mysql.version>1.0.1</azure-resourcemanager-mysql.version>
         <azure-resourcemanager-postgre.version>1.0.1</azure-resourcemanager-postgre.version>
-        <azure.client.version>1.7.12</azure.client.version>
-        <azure.identity.version>1.3.0</azure.identity.version>
+        <azure.client.version>1.7.14</azure.client.version>
+        <azure.identity.version>1.4.2</azure.identity.version>
         <azure.storage.version>8.6.6</azure.storage.version>
         <azure.version>1.41.1</azure.version>
-        <azure.eventhubs.version>3.2.2</azure.eventhubs.version>
+        <azure.eventhubs.version>3.3.0</azure.eventhubs.version>
         <azure.storage-file-share.version>12.9.1</azure.storage-file-share.version>
         <azure.function.version>1.4.2</azure.function.version>
-        <azure.security.keyvault.keys.version>4.2.8</azure.security.keyvault.keys.version>
-        <azure.security.keyvault.secrets.version>4.2.8</azure.security.keyvault.secrets.version>
-        <azure.security.keyvault.certificates.version>4.1.8</azure.security.keyvault.certificates.version>
-        <azure.storage.file.share.version>12.9.1</azure.storage.file.share.version>
-        <azure.storage.queue.version>12.9.1</azure.storage.queue.version>
-        <azure.storage.blob.version>12.11.1</azure.storage.blob.version>
-        <azure.storage.blob.batch.version>12.9.1</azure.storage.blob.batch.version>
-        <azure.storage.file.datalake.version>12.5.1</azure.storage.file.datalake.version>
+        <azure.security.keyvault.keys.version>4.3.5</azure.security.keyvault.keys.version>
+        <azure.security.keyvault.secrets.version>4.3.5</azure.security.keyvault.secrets.version>
+        <azure.security.keyvault.certificates.version>4.2.5</azure.security.keyvault.certificates.version>
+        <azure.storage.file.share.version>12.11.2</azure.storage.file.share.version>
+        <azure.storage.queue.version>12.11.2</azure.storage.queue.version>
+        <azure.storage.blob.version>12.14.2</azure.storage.blob.version>
+        <azure.storage.blob.batch.version>12.11.2</azure.storage.blob.batch.version>
+        <azure.storage.file.datalake.version>12.7.2</azure.storage.file.datalake.version>
         <azure.core.http.netty.version>1.11.3</azure.core.http.netty.version>
-        <aspectj.version>1.9.7.M3</aspectj.version>
-        <codehaus.plexus-utils.version>3.3.0</codehaus.plexus-utils.version>
+        <aspectj.version>1.9.7</aspectj.version>
+        <codehaus.plexus-utils.version>3.4.1</codehaus.plexus-utils.version>
         <commons.codec.version>1.15</commons.codec.version>
         <commons.collections4.version>4.4</commons.collections4.version>
         <commons.exec.version>1.3</commons.exec.version>
-        <commons.io.version>2.9.0</commons.io.version>
+        <commons.io.version>2.11.0</commons.io.version>
         <commons.lang3.version>3.12.0</commons.lang3.version>
         <commons.math3.version>3.6.1</commons.math3.version>
         <commons.net.version>3.8.0</commons.net.version>
@@ -102,32 +102,32 @@
         <commons.configuration2.version>2.7</commons.configuration2.version>
         <dom4j.version>2.1.3</dom4j.version>
         <gson.version>2.8.9</gson.version>
-        <guava.version>30.1.1-jre</guava.version>
+        <guava.version>31.0.1-jre</guava.version>
         <httpclient.version>4.5.13</httpclient.version>
-        <jackson.version>2.12.3</jackson.version>
+        <jackson.version>2.13.0</jackson.version>
         <jacoco.version>0.8.7</jacoco.version>
-        <jansi.version>2.3.2</jansi.version>
-        <jetbrains.annotations.version>21.0.1</jetbrains.annotations.version>
+        <jansi.version>2.4.0</jansi.version>
+        <jetbrains.annotations.version>23.0.0</jetbrains.annotations.version>
         <json.schema.validator.version>2.2.14</json.schema.validator.version>
         <groovy.version>3.0.9</groovy.version>
         <junit.version>4.13.2</junit.version>
-        <lombok.version>1.18.20</lombok.version>
-        <mockito.version>3.10.0</mockito.version>
+        <lombok.version>1.18.22</lombok.version>
+        <mockito.version>4.1.0</mockito.version>
         <rx.version>1.3.8</rx.version>
-        <snakeyaml.version>1.28</snakeyaml.version>
-        <slf4j-api.version>1.7.30</slf4j-api.version>
-        <spring-test.version>5.3.7</spring-test.version>
+        <snakeyaml.version>1.29</snakeyaml.version>
+        <slf4j-api.version>1.7.32</slf4j-api.version>
+        <spring-test.version>5.3.13</spring-test.version>
         <google.jsr305.version>3.0.2</google.jsr305.version>
         <free.port.finder.version>1.1.1</free.port.finder.version>
         <jjwt.version>0.9.1</jjwt.version>
-        <reflections.version>0.10.1</reflections.version>
-        <reactor.netty.version>1.0.6</reactor.netty.version>
-        <nimbusds.oauth2.oidc.sdk.version>9.15</nimbusds.oauth2.oidc.sdk.version>
+        <reflections.version>0.10.2</reflections.version>
+        <reactor.netty.version>1.0.13</reactor.netty.version>
+        <nimbusds.oauth2.oidc.sdk.version>9.20</nimbusds.oauth2.oidc.sdk.version>
         <semver4j.version>3.1.0</semver4j.version>
-        <nimbus-jose-jwt.version>9.9.3</nimbus-jose-jwt.version>
-        <joda-time.version>2.10.10</joda-time.version>
+        <nimbus-jose-jwt.version>9.16-preview.1</nimbus-jose-jwt.version>
+        <joda-time.version>2.10.13</joda-time.version>
         <httpcore.version>4.4.14</httpcore.version>
-        <evo-inflector.version>1.2.2</evo-inflector.version>
+        <evo-inflector.version>1.3</evo-inflector.version>
         <jaxb.version>3.0.2-b01</jaxb.version>
         <jaxb.runtime.version>3.0.2</jaxb.runtime.version>
         <jaxb.bind-api.version>3.0.1</jaxb.bind-api.version>
@@ -137,8 +137,8 @@
         <zt.zip.version>1.14</zt.zip.version>
         <plexus-interpolation.version>1.26</plexus-interpolation.version>
         <powermock.version>2.0.9</powermock.version>
-        <networknt.json-schema-validator.version>1.0.57</networknt.json-schema-validator.version>
-        <jedis.version>3.6.3</jedis.version>
+        <networknt.json-schema-validator.version>1.0.64</networknt.json-schema-validator.version>
+        <jedis.version>3.7.0</jedis.version>
     </properties>
 
     <dependencyManagement>
