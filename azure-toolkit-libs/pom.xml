@@ -139,6 +139,7 @@
         <powermock.version>2.0.9</powermock.version>
         <networknt.json-schema-validator.version>1.0.64</networknt.json-schema-validator.version>
         <jedis.version>3.7.0</jedis.version>
+        <netty-all.version>4.1.70.Final</netty-all.version>
     </properties>
 
     <dependencyManagement>
@@ -679,6 +680,11 @@
                 <groupId>io.projectreactor.netty</groupId>
                 <artifactId>reactor-netty</artifactId>
                 <version>${reactor.netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-all</artifactId>
+                <version>${netty-all.version}</version>
             </dependency>
             <!-- JAXB For Application Insight Issue -->
             <dependency>
