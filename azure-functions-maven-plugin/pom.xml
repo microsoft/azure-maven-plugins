@@ -263,18 +263,6 @@
     </profiles>
 
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-                <includes>
-                    <include>**/*.xml</include>
-                    <include>templates.json</include>
-                    <include>bindings.json</include>
-                    <include>resources.json</include>
-                </includes>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <!-- https://mvnrepository.com/artifact/org.codehaus.mojo/aspectj-maven-plugin -->
