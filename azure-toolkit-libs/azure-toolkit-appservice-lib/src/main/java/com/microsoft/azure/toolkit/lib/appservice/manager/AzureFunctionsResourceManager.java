@@ -63,7 +63,7 @@ public class AzureFunctionsResourceManager implements IFileClient {
     public static AzureFunctionsResourceManager getClient(@Nonnull WebAppBase functionApp, @Nonnull FunctionAppBase appService) {
         // refers : https://github.com/Azure/azure-sdk-for-java/blob/master/sdk/resourcemanager/azure-resourcemanager-appservice/src/main/java/
         // com/azure/resourcemanager/appservice/implementation/KuduClient.java
-        if (!(functionApp instanceof FunctionApp || functionApp instanceof FunctionDeploymentSlot)){
+        if (!(functionApp instanceof FunctionApp || functionApp instanceof FunctionDeploymentSlot)) {
             throw new AzureToolkitRuntimeException("Functions resource manager only applies to Azure Functions");
         }
         final List<HttpPipelinePolicy> policies = Utils.getPolicyFromPipeline(functionApp.manager().httpPipeline(), policy ->
@@ -121,33 +121,33 @@ public class AzureFunctionsResourceManager implements IFileClient {
     @ServiceInterface(name = "FunctionHost")
     private interface FunctionsService {
         @Headers({
-                "Content-Type: application/json; charset=utf-8"
+            "Content-Type: application/json; charset=utf-8"
         })
         @Get("admin/vfs/{path}")
         Mono<StreamResponse> getFileContent(@HostParam("$host") String host, @PathParam("path") String path);
 
         @Headers({
-                "Content-Type: application/json; charset=utf-8"
+            "Content-Type: application/json; charset=utf-8"
         })
         @Get("admin/vfs/{path}/")
         Mono<Response<List<AppServiceFile>>> getFilesInDirectory(@HostParam("$host") String host, @PathParam("path") String path);
 
         @Headers({
-                "Content-Type: application/octet-stream; charset=utf-8",
-                "If-Match: *"
+            "Content-Type: application/octet-stream; charset=utf-8",
+            "If-Match: *"
         })
         @Put("admin/vfs/{path}")
         Mono<Void> saveFile(@HostParam("$host") String host, @PathParam("path") String path, @BodyParam("application/octet-stream") String content);
 
         @Headers({
-                "Content-Type: application/json; charset=utf-8"
+            "Content-Type: application/json; charset=utf-8"
         })
         @Put("admin/vfs/{path}/")
         Mono<Void> createDirectory(@HostParam("$host") String host, @PathParam("path") String path);
 
         @Headers({
-                "Content-Type: application/json; charset=utf-8",
-                "If-Match: *"
+            "Content-Type: application/json; charset=utf-8",
+            "If-Match: *"
         })
         @Delete("admin/vfs/{path}")
         Mono<Void> deleteFile(@HostParam("$host") String host, @PathParam("path") String path);
