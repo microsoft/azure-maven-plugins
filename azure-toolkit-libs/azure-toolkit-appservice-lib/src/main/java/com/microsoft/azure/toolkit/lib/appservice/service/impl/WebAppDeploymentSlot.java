@@ -168,7 +168,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
     }
 
     @Getter
-    private class WebAppDeploymentSlotUpdater {
+    public class WebAppDeploymentSlotUpdater {
         private final List<String> appSettingsToRemove = new ArrayList<>();
         private final Map<String, String> appSettingsToAdd = new HashMap<>();
         private DiagnosticConfig diagnosticConfig = null;
