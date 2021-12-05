@@ -10,8 +10,7 @@ import com.microsoft.azure.toolkit.lib.appservice.AzureAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
-import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,7 +20,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanager.appservice.models.AppServicePlan> implements IAppServicePlan {
+public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanager.appservice.models.AppServicePlan>
+        implements IAzureResource<AppServicePlanEntity> {
     private static final String APP_SERVICE_PLAN_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/serverfarms/%s";
 
     private AppServicePlanEntity entity;
@@ -45,8 +45,7 @@ public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanag
         this.azureClient = azureClient;
     }
 
-    @Override
-    public Creator create() {
+    public AppServicePlanCreator create() {
         return new AppServicePlanCreator();
     }
 
@@ -57,17 +56,14 @@ public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanag
         return this;
     }
 
-    @Override
     public String name() {
         return getRemoteResource().name();
     }
 
-    @Override
     public String id() {
         return String.format(APP_SERVICE_PLAN_ID_TEMPLATE, subscriptionId, resourceGroup, name);
     }
 
-    @Override
     public AppServicePlanEntity entity() {
         if (remote == null) {
             refresh();
@@ -75,7 +71,6 @@ public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanag
         return entity;
     }
 
-    @Override
     public List<WebApp> webapps() {
         return getRemoteResource().manager().webApps().list().stream()
             .filter(webapp -> StringUtils.equals(webapp.appServicePlanId(), getRemoteResource().id()))
@@ -83,7 +78,6 @@ public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanag
             .collect(Collectors.toList());
     }
 
-    @Override
     public AppServicePlanUpdater update() {
         return new AppServicePlanUpdater();
     }
@@ -100,45 +94,39 @@ public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanag
         return Objects.requireNonNull(remote, "Target resource does not exist.");
     }
 
-    public class AppServicePlanCreator implements Creator {
+    public class AppServicePlanCreator {
         private String name;
         private Region region;
         private String resourceGroup;
         private PricingTier pricingTier;
         private OperatingSystem operatingSystem;
 
-        @Override
-        public Creator withName(String name) {
+        public AppServicePlanCreator withName(String name) {
             this.name = name;
             return this;
         }
 
-        @Override
-        public Creator withRegion(Region region) {
+        public AppServicePlanCreator withRegion(Region region) {
             this.region = region;
             return this;
         }
 
-        @Override
-        public Creator withResourceGroup(String resourceGroup) {
+        public AppServicePlanCreator withResourceGroup(String resourceGroup) {
             this.resourceGroup = resourceGroup;
             return this;
         }
 
-        @Override
-        public Creator withPricingTier(PricingTier pricingTier) {
+        public AppServicePlanCreator withPricingTier(PricingTier pricingTier) {
             this.pricingTier = pricingTier;
             return this;
         }
 
-        @Override
-        public Creator withOperatingSystem(OperatingSystem operatingSystem) {
+        public AppServicePlanCreator withOperatingSystem(OperatingSystem operatingSystem) {
             this.operatingSystem = operatingSystem;
             return this;
         }
 
-        @Override
-        public IAppServicePlan commit() {
+        public AppServicePlan commit() {
             AppServicePlan.this.remote = azureClient.appServicePlans().define(name)
                 .withRegion(region.getName())
                 .withExistingResourceGroup(resourceGroup)
@@ -157,7 +145,7 @@ public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanag
         }
     }
 
-    public class AppServicePlanUpdater implements Updater {
+    public class AppServicePlanUpdater {
         private PricingTier pricingTier;
 
         public AppServicePlanUpdater withPricingTier(PricingTier pricingTier) {
@@ -165,7 +153,6 @@ public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanag
             return this;
         }
 
-        @Override
         public AppServicePlan commit() {
             boolean modified = false;
             com.azure.resourcemanager.appservice.models.AppServicePlan.Update update = getRemoteResource().update();

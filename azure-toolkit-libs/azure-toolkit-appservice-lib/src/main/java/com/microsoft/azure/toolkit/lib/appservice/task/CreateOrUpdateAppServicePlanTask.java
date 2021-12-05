@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.appservice.task;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -21,17 +21,17 @@ import lombok.AllArgsConstructor;
 import java.util.Objects;
 
 @AllArgsConstructor
-public class CreateOrUpdateAppServicePlanTask extends AzureTask<IAppServicePlan> {
+public class CreateOrUpdateAppServicePlanTask extends AzureTask<AppServicePlan> {
     private static final String CREATE_APP_SERVICE_PLAN = "Creating app service plan %s...";
     private static final String CREATE_APP_SERVICE_PLAN_DONE = "Successfully created app service plan %s.";
     private static final String CREATE_NEW_APP_SERVICE_PLAN = "createNewAppServicePlan";
     private AppServicePlanConfig config;
 
     @AzureOperation(name = "appservice.create_update_plan.plan", params = {"this.config.servicePlanName()"}, type = AzureOperation.Type.SERVICE)
-    public IAppServicePlan execute() {
+    public AppServicePlan execute() {
         SchemaValidator.getInstance().validateAndThrow("appservice/AppServicePlan", config);
         final AzureAppService az = Azure.az(AzureAppService.class).subscription(config.subscriptionId());
-        final IAppServicePlan appServicePlan = az.appServicePlan(config.servicePlanResourceGroup(), config.servicePlanName());
+        final AppServicePlan appServicePlan = az.appServicePlan(config.servicePlanResourceGroup(), config.servicePlanName());
         final String servicePlanName = config.servicePlanName();
         if (!appServicePlan.exists()) {
             SchemaValidator.getInstance().validateAndThrow("appservice/CreateAppServicePlan", config);

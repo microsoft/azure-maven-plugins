@@ -21,7 +21,7 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebAppDeploymentSlot;
@@ -104,32 +104,32 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         return Azure.az(AzureWebApp.class).listWebAppRuntimes(os, version);
     }
 
-    public IAppServicePlan appServicePlan(String id) {
+    public AppServicePlan appServicePlan(String id) {
         return Azure.az(AzureAppServicePlan.class).subscriptions(getSubscriptions()).get(id);
     }
 
-    public IAppServicePlan appServicePlan(String resourceGroup, String name) {
+    public AppServicePlan appServicePlan(String resourceGroup, String name) {
         return Azure.az(AzureAppServicePlan.class).subscriptions(getSubscriptions()).get(resourceGroup, name);
     }
 
-    public IAppServicePlan appServicePlan(String sid, String rg, String name) {
+    public AppServicePlan appServicePlan(String sid, String rg, String name) {
         return Azure.az(AzureAppServicePlan.class).subscriptions(getSubscriptions()).get(sid, rg, name);
     }
 
-    public IAppServicePlan appServicePlan(AppServicePlanEntity entity) {
+    public AppServicePlan appServicePlan(AppServicePlanEntity entity) {
         return StringUtils.isEmpty(entity.getId()) ?
                 appServicePlan(entity.getSubscriptionId(), entity.getResourceGroup(), entity.getName()) : appServicePlan(entity.getId());
     }
 
-    public List<IAppServicePlan> appServicePlans(boolean... force) {
+    public List<AppServicePlan> appServicePlans(boolean... force) {
         return Azure.az(AzureAppServicePlan.class).subscriptions(getSubscriptions()).list(force);
     }
 
-    public List<IAppServicePlan> appServicePlans(String sid, boolean... force) {
+    public List<AppServicePlan> appServicePlans(String sid, boolean... force) {
         return Azure.az(AzureAppServicePlan.class).subscriptions(getSubscriptions()).list(sid, force);
     }
 
-    public List<IAppServicePlan> appServicePlansByResourceGroup(String rg, boolean... force) {
+    public List<AppServicePlan> appServicePlansByResourceGroup(String rg, boolean... force) {
         return ((AzureAppServicePlan) Azure.az(AzureAppServicePlan.class).subscriptions(getSubscriptions()))
                 .appServicePlansByResourceGroup(rg, force);
     }

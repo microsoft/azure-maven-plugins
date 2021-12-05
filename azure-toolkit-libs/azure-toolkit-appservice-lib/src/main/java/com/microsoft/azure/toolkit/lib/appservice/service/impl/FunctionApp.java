@@ -24,7 +24,6 @@ import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceCreator;
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceCreator;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
@@ -70,7 +69,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
         this.azureClient = azureClient;
     }
 
-    public IAppServicePlan plan() {
+    public com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan plan() {
         return Azure.az(AzureAppServicePlan.class).get(remote().appServicePlanId());
     }
 

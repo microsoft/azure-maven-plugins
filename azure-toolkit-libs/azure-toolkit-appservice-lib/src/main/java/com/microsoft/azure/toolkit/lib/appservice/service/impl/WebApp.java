@@ -21,7 +21,6 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceCreator;
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceUpdater;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
@@ -64,7 +63,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
         this.azureClient = azureClient;
     }
 
-    public IAppServicePlan plan() {
+    public com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan plan() {
         return Azure.az(AzureAppServicePlan.class).get(remote().appServicePlanId());
     }
 

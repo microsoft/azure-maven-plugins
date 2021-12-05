@@ -16,7 +16,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.FunctionApp;
@@ -70,7 +70,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     private final List<AzureTask<?>> tasks = new ArrayList<>();
 
     private ResourceGroup resourceGroup;
-    private IAppServicePlan appServicePlan;
+    private AppServicePlan appServicePlan;
     private ApplicationInsightsEntity applicationInsights;
     private IFunctionAppBase<?> functionApp;
 

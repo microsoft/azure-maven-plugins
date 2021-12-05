@@ -15,7 +15,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -92,7 +92,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
         final AzureAppService az = Azure.az(AzureAppService.class).subscription(config.subscriptionId());
         final WebApp webapp = az.webapp(config.resourceGroup(), config.appName());
         final AppServicePlanConfig servicePlanConfig = config.getServicePlanConfig();
-        final IAppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig).execute();
+        final AppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig).execute();
 
         final WebApp result = webapp.create().withName(config.appName())
             .withResourceGroup(config.resourceGroup())
@@ -108,7 +108,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
     @AzureOperation(name = "webapp.update_app.app", params = {"this.config.appName()"}, type = Type.SERVICE)
     private WebApp update(final WebApp webApp) {
         AzureMessager.getMessager().info(String.format(UPDATE_WEBAPP, webApp.name()));
-        final IAppServicePlan currentPlan = webApp.plan();
+        final AppServicePlan currentPlan = webApp.plan();
         final AppServicePlanConfig servicePlanConfig = config.getServicePlanConfig();
 
         if (skipCreateAzureResource && !Azure.az(AzureAppService.class)
@@ -117,7 +117,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
         }
 
         final Runtime runtime = getRuntime(config.runtime());
-        final IAppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig).execute();
+        final AppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig).execute();
         final IAppServiceUpdater<? extends WebApp> draft = webApp.update();
         if (!(StringUtils.equalsIgnoreCase(config.servicePlanResourceGroup(), currentPlan.resourceGroup()) &&
             StringUtils.equalsIgnoreCase(config.servicePlanName(), currentPlan.name()))) {
