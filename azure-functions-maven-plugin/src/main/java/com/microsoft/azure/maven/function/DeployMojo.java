@@ -14,8 +14,8 @@ import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
@@ -147,7 +147,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     protected IFunctionAppBase<?> createOrUpdateResource(final FunctionAppConfig config) {
-        IFunctionApp app = Azure.az(AzureAppService.class).functionApp(config.resourceGroup(), config.appName());
+        FunctionApp app = Azure.az(AzureAppService.class).functionApp(config.resourceGroup(), config.appName());
         final boolean newFunctionApp = !app.exists();
         AppServiceConfig defaultConfig = !newFunctionApp ? fromAppService(app, app.plan()) : buildDefaultConfig(config.subscriptionId(),
             config.resourceGroup(), config.appName());

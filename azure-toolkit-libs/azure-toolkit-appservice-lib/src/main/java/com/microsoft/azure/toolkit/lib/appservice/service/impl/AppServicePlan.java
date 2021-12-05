@@ -11,7 +11,7 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 
@@ -76,7 +76,7 @@ public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanag
     }
 
     @Override
-    public List<IWebApp> webapps() {
+    public List<WebApp> webapps() {
         return getRemoteResource().manager().webApps().list().stream()
             .filter(webapp -> StringUtils.equals(webapp.appServicePlanId(), getRemoteResource().id()))
             .map(webapp -> new WebApp(webapp, azureClient))

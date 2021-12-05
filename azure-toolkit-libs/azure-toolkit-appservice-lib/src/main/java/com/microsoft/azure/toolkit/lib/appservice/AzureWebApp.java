@@ -9,7 +9,6 @@ import com.microsoft.azure.toolkit.lib.AbstractAzureResourceModule;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
@@ -28,7 +27,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class AzureWebApp extends AbstractAzureResourceModule<IWebApp> implements AzureOperationEvent.Source<AzureWebApp> {
+public class AzureWebApp extends AbstractAzureResourceModule<WebApp> implements AzureOperationEvent.Source<AzureWebApp> {
     public AzureWebApp() { // for SPI
         super(AzureWebApp::new);
     }
@@ -40,7 +39,7 @@ public class AzureWebApp extends AbstractAzureResourceModule<IWebApp> implements
     @Override
     @Cacheable(cacheName = "appservice/{}/webapps", key = "$sid", condition = "!(force&&force[0])")
     @AzureOperation(name = "webapp.list_apps.subscription", params = "sid", type = AzureOperation.Type.SERVICE)
-    public List<IWebApp> list(@NotNull String sid, boolean... force) {
+    public List<WebApp> list(@NotNull String sid, boolean... force) {
         final AppServiceManager azureResourceManager = getAppServiceManager(sid);
         return azureResourceManager.webApps().list().stream().parallel()
                 .filter(webAppBasic -> !StringUtils.containsIgnoreCase(webAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
@@ -52,7 +51,7 @@ public class AzureWebApp extends AbstractAzureResourceModule<IWebApp> implements
     @Override
     @Cacheable(cacheName = "appservice/{}/rg/{}/webapp/{}", key = "$sid/$rg/$name")
     @AzureOperation(name = "webapp.get_app.app|rg", params = {"name", "rg"}, type = AzureOperation.Type.SERVICE)
-    public IWebApp get(@NotNull String sid, @NotNull String rg, @NotNull String name) {
+    public WebApp get(@NotNull String sid, @NotNull String rg, @NotNull String name) {
         return new WebApp(sid, rg, name, getAppServiceManager(sid));
     }
 

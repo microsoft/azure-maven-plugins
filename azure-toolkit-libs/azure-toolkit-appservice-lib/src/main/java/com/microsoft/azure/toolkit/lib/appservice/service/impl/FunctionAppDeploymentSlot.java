@@ -7,13 +7,11 @@ package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.appservice.fluent.models.HostKeysInner;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
-import com.azure.resourcemanager.appservice.models.FunctionApp;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlotBasic;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
-import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
-import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
@@ -29,38 +27,37 @@ import java.util.Map;
 import java.util.Optional;
 
 public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymentSlot, FunctionAppDeploymentSlotEntity>
-        implements IFunctionAppDeploymentSlot {
+        implements IFunctionAppBase<FunctionAppDeploymentSlotEntity> {
     private static final String FUNCTION_DEPLOYMENT_SLOT_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s";
 
     @Nonnull
-    private final IFunctionApp parent;
+    private final FunctionApp parent;
     @Nonnull
-    private final FunctionApp functionAppClient;
+    private final com.azure.resourcemanager.appservice.models.FunctionApp functionAppClient;
 
-    public FunctionAppDeploymentSlot(@Nonnull final IFunctionApp parent, @Nonnull final FunctionApp functionApp, @Nonnull final String slotName) {
+    public FunctionAppDeploymentSlot(@Nonnull final FunctionApp parent, @Nonnull final com.azure.resourcemanager.appservice.models.FunctionApp functionApp,
+                                     @Nonnull final String slotName) {
         super(Utils.getSubscriptionId(functionApp.id()), functionApp.resourceGroupName(), slotName);
         this.parent = parent;
         this.functionAppClient = functionApp;
     }
 
-    public FunctionAppDeploymentSlot(@Nonnull final IFunctionApp parent, @Nonnull final FunctionApp functionApp, @Nonnull final FunctionDeploymentSlotBasic slotBasic) {
+    public FunctionAppDeploymentSlot(@Nonnull final FunctionApp parent, @Nonnull final com.azure.resourcemanager.appservice.models.FunctionApp functionApp,
+                                     @Nonnull final FunctionDeploymentSlotBasic slotBasic) {
         super(slotBasic);
         this.parent = parent;
         this.functionAppClient = functionApp;
     }
 
-    @Override
-    public IFunctionApp functionApp() {
+    public FunctionApp functionApp() {
         return parent;
     }
 
-    @Override
-    public Creator create() {
+    public FunctionAppDeploymentSlotCreator create() {
         return new FunctionAppDeploymentSlotCreator();
     }
 
-    @Override
-    public Updater update() {
+    public FunctionAppDeploymentSlotUpdater update() {
         return new FunctionAppDeploymentSlotUpdater();
     }
 
@@ -95,7 +92,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
     }
 
     @Getter
-    public class FunctionAppDeploymentSlotCreator implements IFunctionAppDeploymentSlot.Creator {
+    public class FunctionAppDeploymentSlotCreator {
         public static final String CONFIGURATION_SOURCE_NEW = "new";
         public static final String CONFIGURATION_SOURCE_PARENT = "parent";
         private static final String CONFIGURATION_SOURCE_DOES_NOT_EXISTS = "Target slot configuration source does not exists in current web app";
@@ -106,33 +103,28 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
         private Map<String, String> appSettings = null;
         private DiagnosticConfig diagnosticConfig = null;
 
-        @Override
-        public IFunctionAppDeploymentSlot.Creator withName(String name) {
+        public FunctionAppDeploymentSlotCreator withName(String name) {
             this.name = name;
             return this;
         }
 
-        @Override
-        public IFunctionAppDeploymentSlot.Creator withAppSettings(Map<String, String> appSettings) {
+        public FunctionAppDeploymentSlotCreator withAppSettings(Map<String, String> appSettings) {
             this.appSettings = appSettings;
             return this;
         }
 
-        @Override
-        public IFunctionAppDeploymentSlot.Creator withConfigurationSource(String configurationSource) {
+        public FunctionAppDeploymentSlotCreator withConfigurationSource(String configurationSource) {
             this.configurationSource = configurationSource;
             return this;
         }
 
-        @Override
-        public IFunctionAppDeploymentSlot.Creator withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
+        public FunctionAppDeploymentSlotCreator withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
             this.diagnosticConfig = diagnosticConfig;
             return this;
         }
 
-        @Override
-        public IFunctionAppDeploymentSlot commit() {
-            final FunctionApp functionApp = functionAppClient;
+        public FunctionAppDeploymentSlot commit() {
+            final com.azure.resourcemanager.appservice.models.FunctionApp functionApp = functionAppClient;
             final FunctionDeploymentSlot.DefinitionStages.Blank blank = functionApp.deploymentSlots().define(getName());
             final FunctionDeploymentSlot.DefinitionStages.WithCreate withCreate;
             // Using configuration from parent by default
@@ -169,29 +161,26 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
     }
 
     @Getter
-    private class FunctionAppDeploymentSlotUpdater implements IFunctionAppDeploymentSlot.Updater {
+    public class FunctionAppDeploymentSlotUpdater {
         private final List<String> appSettingsToRemove = new ArrayList<>();
         private final Map<String, String> appSettingsToAdd = new HashMap<>();
         private DiagnosticConfig diagnosticConfig = null;
 
-        @Override
-        public Updater withoutAppSettings(String key) {
+        public FunctionAppDeploymentSlotUpdater withoutAppSettings(String key) {
             appSettingsToRemove.add(key);
             return this;
         }
 
-        public IFunctionAppDeploymentSlot.Updater withAppSettings(Map<String, String> appSettings) {
+        public FunctionAppDeploymentSlotUpdater withAppSettings(Map<String, String> appSettings) {
             appSettingsToAdd.putAll(appSettings);
             return this;
         }
 
-        @Override
-        public IFunctionAppDeploymentSlot.Updater withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
+        public FunctionAppDeploymentSlotUpdater withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
             this.diagnosticConfig = diagnosticConfig;
             return this;
         }
 
-        @Override
         public FunctionAppDeploymentSlot commit() {
             final DeploymentSlotBase.Update<FunctionDeploymentSlot> update = remote().update();
             if (getAppSettingsToAdd() != null) {

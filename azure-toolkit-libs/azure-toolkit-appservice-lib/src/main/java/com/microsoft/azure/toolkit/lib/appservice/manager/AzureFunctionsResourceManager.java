@@ -32,7 +32,7 @@ import com.azure.resourcemanager.resources.fluentcore.policy.ProviderRegistratio
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFileClient;
-import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.commons.lang3.StringUtils;
@@ -52,15 +52,15 @@ public class AzureFunctionsResourceManager implements IFileClient {
 
     private final String host;
     private final FunctionsService functionsService;
-    private final IFunctionAppBase appService;
+    private final FunctionAppBase appService;
 
-    private AzureFunctionsResourceManager(FunctionsService functionsService, IFunctionAppBase appService) {
+    private AzureFunctionsResourceManager(FunctionsService functionsService, FunctionAppBase appService) {
         this.appService = appService;
         this.functionsService = functionsService;
         this.host = String.format("https://%s", appService.hostName());
     }
 
-    public static AzureFunctionsResourceManager getClient(@Nonnull WebAppBase functionApp, @Nonnull IFunctionAppBase appService) {
+    public static AzureFunctionsResourceManager getClient(@Nonnull WebAppBase functionApp, @Nonnull FunctionAppBase appService) {
         // refers : https://github.com/Azure/azure-sdk-for-java/blob/master/sdk/resourcemanager/azure-resourcemanager-appservice/src/main/java/
         // com/azure/resourcemanager/appservice/implementation/KuduClient.java
         if (!(functionApp instanceof FunctionApp || functionApp instanceof FunctionDeploymentSlot)){

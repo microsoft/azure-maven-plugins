@@ -6,7 +6,6 @@ package com.microsoft.azure.toolkit.lib.appservice;
 
 import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.microsoft.azure.toolkit.lib.AbstractAzureResourceModule;
-import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.FunctionApp;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
@@ -24,7 +23,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class AzureFunction extends AbstractAzureResourceModule<IFunctionApp> implements AzureOperationEvent.Source<AzureFunction> {
+public class AzureFunction extends AbstractAzureResourceModule<FunctionApp> implements AzureOperationEvent.Source<AzureFunction> {
     public AzureFunction() { // for SPI
         super(AzureFunction::new);
     }
@@ -36,7 +35,7 @@ public class AzureFunction extends AbstractAzureResourceModule<IFunctionApp> imp
     @Override
     @Cacheable(cacheName = "appservice/{}/functionapps", key = "$sid", condition = "!(force&&force[0])")
     @AzureOperation(name = "functionapp.list_apps.subscription", params = "sid", type = AzureOperation.Type.SERVICE)
-    public List<IFunctionApp> list(@NotNull String sid, boolean... force) {
+    public List<FunctionApp> list(@NotNull String sid, boolean... force) {
         final AppServiceManager azureResourceManager = getAppServiceManager(sid);
         return azureResourceManager
                 .functionApps().list().stream().parallel()
@@ -49,7 +48,7 @@ public class AzureFunction extends AbstractAzureResourceModule<IFunctionApp> imp
     @Override
     @Cacheable(cacheName = "appservice/{}/rg/{}/functionapp/{}", key = "$sid/$rg/$name")
     @AzureOperation(name = "functionapp.get_app.app|rg", params = {"name", "rg"}, type = AzureOperation.Type.SERVICE)
-    public IFunctionApp get(@NotNull String sid, @NotNull String rg, @NotNull String name) {
+    public FunctionApp get(@NotNull String sid, @NotNull String rg, @NotNull String name) {
         return new FunctionApp(sid, rg, name, getAppServiceManager(sid));
     }
 

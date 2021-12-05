@@ -22,9 +22,8 @@ import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
-import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.FunctionApp;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.auth.Account;
@@ -50,45 +49,45 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         super(AzureAppService::new, subscriptions);
     }
 
-    public IFunctionApp functionApp(String id) {
+    public FunctionApp functionApp(String id) {
         return Azure.az(AzureFunction.class).subscriptions(getSubscriptions()).get(id);
     }
 
-    public IFunctionApp functionApp(String resourceGroup, String name) {
+    public FunctionApp functionApp(String resourceGroup, String name) {
         return Azure.az(AzureFunction.class).subscriptions(getSubscriptions()).get(resourceGroup, name);
     }
 
-    public IFunctionApp functionApp(String sid, String rg, String name) {
+    public FunctionApp functionApp(String sid, String rg, String name) {
         return Azure.az(AzureFunction.class).subscriptions(getSubscriptions()).get(sid, rg, name);
     }
 
-    public IFunctionApp functionApp(FunctionAppEntity entity) {
+    public FunctionApp functionApp(FunctionAppEntity entity) {
         return StringUtils.isEmpty(entity.getId()) ?
                 functionApp(entity.getSubscriptionId(), entity.getResourceGroup(), entity.getName()) : functionApp(entity.getId());
     }
 
-    public List<IFunctionApp> functionApps(boolean... force) {
+    public List<FunctionApp> functionApps(boolean... force) {
         return Azure.az(AzureFunction.class).subscriptions(getSubscriptions()).list(force);
     }
 
-    public IWebApp webapp(String id) {
+    public WebApp webapp(String id) {
         return Azure.az(AzureWebApp.class).subscriptions(getSubscriptions()).get(id);
     }
 
-    public IWebApp webapp(String resourceGroup, String name) {
+    public WebApp webapp(String resourceGroup, String name) {
         return Azure.az(AzureWebApp.class).subscriptions(getSubscriptions()).get(resourceGroup, name);
     }
 
-    public IWebApp webapp(String sid, String rg, String name) {
+    public WebApp webapp(String sid, String rg, String name) {
         return Azure.az(AzureWebApp.class).subscriptions(getSubscriptions()).get(sid, rg, name);
     }
 
-    public IWebApp webapp(WebAppEntity webAppEntity) {
+    public WebApp webapp(WebAppEntity webAppEntity) {
         return StringUtils.isEmpty(webAppEntity.getId()) ?
                 webapp(webAppEntity.getSubscriptionId(), webAppEntity.getResourceGroup(), webAppEntity.getName()) : webapp(webAppEntity.getId());
     }
 
-    public List<IWebApp> webapps(boolean... force) {
+    public List<WebApp> webapps(boolean... force) {
         return Azure.az(AzureWebApp.class).subscriptions(getSubscriptions()).list(force);
     }
 
@@ -138,7 +137,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     @Deprecated
     @Cacheable(cacheName = "appservice/slot/{}", key = "$id")
     @AzureOperation(name = "appservice.get_deployment.id", params = "id", type = AzureOperation.Type.SERVICE)
-    public IWebAppDeploymentSlot deploymentSlot(String id) {
+    public WebAppDeploymentSlot deploymentSlot(String id) {
         return new WebAppDeploymentSlot(id, getAppServiceManager(Utils.getSubscriptionId(id)));
     }
 

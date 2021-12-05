@@ -9,7 +9,6 @@ import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.models.DeployOptions;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
-import com.azure.resourcemanager.appservice.models.WebApp;
 import com.azure.resourcemanager.appservice.models.WebDeploymentSlotBasic;
 import com.microsoft.azure.arm.resources.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -17,8 +16,7 @@ import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
@@ -33,12 +31,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, WebAppDeploymentSlotEntity> implements IWebAppDeploymentSlot {
+public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, WebAppDeploymentSlotEntity> implements IWebAppBase<WebAppDeploymentSlotEntity> {
     private static final String WEB_APP_DEPLOYMENT_SLOT_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s";
     @Nonnull
-    private final IWebApp parent;
+    private final WebApp parent;
     @Nonnull
-    private final WebApp webAppClient;
+    private final com.azure.resourcemanager.appservice.models.WebApp webAppClient;
 
     public WebAppDeploymentSlot(@Nonnull final String id, @Nonnull final AppServiceManager azureClient) {
         super(id);
@@ -46,30 +44,29 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
         this.parent = Azure.az(AzureAppService.class).webapp(subscriptionId, resourceGroup, webAppClient.name());
     }
 
-    public WebAppDeploymentSlot(@Nonnull final IWebApp parent, @Nonnull final WebApp webAppClient, @Nonnull final String slotName) {
+    public WebAppDeploymentSlot(@Nonnull final WebApp parent, @Nonnull final com.azure.resourcemanager.appservice.models.WebApp webAppClient,
+                                @Nonnull final String slotName) {
         super(Utils.getSubscriptionId(webAppClient.id()), webAppClient.resourceGroupName(), slotName);
         this.webAppClient = webAppClient;
         this.parent = parent;
     }
 
-    public WebAppDeploymentSlot(@Nonnull final IWebApp parent, @Nonnull final WebApp webAppClient, @Nonnull final WebDeploymentSlotBasic slotBasic) {
+    public WebAppDeploymentSlot(@Nonnull final WebApp parent, @Nonnull final com.azure.resourcemanager.appservice.models.WebApp webAppClient,
+                                @Nonnull final WebDeploymentSlotBasic slotBasic) {
         super(slotBasic);
         this.webAppClient = webAppClient;
         this.parent = parent;
     }
 
-    @Override
-    public IWebApp webApp() {
+    public WebApp webApp() {
         return parent;
     }
 
-    @Override
-    public Creator create() {
+    public WebAppDeploymentSlotCreator create() {
         return new WebAppDeploymentSlotCreator();
     }
 
-    @Override
-    public Updater update() {
+    public WebAppDeploymentSlotUpdater update() {
         return new WebAppDeploymentSlotUpdater();
     }
 
@@ -102,7 +99,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
     }
 
     @Getter
-    public class WebAppDeploymentSlotCreator implements Creator {
+    public class WebAppDeploymentSlotCreator {
         public static final String CONFIGURATION_SOURCE_NEW = "new";
         public static final String CONFIGURATION_SOURCE_PARENT = "parent";
         private static final String CONFIGURATION_SOURCE_DOES_NOT_EXISTS = "Target slot configuration source does not exists in current web app";
@@ -113,33 +110,28 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
         private Map<String, String> appSettings = null;
         private DiagnosticConfig diagnosticConfig = null;
 
-        @Override
-        public Creator withName(String name) {
+        public WebAppDeploymentSlotCreator withName(String name) {
             this.name = name;
             return this;
         }
 
-        @Override
-        public Creator withAppSettings(Map<String, String> appSettings) {
+        public WebAppDeploymentSlotCreator withAppSettings(Map<String, String> appSettings) {
             this.appSettings = appSettings;
             return this;
         }
 
-        @Override
-        public Creator withConfigurationSource(String configurationSource) {
+        public WebAppDeploymentSlotCreator withConfigurationSource(String configurationSource) {
             this.configurationSource = configurationSource;
             return this;
         }
 
-        @Override
-        public Creator withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
+        public WebAppDeploymentSlotCreator withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
             this.diagnosticConfig = diagnosticConfig;
             return this;
         }
 
-        @Override
         public WebAppDeploymentSlot commit() {
-            final WebApp webApp = WebAppDeploymentSlot.this.webAppClient;
+            final com.azure.resourcemanager.appservice.models.WebApp webApp = WebAppDeploymentSlot.this.webAppClient;
             final DeploymentSlot.DefinitionStages.Blank blank = webApp.deploymentSlots().define(getName());
             final DeploymentSlot.DefinitionStages.WithCreate withCreate;
             // Using configuration from parent by default
@@ -176,30 +168,26 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
     }
 
     @Getter
-    private class WebAppDeploymentSlotUpdater implements Updater {
+    private class WebAppDeploymentSlotUpdater {
         private final List<String> appSettingsToRemove = new ArrayList<>();
         private final Map<String, String> appSettingsToAdd = new HashMap<>();
         private DiagnosticConfig diagnosticConfig = null;
 
-        @Override
-        public Updater withoutAppSettings(String key) {
+        public WebAppDeploymentSlotUpdater withoutAppSettings(String key) {
             this.appSettingsToRemove.add(key);
             return this;
         }
 
-        @Override
         public WebAppDeploymentSlotUpdater withAppSettings(Map<String, String> appSettings) {
             this.appSettingsToAdd.putAll(appSettings);
             return this;
         }
 
-        @Override
         public WebAppDeploymentSlotUpdater withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
             this.diagnosticConfig = diagnosticConfig;
             return this;
         }
 
-        @Override
         public WebAppDeploymentSlot commit() {
             final DeploymentSlotBase.Update<DeploymentSlot> update = remote().update();
             if (getAppSettingsToAdd() != null) {

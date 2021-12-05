@@ -10,8 +10,8 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
-import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.FunctionApp;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -80,8 +80,8 @@ public class DeployFunctionAppTask extends AzureTask<IFunctionAppBase<?>> {
             return target;
         }
         deployArtifact();
-        if (target instanceof IFunctionApp) {
-            listHTTPTriggerUrls((IFunctionApp) target);
+        if (target instanceof FunctionApp) {
+            listHTTPTriggerUrls((FunctionApp) target);
         }
         return target;
     }
@@ -114,7 +114,7 @@ public class DeployFunctionAppTask extends AzureTask<IFunctionAppBase<?>> {
         }
     }
 
-    private void listHTTPTriggerUrls(IFunctionApp target) {
+    private void listHTTPTriggerUrls(FunctionApp target) {
         try {
             syncTriggers(target);
             final List<FunctionEntity> triggers = listFunctions(target);
@@ -143,7 +143,7 @@ public class DeployFunctionAppTask extends AzureTask<IFunctionAppBase<?>> {
 
     // todo: move to app service library
     // Refers https://github.com/Azure/azure-functions-core-tools/blob/3.0.3568/src/Azure.Functions.Cli/Actions/AzureActions/PublishFunctionAppAction.cs#L452
-    private void syncTriggers(final IFunctionApp functionApp) throws InterruptedException {
+    private void syncTriggers(final FunctionApp functionApp) throws InterruptedException {
         AzureMessager.getMessager().info(SYNC_TRIGGERS);
         Thread.sleep(5 * 1000);
         Mono.fromRunnable(() -> {
@@ -159,7 +159,7 @@ public class DeployFunctionAppTask extends AzureTask<IFunctionAppBase<?>> {
         .retryWhen(Retry.fixedDelay(SYNC_FUNCTION_MAX_ATTEMPTS - 1, Duration.ofSeconds(SYNC_FUNCTION_DELAY))).block();
     }
 
-    private List<FunctionEntity> listFunctions(final IFunctionApp functionApp) {
+    private List<FunctionEntity> listFunctions(final FunctionApp functionApp) {
         final int[] count = {0};
         return Mono.fromCallable(() -> {
             final AzureString message = count[0]++ == 0 ?
