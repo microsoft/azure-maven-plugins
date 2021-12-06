@@ -73,8 +73,8 @@ public class PackageMojo extends AbstractFunctionMojo {
     public static final String VALIDATE_CONFIG = "Step 3 of 8: Validating generated configurations";
     public static final String VALIDATE_SKIP = "No configurations found. Skip validation.";
     public static final String VALIDATE_DONE = "Validation done.";
-    public static final String SAVING_HOST_JSON = "Step 4 of 8: Saving host.json";
-    public static final String SAVING_LOCAL_SETTINGS_JSON = "Step 5 of 8: Saving local.settings.json";
+    public static final String SAVING_HOST_JSON = "Step 4 of 8: Copying/creating host.json";
+    public static final String SAVING_LOCAL_SETTINGS_JSON = "Step 5 of 8: Copying/creating local.settings.json";
     public static final String SAVE_FUNCTION_JSONS = "Step 6 of 8: Saving configurations to function.json";
     public static final String SAVE_SKIP = "No configurations found. Skip save.";
     public static final String SAVE_FUNCTION_JSON = "Starting processing function: ";
