@@ -33,7 +33,19 @@
             <email>wangmi@microsoft.com</email>
         </developer>
     </developers>
-
+    <repositories>
+        <repository>
+            <id>Redhat GA</id>
+            <name>Redhat GA Repository</name>
+            <url>https://maven.repository.redhat.com/ga/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
     <modules>
         <module>azure-toolkit-common-lib</module>
         <module>azure-toolkit-auth-lib</module>
@@ -143,6 +155,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-handler</artifactId>
+                <version>4.1.68.Final-redhat-00001</version>
+            </dependency>
             <dependency>
                 <groupId>org.aspectj</groupId>
                 <artifactId>aspectjrt</artifactId>
