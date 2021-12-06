@@ -23,7 +23,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -495,7 +495,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 return null;
             }
 
-            final IWebApp webapp = az.webapp(selectedApp.getId());
+            final WebApp webapp = az.webapp(selectedApp.getId());
 
             final WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder = WebAppConfiguration.builder();
             if (!AppServiceUtils.isDockerAppService(webapp)) {
@@ -524,7 +524,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 .read(String.format("%s Web Apps in subscription %s:", webAppType, TextUtils.blue(targetSubscription.getName())));
     }
 
-    private WebAppConfiguration getConfigurationFromExisting(IWebApp webapp,
+    private WebAppConfiguration getConfigurationFromExisting(WebApp webapp,
                                                                     WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder) {
         final AppServiceConfig appServiceConfig = fromAppService(webapp, webapp.plan());
         // common configuration

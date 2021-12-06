@@ -15,9 +15,9 @@ import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateWebAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
@@ -66,13 +66,14 @@ public class DeployMojo extends AbstractWebAppMojo {
         final boolean skipCreate = skipAzureResourceCreate || skipCreateAzureResource;
         if (!isDeployToDeploymentSlot()) {
             final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
-            IWebApp app = Azure.az(AzureAppService.class).webapp(appServiceConfig.resourceGroup(), appServiceConfig.appName());
+            WebApp app = Azure.az(AzureAppService.class).webapp(appServiceConfig.resourceGroup(), appServiceConfig.appName());
             final boolean newWebApp = !app.exists();
             AppServiceConfig defaultConfig = !newWebApp ? fromAppService(app, app.plan()) : buildDefaultConfig(appServiceConfig.subscriptionId(),
                 appServiceConfig.resourceGroup(), appServiceConfig.appName());
             mergeAppServiceConfig(appServiceConfig, defaultConfig);
             if (appServiceConfig.pricingTier() == null) {
-                appServiceConfig.pricingTier(appServiceConfig.runtime().webContainer() == WebContainer.JBOSS_7 ? PricingTier.PREMIUM_P1V3 : PricingTier.PREMIUM_P1V2);
+                appServiceConfig.pricingTier(appServiceConfig.runtime().webContainer() == WebContainer.JBOSS_7 ?
+                        PricingTier.PREMIUM_P1V3 : PricingTier.PREMIUM_P1V2);
             }
             final CreateOrUpdateWebAppTask task = new CreateOrUpdateWebAppTask(appServiceConfig);
             task.setSkipCreateAzureResource(skipCreate);
@@ -80,7 +81,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         } else {
             // todo: New CreateOrUpdateDeploymentSlotTask
             final DeploymentSlotConfig config = getConfigParser().getDeploymentSlotConfig();
-            final IWebAppDeploymentSlot slot = getDeploymentSlot(config);
+            final WebAppDeploymentSlot slot = getDeploymentSlot(config);
             final boolean slotExists = slot.exists();
             if (!slotExists && skipCreate) {
                 throwForbidCreateResourceWarning("Deployment slot", config.getName());
@@ -107,18 +108,18 @@ public class DeployMojo extends AbstractWebAppMojo {
         return AppServiceConfigUtils.buildDefaultWebAppConfig(subscriptionId, resourceGroup, appName, this.project.getPackaging(), javaVersion);
     }
 
-    private IWebAppDeploymentSlot getDeploymentSlot(final DeploymentSlotConfig config) throws AzureExecutionException {
-        final IWebApp webApp = az.webapp(config.getResourceGroup(), config.getAppName());
+    private WebAppDeploymentSlot getDeploymentSlot(final DeploymentSlotConfig config) throws AzureExecutionException {
+        final WebApp webApp = az.webapp(config.getResourceGroup(), config.getAppName());
         if (!webApp.exists()) {
             throw new AzureExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
         }
         return webApp.deploymentSlot(config.getName());
     }
 
-    private IWebAppDeploymentSlot createDeploymentSlot(final IWebAppDeploymentSlot slot, final DeploymentSlotConfig slotConfig) {
+    private WebAppDeploymentSlot createDeploymentSlot(final WebAppDeploymentSlot slot, final DeploymentSlotConfig slotConfig) {
         AzureMessager.getMessager().info(AzureString.format(CREATE_DEPLOYMENT_SLOT, slotConfig.getName(), slotConfig.getAppName()));
         getTelemetryProxy().addDefaultProperty(CREATE_NEW_DEPLOYMENT_SLOT, String.valueOf(true));
-        final IWebAppDeploymentSlot result = slot.create().withName(slotConfig.getName())
+        final WebAppDeploymentSlot result = slot.create().withName(slotConfig.getName())
                 .withConfigurationSource(slotConfig.getConfigurationSource())
                 .withAppSettings(slotConfig.getAppSettings())
                 .commit();
@@ -127,7 +128,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     // update existing slot is not supported in current version, will implement it later
-    private IWebAppDeploymentSlot updateDeploymentSlot(final IWebAppDeploymentSlot slot, final DeploymentSlotConfig slotConfig) {
+    private WebAppDeploymentSlot updateDeploymentSlot(final WebAppDeploymentSlot slot, final DeploymentSlotConfig slotConfig) {
         AzureMessager.getMessager().warning("update existing slot is not supported in current version");
         return slot;
     }

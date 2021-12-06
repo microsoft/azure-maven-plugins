@@ -24,10 +24,8 @@ import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceCreator;
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceCreator;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
-import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
-import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -49,7 +47,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appservice.models.FunctionApp, FunctionAppEntity> implements IFunctionApp {
+public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appservice.models.FunctionApp, FunctionAppEntity>
+        implements IFunctionAppBase<FunctionAppEntity> {
     public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8;
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     private final AppServiceManager azureClient;
@@ -70,36 +69,30 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
         this.azureClient = azureClient;
     }
 
-    @Override
-    public IAppServicePlan plan() {
+    public com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan plan() {
         return Azure.az(AzureAppServicePlan.class).get(remote().appServicePlanId());
     }
 
-    @Override
-    public IAppServiceCreator<? extends IFunctionApp> create() {
+    public IAppServiceCreator<FunctionApp> create() {
         return new FunctionAppCreator();
     }
 
-    @Override
-    public IAppServiceUpdater<? extends IFunctionApp> update() {
+    public IAppServiceUpdater<FunctionApp> update() {
         return new FunctionAppUpdater();
     }
 
-    @Override
     @Cacheable(cacheName = "appservice/functionapp/{}/slot/{}", key = "${this.name()}/$slotName")
-    public IFunctionAppDeploymentSlot deploymentSlot(String slotName) {
+    public FunctionAppDeploymentSlot deploymentSlot(String slotName) {
         return new FunctionAppDeploymentSlot(this, remote(), slotName);
     }
 
-    @Override
     @Cacheable(cacheName = "appservice/functionapp/{}/slots", key = "${this.name()}", condition = "!(force&&force[0])")
-    public List<IFunctionAppDeploymentSlot> deploymentSlots(boolean... force) {
+    public List<FunctionAppDeploymentSlot> deploymentSlots(boolean... force) {
         return remote().deploymentSlots().list().stream().parallel()
                 .map(functionSlotBasic -> new FunctionAppDeploymentSlot(this, remote(), functionSlotBasic))
                 .collect(Collectors.toList());
     }
 
-    @Override
     @Cacheable(cacheName = "appservice/functionapp/{}/functions", key = "${this.name()}", condition = "!(force&&force[0])")
     public List<FunctionEntity> listFunctions(boolean... force) {
         return azureClient.functionApps()
@@ -109,22 +102,18 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
                 .collect(Collectors.toList());
     }
 
-    @Override
     public void triggerFunction(String functionName, Object input) {
         remote().triggerFunction(functionName, input);
     }
 
-    @Override
     public void swap(String slotName) {
         remote().swap(slotName);
     }
 
-    @Override
     public void syncTriggers() {
         remote().syncTriggers();
     }
 
-    @Override
     @AzureOperation(name = "function.delete", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
         if (this.exists()) {
@@ -184,7 +173,6 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
         return remote().getMasterKey();
     }
 
-    @Override
     public Map<String, String> listFunctionKeys(String functionName) {
         return remote().listFunctionKeys(functionName);
     }

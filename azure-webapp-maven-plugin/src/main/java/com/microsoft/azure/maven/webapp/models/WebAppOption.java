@@ -9,7 +9,7 @@ package com.microsoft.azure.maven.webapp.models;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,10 +19,10 @@ import java.util.Objects;
 public class WebAppOption implements Comparable<WebAppOption> {
     public static final WebAppOption CREATE_NEW = new WebAppOption();
     private static final String CREATE_NEW_STRING = "<create>";
-    private IWebApp webappInner;
+    private WebApp webappInner;
     private boolean createNewPlaceHolder = false;
 
-    public WebAppOption(@Nonnull IWebApp webapp) {
+    public WebAppOption(@Nonnull WebApp webapp) {
         this.webappInner = webapp;
     }
 

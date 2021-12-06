@@ -21,9 +21,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceCreator;
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceUpdater;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
@@ -44,7 +42,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class WebApp extends AbstractAppService<com.azure.resourcemanager.appservice.models.WebApp, WebAppEntity> implements IWebApp {
+public class WebApp extends AbstractAppService<com.azure.resourcemanager.appservice.models.WebApp, WebAppEntity> implements IWebAppBase<WebAppEntity> {
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
 
     private final AppServiceManager azureClient;
@@ -65,12 +63,10 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
         this.azureClient = azureClient;
     }
 
-    @Override
-    public IAppServicePlan plan() {
+    public com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan plan() {
         return Azure.az(AzureAppServicePlan.class).get(remote().appServicePlanId());
     }
 
-    @Override
     public WebAppCreator create() {
         return new WebAppCreator();
     }
@@ -123,7 +119,6 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
         remote().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
     }
 
-    @Override
     public WebAppUpdater update() {
         return new WebAppUpdater();
     }
@@ -143,19 +138,16 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
         }
     }
 
-    @Override
     @Cacheable(cacheName = "appservice/webapp/{}/slot/{}", key = "${this.name()}/$slotName")
-    public IWebAppDeploymentSlot deploymentSlot(String slotName) {
+    public WebAppDeploymentSlot deploymentSlot(String slotName) {
         return new WebAppDeploymentSlot(this, remote(), slotName);
     }
 
-    @Override
     @Cacheable(cacheName = "appservice/webapp/{}/slots", key = "${this.name()}", condition = "!(force&&force[0])")
-    public List<IWebAppDeploymentSlot> deploymentSlots(boolean... force) {
+    public List<WebAppDeploymentSlot> deploymentSlots(boolean... force) {
         return remote().deploymentSlots().list().stream().map(slot -> new WebAppDeploymentSlot(this, remote(), slot)).collect(Collectors.toList());
     }
 
-    @Override
     public void swap(String slotName) {
         remote().swap(slotName);
     }
