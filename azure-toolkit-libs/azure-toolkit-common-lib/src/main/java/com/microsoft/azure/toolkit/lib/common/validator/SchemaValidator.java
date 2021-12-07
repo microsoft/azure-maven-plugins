@@ -49,9 +49,9 @@ public class SchemaValidator {
 
     static {
         // disable invalid warning for schema key word `then`
-        System.setProperty("org.slf4j.simpleLogger.log.com.networknt.schema.JsonMetaSchema", "off");
+        System.setProperty("org.slf4j.simpleLogger.log.com.networknt.schema.JsonMetaSchema", "error");
         // disable diagnostic info from Reflections
-        System.setProperty("org.slf4j.simpleLogger.log.org.reflections.Reflections", "off");
+        System.setProperty("org.slf4j.simpleLogger.log.org.reflections.Reflections", "warn");
     }
 
     private SchemaValidator() {
