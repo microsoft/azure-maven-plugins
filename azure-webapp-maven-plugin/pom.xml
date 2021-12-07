@@ -202,18 +202,6 @@
     </dependencies>
 
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-                <includes>
-                    <include>**/ApplicationInsights.xml</include>
-                    <include>**/web.config.template</include>
-                    <include>**/plugin.properties</include>
-                    <include>**/WebAppConfiguration.json</include>
-                </includes>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <!-- https://mvnrepository.com/artifact/org.codehaus.mojo/aspectj-maven-plugin -->
