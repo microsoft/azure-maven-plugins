@@ -19,7 +19,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.reflections.Reflections;
-import org.reflections.scanners.ResourcesScanner;
+import org.reflections.scanners.Scanners;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.databind.MapperFeature.AUTO_DETECT_CREATORS;
@@ -50,15 +49,16 @@ public class SchemaValidator {
 
     static {
         // disable invalid warning for schema key word `then`
-        System.setProperty("org.slf4j.simpleLogger.log.com.networknt.schema.JsonMetaSchema", "off");
+        System.setProperty("org.slf4j.simpleLogger.log.com.networknt.schema.JsonMetaSchema", "error");
+        // disable diagnostic info from Reflections
+        System.setProperty("org.slf4j.simpleLogger.log.org.reflections.Reflections", "warn");
     }
 
     private SchemaValidator() {
-        Optional.of(new Reflections("schema/", new ResourcesScanner()))
-                .filter(reflections -> CollectionUtils.isNotEmpty(reflections.getStore().keySet()))
+        Optional.of(new Reflections("schema", Scanners.Resources))
                 .map(reflections -> {
                     try {
-                        return reflections.getResources(Pattern.compile(".*\\.json"));
+                        return reflections.getResources(".*\\.json");
                     } catch (Exception exception) {
                         return null;
                     }
