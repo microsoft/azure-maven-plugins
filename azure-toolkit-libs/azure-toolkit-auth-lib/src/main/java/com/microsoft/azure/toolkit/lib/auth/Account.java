@@ -174,18 +174,18 @@ public abstract class Account implements IAccount {
 
     public Mono<List<Subscription>> reloadSubscriptions() {
         List<String> beforeRefreshSelectedSubsIds = this.getSelectedSubscriptions().stream().map(Subscription::getId).collect(Collectors.toList());
-        return this.credentialManager.listSubscriptions(this.entity.getTenantIds())
+        return credentialManager.listTenants().flatMap(tenantIds -> this.credentialManager.listSubscriptions(tenantIds)
                 .map(subscriptions -> {
                     // reset tenant id again when all subscriptions
                     entity.setTenantIds(subscriptions.stream().map(Subscription::getTenantId).distinct().collect(Collectors.toList()));
                     entity.setSubscriptions(subscriptions);
                     this.selectSubscription(beforeRefreshSelectedSubsIds);
                     return this.getSubscriptions();
-                });
+                }));
     }
 
     /***
-     * Login step 1: check avail and set avail in entity
+     * The main part of login process: check available and initialize TokenCredentialManager and list tenant ids
      *
      * @return Mono = true if this account is available
      */
@@ -194,7 +194,7 @@ public abstract class Account implements IAccount {
         // step 2: create TokenCredentialManager
         // step 3: list tenant using TokenCredentialManager
         // step 4: fill account entity
-        return checkAvailable().flatMap(ignore -> initializeTokenCredentialManager()).flatMap(TokenCredentialManager::listTenants).doOnSuccess(tenantIds -> {
+        return checkAvailable().flatMap(ignore -> initializeTokenCredentialManager()).flatMap(this::loadTenantIdsIfAbsent).doOnSuccess(tenantIds -> {
             this.entity.setType(this.getAuthType());
             this.entity.setClientId(this.getClientId());
             if (this.entity.getTenantIds() == null) {
@@ -208,6 +208,13 @@ public abstract class Account implements IAccount {
             this.entity.setAvailable(true);
             return true;
         });
+    }
+
+    private Mono<List<String>> loadTenantIdsIfAbsent(TokenCredentialManager tokenCredentialManager) {
+        if (CollectionUtils.isNotEmpty(this.entity.getTenantIds())) {
+            return Mono.just(this.entity.getTenantIds());
+        }
+        return tokenCredentialManager.listTenants();
     }
 
     @Override
