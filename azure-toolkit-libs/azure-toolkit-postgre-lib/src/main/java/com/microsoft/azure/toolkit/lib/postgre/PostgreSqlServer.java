@@ -78,7 +78,7 @@ public class PostgreSqlServer extends AbstractAzureResource<PostgreSqlServer, Po
         String username = entity.getAdministratorLoginName() + "@" + entity.getName();
         try {
             Class.forName("org.postgresql.Driver");
-            DriverManager.getConnection(JdbcUrl.postgre(entity.getFullyQualifiedDomainName()).toString(), username, null);
+            DriverManager.getConnection(JdbcUrl.postgre(entity.getFullyQualifiedDomainName(), "postgre").toString(), username, null);
         } catch (SQLException e) {
             String ip = NetUtils.parseIpAddressFromMessage(e.getMessage());
             if (StringUtils.isNotBlank(ip)) {
