@@ -58,13 +58,9 @@ public abstract class JdbcUrl {
     }
 
     public static JdbcUrl postgre(String serverHost, String database) {
-        return new MySQLJdbcUrl(String.format("jdbc:postgresql://%s:%s/%s?ssl=true&sslmode=require",
+        // Postgre database name is required;
+        return new PostgreSQLJdbcUrl(String.format("jdbc:postgresql://%s:%s/%s?ssl=true&sslmode=require",
                 encode(serverHost), POSTGRE_SQL_DEFAULT_PORT, encode(database)));
-    }
-
-    public static JdbcUrl postgre(String serverHost) {
-        return new MySQLJdbcUrl(String.format("jdbc:postgresql://%s:%s?ssl=true&sslmode=require",
-                encode(serverHost), POSTGRE_SQL_DEFAULT_PORT));
     }
 
     public static JdbcUrl sqlserver(String serverHost, String database) {
