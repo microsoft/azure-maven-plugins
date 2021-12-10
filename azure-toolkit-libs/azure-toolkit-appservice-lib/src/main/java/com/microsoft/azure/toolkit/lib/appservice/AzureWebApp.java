@@ -43,7 +43,7 @@ public class AzureWebApp extends AbstractAzureResourceModule<WebApp> implements 
         final AppServiceManager azureResourceManager = getAppServiceManager(sid);
         return azureResourceManager.webApps().list().stream().parallel()
                 .filter(webAppBasic -> !StringUtils.containsIgnoreCase(webAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
-                .map(webAppBasic -> new WebApp(webAppBasic, azureResourceManager))
+                .map(webAppBasic -> get(webAppBasic.id()))
                 .collect(Collectors.toList());
     }
 

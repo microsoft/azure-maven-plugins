@@ -40,7 +40,7 @@ public class AzureFunction extends AbstractAzureResourceModule<FunctionApp> impl
         return azureResourceManager
                 .functionApps().list().stream().parallel()
                 .filter(functionAppBasic -> StringUtils.containsIgnoreCase(functionAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
-                .map(functionAppBasic -> new FunctionApp(functionAppBasic, azureResourceManager))
+                .map(functionAppBasic -> get(functionAppBasic.id()))
                 .collect(Collectors.toList());
     }
 
