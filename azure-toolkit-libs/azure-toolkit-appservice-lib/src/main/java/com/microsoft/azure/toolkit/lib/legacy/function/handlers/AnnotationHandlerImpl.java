@@ -37,6 +37,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Slf4j
+@Deprecated
 public class AnnotationHandlerImpl implements AnnotationHandler {
 
     private static final String MULTI_RETRY_ANNOTATION = "Fixed delay retry and exponential backoff retry are not compatible, " +

@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.legacy.function.bindings;
 import java.util.Locale;
 
 public enum BindingEnum {
-    // Enums here are correspond to annotations in com.microsoft.azure.functions.annotation
+    // Enums here are corresponded to annotations in com.microsoft.azure.functions.annotation
     BlobTrigger("blobTrigger", Direction.IN, true),
     BlobInput("blob", Direction.IN, true),
     BlobOutput("blob", Direction.OUT, true),
@@ -37,7 +37,7 @@ public enum BindingEnum {
     CustomBinding("customBinding", null),
     ExtendedCustomBinding(null, null);
 
-    enum Direction {
+    public enum Direction {
         IN, OUT;
 
         @Override
