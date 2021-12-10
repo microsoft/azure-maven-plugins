@@ -129,9 +129,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             return super.refresh();
         } finally {
             try {
-                CacheManager.evictCache("appservice/webapp/{}", this.id());
                 CacheManager.evictCache("appservice/webapp/{}/slots", this.name());
-                CacheManager.evictCache("appservice/{}/rg/{}/webapp/{}", String.format("%s/%s/%s", subscriptionId, resourceGroup, name));
             } catch (Throwable e) {
                 log.warn("failed to evict cache", e);
             }

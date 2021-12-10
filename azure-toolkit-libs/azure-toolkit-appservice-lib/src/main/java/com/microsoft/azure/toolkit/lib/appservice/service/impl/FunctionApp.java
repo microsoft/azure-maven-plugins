@@ -129,9 +129,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
             return super.refresh();
         } finally {
             try {
-                CacheManager.evictCache("appservice/functionapp/{}", this.id());
                 CacheManager.evictCache("appservice/functionapp/{}/slots", this.name());
-                CacheManager.evictCache("appservice/{}/rg/{}/functionapp/{}", String.format("%s/%s/%s", subscriptionId, resourceGroup, name));
             } catch (Throwable e) {
                 log.warn("failed to evict cache", e);
             }
