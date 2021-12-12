@@ -30,8 +30,10 @@ public class TailingDebouncer implements Debouncer {
         this.timer = Observable.timer(this.delay, TimeUnit.MILLISECONDS)
             .subscribeOn(Schedulers.io())
             .subscribe(ignore -> {
-                this.debounced.run();
-                this.timer = null;
+                synchronized (TailingDebouncer.this) {
+                    this.debounced.run();
+                    this.timer = null;
+                }
             }, (e) -> this.timer = null);
     }
 
