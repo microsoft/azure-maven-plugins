@@ -7,6 +7,8 @@ package com.microsoft.azure.toolkit.lib.common.exception;
 
 import lombok.Getter;
 
+import javax.annotation.Nonnull;
+
 @Getter
 public class AzureToolkitRuntimeException extends RuntimeException {
     /**
@@ -16,15 +18,15 @@ public class AzureToolkitRuntimeException extends RuntimeException {
      */
     private final Object[] actions;
 
-    public AzureToolkitRuntimeException(Throwable cause) {
+    public AzureToolkitRuntimeException(@Nonnull Throwable cause) {
         this(null, cause);
     }
 
-    public AzureToolkitRuntimeException(String error) {
-        this(error, (Object[]) null);
+    public AzureToolkitRuntimeException(@Nonnull String cause) {
+        this(cause, (Object[]) null);
     }
 
-    public AzureToolkitRuntimeException(String error, Throwable cause) {
+    public AzureToolkitRuntimeException(String error, @Nonnull Throwable cause) {
         this(error, cause, (Object[]) null);
     }
 
@@ -33,8 +35,9 @@ public class AzureToolkitRuntimeException extends RuntimeException {
      *                {@link com.microsoft.azure.toolkit.lib.common.action.Action} or
      *                {@link com.microsoft.azure.toolkit.lib.common.action.Action.Id}
      */
-    public AzureToolkitRuntimeException(String error, Object... actions) {
-        this(error, null, actions);
+    public AzureToolkitRuntimeException(@Nonnull String cause, Object... actions) {
+        super(cause);
+        this.actions = actions;
     }
 
     /**
@@ -42,7 +45,7 @@ public class AzureToolkitRuntimeException extends RuntimeException {
      *                {@link com.microsoft.azure.toolkit.lib.common.action.Action} or
      *                {@link com.microsoft.azure.toolkit.lib.common.action.Action.Id}
      */
-    public AzureToolkitRuntimeException(String error, Throwable cause, Object... actions) {
+    public AzureToolkitRuntimeException(String error, @Nonnull Throwable cause, Object... actions) {
         super(error, cause);
         this.actions = actions;
     }
