@@ -37,7 +37,7 @@ class DeployUtils {
                     try {
                         return CloudStorageAccount.parse(key);
                     } catch (InvalidKeyException | URISyntaxException e) {
-                        throw new AzureToolkitRuntimeException("Cannot parse storage connection string due to error: " + e.getMessage(), e);
+                        throw new AzureToolkitRuntimeException("given Azure Storage Account connection string is invalid", e);
                     }
                 })
                 .orElseThrow(() -> new AzureToolkitRuntimeException(INTERNAL_STORAGE_NOT_FOUND));
