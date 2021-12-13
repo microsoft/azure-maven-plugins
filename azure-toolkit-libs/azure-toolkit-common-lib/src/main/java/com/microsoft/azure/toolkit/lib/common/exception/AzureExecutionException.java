@@ -5,6 +5,10 @@
 
 package com.microsoft.azure.toolkit.lib.common.exception;
 
+/**
+ * @deprecated use {@link AzureToolkitException} or {@link AzureToolkitRuntimeException} instead
+ */
+@Deprecated
 public class AzureExecutionException extends Exception {
     public AzureExecutionException(String errorMessage, Throwable err) {
         super(errorMessage.toString(), err);

@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.exception;
 
-public class InvalidConfigurationException extends Exception {
+public class InvalidConfigurationException extends AzureToolkitException {
 
     private static final long serialVersionUID = 3122420022403832460L;
 

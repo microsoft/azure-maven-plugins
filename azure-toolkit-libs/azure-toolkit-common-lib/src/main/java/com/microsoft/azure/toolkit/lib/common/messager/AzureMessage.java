@@ -9,6 +9,7 @@ import com.azure.core.exception.HttpResponseException;
 import com.azure.core.management.exception.ManagementException;
 import com.google.common.collect.Streams;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
@@ -22,6 +23,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -29,6 +31,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -53,7 +56,7 @@ public class AzureMessage implements IAzureMessage {
     @Nullable
     protected Object payload;
     @Nullable
-    protected Action<?>[] actions;
+    protected Object[] actions;
     protected ValueDecorator valueDecorator;
 
     @Nonnull
@@ -66,8 +69,7 @@ public class AzureMessage implements IAzureMessage {
         final String failure = operations.stream().findFirst().map(IAzureOperation::getTitle)
                 .map(azureString -> "Failed to " + this.decorateText(azureString, azureString::getString)).orElse("Failed to proceed");
         final String cause = Optional.ofNullable(this.getCause(throwable)).map(c -> ", " + c).orElse("");
-        final String errorAction = Optional.ofNullable(this.getErrorAction(throwable)).map(c -> System.lineSeparator() + c).orElse("");
-        return failure + cause + errorAction;
+        return failure + cause;
     }
 
     public String getDetails() {
@@ -131,18 +133,6 @@ public class AzureMessage implements IAzureMessage {
         return null;
     }
 
-    @Nullable
-    protected String getErrorAction(@Nonnull Throwable throwable) {
-        return ExceptionUtils.getThrowableList(throwable).stream()
-                .filter(t -> t instanceof AzureToolkitRuntimeException || t instanceof AzureToolkitException)
-                .map(t -> t instanceof AzureToolkitRuntimeException ? ((AzureToolkitRuntimeException) t).getAction() : ((AzureToolkitException) t).getAction())
-                .filter(StringUtils::isNotBlank)
-                .findFirst()
-                .map(StringUtils::capitalize)
-                .map(c -> c.endsWith(".") ? c : c + '.')
-                .orElse(null);
-    }
-
     @Nonnull
     @Cacheable(cacheName = "message/operations", key = "${this.hashCode()}")
     protected List<IAzureOperation> getOperations() {
@@ -184,6 +174,17 @@ public class AzureMessage implements IAzureMessage {
     }
 
     @Nonnull
+    private static Object[] getExceptionActions(@Nonnull Throwable throwable) {
+        return ExceptionUtils.getThrowableList(throwable).stream()
+            .filter(object -> object instanceof AzureToolkitRuntimeException || object instanceof AzureToolkitException)
+            .flatMap(o -> {
+                final Object[] actions = o instanceof AzureToolkitRuntimeException ?
+                    ((AzureToolkitRuntimeException) o).getActions() : ((AzureToolkitException) o).getActions();
+                return Arrays.stream(ObjectUtils.firstNonNull(actions, new Object[0]));
+            }).toArray();
+    }
+
+    @Nonnull
     @Override
     public String getTitle() {
         return StringUtils.firstNonBlank(this.title, DEFAULT_MESSAGE_TITLE);
@@ -192,7 +193,36 @@ public class AzureMessage implements IAzureMessage {
     @Nonnull
     @Override
     public Action<?>[] getActions() {
-        return ObjectUtils.firstNonNull(this.actions, new Action[0]);
+        final Object payload = this.getPayload();
+        Object[] actions = ObjectUtils.firstNonNull(this.actions, new Object[0]);
+        if (ArrayUtils.isEmpty(this.actions) && payload instanceof Throwable) {
+            actions = getExceptionActions((Throwable) payload);
+        }
+        return Arrays.stream(actions)
+            .filter(ObjectUtils::isNotEmpty)
+            .map(this::toAction)
+            .filter(Objects::nonNull)
+            .toArray(Action<?>[]::new);
+    }
+
+    public AzureMessage setActions(Object[] actions) {
+        this.actions = actions;
+        return this;
+    }
+
+    private Action<?> toAction(Object action) {
+        final AzureActionManager am = AzureActionManager.getInstance();
+        try {
+            if (action instanceof String) {
+                final Action.Id<?> id = Action.Id.of(((String) action));
+                return am.getAction(id);
+            } else if (action instanceof Action.Id) {
+                return am.getAction(((Action.Id<?>) action));
+            }
+            return (Action<?>) action;
+        } catch (Throwable t) {
+            return null;
+        }
     }
 
     @Nonnull
