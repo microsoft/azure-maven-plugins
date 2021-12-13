@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.exception;
 
-public class CommandExecuteException extends RuntimeException {
+public class CommandExecuteException extends AzureToolkitRuntimeException {
     private static final long serialVersionUID = 4582230448665092548L;
 
     public CommandExecuteException(String message) {
