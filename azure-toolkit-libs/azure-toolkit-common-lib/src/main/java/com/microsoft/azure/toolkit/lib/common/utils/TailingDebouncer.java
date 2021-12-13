@@ -28,14 +28,18 @@ public class TailingDebouncer implements Debouncer {
             this.timer.unsubscribe();
         }
         this.timer = Observable.timer(this.delay, TimeUnit.MILLISECONDS)
-            .subscribeOn(Schedulers.io())
-            .subscribe(ignore -> {
-                this.debounced.run();
-                this.timer = null;
-            }, (e) -> this.timer = null);
+                .subscribeOn(Schedulers.io())
+                .subscribe(ignore -> {
+                    this.debounced.run();
+                    this.clearTimer();
+                }, (e) -> this.clearTimer());
     }
 
     public synchronized boolean isPending() {
         return Objects.nonNull(this.timer) && !this.timer.isUnsubscribed();
+    }
+
+    private synchronized void clearTimer() {
+        this.timer = null;
     }
 }
