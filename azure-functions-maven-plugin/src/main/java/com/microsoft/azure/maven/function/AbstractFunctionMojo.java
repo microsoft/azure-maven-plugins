@@ -118,7 +118,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     protected void validateAppName() {
         if (StringUtils.isBlank(appName)) {
-            throw new AzureToolkitRuntimeException("Please config the <appName> in pom.xml");
+            throw new AzureToolkitRuntimeException("<appName> is not configured in pom");
         }
     }
 
