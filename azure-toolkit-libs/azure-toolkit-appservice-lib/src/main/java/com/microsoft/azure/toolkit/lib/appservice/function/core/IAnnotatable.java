@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.appservice.function.core;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-public interface IAnnotate {
+public interface IAnnotatable {
     List<FunctionAnnotation> getAnnotations();
 
     default FunctionAnnotation getAnnotation(Class<? extends Annotation> clz) {

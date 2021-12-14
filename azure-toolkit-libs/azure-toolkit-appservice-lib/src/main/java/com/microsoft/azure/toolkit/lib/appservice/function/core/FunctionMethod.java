@@ -9,7 +9,7 @@ import lombok.Setter;
 
 import java.util.List;
 
-public class FunctionMethod implements IAnnotate {
+public class FunctionMethod implements IAnnotatable {
     @Setter
     @Getter
     private String declaringTypeName;

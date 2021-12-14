@@ -19,7 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 import java.util.function.Function;
 @Slf4j
-abstract class AbstractFunctionStagingInitializer {
+abstract class AzureFunctionPackagerBase {
     private static final List<String> CUSTOM_BINDING_RESERVED_PROPERTIES = Arrays.asList("type", "name", "direction");
     private static final String MULTI_RETRY_ANNOTATION = "Fixed delay retry and exponential backoff retry are not compatible, " +
             "please use either of them for one trigger";
@@ -139,14 +139,14 @@ abstract class AbstractFunctionStagingInitializer {
     }
 
     private Binding getBinding(final FunctionAnnotation annotation) {
-        String fqn = annotation.getAnnotationTypeName();
+        String fqn = annotation.getAnnotationClassName();
         final BindingEnum annotationEnum =
                 Arrays.stream(BindingEnum.values())
                         .filter(bindingEnum -> StringUtils.equalsIgnoreCase(bindingEnum.name(),
                                 ClassUtils.getShortClassName(fqn)))
                         .findFirst()
                         .orElse(null);
-        FunctionAnnotation customBindingAnnotation = annotation.getAnnotationType().getAnnotation(CustomBinding.class);
+        FunctionAnnotation customBindingAnnotation = annotation.getAnnotationClass().getAnnotation(CustomBinding.class);
         if (customBindingAnnotation != null) {
             Map<String, Object> annotationProperties = customBindingAnnotation.getPropertiesWithRequiredProperties(CUSTOM_BINDING_RESERVED_PROPERTIES);
             Map<String, Object> customBindingProperties = annotation.getPropertiesWithRequiredProperties(CUSTOM_BINDING_RESERVED_PROPERTIES);

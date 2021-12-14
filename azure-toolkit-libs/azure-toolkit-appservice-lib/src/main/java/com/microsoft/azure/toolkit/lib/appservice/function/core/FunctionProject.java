@@ -12,7 +12,7 @@ import java.util.List;
 
 @Setter
 @Getter
-public class FunctionProject {
+public abstract class FunctionProject {
     private String name;
     private File stagingFolder;
     private File baseDirectory;
@@ -24,4 +24,8 @@ public class FunctionProject {
 
     private File hostJsonFile;
     private File localSettingsJsonFile;
+
+    public abstract List<FunctionMethod> findAnnotatedMethods();
+
+    public abstract void installExtension(String funcPath);
 }

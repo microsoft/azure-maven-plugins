@@ -16,9 +16,9 @@ import java.util.List;
 import java.util.Map;
 
 public class FunctionAnnotation {
-    @Getter
     @Setter
-    private FunctionAnnotationType annotationType;
+    @Getter
+    private FunctionClass annotationClass;
 
     @Setter
     private Map<String, Object> properties;
@@ -55,7 +55,7 @@ public class FunctionAnnotation {
     }
 
     public boolean isAnnotationType(@Nonnull Class<? extends Annotation> clz) {
-        return StringUtils.equals(getAnnotationTypeName(), clz.getCanonicalName());
+        return StringUtils.equals(getAnnotationClassName(), clz.getCanonicalName());
     }
 
     public Object get(String key, boolean includeDefaultValue) {
@@ -74,7 +74,7 @@ public class FunctionAnnotation {
         return value == null ? null : (String) value;
     }
 
-    public String getAnnotationTypeName() {
-        return annotationType.getFullName();
+    public String getAnnotationClassName() {
+        return annotationClass.getFullName();
     }
 }

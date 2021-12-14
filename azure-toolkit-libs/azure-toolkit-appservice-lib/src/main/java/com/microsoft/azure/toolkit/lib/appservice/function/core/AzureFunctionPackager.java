@@ -22,7 +22,6 @@ import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.Binding;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingEnum;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionConfiguration;
-import lombok.AllArgsConstructor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,12 +32,9 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@AllArgsConstructor
-public class FunctionStagingInitializer extends AbstractFunctionStagingInitializer {
+public class AzureFunctionPackager extends AzureFunctionPackagerBase {
     private static final String TRIGGER_TYPE = "triggerType";
     protected static final String LINE_FEED = "\r\n";
     protected static final String FUNCTION_JSON = "function.json";
@@ -78,14 +74,19 @@ public class FunctionStagingInitializer extends AbstractFunctionStagingInitializ
     private static final String EXTENSION_BUNDLE_PREVIEW_ID = "Microsoft.Azure.Functions.ExtensionBundle.Preview";
     private static final BindingEnum[] FUNCTION_WITHOUT_FUNCTION_EXTENSION = { BindingEnum.HttpOutput, BindingEnum.HttpTrigger };
 
-    private Function<FunctionProject, List<FunctionMethod>> methodRetriever;
-    private Consumer<FunctionProject> installer;
+    private static class AzureFunctionPackagerHolder {
+        static final AzureFunctionPackager instance = new AzureFunctionPackager();
+    }
+
+    public static AzureFunctionPackager getInstance() {
+        return AzureFunctionPackagerHolder.instance;
+    }
 
     @AzureOperation(
             name = "function.prepare_staging_folder",
             type = AzureOperation.Type.TASK
     )
-    public void prepareStagingFolder(FunctionProject project, boolean installExtension) {
+    public void packageProject(FunctionProject project, boolean installExtension, String funcPath) {
         final List<FunctionMethod> methods = findAnnotatedMethodsInner(project);
 
         if (methods.isEmpty()) {
@@ -109,7 +110,7 @@ public class FunctionStagingInitializer extends AbstractFunctionStagingInitializ
             final Set<BindingEnum> bindingEnums = this.getFunctionBindingEnums(configMap);
 
             if (isInstallingExtensionNeeded(!installExtension, project, bindingEnums)) {
-                installExtensionStep(project);
+                installExtensionStep(project, funcPath);
             }
             AzureMessager.getMessager().info(BUILD_SUCCESS);
         } catch (IOException e) {
@@ -122,10 +123,10 @@ public class FunctionStagingInitializer extends AbstractFunctionStagingInitializ
             params = {"project.getName()"},
             type = AzureOperation.Type.TASK
     )
-    public List<FunctionMethod> findAnnotatedMethodsInner(FunctionProject project) {
+    private List<FunctionMethod> findAnnotatedMethodsInner(FunctionProject project) {
         AzureMessager.getMessager().info(LINE_FEED + SEARCH_FUNCTIONS);
         try {
-            final List<FunctionMethod> functions = methodRetriever.apply(project);
+            final List<FunctionMethod> functions = project.findAnnotatedMethods();
             AzureMessager.getMessager().info(functions.size() + FOUND_FUNCTIONS);
             return functions;
 
@@ -136,7 +137,7 @@ public class FunctionStagingInitializer extends AbstractFunctionStagingInitializ
         }
     }
 
-    protected Map<String, FunctionConfiguration> generateConfigurations(FunctionProject project, List<FunctionMethod> methods) {
+    private Map<String, FunctionConfiguration> generateConfigurations(FunctionProject project, List<FunctionMethod> methods) {
         AzureMessager.getMessager().info(LINE_FEED + GENERATE_CONFIG);
         final Map<String, FunctionConfiguration> configMap = generateConfigurationsInner(project, methods);
         if (configMap.size() == 0) {
@@ -146,9 +147,9 @@ public class FunctionStagingInitializer extends AbstractFunctionStagingInitializ
         return configMap;
     }
 
-    private void installExtensionStep(FunctionProject project) {
+    private void installExtensionStep(FunctionProject project, String funcPath) {
         AzureMessager.getMessager().info(INSTALL_EXTENSIONS);
-        installer.accept(project);
+        project.installExtension(funcPath);
         AzureMessager.getMessager().info(INSTALL_EXTENSIONS_FINISH);
     }
 
@@ -250,14 +251,14 @@ public class FunctionStagingInitializer extends AbstractFunctionStagingInitializ
                 .collect(Collectors.toList());
     }
 
-    protected Set<BindingEnum> getFunctionBindingEnums(Map<String, FunctionConfiguration> configMap) {
+    private Set<BindingEnum> getFunctionBindingEnums(Map<String, FunctionConfiguration> configMap) {
         final Set<BindingEnum> result = new HashSet<>();
         configMap.values().forEach(configuration -> configuration.getBindings().
                 forEach(binding -> result.add(binding.getBindingEnum())));
         return result;
     }
 
-    protected boolean isInstallingExtensionNeeded(boolean skipInstallExtensions, FunctionProject project, Set<BindingEnum> bindingTypes) {
+    private boolean isInstallingExtensionNeeded(boolean skipInstallExtensions, FunctionProject project, Set<BindingEnum> bindingTypes) {
         if (skipInstallExtensions) {
             AzureMessager.getMessager().info(SKIP_INSTALL_EXTENSIONS_FLAG);
             return false;
@@ -280,7 +281,7 @@ public class FunctionStagingInitializer extends AbstractFunctionStagingInitializ
         return true;
     }
 
-    protected JsonObject readHostJson(FunctionProject project) {
+    private JsonObject readHostJson(FunctionProject project) {
         final File hostJson = ObjectUtils.firstNonNull(project.getHostJsonFile(), new File(project.getHostJsonFile(), HOST_JSON));
         try (final FileInputStream fis = new FileInputStream(hostJson);
              final Scanner scanner = new Scanner(new BOMInputStream(fis))) {
