@@ -72,10 +72,7 @@ public final class AzureOperationAspect {
             final AzureOperationEvent<?> event = new AzureOperationEvent(target, operation, AzureOperationEvent.Stage.ERROR);
             AzureEventBus.emit(operation.getName(), event);
         }
-        if (source instanceof IAzureBaseResource) {
-            ((IAzureBaseResource<?, ?>) source).refresh();
-        }
-        if (!(e instanceof RuntimeException)) {
+        if (e instanceof Exception && !(e instanceof RuntimeException)) {
             throw e; // do not wrap checked exception
         }
         throw new AzureOperationException(operation, e);
