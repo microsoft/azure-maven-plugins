@@ -55,7 +55,7 @@ public class DeployExternalResourcesTask extends AzureTask<IWebAppBase<?>> {
                 uploadResource(externalResource, ftpClient);
             }
         } catch (IOException e) {
-            throw new AzureToolkitRuntimeException(e.getMessage(), e);
+            throw new AzureToolkitRuntimeException(e);
         }
     }
 

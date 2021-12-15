@@ -194,7 +194,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
                 printCurrentSubscription(appServiceClient);
                 this.subscriptionId = targetSubscriptionId;
             } catch (AzureLoginException | AzureExecutionException | IOException e) {
-                throw new AzureToolkitRuntimeException(String.format("Cannot authenticate due to error %s", e.getMessage()), e);
+                throw new AzureToolkitRuntimeException("Cannot authenticate", e);
             }
         }
         return appServiceClient;
