@@ -75,7 +75,7 @@ public final class AzureOperationAspect {
         if (source instanceof IAzureBaseResource) {
             ((IAzureBaseResource<?, ?>) source).refresh();
         }
-        if (!(e instanceof RuntimeException)) {
+        if (e instanceof Exception && !(e instanceof RuntimeException)) {
             throw e; // do not wrap checked exception
         }
         throw new AzureOperationException(operation, e);
