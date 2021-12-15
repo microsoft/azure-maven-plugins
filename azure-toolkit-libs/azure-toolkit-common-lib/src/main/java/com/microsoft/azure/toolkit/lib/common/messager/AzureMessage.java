@@ -69,7 +69,8 @@ public class AzureMessage implements IAzureMessage {
         final String failure = operations.stream().findFirst().map(IAzureOperation::getTitle)
                 .map(azureString -> "Failed to " + this.decorateText(azureString, azureString::getString)).orElse("Failed to proceed");
         final String cause = Optional.ofNullable(this.getCause(throwable)).map(c -> ", " + c).orElse("");
-        return failure + cause;
+        final String tips = Optional.ofNullable(this.getExceptionTips(throwable)).map(c -> System.lineSeparator() + c).orElse("");
+        return failure + cause + tips;
     }
 
     public String getDetails() {
@@ -131,6 +132,17 @@ public class AzureMessage implements IAzureMessage {
             }
         }
         return null;
+    }
+
+    @Nullable
+    protected String getExceptionTips(@Nonnull Throwable throwable) {
+        return ExceptionUtils.getThrowableList(throwable).stream()
+            .filter(t -> t instanceof AzureToolkitRuntimeException || t instanceof AzureToolkitException)
+            .map(t -> t instanceof AzureToolkitRuntimeException ? ((AzureToolkitRuntimeException) t).getTips() : ((AzureToolkitException) t).getTips())
+            .filter(StringUtils::isNotBlank)
+            .findFirst()
+            .map(StringUtils::capitalize)
+            .orElse(null);
     }
 
     @Nonnull
