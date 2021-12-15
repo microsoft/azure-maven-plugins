@@ -69,7 +69,7 @@ public abstract class FunctionCliResolver {
     private static String findFuncInFolder(final String parentFolder) {
         if (new File(parentFolder, getFuncFileName()).exists()) {
             final File func = new File(parentFolder, getFuncFileName());
-            if (func.exists()) {
+            if (func.exists() && new File(parentFolder, "func.dll").exists()) {
                 return Paths.get(func.getAbsolutePath()).normalize().toString();
             }
         }
@@ -81,7 +81,7 @@ public abstract class FunctionCliResolver {
         try {
             final String output = StringUtils.trim(CommandUtils.exec("npm root --global"));
             final File path = new File(output, "azure-functions-core-tools/bin");
-            if (FileUtils.isDirectory(path)) {
+            if (isDirectory(path)) {
                 return findFuncInFolder(path.getAbsolutePath());
             }
         } catch (IOException ignore) {
@@ -124,5 +124,9 @@ public abstract class FunctionCliResolver {
             // readlink /usr/local/bin/func =>
             //../Cellar/azure-functions-core-tools@3/3.0.3477/bin/func
             .orElseGet(() -> findFuncInFolder(Paths.get(funcParentFolder, "../bin").toString()));
+    }
+
+    private static boolean isDirectory(File path) {
+        return path.exists() && FileUtils.isDirectory(path);
     }
 }
