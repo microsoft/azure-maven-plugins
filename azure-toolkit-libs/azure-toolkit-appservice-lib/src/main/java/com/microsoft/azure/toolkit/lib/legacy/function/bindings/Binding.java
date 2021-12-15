@@ -9,10 +9,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @JsonSerialize(using = BindingSerializer.class)
 public class Binding {
@@ -29,8 +26,8 @@ public class Binding {
 
     static {
         //initialize required attributes, which will be saved to function.json even if it equals to its default value
-        requiredAttributeMap.put(BindingEnum.EventHubTrigger, Arrays.asList("cardinality"));
-        requiredAttributeMap.put(BindingEnum.HttpTrigger, Arrays.asList("authLevel"));
+        requiredAttributeMap.put(BindingEnum.EventHubTrigger, Collections.singletonList("cardinality"));
+        requiredAttributeMap.put(BindingEnum.HttpTrigger, Collections.singletonList("authLevel"));
     }
 
     public Binding(BindingEnum bindingEnum) {
@@ -39,6 +36,7 @@ public class Binding {
         this.direction = bindingEnum.getDirection();
     }
 
+    @Deprecated
     public Binding(BindingEnum bindingEnum, Annotation annotation) {
         this(bindingEnum);
         final Class<? extends Annotation> annotationType = annotation.annotationType();

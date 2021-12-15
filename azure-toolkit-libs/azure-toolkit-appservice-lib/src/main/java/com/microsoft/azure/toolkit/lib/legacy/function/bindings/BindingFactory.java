@@ -11,6 +11,7 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Locale;
 
+@Deprecated
 public class BindingFactory {
     private static final String HTTP_OUTPUT_DEFAULT_NAME = "$return";
 
