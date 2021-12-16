@@ -2,11 +2,11 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
-package com.microsoft.azure.toolkit.lib.appservice.function.refelection;
+package com.microsoft.azure.toolkit.lib.appservice.function.impl;
 
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.toolkit.lib.appservice.function.core.FunctionAnnotation;
-import com.microsoft.azure.toolkit.lib.appservice.function.core.FunctionClass;
+import com.microsoft.azure.toolkit.lib.appservice.function.core.FunctionAnnotationClass;
 import com.microsoft.azure.toolkit.lib.appservice.function.core.FunctionMethod;
 import com.microsoft.azure.toolkit.lib.appservice.function.core.FunctionProject;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -32,50 +32,52 @@ import java.net.URLClassLoader;
 import java.util.*;
 import java.util.stream.Collectors;
 
-class MavenGradleFunctionStagingContributor {
-    private static final Logger log = LoggerFactory.getLogger(MavenGradleFunctionStagingContributor.class);
+public class DefaultFunctionProject extends FunctionProject {
+    private static final Logger log = LoggerFactory.getLogger(DefaultFunctionProject.class);
 
-    static List<FunctionMethod> findAnnotatedMethods(FunctionProject project) {
+    @Override
+    public List<FunctionMethod> findAnnotatedMethods() {
         Set<Method> methods;
         try {
             try {
-                log.debug("ClassPath to resolve: " + getTargetClassUrl(project));
-                final List<URL> dependencyWithTargetClass = getDependencyArtifactUrls(project);
-                dependencyWithTargetClass.add(getTargetClassUrl(project));
+                log.debug("ClassPath to resolve: " + getTargetClassUrl());
+                final List<URL> dependencyWithTargetClass = getDependencyArtifactUrls();
+                dependencyWithTargetClass.add(getTargetClassUrl());
                 methods = findFunctions(dependencyWithTargetClass);
             } catch (NoClassDefFoundError e) {
                 // fallback to reflect through artifact url, for shaded project(fat jar)
-                log.debug("ClassPath to resolve: " + getArtifactUrl(project));
-                methods = findFunctions(Collections.singletonList(getArtifactUrl(project)));
+                log.debug("ClassPath to resolve: " + getArtifactUrl());
+                methods = findFunctions(Collections.singletonList(getArtifactUrl()));
             }
-            return methods.stream().map(MavenGradleFunctionStagingContributor::create).collect(Collectors.toList());
+            return methods.stream().map(DefaultFunctionProject::create).collect(Collectors.toList());
         } catch (MalformedURLException e) {
             throw new AzureToolkitRuntimeException("Invalid URL when resolving functions in class path:" + e.getMessage(), e);
         }
     }
 
     @SneakyThrows
-    static void installExtension(FunctionProject project) {
+    @Override
+    public void installExtension(String funcPath) {
         final CommandHandler commandHandler = new CommandHandlerImpl();
         final FunctionCoreToolsHandler functionCoreToolsHandler = getFunctionCoreToolsHandler(commandHandler);
-        functionCoreToolsHandler.installExtension(project.getStagingFolder(),
-                project.getBaseDirectory());
+        functionCoreToolsHandler.installExtension(getStagingFolder(),
+                getBaseDirectory());
     }
 
     private static FunctionCoreToolsHandler getFunctionCoreToolsHandler(final CommandHandler commandHandler) {
         return new FunctionCoreToolsHandlerImpl(commandHandler);
     }
 
-    private static URL getTargetClassUrl(FunctionProject project) throws MalformedURLException {
-        return project.getClassesOutputDirectory().toURI().toURL();
+    private URL getTargetClassUrl() throws MalformedURLException {
+        return getClassesOutputDirectory().toURI().toURL();
     }
 
     /**
      * @return URLs for the classpath with compile scope needed jars
      */
-    private static List<URL> getDependencyArtifactUrls(FunctionProject project) {
+    private List<URL> getDependencyArtifactUrls() {
         final List<URL> urlList = new ArrayList<>();
-        project.getDependencies().forEach(file -> {
+        getDependencies().forEach(file -> {
             try {
                 urlList.add(file.toURI().toURL());
             } catch (MalformedURLException e) {
@@ -96,11 +98,11 @@ class MavenGradleFunctionStagingContributor {
 
     private static ClassLoader getClassLoader(final List<URL> urlList) {
         final URL[] urlArray = urlList.toArray(new URL[0]);
-        return new URLClassLoader(urlArray, MavenGradleFunctionStagingContributor.class.getClassLoader());
+        return new URLClassLoader(urlArray, DefaultFunctionProject.class.getClassLoader());
     }
 
-    private static URL getArtifactUrl(FunctionProject project) throws MalformedURLException {
-        return project.getArtifactFile().toURI().toURL();
+    private URL getArtifactUrl() throws MalformedURLException {
+        return getArtifactFile().toURI().toURL();
     }
 
     public static FunctionAnnotation create(@Nonnull Annotation annotation) {
@@ -112,12 +114,12 @@ class MavenGradleFunctionStagingContributor {
         functionMethod.setName(method.getName());
         functionMethod.setReturnTypeName(method.getReturnType().getCanonicalName());
         functionMethod.setAnnotations(method.getAnnotations() == null ? Collections.emptyList() :
-                Arrays.stream(method.getAnnotations()).map(MavenGradleFunctionStagingContributor::create).collect(Collectors.toList()));
+                Arrays.stream(method.getAnnotations()).map(DefaultFunctionProject::create).collect(Collectors.toList()));
 
         List<FunctionAnnotation[]> parameterAnnotations = Arrays.stream(method.getParameters())
                 .map(Parameter::getAnnotations).filter(Objects::nonNull)
                 .map(a -> Arrays.stream(a)
-                        .map(MavenGradleFunctionStagingContributor::create)
+                        .map(DefaultFunctionProject::create)
                         .collect(Collectors.toList()).toArray(new FunctionAnnotation[0])).collect(Collectors.toList());
 
         functionMethod.setParameterAnnotations(parameterAnnotations);
@@ -157,8 +159,8 @@ class MavenGradleFunctionStagingContributor {
         return functionAnnotation;
     }
 
-    private static FunctionClass toFunctionAnnotationClass(Class<? extends Annotation> clz) {
-        FunctionClass type = new FunctionClass();
+    private static FunctionAnnotationClass toFunctionAnnotationClass(Class<? extends Annotation> clz) {
+        FunctionAnnotationClass type = new FunctionAnnotationClass();
         type.setFullName(clz.getCanonicalName());
         type.setName(clz.getSimpleName());
         type.setAnnotations(Arrays.stream(clz.getAnnotations()).map(a -> create(a, false)).collect(Collectors.toList()));
