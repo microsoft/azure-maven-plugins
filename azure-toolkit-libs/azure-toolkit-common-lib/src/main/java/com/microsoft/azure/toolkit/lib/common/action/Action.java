@@ -34,6 +34,7 @@ import java.util.function.Predicate;
 public class Action<D> {
     public static final String SOURCE = "ACTION_SOURCE";
     public static final Id<Runnable> REQUIRE_AUTH = Id.of("action.common.requireAuth");
+    public static final Id<Void> AUTHENTICATE = Id.of("action.common.authenticate");
     @Nonnull
     private List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
     @Nullable
@@ -92,7 +93,7 @@ public class Action<D> {
             final BiConsumer<D, Object> handler = this.handler(source, e);
             if (Objects.nonNull(handler)) {
                 final AzureString title = Optional.ofNullable(this.view).map(b -> b.title).map(t -> t.apply(source))
-                        .orElse(AzureString.fromString(IAzureOperation.UNKNOWN_NAME));
+                    .orElse(AzureString.fromString(IAzureOperation.UNKNOWN_NAME));
                 final AzureTask<Void> task = new AzureTask<>(title, () -> handle(source, e, handler));
                 task.setType(AzureOperation.Type.ACTION.name());
                 AzureTaskManager.getInstance().runInBackground(task);
@@ -145,6 +146,10 @@ public class Action<D> {
         public String getId() {
             return id;
         }
+    }
+
+    public static Action<Void> retryFromFailure(@Nonnull Runnable handler) {
+        return new Action<>((v) -> handler.run(), new ActionView.Builder("Retry"));
     }
 }
 

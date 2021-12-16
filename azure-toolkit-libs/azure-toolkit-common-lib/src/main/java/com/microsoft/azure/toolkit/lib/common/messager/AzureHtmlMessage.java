@@ -50,14 +50,6 @@ public class AzureHtmlMessage extends AzureMessage {
                 .orElse(null);
     }
 
-    @Nullable
-    @Override
-    protected String getErrorAction(@Nonnull Throwable throwable) {
-        return Optional.ofNullable(super.getErrorAction(throwable))
-                .map(a -> String.format("<p>%s</p>", a))
-                .orElse(null);
-    }
-
     @Override
     protected String getDetailItem(IAzureOperation o) {
         return String.format("<li>%s</li>", super.getDetailItem(o));
