@@ -80,6 +80,7 @@ public class MavenAuthUtils {
         putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.adal4j", "off");
         putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.azure.core.credential", "off");
         putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.msal4jextensions", "off");
+        putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.azure.core.implementation", "warn");
     }
 
     private static void putPropertyIfNotExist(String key, String value) {
