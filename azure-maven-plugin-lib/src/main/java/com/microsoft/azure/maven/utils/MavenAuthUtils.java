@@ -34,9 +34,7 @@ public class MavenAuthUtils {
             authConfiguration = convertToAuthConfiguration(StringUtils.isNotBlank(auth.getServerId()) ?
                     buildAuthConfigurationByServerId(session, settingsDecrypter, serverId) : auth);
         } catch (InvalidConfigurationException ex) {
-            final String messagePostfix = StringUtils.isNotBlank(serverId) ? ("in server: '" + serverId + "' at maven settings.xml.")
-                    : "in <auth> configuration.";
-            throw new AzureExecutionException(String.format("%s %s", ex.getMessage(), messagePostfix));
+            throw new AzureExecutionException(ex.getMessage());
         }
         return authConfiguration;
     }
