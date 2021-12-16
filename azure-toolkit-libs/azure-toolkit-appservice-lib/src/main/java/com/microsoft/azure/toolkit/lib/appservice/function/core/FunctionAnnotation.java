@@ -18,7 +18,7 @@ import java.util.Map;
 public class FunctionAnnotation {
     @Setter
     @Getter
-    private FunctionClass annotationClass;
+    private FunctionAnnotationClass annotationClass;
 
     @Setter
     private Map<String, Object> properties;
