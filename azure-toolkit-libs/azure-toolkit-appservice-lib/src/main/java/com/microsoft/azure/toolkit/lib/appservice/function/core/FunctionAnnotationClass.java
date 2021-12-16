@@ -9,7 +9,7 @@ import lombok.Setter;
 
 import java.util.List;
 
-public class FunctionClass implements IAnnotatable {
+public class FunctionAnnotationClass implements IAnnotatable {
     @Setter
     @Getter
     private String fullName;
