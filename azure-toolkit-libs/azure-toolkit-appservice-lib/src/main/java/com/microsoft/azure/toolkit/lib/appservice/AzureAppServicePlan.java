@@ -52,7 +52,7 @@ public class AzureAppServicePlan extends AbstractAzureResourceModule<AppServiceP
     public List<AppServicePlan> list(@NotNull String subscriptionId, boolean... force) {
         final AppServiceManager azureResourceManager = getAppServiceManager(subscriptionId);
         return azureResourceManager.appServicePlans().list().stream().parallel()
-                .map(appServicePlan -> new AppServicePlan(appServicePlan, azureResourceManager))
+                .map(appServicePlan -> get(appServicePlan.id()))
                 .collect(Collectors.toList());
     }
 
