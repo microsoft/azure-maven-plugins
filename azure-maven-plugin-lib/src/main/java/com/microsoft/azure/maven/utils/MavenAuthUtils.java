@@ -34,9 +34,7 @@ public class MavenAuthUtils {
             authConfiguration = convertToAuthConfiguration(StringUtils.isNotBlank(auth.getServerId()) ?
                     buildAuthConfigurationByServerId(session, settingsDecrypter, serverId) : auth);
         } catch (InvalidConfigurationException ex) {
-            final String messagePostfix = StringUtils.isNotBlank(serverId) ? ("in server: '" + serverId + "' at maven settings.xml.")
-                    : "in <auth> configuration.";
-            throw new AzureExecutionException(String.format("%s %s", ex.getMessage(), messagePostfix));
+            throw new AzureExecutionException(ex.getMessage());
         }
         return authConfiguration;
     }
@@ -80,6 +78,7 @@ public class MavenAuthUtils {
         putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.adal4j", "off");
         putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.azure.core.credential", "off");
         putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.msal4jextensions", "off");
+        putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.azure.core.implementation", "warn");
     }
 
     private static void putPropertyIfNotExist(String key, String value) {
