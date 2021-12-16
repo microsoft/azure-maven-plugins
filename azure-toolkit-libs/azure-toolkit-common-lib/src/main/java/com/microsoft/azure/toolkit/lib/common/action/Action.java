@@ -93,7 +93,7 @@ public class Action<D> {
             final BiConsumer<D, Object> handler = this.handler(source, e);
             if (Objects.nonNull(handler)) {
                 final AzureString title = Optional.ofNullable(this.view).map(b -> b.title).map(t -> t.apply(source))
-                        .orElse(AzureString.fromString(IAzureOperation.UNKNOWN_NAME));
+                    .orElse(AzureString.fromString(IAzureOperation.UNKNOWN_NAME));
                 final AzureTask<Void> task = new AzureTask<>(title, () -> handle(source, e, handler));
                 task.setType(AzureOperation.Type.ACTION.name());
                 AzureTaskManager.getInstance().runInBackground(task);
@@ -146,6 +146,10 @@ public class Action<D> {
         public String getId() {
             return id;
         }
+    }
+
+    public static Action<Void> retryFromFailure(@Nonnull Runnable handler) {
+        return new Action<>((v) -> handler.run(), new ActionView.Builder("Retry"));
     }
 }
 
