@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.Preloader;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
@@ -111,11 +112,10 @@ public abstract class Account implements IAccount {
     public void selectSubscription(List<String> selectedSubscriptionIds) {
         requireAuthenticated();
         if (CollectionUtils.isEmpty(selectedSubscriptionIds)) {
-            throw new IllegalArgumentException("You must select at least one subscription.");
+            throw new AzureToolkitRuntimeException("No subscriptions are selected. You must select at least one subscription.", IAccountActions.SELECT_SUBS);
         }
-
         if (CollectionUtils.isEmpty(getSubscriptions())) {
-            throw new IllegalArgumentException("There are no subscriptions to select.");
+            throw new AzureToolkitRuntimeException("There are no subscriptions to select.", IAccountActions.TRY_AZURE);
         }
         if (entity.getSubscriptions().stream().anyMatch(s -> Utils.containsIgnoreCase(selectedSubscriptionIds, s.getId()))) {
             selectSubscriptionInner(this.getSubscriptions(), selectedSubscriptionIds);
@@ -124,8 +124,7 @@ public abstract class Account implements IAccount {
                 manager.runOnPooledThread(Preloader::load);
             }
         } else {
-            throw new AzureToolkitAuthenticationException("no subscriptions are selected, " +
-                    "make sure you have provided valid subscription list");
+            throw new AzureToolkitRuntimeException("the selected subscriptions are invalid", IAccountActions.SELECT_SUBS);
         }
     }
 

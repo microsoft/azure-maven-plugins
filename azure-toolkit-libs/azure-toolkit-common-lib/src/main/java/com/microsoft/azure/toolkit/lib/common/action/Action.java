@@ -34,7 +34,7 @@ import java.util.function.Predicate;
 public class Action<D> {
     public static final String SOURCE = "ACTION_SOURCE";
     public static final Id<Runnable> REQUIRE_AUTH = Id.of("action.common.requireAuth");
-    public static final Id<Void> AUTHENTICATE = Id.of("action.common.authenticate");
+    public static final Id<Void> AUTHENTICATE = Id.of("action.account.authenticate");
     @Nonnull
     private List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
     @Nullable
