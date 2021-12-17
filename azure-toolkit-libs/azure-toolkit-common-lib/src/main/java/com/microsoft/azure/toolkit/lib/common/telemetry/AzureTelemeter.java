@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.telemetry;
 
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationRef;
+import com.microsoft.azure.toolkit.lib.common.operation.AnnotationOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Properties;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Property;
@@ -111,14 +111,14 @@ public class AzureTelemeter {
         properties.put(OP_NAME, name);
         properties.put(OP_TYPE, op.getType());
         properties.putAll(actionProperties);
-        if (op instanceof AzureOperationRef) {
-            properties.putAll(getParameterProperties((AzureOperationRef) op));
+        if (op instanceof AnnotationOperation) {
+            properties.putAll(getParameterProperties((AnnotationOperation) op));
         }
         properties.putAll(context.getProperties());
         return properties;
     }
 
-    private static Map<String, String> getParameterProperties(AzureOperationRef ref) {
+    private static Map<String, String> getParameterProperties(AnnotationOperation ref) {
         final HashMap<String, String> properties = new HashMap<>();
         final Object[] paramValues = ref.getParamValues();
         final Parameter[] parameters = ref.getMethod().getParameters();

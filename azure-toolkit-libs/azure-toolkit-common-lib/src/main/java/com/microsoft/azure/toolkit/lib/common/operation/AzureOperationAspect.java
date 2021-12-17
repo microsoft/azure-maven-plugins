@@ -30,7 +30,7 @@ public final class AzureOperationAspect {
 
     @Before("operation()")
     public void beforeEnter(JoinPoint point) {
-        final AzureOperationRef operation = toOperationRef(point);
+        final AnnotationOperation operation = toOperationRef(point);
         AzureTelemeter.beforeEnter(operation);
         AzureTaskContext.current().pushOperation(operation);
         final Object source = point.getThis();
@@ -43,8 +43,8 @@ public final class AzureOperationAspect {
 
     @AfterReturning("operation()")
     public void afterReturning(JoinPoint point) {
-        final AzureOperationRef current = toOperationRef(point);
-        final AzureOperationRef operation = (AzureOperationRef) AzureTaskContext.current().popOperation();
+        final AnnotationOperation current = toOperationRef(point);
+        final AnnotationOperation operation = (AnnotationOperation) AzureTaskContext.current().popOperation();
         // TODO: this cannot ensure same operation actually, considering recursive call
         assert Objects.nonNull(operation) && operation.getMethod().equals(current.getMethod()) :
             String.format("popped operation[%s] is not the exiting operation[%s]", current, operation);
@@ -59,8 +59,8 @@ public final class AzureOperationAspect {
 
     @AfterThrowing(pointcut = "operation()", throwing = "e")
     public void afterThrowing(JoinPoint point, Throwable e) throws Throwable {
-        final AzureOperationRef current = toOperationRef(point);
-        final AzureOperationRef operation = (AzureOperationRef) AzureTaskContext.current().popOperation();
+        final AnnotationOperation current = toOperationRef(point);
+        final AnnotationOperation operation = (AnnotationOperation) AzureTaskContext.current().popOperation();
         // TODO: this cannot ensure same operation actually, considering recursive call
         assert Objects.nonNull(operation) && operation.getMethod().equals(current.getMethod()) :
             String.format("popped operation[%s] is not the operation[%s] throwing exception", current, operation);
@@ -77,11 +77,11 @@ public final class AzureOperationAspect {
         throw new AzureOperationException(operation, e);
     }
 
-    private static AzureOperationRef toOperationRef(JoinPoint point) {
+    private static AnnotationOperation toOperationRef(JoinPoint point) {
         final MethodSignature signature = (MethodSignature) point.getSignature();
         final Object[] args = point.getArgs();
         final Object instance = point.getThis();
-        return AzureOperationRef.builder()
+        return AnnotationOperation.builder()
             .instance(instance)
             .method(signature.getMethod())
             .paramNames(signature.getParameterNames())

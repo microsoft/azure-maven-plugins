@@ -16,7 +16,7 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 @SuperBuilder
-public class AzureOperationRef extends MethodInvocation implements IAzureOperation {
+public class AnnotationOperation extends MethodInvocation implements IAzureOperation {
 
     @Getter
     @Setter

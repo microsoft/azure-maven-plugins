@@ -16,7 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationException;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationRef;
+import com.microsoft.azure.toolkit.lib.common.operation.AnnotationOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
 import lombok.Getter;
@@ -164,9 +164,9 @@ public class AzureMessage implements IAzureMessage {
         final LinkedList<IAzureOperation> result = new LinkedList<>();
         IAzureOperation current = AzureTaskContext.current().currentOperation();
         while (Objects.nonNull(current)) {
-            if (current instanceof AzureOperationRef) {
+            if (current instanceof AnnotationOperation) {
                 result.addFirst(current);
-                final AzureOperation annotation = ((AzureOperationRef) current).getAnnotation(AzureOperation.class);
+                final AzureOperation annotation = ((AnnotationOperation) current).getAnnotation(AzureOperation.class);
                 if (annotation.type() == AzureOperation.Type.ACTION) {
                     break;
                 }
