@@ -113,7 +113,7 @@ public final class AzureOperationAspect {
         final MethodSignature signature = (MethodSignature) point.getSignature();
         final Object[] args = point.getArgs();
         final Object instance = point.getThis();
-        return AnnotationOperation.builder()
+        return MethodOperation.builder()
             .instance(instance)
             .method(signature.getMethod())
             .paramNames(signature.getParameterNames())

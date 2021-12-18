@@ -17,7 +17,7 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 @SuperBuilder
-public class AnnotationOperation extends MethodInvocation implements IAzureOperation<Object> {
+public class MethodOperation extends MethodInvocation implements IAzureOperation<Object> {
 
     @Getter
     @Setter
