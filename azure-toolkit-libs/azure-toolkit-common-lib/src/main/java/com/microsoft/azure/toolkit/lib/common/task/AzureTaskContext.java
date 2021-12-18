@@ -27,7 +27,7 @@ public class AzureTaskContext {
 
     protected long threadId;
     @Nullable
-    protected IAzureOperation operation;
+    protected IAzureOperation<?> operation;
     @Getter
     @Nullable
     protected AzureTaskContext parent;
@@ -53,11 +53,11 @@ public class AzureTaskContext {
     }
 
     @Nullable
-    public IAzureOperation currentOperation() {
+    public IAzureOperation<?> currentOperation() {
         return this.operation;
     }
 
-    public void pushOperation(final IAzureOperation operation) {
+    public void pushOperation(final IAzureOperation<?> operation) {
         if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {
             log.fine(String.format("orphan context[%s] is setup", this));
         }
@@ -66,8 +66,8 @@ public class AzureTaskContext {
     }
 
     @Nullable
-    public IAzureOperation popOperation() {
-        final IAzureOperation popped = this.operation;
+    public IAzureOperation<?> popOperation() {
+        final IAzureOperation<?> popped = this.operation;
         assert popped != null : "popped operation is null";
         this.operation = popped.getParent();
         if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {
@@ -86,18 +86,18 @@ public class AzureTaskContext {
             });
             runnable.run();
             Optional.ofNullable(context.getTask()).ifPresent(task -> {
-                final IAzureOperation popped = AzureTaskContext.current().popOperation();
+                final IAzureOperation<?> popped = AzureTaskContext.current().popOperation();
                 AzureTelemeter.afterExit(task);
                 assert Objects.equals(task, popped) : String.format("popped op[%s] is not the exiting async task[%s]", popped, task);
             });
         } catch (final Throwable throwable) {
             final Throwable rootCause = ExceptionUtils.getRootCause(throwable);
-            if (!(rootCause instanceof InterruptedIOException) &&!(rootCause instanceof InterruptedException)) {
+            if (!(rootCause instanceof InterruptedIOException) && !(rootCause instanceof InterruptedException)) {
                 // Swallow interrupted exception caused by unsubscribe
                 AzureMessager.getMessager().error(throwable);
             }
             Optional.ofNullable(context.getTask()).ifPresent(task -> {
-                final IAzureOperation popped = AzureTaskContext.current().popOperation();
+                final IAzureOperation<?> popped = AzureTaskContext.current().popOperation();
                 AzureTelemeter.onError(task, throwable);
                 assert Objects.equals(task, popped) : String.format("popped op[%s] is not the task[%s] throwing exception", popped, task);
             });

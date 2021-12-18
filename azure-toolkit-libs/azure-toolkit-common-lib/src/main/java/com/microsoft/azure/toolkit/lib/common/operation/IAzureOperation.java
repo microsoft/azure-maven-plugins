@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.common.operation;
 
 import com.microsoft.azure.toolkit.lib.common.DataStore;
+import com.microsoft.azure.toolkit.lib.common.Executable;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
@@ -14,7 +15,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public interface IAzureOperation extends DataStore {
+public interface IAzureOperation<T> extends DataStore {
     String UNKNOWN_NAME = "<unknown>.<unknown>";
 
     @Nonnull
@@ -27,19 +28,21 @@ public interface IAzureOperation extends DataStore {
         return Optional.ofNullable(this.getTitle()).map(AzureString::getName).orElse(UNKNOWN_NAME);
     }
 
+    Executable<T> getBody();
+
     @Nonnull
     String getType();
 
     @Nullable
     AzureString getTitle();
 
-    void setParent(IAzureOperation operation);
+    void setParent(IAzureOperation<?> operation);
 
     @Nullable
-    IAzureOperation getParent();
+    IAzureOperation<?> getParent();
 
-    default IAzureOperation getEffectiveParent() {
-        final IAzureOperation parent = this.getParent();
+    default IAzureOperation<?> getEffectiveParent() {
+        final IAzureOperation<?> parent = this.getParent();
         if (parent == null) {
             return null;
         } else if (!parent.getName().equals(UNKNOWN_NAME)) {
@@ -50,7 +53,7 @@ public interface IAzureOperation extends DataStore {
     }
 
     @Nullable
-    default IAzureOperation getActionParent() {
+    default IAzureOperation<?> getActionParent() {
         if (this.getType().equals(AzureOperation.Type.ACTION.name())) {
             return this;
         }
@@ -58,7 +61,7 @@ public interface IAzureOperation extends DataStore {
     }
 
     @Nullable
-    static IAzureOperation current() {
+    static IAzureOperation<?> current() {
         return AzureTaskContext.current().currentOperation();
     }
 

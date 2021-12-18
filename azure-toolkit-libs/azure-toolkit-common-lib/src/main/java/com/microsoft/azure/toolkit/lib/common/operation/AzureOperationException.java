@@ -12,9 +12,9 @@ import java.util.Optional;
 
 @Getter
 public class AzureOperationException extends AzureToolkitRuntimeException {
-    private final IAzureOperation operation;
+    private final IAzureOperation<?> operation;
 
-    public AzureOperationException(final IAzureOperation operation, final Throwable cause) {
+    public AzureOperationException(final IAzureOperation<?> operation, final Throwable cause) {
         super(cause);
         this.operation = operation;
     }

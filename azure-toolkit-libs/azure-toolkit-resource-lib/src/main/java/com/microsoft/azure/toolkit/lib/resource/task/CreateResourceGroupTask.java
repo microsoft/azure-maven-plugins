@@ -29,7 +29,7 @@ public class CreateResourceGroupTask extends AzureTask<ResourceGroup> {
 
     @Override
     @AzureOperation(name = "group.create.rg", params = {"this.resourceGroupName"}, type = AzureOperation.Type.SERVICE)
-    public ResourceGroup execute() {
+    public ResourceGroup doExecute() {
         return Azure.az(AzureResources.class).groups(subscriptionId)
             .createResourceGroupIfNotExist(this.resourceGroupName, this.region);
     }

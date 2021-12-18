@@ -18,7 +18,7 @@ import javax.annotation.Nullable;
 @RequiredArgsConstructor
 public class AzureOperationEvent<T extends AzureOperationEvent.Source<T>> implements AzureEvent<T> {
     private final T source;
-    private final IAzureOperation operation;
+    private final IAzureOperation<?> operation;
     private final Stage stage;
 
     @Nonnull

@@ -13,7 +13,7 @@ import lombok.Setter;
 import javax.annotation.Nonnull;
 
 @RequiredArgsConstructor
-public class SimpleOperation implements IAzureOperation {
+public class SimpleOperation implements IAzureOperation<Object> {
 
     @Getter
     @Nonnull
@@ -22,7 +22,7 @@ public class SimpleOperation implements IAzureOperation {
     private final AzureOperation.Type type;
     @Getter
     @Setter
-    private IAzureOperation parent;
+    private IAzureOperation<?> parent;
 
     @Nonnull
     @Override

@@ -1,7 +1,6 @@
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for
- * license information.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
 package com.microsoft.azure.toolkit.lib.common.telemetry;
@@ -84,7 +83,7 @@ public class AzureTelemetry {
 
     @Nonnull
     public static AzureTelemetry.Context getActionContext() {
-        final IAzureOperation operation = IAzureOperation.current();
+        final IAzureOperation<?> operation = IAzureOperation.current();
         return Optional.ofNullable(operation)
                 .map(IAzureOperation::getActionParent)
                 .map(AzureTelemetry::getContext)
@@ -92,7 +91,7 @@ public class AzureTelemetry {
     }
 
     @Nonnull
-    public static AzureTelemetry.Context getContext(@Nullable IAzureOperation operation) {
+    public static AzureTelemetry.Context getContext(@Nullable IAzureOperation<?> operation) {
         return Optional.ofNullable(operation)
                 .map(o -> o.get(AzureTelemetry.Context.class, new AzureTelemetry.Context(operation)))
                 .orElse(new AzureTelemetry.Context(operation));
@@ -103,7 +102,7 @@ public class AzureTelemetry {
     public static class Context implements IAzureOperation.IContext {
         private final Map<String, String> properties = new ConcurrentHashMap<>();
         @Nullable
-        private final IAzureOperation operation;
+        private final IAzureOperation<?> operation;
 
         public void setCreateAt(Instant createAt) {
             this.properties.put(OP_CREATE_AT, createAt.toString());

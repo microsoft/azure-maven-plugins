@@ -36,7 +36,7 @@ public class GetOrCreateApplicationInsightsTask extends AzureTask<ApplicationIns
     }
 
     @Override
-    public ApplicationInsight execute() {
+    public ApplicationInsight doExecute() {
         Azure.az(AzureResources.class).groups(subscriptionId).createResourceGroupIfNotExist(this.resourceGroup, this.region);
         final ApplicationInsightsModule insightsModule = Azure.az(AzureApplicationInsights.class).applicationInsights(subscriptionId);
         return Optional.ofNullable(insightsModule.get(name, this.resourceGroup)).orElseGet(() -> {

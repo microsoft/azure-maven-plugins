@@ -86,8 +86,10 @@ public class CreateVirtualMachineTask extends AzureTask<VirtualMachine> {
         return tasks;
     }
 
-    public VirtualMachine execute() {
-        this.subTasks.forEach(t -> t.getSupplier().get());
+    public VirtualMachine doExecute() throws Throwable {
+        for (final AzureTask<?> t : this.subTasks) {
+            t.getBody().execute();
+        }
         return this.result;
     }
 }

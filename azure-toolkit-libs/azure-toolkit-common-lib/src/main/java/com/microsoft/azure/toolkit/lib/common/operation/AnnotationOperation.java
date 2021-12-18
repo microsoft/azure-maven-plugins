@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.operation;
 
+import com.microsoft.azure.toolkit.lib.common.Executable;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.utils.aspect.ExpressionUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.aspect.MethodInvocation;
@@ -16,11 +17,11 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 @SuperBuilder
-public class AnnotationOperation extends MethodInvocation implements IAzureOperation {
+public class AnnotationOperation extends MethodInvocation implements IAzureOperation<Object> {
 
     @Getter
     @Setter
-    private IAzureOperation parent;
+    private IAzureOperation<?> parent;
 
     @Override
     public String toString() {
@@ -32,6 +33,11 @@ public class AnnotationOperation extends MethodInvocation implements IAzureOpera
     public String getName() {
         final AzureOperation annotation = this.getAnnotation(AzureOperation.class);
         return annotation.name();
+    }
+
+    @Override
+    public Executable<Object> getBody() {
+        return () -> this.getMethod().invoke(this.getInstance(), this.getParamValues());
     }
 
     @Nonnull

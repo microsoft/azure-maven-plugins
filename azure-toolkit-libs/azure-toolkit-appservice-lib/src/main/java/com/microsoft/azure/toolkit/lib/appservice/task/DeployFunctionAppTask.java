@@ -74,7 +74,7 @@ public class DeployFunctionAppTask extends AzureTask<IFunctionAppBase<?>> {
     }
 
     @Override
-    public IFunctionAppBase<?> execute() {
+    public IFunctionAppBase<?> doExecute() {
         if (target.getRuntime().isDocker()) {
             AzureMessager.getMessager().info(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE);
             return target;

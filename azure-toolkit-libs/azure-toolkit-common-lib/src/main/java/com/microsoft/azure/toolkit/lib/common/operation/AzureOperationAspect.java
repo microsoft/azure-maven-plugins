@@ -30,26 +30,26 @@ public final class AzureOperationAspect {
 
     @Before("operation()")
     public void beforeEnter(JoinPoint point) {
-        final IAzureOperation operation = toOperation(point);
+        final IAzureOperation<?> operation = toOperation(point);
         final Object source = point.getThis();
         beforeEnter(operation, source);
     }
 
     @AfterReturning("operation()")
     public void afterReturning(JoinPoint point) {
-        final IAzureOperation current = toOperation(point);
+        final IAzureOperation<?> current = toOperation(point);
         final Object source = point.getThis();
         afterReturning(current, source);
     }
 
     @AfterThrowing(pointcut = "operation()", throwing = "e")
     public void afterThrowing(JoinPoint point, Throwable e) throws Throwable {
-        final IAzureOperation current = toOperation(point);
+        final IAzureOperation<?> current = toOperation(point);
         final Object source = point.getThis();
         afterThrowing(e, current, source);
     }
 
-    public static void beforeEnter(IAzureOperation operation, Object source) {
+    public static void beforeEnter(IAzureOperation<?> operation, Object source) {
         AzureTelemeter.beforeEnter(operation);
         AzureTaskContext.current().pushOperation(operation);
         if (source instanceof AzureOperationEvent.Source) {
@@ -59,8 +59,8 @@ public final class AzureOperationAspect {
         }
     }
 
-    public static void afterReturning(IAzureOperation current, Object source) {
-        final IAzureOperation operation = AzureTaskContext.current().popOperation();
+    public static void afterReturning(IAzureOperation<?> current, Object source) {
+        final IAzureOperation<?> operation = AzureTaskContext.current().popOperation();
         // TODO: this cannot ensure same operation actually, considering recursive call
         assert Objects.nonNull(operation) && Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the exiting operation[%s]", current, operation);
@@ -72,8 +72,8 @@ public final class AzureOperationAspect {
         }
     }
 
-    public static void afterThrowing(Throwable e, IAzureOperation current, Object source) throws Throwable {
-        final IAzureOperation operation = AzureTaskContext.current().popOperation();
+    public static void afterThrowing(Throwable e, IAzureOperation<?> current, Object source) throws Throwable {
+        final IAzureOperation<?> operation = AzureTaskContext.current().popOperation();
         // TODO: this cannot ensure same operation actually, considering recursive call
         assert Objects.nonNull(operation) && Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the operation[%s] throwing exception", current, operation);
@@ -89,7 +89,7 @@ public final class AzureOperationAspect {
         throw new AzureOperationException(operation, e);
     }
 
-    private static IAzureOperation toOperation(JoinPoint point) {
+    private static IAzureOperation<?> toOperation(JoinPoint point) {
         final MethodSignature signature = (MethodSignature) point.getSignature();
         final Object[] args = point.getArgs();
         final Object instance = point.getThis();

@@ -78,7 +78,7 @@ public class DeployMojo extends AbstractMojoBase {
             log.warn("Deployment is cancelled!");
             return;
         }
-        final SpringCloudDeployment deployment = task.execute();
+        final SpringCloudDeployment deployment = task.doExecute();
         if (!noWait) {
             if (!deployment.waitUntilReady(GET_STATUS_TIMEOUT)) {
                 log.warn(GET_DEPLOYMENT_STATUS_TIMEOUT);

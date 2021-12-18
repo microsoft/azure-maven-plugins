@@ -526,7 +526,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
 
                 afterMojoExecution();
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             onMojoError(e);
         } finally {
             // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialize and will step
@@ -576,7 +576,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     /**
      * Entry point of sub-class. Sub-class should implement this method to do real work.
      */
-    protected abstract void doExecute() throws AzureExecutionException;
+    protected abstract void doExecute() throws Throwable;
 
     protected void onSkipped() {
         telemetryProxy.trackEvent(this.getClass().getSimpleName() + ".skip");
@@ -603,7 +603,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         return StringUtils.isBlank(defaultValue) ? "" : String.format(" [%s]", TextUtils.blue(defaultValue));
     }
 
-    protected void onMojoError(final Exception exception) throws MojoExecutionException {
+    protected void onMojoError(final Throwable exception) throws MojoExecutionException {
         trackMojoFailure(exception);
 
         final String message = StringUtils.isEmpty(exception.getMessage()) ? exception.toString() : exception.getMessage();

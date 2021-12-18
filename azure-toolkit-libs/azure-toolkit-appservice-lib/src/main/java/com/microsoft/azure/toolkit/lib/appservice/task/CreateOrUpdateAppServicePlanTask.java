@@ -27,7 +27,7 @@ public class CreateOrUpdateAppServicePlanTask extends AzureTask<AppServicePlan> 
     private AppServicePlanConfig config;
 
     @AzureOperation(name = "appservice.create_update_plan.plan", params = {"this.config.servicePlanName()"}, type = AzureOperation.Type.SERVICE)
-    public AppServicePlan execute() {
+    public AppServicePlan doExecute() {
         SchemaValidator.getInstance().validateAndThrow("appservice/AppServicePlan", config);
         final AzureAppService az = Azure.az(AzureAppService.class).subscription(config.subscriptionId());
         final AppServicePlan appServicePlan = az.appServicePlan(config.servicePlanResourceGroup(), config.servicePlanName());
@@ -36,7 +36,7 @@ public class CreateOrUpdateAppServicePlanTask extends AzureTask<AppServicePlan> 
             SchemaValidator.getInstance().validateAndThrow("appservice/CreateAppServicePlan", config);
             AzureMessager.getMessager().info(String.format(CREATE_APP_SERVICE_PLAN, servicePlanName));
             AzureTelemetry.getActionContext().setProperty(CREATE_NEW_APP_SERVICE_PLAN, String.valueOf(true));
-            new CreateResourceGroupTask(this.config.subscriptionId(), config.servicePlanResourceGroup(), config.region()).execute();
+            new CreateResourceGroupTask(this.config.subscriptionId(), config.servicePlanResourceGroup(), config.region()).doExecute();
             appServicePlan.create()
                 .withName(servicePlanName)
                 .withResourceGroup(config.servicePlanResourceGroup())
