@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.task;
 
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationContext;
 import rx.Completable;
 import rx.Observable;
 import rx.Single;

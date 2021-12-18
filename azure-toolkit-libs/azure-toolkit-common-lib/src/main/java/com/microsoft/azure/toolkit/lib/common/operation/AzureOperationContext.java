@@ -3,10 +3,9 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.common.task;
+package com.microsoft.azure.toolkit.lib.common.operation;
 
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
-import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Getter;
 import lombok.extern.java.Log;
@@ -86,7 +85,7 @@ public class AzureOperationContext {
     }
 
     @Nonnull
-    AzureOperationContext derive() {
+    public AzureOperationContext derive() {
         final long threadId = Thread.currentThread().getId();
         final AzureOperationContext current = AzureOperationContext.current();
         assert this == current : String.format("[threadId:%s] deriving context from context[%s] in context[%s].", threadId, this, current);
