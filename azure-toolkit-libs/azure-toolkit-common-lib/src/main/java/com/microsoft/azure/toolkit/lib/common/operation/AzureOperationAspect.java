@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.operation;
 
+import com.microsoft.azure.toolkit.lib.common.Executable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
@@ -49,6 +50,13 @@ public final class AzureOperationAspect {
         afterThrowing(e, current, source);
     }
 
+    //    @Around("operation()")
+    //    public Object around(ProceedingJoinPoint point) throws Throwable {
+    //        final IAzureOperation<?> current = toOperation(point);
+    //        final Object source = point.getThis();
+    //        return execute(current, source);
+    //    }
+
     public static void beforeEnter(IAzureOperation<?> operation, Object source) {
         AzureTelemeter.beforeEnter(operation);
         AzureTaskContext.current().pushOperation(operation);
@@ -87,6 +95,19 @@ public final class AzureOperationAspect {
             throw e; // do not wrap checked exception and AzureOperationException
         }
         throw new AzureOperationException(operation, e);
+    }
+
+    public static <T> T execute(IAzureOperation<T> operation, Object source) throws Throwable {
+        final Executable<T> body = operation.getBody();
+        try {
+            AzureOperationAspect.beforeEnter(operation, source);
+            final T result = body.execute();
+            AzureOperationAspect.afterReturning(operation, source);
+            return result;
+        } catch (Throwable e) {
+            AzureOperationAspect.afterThrowing(e, operation, source);
+            throw e;
+        }
     }
 
     private static IAzureOperation<?> toOperation(JoinPoint point) {

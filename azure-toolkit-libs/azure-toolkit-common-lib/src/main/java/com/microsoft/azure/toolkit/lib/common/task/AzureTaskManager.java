@@ -5,8 +5,9 @@
 
 package com.microsoft.azure.toolkit.lib.common.task;
 
-import com.microsoft.azure.toolkit.lib.common.Executable;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationAspect;
+import com.microsoft.azure.toolkit.lib.common.Executable;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import lombok.extern.java.Log;
 import rx.Emitter;
@@ -376,17 +377,17 @@ public abstract class AzureTaskManager {
     private <T> Observable<T> runInObservable(final BiConsumer<? super Runnable, ? super AzureTask<T>> consumer, final AzureTask<T> task) {
         return Observable.create((Emitter<T> emitter) -> {
             final AzureTaskContext context = AzureTaskContext.current().derive();
-            context.setTask(task);
             AzureTelemeter.afterCreate(task);
-            final Runnable t = () -> AzureTaskContext.run(() -> {
+            final Runnable t = () -> context.run(() -> {
                 try {
-                    emitter.onNext(task.getBody().execute());
+                    final T result = AzureOperationAspect.execute(task, null);
+                    emitter.onNext(result);
                 } catch (final Throwable e) {
                     emitter.onError(e);
                     return;
                 }
                 emitter.onCompleted();
-            }, context);
+            });
             consumer.accept(t, task);
         }, Emitter.BackpressureMode.BUFFER);
     }
