@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.utils.aspect;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 import org.aspectj.lang.JoinPoint;
@@ -13,24 +14,16 @@ import org.aspectj.lang.reflect.MethodSignature;
 import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Objects;
 
 @Getter
 @SuperBuilder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class MethodInvocation {
+    @EqualsAndHashCode.Include
     protected final Method method;
     protected final String[] paramNames;
     protected final Object[] paramValues;
     protected final Object instance;
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (!(obj instanceof MethodInvocation)) {
-            return false;
-        }
-        final MethodInvocation operation = (MethodInvocation) obj;
-        return Objects.equals(operation.getMethod(), this.getMethod());
-    }
 
     public <T extends Annotation> T getAnnotation(Class<T> annotation) {
         return this.method.getAnnotation(annotation);
