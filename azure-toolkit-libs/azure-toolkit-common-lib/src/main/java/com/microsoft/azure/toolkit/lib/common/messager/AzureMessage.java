@@ -17,7 +17,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationException;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
+import com.microsoft.azure.toolkit.lib.common.task.AzureOperationContext;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -152,7 +152,7 @@ public class AzureMessage implements IAzureMessage {
             .filter(p -> p instanceof Throwable)
             .map(p -> getExceptionOperations((Throwable) p))
             .orElse(new ArrayList<>());
-        final IAzureOperation<?> current = exceptionOperations.isEmpty() ? AzureTaskContext.current().currentOperation() : exceptionOperations.get(0);
+        final IAzureOperation<?> current = exceptionOperations.isEmpty() ? AzureOperationContext.current().currentOperation() : exceptionOperations.get(0);
         final List<IAzureOperation<?>> contextOperations = getAncestorOperationsUtilAction(current);
         final Set<Object> seen = ConcurrentHashMap.newKeySet();
         return Streams.concat(contextOperations.stream(), exceptionOperations.stream())
