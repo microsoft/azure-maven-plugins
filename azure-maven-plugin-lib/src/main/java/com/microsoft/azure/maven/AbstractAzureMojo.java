@@ -716,7 +716,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     }
 
     protected void updateTelemetryProperties() {
-        Optional.ofNullable(AzureTelemetry.getActionContext().getProperties()).ifPresent(properties ->
+        Optional.ofNullable(AzureTelemetry.getContext().getActionParent().getProperties()).ifPresent(properties ->
                 properties.forEach((key, value) -> telemetryProxy.addDefaultProperty(key, value)));
     }
 }

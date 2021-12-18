@@ -122,7 +122,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
         final AzureString title = AzureString.format("Create new app({0}) on subscription({1})",
                 functionAppConfig.appName(), functionAppConfig.subscriptionId());
         return new AzureTask<>(title, () -> {
-            AzureTelemetry.getActionContext().setProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
+            AzureTelemetry.getContext().getActionParent().setProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
             AzureMessager.getMessager().info(String.format(CREATE_FUNCTION_APP, functionAppConfig.appName()));
             final Map<String, String> appSettings = processAppSettingsWithDefaultValue();
             Optional.ofNullable(instrumentationKey).filter(StringUtils::isNoneEmpty).ifPresent(key ->

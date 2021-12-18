@@ -35,7 +35,7 @@ public class CreateOrUpdateAppServicePlanTask extends AzureTask<AppServicePlan> 
         if (!appServicePlan.exists()) {
             SchemaValidator.getInstance().validateAndThrow("appservice/CreateAppServicePlan", config);
             AzureMessager.getMessager().info(String.format(CREATE_APP_SERVICE_PLAN, servicePlanName));
-            AzureTelemetry.getActionContext().setProperty(CREATE_NEW_APP_SERVICE_PLAN, String.valueOf(true));
+            AzureTelemetry.getContext().getActionParent().setProperty(CREATE_NEW_APP_SERVICE_PLAN, String.valueOf(true));
             new CreateResourceGroupTask(this.config.subscriptionId(), config.servicePlanResourceGroup(), config.region()).doExecute();
             appServicePlan.create()
                 .withName(servicePlanName)

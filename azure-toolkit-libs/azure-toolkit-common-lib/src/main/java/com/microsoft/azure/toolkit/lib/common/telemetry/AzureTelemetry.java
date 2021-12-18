@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.telemetry;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.toolkit.lib.common.DataStore;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AzureTelemetry {
+    static final DataStore.Field<AzureTelemetry.Context> TELEMETRY_CONTEXT = DataStore.Field.of("telemeryContext");
     static final String OP_CREATE_AT = "op_create_at";
     static final String OP_ENTER_AT = "op_enter_at";
     static final String OP_EXIT_AT = "op_exit_at";
@@ -77,29 +79,23 @@ public class AzureTelemetry {
     }
 
     @Nonnull
+    public static Context getActionContext() {
+        return AzureTelemetry.getContext().getActionParent();
+    }
+
+    @Nonnull
     public static Context getContext() {
-        return getContext(IAzureOperation.current());
+        return Optional.ofNullable(IAzureOperation.current()).map(o -> o.get(TELEMETRY_CONTEXT, new Context(o))).orElse(new Context(null));
     }
 
     @Nonnull
-    public static AzureTelemetry.Context getActionContext() {
-        final IAzureOperation<?> operation = IAzureOperation.current();
-        return Optional.ofNullable(operation)
-                .map(IAzureOperation::getActionParent)
-                .map(AzureTelemetry::getContext)
-                .orElse(new AzureTelemetry.Context(operation));
-    }
-
-    @Nonnull
-    public static AzureTelemetry.Context getContext(@Nullable IAzureOperation<?> operation) {
-        return Optional.ofNullable(operation)
-                .map(o -> o.get(AzureTelemetry.Context.class, new AzureTelemetry.Context(operation)))
-                .orElse(new AzureTelemetry.Context(operation));
+    public static Context getContext(IAzureOperation<?> op) {
+        return Optional.ofNullable(op).map(o -> o.get(TELEMETRY_CONTEXT, new Context(o))).orElse(new Context(null));
     }
 
     @Getter
     @RequiredArgsConstructor
-    public static class Context implements IAzureOperation.IContext {
+    public static class Context {
         private final Map<String, String> properties = new ConcurrentHashMap<>();
         @Nullable
         private final IAzureOperation<?> operation;
@@ -126,6 +122,12 @@ public class AzureTelemetry {
 
         public String getProperty(String key) {
             return this.properties.get(key);
+        }
+
+        public Context getActionParent() {
+            return Optional.ofNullable(this.operation).map(IAzureOperation::getActionParent)
+                .map(o -> o.get(TELEMETRY_CONTEXT, new Context(o)))
+                .orElse(new Context(this.operation)); // TODO: @wangmi should return null when action parent is null
         }
     }
 }

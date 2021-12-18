@@ -240,7 +240,7 @@ public class AzureFunctionPackager extends AzureFunctionPackagerBase {
     }
 
     private void trackFunctionProperties(Map<String, FunctionConfiguration> configMap) {
-        AzureTelemetry.getActionContext().setProperty(TRIGGER_TYPE, StringUtils.join(getFunctionBindingList(configMap), ","));
+        AzureTelemetry.getContext().getActionParent().setProperty(TRIGGER_TYPE, StringUtils.join(getFunctionBindingList(configMap), ","));
     }
 
     private List<String> getFunctionBindingList(Map<String, FunctionConfiguration> configMap) {

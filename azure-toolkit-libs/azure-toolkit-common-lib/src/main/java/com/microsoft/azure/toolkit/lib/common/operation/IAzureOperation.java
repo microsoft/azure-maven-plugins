@@ -63,8 +63,4 @@ public interface IAzureOperation<T> extends DataStore {
     static IAzureOperation<?> current() {
         return AzureOperationContext.current().currentOperation();
     }
-
-    interface IContext {
-
-    }
 }

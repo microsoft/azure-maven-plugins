@@ -72,7 +72,7 @@ public class DeployWebAppTask extends AzureTask<IWebAppBase<?>> {
             .filter(artifact -> artifact.getDeployType() != null)
             .collect(Collectors.toList());
         artifactsOneDeploy.forEach(resource -> webApp.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
-        AzureTelemetry.getActionContext().setProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
+        AzureTelemetry.getContext().getActionParent().setProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
     }
 
     private static void stopAppService(IWebAppBase<?> target) {

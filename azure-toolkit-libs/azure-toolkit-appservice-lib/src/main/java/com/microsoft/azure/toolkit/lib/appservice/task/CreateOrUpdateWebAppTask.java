@@ -86,7 +86,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
 
     @AzureOperation(name = "webapp.create_app.app", params = {"this.config.appName()"}, type = Type.SERVICE)
     private WebApp create() {
-        AzureTelemetry.getActionContext().setProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
+        AzureTelemetry.getContext().getActionParent().setProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
         AzureMessager.getMessager().info(String.format(CREATE_WEBAPP, config.appName()));
 
         final Region region = this.config.region();

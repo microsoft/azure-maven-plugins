@@ -122,8 +122,10 @@ public class Action<D> {
 
     protected void handle(D source, Object e, BiConsumer<D, Object> handler) {
         if (source instanceof IAzureBaseResource) {
-            AzureTelemetry.getActionContext().setProperty("subscriptionId", ((IAzureBaseResource<?, ?>) source).subscriptionId());
-            AzureTelemetry.getActionContext().setProperty(RESOURCE_TYPE, source.getClass().getSimpleName());
+            Optional.ofNullable(AzureTelemetry.getContext()).map(AzureTelemetry.Context::getActionParent).ifPresent(c -> {
+                c.setProperty("subscriptionId", ((IAzureBaseResource<?, ?>) source).subscriptionId());
+                c.setProperty("resourceType", source.getClass().getSimpleName());
+            });
         }
         handler.accept(source, e);
     }
