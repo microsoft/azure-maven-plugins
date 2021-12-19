@@ -134,8 +134,8 @@ public class AzureTask<T> implements IAzureOperation<T> {
     }
 
     @Nonnull
-    public String getId() {
-        return "&" + IAzureOperation.super.getId();
+    public String getExecutionId() {
+        return "&" + IAzureOperation.super.getExecutionId();
     }
 
     @Override

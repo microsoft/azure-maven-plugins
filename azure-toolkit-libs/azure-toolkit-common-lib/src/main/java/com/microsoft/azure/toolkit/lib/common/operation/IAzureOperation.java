@@ -18,7 +18,7 @@ public interface IAzureOperation<T> extends DataStore {
     String UNKNOWN_NAME = "<unknown>.<unknown>";
 
     @Nonnull
-    default String getId() {
+    default String getExecutionId() {
         return Utils.getId(this);
     }
 

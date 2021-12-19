@@ -106,8 +106,8 @@ public class AzureTelemeter {
             properties.put(SERVICE_NAME, mainServiceName);
             properties.put(OPERATION_NAME, operationName);
         }
-        properties.put(OP_ID, op.getId());
-        properties.put(OP_PARENT_ID, parent.map(IAzureOperation::getId).orElse("/"));
+        properties.put(OP_ID, op.getExecutionId());
+        properties.put(OP_PARENT_ID, parent.map(IAzureOperation::getExecutionId).orElse("/"));
         properties.put(OP_NAME, name);
         properties.put(OP_TYPE, op.getType());
         properties.putAll(actionProperties);
