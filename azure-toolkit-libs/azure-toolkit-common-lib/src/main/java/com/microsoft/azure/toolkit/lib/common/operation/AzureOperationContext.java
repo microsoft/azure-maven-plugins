@@ -29,9 +29,15 @@ public class AzureOperationContext {
     protected AzureOperationContext parent;
 
     private AzureOperationContext(@Nullable final AzureOperationContext parent) {
-        this.operation = Optional.ofNullable(parent).map(p -> p.operation).orElse(null);
         this.threadId = -1;
-        this.parent = parent;
+        this.setParent(parent);
+    }
+
+    private synchronized void setParent(@Nullable AzureOperationContext parent) {
+        if (!Objects.equals(this.parent, parent)) {
+            this.parent = parent;
+            this.operation = Optional.ofNullable(parent).map(p -> p.operation).orElse(null);
+        }
     }
 
     @Nonnull
@@ -49,7 +55,7 @@ public class AzureOperationContext {
         return this.operation;
     }
 
-    public void pushOperation(final IAzureOperation<?> operation) {
+    public synchronized void pushOperation(final IAzureOperation<?> operation) {
         if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {
             log.fine(String.format("orphan context[%s] is setup", this));
         }
@@ -58,7 +64,7 @@ public class AzureOperationContext {
     }
 
     @Nullable
-    public IAzureOperation<?> popOperation() {
+    public synchronized IAzureOperation<?> popOperation() {
         final IAzureOperation<?> popped = this.operation;
         assert popped != null : "popped operation is null";
         this.operation = popped.getParent();
@@ -93,16 +99,18 @@ public class AzureOperationContext {
         return new AzureOperationContext(this);
     }
 
-    private void setup() {
+    private synchronized void setup() {
         final AzureOperationContext current = AzureOperationContext.current();
         final long threadId = Thread.currentThread().getId();
         assert current.threadId == -1 || current.threadId == threadId : String.format("[threadId:%s] illegal thread context[%s]", threadId, current);
         this.threadId = threadId; // we can not decide in which thread this task will run until here.
-        this.parent = current;
+        if (current.threadId != -1) {
+            this.setParent(current);
+        }
         AzureOperationContext.context.set(this);
     }
 
-    private void dispose() {
+    private synchronized void dispose() {
         final AzureOperationContext current = AzureOperationContext.current();
         final long threadId = Thread.currentThread().getId();
         assert this == current && this.threadId == threadId : String.format("[threadId:%s] disposing context[%s] in context[%s].", threadId, this, current);
