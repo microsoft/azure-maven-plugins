@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.messager;
 
 import com.azure.core.exception.HttpResponseException;
 import com.azure.core.management.exception.ManagementException;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
 import com.microsoft.azure.toolkit.lib.common.DataStore;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
@@ -31,6 +32,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -157,8 +159,9 @@ public class AzureMessage implements IAzureMessage {
         final IAzureOperation<?> current = exceptionOperations.isEmpty() ? AzureOperationContext.current().currentOperation() : exceptionOperations.get(0);
         final List<IAzureOperation<?>> contextOperations = getAncestorOperationsUtilAction(current);
         final Set<Object> seen = ConcurrentHashMap.newKeySet();
-        return Streams.concat(contextOperations.stream(), exceptionOperations.stream())
+        final List<IAzureOperation<?>> operations = Streams.concat(contextOperations.stream(), exceptionOperations.stream())
             .filter(t -> seen.add(t.getName())).collect(Collectors.toList());
+        return Lists.reverse(operations);
     }
 
     @Nonnull
