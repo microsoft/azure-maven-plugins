@@ -5,20 +5,22 @@
 
 package com.microsoft.azure.toolkit.lib.common.telemetry;
 
-import com.microsoft.azure.toolkit.lib.common.operation.MethodOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.MethodOperation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Properties;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Property;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.tuple.Triple;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Parameter;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -120,11 +122,10 @@ public class AzureTelemeter {
 
     private static Map<String, String> getParameterProperties(MethodOperation ref) {
         final HashMap<String, String> properties = new HashMap<>();
-        final Object[] paramValues = ref.getParamValues();
-        final Parameter[] parameters = ref.getMethod().getParameters();
-        for (int i = 0; i < parameters.length; i++) {
-            final Parameter param = parameters[i];
-            final Object value = paramValues[i];
+        final List<Triple<String, Parameter, Object>> args = ref.getInvocation().getArgs();
+        for (final Triple<String, Parameter, Object> arg : args) {
+            final Parameter param = arg.getMiddle();
+            final Object value = arg.getRight();
             Optional.ofNullable(param.getAnnotation(Property.class))
                     .map(Property::value)
                     .map(n -> Property.PARAM_NAME.equals(n) ? param.getName() : n)

@@ -9,6 +9,7 @@ import com.microsoft.azure.toolkit.lib.common.Executable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.utils.aspect.MethodInvocation;
 import lombok.extern.java.Log;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -16,7 +17,6 @@ import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
-import org.aspectj.lang.reflect.MethodSignature;
 
 import java.util.Objects;
 
@@ -110,14 +110,6 @@ public final class AzureOperationAspect {
     }
 
     private static IAzureOperation<?> toOperation(JoinPoint point) {
-        final MethodSignature signature = (MethodSignature) point.getSignature();
-        final Object[] args = point.getArgs();
-        final Object instance = point.getThis();
-        return MethodOperation.builder()
-            .instance(instance)
-            .method(signature.getMethod())
-            .paramNames(signature.getParameterNames())
-            .paramValues(args)
-            .build();
+        return new MethodOperation(MethodInvocation.from(point));
     }
 }

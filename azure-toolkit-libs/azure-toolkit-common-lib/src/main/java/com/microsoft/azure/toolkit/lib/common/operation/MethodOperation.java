@@ -9,47 +9,51 @@ import com.microsoft.azure.toolkit.lib.common.Executable;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.utils.aspect.ExpressionUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.aspect.MethodInvocation;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 
-@SuperBuilder
-public class MethodOperation extends MethodInvocation implements IAzureOperation<Object> {
+@Getter
+@RequiredArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class MethodOperation implements IAzureOperation<Object> {
 
-    @Getter
     @Setter
     private IAzureOperation<?> parent;
+    @EqualsAndHashCode.Include
+    private final MethodInvocation invocation;
 
     @Override
     public String toString() {
-        final AzureOperation annotation = this.getAnnotation(AzureOperation.class);
-        return String.format("{name:'%s', method:%s}", annotation.name(), method.getName());
+        final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
+        return String.format("{name:'%s', method:%s}", annotation.name(), this.invocation.getMethod().getName());
     }
 
     @Nonnull
     public String getName() {
-        final AzureOperation annotation = this.getAnnotation(AzureOperation.class);
+        final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
         return annotation.name();
     }
 
     @Override
     public Executable<Object> getBody() {
-        return () -> this.getMethod().invoke(this.getInstance(), this.getParamValues());
+        return this.invocation::invoke;
     }
 
     @Nonnull
     public String getType() {
-        final AzureOperation annotation = this.getAnnotation(AzureOperation.class);
+        final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
         return annotation.type().name();
     }
 
     public AzureString getTitle() {
-        final AzureOperation annotation = this.getAnnotation(AzureOperation.class);
+        final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
         final String name = annotation.name();
-        final String[] params = Arrays.stream(annotation.params()).map(e -> ExpressionUtils.interpret(e, this)).toArray(String[]::new);
+        final String[] params = Arrays.stream(annotation.params()).map(e -> ExpressionUtils.interpret(e, this.invocation)).toArray(String[]::new);
         return AzureOperationBundle.title(name, (Object[]) params);
     }
 }
