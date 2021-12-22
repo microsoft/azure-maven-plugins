@@ -1,13 +1,11 @@
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for
- * license information.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
 package com.microsoft.azure.toolkit.lib.springcloud.config;
 
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -40,18 +38,12 @@ public class SpringCloudAppConfig {
     }
 
     public static SpringCloudAppConfig fromApp(@Nonnull SpringCloudApp app) { // get config from app
-        final SpringCloudAppEntity appEntity = app.entity();
-        return fromApp(appEntity);
-    }
-
-    @Nonnull
-    public static SpringCloudAppConfig fromApp(SpringCloudAppEntity appEntity) {
-        final SpringCloudDeploymentConfig deploymentConfig = SpringCloudDeploymentConfig.fromDeployment(appEntity.activeDeployment());
+        final SpringCloudDeploymentConfig deploymentConfig = SpringCloudDeploymentConfig.fromDeployment(app.getActiveDeployment());
         final SpringCloudAppConfig appConfig = SpringCloudAppConfig.builder().deployment(deploymentConfig).build();
-        appConfig.setSubscriptionId(appEntity.getSubscriptionId());
-        appConfig.setClusterName(appEntity.getCluster().getName());
-        appConfig.setAppName(appEntity.getName());
-        appConfig.setIsPublic(Objects.equals(appEntity.isPublic(), true));
+        appConfig.setSubscriptionId(app.getSubscriptionId());
+        appConfig.setClusterName(app.getParent().getName());
+        appConfig.setAppName(app.getName());
+        appConfig.setIsPublic(Objects.equals(app.isPublic(), true));
         return appConfig;
     }
 }

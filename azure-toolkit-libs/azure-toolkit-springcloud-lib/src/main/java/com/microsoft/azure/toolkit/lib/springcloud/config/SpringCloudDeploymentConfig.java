@@ -1,15 +1,13 @@
 /*
-  Copyright (c) Microsoft Corporation. All rights reserved.
-  Licensed under the MIT License. See License.txt in the project root for
-  license information.
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
 package com.microsoft.azure.toolkit.lib.springcloud.config;
 
+import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentEntity;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentInstanceEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
@@ -61,10 +59,10 @@ public class SpringCloudDeploymentConfig {
 
     public ScaleSettings getScaleSettings() {
         return ScaleSettings.builder()
-                .capacity(instanceCount)
-                .cpu(cpu)
-                .memoryInGB(memoryInGB)
-                .build();
+            .capacity(instanceCount)
+            .cpu(cpu)
+            .memoryInGB(memoryInGB)
+            .build();
     }
 
     public String getJavaVersion() {
@@ -85,17 +83,17 @@ public class SpringCloudDeploymentConfig {
         }
     }
 
-    public static SpringCloudDeploymentConfig fromDeployment(@Nonnull SpringCloudDeploymentEntity deploymentEntity) { // get config from deployment
-        final List<SpringCloudDeploymentInstanceEntity> instances = deploymentEntity.getInstances();
-        final SpringCloudPersistentDisk disk = deploymentEntity.getApp().getPersistentDisk();
+    public static SpringCloudDeploymentConfig fromDeployment(@Nonnull SpringCloudDeployment deployment) { // get config from deployment
+        final List<DeploymentInstance> instances = deployment.getInstances();
+        final SpringCloudPersistentDisk disk = deployment.getParent().getPersistentDisk();
         final SpringCloudDeploymentConfig deploymentConfig = SpringCloudDeploymentConfig.builder().build();
-        deploymentConfig.setRuntimeVersion(deploymentEntity.getRuntimeVersion());
+        deploymentConfig.setRuntimeVersion(deployment.getRuntimeVersion());
         deploymentConfig.setEnablePersistentStorage(Objects.nonNull(disk) && disk.getSizeInGB() > 0);
-        deploymentConfig.setCpu(deploymentEntity.getCpu());
-        deploymentConfig.setMemoryInGB(deploymentEntity.getMemoryInGB());
+        deploymentConfig.setCpu(deployment.getCpu());
+        deploymentConfig.setMemoryInGB(deployment.getMemoryInGB());
         deploymentConfig.setInstanceCount(instances.size());
-        deploymentConfig.setJvmOptions(Optional.ofNullable(deploymentEntity.getJvmOptions()).map(String::trim).orElse(""));
-        deploymentConfig.setEnvironment(Optional.ofNullable(deploymentEntity.getEnvironmentVariables()).orElse(new HashMap<>()));
+        deploymentConfig.setJvmOptions(Optional.ofNullable(deployment.getJvmOptions()).map(String::trim).orElse(""));
+        deploymentConfig.setEnvironment(Optional.ofNullable(deployment.getEnvironmentVariables()).orElse(new HashMap<>()));
         return deploymentConfig;
     }
 
