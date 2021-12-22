@@ -32,7 +32,7 @@ import javax.annotation.Nonnull;
 @Getter
 public class SpringCloudDeploymentInstanceEntity {
     @Nonnull
-    private final SpringCloudDeploymentEntity deployment;
+    private final SpringCloudDeployment deployment;
     @Nonnull
     private final String name;
     @Nonnull
@@ -40,7 +40,7 @@ public class SpringCloudDeploymentInstanceEntity {
     @Getter(AccessLevel.PACKAGE)
     private final transient DeploymentInstance remote;
 
-    SpringCloudDeploymentInstanceEntity(@Nonnull DeploymentInstance remote, @Nonnull SpringCloudDeploymentEntity deployment) {
+    SpringCloudDeploymentInstanceEntity(@Nonnull DeploymentInstance remote, @Nonnull SpringCloudDeployment deployment) {
         this.remote = remote;
         this.name = remote.name();
         this.deployment = deployment;

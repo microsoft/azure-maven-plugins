@@ -3,13 +3,12 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.design.sp;
+package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.design.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -66,16 +65,6 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
         this.doModify(() -> this.getRemote().getActiveDeployment().restart());
     }
 
-    @AzureOperation(name = "springcloud.remove_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
-    public void delete() {
-        this.getModule().delete(this.getName(), this.getResourceGroup());
-    }
-
-    @AzureOperation(name = "springcloud.remove_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
-    public void update(SpringCloudAppConfig config) {
-        this.getModule().update(this.getName(), this.getResourceGroup(), config);
-    }
-
     // READ
     public boolean isPublic() {
         if (Objects.nonNull(this.getRemote())) {
@@ -86,12 +75,12 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     @Nullable
     public String getActiveDeploymentName() {
-        return this.getRemote().activeDeploymentName();
+        return Optional.ofNullable(this.getRemote()).map(SpringApp::activeDeploymentName).orElse(null);
     }
 
     @Nullable
     public SpringCloudDeployment getActiveDeployment() {
-        return this.deployments().get(this.getActiveDeploymentName(), this.getResourceGroup());
+        return Optional.ofNullable(this.getActiveDeploymentName()).map(n -> this.deployments().get(n, this.getResourceGroup())).orElse(null);
     }
 
     @Nullable

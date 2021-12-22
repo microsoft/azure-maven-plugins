@@ -3,12 +3,13 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.design;
+package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -45,6 +46,45 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         });
     }
 
+    public void create() { // TODO: add async one
+        this.create(null);
+    }
+
+    @Override
+    public void create(Object config) { // TODO: add async one
+        try {
+            this.doModify(() -> {
+                final R remote = this.module.createResourceInAzure(name, resourceGroup, config);
+                this.setRemote(remote);
+            });
+        } catch (Throwable e) { // TODO: handle exception
+        }
+    }
+
+    @Override
+    public void update(@Nonnull Object config) { // TODO: add async one
+        try {
+            assert this.exists();
+            this.doModify(() -> {
+                final R remote = this.module.updateResourceInAzure(Objects.requireNonNull(this.getRemote()), config);
+                this.setRemote(remote);
+            });
+        } catch (Throwable e) { // TODO: handle exception
+        }
+    }
+
+    @Override
+    public void delete() { // TODO: add async one
+        try {
+            assert this.exists();
+            this.doModify(() -> {
+                this.module.deleteResourceFromAzure(this.getId());
+                this.module.deleteResourceFromLocal(name);
+            });
+        } catch (Throwable ignored) { // TODO: handle exception
+        }
+    }
+
     public final void setRemote(R remote) {
         this.remote = remote;
         this.setStatus(Objects.isNull(remote) ? Status.DISCONNECTED : this.loadStatus(this.remote));
@@ -66,6 +106,12 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             this.status = status;
             AzureEventBus.emit("common|resource.status_changed", this);
         }
+    }
+
+    @Nonnull
+    public String getId() {
+        final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
+        return String.format("%s/%s", this.getModule().getId(), name).replace(AzResource.RESOURCE_GROUP_PLACEHOLDER, rg);
     }
 
     @Nonnull

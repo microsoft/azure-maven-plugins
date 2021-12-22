@@ -20,7 +20,7 @@ public class Azure {
         this.configuration = new AzureConfiguration();
     }
 
-    public static synchronized <T extends AzureService> T az(final Class<T> clazz) {
+    public static synchronized <T extends AzService> T az(final Class<T> clazz) {
         T service = getService(clazz);
         if (service == null) {
             Holder.loader.reload();
@@ -33,8 +33,8 @@ public class Azure {
     }
 
     @Nullable
-    private static <T extends AzureService> T getService(Class<T> clazz) {
-        for (AzureService service : Holder.loader) {
+    private static <T extends AzService> T getService(Class<T> clazz) {
+        for (AzService service : Holder.loader) {
             if (clazz.isInstance(service)) {
                 return clazz.cast(service);
             }
@@ -43,9 +43,9 @@ public class Azure {
     }
 
     @Nullable
-    public static <T extends AzureService> List<T> getServices(Class<T> clazz) {
+    public static <T extends AzService> List<T> getServices(Class<T> clazz) {
         final List<T> result = new ArrayList<>();
-        for (AzureService service : Holder.loader) {
+        for (AzService service : Holder.loader) {
             if (clazz.isInstance(service)) {
                 result.add(clazz.cast(service));
             }
@@ -62,6 +62,6 @@ public class Azure {
     }
 
     private static class Holder {
-        private static final ServiceLoader<AzureService> loader = ServiceLoader.load(AzureService.class);
+        private static final ServiceLoader<AzService> loader = ServiceLoader.load(AzService.class);
     }
 }
