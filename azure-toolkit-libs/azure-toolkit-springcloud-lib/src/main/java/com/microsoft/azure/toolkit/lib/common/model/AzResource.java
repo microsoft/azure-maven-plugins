@@ -3,14 +3,13 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.design;
+package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
-import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -44,6 +43,12 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
     default String getSubscriptionId() {
         return this.getModule().getSubscriptionId();
     }
+
+    void create(Object config);
+
+    void update(@Nonnull Object config);
+
+    void delete();
 
     @Nullable
     R getRemote();

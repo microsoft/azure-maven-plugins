@@ -3,11 +3,11 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.design.sp;
+package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
-import com.microsoft.azure.toolkit.lib.design.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.design.AzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;

@@ -3,23 +3,23 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.design.sp;
+package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.design.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.design.AzResource;
-import com.microsoft.azure.toolkit.lib.design.AzService;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -58,17 +58,17 @@ public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloud
     }
 
     @Override
-    protected AppPlatformManager createResourceInAzure(String name, String resourceGroup, Object config) {
+    protected AppPlatformManager createResourceInAzure(@Nonnull String name, @Nonnull String resourceGroup, Object config) {
         throw new AzureToolkitRuntimeException("not supported");
     }
 
     @Override
-    protected AppPlatformManager updateResourceInAzure(AppPlatformManager remote, Object config) {
+    protected AppPlatformManager updateResourceInAzure(@Nonnull AppPlatformManager remote, Object config) {
         throw new AzureToolkitRuntimeException("not supported");
     }
 
     @Override
-    protected SpringCloudResourceManager createNewResource(String name, String resourceGroup, Object config) {
+    protected SpringCloudResourceManager initNewResource(@Nonnull String name, @Nonnull String resourceGroup) {
         throw new AzureToolkitRuntimeException("not supported");
     }
 
@@ -84,9 +84,9 @@ public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloud
 
     @Nonnull
     @Override
-    public String toResourceId(@Nonnull String name, String resourceGroup) {
+    public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
         final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
-        return String.format("/subscriptions/%s/resourceGroups/%s/providers/%s", name, rg, this.getName());
+        return String.format("/subscriptions/%s/resourceGroups/%s/providers/%s", resourceName, rg, this.getName());
     }
 
     private static HttpPipelinePolicy getUserAgentPolicy(String userAgent) {

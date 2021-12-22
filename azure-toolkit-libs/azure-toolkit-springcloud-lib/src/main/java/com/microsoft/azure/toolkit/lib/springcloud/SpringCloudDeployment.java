@@ -3,14 +3,16 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.design.sp;
+package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
 import com.azure.resourcemanager.appplatform.models.DeploymentResourceStatus;
 import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.google.common.base.Charsets;
-import com.microsoft.azure.toolkit.lib.design.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import io.netty.handler.codec.http.HttpHeaders;
 import lombok.SneakyThrows;
@@ -96,6 +98,20 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
             .get()
             .uri(endpoint.build())
             .response((resp, cont) -> resp.status().code() == 200 ? cont.asString(Charsets.UTF_8) : Mono.empty());
+    }
+
+    @AzureOperation(
+        name = "springcloud.wait_until_deployment_ready.deployment|app",
+        params = {"this.entity().getName()", "this.app.name()"},
+        type = AzureOperation.Type.SERVICE
+    )
+    public boolean waitUntilReady(int timeoutInSeconds) {
+        AzureMessager.getMessager().info("Getting deployment status...");
+        final SpringCloudDeployment deployment = Utils.pollUntil(() -> {
+            this.refresh();
+            return this;
+        }, Utils::isDeploymentDone, timeoutInSeconds);
+        return Utils.isDeploymentDone(deployment);
     }
 
     @Nonnull

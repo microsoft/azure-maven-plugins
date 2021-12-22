@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.design;
+package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingById;
 import com.azure.resourcemanager.resources.fluentcore.collection.SupportsDeletingById;
@@ -15,9 +15,11 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
@@ -41,6 +43,12 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         return new ArrayList<>(this.resources.values());
     }
 
+    @Nonnull
+    public T getOrInit(@Nonnull String name, String resourceGroup) {
+        return Optional.ofNullable(this.get(name, resourceGroup)).orElse(this.init(name, resourceGroup));
+    }
+
+    @Nullable
     @Override
     public T get(@Nonnull String name, String resourceGroup) {
         if (!this.resources.containsKey(name)) {
@@ -55,34 +63,15 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         return this.resources.get(name);
     }
 
+    @Nonnull
     @Override
-    public T create(@Nonnull String name, String resourceGroup, Object config) { // TODO: add async one
+    public T init(@Nonnull String name, String resourceGroup) { // TODO: add async one
         if (this.resources.containsKey(name)) {
             throw new AzureToolkitRuntimeException(String.format("resource named \"%s\" is existent", name));
         }
-        T wrapper = this.createNewResource(name, resourceGroup, config);
-        try {
-            wrapper.doModify(() -> {
-                final R remote = this.createResourceInAzure(name, resourceGroup, config);
-                wrapper.setRemote(remote);
-            });
-        } catch (Throwable e) { // TODO: handle exception
-        }
+        T wrapper = this.initNewResource(name, resourceGroup);
         this.resources.putIfAbsent(name, wrapper);
         return wrapper;
-    }
-
-    @Override
-    public void update(@Nonnull String name, String resourceGroup, Object config) { // TODO: add async one
-        final T wrapper = this.get(name, resourceGroup);
-        try {
-            assert wrapper != null;
-            wrapper.doModify(() -> {
-                final R remote = this.updateResourceInAzure(wrapper.getRemote(), config);
-                wrapper.setRemote(remote);
-            });
-        } catch (Throwable e) { // TODO: handle exception
-        }
     }
 
     @Override
@@ -90,10 +79,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         final T wrapper = this.get(name, resourceGroup);
         try {
             assert wrapper != null;
-            wrapper.doModify(() -> {
-                this.deleteResourceFromAzure(toResourceId(name, resourceGroup));
-                this.resources.remove(name);
-            });
+            wrapper.delete();
         } catch (Throwable ignored) { // TODO: handle exception
         }
     }
@@ -111,9 +97,13 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
-    public String toResourceId(@Nonnull String name, String resourceGroup) {
+    public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
         final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
-        return String.format("%s/%s/%s", this.parent.getId(), this.getName(), name).replace(AzResource.RESOURCE_GROUP_PLACEHOLDER, rg);
+        return String.format("%s/%s/%s", this.parent.getId(), this.getName(), resourceName).replace(AzResource.RESOURCE_GROUP_PLACEHOLDER, rg);
+    }
+
+    protected void deleteResourceFromLocal(String name) {
+        this.resources.remove(name);
     }
 
     protected Stream<R> loadResourcesFromAzure() {
@@ -137,11 +127,11 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         throw new AzureToolkitRuntimeException("`getClient()` is not implemented");
     }
 
-    protected abstract R createResourceInAzure(String name, String resourceGroup, Object config);
+    protected abstract R createResourceInAzure(@Nonnull String name, @Nonnull String resourceGroup, Object config);
 
-    protected abstract R updateResourceInAzure(R remote, Object config);
+    protected abstract R updateResourceInAzure(@Nonnull R remote, Object config);
 
-    protected abstract T createNewResource(String name, String resourceGroup, Object config);
+    protected abstract T initNewResource(@Nonnull String name, @Nonnull String resourceGroup);
 
     protected abstract T wrap(R r);
 

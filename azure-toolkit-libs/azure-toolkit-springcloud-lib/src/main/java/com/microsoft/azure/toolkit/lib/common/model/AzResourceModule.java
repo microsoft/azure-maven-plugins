@@ -3,10 +3,11 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.design;
+package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,9 +22,7 @@ public interface AzResourceModule<T extends AzResource<T, P, ?>, P extends AzRes
     @Nullable
     T get(@Nonnull String name, String resourceGroup);
 
-    T create(@Nonnull String name, String resourceGroup, Object config);
-
-    void update(@Nonnull String name, String resourceGroup, Object config);
+    T init(@Nonnull String name, String resourceGroup);
 
     void delete(@Nonnull String name, String resourceGroup);
 
@@ -52,17 +51,17 @@ public interface AzResourceModule<T extends AzResource<T, P, ?>, P extends AzRes
         }
 
         @Override
-        protected Void createResourceInAzure(String name, String resourceGroup, Object config) {
+        protected Void createResourceInAzure(@Nonnull String name, @Nonnull String resourceGroup, Object config) {
             throw new AzureToolkitRuntimeException("not supported");
         }
 
         @Override
-        protected Void updateResourceInAzure(Void remote, Object config) {
+        protected Void updateResourceInAzure(@Nonnull Void remote, Object config) {
             throw new AzureToolkitRuntimeException("not supported");
         }
 
         @Override
-        protected AzResource.None createNewResource(String name, String resourceGroup, Object config) {
+        protected AzResource.None initNewResource(@Nonnull String name, @Nonnull String resourceGroup) {
             return AzResource.NONE;
         }
 
