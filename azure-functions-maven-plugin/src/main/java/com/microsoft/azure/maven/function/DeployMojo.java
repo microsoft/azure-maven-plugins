@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
@@ -32,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.util.Arrays;
@@ -41,7 +43,7 @@ import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigU
 import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.mergeAppServiceConfig;
 
 /**
- * Deploy artifacts to target Azure Functions in Azure. If target Azure Functions doesn't exist, it will be created.
+ * Deploy your project to target Azure Functions. If target Function App doesn't exist, it will be created.
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
@@ -74,6 +76,17 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String EXPANDABLE_REGION_WARNING = "'%s' may not be a valid region, " +
             "please refer to https://aka.ms/maven_function_configuration#supported-regions for valid values";
     private static final String EXPANDABLE_JAVA_VERSION_WARNING = "'%s' may not be a valid java version, recommended values are `Java 8` and `Java 11`";
+
+    /**
+     * Specifies the deployment approach to use, valid values are FTP, ZIP, MSDEPLOY, RUN_FROM_ZIP, RUN_FROM_BLOB <p>
+     * For Windows Function Apps, the default deployment method is RUN_FROM_ZIP <p>
+     * For Linux Function Apps, RUN_FROM_BLOB will be used for apps with Consumption and Premium App Service Plan,
+     * RUN_FROM_ZIP will be used for apps with Dedicated App Service Plan.
+     * @since 0.1.0
+     */
+    @JsonProperty
+    @Parameter(property = "deploymentType")
+    protected String deploymentType;
 
     @Override
     @AzureOperation(name = "functionapp.deploy_app", type = AzureOperation.Type.ACTION)

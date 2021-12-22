@@ -20,7 +20,6 @@ import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.IOException;
@@ -52,33 +51,6 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     protected String appName;
 
     /**
-     * Deployment type to deploy Web App or Function App.
-     *
-     * Supported values for Web App:
-     * <ul>
-     *      <li>FTP - {@code <resources>} specifies configurations for this kind of deployment.</li>
-     *      <li>ZIP - {@code <resources>} specifies configurations for this kind of deployment.</li>
-     *      <li>WAR - {@code <warFile>} and {@code <path>} specifies configurations for this kind of deployment.</li>
-     *      <li>JAR - {@code <jarFile>} and {@code <path>} specifies configurations for this kind of deployment.</li>
-     *      <li>AUTO - inspects {@code <packaging>} of the Maven project and uses WAR, JAR </li>
-     *      <li>NONE - does nothing</li>
-     *      <li>* defaults to AUTO if nothing is specified</li>
-     * </ul>
-     *
-     * Supported values for Function App:
-     * <ul>
-     *      <li>MSDEPLOY</li>
-     *      <li>FTP</li>
-     *      <li>ZIP</li>
-     *      <li>* defaults to ZIP if nothing is specified</li>
-     * </ul>
-     * @since 0.1.0
-     */
-    @JsonProperty
-    @Parameter(property = "deploymentType")
-    protected String deploymentType;
-
-    /**
      * Resource group of App Service Plan. It will be created if it doesn't exist.
      */
     @JsonProperty
@@ -93,8 +65,23 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     protected String appServicePlanName;
 
     /**
-     * Deployment Slot. It will be created if it does not exist.
+     * Configuration for deployment Slot. will created new slot if target does not exists
      * It requires the web app exists already.
+     * <pre>
+     * {@code
+     * <deploymentSlotSetting>
+     *     <name>Slot-Name</name>
+     *     <configurationSource>Source</value>
+     * </deploymentSlotSetting>
+     * }
+     * </pre>
+     *
+     * Parameters for deployment slot
+     * <ul>
+     * <li> name: Specifies the name for deployment slot. </li>
+     * <li> configurationSource: Specifies the configuration source of new created deployment slot, could be parent or existing deployment slot name,
+     * default value is parent </li>
+     * </ul>
      */
     @JsonProperty("deploymentSlot")
     @Parameter(alias = "deploymentSlot")
@@ -141,10 +128,6 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
             appSettings = new Properties();
         }
         return appSettings;
-    }
-
-    public DeploymentType getDeploymentType() throws AzureExecutionException {
-        return DeploymentType.fromString(deploymentType);
     }
 
     public DeploymentSlotSetting getDeploymentSlotSetting() {

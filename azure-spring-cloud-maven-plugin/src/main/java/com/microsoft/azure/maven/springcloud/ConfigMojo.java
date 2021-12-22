@@ -48,7 +48,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * The Mojo for 'config' goal.
+ * Generate configuration for spring cloud maven plugin.
  */
 @Mojo(name = "config", requiresDirectInvocation = true, aggregator = true)
 public class ConfigMojo extends AbstractMojoBase {

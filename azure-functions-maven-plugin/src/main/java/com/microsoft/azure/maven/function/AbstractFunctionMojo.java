@@ -28,21 +28,8 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     //region Properties
     /**
-     * App Service pricing tier, which will only be used to create Functions App at the first time.<p>
-     * Below is the list of supported pricing tier:
-     * <ul>
-     *     <li>F1</li>
-     *     <li>D1</li>
-     *     <li>B1</li>
-     *     <li>B2</li>
-     *     <li>B3</li>
-     *     <li>S1</li>
-     *     <li>S2</li>
-     *     <li>S3</li>
-     *     <li>P1V2</li>
-     *     <li>P2V2</li>
-     *     <li>P3V2</li>
-     * </ul>
+     * App Service pricing tier, will be used to create new service plan or update the existing one<p>
+     * Supported values : CONSUMPTION, B1, B2, B3, S1, S2, S3, P1V2, P2V2, P3V2, P1V3, P2V3, P3V3, EP1, EP2, EP3
      */
     @Getter
     @Parameter(property = "functions.pricingTier")
@@ -55,8 +42,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     protected File outputDirectory;
 
     /**
-     * Skip execution.
-     *
+     * Boolean flag to skip the execution of Maven Plugin for Azure Functions
      * @since 0.1.0
      */
     @Parameter(property = "functions.skip", defaultValue = "false")
@@ -64,19 +50,58 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     /**
      * App Service region, which will only be used to create App Service at the first time.
+     * @since 1.2.0
      */
     @Parameter(property = "functions.region")
     protected String region;
 
+    /**
+     * The configuration for Function App runtime environment <p>
+     * For Windows/Linux Function App, you may also set `JavaVersion` in `runtime`, supported values are `Java 8` and `Java 11` <p>
+     * <pre>
+     * {@code
+     * <runtime>
+     *     <os>windows</os>
+     *     <javaVersion>Java 8</javaVersion>
+     * </runtime>
+     * }
+     * </pre>
+     * For Docker Function App, please set the image, registryUrl and serverId<p>
+     * <pre>
+     * {@code
+     * <runtime>
+     *     <os>docker</os>
+     *     <image>[hub-user/]repo-name[:tag]</image>
+     *     <serverId></serverId>
+     *     <registryUrl></registryUrl> <!- could be omitted for docker hub images -->
+     * </runtime>
+     * }
+     * </pre>
+     * For private docker images, please set your username and password in maven settings.xml and refer it with `serverId` in runtime configuration
+     * @since 1.4.0
+     */
     @Parameter(property = "functions.runtime")
     protected RuntimeConfiguration runtime;
 
+    /**
+     * Name of the application insight instance which will bind to your function app, must be in the same resource group with function app.
+     * Will be skipped if `appInsightsKey` is specified
+     * @since 1.6.0
+     */
     @Parameter(property = "functions.appInsightsInstance")
     protected String appInsightsInstance;
 
+    /**
+     * Instrumentation key of application insights which will bind to your function app
+     * @since 1.6.0
+     */
     @Parameter(property = "functions.appInsightsKey")
     protected String appInsightsKey;
 
+    /**
+     * Boolean flag to enable/disable application insights for Function App
+     * @since 1.6.0
+     */
     @Parameter(property = "functions.disableAppInsights", defaultValue = "false")
     protected boolean disableAppInsights;
 

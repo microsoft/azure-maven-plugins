@@ -47,7 +47,6 @@ import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -91,12 +90,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     public static final String INSTALLATION_ID_KEY = "installationId";
     public static final String SESSION_ID_KEY = "sessionId";
     public static final String SUBSCRIPTION_ID_KEY = "subscriptionId";
-    protected static final String DEPLOY = "deploy";
     private static final String AUTH_TYPE = "authType";
     private static final String AUTH_METHOD = "authMethod";
     private static final String TELEMETRY_NOT_ALLOWED = "TelemetryNotAllowed";
-    private static final String INIT_FAILURE = "InitFailure";
-    private static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
     private static final String JVM_UP_TIME = "jvmUpTime";
     private static final String CONFIGURATION_PATH = Paths.get(System.getProperty("user.home"),
             ".azure", "mavenplugins.properties").toString();
@@ -111,8 +107,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     protected static final String USING_AZURE_ENVIRONMENT = "Using Azure environment: %s.";
     protected static final String SUBSCRIPTION_NOT_FOUND = "Subscription %s was not found in current account.";
 
-    private static final String INVALID_AZURE_ENVIRONMENT = "Invalid environment string '%s', please replace it with one of " +
-            "\"Azure\", \"AzureChina\", \"AzureGermany\", \"AzureUSGovernment\",.";
     private static final String AZURE_ENVIRONMENT = "azureEnvironment";
     private static final String PROXY = "proxy";
 
@@ -151,12 +145,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     protected MavenResourcesFiltering mavenResourcesFiltering;
 
     /**
-     * Azure subscription Id. You only need to specify it when:
-     * <ul>
-     * <li>you are using authentication file</li>
-     * <li>there are more than one subscription in the authentication file</li>
-     * </ul>
-     *
+     * Azure subscription Id. You only need to specify it when there are more than one subscription in your account
      * @since 0.1.0
      */
     @JsonProperty
@@ -166,7 +155,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
 
     /**
      * Boolean flag to turn on/off telemetry within current Maven plugin.
-     *
      * @since 0.1.0
      */
     @Getter
@@ -177,7 +165,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     /**
      * Boolean flag to control whether throwing exception from current Maven plugin when meeting any error.<p>
      * If set to true, the exception from current Maven plugin will fail the current Maven run.
-     *
      * @since 0.1.0
      */
     @Getter
@@ -186,30 +173,56 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     protected boolean failsOnError;
 
     /**
-     * Use a HTTP proxy host for the Azure Auth Client
-     */
-    @JsonProperty
-    @Parameter(property = "httpProxyHost")
-    @Getter
-    protected String httpProxyHost;
-
-    /**
-     * Use a HTTP proxy port for the Azure Auth Client
-     */
-    @JsonProperty
-    @Parameter(property = "httpProxyPort")
-    protected String httpProxyPort;
-
-    /**
-     * Authentication type, could be oauth2, device_code, azure_cli,..., see <code>AuthType</code>
-     * If this is not set, maven plugin try all available auth methods with certain order
-     *
+     * Deprecated, please set the authentication type in `auth`
      * @since 1.2.13
      */
     @JsonProperty
+    @Deprecated
     @Parameter(property = "authType")
     protected String authType;
 
+    /**
+     * Configuration for maven plugin authentication
+     *
+     * Parameters for authentication
+     * <ul>
+     * <li> type: specify which authentication method to use, default to be `auto`:</li>
+     * <ul>
+     *         <li> service_principal : Will use credential specified in plugin configuration or Maven settings.xml,
+     *         this is also the first priority authentication method in auto</li>
+     *         <li> azure_cli : Will use credential provided by Azure CLI, this could also be used in Azure Cloud Shell</li>
+     *         <li> oauth2 : Will use credential provided by oauth2, a browser will be opened, you need to follow the page to follow the login process</li>
+     *         <li> device_code : Similar to oauth2, it provides you a login-code together with an url, you need to open a browser at any machine and fill-in
+     *         the login-code, then you can follow the page to follow to finish the login process on the web page</li>
+     *         <li> auto: The default auth type, it will try all the auth methods in the following sequence: service_principal, azure_cli, oauth2, device_code </li>
+     * <ul/>
+     * <li> environment: Specifies the target Azure cloud environment<p>
+     *     Supported values are: `azure`, `azure_china`, `azure_germany`, `azure_us_government`
+     * </li>
+     * <li> client: Specifies the Client ID of your service principal.</li>
+     * <li> tenant: Specifies the Tenant ID of your service principal.</li>
+     * <li> key: Specifies the password if your service principal uses password authentication.</li>
+     * <li> certificate: Specifies the absolute path of your certificate if your service principal uses certificate authentication.<p>
+     *      Note: Only PKCS12 certificates are supported.</li>
+     * <li> certificatePassword: Specifies the password for your certificate, if there is any</li>
+     * <li> serverId: It is recommended to store service principals above in Maven settings.xml and refer in maven configuration with server id</li>
+     * </ul>
+     *
+     * Example for service principal configuration in maven `settings.xml`
+     * <pre>
+     * {@code
+     * <server>
+     *    <id>azure-sp-auth1</id>
+     *    <configuration>
+     *        <client>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</client>
+     *        <tenant>yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy</tenant>
+     *        <key>---</key>
+     *        <environment>azure</environment>
+     *    </configuration>
+     * </server>
+     * }
+     * </pre>
+     */
     @JsonProperty
     @Parameter(property = "auth")
     protected MavenAuthConfiguration auth;
@@ -258,10 +271,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         return isAllowTelemetry() ? String.format("%s/%s %s:%s %s:%s", getPluginName(), getPluginVersion(),
                 INSTALLATION_ID_KEY, getInstallationId(), SESSION_ID_KEY, getSessionId())
                 : String.format("%s/%s", getPluginName(), getPluginVersion());
-    }
-
-    public int getHttpProxyPort() {
-        return NumberUtils.toInt(httpProxyPort, 0);
     }
 
     protected String getAuthType() {

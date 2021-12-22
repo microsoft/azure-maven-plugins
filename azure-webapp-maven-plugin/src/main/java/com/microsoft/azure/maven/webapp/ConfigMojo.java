@@ -57,7 +57,7 @@ import static com.microsoft.azure.maven.webapp.utils.Utils.findStringInCollectio
 import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.fromAppService;
 
 /**
- * Init or edit the configuration of azure webapp maven plugin.
+ * Generate configuration for web app maven plugin or init the configuration from existing app service instance.
  */
 @Mojo(name = "config")
 public class ConfigMojo extends AbstractWebAppMojo {

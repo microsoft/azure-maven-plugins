@@ -29,6 +29,9 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Deploy your project to target Azure Spring Cloud app. If target app doesn't exist, it will be created.
+ */
 @Mojo(name = "deploy")
 @Slf4j
 public class DeployMojo extends AbstractMojoBase {
@@ -44,9 +47,15 @@ public class DeployMojo extends AbstractMojoBase {
     private static final String CONFIRM_PROMPT_START = "`azure-spring-cloud:deploy` will perform the following tasks";
     private static final String CONFIRM_PROMPT_CONFIRM = "Perform the above tasks? (Y/n):";
 
+    /**
+     * Boolean flag to control whether to wait the deployment status to be ready after deployment
+     */
     @Parameter(property = "noWait")
     private boolean noWait;
 
+    /**
+     * Boolean flag to control whether to prompt the tasks before deployment
+     */
     @Parameter(property = "prompt")
     private boolean prompt;
 
