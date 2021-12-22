@@ -14,13 +14,14 @@ import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureResource;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterModule;
 import lombok.Lombok;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
@@ -311,18 +312,18 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private void selectAppCluster() throws IOException, InvalidConfigurationException {
-        final AzureSpringCloud az = Azure.az(AzureSpringCloud.class).subscription(subscriptionId);
+        final SpringCloudClusterModule az = Azure.az(AzureSpringCloud.class).clusters(subscriptionId);
         if (StringUtils.isNotBlank(clusterName)) {
-            final SpringCloudCluster cluster = az.cluster(this.clusterName);
+            final SpringCloudCluster cluster = az.get(this.clusterName, null);
             if (Objects.nonNull(cluster) && cluster.exists()) {
-                this.appSettings.setClusterName(cluster.name());
+                this.appSettings.setClusterName(cluster.getName());
                 return;
             }
             getLog().warn(String.format("Cannot find Azure Spring Cloud Service with name: %s.", TextUtils.yellow(this.clusterName)));
         }
-        final List<SpringCloudCluster> clusters = az.clusters();
+        final List<SpringCloudCluster> clusters = az.list();
         this.wrapper.putCommonVariable("clusters", clusters);
-        final SpringCloudCluster targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, IAzureResource::name);
+        final SpringCloudCluster targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, AbstractAzResource::getName);
         if (targetAppCluster != null) {
             this.appSettings.setClusterName(targetAppCluster.name());
             getLog().info(String.format("Using service: %s", TextUtils.blue(targetAppCluster.name())));
