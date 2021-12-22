@@ -82,13 +82,20 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         if (toCreateApp) {
             tasks.add(new AzureTask<Void>(CREATE_APP_TITLE, () -> app.create().commit()));
         }
-        tasks.add(new AzureTask<Void>(DEPLOYMENT_TITLE, () -> (toCreateDeployment ? deployment.create() : deployment.refresh().update())
-            .configEnvironmentVariables(env)
-            .configJvmOptions(jvmOptions)
-            .configScaleSettings(scaleSettings)
-            .configRuntimeVersion(runtimeVersion)
-            .configArtifact(file)
-            .commit()));
+        tasks.add(new AzureTask<Void>(DEPLOYMENT_TITLE, () -> {
+            SpringCloudDeployment.Modifier modifier = deployment.create();
+            if (!toCreateDeployment) {
+                deployment.refresh();
+                modifier = deployment.update();
+            }
+            modifier
+                .configEnvironmentVariables(env)
+                .configJvmOptions(jvmOptions)
+                .configScaleSettings(scaleSettings)
+                .configRuntimeVersion(runtimeVersion)
+                .configArtifact(file)
+                .commit();
+        }));
         tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, () -> app.update()
             // active deployment should keep active.
             .activate(StringUtils.firstNonBlank(app.activeDeploymentName(), toCreateDeployment ? deploymentName : null))

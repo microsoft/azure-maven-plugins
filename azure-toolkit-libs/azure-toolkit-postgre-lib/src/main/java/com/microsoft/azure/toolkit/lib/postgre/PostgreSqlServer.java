@@ -60,9 +60,9 @@ public class PostgreSqlServer extends AbstractAzureResource<PostgreSqlServer, Po
     }
 
     @Override
-    public PostgreSqlServer refresh() {
+    public void refresh() {
         try {
-            return super.refresh();
+            super.refresh();
         } finally {
             try {
                 CacheManager.evictCache("postgre/{}", this.id());

@@ -52,7 +52,7 @@ public abstract class AbstractAzureManager<T extends HasId> {
         return Objects.nonNull(this.remote);
     }
 
-    public synchronized AbstractAzureManager<T> refresh() {
+    public synchronized void refresh() {
         try {
             this.remote = loadRemote();
             this.isRefreshed = true;
@@ -64,7 +64,6 @@ public abstract class AbstractAzureManager<T extends HasId> {
                 throw e;
             }
         }
-        return this;
     }
 
     @Nonnull

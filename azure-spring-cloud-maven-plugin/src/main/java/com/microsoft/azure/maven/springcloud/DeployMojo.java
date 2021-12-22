@@ -96,7 +96,10 @@ public class DeployMojo extends AbstractMojoBase {
         log.info("Getting public url of app({})...", TextUtils.cyan(app.name()));
         String publicUrl = app.entity().getApplicationUrl();
         if (!noWait && StringUtils.isEmpty(publicUrl)) {
-            publicUrl = Utils.pollUntil(() -> app.refresh().entity().getApplicationUrl(), StringUtils::isNotBlank, GET_URL_TIMEOUT);
+            publicUrl = Utils.pollUntil(() -> {
+                app.refresh();
+                return app.entity().getApplicationUrl();
+            }, StringUtils::isNotBlank, GET_URL_TIMEOUT);
         }
         if (StringUtils.isEmpty(publicUrl)) {
             log.warn("Failed to get application url");
