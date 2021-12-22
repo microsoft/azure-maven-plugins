@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.design.sp;
 
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource.Status;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.design.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;

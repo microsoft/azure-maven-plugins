@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.design.sp;
 
-
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringApps;
