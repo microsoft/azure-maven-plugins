@@ -124,9 +124,9 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     }
 
     @Override
-    public AbstractAppService<com.azure.resourcemanager.appservice.models.WebApp, WebAppEntity> refresh() {
+    public void refresh() {
         try {
-            return super.refresh();
+            super.refresh();
         } finally {
             try {
                 CacheManager.evictCache("appservice/webapp/{}/slots", this.name());

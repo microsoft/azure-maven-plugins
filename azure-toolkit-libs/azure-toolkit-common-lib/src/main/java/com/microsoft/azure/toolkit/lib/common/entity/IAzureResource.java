@@ -9,7 +9,7 @@ import org.apache.commons.lang3.NotImplementedException;
 import javax.annotation.Nullable;
 
 public interface IAzureResource<T extends IAzureResourceEntity> extends IAzureBaseResource<IAzureBaseResource, IAzureBaseResource> {
-    IAzureResource<T> refresh();
+    void refresh();
 
     T entity();
 

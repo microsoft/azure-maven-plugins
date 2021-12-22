@@ -108,7 +108,10 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
     )
     public boolean waitUntilReady(int timeoutInSeconds) {
         AzureMessager.getMessager().info("Getting deployment status...");
-        final SpringCloudDeployment deployment = Utils.pollUntil(this::refresh, Utils::isDeploymentDone, timeoutInSeconds);
+        final SpringCloudDeployment deployment = Utils.pollUntil(() -> {
+            this.refresh();
+            return this;
+        }, Utils::isDeploymentDone, timeoutInSeconds);
         return Utils.isDeploymentDone(deployment);
     }
 

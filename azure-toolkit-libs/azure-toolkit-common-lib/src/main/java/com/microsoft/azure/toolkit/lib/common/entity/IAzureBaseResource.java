@@ -20,39 +20,48 @@ public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzu
     String REST_SEGMENT_JOB_MANAGEMENT_RESOURCE = "/resource";
 
     @Nullable
+    @Deprecated
     default P parent() {
         return null;
     }
 
     // todo: Change to Nonnull
     @Nullable
+    @Deprecated
     default IAzureModule<? extends T, ? extends P> module() {
         return null;
     }
 
-    IAzureBaseResource<T, P> refresh();
+    void refresh();
 
     boolean exists();
 
+    @Deprecated
     String name();
 
+    @Deprecated
     String id();
 
+    @Deprecated
     default String status() {
         return null;
     }
 
+    @Deprecated
     default void refreshStatus() {
     }
 
+    @Deprecated
     default String subscriptionId() {
         return ResourceId.fromString(id()).subscriptionId();
     }
 
+    @Deprecated
     default String resourceGroup() {
         return ResourceId.fromString(id()).resourceGroupName();
     }
 
+    @Deprecated
     default Subscription subscription() {
         return Azure.az(IAzureAccount.class).account().getSubscription(this.subscriptionId());
     }
@@ -75,6 +84,8 @@ public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzu
         String STABLE = "STABLE";
         String LOADING = "LOADING";
         String ERROR = "ERROR";
+        String DISCONNECTED = "DISCONNECTED"; // failed to get remote/client
+        String INACTIVE = "INACTIVE"; // no active deployment/...
         String RUNNING = "RUNNING";
         String STOPPED = "STOPPED";
         String UNKNOWN = "UNKNOWN";

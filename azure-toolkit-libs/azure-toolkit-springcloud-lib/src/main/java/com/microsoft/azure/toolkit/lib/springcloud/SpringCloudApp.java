@@ -53,8 +53,8 @@ public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, Spring
     @Override
     @CacheEvict(cacheName = "asc/app/{}/deployments", key = "${this.name()}")
     @AzureOperation(name = "springcloud.refresh_status.deployment", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudApp refresh() {
-        return super.refresh();
+    public void refresh() {
+        super.refresh();
     }
 
     @Override
@@ -244,7 +244,8 @@ public class SpringCloudApp extends AbstractAzureResource<SpringCloudApp, Spring
 
         public Updater(SpringCloudApp app) {
             super(app);
-            this.modifier = ((SpringAppImpl) Objects.requireNonNull(this.app.remote()).update());
+            final SpringApp.Update update = Objects.requireNonNull(this.app.remote()).update();
+            this.modifier = ((SpringAppImpl) update);
         }
 
         @Override

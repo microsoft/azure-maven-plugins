@@ -50,10 +50,9 @@ public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanag
     }
 
     @Override
-    public AppServicePlan refresh() {
+    public void refresh() {
         super.refresh();
         this.entity = Optional.ofNullable(this.remote).map(AppServiceUtils::fromAppServicePlan).orElse(null);
-        return this;
     }
 
     public String name() {
