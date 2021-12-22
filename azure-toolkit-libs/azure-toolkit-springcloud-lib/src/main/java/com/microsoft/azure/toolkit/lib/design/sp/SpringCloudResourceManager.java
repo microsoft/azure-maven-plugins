@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.design.sp;
 
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource.Status;
 import com.microsoft.azure.toolkit.lib.design.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.design.AzResource;
 import lombok.Getter;
