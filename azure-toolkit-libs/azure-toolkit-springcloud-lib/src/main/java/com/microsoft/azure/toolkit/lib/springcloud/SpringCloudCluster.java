@@ -9,11 +9,14 @@ import com.azure.resourcemanager.appplatform.models.ProvisioningState;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.TestKeys;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudSku;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 @Getter
@@ -36,6 +39,11 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
     public String loadStatus(@Nonnull SpringService remote) {
         final ProvisioningState state = remote.refresh().innerModel().properties().provisioningState();
         return state.toString();
+    }
+
+    @Override
+    public List<AzResourceModule<?, SpringCloudCluster>> getSubModules() {
+        return Collections.singletonList(appModule);
     }
 
     @Override

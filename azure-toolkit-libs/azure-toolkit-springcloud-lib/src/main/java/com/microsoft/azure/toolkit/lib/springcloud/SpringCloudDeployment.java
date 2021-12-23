@@ -12,6 +12,7 @@ import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.google.common.base.Charsets;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -27,6 +28,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -49,6 +51,11 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
         return Optional.of(remote)
             .map(SpringAppDeployment::status)
             .orElse(DeploymentResourceStatus.UNKNOWN).toString();
+    }
+
+    @Override
+    public List<AzResourceModule<?, SpringCloudDeployment>> getSubModules() {
+        return Collections.emptyList();
     }
 
     @Override

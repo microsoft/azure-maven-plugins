@@ -79,6 +79,7 @@ public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzu
 
         // Draft
         String DRAFT = "DRAFT";
+        String NULL = "NULL";
 
         // stable states
         String STABLE = "STABLE";

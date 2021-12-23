@@ -8,9 +8,12 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
+import java.util.Collections;
+import java.util.List;
 
 @Getter
 public class SpringCloudResourceManager extends AbstractAzResource<SpringCloudResourceManager, AzResource.None, AppPlatformManager> {
@@ -26,6 +29,11 @@ public class SpringCloudResourceManager extends AbstractAzResource<SpringCloudRe
 
     SpringCloudResourceManager(@Nonnull AppPlatformManager remote, AzureSpringCloud service) {
         this(remote.subscriptionId(), service);
+    }
+
+    @Override
+    public List<AzResourceModule<?, SpringCloudResourceManager>> getSubModules() {
+        return Collections.singletonList(clusterModule);
     }
 
     @Nonnull

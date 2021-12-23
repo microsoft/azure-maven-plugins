@@ -14,6 +14,8 @@ import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 
 public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R> extends IAzureBaseResource<T, P> {
     None NONE = new None();
@@ -101,6 +103,11 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
     final class None extends AbstractAzResource<None, None, Void> {
         private None() {
             super("NONE", "NONE", AzResourceModule.NONE);
+        }
+
+        @Override
+        public List<AzResourceModule<?, None>> getSubModules() {
+            return Collections.emptyList();
         }
 
         @Nonnull
