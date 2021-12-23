@@ -54,7 +54,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     }
 
     @Override
-    public List<AzResourceModule<?, SpringCloudDeployment>> getSubModules() {
+    public List<AzResourceModule<?, SpringCloudDeployment, ?>> getSubModules() {
         return Collections.emptyList();
     }
 
@@ -172,5 +172,4 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     public Boolean isActive() {
         return Optional.ofNullable(this.getRemote()).map(SpringAppDeployment::isActive).orElse(false);
     }
-
 }

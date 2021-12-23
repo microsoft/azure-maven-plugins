@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud.config;
 
+import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,7 @@ import lombok.Setter;
 import org.apache.commons.lang3.BooleanUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -30,8 +32,11 @@ public class SpringCloudAppConfig {
     private String clusterName;
     private String appName;
     private String resourceGroup;
-    private Boolean isPublic;
-    private String runtimeVersion;
+    @Builder.Default
+    private Boolean isPublic = false;
+    @Builder.Default
+    private String runtimeVersion = RuntimeVersion.JAVA_8.toString();
+    @Nullable
     private String activeDeploymentName;
     private SpringCloudDeploymentConfig deployment;
 
@@ -40,11 +45,12 @@ public class SpringCloudAppConfig {
     }
 
     public static SpringCloudAppConfig fromApp(@Nonnull SpringCloudApp app) { // get config from app
-        final SpringCloudDeployment dft = app.deployments().newResource("default", app.getResourceGroup());
-        final SpringCloudDeployment deployment = Optional.ofNullable(app.getActiveDeployment()).orElse(dft);
+        final SpringCloudDeployment deployment = Optional.ofNullable(app.getActiveDeployment())
+            .orElse(app.deployments().getOrDraft("default", app.getResourceGroup()));
         final SpringCloudDeploymentConfig deploymentConfig = SpringCloudDeploymentConfig.fromDeployment(deployment);
         final SpringCloudAppConfig appConfig = SpringCloudAppConfig.builder().deployment(deploymentConfig).build();
         appConfig.setSubscriptionId(app.getSubscriptionId());
+        appConfig.setResourceGroup(appConfig.getResourceGroup());
         appConfig.setClusterName(app.getParent().getName());
         appConfig.setAppName(app.getName());
         appConfig.setIsPublic(Objects.equals(app.isPublic(), true));

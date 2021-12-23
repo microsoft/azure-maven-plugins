@@ -32,7 +32,7 @@ public class SpringCloudResourceManager extends AbstractAzResource<SpringCloudRe
     }
 
     @Override
-    public List<AzResourceModule<?, SpringCloudResourceManager>> getSubModules() {
+    public List<AzResourceModule<?, SpringCloudResourceManager, ?>> getSubModules() {
         return Collections.singletonList(clusterModule);
     }
 

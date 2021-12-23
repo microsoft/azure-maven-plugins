@@ -42,7 +42,7 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
     }
 
     @Override
-    public List<AzResourceModule<?, SpringCloudCluster>> getSubModules() {
+    public List<AzResourceModule<?, SpringCloudCluster, ?>> getSubModules() {
         return Collections.singletonList(appModule);
     }
 

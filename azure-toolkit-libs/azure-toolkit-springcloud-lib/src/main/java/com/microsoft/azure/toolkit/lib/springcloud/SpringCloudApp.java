@@ -23,7 +23,6 @@ import java.util.Optional;
 
 @Getter
 public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringCloudCluster, SpringApp> {
-
     @Nonnull
     private final SpringCloudDeploymentModule deploymentModule;
 
@@ -37,7 +36,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     }
 
     @Override
-    public List<AzResourceModule<?, SpringCloudApp>> getSubModules() {
+    public List<AzResourceModule<?, SpringCloudApp, ?>> getSubModules() {
         return Collections.singletonList(deploymentModule);
     }
 
@@ -59,17 +58,17 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     // MODIFY
     @AzureOperation(name = "springcloud.start_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
-        this.doModify(() -> this.getRemote().getActiveDeployment().start());
+        this.doModify(() -> Objects.requireNonNull(this.getRemote()).getActiveDeployment().start(), Status.STARTING);
     }
 
     @AzureOperation(name = "springcloud.stop_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void stop() {
-        this.doModify(() -> this.getRemote().getActiveDeployment().stop());
+        this.doModify(() -> Objects.requireNonNull(this.getRemote()).getActiveDeployment().stop(), Status.STOPPING);
     }
 
     @AzureOperation(name = "springcloud.restart_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
-        this.doModify(() -> this.getRemote().getActiveDeployment().restart());
+        this.doModify(() -> Objects.requireNonNull(this.getRemote()).getActiveDeployment().restart(), Status.RESTARTING);
     }
 
     // READ

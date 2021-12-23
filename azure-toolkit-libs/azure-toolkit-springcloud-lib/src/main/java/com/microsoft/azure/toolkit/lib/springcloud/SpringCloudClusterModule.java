@@ -5,12 +5,14 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
+import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.SpringServices;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringCloudCluster, SpringCloudResourceManager, SpringService> {
 
@@ -22,26 +24,16 @@ public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringClo
 
     @Override
     public SpringServices getClient() {
-        return this.parent.getRemote().springServices();
+        return Optional.ofNullable(this.parent.getRemote()).map(AppPlatformManager::springServices).orElse(null);
     }
 
     @Override
-    protected SpringService createResourceInAzure(@Nonnull String name, @Nonnull String resourceGroup, Object config) {
+    protected SpringCloudCluster newDraft(@Nonnull String name, @Nonnull String resourceGroup) {
         throw new AzureToolkitRuntimeException("not supported");
-    }
-
-    @Override
-    protected SpringService updateResourceInAzure(@Nonnull SpringService remote, Object config) {
-        throw new AzureToolkitRuntimeException("not supported");
-    }
-
-    @Override
-    public SpringCloudCluster newResource(@Nonnull String name, @Nonnull String resourceGroup) {
-        return new SpringCloudCluster(name, resourceGroup, this);
     }
 
     @Nonnull
-    protected SpringCloudCluster newResource(SpringService r) {
+    protected SpringCloudCluster newResource(@Nonnull SpringService r) {
         return new SpringCloudCluster(r, this);
     }
 }

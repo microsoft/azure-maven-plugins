@@ -96,6 +96,11 @@ public interface AzureService<T extends IAzureBaseResource> extends IAzureModule
         };
     }
 
+    @Override
+    default void refresh() {
+        IAzureModule.super.refresh();
+    }
+
     class HttpClientHolder {
         private static HttpClient defaultHttpClient = null;
 

@@ -12,9 +12,10 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.Getter;
@@ -30,7 +31,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
 
     private final SpringCloudAppConfig config;
     private final List<AzureTask<?>> subTasks;
-    private SpringCloudDeployment deployment;
+    private SpringCloudDeploymentDraft deployment;
 
     public DeploySpringCloudAppTask(SpringCloudAppConfig appConfig) {
         this.config = appConfig;
@@ -45,15 +46,14 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final String resourceGroup = config.getResourceGroup();
         final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(config.getSubscriptionId()).get(clusterName, resourceGroup);
         Optional.ofNullable(cluster).orElseThrow(() -> new AzureToolkitRuntimeException(String.format("Service(%s) is not found", clusterName)));
-        final SpringCloudApp app = cluster.apps().getOrInit(appName, resourceGroup);
+        final SpringCloudAppDraft app = cluster.apps().updateOrCreate(appName, resourceGroup);
         final String deploymentName = StringUtils.firstNonBlank(
             deploymentConfig.getDeploymentName(),
             config.getActiveDeploymentName(),
             app.getActiveDeploymentName(),
             DEFAULT_DEPLOYMENT_NAME
         );
-        this.deployment = app.deployments().get(deploymentName, resourceGroup);
-
+        this.deployment = app.deployments().updateOrCreate(deploymentName, resourceGroup);
         final boolean toCreateApp = !app.exists();
         final boolean toCreateDeployment = !deployment.exists() && !(toCreateApp && DEFAULT_DEPLOYMENT_NAME.equals(deployment.getName()));
         config.setActiveDeploymentName(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateDeployment ? deploymentName : null));
@@ -67,17 +67,18 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final AzureString UPDATE_APP_TITLE = AzureString.format("Update app({0}) of service({1})", appName, clusterName);
         final AzureString CREATE_DEPLOYMENT_TITLE = AzureString.format("Create new deployment({0}) in app({1})", deploymentName, appName);
         final AzureString UPDATE_DEPLOYMENT_TITLE = AzureString.format("Update deployment({0}) of app({1})", deploymentName, appName);
+        final AzureString MODIFY_DEPLOYMENT_TITLE = toCreateDeployment ? CREATE_DEPLOYMENT_TITLE : UPDATE_DEPLOYMENT_TITLE;
 
         final List<AzureTask<?>> tasks = new ArrayList<>();
-        if (toCreateApp) {
-            tasks.add(new AzureTask<Void>(CREATE_APP_TITLE, (Runnable) app::create));
-        }
-        if (toCreateDeployment) {
-            tasks.add(new AzureTask<Void>(CREATE_DEPLOYMENT_TITLE, () -> deployment.create(config.getDeployment())));
-        } else {
-            tasks.add(new AzureTask<Void>(UPDATE_DEPLOYMENT_TITLE, () -> deployment.update(config.getDeployment())));
-        }
-        tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, () -> app.update(config)));
+        tasks.add(new AzureTask<Void>(CREATE_APP_TITLE, app::commit));
+        tasks.add(new AzureTask<Void>(MODIFY_DEPLOYMENT_TITLE, () -> {
+            deployment.setConfig(config.getDeployment());
+            deployment.commit();
+        }));
+        tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, () -> {
+            app.setConfig(config);
+            app.commit();
+        }));
         return tasks;
     }
 

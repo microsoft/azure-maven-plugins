@@ -9,7 +9,6 @@ import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
-import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
@@ -37,14 +36,14 @@ public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloud
         return rm.getClusterModule();
     }
 
+    @Nonnull
     protected Stream<AppPlatformManager> loadResourcesFromAzure() {
         return Azure.az(AzureAccount.class).account().getSelectedSubscriptions().stream().parallel()
-            .map(Subscription::getId).map(i -> toResourceId(i, null)).map(this::loadResourceFromAzure);
+            .map(Subscription::getId).map(i -> loadResourceFromAzure(i, null));
     }
 
     @Override
-    protected AppPlatformManager loadResourceFromAzure(@Nonnull String resourceId) {
-        final String subscriptionId = ResourceId.fromString(resourceId).subscriptionId();
+    protected AppPlatformManager loadResourceFromAzure(@Nonnull String subscriptionId, String resourceGroup) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
         final String userAgent = config.getUserAgent();
@@ -58,22 +57,7 @@ public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloud
     }
 
     @Override
-    protected AppPlatformManager createResourceInAzure(@Nonnull String name, @Nonnull String resourceGroup, Object config) {
-        throw new AzureToolkitRuntimeException("not supported");
-    }
-
-    @Override
-    protected AppPlatformManager updateResourceInAzure(@Nonnull AppPlatformManager remote, Object config) {
-        throw new AzureToolkitRuntimeException("not supported");
-    }
-
-    @Override
-    public SpringCloudResourceManager newResource(@Nonnull String name, @Nonnull String resourceGroup) {
-        throw new AzureToolkitRuntimeException("not supported");
-    }
-
-    @Override
-    protected SpringCloudResourceManager newResource(AppPlatformManager remote) {
+    protected SpringCloudResourceManager newResource(@Nonnull AppPlatformManager remote) {
         return new SpringCloudResourceManager(remote, this);
     }
 

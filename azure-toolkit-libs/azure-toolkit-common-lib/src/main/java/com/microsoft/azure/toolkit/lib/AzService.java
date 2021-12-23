@@ -8,4 +8,6 @@ package com.microsoft.azure.toolkit.lib;
 public interface AzService {
 
     String getName();
+
+    void refresh();
 }

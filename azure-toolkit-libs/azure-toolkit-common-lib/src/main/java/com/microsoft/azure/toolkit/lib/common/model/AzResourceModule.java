@@ -7,12 +7,13 @@ package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public interface AzResourceModule<T extends AzResource<T, P, ?>, P extends AzResource<P, ?, ?>> {
+public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R> {
     None NONE = new None();
 
     @Nonnull
@@ -21,9 +22,11 @@ public interface AzResourceModule<T extends AzResource<T, P, ?>, P extends AzRes
     @Nullable
     T get(@Nonnull String name, String resourceGroup);
 
-    T init(@Nonnull String name, String resourceGroup);
-
     void delete(@Nonnull String name, String resourceGroup);
+
+    T create(@Nonnull AzResource.Draft<T, R> draft);
+
+    T update(@Nonnull AzResource.Draft<T, R> draft);
 
     void refresh();
 
@@ -50,22 +53,13 @@ public interface AzResourceModule<T extends AzResource<T, P, ?>, P extends AzRes
         }
 
         @Override
-        protected Void createResourceInAzure(@Nonnull String name, @Nonnull String resourceGroup, Object config) {
-            throw new AzureToolkitRuntimeException("not supported");
-        }
-
-        @Override
-        protected Void updateResourceInAzure(@Nonnull Void remote, Object config) {
-            throw new AzureToolkitRuntimeException("not supported");
-        }
-
-        @Override
-        public AzResource.None newResource(@Nonnull String name, @Nonnull String resourceGroup) {
+        protected AzResource.None newResource(@Nonnull Void unused) {
             return AzResource.NONE;
         }
 
+        @NotNull
         @Override
-        protected AzResource.None newResource(Void unused) {
+        public AzResource.None getParent() {
             return AzResource.NONE;
         }
 
