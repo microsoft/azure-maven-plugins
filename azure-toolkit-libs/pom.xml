@@ -88,7 +88,7 @@
         <azure.storage.blob.version>12.11.1</azure.storage.blob.version>
         <azure.storage.blob.batch.version>12.9.1</azure.storage.blob.batch.version>
         <azure.storage.file.datalake.version>12.5.1</azure.storage.file.datalake.version>
-        <azure.core.http.netty.version>1.11.3</azure.core.http.netty.version>
+        <azure.core.http.netty.version>1.11.4</azure.core.http.netty.version>
         <aspectj.version>1.9.7.M3</aspectj.version>
         <codehaus.plexus-utils.version>3.3.0</codehaus.plexus-utils.version>
         <commons.codec.version>1.15</commons.codec.version>
@@ -121,7 +121,8 @@
         <free.port.finder.version>1.1.1</free.port.finder.version>
         <jjwt.version>0.9.1</jjwt.version>
         <reflections.version>0.10.1</reflections.version>
-        <reactor.netty.version>1.0.6</reactor.netty.version>
+        <reactor.netty.version>1.0.13</reactor.netty.version>
+        <reactor.core.version>3.4.10</reactor.core.version>
         <nimbusds.oauth2.oidc.sdk.version>9.15</nimbusds.oauth2.oidc.sdk.version>
         <semver4j.version>3.1.0</semver4j.version>
         <nimbus-jose-jwt.version>9.9.3</nimbus-jose-jwt.version>
@@ -674,6 +675,11 @@
                 <groupId>com.github.zafarkhaja</groupId>
                 <artifactId>java-semver</artifactId>
                 <version>${semver.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.projectreactor</groupId>
+                <artifactId>reactor-core</artifactId>
+                <version>${reactor.core.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.projectreactor.netty</groupId>
