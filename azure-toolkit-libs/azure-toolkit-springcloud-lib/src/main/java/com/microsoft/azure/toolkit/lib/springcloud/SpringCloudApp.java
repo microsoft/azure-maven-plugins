@@ -31,7 +31,6 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     protected SpringCloudApp(@Nonnull SpringApp remote, @Nonnull SpringCloudAppModule module) {
         this(remote.name(), module);
-        this.setRemote(remote);
     }
 
     @Nonnull

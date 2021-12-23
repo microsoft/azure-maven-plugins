@@ -32,14 +32,15 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private final String name;
     @Nonnull
     protected final P parent;
-    private boolean refreshed;
+    @Getter(AccessLevel.NONE)
+    private long syncTime;
     @Getter(AccessLevel.NONE)
     private final Map<String, T> resources = new ConcurrentHashMap<>();
 
     @Nonnull
     @Override
     public List<T> list() {
-        if (!this.refreshed) {
+        if (this.syncTime < 0) {
             this.refresh();
         }
         return new ArrayList<>(this.resources.values());
@@ -60,8 +61,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public T get(@Nonnull String name, String resourceGroup) {
         if (!this.resources.containsKey(name)) {
             try {
-                final T resource = wrap(loadResourceFromAzure(toResourceId(name, resourceGroup)));
-                resource.refresh();
+                final R remote = loadResourceFromAzure(toResourceId(name, resourceGroup));
+                final T resource = newResource(remote);
+                resource.setRemote(remote);
                 this.resources.putIfAbsent(name, resource);
             } catch (Throwable e) { // TODO: handle exception
                 return null;
@@ -94,16 +96,20 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Override
     public synchronized void refresh() {
         try {
-            this.refreshed = false;
-            final Map<String, T> newResources = this.loadResourcesFromAzure().parallel().map(this::wrap)
-                .collect(Collectors.toMap(AbstractAzResource::getName, r -> r));
+            this.syncTime = -1;
+            final Map<String, T> newResources = this.loadResourcesFromAzure().parallel().map(remote -> {
+                final T resource = this.newResource(remote);
+                resource.setRemote(remote);
+                return resource;
+            }).collect(Collectors.toMap(AbstractAzResource::getName, r -> r));
             final Sets.SetView<String> toRemove = Sets.difference(this.resources.keySet(), newResources.keySet());
             final Sets.SetView<String> toAdd = Sets.difference(newResources.keySet(), this.resources.keySet());
             toAdd.forEach(m -> this.resources.put(m, newResources.get(m)));
             toRemove.forEach(this.resources::remove);
-            this.refreshed = true;
+            this.syncTime = System.currentTimeMillis();
         } catch (Throwable t) { // TODO: handle exception
-            this.refreshed = false;
+            this.syncTime = -1;
+            throw new AzureToolkitRuntimeException(t);
         }
     }
 
@@ -122,33 +128,36 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     protected Stream<R> loadResourcesFromAzure() {
-        if (this.getClient() instanceof SupportsListing) {
-            return ((SupportsListing<R>) this.getClient()).list().stream();
+        final Object client = this.getClient();
+        if (client instanceof SupportsListing) {
+            return ((SupportsListing<R>) client).list().stream();
         }
         throw new AzureToolkitRuntimeException("`getClient()` is not implemented");
     }
 
     protected R loadResourceFromAzure(@Nonnull String resourceId) {
-        if (this.getClient() instanceof SupportsGettingById) {
-            return ((SupportsGettingById<R>) this.getClient()).getByIdAsync(resourceId).block();
+        final Object client = this.getClient();
+        if (client instanceof SupportsGettingById) {
+            return ((SupportsGettingById<R>) client).getByIdAsync(resourceId).block();
         }
         throw new AzureToolkitRuntimeException("`getClient()` is not implemented");
     }
 
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
-        if (this.getClient() instanceof SupportsDeletingById) {
-            ((SupportsDeletingById) this.getClient()).deleteById(resourceId);
+        final Object cliet = this.getClient();
+        if (cliet instanceof SupportsDeletingById) {
+            ((SupportsDeletingById) cliet).deleteById(resourceId);
         }
         throw new AzureToolkitRuntimeException("`getClient()` is not implemented");
     }
 
     public abstract T newResource(@Nonnull String name, @Nonnull String resourceGroup);
 
+    protected abstract T newResource(R r);
+
     protected abstract R createResourceInAzure(@Nonnull String name, @Nonnull String resourceGroup, Object config);
 
     protected abstract R updateResourceInAzure(@Nonnull R remote, Object config);
-
-    protected abstract T wrap(R r);
 
     protected abstract Object getClient();
 }

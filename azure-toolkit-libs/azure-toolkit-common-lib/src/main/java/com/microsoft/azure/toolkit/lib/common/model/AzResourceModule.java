@@ -65,7 +65,7 @@ public interface AzResourceModule<T extends AzResource<T, P, ?>, P extends AzRes
         }
 
         @Override
-        protected AzResource.None wrap(Void unused) {
+        protected AzResource.None newResource(Void unused) {
             return AzResource.NONE;
         }
 

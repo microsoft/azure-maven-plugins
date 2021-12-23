@@ -16,20 +16,16 @@ import javax.annotation.Nonnull;
 public class SpringCloudResourceManager extends AbstractAzResource<SpringCloudResourceManager, AzResource.None, AppPlatformManager> {
     @Nonnull
     private final String subscriptionId;
-    private final String id;
     private final SpringCloudClusterModule clusterModule;
 
     SpringCloudResourceManager(@Nonnull String subscriptionId, AzureSpringCloud service) {
         super(subscriptionId, AzResource.RESOURCE_GROUP_PLACEHOLDER, service);
         this.subscriptionId = subscriptionId;
-        this.id = String.format("/subscriptions/%s/resourceGroups/%s/providers/%s",
-            this.getSubscriptionId(), AzResource.RESOURCE_GROUP_PLACEHOLDER, service.getName());
         this.clusterModule = new SpringCloudClusterModule(this);
     }
 
     SpringCloudResourceManager(@Nonnull AppPlatformManager remote, AzureSpringCloud service) {
         this(remote.subscriptionId(), service);
-        this.setRemote(remote);
     }
 
     @Nonnull

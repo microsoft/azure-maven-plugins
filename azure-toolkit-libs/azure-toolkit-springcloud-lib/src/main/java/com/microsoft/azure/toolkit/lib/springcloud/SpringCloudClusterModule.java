@@ -41,7 +41,7 @@ public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringClo
     }
 
     @Nonnull
-    protected SpringCloudCluster wrap(SpringService r) {
+    protected SpringCloudCluster newResource(SpringService r) {
         return new SpringCloudCluster(r, this);
     }
 }
