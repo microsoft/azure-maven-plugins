@@ -39,7 +39,7 @@ public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloud
 
     protected Stream<AppPlatformManager> loadResourcesFromAzure() {
         return Azure.az(AzureAccount.class).account().getSelectedSubscriptions().stream().parallel()
-            .map(Subscription::getId).map(this::loadResourceFromAzure);
+            .map(Subscription::getId).map(i -> toResourceId(i, null)).map(this::loadResourceFromAzure);
     }
 
     @Override
@@ -68,7 +68,7 @@ public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloud
     }
 
     @Override
-    protected SpringCloudResourceManager initNewResource(@Nonnull String name, @Nonnull String resourceGroup) {
+    public SpringCloudResourceManager newResource(@Nonnull String name, @Nonnull String resourceGroup) {
         throw new AzureToolkitRuntimeException("not supported");
     }
 

@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.model;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -16,7 +16,6 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 
 @Getter
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, P extends AzResource<P, ?, ?>, R> implements AzResource<T, P, R> {
     @Nonnull
     private final String name;
@@ -30,6 +29,14 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     private boolean refreshed;
     @Getter(AccessLevel.NONE)
     private String status;
+    @Setter
+    private Object config;
+
+    protected AbstractAzResource(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull AbstractAzResourceModule<T, P, R> module) {
+        this.name = name;
+        this.resourceGroup = resourceGroup;
+        this.module = module;
+    }
 
     public final boolean exists() {
         return Objects.nonNull(this.getRemote());
@@ -55,6 +62,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         try {
             this.doModify(() -> {
                 final R remote = this.module.createResourceInAzure(name, resourceGroup, config);
+                this.module.addResourceToLocal((T) this);
                 this.setRemote(remote);
             });
         } catch (Throwable e) { // TODO: handle exception

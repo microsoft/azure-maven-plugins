@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.model;
 import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingById;
 import com.azure.resourcemanager.resources.fluentcore.collection.SupportsDeletingById;
 import com.azure.resourcemanager.resources.fluentcore.collection.SupportsListing;
+import com.google.common.collect.Sets;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Getter
@@ -48,6 +50,11 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         return Optional.ofNullable(this.get(name, resourceGroup)).orElse(this.init(name, resourceGroup));
     }
 
+    @Nonnull
+    public T getOrNew(@Nonnull String name, String resourceGroup) {
+        return Optional.ofNullable(this.get(name, resourceGroup)).orElse(this.newResource(name, resourceGroup));
+    }
+
     @Nullable
     @Override
     public T get(@Nonnull String name, String resourceGroup) {
@@ -69,7 +76,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         if (this.resources.containsKey(name)) {
             throw new AzureToolkitRuntimeException(String.format("resource named \"%s\" is existent", name));
         }
-        T wrapper = this.initNewResource(name, resourceGroup);
+        T wrapper = this.newResource(name, resourceGroup);
         this.resources.putIfAbsent(name, wrapper);
         return wrapper;
     }
@@ -88,8 +95,12 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public synchronized void refresh() {
         try {
             this.refreshed = false;
-            this.loadResourcesFromAzure().parallel().map(this::wrap).forEach(m -> this.resources.putIfAbsent(m.getName(), m));
-            this.resources.values().stream().parallel().forEach(AzResource::refresh);
+            final Map<String, T> newResources = this.loadResourcesFromAzure().parallel().map(this::wrap)
+                .collect(Collectors.toMap(AbstractAzResource::getName, r -> r));
+            final Sets.SetView<String> toRemove = Sets.difference(this.resources.keySet(), newResources.keySet());
+            final Sets.SetView<String> toAdd = Sets.difference(newResources.keySet(), this.resources.keySet());
+            toAdd.forEach(m -> this.resources.put(m, newResources.get(m)));
+            toRemove.forEach(this.resources::remove);
             this.refreshed = true;
         } catch (Throwable t) { // TODO: handle exception
             this.refreshed = false;
@@ -102,8 +113,12 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         return String.format("%s/%s/%s", this.parent.getId(), this.getName(), resourceName).replace(AzResource.RESOURCE_GROUP_PLACEHOLDER, rg);
     }
 
-    protected void deleteResourceFromLocal(String name) {
+    protected void deleteResourceFromLocal(@Nonnull String name) {
         this.resources.remove(name);
+    }
+
+    protected void addResourceToLocal(@Nonnull T resource) {
+        this.resources.putIfAbsent(resource.getName(), resource);
     }
 
     protected Stream<R> loadResourcesFromAzure() {
@@ -127,11 +142,11 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         throw new AzureToolkitRuntimeException("`getClient()` is not implemented");
     }
 
+    public abstract T newResource(@Nonnull String name, @Nonnull String resourceGroup);
+
     protected abstract R createResourceInAzure(@Nonnull String name, @Nonnull String resourceGroup, Object config);
 
     protected abstract R updateResourceInAzure(@Nonnull R remote, Object config);
-
-    protected abstract T initNewResource(@Nonnull String name, @Nonnull String resourceGroup);
 
     protected abstract T wrap(R r);
 
