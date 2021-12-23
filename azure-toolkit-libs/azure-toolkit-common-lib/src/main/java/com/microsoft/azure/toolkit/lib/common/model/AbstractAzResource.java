@@ -6,12 +6,14 @@
 package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Objects;
 
 @Getter
@@ -28,7 +30,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Getter(AccessLevel.NONE)
     private long syncTime;
     @Getter(AccessLevel.NONE)
-    private String status;
+    private String status = Status.DISCONNECTED;
     @Setter
     private Object config;
 
@@ -46,10 +48,15 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     public void refresh() {
         this.doModify(() -> {
             try {
-                this.setRemote(this.module.loadResourceFromAzure(this.module.toResourceId(this.name, this.resourceGroup)));
+                final R remote = this.module.loadResourceFromAzure(this.module.toResourceId(this.name, this.resourceGroup));
+                this.setRemote(remote);
             } catch (Throwable t) { // TODO: handle exception
                 this.setRemote(null);
             }
+        });
+        this.doModifyAsync(() -> {
+            this.getSubModules().parallelStream().forEach(AzResourceModule::refresh);
+            AzureEventBus.emit("resource.refresh_children.resource", this);
         });
     }
 
@@ -62,8 +69,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         try {
             this.doModify(() -> {
                 final R remote = this.module.createResourceInAzure(name, resourceGroup, config);
-                this.module.addResourceToLocal((T) this);
                 this.setRemote(remote);
+                this.module.addResourceToLocal((T) this);
             });
         } catch (Throwable e) { // TODO: handle exception
         }
@@ -94,9 +101,16 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     protected void setRemote(R remote) {
-        this.remote = remote;
-        this.syncTime = Objects.nonNull(remote) ? System.currentTimeMillis() : -1;
-        this.setStatus(Objects.isNull(remote) ? Status.DISCONNECTED : this.loadStatus(this.remote));
+        final R oldRemote = this.remote;
+        if (!Objects.equals(oldRemote, remote)) {
+            this.remote = remote;
+            this.syncTime = Objects.nonNull(remote) ? System.currentTimeMillis() : -1;
+            if (Objects.nonNull(remote)) {
+                this.doModifyAsync(() -> this.setStatus(this.loadStatus(remote)));
+            } else {
+                this.setStatus(Status.DISCONNECTED);
+            }
+        }
     }
 
     @Override
@@ -118,8 +132,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @Nonnull
     public String getStatus() {
-        if (this.syncTime < 0) {
-            this.refresh();
+        final R remote = this.getRemote();
+        if (Objects.nonNull(remote) && Objects.isNull(this.status)) {
+            this.setStatus(this.loadStatus(remote));
         }
         return this.status;
     }
@@ -135,10 +150,25 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
+    public void doModifyAsync(Runnable body) {
+        // TODO: lock so that can not modify if modifying.
+        this.setStatus(Status.PENDING);
+        AzureTaskManager.getInstance().runOnPooledThread(() -> {
+            try {
+                body.run();
+            } catch (Throwable t) {
+                this.setStatus(Status.ERROR);
+                throw t;
+            }
+        });
+    }
+
     @Nonnull
     public String getId() {
         return this.module.toResourceId(this.name, this.resourceGroup);
     }
+
+    public abstract List<AzResourceModule<?, T>> getSubModules();
 
     public String formalizeStatus(String status) {
         return status;

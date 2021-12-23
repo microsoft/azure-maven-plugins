@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
 import lombok.Getter;
@@ -15,6 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -31,6 +34,11 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     protected SpringCloudApp(@Nonnull SpringApp remote, @Nonnull SpringCloudAppModule module) {
         this(remote.name(), module);
+    }
+
+    @Override
+    public List<AzResourceModule<?, SpringCloudApp>> getSubModules() {
+        return Collections.singletonList(deploymentModule);
     }
 
     @Nonnull
