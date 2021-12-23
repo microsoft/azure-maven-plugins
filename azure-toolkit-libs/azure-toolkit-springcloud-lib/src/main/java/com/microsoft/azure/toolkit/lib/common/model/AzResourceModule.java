@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -61,7 +60,7 @@ public interface AzResourceModule<T extends AzResource<T, P, ?>, P extends AzRes
         }
 
         @Override
-        protected AzResource.None initNewResource(@Nonnull String name, @Nonnull String resourceGroup) {
+        public AzResource.None newResource(@Nonnull String name, @Nonnull String resourceGroup) {
             return AzResource.NONE;
         }
 

@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -34,7 +35,12 @@ public class Azure {
 
     @Nullable
     private static <T extends AzService> T getService(Class<T> clazz) {
-        for (AzService service : Holder.loader) {
+        for (AzService service : Holder.azLoader) {
+            if (clazz.isInstance(service)) {
+                return clazz.cast(service);
+            }
+        }
+        for (AzureService service : Holder.loader) {
             if (clazz.isInstance(service)) {
                 return clazz.cast(service);
             }
@@ -42,10 +48,15 @@ public class Azure {
         return null;
     }
 
-    @Nullable
+    @Nonnull
     public static <T extends AzService> List<T> getServices(Class<T> clazz) {
         final List<T> result = new ArrayList<>();
-        for (AzService service : Holder.loader) {
+        for (AzService service : Holder.azLoader) {
+            if (clazz.isInstance(service)) {
+                result.add(clazz.cast(service));
+            }
+        }
+        for (AzureService service : Holder.loader) {
             if (clazz.isInstance(service)) {
                 result.add(clazz.cast(service));
             }
@@ -62,6 +73,7 @@ public class Azure {
     }
 
     private static class Holder {
-        private static final ServiceLoader<AzService> loader = ServiceLoader.load(AzService.class);
+        private static final ServiceLoader<AzService> azLoader = ServiceLoader.load(AzService.class);
+        private static final ServiceLoader<AzureService> loader = ServiceLoader.load(AzureService.class);
     }
 }
