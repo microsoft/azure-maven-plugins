@@ -9,6 +9,7 @@ import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGet
 import com.azure.resourcemanager.resources.fluentcore.collection.SupportsDeletingById;
 import com.azure.resourcemanager.resources.fluentcore.collection.SupportsListing;
 import com.google.common.collect.Sets;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource.Status;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -33,7 +34,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nonnull
     protected final P parent;
     @Getter(AccessLevel.NONE)
-    private long syncTime;
+    private long syncTime = -1;
     @Getter(AccessLevel.NONE)
     private final Map<String, T> resources = new ConcurrentHashMap<>();
 
@@ -105,7 +106,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             final Sets.SetView<String> toRemove = Sets.difference(this.resources.keySet(), newResources.keySet());
             final Sets.SetView<String> toAdd = Sets.difference(newResources.keySet(), this.resources.keySet());
             toAdd.forEach(m -> this.resources.put(m, newResources.get(m)));
-            toRemove.forEach(this.resources::remove);
+            toRemove.forEach(r -> {
+                this.resources.remove(r);
+                this.resources.get(r).setStatus(Status.DELETED);
+            });
             this.syncTime = System.currentTimeMillis();
         } catch (Throwable t) { // TODO: handle exception
             this.syncTime = -1;
@@ -151,7 +155,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         throw new AzureToolkitRuntimeException("`getClient()` is not implemented");
     }
 
-    public abstract T newResource(@Nonnull String name, @Nonnull String resourceGroup);
+    protected abstract T newResource(@Nonnull String name, @Nonnull String resourceGroup);
 
     protected abstract T newResource(R r);
 

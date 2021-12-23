@@ -101,7 +101,7 @@ public class SpringCloudAppModule extends AbstractAzResourceModule<SpringCloudAp
     }
 
     @Override
-    public SpringCloudApp newResource(@Nonnull String name, @Nonnull String resourceGroup) {
+    protected SpringCloudApp newResource(@Nonnull String name, @Nonnull String resourceGroup) {
         return new SpringCloudApp(name, this);
     }
 

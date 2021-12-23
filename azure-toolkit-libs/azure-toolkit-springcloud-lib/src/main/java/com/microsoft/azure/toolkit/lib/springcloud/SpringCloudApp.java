@@ -10,8 +10,10 @@ import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -22,7 +24,9 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Getter
+@Setter
 public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringCloudCluster, SpringApp> {
+    private SpringCloudAppConfig config;
 
     @Nonnull
     private final SpringCloudDeploymentModule deploymentModule;
@@ -59,23 +63,26 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     // MODIFY
     @AzureOperation(name = "springcloud.start_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
-        this.doModify(() -> this.getRemote().getActiveDeployment().start());
+        this.doModify(() -> Objects.requireNonNull(this.getRemote()).getActiveDeployment().start());
     }
 
     @AzureOperation(name = "springcloud.stop_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void stop() {
-        this.doModify(() -> this.getRemote().getActiveDeployment().stop());
+        this.doModify(() -> Objects.requireNonNull(this.getRemote()).getActiveDeployment().stop());
     }
 
     @AzureOperation(name = "springcloud.restart_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
-        this.doModify(() -> this.getRemote().getActiveDeployment().restart());
+        this.doModify(() -> Objects.requireNonNull(this.getRemote()).getActiveDeployment().restart());
     }
 
     // READ
     public boolean isPublic() {
         if (Objects.nonNull(this.getRemote())) {
             return this.getRemote().isPublic();
+        }
+        if (Objects.nonNull(this.config)) {
+            return this.config.isPublic();
         }
         return false;
     }

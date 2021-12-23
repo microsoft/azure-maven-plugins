@@ -9,7 +9,6 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -31,8 +30,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     private long syncTime;
     @Getter(AccessLevel.NONE)
     private String status = Status.DISCONNECTED;
-    @Setter
-    private Object config;
 
     protected AbstractAzResource(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull AbstractAzResourceModule<T, P, R> module) {
         this.name = name;
@@ -122,7 +119,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return this.remote;
     }
 
-    private synchronized void setStatus(@Nonnull String status) {
+    synchronized void setStatus(@Nonnull String status) {
         final String oldStatus = this.status;
         if (!Objects.equals(oldStatus, status)) {
             this.status = status;

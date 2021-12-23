@@ -83,6 +83,7 @@ public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzu
 
         // stable states
         String STABLE = "STABLE";
+        String DELETED = "DELETED";
         String LOADING = "LOADING";
         String ERROR = "ERROR";
         String DISCONNECTED = "DISCONNECTED"; // failed to get remote/client

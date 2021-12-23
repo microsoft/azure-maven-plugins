@@ -60,7 +60,7 @@ public interface AzResourceModule<T extends AzResource<T, P, ?>, P extends AzRes
         }
 
         @Override
-        public AzResource.None newResource(@Nonnull String name, @Nonnull String resourceGroup) {
+        protected AzResource.None newResource(@Nonnull String name, @Nonnull String resourceGroup) {
             return AzResource.NONE;
         }
 

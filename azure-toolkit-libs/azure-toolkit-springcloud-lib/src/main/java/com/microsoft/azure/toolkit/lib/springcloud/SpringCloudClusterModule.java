@@ -36,7 +36,7 @@ public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringClo
     }
 
     @Override
-    public SpringCloudCluster newResource(@Nonnull String name, @Nonnull String resourceGroup) {
+    protected SpringCloudCluster newResource(@Nonnull String name, @Nonnull String resourceGroup) {
         return new SpringCloudCluster(name, resourceGroup, this);
     }
 
