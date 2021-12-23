@@ -84,8 +84,7 @@ public class MavenSettingHelper {
         for (final SettingsProblem problem : result.getProblems()) {
             if (problem.getSeverity() == SettingsProblem.Severity.ERROR || problem.getSeverity() == SettingsProblem.Severity.FATAL) {
                 // for java 8+, it is ok to use operator '+' for string concatenation
-                throw new MavenDecryptException(String.format("Unable to decrypt property(%s), value(%s) from maven settings.xml due to error: %s",
-                        propertyName, value, problem));
+                throw new MavenDecryptException(String.format("Unable to decrypt property(%s) from maven settings.xml", propertyName));
             }
         }
         return result.getServer().getPassword();

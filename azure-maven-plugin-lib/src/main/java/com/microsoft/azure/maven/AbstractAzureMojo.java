@@ -97,9 +97,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     private static final String TELEMETRY_NOT_ALLOWED = "TelemetryNotAllowed";
     private static final String INIT_FAILURE = "InitFailure";
     private static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
-    private static final String ERROR_MESSAGE = "error.message";
-    private static final String ERROR_STACK = "error.stack";
-    private static final String ERROR_CLASSNAME = "error.class_name";
     private static final String JVM_UP_TIME = "jvmUpTime";
     private static final String CONFIGURATION_PATH = Paths.get(System.getProperty("user.home"),
             ".azure", "mavenplugins.properties").toString();
@@ -559,9 +556,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
 
     protected void trackMojoFailure(final Throwable throwable) {
         final Map<String, String> failureParameters = new HashMap<>();
-        failureParameters.put(ERROR_MESSAGE, throwable.getMessage());
-        failureParameters.put(ERROR_STACK, ExceptionUtils.getStackTrace(throwable));
-        failureParameters.put(ERROR_CLASSNAME, throwable.getClass().getName());
+        failureParameters.put(AzureTelemeter.ERROR_MSG, throwable.getMessage());
+        failureParameters.put(AzureTelemeter.ERROR_STACKTRACE, ExceptionUtils.getStackTrace(throwable));
+        failureParameters.put(AzureTelemeter.ERROR_CLASSNAME, throwable.getClass().getName());
 
         telemetryProxy.trackEvent(this.getClass().getSimpleName() + ".failure", recordJvmUpTime(failureParameters));
     }

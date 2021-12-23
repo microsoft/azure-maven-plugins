@@ -24,18 +24,18 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class AzureTelemeter {
-    private static final String SERVICE_NAME = "serviceName";
-    private static final String OPERATION_NAME = "operationName";
-    private static final String OP_ID = "op_id";
-    private static final String OP_NAME = "op_name";
-    private static final String OP_TYPE = "op_type";
-    private static final String OP_PARENT_ID = "op_parentId";
+    public static final String SERVICE_NAME = "serviceName";
+    public static final String OPERATION_NAME = "operationName";
+    public static final String OP_ID = "op_id";
+    public static final String OP_NAME = "op_name";
+    public static final String OP_TYPE = "op_type";
+    public static final String OP_PARENT_ID = "op_parentId";
 
-    private static final String ERROR_CODE = "error.code";
-    private static final String ERROR_MSG = "error.message";
-    private static final String ERROR_TYPE = "error.type";
-    private static final String ERROR_CLASSNAME = "error.class_name";
-    private static final String ERROR_STACKTRACE = "error.stack";
+    public static final String ERROR_CODE = "error.error_code";
+    public static final String ERROR_MSG = "error.error_message";
+    public static final String ERROR_TYPE = "error.error_type";
+    public static final String ERROR_CLASSNAME = "error.error_class_name";
+    public static final String ERROR_STACKTRACE = "error.error_stack";
     @Getter
     @Setter
     @Nullable
