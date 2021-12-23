@@ -15,10 +15,10 @@ public interface IPrompter extends Closeable {
     /**
      * Promote user to input a text value through a terminal.
      *
-     * @param message the promote message
+     * @param message promote message
      * @param defaultValue the default value if user presses ENTER key.
      * @param verify the function against user's input
-     * @param isRequired whether or not a null/empty value is acceptable
+     * @param isRequired whether a null/empty value is acceptable
      * @return the text value user has input
      * @throws IOException when there are any IO errors.
      */
@@ -30,9 +30,9 @@ public interface IPrompter extends Closeable {
      * Promote user to choose YES or NO through a terminal. If this property is optional and there is no default option,
      * then this method returns null when user presses ENTER key.
      *
-     * @param message the promote message to give user a hint about the options.
+     * @param message promote message to give user a hint about the options.
      * @param defaultValue the default option if user presses ENTER key.
-     * @param isRequired whether or not user must to accept or decline explicitly.
+     * @param isRequired whether user must accept or decline explicitly.
      * @return the yes/no option
      * @throws IOException when there are any IO errors.
      */
@@ -44,11 +44,11 @@ public interface IPrompter extends Closeable {
      *
      * @param <T> the entity type
      * @param header the message print before the option list
-     * @param promotePrefix the promote message after the options list, will be append with the text of range example and default entity.
+     * @param promotePrefix promote message after the options list, will be appended with the text of range example and default entity.
      * @param entities the known list which are to be selected in
      * @param getNameFunc the entity to string convert function
-     * @param allowEmpty whether or not to accept empty list.
-     * @param enterPromote the promote message to give user a hint about the behavior of pressing ENTER key directly, should be align with the
+     * @param allowEmpty whether to accept empty list.
+     * @param enterPromote promote message to give user a hint about the behavior of pressing ENTER key directly, should be aligned with the
      *  actual meaning of defaultValue
      * @param defaultEntities the default entities when pressing ENTER key directly.
      * @return the list user selected

@@ -48,7 +48,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Generate configuration for spring cloud maven plugin.
+ * Generate configuration for spring cloud maven plugin or init the configuration from existing Azure Spring Cloud app instance.
  */
 @Mojo(name = "config", requiresDirectInvocation = true, aggregator = true)
 public class ConfigMojo extends AbstractMojoBase {
@@ -59,7 +59,7 @@ public class ConfigMojo extends AbstractMojoBase {
     private boolean parentMode;
 
     /**
-     * The prompt wrapper to get user input for each properties.
+     * The prompt wrapper to get user input for each property.
      */
     private ConfigurationPrompter wrapper;
 
@@ -95,7 +95,7 @@ public class ConfigMojo extends AbstractMojoBase {
     protected MojoExecution mojoExecution;
 
     /**
-     * The parameter which controls whether or not the advanced options should be prompted to user
+     * The parameter which controls whether the advanced options should be prompted to user
      */
     @Parameter(property = "advancedOptions")
     private boolean advancedOptions;

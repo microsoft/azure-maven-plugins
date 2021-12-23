@@ -49,7 +49,7 @@ public class ListMojo extends AbstractFunctionMojo {
             printToSystemOut(RESOURCES_FILE);
             Log.info(RESOURCES_END);
         } catch (IOException e) {
-            throw new AzureExecutionException("IO errror when printing templates:" + e.getMessage(), e);
+            throw new AzureExecutionException("IO error when printing templates:" + e.getMessage(), e);
         }
     }
 

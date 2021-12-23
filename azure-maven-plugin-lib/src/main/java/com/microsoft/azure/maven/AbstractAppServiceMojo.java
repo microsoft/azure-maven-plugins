@@ -65,7 +65,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     protected String appServicePlanName;
 
     /**
-     * Configuration for deployment Slot. will created new slot if target does not exists
+     * Configuration for deployment Slot, will create new slot if target does not exist
      * It requires the web app exists already.
      * <pre>
      * {@code

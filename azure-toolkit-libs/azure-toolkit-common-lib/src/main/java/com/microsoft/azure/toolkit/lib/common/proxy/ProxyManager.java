@@ -74,7 +74,7 @@ public class ProxyManager {
                     public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
                     }
                 });
-                // Java ignores http.proxyUser. Here come's the workaround.
+                // Java ignores http.proxyUser. Here comes the workaround.
                 // see https://stackoverflow.com/questions/1626549/authenticated-http-proxy-with-java
                 if (StringUtils.isNoneBlank(config.getProxyUsername(), config.getProxyPassword())) {
                     Authenticator.setDefault(

@@ -145,7 +145,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     protected MavenResourcesFiltering mavenResourcesFiltering;
 
     /**
-     * Azure subscription Id. You only need to specify it when there are more than one subscription in your account
+     * Azure subscription id. You only need to specify it when there are more than one subscription in your account
      * @since 0.1.0
      */
     @JsonProperty
@@ -186,29 +186,54 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
      *
      * Parameters for authentication
      * <ul>
-     * <li> type: specify which authentication method to use, default to be `auto`:</li>
-     * <ul>
-     *         <li> service_principal : Will use credential specified in plugin configuration or Maven settings.xml,
-     *         this is also the first priority authentication method in auto</li>
-     *         <li> azure_cli : Will use credential provided by Azure CLI, this could also be used in Azure Cloud Shell</li>
-     *         <li> oauth2 : Will use credential provided by oauth2, a browser will be opened, you need to follow the page to follow the login process</li>
-     *         <li> device_code : Similar to oauth2, it provides you a login-code together with an url, you need to open a browser at any machine and fill-in
-     *         the login-code, then you can follow the page to follow to finish the login process on the web page</li>
-     *         <li> auto: The default auth type, it will try all the auth methods in the following sequence: service_principal, azure_cli, oauth2, device_code </li>
-     * <ul/>
-     * <li> environment: Specifies the target Azure cloud environment<p>
-     *     Supported values are: `azure`, `azure_china`, `azure_germany`, `azure_us_government`
-     * </li>
-     * <li> client: Specifies the Client ID of your service principal.</li>
-     * <li> tenant: Specifies the Tenant ID of your service principal.</li>
-     * <li> key: Specifies the password if your service principal uses password authentication.</li>
-     * <li> certificate: Specifies the absolute path of your certificate if your service principal uses certificate authentication.<p>
-     *      Note: Only PKCS12 certificates are supported.</li>
-     * <li> certificatePassword: Specifies the password for your certificate, if there is any</li>
-     * <li> serverId: It is recommended to store service principals above in Maven settings.xml and refer in maven configuration with server id</li>
+     *     <li> type: specify which authentication method to use, default to be `auto`:
+     *         <ul>
+     *             <li> service_principal : Will use credential specified in plugin configuration or Maven settings.xml,
+     *             this is also the first priority authentication method in auto</li>
+     *             <li> azure_cli : Will use credential provided by Azure CLI, this could also be used in Azure Cloud Shell</li>
+     *             <li> oauth2 : Will use credential provided by oauth2, a browser will be opened, you need to follow the page to follow the login process</li>
+     *             <li> device_code : Similar to oauth2, it provides you a login-code together with an url, you need to open a browser at any machine and fill-in
+     *             the login-code, then you can follow the page to follow to finish the login process on the web page</li>
+     *             <li> auto: The default auth type, it will try all the auth methods in the following sequence: service_principal, azure_cli, oauth2, device_code </li>
+     *         </ul>
+     *     </li>
+     *     <li> environment: Specifies the target Azure cloud environment<p>
+     *         Supported values are: `azure`, `azure_china`, `azure_germany`, `azure_us_government`
+     *     </li>
+     *     <li> client: Specifies the Client ID of your service principal.</li>
+     *     <li> tenant: Specifies the Tenant ID of your service principal.</li>
+     *     <li> key: Specifies the password if your service principal uses password authentication.</li>
+     *     <li> certificate: Specifies the absolute path of your certificate if your service principal uses certificate authentication.<p>
+     *          Note: Only PKCS12 certificates are supported.</li>
+     *     <li> certificatePassword: Specifies the password for your certificate, if there is any</li>
+     *     <li> serverId: Reference for service principal configuration in Maven settings.xml, please see the example below </li>
      * </ul>
-     *
-     * Example for service principal configuration in maven `settings.xml`
+     * Sample: Service principal configuration <p>
+     * <pre>
+     * {@code
+     * <configuration>
+     *     <auth>
+     *         <client>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</client>
+     *         <tenant>yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy</tenant>
+     *         <key>zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz</key>
+     *         <environment>azure</environment>
+     *     </auth>
+     * </configuration>
+     * }
+     * </pre>
+     * Sample: Service principal configuration within maven settings.xml <p>
+     * Pom.xml
+     * <pre>
+     * {@code
+     * <configuration>
+     *      <auth>
+     *          <type>service_principal</type>
+     *          <serverId>azure-sp-auth1</serverId>
+     *       </auth>
+     * </configuration>
+     * }
+     * </pre>
+     * Settings.xml
      * <pre>
      * {@code
      * <server>
@@ -216,7 +241,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
      *    <configuration>
      *        <client>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</client>
      *        <tenant>yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy</tenant>
-     *        <key>---</key>
+     *        <key>xxx</key>
      *        <environment>azure</environment>
      *    </configuration>
      * </server>
@@ -502,7 +527,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         } catch (Exception e) {
             onMojoError(e);
         } finally {
-            // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialized and will step
+            // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialize and will step
             // into endless loop when close, we need to call it in main thread.
             // Refer here for detail codes: https://github.com/Microsoft/ApplicationInsights-Java/blob/master/core/src
             // /main/java/com/microsoft/applicationinsights/internal/channel/common/ApacheSender43.java#L103

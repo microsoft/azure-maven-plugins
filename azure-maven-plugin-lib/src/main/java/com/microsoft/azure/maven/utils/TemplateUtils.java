@@ -17,7 +17,7 @@ public class TemplateUtils {
      * Evaluate the template expression to boolean using a variable map.
      * @param expr the expression
      * @param variableMap the variable map contains all the variables referenced in express
-     * @return whether or not the evaluated text is "true" or "false", default to false
+     * @return whether the evaluated text is "true" or "false", default to false
      */
     public static Boolean evalBoolean(String expr, Map<String, Object> variableMap) {
         final String text = evalPlainText(expr, variableMap);

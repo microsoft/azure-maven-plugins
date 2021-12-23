@@ -39,7 +39,7 @@ public interface AzureFormInput<T> extends DataStore {
     String FIELD_VALIDATING = "validating";
 
     /**
-     * @throws RuntimeException if can not get a valid value.
+     * @throws RuntimeException if you can not get a valid value.
      */
     default T getValue() {
         return this.get(FIELD_VALUE);

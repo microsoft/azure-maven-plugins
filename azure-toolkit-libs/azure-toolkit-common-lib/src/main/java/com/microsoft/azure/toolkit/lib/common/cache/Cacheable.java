@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ */
+
 package com.microsoft.azure.toolkit.lib.common.cache;
 
 import java.lang.annotation.Documented;
@@ -14,7 +19,7 @@ import java.lang.annotation.Target;
 public @interface Cacheable {
 
     /**
-     * alias of {@link Cacheable#cacheName()} }
+     * alias of {@link Cacheable#cacheName()}
      * string literal or groovy template for computing the cacheName dynamically.
      * e.g. groovy templates: {@code "$subscriptionId" }, {@code "$subscriptionId-$clusterId"}, {@code "${this.subscriptionId}"}
      */

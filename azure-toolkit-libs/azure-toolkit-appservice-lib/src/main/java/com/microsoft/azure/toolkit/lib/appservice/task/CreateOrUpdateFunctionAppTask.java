@@ -85,12 +85,12 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
                 .functionApp(functionAppConfig.resourceGroup(), functionAppConfig.appName());
         registerSubTask(getResourceGroupTask(), result -> this.resourceGroup = result);
         registerSubTask(getServicePlanTask(), result -> this.appServicePlan = result);
-        // get/create ai instances only if user didn't specify ai connection string in app settings
+        // get/create AI instances only if user didn't specify AI connection string in app settings
         if (!functionAppConfig.disableAppInsights() && !functionAppConfig.appSettings().containsKey(APPINSIGHTS_INSTRUMENTATION_KEY)) {
             if (StringUtils.isNotEmpty(functionAppConfig.appInsightsKey())) {
                 this.applicationInsights = ApplicationInsightsEntity.builder().instrumentationKey(functionAppConfig.appInsightsKey()).build();
             } else if (StringUtils.isNotEmpty(functionAppConfig.appInsightsInstance()) || !app.exists()) {
-                // create ai instance by default when create new function
+                // create AI instance by default when create new function
                 registerSubTask(getApplicationInsightsTask(), result -> this.applicationInsights = result);
             }
         }
