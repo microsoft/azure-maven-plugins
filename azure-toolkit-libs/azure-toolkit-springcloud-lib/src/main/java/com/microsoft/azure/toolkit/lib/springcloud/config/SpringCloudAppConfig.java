@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.springcloud.config;
 
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -16,6 +17,7 @@ import org.apache.commons.lang3.BooleanUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
+import java.util.Optional;
 
 @Builder
 @Getter
@@ -38,7 +40,9 @@ public class SpringCloudAppConfig {
     }
 
     public static SpringCloudAppConfig fromApp(@Nonnull SpringCloudApp app) { // get config from app
-        final SpringCloudDeploymentConfig deploymentConfig = SpringCloudDeploymentConfig.fromDeployment(app.getActiveDeployment());
+        final SpringCloudDeployment dft = app.deployments().newResource("default", app.getResourceGroup());
+        final SpringCloudDeployment deployment = Optional.ofNullable(app.getActiveDeployment()).orElse(dft);
+        final SpringCloudDeploymentConfig deploymentConfig = SpringCloudDeploymentConfig.fromDeployment(deployment);
         final SpringCloudAppConfig appConfig = SpringCloudAppConfig.builder().deployment(deploymentConfig).build();
         appConfig.setSubscriptionId(app.getSubscriptionId());
         appConfig.setClusterName(app.getParent().getName());

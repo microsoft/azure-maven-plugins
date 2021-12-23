@@ -145,7 +145,7 @@ public class SpringCloudDeploymentModule extends AbstractAzResourceModule<Spring
     }
 
     @Nonnull
-    protected SpringCloudDeployment wrap(SpringAppDeployment remote) {
+    protected SpringCloudDeployment newResource(SpringAppDeployment remote) {
         return new SpringCloudDeployment(remote, this);
     }
 }

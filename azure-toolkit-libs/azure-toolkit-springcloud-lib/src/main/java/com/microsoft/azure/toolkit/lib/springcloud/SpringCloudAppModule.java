@@ -106,7 +106,7 @@ public class SpringCloudAppModule extends AbstractAzResourceModule<SpringCloudAp
     }
 
     @Nonnull
-    protected SpringCloudApp wrap(SpringApp remote) {
+    protected SpringCloudApp newResource(SpringApp remote) {
         return new SpringCloudApp(remote, this);
     }
 }

@@ -41,7 +41,6 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
 
     protected SpringCloudDeployment(@Nonnull SpringAppDeployment remote, @Nonnull SpringCloudDeploymentModule module) {
         this(remote.name(), module);
-        this.setRemote(remote);
     }
 
     @Nonnull

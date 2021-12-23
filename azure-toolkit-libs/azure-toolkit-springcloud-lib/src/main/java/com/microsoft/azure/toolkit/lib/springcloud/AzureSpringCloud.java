@@ -73,7 +73,7 @@ public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloud
     }
 
     @Override
-    protected SpringCloudResourceManager wrap(AppPlatformManager remote) {
+    protected SpringCloudResourceManager newResource(AppPlatformManager remote) {
         return new SpringCloudResourceManager(remote, this);
     }
 

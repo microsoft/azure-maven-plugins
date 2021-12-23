@@ -9,7 +9,6 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -26,7 +25,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nullable
     @Getter(AccessLevel.NONE)
     private R remote;
-    private boolean refreshed;
+    @Getter(AccessLevel.NONE)
+    private long syncTime;
     @Getter(AccessLevel.NONE)
     private String status;
     @Setter
@@ -93,16 +93,16 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
-    public final void setRemote(R remote) {
+    protected void setRemote(R remote) {
         this.remote = remote;
+        this.syncTime = Objects.nonNull(remote) ? System.currentTimeMillis() : -1;
         this.setStatus(Objects.isNull(remote) ? Status.DISCONNECTED : this.loadStatus(this.remote));
-        this.refreshed = Objects.nonNull(remote);
     }
 
     @Override
     @Nullable
     public final R getRemote() {
-        if (!this.refreshed) {
+        if (this.syncTime < 0) {
             this.refresh();
         }
         return this.remote;
@@ -117,14 +117,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @Nonnull
-    public String getId() {
-        final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
-        return String.format("%s/%s", this.getModule().getId(), name).replace(AzResource.RESOURCE_GROUP_PLACEHOLDER, rg);
-    }
-
-    @Nonnull
     public String getStatus() {
-        if (!this.refreshed) {
+        if (this.syncTime < 0) {
             this.refresh();
         }
         return this.status;
@@ -139,6 +133,11 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             this.setStatus(Status.ERROR);
             throw t;
         }
+    }
+
+    @Nonnull
+    public String getId() {
+        return this.module.toResourceId(this.name, this.resourceGroup);
     }
 
     public String formalizeStatus(String status) {
