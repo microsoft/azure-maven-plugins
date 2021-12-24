@@ -50,7 +50,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     //region Properties
 
     /**
-     * App Service pricing tier, will be used to create new service plan or update the existing one<p>
+     * Pricing for web app <p>
      * Supported values : F1, D1, B1, B2, B3, S1, S2, S3, P1V2, P2V2, P3V2, P1V3, P2V3, P3V3
      * @Since 0.1.0
      */
@@ -59,7 +59,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected String pricingTier;
 
     /**
-     * Boolean flag to control whether stop Web App during deployment.
+     * Boolean flag to control whether stop web app during deployment.
      * @Since 0.1.0
      */
     @Getter
@@ -68,7 +68,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected boolean stopAppDuringDeployment;
 
     /**
-     * Boolean flag to skip the execution of Maven Plugin for Azure WebApp
+     * Boolean flag to skip the execution of maven plugin for azure webapp
      * @since 0.1.4
      */
     @JsonProperty
@@ -92,7 +92,9 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected boolean skipCreateAzureResource;
 
     /**
-     * App Service region, which will only be used to create App Service at the first time.
+     * Region for web app
+     * Supported values: westus, westus2, eastus, eastus2, northcentralus, southcentralus, westcentralus, canadacentral, canadaeast, brazilsouth, northeurope,
+     * westeurope, uksouth, eastasia, southeastasia, japaneast, japanwest, australiaeast, australiasoutheast, centralindia, southindia ...
      */
     @JsonProperty
     @Parameter(property = "webapp.region")
@@ -108,8 +110,13 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected String schemaVersion;
 
     /**
-     * The configuration for Web App runtime environment <p>
-     * For Windows/Linux Web App, you may set both `javaVersion` and `webContainer` in `runtime` <p>
+     * Runtime environment of web app <p>
+     * Properties for Windows/Linux web app
+     * <ul>
+     *     <li> os: Operating system for the web app, default to be Windows. </li>
+     *     <li> javaVersion: Java runtime version for the web app, supported values are `Java 8` and `Java 11`. </li>
+     *     <li> webContainer: Java web container for the web app, supported values are `Tomcat 8.5`, `Tomcat 9.0`, `Java SE`, `Jbosseap 7`(Linux only). </li>
+     * </ul>
      * <pre>
      * {@code
      * <runtime>
@@ -119,10 +126,13 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      * </runtime>
      * }
      * </pre>
-     * Supported values for `javaVersion` : `Java 8`, `Java 11` <p>
-     * Supported values for `webContainer`: `Tomcat 8.5`, `Tomcat 9.0`, `Java SE`, `Jbosseap 7`(Linux only) <p>
-     *
-     * For Docker Web App, please set the image, registryUrl and serverId <p>
+     * Properties for Docker web app
+     * <ul>
+     *     <li> image: Name of the docker image to deploy. </li>
+     *     <li> registryUrl: Docker repository of the image, could be omitted for docker hub. </li>
+     *     <li> serverId: The authentication profile id in maven settings.xml. For private docker image,
+     *     please set your username and password in maven settings.xml and refer it with `serverId` in runtime configuration. </li>
+     * </ul>
      * <pre>
      * {@code
      * <runtime>
@@ -133,7 +143,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      * </runtime>
      * }
      * </pre>
-     * For private docker images, please set your username and password in maven settings.xml and refer it with `serverId` in runtime configuration
      * @since 1.4.0
      */
     @JsonProperty
@@ -142,7 +151,15 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     /**
      * Configuration to specify the artifacts to deploy <p>
-     *
+     * Parameters for resource
+     * <ul>
+     *     <li> type: Specifies where the resource type of the files to be deployed, valid values are: `jar`, `war`, `ear`,
+     *     `lib`, `static`, `startup`, `zip` and `script`. </li>
+     *     <li> directory: Specifies where the resources are stored. </li>
+     *     <li> targetPath: Specifies the target path where the resources will be deployed to. </li>
+     *     <li> includes: A list of patterns to include, e.g. `*.jar`. </li>
+     *     <li> excludes: A list of patterns to exclude, e.g. `*.xml`. </li>
+     * </ul>
      * <pre>
      * {@code
      * <deployment>
@@ -158,15 +175,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      * </deployment>
      * }
      * </pre>
-     *
-     * Parameters for resource
-     * <ul>
-     * <li>`type`: Specifies where the resource type of the files to be deployed, valid values are: `jar`, `war`, `ear`, `lib`, `static`, `startup`, `zip` and `script`. </li>
-     * <li>`directory`: Specifies where the resources are stored. </li>
-     * <li>`targetPath`: Specifies the target path where the resources will be deployed to. </li>
-     * <li>`includes`: A list of patterns to include, e.g. `*.jar`. </li>
-     * <li>`excludes`: A list of patterns to exclude, e.g. `*.xml`. </li>
-     * </ul>
      * @since 2.0.0
      */
     @JsonProperty

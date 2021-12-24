@@ -27,14 +27,6 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     protected static final String TRIGGER_TYPE = "triggerType";
 
     //region Properties
-    /**
-     * App Service pricing tier, will be used to create new service plan or update the existing one<p>
-     * Supported values : CONSUMPTION, B1, B2, B3, S1, S2, S3, P1V2, P2V2, P3V2, P1V3, P2V3, P3V3, EP1, EP2, EP3
-     */
-    @Getter
-    @Parameter(property = "functions.pricingTier")
-    protected String pricingTier;
-
     @Parameter(defaultValue = "${project.build.finalName}", readonly = true, required = true)
     protected String finalName;
 
@@ -42,22 +34,36 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     protected File outputDirectory;
 
     /**
-     * Boolean flag to skip the execution of Maven Plugin for Azure Functions
+     * Pricing for function app <p>
+     * Supported values : CONSUMPTION, B1, B2, B3, S1, S2, S3, P1V2, P2V2, P3V2, P1V3, P2V3, P3V3, EP1, EP2, EP3
+     */
+    @Getter
+    @Parameter(property = "functions.pricingTier")
+    protected String pricingTier;
+
+    /**
+     * Boolean flag to skip the execution of maven plugin for azure functions
      * @since 0.1.0
      */
     @Parameter(property = "functions.skip", defaultValue = "false")
     protected boolean skip;
 
     /**
-     * App Service region, which will only be used to create App Service at the first time.
+     * Region for function app
+     * Supported values: westus, westus2, eastus, eastus2, northcentralus, southcentralus, westcentralus, canadacentral, canadaeast, brazilsouth, northeurope,
+     * westeurope, uksouth, eastasia, southeastasia, japaneast, japanwest, australiaeast, australiasoutheast, centralindia, southindia ...
      * @since 1.2.0
      */
     @Parameter(property = "functions.region")
     protected String region;
 
     /**
-     * The configuration for Function App runtime environment <p>
-     * For Windows/Linux Function App, you may also set `JavaVersion` in `runtime`, supported values are `Java 8` and `Java 11` <p>
+     * Runtime environment of function app <p>
+     * Properties for Windows/Linux function app
+     * <ul>
+     *     <li> os: Operating system for the function App, default to be Windows. </li>
+     *     <li> javaVersion: Java runtime version the function App, supported values are `Java 8` and `Java 11`, default to be `Java 8`. </li>
+     * </ul>
      * <pre>
      * {@code
      * <runtime>
@@ -66,7 +72,13 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      * </runtime>
      * }
      * </pre>
-     * For Docker Function App, please set the image, registryUrl and serverId<p>
+     * Properties for Docker function app
+     * <ul>
+     *     <li> image: Name of the docker image to deploy. </li>
+     *     <li> registryUrl: Docker repository of the image, could be omitted for docker hub. </li>
+     *     <li> serverId: The authentication profile id in maven settings.xml. For private docker image,
+     *     please set your username and password in maven settings.xml and refer it with `serverId` in runtime configuration. </li>
+     * </ul>
      * <pre>
      * {@code
      * <runtime>
@@ -77,14 +89,13 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      * </runtime>
      * }
      * </pre>
-     * For private docker images, please set your username and password in maven settings.xml and refer it with `serverId` in runtime configuration
      * @since 1.4.0
      */
     @Parameter(property = "functions.runtime")
     protected RuntimeConfiguration runtime;
 
     /**
-     * Name of the application insight instance which will bind to your function app, must be in the same resource group with function app.
+     * Name of the application insight instance, must be in the same resource group with function app.
      * Will be skipped if `appInsightsKey` is specified
      * @since 1.6.0
      */
@@ -92,14 +103,14 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     protected String appInsightsInstance;
 
     /**
-     * Instrumentation key of application insights which will bind to your function app
+     * Instrumentation key of the application insights instance
      * @since 1.6.0
      */
     @Parameter(property = "functions.appInsightsKey")
     protected String appInsightsKey;
 
     /**
-     * Boolean flag to enable/disable application insights for Function App
+     * Boolean flag to monitor the Function App with application insights
      * @since 1.6.0
      */
     @Parameter(property = "functions.disableAppInsights", defaultValue = "false")

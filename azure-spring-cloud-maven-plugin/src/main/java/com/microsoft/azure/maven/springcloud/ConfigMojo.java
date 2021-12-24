@@ -95,7 +95,7 @@ public class ConfigMojo extends AbstractMojoBase {
     protected MojoExecution mojoExecution;
 
     /**
-     * The parameter which controls whether the advanced options should be prompted to user
+     * Boolean flag to control whether to prompt the advanced options
      */
     @Parameter(property = "advancedOptions")
     private boolean advancedOptions;

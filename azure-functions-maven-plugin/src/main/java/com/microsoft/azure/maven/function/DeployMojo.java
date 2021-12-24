@@ -78,7 +78,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String EXPANDABLE_JAVA_VERSION_WARNING = "'%s' may not be a valid java version, recommended values are `Java 8` and `Java 11`";
 
     /**
-     * Specifies the deployment approach to use, valid values are FTP, ZIP, MSDEPLOY, RUN_FROM_ZIP, RUN_FROM_BLOB <p>
+     * The deployment approach to use, valid values are FTP, ZIP, MSDEPLOY, RUN_FROM_ZIP, RUN_FROM_BLOB <p>
      * For Windows Function Apps, the default deployment method is RUN_FROM_ZIP <p>
      * For Linux Function Apps, RUN_FROM_BLOB will be used for apps with Consumption and Premium App Service Plan,
      * RUN_FROM_ZIP will be used for apps with Dedicated App Service Plan.

@@ -46,21 +46,21 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     protected Boolean isPublic;
 
     /**
-     * Name for target Azure Spring Cloud instance
+     * Name of the spring cloud service
      */
     @Getter
     @Parameter(property = "clusterName")
     protected String clusterName;
 
     /**
-     * Name for target Azure Spring Cloud App, will be created if not exist
+     * Name of the spring cloud app. It will be created if not exist
      */
     @Getter
     @Parameter(property = "appName")
     protected String appName;
 
     /**
-     * The runtime version for spring cloud app, supported values are `Java 8` and `Java 11`
+     * Runtime version of the spring cloud app, supported values are `Java 8` and `Java 11`
      */
     @Getter
     @Parameter(property = "runtimeVersion")
@@ -69,21 +69,21 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     /**
      * Configuration for spring cloud deployment
      *
-     * Parameters for deployment Slot
+     * Parameters for deployment
      * <ul>
-     *     <li>cpu : Core numbers for deployment. </li>
-     *     <li>memoryInGB : Memory for deployment. </li>
-     *     <li>instanceCount : Instance count for deployment. </li>
-     *     <li>deploymentName : Name for deployment. </li>
-     *     <li>jvmOptions : JVM options for the deployed app. </li>
-     *     <li>runtimeVersion : The runtime version for spring cloud app,  supported values are `Java 8` and `Java 11`. </li>
-     *     <li>enablePersistentStorage : Boolean flag to control whether or not to mount a persistent storage to /persistent folder(volume quota of 50 GB). </li>
-     *     <li>environment : Environment variables for deployment. </li>
-     *     <li>resources : Configuration to specify the artifacts to deploy
+     *     <li>cpu: Core numbers for deployment. </li>
+     *     <li>memoryInGB: Memory for deployment. </li>
+     *     <li>instanceCount: Instance count for deployment. </li>
+     *     <li>deploymentName: Name for deployment. </li>
+     *     <li>jvmOptions: JVM options for the deployed app. </li>
+     *     <li>runtimeVersion: The runtime version for spring cloud app,  supported values are `Java 8` and `Java 11`. </li>
+     *     <li>enablePersistentStorage: Boolean flag to control whether or not to mount a persistent storage to /persistent folder(volume quota of 50 GB). </li>
+     *     <li>environment: Environment variables for deployment. </li>
+     *     <li>resources: Configuration to specify the artifacts to deploy
      *     <ul>
-     *         <li>directory : Specifies where the resources are stored.</li>
-     *         <li>includes : A list of patterns to include, e.g. '*.jar'.</li>
-     *         <li>excludes : A list of patterns to exclude, e.g. '*.xml'.</li>
+     *         <li>directory: Specifies where the resources are stored.</li>
+     *         <li>includes: A list of patterns to include, e.g. '*.jar'.</li>
+     *         <li>excludes: A list of patterns to exclude, e.g. '*.xml'.</li>
      *     </ul>
      *     </li>
      * </ul>

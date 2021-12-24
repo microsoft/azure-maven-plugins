@@ -145,7 +145,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     protected MavenResourcesFiltering mavenResourcesFiltering;
 
     /**
-     * Azure subscription id. You only need to specify it when there are more than one subscription in your account
+     * Azure subscription id. Required only if there are more than one subscription in your account
      * @since 0.1.0
      */
     @JsonProperty
@@ -200,12 +200,12 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
      *     <li> environment: Specifies the target Azure cloud environment<p>
      *         Supported values are: `azure`, `azure_china`, `azure_germany`, `azure_us_government`
      *     </li>
-     *     <li> client: Specifies the Client ID of your service principal.</li>
-     *     <li> tenant: Specifies the Tenant ID of your service principal.</li>
+     *     <li> client: Client ID of the service principal.</li>
+     *     <li> tenant: Tenant ID of the service principal.</li>
      *     <li> key: Specifies the password if your service principal uses password authentication.</li>
-     *     <li> certificate: Specifies the absolute path of your certificate if your service principal uses certificate authentication.<p>
+     *     <li> certificate: The absolute path of certificate, required if your service principal uses certificate authentication.<p>
      *          Note: Only PKCS12 certificates are supported.</li>
-     *     <li> certificatePassword: Specifies the password for your certificate, if there is any</li>
+     *     <li> certificatePassword: Password for the certificate</li>
      *     <li> serverId: Reference for service principal configuration in Maven settings.xml, please see the example below </li>
      * </ul>
      * Sample: Service principal configuration <p>

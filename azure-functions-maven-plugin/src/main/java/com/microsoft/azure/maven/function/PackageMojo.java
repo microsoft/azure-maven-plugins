@@ -105,7 +105,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     //region Entry Point
 
     /**
-     * Flag to indicate whether to skip extension installation
+     * Boolean flag to skip extension installation
      */
     @Parameter(property = "functions.skipInstallExtensions", defaultValue = "false")
     protected boolean skipInstallExtensions;
