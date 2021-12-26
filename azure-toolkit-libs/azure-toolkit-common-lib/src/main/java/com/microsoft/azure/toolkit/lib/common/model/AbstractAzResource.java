@@ -6,7 +6,9 @@
 package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.azure.core.management.exception.ManagementException;
+import com.azure.resourcemanager.resources.fluentcore.model.Refreshable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -19,6 +21,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 @Getter
 @ToString(onlyExplicitlyIncluded = true)
@@ -64,18 +67,15 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     private synchronized void reload() {
         this.doModify(() -> {
             try {
-                final R r = this.getModule().loadResourceFromAzure(this.name, this.resourceGroup);
-                this.setRemote(r);
+                return this.getModule().loadResourceFromAzure(this.name, this.resourceGroup);
             } catch (ManagementException e) {
                 if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatusCode()) {
-                    this.setRemote(null);
+                    return null;
                 }
+                throw e;
             }
         }, Status.LOADING);
-        this.doModifyAsync(() -> {
-            this.getSubModules().parallelStream().forEach(AzResourceModule::refresh);
-            this.setRemote(this.getRemote());
-        }, Status.LOADING);
+        this.doModify(() -> this.getSubModules().parallelStream().forEach(AzResourceModule::refresh), Status.LOADING);
     }
 
     @Override
@@ -88,21 +88,23 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         assert this.exists();
         this.doModify(() -> {
             this.getModule().deleteResourceFromAzure(this.getId());
-            this.setRemote(null);
             this.setStatus(Status.DELETED);
             this.getModule().deleteResourceFromLocal(name);
+            return null;
         }, Status.DELETING);
     }
 
-    synchronized void setRemote(R remote) {
-        if (this.syncTime < 0 || !Objects.equals(this.remote, remote)) {
+    synchronized void setRemote(@Nullable R remote) {
+        if (this.syncTime > 0 && Objects.equals(this.remote, remote)) {
+            this.setStatus(Objects.nonNull(remote) ? this.loadStatus(remote) : Status.DISCONNECTED);
+        } else {
             this.syncTime = System.currentTimeMillis();
             this.remote = remote;
-        }
-        if (Objects.nonNull(remote)) {
-            this.doModifyAsync(() -> this.setStatus(this.loadStatus(remote)), Status.LOADING);
-        } else {
-            this.setStatus(Status.DISCONNECTED);
+            if (Objects.nonNull(remote)) {
+                this.doModifyAsync(() -> this.setStatus(this.loadStatus(remote)), Status.LOADING);
+            } else {
+                this.setStatus(Status.DISCONNECTED);
+            }
         }
     }
 
@@ -125,7 +127,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @Nonnull
-    public String getStatus() {
+    public synchronized String getStatus() {
         final R remote = this.getRemote();
         if (Objects.nonNull(remote) && Objects.isNull(this.status)) {
             this.setStatus(this.loadStatus(remote));
@@ -138,28 +140,40 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return this.formalizeStatus(this.getStatus());
     }
 
-    public void doModify(Runnable body, String status) {
+    protected void doModify(Runnable body, String status) {
         // TODO: lock so that can not modify if modifying.
         this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
         try {
             body.run();
+            if (this.remote instanceof Refreshable) {
+                ((Refreshable<?>) this.remote).refresh();
+            }
+            this.setRemote(this.remote);
         } catch (Throwable t) {
             this.setStatus(Status.ERROR);
             throw t;
         }
     }
 
-    public void doModifyAsync(Runnable body, String status) {
+    protected void doModifyAsync(Runnable body, String status) {
+        this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
+        AzureTaskManager.getInstance().runOnPooledThread(() -> this.doModify(body, status));
+    }
+
+    protected void doModify(Callable<R> body, String status) {
         // TODO: lock so that can not modify if modifying.
         this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
-        AzureTaskManager.getInstance().runOnPooledThread(() -> {
-            try {
-                body.run();
-            } catch (Throwable t) {
-                this.setStatus(Status.ERROR);
-                throw t;
-            }
-        });
+        try {
+            this.setRemote(body.call());
+        } catch (Throwable t) {
+            this.setStatus(Status.ERROR);
+            throw new AzureToolkitRuntimeException(t);
+        }
+    }
+
+    protected void doModifyAsync(Callable<R> body, String status) {
+        this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
+        AzureTaskManager.getInstance().runOnPooledThread(() -> this.doModify(body, status));
     }
 
     @Nonnull

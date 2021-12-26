@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class PostgreSqlServer extends AbstractAzureResource<PostgreSqlServer, PostgreSqlServerEntity, Server> implements AzureOperationEvent.Source<PostgreSqlServer>,
-        IAzureResource<PostgreSqlServerEntity>, IDatabaseServer, Startable<PostgreSqlServerEntity>, Removable {
+        IAzureResource<PostgreSqlServerEntity>, IDatabaseServer, Startable, Removable {
     public static final String NOT_SUPPORTED_BY_AZURE_POSTGRE_SQL = "Start and stop are not supported by Azure PostgreSQL.";
     @Nonnull
     private final PostgreSqlManager manager;

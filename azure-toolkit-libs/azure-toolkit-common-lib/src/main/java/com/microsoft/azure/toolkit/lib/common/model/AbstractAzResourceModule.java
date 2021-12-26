@@ -120,7 +120,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             final T resource = cast(draft);
             // this will notify azure explorer to show a draft resource first
             this.addResourceToLocal(resource);
-            resource.doModify(() -> resource.setRemote(draft.createResourceInAzure()), Status.CREATING);
+            resource.doModify(() -> draft.createResourceInAzure(), Status.CREATING);
             return resource;
         }
         throw new AzureToolkitRuntimeException(String.format("resource \"%s\" is existing", existing.getName()));
@@ -137,7 +137,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public T update(@NotNull AzResource.Draft<T, R> draft) {
         final T resource = this.get(draft.getName(), draft.getResourceGroup());
         if (Objects.nonNull(resource) && Objects.nonNull(resource.getRemote())) {
-            resource.doModify(() -> resource.setRemote(draft.updateResourceInAzure(resource.getRemote())), Status.UPDATING);
+            resource.doModify(() -> draft.updateResourceInAzure(resource.getRemote()), Status.UPDATING);
             return resource;
         }
         throw new AzureToolkitRuntimeException(String.format("resource \"%s\" doesn't exist", draft.getName()));

@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
+import com.microsoft.azure.toolkit.lib.common.entity.Startable;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -22,7 +23,9 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Getter
-public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringCloudCluster, SpringApp> {
+public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringCloudCluster, SpringApp>
+    implements Startable {
+
     @Nonnull
     private final SpringCloudDeploymentModule deploymentModule;
 
@@ -58,17 +61,22 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     // MODIFY
     @AzureOperation(name = "springcloud.start_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
-        this.doModify(() -> Objects.requireNonNull(this.getRemote()).getActiveDeployment().start(), Status.STARTING);
+        this.doModify(() -> Objects.requireNonNull(this.getActiveDeployment()).start(), Status.STARTING);
     }
 
     @AzureOperation(name = "springcloud.stop_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void stop() {
-        this.doModify(() -> Objects.requireNonNull(this.getRemote()).getActiveDeployment().stop(), Status.STOPPING);
+        this.doModify(() -> Objects.requireNonNull(this.getActiveDeployment()).stop(), Status.STOPPING);
     }
 
     @AzureOperation(name = "springcloud.restart_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
-        this.doModify(() -> Objects.requireNonNull(this.getRemote()).getActiveDeployment().restart(), Status.RESTARTING);
+        this.doModify(() -> Objects.requireNonNull(this.getActiveDeployment()).restart(), Status.RESTARTING);
+    }
+
+    @Override
+    public String status() {
+        return this.getStatus();
     }
 
     // READ
