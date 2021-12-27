@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -60,7 +60,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         if (this.syncTime < 0) {
             this.reload();
         }
-        return new ArrayList<>(this.resources.values());
+        return this.resources.values().stream().sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
     }
 
     @Nullable
@@ -120,7 +120,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             final T resource = cast(draft);
             // this will notify azure explorer to show a draft resource first
             this.addResourceToLocal(resource);
-            resource.doModify(() -> draft.createResourceInAzure(), Status.CREATING);
+            resource.doModify(draft::createResourceInAzure, Status.CREATING);
             return resource;
         }
         throw new AzureToolkitRuntimeException(String.format("resource \"%s\" is existing", existing.getName()));
