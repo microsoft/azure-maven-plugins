@@ -4,6 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.service.impl.deploy;
 
+import com.azure.resourcemanager.appservice.models.AppSetting;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
@@ -21,17 +22,24 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.time.Period;
+import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.lib.legacy.function.Constants.APP_SETTING_WEBSITE_RUN_FROM_PACKAGE;
 
 public class RunFromBlobFunctionDeployHandler implements IFunctionDeployHandler {
     private static final int SAS_EXPIRE_DATE_BY_YEAR = 10;
+    private static final String KEY_VAULT_REFERENCE_PREFIX = "@Microsoft.KeyVault";
     private static final String DEPLOYMENT_PACKAGE_CONTAINER = "java-functions-run-from-packages";
     private static final String FAILED_TO_GET_FUNCTION_APP_ARTIFACT_CONTAINER = "Failed to get Function App artifact container";
     private static final String UPDATE_ACCESS_LEVEL_TO_PRIVATE = "The blob container '%s' access level was updated to be private";
 
     @Override
     public void deploy(File file, WebAppBase target) {
+        if (!isRunFromBlobSupported(target)) {
+            AzureMessager.getMessager().warning("Run from blob deployment is not supported for current function app, fail back to run from zip deployment");
+            new RunFromZipFunctionDeployHandler().deploy(file, target);
+            return;
+        }
         final CloudStorageAccount storageAccount = DeployUtils.getCloudStorageAccount(target);
         try {
             final CloudBlockBlob blob = deployArtifactToAzureStorage(target, file, storageAccount);
@@ -40,6 +48,13 @@ public class RunFromBlobFunctionDeployHandler implements IFunctionDeployHandler 
         } catch (AzureExecutionException e) {
             throw new AzureToolkitRuntimeException("Failed to upload package to azure storage", e);
         }
+    }
+
+    private boolean isRunFromBlobSupported(final WebAppBase target) {
+        final String storageConnection = Optional.ofNullable(target.getAppSettings())
+                .map(settings -> settings.get(DeployUtils.INTERNAL_STORAGE_KEY))
+                .map(AppSetting::value).orElse(null);
+        return StringUtils.isNotEmpty(storageConnection) && !StringUtils.startsWith(storageConnection, KEY_VAULT_REFERENCE_PREFIX);
     }
 
     private CloudBlockBlob deployArtifactToAzureStorage(WebAppBase deployTarget, File zipPackage, CloudStorageAccount storageAccount)

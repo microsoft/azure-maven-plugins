@@ -18,8 +18,8 @@ import java.util.Map;
 import java.util.Optional;
 
 class DeployUtils {
+    public static final String INTERNAL_STORAGE_KEY = "AzureWebJobsStorage";
     private static final String INTERNAL_STORAGE_NOT_FOUND = "Application setting 'AzureWebJobsStorage' not found.";
-    private static final String INTERNAL_STORAGE_KEY = "AzureWebJobsStorage";
     private static final String UNSUPPORTED_DEPLOYMENT_TARGET = "Unsupported deployment target, only function is supported";
 
     /**
