@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import java.io.IOException;
 
 /*
- * Customize deserializer to get the trigger type of TriggerFunction from (templates.json).tempates.function
+ * Customize deserializer to get the trigger type of TriggerFunction from (templates.json).templates.function
  */
 public class TemplateTriggerTypeDeserializer extends StdDeserializer<String> {
 

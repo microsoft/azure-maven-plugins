@@ -29,7 +29,7 @@ import java.util.EnumSet;
 public class AzureStorageHelper {
     private static final int SAS_START_RESERVE_MINUTE = 5;
     private static final String FAIL_TO_DELETE_BLOB = "Fail to delete blob";
-    private static final String FAIL_TO_UPLOAD_BLOB = "Fail to updload file as blob";
+    private static final String FAIL_TO_UPLOAD_BLOB = "Fail to upload file as blob";
     private static final String FAIL_TO_GENERATE_BLOB_SAS_TOKEN = "Fail to generate blob sas token";
 
     public static CloudBlockBlob uploadFileAsBlob(final File fileToUpload, final CloudStorageAccount storageAccount,

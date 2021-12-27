@@ -14,7 +14,9 @@
     <version>2.3.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Plugin for Azure Web Apps</name>
-    <description>Maven Plugin for Azure Web Apps</description>
+    <description>
+        The Maven Plugin for Azure App Service helps Java developers to deploy Maven projects to Azure App Service
+    </description>
     <url>https://github.com/microsoft/azure-maven-plugins</url>
 
     <licenses>

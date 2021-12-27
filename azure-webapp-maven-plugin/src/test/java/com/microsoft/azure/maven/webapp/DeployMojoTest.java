@@ -6,7 +6,6 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
@@ -22,7 +21,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.io.File;
 import java.util.Map;
 
-import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.DEPLOYMENT_TYPE_KEY;
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.DEPLOY_TO_SLOT_KEY;
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.DOCKER_IMAGE_TYPE_KEY;
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_VERSION_KEY;
@@ -71,8 +69,6 @@ public class DeployMojoTest {
 
         assertEquals(1, mojo.getAppSettings().size());
 
-        assertEquals(DeploymentType.EMPTY, mojo.getDeploymentType());
-
         assertEquals(1, mojo.getDeployment().getResources().size());
 
         assertFalse(mojo.isStopAppDuringDeployment());
@@ -94,11 +90,10 @@ public class DeployMojoTest {
         ReflectionUtils.setVariableValueInObject(spyMojo, "plugin", plugin);
         doReturn("azure-webapp-maven-plugin").when(plugin).getArtifactId();
         final Map map = spyMojo.getTelemetryProperties();
-        assertEquals(13, map.size());
+        assertEquals(12, map.size());
         assertTrue(map.containsKey(JAVA_VERSION_KEY));
         assertTrue(map.containsKey(JAVA_WEB_CONTAINER_KEY));
         assertTrue(map.containsKey(DOCKER_IMAGE_TYPE_KEY));
-        assertTrue(map.containsKey(DEPLOYMENT_TYPE_KEY));
         assertTrue(map.containsKey(OS_KEY));
         assertTrue(map.containsKey(DEPLOY_TO_SLOT_KEY));
     }

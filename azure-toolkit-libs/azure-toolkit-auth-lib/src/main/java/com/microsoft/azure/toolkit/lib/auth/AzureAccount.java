@@ -228,7 +228,7 @@ public class AzureAccount implements IAzureAccount {
     @Cacheable(cacheName = "Regions", key = "$subscriptionId")
     public List<Region> listRegions(String subscriptionId) {
         return getSubscription(subscriptionId).listLocations().stream()
-                .filter(l -> l.regionType() == RegionType.PHYSICAL) // use distinct since com.azure.core.management.Region impls equals
+                .filter(l -> l.regionType() == RegionType.PHYSICAL) // use distinct since com.azure.core.management.Region impels equals
                 .map(Location::region).distinct().map(AzureAccount::toRegion).collect(Collectors.toList());
     }
 
@@ -261,7 +261,7 @@ public class AzureAccount implements IAzureAccount {
 
     private static Map<AuthType, Supplier<Account>> buildAccountMap() {
         Map<AuthType, Supplier<Account>> map = new LinkedHashMap<>();
-        // SP is not there since it requires special constructor argument and it is special(it requires complex auth configuration)
+        // SP is not there since it requires special constructor argument, and it is special(it requires complex auth configuration)
         map.put(AuthType.AZURE_CLI, AzureCliAccount::new);
         map.put(AuthType.OAUTH2, OAuthAccount::new);
         map.put(AuthType.DEVICE_CODE, DeviceCodeAccount::new);

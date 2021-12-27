@@ -40,7 +40,7 @@ import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigU
 import static com.microsoft.azure.toolkit.lib.appservice.utils.Utils.throwForbidCreateResourceWarning;
 
 /**
- * Deploy an Azure Web App, either Windows-based or Linux-based.
+ * Deploy your project to Azure Web App. If target app doesn't exist, it will be created.
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractWebAppMojo {

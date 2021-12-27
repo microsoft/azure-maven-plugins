@@ -57,8 +57,8 @@ public class AddMojo extends AbstractFunctionMojo {
     private static final String SAVE_FILE_DONE = "Successfully saved new function at ";
     private static final String FILE_EXIST = "Function already exists at %s. Please specify a different function name.";
     private static final String DEFAULT_INPUT_ERROR_MESSAGE = "Invalid input, please check and try again.";
-    private static final String PROMPT_STRING_WITH_DEFAULTVALUE = "Enter value for %s(Default: %s): ";
-    private static final String PROMPT_STRING_WITHOUT_DEFAULTVALUE = "Enter value for %s: ";
+    private static final String PROMPT_STRING_WITH_DEFAULT_VALUE = "Enter value for %s(Default: %s): ";
+    private static final String PROMPT_STRING_WITHOUT_DEFAULT_VALUE = "Enter value for %s: ";
     private static final String FUNCTION_NAME_REGEXP = "^[a-zA-Z][a-zA-Z\\d_\\-]*$";
 
     //region Properties
@@ -324,8 +324,8 @@ public class AddMojo extends AbstractFunctionMojo {
 
     protected String getStringInputPromptString(String attributeName, String defaultValue) {
         return StringUtils.isBlank(defaultValue) ?
-                String.format(PROMPT_STRING_WITHOUT_DEFAULTVALUE, attributeName) :
-                String.format(PROMPT_STRING_WITH_DEFAULTVALUE, attributeName, defaultValue);
+                String.format(PROMPT_STRING_WITHOUT_DEFAULT_VALUE, attributeName) :
+                String.format(PROMPT_STRING_WITH_DEFAULT_VALUE, attributeName, defaultValue);
     }
 
     protected Function<String, Boolean> getStringInputValidator(FunctionSettingTemplate template) {

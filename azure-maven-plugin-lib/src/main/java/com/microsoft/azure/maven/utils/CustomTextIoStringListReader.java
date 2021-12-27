@@ -96,7 +96,7 @@ public class CustomTextIoStringListReader<T> extends GenericInputReader<T> {
     }
 
     /**
-     * shouldappendColon in InputReader is private, we need to call it in printPrompt, so we make a copied version which is exact same as shouldappendColon
+     * shouldAppendColon in InputReader is private, we need to call it in printPrompt, so we make a copied version which is exact same as shouldAppendColon
      */
     private static boolean anotherShouldAppendColon(String s) {
         if (s == null || s.isEmpty()) {

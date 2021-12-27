@@ -104,6 +104,9 @@ public class PackageMojo extends AbstractFunctionMojo {
     private static final String CAN_NOT_FIND_ARTIFACT = "Cannot find the maven artifact, please run `mvn package` first.";
     //region Entry Point
 
+    /**
+     * Boolean flag to skip extension installation
+     */
     @Parameter(property = "functions.skipInstallExtensions", defaultValue = "false")
     protected boolean skipInstallExtensions;
 
