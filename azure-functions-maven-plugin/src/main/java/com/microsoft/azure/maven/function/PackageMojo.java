@@ -79,7 +79,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     public static final String SAVE_SKIP = "No configurations found. Skip save.";
     public static final String SAVE_FUNCTION_JSON = "Starting processing function: ";
     public static final String SAVE_SUCCESS = "Successfully saved to ";
-    public static final String COPY_JARS = "Step 7 of 8: Copying JARs to staging directory";
+    public static final String COPY_JARS = "Step 7 of 8: Copying JARs to staging directory ";
     public static final String COPY_SUCCESS = "Copied successfully.";
     public static final String INSTALL_EXTENSIONS = "Step 8 of 8: Installing function extensions if needed";
     public static final String SKIP_INSTALL_EXTENSIONS_HTTP = "Skip install Function extension for HTTP Trigger Functions";
