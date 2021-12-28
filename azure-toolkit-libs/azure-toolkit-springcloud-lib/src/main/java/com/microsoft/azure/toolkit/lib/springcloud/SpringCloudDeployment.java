@@ -11,6 +11,7 @@ import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
 import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
+import com.azure.resourcemanager.appplatform.models.UserSourceType;
 import com.azure.resourcemanager.resources.fluentcore.model.Refreshable;
 import com.google.common.base.Charsets;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -301,6 +302,7 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
         public Creator(SpringCloudDeployment deployment) {
             super(deployment);
             this.modifier = (SpringAppDeploymentImpl) Objects.requireNonNull(this.deployment.app.remote()).deployments().define(deployment.name());
+            this.modifier.withExistingSource(UserSourceType.JAR, "<default>");
         }
 
         @AzureOperation(
