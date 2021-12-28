@@ -9,8 +9,8 @@ import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.serializer.ConfigurationSerializer;
 import com.microsoft.azure.maven.webapp.serializer.V2ConfigurationSerializer;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
-
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -22,15 +22,12 @@ import org.dom4j.io.XMLWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 
+// todo: migrate to com.microsoft.azure.maven.utils.PomUtils
 public class WebAppPomHandler {
 
     public static final String PLUGIN_GROUP_ID = "com.microsoft.azure";
     public static final String PLUGIN_ARTIFACT_ID = "azure-webapp-maven-plugin";
-    public static final String PLUGIN_PROPERTIES_FILE = "plugin.properties";
-    public static final String PROPERTY_VERSION = "project.version";
 
     final File file;
     final Document document;
@@ -46,14 +43,14 @@ public class WebAppPomHandler {
         return mavenPlugin == null ? null : mavenPlugin.element("configuration");
     }
 
-    public void updatePluginConfiguration(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs)
+    public void updatePluginConfiguration(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs, PluginDescriptor descriptor)
         throws IOException,
         MojoFailureException {
         Element pluginElement = getMavenPluginElement();
         if (pluginElement == null) {
             final Element buildNode = XMLUtils.getOrCreateSubElement("build", document.getRootElement());
             final Element pluginsRootNode = XMLUtils.getOrCreateSubElement("plugins", buildNode);
-            pluginElement = createNewMavenPluginNode(pluginsRootNode);
+            pluginElement = createNewMavenPluginNode(pluginsRootNode, descriptor);
         }
         final Element configuration = XMLUtils.getOrCreateSubElement("configuration", pluginElement);
         final ConfigurationSerializer serializer = new V2ConfigurationSerializer(newConfigs, oldConfigs);
@@ -86,24 +83,15 @@ public class WebAppPomHandler {
         return null;
     }
 
-    private static Element createNewMavenPluginNode(Element pluginsRootNode) throws IOException {
+    private static Element createNewMavenPluginNode(Element pluginsRootNode, PluginDescriptor descriptor) {
 
         final Element result = new DOMElement("plugin");
 
         ((DOMElement) result).setNamespace(pluginsRootNode.getNamespace());
-        result.add(XMLUtils.createSimpleElement("groupId", PLUGIN_GROUP_ID));
-        result.add(XMLUtils.createSimpleElement("artifactId", PLUGIN_ARTIFACT_ID));
-        result.add(XMLUtils.createSimpleElement("version", getPluginVersion()));
+        result.add(XMLUtils.createSimpleElement("groupId", descriptor.getGroupId()));
+        result.add(XMLUtils.createSimpleElement("artifactId", descriptor.getArtifactId()));
+        result.add(XMLUtils.createSimpleElement("version", descriptor.getVersion()));
         pluginsRootNode.add(result);
         return result;
-    }
-
-    private static String getPluginVersion() throws IOException {
-        final Properties properties = new Properties();
-        try (final InputStream is = WebAppPomHandler.class.getClassLoader()
-                .getResourceAsStream(PLUGIN_PROPERTIES_FILE)) {
-            properties.load(is);
-            return properties.getProperty(PROPERTY_VERSION);
-        }
     }
 }

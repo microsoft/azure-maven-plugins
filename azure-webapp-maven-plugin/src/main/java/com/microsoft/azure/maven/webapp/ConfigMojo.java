@@ -158,7 +158,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             }
         } while (!confirmConfiguration(result));
         Log.info(SAVING_TO_POM);
-        pomHandler.updatePluginConfiguration(result, configuration);
+        pomHandler.updatePluginConfiguration(result, configuration, plugin);
     }
 
     protected boolean confirmConfiguration(WebAppConfiguration configuration) throws AzureExecutionException,
