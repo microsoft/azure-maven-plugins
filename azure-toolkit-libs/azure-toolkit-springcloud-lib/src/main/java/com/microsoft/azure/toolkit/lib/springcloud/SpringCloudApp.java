@@ -107,7 +107,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     public String getTestUrl() {
         return Optional.ofNullable(this.getRemote()).map(SpringApp::activeDeploymentName).map(d -> {
             final String endpoint = this.getRemote().parent().listTestKeys().primaryTestEndpoint();
-            return String.format("%s/%s/%s/", endpoint, this.getName(), d);
+            return String.format("%s/%s/%s", endpoint, this.getName(), d);
         }).orElse(null);
     }
 
