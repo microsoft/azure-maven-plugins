@@ -9,7 +9,6 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
-import com.microsoft.azure.toolkit.lib.common.DataStore;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import lombok.Getter;
 
@@ -112,7 +111,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         private final String subscriptionId = NONE;
 
         private None() {
-            super("$NONE$", "$NONE$", AzResourceModule.NONE);
+            super("$NONE$", AzResource.RESOURCE_GROUP_PLACEHOLDER, AzResourceModule.NONE);
         }
 
         @Override
@@ -133,7 +132,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         }
     }
 
-    interface Draft<T extends AzResource<T, ?, R>, R> extends DataStore {
+    interface Draft<T extends AzResource<T, ?, R>, R> {
 
         String getName();
 

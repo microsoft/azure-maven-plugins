@@ -96,7 +96,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     public T getOrDraft(@Nonnull String name, String resourceGroup) {
-        return Optional.ofNullable(this.get(name, resourceGroup)).orElse(this.newDraft(name, resourceGroup));
+        return Optional.ofNullable(this.get(name, resourceGroup)).orElseGet(() -> this.newDraft(name, resourceGroup));
     }
 
     public <D extends AzResource.Draft<T, R>> D updateOrCreate(String name, String resourceGroup) {
@@ -137,6 +137,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public T update(@NotNull AzResource.Draft<T, R> draft) {
         final T resource = this.get(draft.getName(), draft.getResourceGroup());
         if (Objects.nonNull(resource) && Objects.nonNull(resource.getRemote())) {
+            this.<T>cast(draft).setRemote(resource.getRemote());
             resource.doModify(() -> draft.updateResourceInAzure(resource.getRemote()), Status.UPDATING);
             return resource;
         }
@@ -212,14 +213,16 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nullable
     protected R loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
         final Object client = this.getClient();
+        resourceGroup = StringUtils.firstNonBlank(resourceGroup, ((AbstractAzResource<?, ?, ?>) this.getParent()).getResourceGroup());
+        resourceGroup = StringUtils.equals(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER) ? null : resourceGroup;
         if (client instanceof SupportsGettingByName) {
             return this.<SupportsGettingByName<R>>cast(client).getByName(name);
-        } else if (client instanceof SupportsGettingByResourceGroup) {
+        } else if (client instanceof SupportsGettingByResourceGroup && StringUtils.isNotEmpty(resourceGroup)) {
             return this.<SupportsGettingByResourceGroup<R>>cast(client).getByResourceGroup(resourceGroup, name);
-        } else if (client instanceof SupportsGettingById) {
+        } else if (client instanceof SupportsGettingById && StringUtils.isNotEmpty(resourceGroup)) {
             return this.<SupportsGettingById<R>>cast(client).getByIdAsync(toResourceId(name, resourceGroup)).block();
-        } else {
-            return null;
+        } else { // fallback to filter the named resource from all resources in current module.
+            return this.list().stream().filter(r -> StringUtils.equals(name, r.getName())).findAny().map(AbstractAzResource::getRemote).orElse(null);
         }
     }
 
