@@ -7,10 +7,9 @@ package com.microsoft.azure.maven.springcloud;
 
 import com.microsoft.azure.maven.AbstractAzureMojo;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentMavenConfig;
-import com.microsoft.azure.maven.springcloud.config.ConfigurationParser;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import lombok.Getter;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.settings.Settings;
@@ -97,7 +96,6 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
 
     protected void initTelemetryProxy() {
         super.initTelemetryProxy();
-        final SpringCloudAppConfig configuration = this.getConfiguration();
         final String javaVersion = String.format("%s %s", System.getProperty("java.vendor"), System.getProperty("java.version"));
         telemetryProxy.addDefaultProperty(TELEMETRY_KEY_PLUGIN_NAME, plugin.getArtifactId());
         telemetryProxy.addDefaultProperty(TELEMETRY_KEY_PLUGIN_VERSION, plugin.getVersion());
@@ -109,18 +107,16 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
         // Todo update deploy mojo telemetries with real value
         telemetryProxy.addDefaultProperty(TELEMETRY_KEY_AUTH_METHOD, TELEMETRY_VALUE_AUTH_POM_CONFIGURATION);
 
-        telemetryProxy.addDefaultProperty(TELEMETRY_KEY_PUBLIC, String.valueOf(configuration.isPublic()));
-        telemetryProxy.addDefaultProperty(TELEMETRY_KEY_RUNTIME_VERSION, configuration.getRuntimeVersion());
-        telemetryProxy.addDefaultProperty(TELEMETRY_KEY_CPU, String.valueOf(configuration.getDeployment().getCpu()));
-        telemetryProxy.addDefaultProperty(TELEMETRY_KEY_MEMORY, String.valueOf(configuration.getDeployment().getMemoryInGB()));
-        telemetryProxy.addDefaultProperty(TELEMETRY_KEY_INSTANCE_COUNT, String.valueOf(configuration.getDeployment().getInstanceCount()));
+        telemetryProxy.addDefaultProperty(TELEMETRY_KEY_PUBLIC, String.valueOf(this.getIsPublic()));
+        final AppDeploymentMavenConfig deployment = ObjectUtils.firstNonNull(this.getDeployment(), new AppDeploymentMavenConfig());
+        telemetryProxy.addDefaultProperty(TELEMETRY_KEY_RUNTIME_VERSION,
+            StringUtils.firstNonBlank(deployment.getRuntimeVersion(), this.getRuntimeVersion()));
+        telemetryProxy.addDefaultProperty(TELEMETRY_KEY_CPU, String.valueOf(deployment.getCpu()));
+        telemetryProxy.addDefaultProperty(TELEMETRY_KEY_MEMORY, String.valueOf(deployment.getMemoryInGB()));
+        telemetryProxy.addDefaultProperty(TELEMETRY_KEY_INSTANCE_COUNT, String.valueOf(deployment.getInstanceCount()));
         telemetryProxy.addDefaultProperty(TELEMETRY_KEY_JVM_OPTIONS,
-                String.valueOf(StringUtils.isEmpty(configuration.getDeployment().getJvmOptions())));
-        telemetryProxy.addDefaultProperty(TELEMETRY_KEY_SUBSCRIPTION_ID, configuration.getSubscriptionId());
-    }
-
-    public SpringCloudAppConfig getConfiguration() {
-        final ConfigurationParser parser = ConfigurationParser.getInstance();
-        return parser.parse(this);
+            String.valueOf(StringUtils.isEmpty(deployment.getJvmOptions())));
+        telemetryProxy.addDefaultProperty(TELEMETRY_KEY_SUBSCRIPTION_ID, this.getSubscriptionId());
+        telemetryProxy.addDefaultProperty("isDeploymentNameGiven", String.valueOf(StringUtils.isNotEmpty(deployment.getDeploymentName())));
     }
 }

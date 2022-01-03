@@ -7,14 +7,22 @@ package com.microsoft.azure.maven.springcloud;
 
 import com.microsoft.azure.maven.prompt.DefaultPrompter;
 import com.microsoft.azure.maven.prompt.IPrompter;
+import com.microsoft.azure.maven.springcloud.config.AppDeploymentMavenConfig;
+import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.Utils;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.task.DeploySpringCloudAppTask;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +34,10 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Deploy your project to target Azure Spring Cloud app. If target app doesn't exist, it will be created.
@@ -68,9 +78,7 @@ public class DeployMojo extends AbstractMojoBase {
         selectSubscription();
 
         // Init spring clients, and prompt users to confirm
-        final SpringCloudAppConfig appConfig = this.getConfiguration();
-        final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig);
-
+        final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(this.initDeploymentDraft());
         final List<AzureTask<?>> tasks = task.getSubTasks();
         final boolean shouldSkipConfirm = !prompt || (this.settings != null && !this.settings.isInteractiveMode());
         if (!shouldSkipConfirm && !this.confirm(tasks)) {
@@ -99,7 +107,7 @@ public class DeployMojo extends AbstractMojoBase {
     }
 
     protected void printPublicUrl(SpringCloudApp app) {
-        if (!app.isPublic()) {
+        if (!app.isPublicEndpointEnabled()) {
             return;
         }
         log.info("Getting public url of app({})...", TextUtils.cyan(app.name()));
@@ -164,5 +172,43 @@ public class DeployMojo extends AbstractMojoBase {
     @Override
     protected boolean isSkipMojo() {
         return !checkProjectPackaging(project) || !checkConfiguration();
+    }
+
+    public static final String DEFAULT_DEPLOYMENT_NAME = "default";
+
+    @SneakyThrows
+    private SpringCloudDeploymentDraft initDeploymentDraft() {
+        final SpringCloudAppDraft app = this.initAppDraft();
+        final AppDeploymentMavenConfig deploymentConfig = this.getDeployment();
+        final String deploymentName = StringUtils.firstNonBlank(
+            deploymentConfig.getDeploymentName(),
+            app.getActiveDeploymentName(),
+            DEFAULT_DEPLOYMENT_NAME
+        );
+        final SpringCloudDeploymentDraft deployment = app.deployments().updateOrCreate(deploymentName, app.getResourceGroup());
+
+        final List<File> artifacts = MavenArtifactUtils.getArtifacts(deploymentConfig.getResources());
+        if (artifacts.isEmpty()) {
+            artifacts.addAll(MavenArtifactUtils.getArtifactFiles(this.getProject()));
+        }
+        final File artifact = MavenArtifactUtils.getExecutableJarFiles(artifacts);
+        deployment.setCpu(deploymentConfig.getCpu());
+        deployment.setArtifact(artifact != null ? IArtifact.fromFile(artifact) : null);
+        deployment.setEnvironmentVariables(deploymentConfig.getEnvironment());
+        deployment.setInstanceNum(deploymentConfig.getInstanceCount());
+        deployment.setJvmOptions(deploymentConfig.getJvmOptions());
+        deployment.setMemoryInGB(deploymentConfig.getMemoryInGB());
+        deployment.setRuntimeVersion(StringUtils.firstNonEmpty(deploymentConfig.getRuntimeVersion(), this.getRuntimeVersion()));
+        return deployment;
+    }
+
+    private SpringCloudAppDraft initAppDraft() {
+        final AppDeploymentMavenConfig rawConfig = this.getDeployment();
+        final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(this.getSubscriptionId()).get(this.getClusterName(), null);
+        Optional.ofNullable(cluster).orElseThrow(() -> new AzureToolkitRuntimeException(String.format("cluster \"%s\" doesn't exit", this.getClusterName())));
+        final SpringCloudAppDraft appDraft = cluster.apps().updateOrCreate(this.getAppName(), cluster.getResourceGroup());
+        appDraft.setPublicEndpointEnabled(this.getIsPublic());
+        appDraft.setPersistentDiskEnabled(rawConfig.getEnablePersistentStorage());
+        return appDraft;
     }
 }
