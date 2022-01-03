@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.SpringServices;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 
 import javax.annotation.Nonnull;
@@ -25,11 +24,6 @@ public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringClo
     @Override
     public SpringServices getClient() {
         return Optional.ofNullable(this.parent.getRemote()).map(AppPlatformManager::springServices).orElse(null);
-    }
-
-    @Override
-    protected SpringCloudCluster newDraft(@Nonnull String name, @Nonnull String resourceGroup) {
-        throw new AzureToolkitRuntimeException("not supported");
     }
 
     @Nonnull

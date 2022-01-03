@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import io.netty.handler.codec.http.HttpHeaders;
 import lombok.SneakyThrows;
 import org.apache.http.client.utils.URIBuilder;
@@ -136,28 +135,28 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
         return Utils.isDeploymentDone(deployment);
     }
 
-    @Nonnull
+    @Nullable
     public Integer getCpu() {
         return Optional.ofNullable(this.getRemote())
             .map(SpringAppDeployment::settings)
             .map(DeploymentSettings::cpu)
-            .orElse(1);
+            .orElse(null);
     }
 
-    @Nonnull
+    @Nullable
     public Integer getMemoryInGB() {
         return Optional.ofNullable(this.getRemote())
             .map(SpringAppDeployment::settings)
             .map(DeploymentSettings::memoryInGB)
-            .orElse(1);
+            .orElse(null);
     }
 
-    @Nonnull
+    @Nullable
     public String getRuntimeVersion() {
         return Optional.ofNullable(this.getRemote())
             .map(SpringAppDeployment::settings)
             .map(s -> s.runtimeVersion().toString())
-            .orElse(SpringCloudJavaVersion.JAVA_8);
+            .orElse(null);
     }
 
     @Nullable
@@ -182,6 +181,14 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
             return this.getRemote().instances();
         }
         return new ArrayList<>();
+    }
+
+    @Nullable
+    public Integer getInstanceNum() {
+        if (Objects.nonNull(this.getRemote())) {
+            return this.getRemote().instances().size();
+        }
+        return null;
     }
 
     @Nonnull

@@ -6,144 +6,238 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.implementation.SpringAppDeploymentImpl;
-import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
-import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
+import com.azure.resourcemanager.appplatform.models.UserSourceType;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
-import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
-import lombok.Getter;
-import lombok.Setter;
-import org.apache.commons.collections4.MapUtils;
+import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
+import lombok.Data;
+import lombok.experimental.Delegate;
+import lombok.extern.slf4j.Slf4j;
+import lombok.var;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-@Getter
-@Setter
-public class SpringCloudDeploymentDraft extends SpringCloudDeployment implements AzResource.Draft<SpringCloudDeployment, SpringAppDeployment> {
+@Slf4j
+public class SpringCloudDeploymentDraft extends SpringCloudDeployment
+    implements AzResource.Draft<SpringCloudDeployment, SpringAppDeployment>, InvocationHandler {
 
-    @Nullable
-    private SpringCloudDeploymentConfig config;
+    private static final String DEFAULT_RUNTIME_VERSION = SpringCloudJavaVersion.JAVA_8;
+    private static final String RUNTIME_VERSION_PATTERN = "[Jj]ava((\\s)?|_)(8|11)$";
+
+    @Delegate
+    private final IConfig configProxy;
+    private Config config;
 
     protected SpringCloudDeploymentDraft(@Nonnull String name, @Nonnull SpringCloudDeploymentModule module) {
         super(name, module);
         this.setStatus(Status.DRAFT);
+        this.configProxy = (IConfig) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{IConfig.class}, this);
+    }
+
+    @Override
+    public void reset() {
+        this.config = null;
     }
 
     @AzureOperation(
         name = "springcloud.create_deployment.deployment|app",
-        params = {"this.deployment.name()", "this.deployment.app.name()"},
+        params = {"this.getName()", "this.getParent().getName()"},
         type = AzureOperation.Type.SERVICE
     )
     public SpringAppDeployment createResourceInAzure() {
         final String name = this.getName();
         final SpringApp app = Objects.requireNonNull(this.getParent().getRemote());
         final SpringAppDeploymentImpl create = ((SpringAppDeploymentImpl) app.deployments().define(name));
-        modify(create, this.config);
+        create.withExistingSource(UserSourceType.JAR, "<default>");
+        modify(create);
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating deployment({0})...", name));
-        final SpringAppDeployment deployment = create.create();
+        SpringAppDeployment deployment = create.create();
         messager.success(AzureString.format("Deployment({0}) is successfully created", name));
-        if (Objects.nonNull(config)) {
-            return this.scaleDeploymentInAzure(deployment, config.getScaleSettings());
-        }
+        deployment = this.scaleDeploymentInAzure(deployment);
         return deployment;
     }
 
     @Override
     @AzureOperation(
         name = "springcloud.update_deployment.deployment|app",
-        params = {"this.deployment.name()", "this.deployment.app.name()"},
+        params = {"this.getName()", "this.getParent().getName()"},
         type = AzureOperation.Type.SERVICE
     )
-    public SpringAppDeployment updateResourceInAzure(@Nonnull SpringAppDeployment origin) {
-        final SpringAppDeploymentImpl update = ((SpringAppDeploymentImpl) Objects.requireNonNull(origin).update());
-        if (modify(update, config)) {
+    public SpringAppDeployment updateResourceInAzure(@Nonnull SpringAppDeployment deployment) {
+        final SpringAppDeploymentImpl update = ((SpringAppDeploymentImpl) Objects.requireNonNull(deployment).update());
+        if (modify(update)) {
             final IAzureMessager messager = AzureMessager.getMessager();
-            messager.info(AzureString.format("Start updating deployment({0})...", origin.name()));
-            origin = update.apply();
-            messager.success(AzureString.format("Deployment({0}) is successfully updated", origin.name()));
+            messager.info(AzureString.format("Start updating deployment({0})...", deployment.name()));
+            deployment = update.apply();
+            messager.success(AzureString.format("Deployment({0}) is successfully updated", deployment.name()));
         }
-        if (Objects.nonNull(config)) {
-            return this.scaleDeploymentInAzure(origin, config.getScaleSettings());
-        }
-        return origin;
+        deployment = this.scaleDeploymentInAzure(deployment);
+        return deployment;
     }
 
     @AzureOperation(
         name = "springcloud.scale_deployment.deployment|app",
-        params = {"this.deployment.name()", "this.deployment.app.name()"},
+        params = {"this.getName()", "this.getParent().getName()"},
         type = AzureOperation.Type.SERVICE
     )
-    SpringAppDeployment scaleDeploymentInAzure(SpringAppDeployment deployment, ScaleSettings newScale) {
-        final Optional<DeploymentSettings> temp = Optional.ofNullable(deployment.settings());
-        final ScaleSettings oldScale = ScaleSettings.builder()
-            .cpu(temp.map(DeploymentSettings::cpu).orElse(null))
-            .memoryInGB(temp.map(DeploymentSettings::memoryInGB).orElse(null))
-            .capacity(Optional.ofNullable(deployment.innerModel().sku()).map(Sku::capacity).orElse(null))
-            .build();
-        if (Objects.equals(newScale, oldScale)) {
-            return deployment;
+    SpringAppDeployment scaleDeploymentInAzure(SpringAppDeployment deployment) {
+        final SpringAppDeployment.Update update = deployment.update();
+        boolean modified = scale(deployment, update);
+        if (modified) {
+            final IAzureMessager messager = AzureMessager.getMessager();
+            messager.info(AzureString.format("Start scaling deployment({0})...", deployment.name()));
+            deployment = update.apply();
+            messager.success(AzureString.format("Deployment({0}) is successfully scaled.", deployment.name()));
         }
-        final IAzureMessager messager = AzureMessager.getMessager();
-        messager.info(AzureString.format("Start scaling deployment({0})...", deployment.name()));
-        final SpringAppDeployment result = deployment.update()
-            .withCpu(newScale.getCpu()).withMemory(newScale.getMemoryInGB()).withInstance(newScale.getCapacity()).apply();
-        messager.success(AzureString.format("Deployment({0}) is successfully scaled.", deployment.name()));
-        return result;
+        return deployment;
     }
 
-    boolean modify(@Nonnull SpringAppDeploymentImpl deployment, @Nullable SpringCloudDeploymentConfig config) {
-        if (Objects.isNull(config)) {
-            return false;
-        }
-        boolean skippable = true;
-        final Map<String, String> oldEnv = Optional.ofNullable(deployment.settings()).map(DeploymentSettings::environmentVariables).orElse(null);
-        final String oldJvmOptions = Optional.ofNullable(deployment.settings()).map(DeploymentSettings::jvmOptions).orElse(null);
-        final RuntimeVersion oldRuntimeVersion = Optional.ofNullable(deployment.settings()).map(DeploymentSettings::runtimeVersion).orElse(null);
+    boolean modify(@Nonnull SpringAppDeploymentImpl deployment) {
+        final Map<String, String> newEnv = this.getEnvironmentVariables();
+        final String newJvmOptions = this.getJvmOptions();
+        final String newVersion = this.getRuntimeVersion();
+        final File newArtifact = Optional.ofNullable(config.artifact).map(IArtifact::getFile).orElse(null);
 
-        final Map<String, String> newEnv = config.getEnvironment();
-        final String newJvmOptions = Optional.ofNullable(config.getJvmOptions()).map(String::trim).orElse("");
-        final RuntimeVersion newVersion = StringUtils.isBlank(config.getJavaVersion()) ?
-            RuntimeVersion.JAVA_8 : RuntimeVersion.fromString(config.getJavaVersion());
-        final File newArtifact = Optional.ofNullable(config.getArtifact()).map(IArtifact::getFile).orElse(null);
+        final Map<String, String> oldEnv = super.getEnvironmentVariables();
+        final boolean modified = (!Objects.equals(newEnv, oldEnv) && Objects.nonNull(newEnv)) ||
+            (!Objects.equals(newJvmOptions, super.getJvmOptions()) && Objects.nonNull(newJvmOptions)) ||
+            (!Objects.equals(newVersion, super.getRuntimeVersion()) && Objects.nonNull(newVersion)) ||
+            (Objects.nonNull(newArtifact));
+        if (modified) {
+            Optional.ofNullable(oldEnv).ifPresent((e) -> e.forEach((key, value) -> deployment.withoutEnvironment(key)));
+            Optional.ofNullable(newEnv).ifPresent((e) -> e.forEach(deployment::withEnvironment));
+            Optional.ofNullable(newJvmOptions).ifPresent(deployment::withJvmOptions);
+            Optional.ofNullable(newVersion).ifPresent(v -> deployment.withRuntime(RuntimeVersion.fromString(formalizeRuntimeVersion(v))));
+            Optional.ofNullable(newArtifact).ifPresent(deployment::withJarFile);
+        }
+        return modified;
+    }
 
-        final boolean allEmpty = MapUtils.isEmpty(newEnv) && MapUtils.isEmpty(oldEnv);
-        if (!allEmpty && !Objects.equals(newEnv, oldEnv) && Objects.nonNull(newEnv)) {
-            skippable = false;
-            newEnv.forEach((key, value) -> {
-                if (StringUtils.isBlank(value)) {
-                    deployment.withoutEnvironment(key);
-                } else {
-                    deployment.withEnvironment(key, value);
-                }
-            });
+    private boolean scale(SpringAppDeployment deployment, SpringAppDeployment.Update update) {
+        final Integer newCpu = this.getCpu();
+        final Integer newMemoryInGB = this.getMemoryInGB();
+        final Integer newInstanceNum = this.getInstanceNum();
+        final boolean scaled = (!Objects.equals(super.getCpu(), newCpu) && Objects.nonNull(newCpu)) ||
+            (!Objects.equals(super.getMemoryInGB(), newMemoryInGB) && Objects.nonNull(newMemoryInGB)) ||
+            (!Objects.equals(deployment.instances().size(), newInstanceNum) && Objects.nonNull(newInstanceNum));
+        if (scaled) {
+            Optional.ofNullable(newCpu).ifPresent(update::withCpu);
+            Optional.ofNullable(newMemoryInGB).ifPresent(update::withMemory);
+            Optional.ofNullable(newInstanceNum).ifPresent(update::withInstance);
         }
-        if (!StringUtils.isAllBlank(newJvmOptions, oldJvmOptions) && !Objects.equals(newJvmOptions, oldJvmOptions)) {
-            skippable = false;
-            deployment.withJvmOptions(newJvmOptions);
+        return scaled;
+    }
+
+    private static String formalizeRuntimeVersion(String runtimeVersion) {
+        if (StringUtils.isEmpty(runtimeVersion)) {
+            return DEFAULT_RUNTIME_VERSION;
         }
-        if (!Objects.equals(oldRuntimeVersion, newVersion)) {
-            skippable = false;
-            deployment.withRuntime(newVersion);
+        final String fixedRuntimeVersion = StringUtils.trim(runtimeVersion);
+        final Matcher matcher = Pattern.compile(RUNTIME_VERSION_PATTERN).matcher(fixedRuntimeVersion);
+        if (matcher.matches()) {
+            return Objects.equals(matcher.group(3), "8") ? SpringCloudJavaVersion.JAVA_8 : SpringCloudJavaVersion.JAVA_11;
+        } else {
+            log.warn("{} is not a valid runtime version, supported values are Java 8 and Java 11, using Java 8 in this deployment.", fixedRuntimeVersion);
+            return DEFAULT_RUNTIME_VERSION;
         }
-        if (Objects.nonNull(newArtifact)) {
-            skippable = false;
-            deployment.withJarFile(newArtifact);
+    }
+
+    @Override
+    public synchronized Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        args = ObjectUtils.firstNonNull(args, new Object[0]);
+        if (method.getName().startsWith("set")) {
+            synchronized (this) {
+                this.config = ObjectUtils.firstNonNull(this.config, new Config());
+                return method.invoke(config, args);
+            }
+        } else {
+            final Set<String> excludes = Collections.singleton("getArtifact");
+            final Object result = Objects.nonNull(config) ? method.invoke(config, args) : null;
+            return Objects.nonNull(result) || excludes.contains(method.getName()) ? result : invokeSuper(method, args);
         }
-        return !skippable;
+    }
+
+    private Object invokeSuper(Method method, Object[] args) throws Throwable {
+        final Class<?>[] classes = Arrays.stream(args).map(Object::getClass).toArray(value -> new Class<?>[0]);
+        final MethodType type = MethodType.methodType(method.getReturnType(), classes);
+        final var handle = MethodHandles.lookup().findSpecial(SpringCloudDeployment.class, method.getName(), type, this.getClass()).bindTo(this);
+        return handle.invokeWithArguments(args);
+    }
+
+    /**
+     * {@code null} means not modified for properties
+     */
+    @Data
+    private static class Config implements IConfig {
+        @Nullable
+        Map<String, String> environmentVariables;
+        @Nullable
+        String jvmOptions;
+        @Nullable
+        String runtimeVersion;
+        @Nullable
+        IArtifact artifact;
+        @Nullable
+        Integer cpu;
+        @Nullable
+        Integer memoryInGB;
+        @Nullable
+        Integer instanceNum;
+    }
+
+
+    private interface IConfig {
+        void setEnvironmentVariables(Map<String, String> environmentVariables);
+
+        void setJvmOptions(String jvmOptions);
+
+        void setRuntimeVersion(String runtimeVersion);
+
+        void setArtifact(IArtifact artifact);
+
+        void setCpu(Integer cpu);
+
+        void setMemoryInGB(Integer memoryInGB);
+
+        void setInstanceNum(Integer instanceNum);
+
+        Map<String, String> getEnvironmentVariables();
+
+        String getJvmOptions();
+
+        String getRuntimeVersion();
+
+        IArtifact getArtifact();
+
+        Integer getCpu();
+
+        Integer getMemoryInGB();
+
+        Integer getInstanceNum();
     }
 }

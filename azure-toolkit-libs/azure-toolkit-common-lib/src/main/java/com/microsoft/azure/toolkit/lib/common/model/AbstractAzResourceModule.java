@@ -86,6 +86,12 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Override
+    public boolean exists(@NotNull String name, String resourceGroup) {
+        final T resource = this.get(name, resourceGroup);
+        return Objects.nonNull(resource) && resource.exists();
+    }
+
+    @Override
     public void delete(@Nonnull String name, String resourceGroup) {
         final T resource = this.get(name, resourceGroup);
         if (Objects.nonNull(resource)) {

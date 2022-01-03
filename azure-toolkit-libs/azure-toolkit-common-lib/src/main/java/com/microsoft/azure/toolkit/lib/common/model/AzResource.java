@@ -141,15 +141,36 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         AzResourceModule<T, ?, R> getModule();
 
         default T commit() {
+            final boolean existing = this.getModule().exists(this.getName(), this.getResourceGroup());
+            final T result = existing ? this.getModule().update(this) : this.getModule().create(this);
+            this.reset();
+            return result;
+        }
+
+        void reset();
+
+        default T createIfNotExist() {
+            final T origin = this.getModule().get(this.getName(), this.getResourceGroup());
+            if (Objects.isNull(origin) || !origin.exists()) {
+                return this.getModule().create(this);
+            }
+            return origin;
+        }
+
+        default T updateIfExist() {
             final T origin = this.getModule().get(this.getName(), this.getResourceGroup());
             if (Objects.nonNull(origin) && origin.exists()) {
                 return this.getModule().update(this);
-            } else {
-                return this.getModule().create(this);
             }
+            return origin;
         }
 
         R createResourceInAzure();
+
+        default T asResource() {
+            //noinspection unchecked
+            return (T) this;
+        }
 
         R updateResourceInAzure(@Nonnull R origin);
     }

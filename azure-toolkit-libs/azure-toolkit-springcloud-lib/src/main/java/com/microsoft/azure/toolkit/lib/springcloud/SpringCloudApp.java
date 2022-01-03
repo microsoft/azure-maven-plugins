@@ -80,7 +80,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     }
 
     // READ
-    public boolean isPublic() {
+    public boolean isPublicEndpointEnabled() {
         if (Objects.nonNull(this.getRemote())) {
             return this.getRemote().isPublic();
         }
@@ -128,5 +128,9 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
                 .mountPath(disk.mountPath())
                 .usedInGB(disk.usedInGB()).build())
             .orElse(null);
+    }
+
+    public boolean isPersistentDiskEnabled() {
+        return Objects.nonNull(this.getPersistentDisk());
     }
 }

@@ -30,7 +30,8 @@ public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloud
         super("Microsoft.AppPlatform", AzResource.NONE); // for SPI
     }
 
-    public SpringCloudClusterModule clusters(String subscriptionId) {
+    @Nonnull
+    public SpringCloudClusterModule clusters(@Nonnull String subscriptionId) {
         final SpringCloudResourceManager rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getClusterModule();
