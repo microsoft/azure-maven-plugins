@@ -23,8 +23,8 @@ import com.microsoft.azure.toolkit.lib.compute.vm.DraftVirtualMachine;
 import com.microsoft.azure.toolkit.lib.compute.vm.VirtualMachine;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountConfig;
-import com.microsoft.azure.toolkit.lib.storage.service.AzureStorageAccount;
-import com.microsoft.azure.toolkit.lib.storage.service.StorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;

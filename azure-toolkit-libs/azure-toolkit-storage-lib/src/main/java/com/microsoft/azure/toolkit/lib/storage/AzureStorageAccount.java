@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.storage.service;
+package com.microsoft.azure.toolkit.lib.storage;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.storage.StorageManager;
@@ -23,7 +23,6 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
-import com.microsoft.azure.toolkit.lib.storage.StorageManagerFactory;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Performance;
 import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;

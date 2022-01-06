@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.storage.service;
+package com.microsoft.azure.toolkit.lib.storage;
 
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.exception.ManagementException;
