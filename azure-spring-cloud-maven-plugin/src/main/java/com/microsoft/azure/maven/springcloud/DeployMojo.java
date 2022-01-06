@@ -84,7 +84,7 @@ public class DeployMojo extends AbstractMojoBase {
             }
         }
         printStatus(deployment);
-        printPublicUrl(deployment.app());
+        printPublicUrl(deployment.getParent());
     }
 
     protected boolean confirm(List<AzureTask<?>> tasks) throws MojoFailureException {
@@ -99,15 +99,15 @@ public class DeployMojo extends AbstractMojoBase {
     }
 
     protected void printPublicUrl(SpringCloudApp app) {
-        if (!app.entity().isPublic()) {
+        if (!app.isPublicEndpointEnabled()) {
             return;
         }
         log.info("Getting public url of app({})...", TextUtils.cyan(app.name()));
-        String publicUrl = app.entity().getApplicationUrl();
+        String publicUrl = app.getApplicationUrl();
         if (!noWait && StringUtils.isEmpty(publicUrl)) {
             publicUrl = Utils.pollUntil(() -> {
                 app.refresh();
-                return app.entity().getApplicationUrl();
+                return app.getApplicationUrl();
             }, StringUtils::isNotBlank, GET_URL_TIMEOUT);
         }
         if (StringUtils.isEmpty(publicUrl)) {
@@ -118,10 +118,10 @@ public class DeployMojo extends AbstractMojoBase {
     }
 
     protected void printStatus(SpringCloudDeployment deployment) {
-        log.info("Deployment Status: {}", color(deployment.entity().getStatus().getLabel()));
-        deployment.entity().getInstances().forEach(instance ->
+        log.info("Deployment Status: {}", color(deployment.getStatus()));
+        deployment.getInstances().forEach(instance ->
                 log.info(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s",
-                        instance.getName(), color(instance.status()), instance.reason(), instance.discoveryStatus())));
+                        instance.name(), color(instance.status()), instance.reason(), instance.discoveryStatus())));
     }
 
     private static String color(String status) {
