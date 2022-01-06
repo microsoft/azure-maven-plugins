@@ -12,6 +12,7 @@ import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGet
 import com.azure.resourcemanager.resources.fluentcore.collection.SupportsDeletingById;
 import com.azure.resourcemanager.resources.fluentcore.collection.SupportsListing;
 import com.google.common.collect.Sets;
+import com.microsoft.azure.toolkit.lib.IResourceManager;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource.Status;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -153,8 +154,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Override
     public void refresh() {
         this.syncTime = -1;
-        AzureEventBus.emit("resource.children_changed.resource", this.getParent());
-        AzureEventBus.emit("module.children_changed.module", this);
+        fireResourcesChangedEvent();
     }
 
     private synchronized void reload() {
@@ -192,8 +192,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     T deleteResourceFromLocal(@Nonnull String name) {
         final T removed = this.resources.remove(name);
         if (Objects.nonNull(removed)) {
-            AzureEventBus.emit("resource.children_changed.resource", this.getParent());
-            AzureEventBus.emit("module.children_changed.module", this);
+            fireResourcesChangedEvent();
         }
         return removed;
     }
@@ -201,9 +200,17 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private void addResourceToLocal(@Nonnull T resource) {
         if (!this.resources.containsKey(resource.getName())) {
             this.resources.putIfAbsent(resource.getName(), resource);
-            AzureEventBus.emit("resource.children_changed.resource", this.getParent());
-            AzureEventBus.emit("module.children_changed.module", this);
+            fireResourcesChangedEvent();
         }
+    }
+
+    private void fireResourcesChangedEvent() {
+        if (this.getParent() instanceof IResourceManager) {
+            final AzResourceModule<P, ?, ?> service = this.getParent().getModule();
+            AzureEventBus.emit("service.children_changed.service", service);
+        }
+        AzureEventBus.emit("resource.children_changed.resource", this.getParent());
+        AzureEventBus.emit("module.children_changed.module", this);
     }
 
     @Nonnull
