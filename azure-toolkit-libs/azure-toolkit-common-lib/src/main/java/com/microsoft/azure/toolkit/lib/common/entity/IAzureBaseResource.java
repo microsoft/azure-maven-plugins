@@ -47,6 +47,10 @@ public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzu
         return null;
     }
 
+    default String getFormalStatus() {
+        return this.status();
+    }
+
     @Deprecated
     default void refreshStatus() {
     }
@@ -77,12 +81,23 @@ public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzu
         String UNSTABLE = "UNSTABLE";
         String PENDING = "PENDING";
 
+        String CREATING = "CREATING";
+        String DELETING = "DELETING";
+        String LOADING = "LOADING";
+        String UPDATING = "UPDATING";
+        String SCALING = "SCALING";
+
+        String STARTING = "STARTING";
+        String RESTARTING = "RESTARTING";
+        String STOPPING = "STOPPING";
+
         // Draft
         String DRAFT = "DRAFT";
+        String NULL = "NULL";
 
         // stable states
         String STABLE = "STABLE";
-        String LOADING = "LOADING";
+        String DELETED = "DELETED";
         String ERROR = "ERROR";
         String DISCONNECTED = "DISCONNECTED"; // failed to get remote/client
         String INACTIVE = "INACTIVE"; // no active deployment/...

@@ -36,7 +36,8 @@ import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.lib.Azure.az;
 
-public interface AzureService<T extends IAzureBaseResource> extends IAzureModule<T, IAzureBaseResource> {
+@Deprecated
+public interface AzureService<T extends IAzureBaseResource> extends IAzureModule<T, IAzureBaseResource>, AzService {
     default List<Subscription> getSubscriptions() {
         return Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
     }
@@ -56,6 +57,11 @@ public interface AzureService<T extends IAzureBaseResource> extends IAzureModule
             .findAny().map(ProviderResourceType::locations)
             .ifPresent(list -> result.addAll(list.stream().map(Region::fromName).filter(allRegionList::contains).collect(Collectors.toList())));
         return result.isEmpty() ? allRegionList : result;
+    }
+
+    @Override
+    default String getName() {
+        return this.name();
     }
 
     @Cacheable(cacheName = "resource/{}/manager", key = "$subscriptionId")
@@ -88,6 +94,11 @@ public interface AzureService<T extends IAzureBaseResource> extends IAzureModule
             httpPipelineCallContext.getHttpRequest().setHeader("User-Agent", String.format("%s %s", userAgent, previousUserAgent));
             return httpPipelineNextPolicy.process();
         };
+    }
+
+    @Override
+    default void refresh() {
+        IAzureModule.super.refresh();
     }
 
     class HttpClientHolder {
