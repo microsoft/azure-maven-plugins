@@ -6,17 +6,23 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
+import com.azure.resourcemanager.resources.ResourceManager;
+import com.azure.resourcemanager.resources.fluentcore.arm.Manager;
+import com.microsoft.azure.toolkit.lib.IResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
-public class SpringCloudResourceManager extends AbstractAzResource<SpringCloudResourceManager, AzResource.None, AppPlatformManager> {
+public class SpringCloudResourceManager extends AbstractAzResource<SpringCloudResourceManager, AzResource.None, AppPlatformManager>
+    implements IResourceManager {
     @Nonnull
     private final String subscriptionId;
     private final SpringCloudClusterModule clusterModule;
@@ -44,6 +50,20 @@ public class SpringCloudResourceManager extends AbstractAzResource<SpringCloudRe
 
     public SpringCloudClusterModule clusters() {
         return this.clusterModule;
+    }
+
+    public List<Region> listSupportedRegions() {
+        return IResourceManager.super.listSupportedRegions(this.clusterModule.getName());
+    }
+
+    @Override
+    public AzureSpringCloud getService() {
+        return (AzureSpringCloud) this.getModule();
+    }
+
+    @Override
+    public ResourceManager getResourceManager() {
+        return Objects.requireNonNull(this.getRemote()).resourceManager();
     }
 }
 

@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.core.http.policy.HttpLogDetailLevel;
-import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.microsoft.azure.toolkit.lib.AzService;
@@ -25,7 +24,8 @@ import javax.annotation.Nonnull;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloudResourceManager, AzResource.None, AppPlatformManager> implements AzService {
+public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloudResourceManager, AzResource.None, AppPlatformManager>
+    implements AzService {
     public AzureSpringCloud() {
         super("Microsoft.AppPlatform", AzResource.NONE); // for SPI
     }
@@ -35,6 +35,10 @@ public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloud
         final SpringCloudResourceManager rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getClusterModule();
+    }
+
+    public SpringCloudResourceManager forSubscription(@Nonnull String subscriptionId) {
+        return this.get(subscriptionId, null);
     }
 
     @Nonnull
@@ -53,7 +57,7 @@ public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloud
         return AppPlatformManager.configure()
             .withHttpClient(AzureService.getDefaultHttpClient())
             .withLogLevel(logLevel)
-            .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
+            .withPolicy(AzureService.getUserAgentPolicy(userAgent)) // set user agent with policy
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
@@ -72,13 +76,5 @@ public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloud
     public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
         final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
         return String.format("/subscriptions/%s/resourceGroups/%s/providers/%s", resourceName, rg, this.getName());
-    }
-
-    private static HttpPipelinePolicy getUserAgentPolicy(String userAgent) {
-        return (httpPipelineCallContext, httpPipelineNextPolicy) -> {
-            final String previousUserAgent = httpPipelineCallContext.getHttpRequest().getHeaders().getValue("User-Agent");
-            httpPipelineCallContext.getHttpRequest().setHeader("User-Agent", String.format("%s %s", userAgent, previousUserAgent));
-            return httpPipelineNextPolicy.process();
-        };
     }
 }
