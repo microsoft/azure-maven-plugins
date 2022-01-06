@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.redis;
 
 import com.azure.resourcemanager.redis.RedisManager;
 import com.azure.resourcemanager.resources.ResourceManager;
-import com.azure.resourcemanager.resources.fluentcore.arm.Manager;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.IResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -23,7 +22,7 @@ import java.util.Objects;
 
 @Getter
 public class RedisResourceManager extends AbstractAzResource<RedisResourceManager, AzResource.None, RedisManager>
-    implements IResourceManager {
+    implements IResourceManager<RedisResourceManager, AzResource.None, RedisManager> {
     @Nonnull
     private final String subscriptionId;
     private final RedisCacheModule cacheModule;

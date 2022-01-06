@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.azure.resourcemanager.resources.ResourceManager;
-import com.azure.resourcemanager.resources.fluentcore.arm.Manager;
 import com.microsoft.azure.toolkit.lib.IResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
@@ -22,7 +21,7 @@ import java.util.Objects;
 
 @Getter
 public class SpringCloudResourceManager extends AbstractAzResource<SpringCloudResourceManager, AzResource.None, AppPlatformManager>
-    implements IResourceManager {
+    implements IResourceManager<SpringCloudResourceManager, AzResource.None, AppPlatformManager> {
     @Nonnull
     private final String subscriptionId;
     private final SpringCloudClusterModule clusterModule;

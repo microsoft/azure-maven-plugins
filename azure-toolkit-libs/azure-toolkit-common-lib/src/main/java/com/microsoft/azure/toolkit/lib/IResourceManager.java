@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib;
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.models.ProviderResourceType;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 
@@ -17,7 +18,7 @@ import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.lib.Azure.az;
 
-public interface IResourceManager {
+public interface IResourceManager<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R> extends AzResource<T, P, R> {
 
     default List<Region> listSupportedRegions(String resourceType) {
         final String provider = getService().getName();
