@@ -21,12 +21,16 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * @deprecated use {@link com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft} instead.
+ */
 @Builder
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
+@Deprecated
 public class SpringCloudAppConfig {
     private String subscriptionId;
     private String clusterName;

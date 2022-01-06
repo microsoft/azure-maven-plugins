@@ -30,6 +30,7 @@ import org.apache.commons.lang3.ObjectUtils;
 @Getter
 @Builder
 @EqualsAndHashCode
+@Deprecated
 public class ScaleSettings {
     private final Integer cpu;
     private final Integer memoryInGB;
