@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
+import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.entity.Startable;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
@@ -24,7 +25,7 @@ import java.util.Optional;
 
 @Getter
 public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringCloudCluster, SpringApp>
-    implements Startable {
+    implements Startable, Removable {
 
     @Nonnull
     private final SpringCloudDeploymentModule deploymentModule;
@@ -72,6 +73,11 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     @AzureOperation(name = "springcloud.restart_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
         this.doModify(() -> Objects.requireNonNull(this.getActiveDeployment()).restart(), Status.RESTARTING);
+    }
+
+    @Override
+    public void remove() {
+        this.delete();
     }
 
     @Override
