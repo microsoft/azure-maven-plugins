@@ -69,5 +69,15 @@ public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzRes
         protected Object getClient() {
             throw new AzureToolkitRuntimeException("not supported");
         }
+
+        @Override
+        public boolean equals(Object o) {
+            return AzResourceModule.NONE == o;
+        }
+
+        @Override
+        public int hashCode() {
+            return this.getClass().hashCode();
+        }
     }
 }

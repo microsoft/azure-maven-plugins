@@ -130,6 +130,16 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         public String loadStatus(@Nonnull Void remote) {
             return Status.UNKNOWN;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            return AzResource.NONE == o;
+        }
+
+        @Override
+        public int hashCode() {
+            return this.getClass().hashCode();
+        }
     }
 
     interface Draft<T extends AzResource<T, ?, R>, R> {
