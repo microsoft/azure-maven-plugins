@@ -6,53 +6,54 @@
 package com.microsoft.azure.toolkit.lib.storage;
 
 import com.azure.core.management.AzureEnvironment;
-import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.resources.fluentcore.utils.ResourceManagerUtils;
-import com.azure.resourcemanager.storage.StorageManager;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
-import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureResource;
 import com.microsoft.azure.toolkit.lib.common.entity.Removable;
-import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountEntity;
-import org.apache.http.HttpStatus;
+import com.microsoft.azure.toolkit.lib.storage.model.AccessTier;
+import com.microsoft.azure.toolkit.lib.storage.model.Kind;
+import com.microsoft.azure.toolkit.lib.storage.model.Performance;
+import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
-public class StorageAccount extends AbstractAzureResource<StorageAccount, StorageAccountEntity, com.azure.resourcemanager.storage.models.StorageAccount>
-        implements Removable, AzureOperationEvent.Source<StorageAccount>, IAzureResource<StorageAccountEntity> {
-    @Nonnull
-    private final StorageManager manager;
+public class StorageAccount extends AbstractAzResource<StorageAccount, StorageResourceManager, com.azure.resourcemanager.storage.models.StorageAccount>
+    implements Removable {
 
-    public StorageAccount(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount server) {
-        super(new StorageAccountEntity(server));
-        this.manager = server.manager();
+    protected StorageAccount(@Nonnull String name, @Nonnull StorageAccountModule module) {
+        super(name, module.getParent().getResourceGroup(), module);
+    }
+
+    protected StorageAccount(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull StorageAccountModule module) {
+        super(name, resourceGroup, module);
+    }
+
+    protected StorageAccount(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount remote, @Nonnull StorageAccountModule module) {
+        this(remote.name(), remote.resourceGroupName(), module);
     }
 
     @Override
-    protected com.azure.resourcemanager.storage.models.StorageAccount loadRemote() {
-        try {
-            this.entity().setRemote(manager.storageAccounts().getById(this.entity.getId()));
-        } catch (ManagementException ex) {
-            if (HttpStatus.SC_NOT_FOUND == ex.getResponse().getStatusCode()) {
-                this.entity().setRemote(null);
-            } else {
-                throw ex;
-            }
-        }
-        return entity.getRemote();
+    public List<AzResourceModule<?, StorageAccount, ?>> getSubModules() {
+        return Collections.emptyList();
     }
 
-    @AzureOperation(name = "storage.delete_account.account", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
-    public void delete() {
-        if (this.exists()) {
-            this.status(Status.PENDING);
-            manager.storageAccounts().deleteById(this.entity.getId());
-            Azure.az(AzureStorageAccount.class).refresh();
-        }
+    @Nonnull
+    @Override
+    public String loadStatus(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount remote) {
+        return remote.innerModel().provisioningState().toString();
+    }
+
+    @Override
+    public String status() {
+        return this.getStatus();
     }
 
     @AzureOperation(name = "storage|account.get_connection_string", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
@@ -64,7 +65,35 @@ public class StorageAccount extends AbstractAzureResource<StorageAccount, Storag
 
     @AzureOperation(name = "storage|account.get_key", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public String getKey() {
-        return Objects.requireNonNull(this.remote()).getKeys().get(0).value();
+        return Objects.requireNonNull(this.getRemote()).getKeys().get(0).value();
+    }
+
+    @Nullable
+    public Region getRegion() {
+        return remoteOptional().map(remote -> Region.fromName(remote.regionName())).orElse(null);
+    }
+
+    @Nullable
+    public Performance getPerformance() {
+        return remoteOptional().map(remote -> {
+            String[] replicationArr = remote.skuType().name().toString().split("_");
+            return replicationArr.length == 2 ? Performance.fromName(replicationArr[0]) : null;
+        }).orElse(null);
+    }
+
+    @Nullable
+    public Redundancy getRedundancy() {
+        return remoteOptional().map(remote -> Redundancy.fromName(remote.skuType().name().toString())).orElse(null);
+    }
+
+    @Nullable
+    public Kind getKind() {
+        return remoteOptional().map(remote -> Kind.fromName(remote.kind().toString())).orElse(null);
+    }
+
+    @Nullable
+    public AccessTier getAccessTier() {
+        return remoteOptional().map(remote -> AccessTier.valueOf(remote.accessTier().name())).orElse(null);
     }
 
     @Override

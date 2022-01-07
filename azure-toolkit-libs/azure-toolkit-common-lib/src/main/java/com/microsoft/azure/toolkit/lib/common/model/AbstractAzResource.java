@@ -192,6 +192,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nonnull
     public abstract String loadStatus(@Nonnull R remote);
 
+    protected Optional<R> remoteOptional() {
+        return Optional.ofNullable(this.getRemote());
+    }
+
     private <D> D cast(@Nonnull Object origin) {
         //noinspection unchecked
         return (D) origin;

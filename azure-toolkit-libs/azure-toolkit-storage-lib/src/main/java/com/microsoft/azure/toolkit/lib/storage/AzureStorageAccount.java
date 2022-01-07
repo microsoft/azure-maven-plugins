@@ -5,81 +5,98 @@
 
 package com.microsoft.azure.toolkit.lib.storage;
 
-import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.azure.core.http.policy.HttpLogDetailLevel;
+import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.storage.StorageManager;
-import com.azure.resourcemanager.storage.models.AccessTier;
 import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
 import com.azure.resourcemanager.storage.models.Reason;
-import com.azure.resourcemanager.storage.models.SkuName;
-import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
+import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
-import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
-import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
-import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
-import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
+import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
-import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Performance;
 import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
-import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountConfig;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
-public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
-        implements AzureService, AzureOperationEvent.Source<AzureStorageAccount> {
+public class AzureStorageAccount extends AbstractAzResourceModule<StorageResourceManager, AzResource.None, StorageManager>
+    implements AzService {
 
     public AzureStorageAccount() {
-        super(AzureStorageAccount::new);
+        super("Microsoft.Storage", AzResource.NONE);
     }
 
-    private AzureStorageAccount(@Nonnull final List<Subscription> subscriptions) {
-        super(AzureStorageAccount::new, subscriptions);
+    @Nonnull
+    public StorageAccountModule accounts(@Nonnull String subscriptionId) {
+        final StorageResourceManager rm = get(subscriptionId, null);
+        assert rm != null;
+        return rm.getStorageModule();
     }
 
-    public List<StorageAccount> list() {
-        return getSubscriptions().stream()
-                .flatMap(s -> list(s.getId()).stream())
-                .collect(Collectors.toList());
+    public StorageResourceManager forSubscription(@Nonnull String subscriptionId) {
+        return this.get(subscriptionId, null);
     }
 
-    @Cacheable(cacheName = "storage/{}/accounts", key = "$sid")
-    public List<StorageAccount> list(String sid) {
-        return StorageManagerFactory.create(sid).storageAccounts().list().stream()
-                .map(StorageAccount::new)
-                .collect(Collectors.toList());
+    @Nonnull
+    protected Stream<StorageManager> loadResourcesFromAzure() {
+        return Azure.az(AzureAccount.class).account().getSelectedSubscriptions().stream().parallel()
+            .map(Subscription::getId).map(i -> loadResourceFromAzure(i, null));
     }
 
-    public StorageAccount get(@Nonnull String id) {
-        final com.azure.resourcemanager.storage.models.StorageAccount account =
-                StorageManagerFactory.create(ResourceId.fromString(id).subscriptionId()).storageAccounts().getById(id);
-        return new StorageAccount(account);
+    @Nonnull
+    @Override
+    protected StorageManager loadResourceFromAzure(@Nonnull String subscriptionId, String resourceGroup) {
+        final Account account = Azure.az(AzureAccount.class).account();
+        final AzureConfiguration config = Azure.az().config();
+        final String userAgent = config.getUserAgent();
+        final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
+        final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
+        return StorageManager.configure()
+            .withHttpClient(AzureService.getDefaultHttpClient())
+            .withLogLevel(logLevel)
+            .withPolicy(AzureService.getUserAgentPolicy(userAgent)) // set user agent with policy
+            .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
-    public StorageAccount get(@Nonnull final String resourceGroup, @Nonnull final String name) {
-        final com.azure.resourcemanager.storage.models.StorageAccount account =
-                StorageManagerFactory.create(getDefaultSubscription().getId()).storageAccounts().getByResourceGroup(resourceGroup, name);
-        return new StorageAccount(account);
+    @Override
+    protected StorageResourceManager newResource(@Nonnull StorageManager remote) {
+        return new StorageResourceManager(remote, this);
+    }
+
+    @Override
+    protected Object getClient() {
+        throw new AzureToolkitRuntimeException("not supported");
+    }
+
+    @Nonnull
+    @Override
+    public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
+        final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
+        return String.format("/subscriptions/%s/resourceGroups/%s/providers/%s", resourceName, rg, this.getName());
     }
 
     public CheckNameAvailabilityResultEntity checkNameAvailability(String subscriptionId, String name) {
-        StorageManager manager = StorageManagerFactory.create(subscriptionId);
+        final StorageManager manager = loadResourceFromAzure(subscriptionId, null);
         CheckNameAvailabilityResult result = manager.storageAccounts().checkNameAvailability(name);
         return new CheckNameAvailabilityResultEntity(result.isAvailable(),
-                Optional.ofNullable(result.reason()).map(Reason::toString).orElse(null), result.message());
+            Optional.ofNullable(result.reason()).map(Reason::toString).orElse(null), result.message());
     }
 
     public List<Performance> listSupportedPerformances() {
@@ -95,60 +112,5 @@ public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
                 .filter(r -> Objects.equals(r.getPerformance(), performance))
                 .filter(r -> !(Objects.equals(Kind.PAGE_BLOB_STORAGE, kind) && Objects.equals(r, Redundancy.PREMIUM_ZRS)))
                 .collect(Collectors.toList());
-    }
-
-    @AzureOperation(name = "service.refresh.service", params = "this.name()", type = AzureOperation.Type.SERVICE)
-    public void refresh() {
-        try {
-            CacheManager.evictCache("storage/{}/accounts", CacheEvict.ALL);
-        } catch (ExecutionException e) {
-            log.warn("failed to evict cache", e);
-        }
-    }
-
-    public Creator create(StorageAccountConfig config) {
-        return new Creator(config);
-    }
-
-    @RequiredArgsConstructor
-    public static class Creator implements ICommittable<StorageAccount>, AzureOperationEvent.Source<StorageAccountConfig> {
-
-        private final StorageAccountConfig config;
-
-        @Override
-        @AzureOperation(name = "storage.create_account.account", params = {"this.config.getName()"}, type = AzureOperation.Type.SERVICE)
-        public StorageAccount commit() {
-            com.azure.resourcemanager.storage.models.StorageAccount.DefinitionStages.WithCreate withCreate = StorageManagerFactory
-                    .create(config.getSubscriptionId()).storageAccounts()
-                    .define(config.getName())
-                    .withRegion(config.getRegion().getName())
-                    .withExistingResourceGroup(config.getResourceGroupName())
-                    .withSku(StorageAccountSkuType.fromSkuName(SkuName.fromString(config.getRedundancy().getName())));
-            if (Objects.equals(Kind.STORAGE, config.getKind())) {
-                withCreate = withCreate.withGeneralPurposeAccountKind();
-            } else if (Objects.equals(Kind.FILE_STORAGE, config.getKind())) {
-                withCreate = withCreate.withFileStorageAccountKind();
-            } else if (Objects.equals(Kind.BLOCK_BLOB_STORAGE, config.getKind())) {
-                withCreate = withCreate.withBlockBlobStorageAccountKind();
-            } else if (Objects.equals(Kind.BLOB_STORAGE, config.getKind())) {
-                withCreate = withCreate.withBlobStorageAccountKind().withAccessTier(
-                        Optional.ofNullable(config.getAccessTier()).map(t -> AccessTier.fromString(t.toString())).orElse(null));
-            } else {
-                withCreate = withCreate.withGeneralPurposeAccountKindV2();
-            }
-            com.azure.resourcemanager.storage.models.StorageAccount account = withCreate.create();
-            Azure.az(AzureStorageAccount.class).refresh();
-            return new StorageAccount(account);
-        }
-
-        @Nonnull
-        public AzureOperationEvent.Source<StorageAccountConfig> getEventSource() {
-            return new AzureOperationEvent.Source<StorageAccountConfig>() {
-            };
-        }
-    }
-
-    public String name() {
-        return "Microsoft.Storage/storageAccounts";
     }
 }
