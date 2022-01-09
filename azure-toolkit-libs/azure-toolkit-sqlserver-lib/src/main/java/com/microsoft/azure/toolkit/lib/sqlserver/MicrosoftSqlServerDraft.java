@@ -10,6 +10,7 @@ import com.azure.resourcemanager.sql.models.SqlServer;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 
 import javax.annotation.Nonnull;
@@ -29,6 +30,16 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
     @Override
     public void reset() {
         this.config = null;
+    }
+
+    public void setConfig(@Nonnull DatabaseServerConfig config) {
+        this.setAdminName(config.getAdminName());
+        this.setAdminPassword(config.getAdminPassword());
+        this.setRegion(config.getRegion());
+        this.setVersion(config.getVersion());
+        this.setFullyQualifiedDomainName(config.getFullyQualifiedDomainName());
+        this.setAzureServiceAccessAllowed(config.isAzureServiceAccessAllowed());
+        this.setLocalMachineAccessAllowed(config.isLocalMachineAccessAllowed());
     }
 
     @Override

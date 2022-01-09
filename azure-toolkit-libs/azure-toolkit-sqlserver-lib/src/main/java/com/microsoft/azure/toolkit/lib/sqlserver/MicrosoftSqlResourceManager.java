@@ -69,7 +69,7 @@ public class MicrosoftSqlResourceManager extends AbstractAzResource<MicrosoftSql
         return new CheckNameAvailabilityResultEntity(result.isAvailable(), result.unavailabilityReason(), result.unavailabilityMessage());
     }
 
-    public boolean checkRegionCapability(Region region) {
+    public boolean checkRegionAvailability(Region region) {
         RegionCapabilities capabilities = Objects.requireNonNull(this.getRemote()).sqlServers()
             .getCapabilitiesByRegion(com.azure.core.management.Region.fromName(region.getName()));
         return Objects.nonNull(capabilities.status()) && CapabilityStatus.AVAILABLE == capabilities.status();

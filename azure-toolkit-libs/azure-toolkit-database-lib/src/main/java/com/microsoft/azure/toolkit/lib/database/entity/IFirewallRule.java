@@ -5,27 +5,24 @@
 
 package com.microsoft.azure.toolkit.lib.database.entity;
 
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
-import lombok.Getter;
-import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 
-@Getter
-@SuperBuilder(toBuilder = true)
-public class FirewallRuleEntity implements IAzureResourceEntity {
+import javax.annotation.Nullable;
 
-    private static final int MAX_FIREWALL_NAME_LENGTH = 128;
-    public static final String ACCESS_FROM_AZURE_SERVICES_FIREWALL_RULE_NAME = "AllowAllWindowsAzureIps";
-    public static final String IP_ALLOW_ACCESS_TO_AZURE_SERVICES = "0.0.0.0";
+public interface IFirewallRule extends AzResourceBase {
+    int MAX_FIREWALL_NAME_LENGTH = 128;
+    String AZURE_SERVICES_ACCESS_FIREWALL_RULE_NAME = "AllowAllWindowsAzureIps";
+    String IP_ALLOW_ACCESS_TO_AZURE_SERVICES = "0.0.0.0";
 
-    private final String name;
-    private final String id;
-    private final String subscriptionId;
-    private final String startIpAddress;
-    private final String endIpAddress;
+    @Nullable
+    String getStartIpAddress();
 
-    public static String getAccessFromLocalFirewallRuleName() {
+    @Nullable
+    String getEndIpAddress();
+
+    static String getLocalMachineAccessRuleName() {
         final String prefix = "ClientIPAddress_";
         final String suffix = "_" + NetUtils.getMac();
         final int maxHostnameLength = MAX_FIREWALL_NAME_LENGTH - prefix.length() - suffix.length();

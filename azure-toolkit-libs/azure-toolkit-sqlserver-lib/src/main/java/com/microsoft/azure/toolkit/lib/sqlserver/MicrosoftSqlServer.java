@@ -14,16 +14,18 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
+import com.microsoft.azure.toolkit.lib.database.entity.IDatabaseServer;
+import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, MicrosoftSqlResourceManager, SqlServer>
-    implements Removable {
+    implements Removable, IDatabaseServer<MicrosoftSqlDatabase> {
 
     private final MicrosoftSqlDatabaseModule databaseModule;
     private final MicrosoftSqlFirewallRuleModule firewallRuleModule;
@@ -49,7 +51,15 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
 
     @Override
     public List<AzResourceModule<?, MicrosoftSqlServer, ?>> getSubModules() {
-        return Collections.emptyList();
+        return Arrays.asList(this.firewallRuleModule, this.databaseModule);
+    }
+
+    public MicrosoftSqlFirewallRuleModule firewallRules() {
+        return this.firewallRuleModule;
+    }
+
+    public MicrosoftSqlDatabaseModule databases() {
+        return this.databaseModule;
     }
 
     @Nonnull
@@ -63,48 +73,44 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
         return this.getStatus();
     }
 
-    public MicrosoftSqlFirewallRuleModule firewallRules() {
-        return this.firewallRuleModule;
-    }
-
-    public MicrosoftSqlDatabaseModule databases() {
-        return this.databaseModule;
-    }
-
+    @Override
     public Region getRegion() {
         return remoteOptional().map(remote -> Region.fromName(remote.regionName())).orElse(null);
     }
 
+    @Override
     public String getAdminName() {
         return remoteOptional().map(SqlServer::administratorLogin).orElse(null);
     }
 
+    @Override
     public String getFullyQualifiedDomainName() {
         return remoteOptional().map(SqlServer::fullyQualifiedDomainName).orElse(null);
     }
 
+    @Override
     public boolean isAzureServiceAccessAllowed() {
-        final String ruleName = MicrosoftSqlFirewallRule.AZURE_SERVICES_ACCESS_FIREWALL_RULE_NAME;
+        final String ruleName = IFirewallRule.AZURE_SERVICES_ACCESS_FIREWALL_RULE_NAME;
         return this.firewallRules().exists(ruleName, this.getResourceGroupName());
     }
 
+    @Override
     public boolean isLocalMachineAccessAllowed() {
-        final String ruleName = MicrosoftSqlFirewallRule.getLocalMachineAccessRuleName();
+        final String ruleName = IFirewallRule.getLocalMachineAccessRuleName();
         return this.firewallRules().exists(ruleName, this.getResourceGroupName());
     }
 
+    @Override
     public String getVersion() {
         return remoteOptional().map(SqlServer::version).orElse(null);
     }
 
-    public String getState() {
-        return remoteOptional().map(SqlServer::state).orElse(null);
-    }
-
+    @Override
     public String getType() {
         return remoteOptional().map(SqlServer::type).orElse(null);
     }
 
+    @Override
     public String getLocalMachinePublicIp() {
         String ip;
         // try to get public IP by ping SQL SqlServer
@@ -125,6 +131,11 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
             throw new AzureToolkitRuntimeException("Failed to retrieve public IP in your environment, please confirm your network is available.");
         }
         return ip;
+    }
+
+    @Override
+    public List<MicrosoftSqlDatabase> listDatabases() {
+        return this.databases().list();
     }
 
     @Override

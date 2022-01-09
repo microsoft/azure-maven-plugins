@@ -5,12 +5,10 @@
 
 package com.microsoft.azure.toolkit.lib.database.entity;
 
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 
-public interface IDatabase {
-    IAzureResourceEntity entity();
+public interface IDatabase extends AzResourceBase {
+    String getCollation();
 
-    default String getName() {
-        return entity().getName();
-    }
+    IDatabaseServer<? extends IDatabase> getServer();
 }

@@ -8,12 +8,13 @@ package com.microsoft.azure.toolkit.lib.mysql;
 import com.azure.resourcemanager.mysql.models.Database;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 
-public class MySqlDatabase extends AbstractAzResource<MySqlDatabase, MySqlServer, Database> {
+public class MySqlDatabase extends AbstractAzResource<MySqlDatabase, MySqlServer, Database> implements IDatabase {
 
     protected MySqlDatabase(Database database, MySqlDatabaseModule module) {
         this(database.name(), module.getParent().getResourceGroupName(), module);
@@ -39,8 +40,14 @@ public class MySqlDatabase extends AbstractAzResource<MySqlDatabase, MySqlServer
         return Status.UNKNOWN;
     }
 
+    @Override
     public String getCollation() {
         return this.remoteOptional().map(Database::collation).orElse(null);
+    }
+
+    @Override
+    public MySqlServer getServer() {
+        return this.getParent();
     }
 
     public String getCharset() {

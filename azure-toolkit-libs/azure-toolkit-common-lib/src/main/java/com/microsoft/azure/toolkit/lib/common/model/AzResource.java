@@ -18,7 +18,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R> extends IAzureBaseResource<T, P> {
+public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R>
+    extends AzBaseResource, IAzureBaseResource<T, P> {
+
     None NONE = new None();
     String RESOURCE_GROUP_PLACEHOLDER = "${rg}";
 
@@ -47,6 +49,11 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         return this.getModule().getSubscriptionId();
     }
 
+    @Nonnull
+    default String getResourceGroupName() {
+        return ResourceId.fromString(this.getId()).resourceGroupName();
+    }
+
     AzResource.Draft<T, R> update();
 
     void delete();
@@ -57,7 +64,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
     String getStatus();
 
     default Subscription getSubscription() {
-        return Azure.az(IAzureAccount.class).account().getSubscription(this.subscriptionId());
+        return Azure.az(IAzureAccount.class).account().getSubscription(this.getSubscriptionId());
     }
 
     // ***** START! TO BE REMOVED ***** //

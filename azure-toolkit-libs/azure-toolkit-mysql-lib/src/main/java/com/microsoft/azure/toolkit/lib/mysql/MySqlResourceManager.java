@@ -74,10 +74,6 @@ public class MySqlResourceManager extends AbstractAzResource<MySqlResourceManage
         return new CheckNameAvailabilityResultEntity(result.nameAvailable(), result.reason(), result.message());
     }
 
-    public List<String> listSupportedVersions() {
-        return ServerVersion.values().stream().map(ExpandableStringEnum::toString).collect(Collectors.toList());
-    }
-
     public boolean checkRegionAvailability(@Nonnull Region region) {
         List<PerformanceTierProperties> tiers = Objects.requireNonNull(this.getRemote()).locationBasedPerformanceTiers()
             .list(region.getName()).stream().collect(Collectors.toList());

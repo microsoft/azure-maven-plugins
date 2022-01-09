@@ -7,7 +7,9 @@ package com.microsoft.azure.toolkit.lib.mysql;
 import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.management.profile.AzureProfile;
+import com.azure.core.util.ExpandableStringEnum;
 import com.azure.resourcemanager.mysql.MySqlManager;
+import com.azure.resourcemanager.mysql.models.ServerVersion;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
@@ -21,7 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -37,6 +41,10 @@ public class AzureMySql extends AbstractAzResourceModule<MySqlResourceManager, A
         final MySqlResourceManager rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getServerModule();
+    }
+
+    public MySqlResourceManager forSubscription(@Nonnull String subscriptionId) {
+        return this.get(subscriptionId, null);
     }
 
     @Nonnull
@@ -71,5 +79,9 @@ public class AzureMySql extends AbstractAzResourceModule<MySqlResourceManager, A
     public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
         final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
         return String.format("/subscriptions/%s/resourceGroups/%s/providers/%s", resourceName, rg, this.getName());
+    }
+
+    public List<String> listSupportedVersions() {
+        return ServerVersion.values().stream().map(ExpandableStringEnum::toString).collect(Collectors.toList());
     }
 }

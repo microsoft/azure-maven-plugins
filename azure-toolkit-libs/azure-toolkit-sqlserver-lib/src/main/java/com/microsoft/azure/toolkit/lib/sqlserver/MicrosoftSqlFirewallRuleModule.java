@@ -11,6 +11,7 @@ import com.azure.resourcemanager.sql.models.SqlFirewallRuleOperations;
 import com.azure.resourcemanager.sql.models.SqlServer;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -28,6 +29,11 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
     @Override
     protected MicrosoftSqlFirewallRule newResource(@Nonnull SqlFirewallRule rule) {
         return new MicrosoftSqlFirewallRule(rule, this);
+    }
+
+    @Override
+    protected MicrosoftSqlFirewallRuleDraft newDraft(@Nonnull String name, String resourceGroup) {
+        return new MicrosoftSqlFirewallRuleDraft(name, resourceGroup, this);
     }
 
     @Nonnull
@@ -55,7 +61,7 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
     }
 
     public void toggleAzureServiceAccess(boolean allowed) {
-        final String ruleName = MicrosoftSqlFirewallRule.AZURE_SERVICES_ACCESS_FIREWALL_RULE_NAME;
+        final String ruleName = IFirewallRule.AZURE_SERVICES_ACCESS_FIREWALL_RULE_NAME;
         final String rgName = this.getParent().getResourceGroupName();
         final boolean exists = this.exists(rgName, rgName);
         if (!allowed && exists) {
@@ -63,14 +69,14 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
         }
         if (allowed && !exists) {
             final MicrosoftSqlFirewallRuleDraft draft = this.create(ruleName, rgName);
-            draft.setStartIpAddress(MicrosoftSqlFirewallRule.IP_ALLOW_ACCESS_TO_AZURE_SERVICES);
-            draft.setEndIpAddress(MicrosoftSqlFirewallRule.IP_ALLOW_ACCESS_TO_AZURE_SERVICES);
+            draft.setStartIpAddress(IFirewallRule.IP_ALLOW_ACCESS_TO_AZURE_SERVICES);
+            draft.setEndIpAddress(IFirewallRule.IP_ALLOW_ACCESS_TO_AZURE_SERVICES);
             draft.commit();
         }
     }
 
     public void toggleLocalMachineAccess(boolean allowed) {
-        final String ruleName = MicrosoftSqlFirewallRule.getLocalMachineAccessRuleName();
+        final String ruleName = IFirewallRule.getLocalMachineAccessRuleName();
         final String rgName = this.getParent().getResourceGroupName();
         final boolean exists = this.exists(rgName, rgName);
         if (!allowed && exists) {
@@ -79,7 +85,7 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
         if (allowed && !exists) {
             final String publicIp = this.getParent().getLocalMachinePublicIp();
             Preconditions.checkArgument(StringUtils.isNotBlank(publicIp),
-                "Cannot enable local machine access to postgre sql server due to error: cannot get public ip.");
+                "Cannot enable local machine access to SqlServer due to error: cannot get public ip.");
             final MicrosoftSqlFirewallRuleDraft draft = this.updateOrCreate(ruleName, rgName);
             draft.setStartIpAddress(publicIp);
             draft.setEndIpAddress(publicIp);

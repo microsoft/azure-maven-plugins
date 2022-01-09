@@ -11,6 +11,7 @@ import com.azure.resourcemanager.mysql.models.FirewallRules;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -28,6 +29,11 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
     @Override
     protected MySqlFirewallRule newResource(@Nonnull FirewallRule rule) {
         return new MySqlFirewallRule(rule, this);
+    }
+
+    @Override
+    protected MySqlFirewallRuleDraft newDraft(@Nonnull String name, String resourceGroup) {
+        return new MySqlFirewallRuleDraft(name, resourceGroup, this);
     }
 
     @Nonnull
@@ -56,7 +62,7 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
     }
 
     public void toggleAzureServiceAccess(boolean allowed) {
-        final String ruleName = MySqlFirewallRule.AZURE_SERVICES_ACCESS_FIREWALL_RULE_NAME;
+        final String ruleName = IFirewallRule.AZURE_SERVICES_ACCESS_FIREWALL_RULE_NAME;
         final String rgName = this.getParent().getResourceGroupName();
         final boolean exists = this.exists(rgName, rgName);
         if (!allowed && exists) {
@@ -64,14 +70,14 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
         }
         if (allowed && !exists) {
             final MySqlFirewallRuleDraft draft = this.create(ruleName, rgName);
-            draft.setStartIpAddress(MySqlFirewallRule.IP_ALLOW_ACCESS_TO_AZURE_SERVICES);
-            draft.setEndIpAddress(MySqlFirewallRule.IP_ALLOW_ACCESS_TO_AZURE_SERVICES);
+            draft.setStartIpAddress(IFirewallRule.IP_ALLOW_ACCESS_TO_AZURE_SERVICES);
+            draft.setEndIpAddress(IFirewallRule.IP_ALLOW_ACCESS_TO_AZURE_SERVICES);
             draft.commit();
         }
     }
 
     public void toggleLocalMachineAccess(boolean allowed) {
-        final String ruleName = MySqlFirewallRule.getLocalMachineAccessRuleName();
+        final String ruleName = IFirewallRule.getLocalMachineAccessRuleName();
         final String rgName = this.getParent().getResourceGroupName();
         final boolean exists = this.exists(rgName, rgName);
         if (!allowed && exists) {
@@ -80,7 +86,7 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
         if (allowed && !exists) {
             final String publicIp = this.getParent().getLocalMachinePublicIp();
             Preconditions.checkArgument(StringUtils.isNotBlank(publicIp),
-                "Cannot enable local machine access to postgre sql server due to error: cannot get public ip.");
+                "Cannot enable local machine access to MySQL server due to error: cannot get public ip.");
             final MySqlFirewallRuleDraft draft = this.updateOrCreate(ruleName, rgName);
             draft.setStartIpAddress(publicIp);
             draft.setEndIpAddress(publicIp);

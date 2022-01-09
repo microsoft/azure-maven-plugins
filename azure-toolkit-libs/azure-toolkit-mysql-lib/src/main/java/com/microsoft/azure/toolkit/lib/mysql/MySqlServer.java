@@ -19,17 +19,19 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
+import com.microsoft.azure.toolkit.lib.database.entity.IDatabaseServer;
+import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceManager, Server>
-    implements Removable, Startable {
+    implements Removable, Startable, IDatabaseServer<MySqlDatabase> {
 
     private final MySqlDatabaseModule databaseModule;
     private final MySqlFirewallRuleModule firewallRuleModule;
@@ -55,7 +57,15 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
 
     @Override
     public List<AzResourceModule<?, MySqlServer, ?>> getSubModules() {
-        return Collections.emptyList();
+        return Arrays.asList(this.firewallRuleModule, this.databaseModule);
+    }
+
+    public MySqlFirewallRuleModule firewallRules() {
+        return this.firewallRuleModule;
+    }
+
+    public MySqlDatabaseModule databases() {
+        return this.databaseModule;
     }
 
     @Nonnull
@@ -84,44 +94,39 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
         this.doModify(() -> Objects.requireNonNull(this.getParent().getRemote()).servers().restart(this.getResourceGroupName(), this.getName()), Status.RESTARTING);
     }
 
-    public MySqlFirewallRuleModule firewallRules() {
-        return this.firewallRuleModule;
-    }
-
-    public MySqlDatabaseModule databases() {
-        return this.databaseModule;
-    }
-
+    @Override
     public Region getRegion() {
         return remoteOptional().map(remote -> Region.fromName(remote.regionName())).orElse(null);
     }
 
+    @Override
     public String getAdminName() {
         return remoteOptional().map(Server::administratorLogin).orElse(null);
     }
 
+    @Override
     public String getFullyQualifiedDomainName() {
         return remoteOptional().map(Server::fullyQualifiedDomainName).orElse(null);
     }
 
+    @Override
     public boolean isAzureServiceAccessAllowed() {
-        final String ruleName = MySqlFirewallRule.AZURE_SERVICES_ACCESS_FIREWALL_RULE_NAME;
+        final String ruleName = IFirewallRule.AZURE_SERVICES_ACCESS_FIREWALL_RULE_NAME;
         return this.firewallRules().exists(ruleName, this.getResourceGroupName());
     }
 
+    @Override
     public boolean isLocalMachineAccessAllowed() {
-        final String ruleName = MySqlFirewallRule.getLocalMachineAccessRuleName();
+        final String ruleName = IFirewallRule.getLocalMachineAccessRuleName();
         return this.firewallRules().exists(ruleName, this.getResourceGroupName());
     }
 
+    @Override
     public String getVersion() {
         return remoteOptional().map(Server::version).map(ExpandableStringEnum::toString).orElse(null);
     }
 
-    public String getState() {
-        return remoteOptional().map(Server::userVisibleState).map(ExpandableStringEnum::toString).orElse(null);
-    }
-
+    @Override
     public String getType() {
         return remoteOptional().map(Server::type).orElse(null);
     }
@@ -142,6 +147,7 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
         return remoteOptional().map(Server::sslEnforcement).map(SslEnforcementEnum::name).orElse(null);
     }
 
+    @Override
     public String getLocalMachinePublicIp() {
         // try to get public IP by ping MYSQL Server
         String username = this.getAdminName() + "@" + this.getName();
@@ -157,6 +163,11 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
         }
         // Alternatively, get public IP by ping public URL
         return NetUtils.getPublicIp();
+    }
+
+    @Override
+    public List<MySqlDatabase> listDatabases() {
+        return this.databases().list();
     }
 
     @Override

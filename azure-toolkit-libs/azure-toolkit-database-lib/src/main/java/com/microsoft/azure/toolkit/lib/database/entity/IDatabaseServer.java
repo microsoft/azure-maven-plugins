@@ -5,18 +5,36 @@
 
 package com.microsoft.azure.toolkit.lib.database.entity;
 
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
-public interface IDatabaseServer {
+public interface IDatabaseServer<T extends IDatabase> extends AzResourceBase {
+    @Nullable
+    Region getRegion();
 
-    IDatabaseServerEntity entity();
+    @Nullable
+    String getAdminName();
 
-    List<? extends IAzureResourceEntity> databases();
+    @Nullable
+    String getFullyQualifiedDomainName();
 
-    default List<? extends IDatabase> databasesV2() {
-        return null;
-    }
+    boolean isAzureServiceAccessAllowed();
 
+    boolean isLocalMachineAccessAllowed();
+
+    @Nullable
+    String getVersion();
+
+    @Nullable
+    String getStatus();
+
+    @Nullable
+    String getType();
+
+    String getLocalMachinePublicIp();
+
+    List<T> listDatabases();
 }

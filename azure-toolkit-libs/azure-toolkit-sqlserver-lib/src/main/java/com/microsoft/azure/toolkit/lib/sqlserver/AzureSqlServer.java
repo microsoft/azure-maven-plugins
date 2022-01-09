@@ -40,6 +40,10 @@ public class AzureSqlServer extends AbstractAzResourceModule<MicrosoftSqlResourc
         return rm.getServerModule();
     }
 
+    public MicrosoftSqlResourceManager forSubscription(@Nonnull String subscriptionId) {
+        return this.get(subscriptionId, null);
+    }
+
     @Nonnull
     @Override
     protected Stream<SqlServerManager> loadResourcesFromAzure() {

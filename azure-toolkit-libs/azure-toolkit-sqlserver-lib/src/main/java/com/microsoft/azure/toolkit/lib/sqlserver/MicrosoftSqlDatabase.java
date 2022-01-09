@@ -8,13 +8,14 @@ package com.microsoft.azure.toolkit.lib.sqlserver;
 import com.azure.resourcemanager.sql.models.SqlDatabase;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
 
 import javax.annotation.Nonnull;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 
-public class MicrosoftSqlDatabase extends AbstractAzResource<MicrosoftSqlDatabase, MicrosoftSqlServer, SqlDatabase> {
+public class MicrosoftSqlDatabase extends AbstractAzResource<MicrosoftSqlDatabase, MicrosoftSqlServer, SqlDatabase> implements IDatabase {
 
     protected MicrosoftSqlDatabase(SqlDatabase database, MicrosoftSqlDatabaseModule module) {
         this(database.name(), module.getParent().getResourceGroupName(), module);
@@ -40,11 +41,17 @@ public class MicrosoftSqlDatabase extends AbstractAzResource<MicrosoftSqlDatabas
         return Status.UNKNOWN;
     }
 
+    @Override
     public String getCollation() {
         return this.remoteOptional().map(SqlDatabase::collation).orElse(null);
     }
 
-    public OffsetDateTime getCharset() {
+    @Override
+    public MicrosoftSqlServer getServer() {
+        return this.getParent();
+    }
+
+    public OffsetDateTime getCreationDate() {
         return this.remoteOptional().map(SqlDatabase::creationDate).orElse(null);
     }
 }

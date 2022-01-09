@@ -14,6 +14,7 @@ import com.azure.resourcemanager.mysql.models.Sku;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +39,16 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
     @Override
     public void reset() {
         this.config = null;
+    }
+
+    public void setConfig(@Nonnull DatabaseServerConfig config) {
+        this.setAdminName(config.getAdminName());
+        this.setAdminPassword(config.getAdminPassword());
+        this.setRegion(config.getRegion());
+        this.setVersion(config.getVersion());
+        this.setFullyQualifiedDomainName(config.getFullyQualifiedDomainName());
+        this.setAzureServiceAccessAllowed(config.isAzureServiceAccessAllowed());
+        this.setLocalMachineAccessAllowed(config.isLocalMachineAccessAllowed());
     }
 
     private int getTierPriority(PerformanceTierProperties tier) {
@@ -69,7 +80,7 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
             .list(this.getRegion().getName()).stream().collect(Collectors.toList());
         final PerformanceTierProperties tier = tiers.stream().filter(e -> CollectionUtils.isNotEmpty(e.serviceLevelObjectives()))
             .min(Comparator.comparingInt(this::getTierPriority))
-            .orElseThrow(() -> new AzureToolkitRuntimeException("PostgreSQL is not available in this location for your subscription."));
+            .orElseThrow(() -> new AzureToolkitRuntimeException("MySQL is not available in this location for your subscription."));
         final Sku sku = new Sku().withName(tier.serviceLevelObjectives().get(0).id());
         // create server
         final Server.DefinitionStages.WithCreate create = manager.servers().define(this.getName())
