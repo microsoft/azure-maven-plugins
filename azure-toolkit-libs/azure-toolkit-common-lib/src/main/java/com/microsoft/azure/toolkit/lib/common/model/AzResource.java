@@ -146,12 +146,12 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
 
         String getName();
 
-        String getResourceGroup();
+        String getResourceGroupName();
 
         AzResourceModule<T, ?, R> getModule();
 
         default T commit() {
-            final boolean existing = this.getModule().exists(this.getName(), this.getResourceGroup());
+            final boolean existing = this.getModule().exists(this.getName(), this.getResourceGroupName());
             final T result = existing ? this.getModule().update(this) : this.getModule().create(this);
             this.reset();
             return result;
@@ -160,7 +160,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         void reset();
 
         default T createIfNotExist() {
-            final T origin = this.getModule().get(this.getName(), this.getResourceGroup());
+            final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
             if (Objects.isNull(origin) || !origin.exists()) {
                 return this.getModule().create(this);
             }
@@ -168,7 +168,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         }
 
         default T updateIfExist() {
-            final T origin = this.getModule().get(this.getName(), this.getResourceGroup());
+            final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
             if (Objects.nonNull(origin) && origin.exists()) {
                 return this.getModule().update(this);
             }

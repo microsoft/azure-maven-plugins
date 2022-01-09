@@ -50,7 +50,7 @@ public class SpringCloudAppConfig {
 
     public static SpringCloudAppConfig fromApp(@Nonnull SpringCloudApp app) { // get config from app
         final SpringCloudDeployment deployment = Optional.ofNullable(app.getActiveDeployment())
-            .orElse(app.deployments().getOrDraft("default", app.getResourceGroup()));
+            .orElse(app.deployments().getOrDraft("default", app.getResourceGroupName()));
         final SpringCloudDeploymentConfig deploymentConfig = SpringCloudDeploymentConfig.fromDeployment(deployment);
         final SpringCloudAppConfig appConfig = SpringCloudAppConfig.builder().deployment(deploymentConfig).build();
         appConfig.setSubscriptionId(app.getSubscriptionId());

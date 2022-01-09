@@ -66,11 +66,6 @@ public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloud
         return new SpringCloudResourceManager(remote, this);
     }
 
-    @Override
-    protected Object getClient() {
-        throw new AzureToolkitRuntimeException("not supported");
-    }
-
     @Nonnull
     @Override
     public String toResourceId(@Nonnull String resourceName, String resourceGroup) {

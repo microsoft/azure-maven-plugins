@@ -42,7 +42,7 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
         final com.azure.resourcemanager.redis.models.RedisCache.DefinitionStages.WithSku toCreate =
             manager.redisCaches().define(redisName)
                 .withRegion(this.getRegion().getName())
-                .withExistingResourceGroup(this.getResourceGroup());
+                .withExistingResourceGroup(this.getResourceGroupName());
         com.azure.resourcemanager.redis.models.RedisCache.DefinitionStages.WithCreate withCreate;
         final PricingTier tier = this.getPricingTier();
         if (tier.isStandard()) {

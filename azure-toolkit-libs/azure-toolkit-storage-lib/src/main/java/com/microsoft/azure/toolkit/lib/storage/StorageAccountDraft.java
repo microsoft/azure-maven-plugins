@@ -49,7 +49,7 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
         com.azure.resourcemanager.storage.models.StorageAccount.DefinitionStages.WithCreate withCreate =
             manager.storageAccounts().define(name)
                 .withRegion(this.getRegion().getName())
-                .withExistingResourceGroup(this.getResourceGroup())
+                .withExistingResourceGroup(this.getResourceGroupName())
                 .withSku(StorageAccountSkuType.fromSkuName(SkuName.fromString(this.getRedundancy().getName())));
         final Kind kind = this.getKind();
         if (Objects.equals(Kind.STORAGE, kind)) {

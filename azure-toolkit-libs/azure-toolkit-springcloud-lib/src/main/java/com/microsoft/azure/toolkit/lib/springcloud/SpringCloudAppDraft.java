@@ -63,7 +63,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
             .subscriptionId(this.getSubscriptionId())
             .clusterName(this.getParent().getName())
             .appName(this.getName())
-            .resourceGroup(this.getResourceGroup())
+            .resourceGroup(this.getResourceGroupName())
             .isPublic(this.isPublicEndpointEnabled())
             .activeDeploymentName(this.getActiveDeploymentName())
             .deployment(deploymentConfig)
@@ -184,7 +184,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         final String activeDeploymentName = Optional.ofNullable(this.getActiveDeploymentName()).orElse("default");
         final SpringCloudDeploymentDraft deploymentDraft = (SpringCloudDeploymentDraft) Optional
             .ofNullable(super.getActiveDeployment()).map(AbstractAzResource::update)
-            .orElseGet(() -> this.deployments().updateOrCreate(activeDeploymentName, this.getResourceGroup()));
+            .orElseGet(() -> this.deployments().updateOrCreate(activeDeploymentName, this.getResourceGroupName()));
         this.setActiveDeployment(deploymentDraft);
         return deploymentDraft;
     }

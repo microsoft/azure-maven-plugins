@@ -20,7 +20,6 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceManager, com.azure.resourcemanager.redis.models.RedisCache>
     implements Removable {
@@ -29,7 +28,7 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceMana
     private JedisPool jedisPool;
 
     protected RedisCache(@Nonnull String name, @Nonnull RedisCacheModule module) {
-        super(name, module.getParent().getResourceGroup(), module);
+        super(name, module.getParent().getResourceGroupName(), module);
     }
 
     protected RedisCache(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull RedisCacheModule module) {

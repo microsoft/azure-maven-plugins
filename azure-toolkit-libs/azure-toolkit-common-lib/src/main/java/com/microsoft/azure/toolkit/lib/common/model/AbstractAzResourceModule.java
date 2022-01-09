@@ -122,7 +122,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Override
     public T create(@NotNull AzResource.Draft<T, R> draft) {
-        final T existing = this.get(draft.getName(), draft.getResourceGroup());
+        final T existing = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.isNull(existing)) {
             final T resource = cast(draft);
             // this will notify azure explorer to show a draft resource first
@@ -142,7 +142,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Override
     public T update(@NotNull AzResource.Draft<T, R> draft) {
-        final T resource = this.get(draft.getName(), draft.getResourceGroup());
+        final T resource = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.nonNull(resource) && Objects.nonNull(resource.getRemote())) {
             this.<T>cast(draft).setRemote(resource.getRemote());
             resource.doModify(() -> draft.updateResourceInAzure(resource.getRemote()), Status.UPDATING);
@@ -226,7 +226,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nullable
     protected R loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
         final Object client = this.getClient();
-        resourceGroup = StringUtils.firstNonBlank(resourceGroup, ((AbstractAzResource<?, ?, ?>) this.getParent()).getResourceGroup());
+        resourceGroup = StringUtils.firstNonBlank(resourceGroup, ((AbstractAzResource<?, ?, ?>) this.getParent()).getResourceGroupName());
         resourceGroup = StringUtils.equals(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER) ? null : resourceGroup;
         if (client instanceof SupportsGettingByName) {
             return this.<SupportsGettingByName<R>>cast(client).getByName(name);
@@ -264,12 +264,17 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
      * @param <D> type of draft, it must extend {@link D} and implement {@link AzResource.Draft}
      */
     protected <D extends T> D newDraftForUpdate(@Nonnull T t) {
-        return this.newDraft(t.getName(), t.getResourceGroup());
+        return this.newDraft(t.getName(), t.getResourceGroupName());
     }
 
     protected abstract T newResource(@Nonnull R r);
 
-    protected abstract Object getClient();
+    /**
+     * get track2 client, which is used to implement {@link #loadResourcesFromAzure}, {@link #loadResourceFromAzure} and {@link #deleteResourceFromAzure}
+     */
+    protected Object getClient() {
+        throw new AzureToolkitRuntimeException("not implemented");
+    }
 
     private <D> D cast(@Nonnull Object origin) {
         //noinspection unchecked

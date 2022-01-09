@@ -34,7 +34,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nonnull
     @ToString.Include
     @EqualsAndHashCode.Include
-    private final String resourceGroup;
+    private final String resourceGroupName;
     @Nonnull
     @EqualsAndHashCode.Include
     private final AbstractAzResourceModule<T, P, R> module;
@@ -48,9 +48,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Getter(AccessLevel.NONE)
     private String status = Status.DISCONNECTED;
 
-    protected AbstractAzResource(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull AbstractAzResourceModule<T, P, R> module) {
+    protected AbstractAzResource(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, R> module) {
         this.name = name;
-        this.resourceGroup = resourceGroup;
+        this.resourceGroupName = resourceGroupName;
         this.module = module;
     }
 
@@ -67,7 +67,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     private synchronized void reload() {
         this.doModify(() -> {
             try {
-                return this.getModule().loadResourceFromAzure(this.name, this.resourceGroup);
+                return this.getModule().loadResourceFromAzure(this.name, this.resourceGroupName);
             } catch (ManagementException e) {
                 if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatusCode()) {
                     return null;
@@ -180,7 +180,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @Nonnull
     public String getId() {
-        return this.getModule().toResourceId(this.name, this.resourceGroup);
+        return this.getModule().toResourceId(this.name, this.resourceGroupName);
     }
 
     public abstract List<AzResourceModule<?, T, ?>> getSubModules();

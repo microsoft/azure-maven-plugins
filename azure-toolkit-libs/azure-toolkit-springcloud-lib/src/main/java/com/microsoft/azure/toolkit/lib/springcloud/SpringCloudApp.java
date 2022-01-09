@@ -31,7 +31,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     private final SpringCloudDeploymentModule deploymentModule;
 
     protected SpringCloudApp(@Nonnull String name, @Nonnull SpringCloudAppModule module) {
-        super(name, module.getParent().getResourceGroup(), module);
+        super(name, module.getParent().getResourceGroupName(), module);
         this.deploymentModule = new SpringCloudDeploymentModule(this);
     }
 
@@ -100,7 +100,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     @Nullable
     public SpringCloudDeployment getActiveDeployment() {
-        return Optional.ofNullable(this.getActiveDeploymentName()).map(n -> this.deployments().get(n, this.getResourceGroup())).orElse(null);
+        return Optional.ofNullable(this.getActiveDeploymentName()).map(n -> this.deployments().get(n, this.getResourceGroupName())).orElse(null);
     }
 
     @Nullable

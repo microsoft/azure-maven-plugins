@@ -29,7 +29,7 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageRe
     implements Removable {
 
     protected StorageAccount(@Nonnull String name, @Nonnull StorageAccountModule module) {
-        super(name, module.getParent().getResourceGroup(), module);
+        super(name, module.getParent().getResourceGroupName(), module);
     }
 
     protected StorageAccount(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull StorageAccountModule module) {
