@@ -2,27 +2,48 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
+
 package com.microsoft.azure.toolkit.lib.postgre;
 
-import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.postgresql.models.Database;
-import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
-import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
-import com.microsoft.azure.toolkit.lib.postgre.model.PostgreSqlDatabaseEntity;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 
 import javax.annotation.Nonnull;
+import java.util.Collections;
+import java.util.List;
 
-public class PostgreSqlDatabase extends AbstractAzureResource<PostgreSqlDatabase, PostgreSqlDatabaseEntity, Database> implements IDatabase {
-    @Nonnull
-    private final PostgreSqlManager manager;
+public class PostgreSqlDatabase extends AbstractAzResource<PostgreSqlDatabase, PostgreSqlServer, Database> {
 
-    protected PostgreSqlDatabase(PostgreSqlManager manager, @Nonnull PostgreSqlDatabaseEntity entity) {
-        super(entity);
-        this.manager = manager;
+    protected PostgreSqlDatabase(Database database, PostgreSqlDatabaseModule module) {
+        this(database.name(), module.getParent().getResourceGroupName(), module);
+    }
+
+    protected PostgreSqlDatabase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull PostgreSqlDatabaseModule module) {
+        super(name, resourceGroupName, module);
     }
 
     @Override
-    protected Database loadRemote() {
-        return remote();
+    protected void refreshRemote() {
+        this.remoteOptional().ifPresent(Database::refresh);
+    }
+
+    @Override
+    public List<AzResourceModule<?, PostgreSqlDatabase, ?>> getSubModules() {
+        return Collections.emptyList();
+    }
+
+    @Nonnull
+    @Override
+    public String loadStatus(@Nonnull Database remote) {
+        return Status.UNKNOWN;
+    }
+
+    public String getCollation() {
+        return this.remoteOptional().map(Database::collation).orElse(null);
+    }
+
+    public String getCharset() {
+        return this.remoteOptional().map(Database::charset).orElse(null);
     }
 }
