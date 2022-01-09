@@ -26,7 +26,7 @@ import java.util.concurrent.Callable;
 @Getter
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, P extends AzResource<P, ?, ?>, R> implements AzResource<T, P, R> {
+public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, P extends AbstractAzResource<P, ?, ?>, R> implements AzResource<T, P, R> {
     @Nonnull
     @ToString.Include
     @EqualsAndHashCode.Include
@@ -145,13 +145,17 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
         try {
             body.run();
-            if (this.remote instanceof Refreshable) {
-                ((Refreshable<?>) this.remote).refresh();
-            }
+            this.refreshRemote();
             this.setRemote(this.remote);
         } catch (Throwable t) {
             this.setStatus(Status.ERROR);
             throw t;
+        }
+    }
+
+    protected void refreshRemote() {
+        if (this.remote instanceof Refreshable) {
+            ((Refreshable<?>) this.remote).refresh();
         }
     }
 

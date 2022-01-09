@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P, R>, P extends AzResource<P, ?, ?>, R> implements AzResourceModule<T, P, R> {
+public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P, R>, P extends AbstractAzResource<P, ?, ?>, R> implements AzResourceModule<T, P, R> {
     @Nonnull
     @ToString.Include
     @EqualsAndHashCode.Include
@@ -186,6 +186,12 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
         final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
         return String.format("%s/%s/%s", this.parent.getId(), this.getName(), resourceName).replace(AzResource.RESOURCE_GROUP_PLACEHOLDER, rg);
+    }
+
+    protected String fixResourceGroup(String resourceGroup) {
+        resourceGroup = StringUtils.equalsAnyIgnoreCase(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER) ? null : resourceGroup;
+        resourceGroup = StringUtils.firstNonBlank(resourceGroup, this.getParent().getResourceGroupName());
+        return resourceGroup;
     }
 
     @Nullable
