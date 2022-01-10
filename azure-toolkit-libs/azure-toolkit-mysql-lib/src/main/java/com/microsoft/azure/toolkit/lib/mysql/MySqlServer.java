@@ -174,4 +174,14 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
     public void remove() {
         this.delete();
     }
+
+    @Override
+    public boolean isStoppable() {
+        return StringUtils.equalsIgnoreCase(this.getStatus(), "Ready");
+    }
+
+    @Override
+    public boolean isStartable() {
+        return StringUtils.equalsIgnoreCase(this.getStatus(), "Stopped");
+    }
 }

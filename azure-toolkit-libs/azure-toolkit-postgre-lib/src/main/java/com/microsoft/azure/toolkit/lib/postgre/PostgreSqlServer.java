@@ -175,4 +175,9 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
     public void remove() {
         this.delete();
     }
+
+    @Override
+    public boolean isStoppable() {
+        return StringUtils.equalsIgnoreCase(this.getStatus(), "Ready");
+    }
 }

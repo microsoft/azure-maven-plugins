@@ -25,7 +25,7 @@ public interface Startable {
     }
 
     default boolean isRestartable() {
-        return StringUtils.equalsAnyIgnoreCase(this.status(), Status.RUNNING);
+        return this.isStoppable();
     }
 
     String status();
