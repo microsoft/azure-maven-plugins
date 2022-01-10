@@ -9,15 +9,52 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
-public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzureBaseResource> {
+public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzureBaseResource> extends AzResourceBase {
     String REST_SEGMENT_JOB_MANAGEMENT_TENANTID = "/#@";
     String REST_SEGMENT_JOB_MANAGEMENT_RESOURCE = "/resource";
+
+    void refresh();
+
+    boolean exists();
+
+    @Nonnull
+    default String getName() {
+        return this.name();
+    }
+
+    @Nonnull
+    default String getId() {
+        return this.id();
+    }
+
+    @Nonnull
+    default String getSubscriptionId() {
+        return this.subscriptionId();
+    }
+
+    default String getResourceGroupName() {
+        return this.resourceGroup();
+    }
+
+    default String getStatus() {
+        return this.status();
+    }
+
+    default Subscription getSubscription() {
+        return this.subscription();
+    }
+
+    default String getPortalUrl() {
+        return this.portalUrl();
+    }
 
     @Nullable
     @Deprecated
@@ -31,10 +68,6 @@ public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzu
     default IAzureModule<? extends T, ? extends P> module() {
         return null;
     }
-
-    void refresh();
-
-    boolean exists();
 
     @Deprecated
     String name();

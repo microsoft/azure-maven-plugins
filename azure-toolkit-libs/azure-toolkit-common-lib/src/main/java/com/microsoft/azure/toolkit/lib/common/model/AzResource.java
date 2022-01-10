@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Objects;
 
 public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R>
-    extends AzBaseResource, IAzureBaseResource<T, P> {
+    extends AzResourceBase, IAzureBaseResource<T, P> {
 
     None NONE = new None();
     String RESOURCE_GROUP_PLACEHOLDER = "${rg}";
@@ -67,6 +67,12 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         return Azure.az(IAzureAccount.class).account().getSubscription(this.getSubscriptionId());
     }
 
+    default String getPortalUrl() {
+        final IAccount account = Azure.az(IAzureAccount.class).account();
+        Subscription subscription = account.getSubscription(this.getSubscriptionId());
+        return String.format("%s/#@%s/resource%s", account.portalUrl(), subscription.getTenantId(), this.getId());
+    }
+
     // ***** START! TO BE REMOVED ***** //
     @Deprecated
     default String name() {
@@ -101,13 +107,8 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
     default Subscription subscription() {
         return this.getSubscription();
     }
-    // ***** END! TO BE REMOVED ***** //
 
-    default String getPortalUrl() {
-        final IAccount account = Azure.az(IAzureAccount.class).account();
-        Subscription subscription = account.getSubscription(this.getSubscriptionId());
-        return String.format("%s/#@%s/resource%s", account.portalUrl(), subscription.getTenantId(), this.getId());
-    }
+    // ***** END! TO BE REMOVED ***** //
 
     @Getter
     final class None extends AbstractAzResource<None, None, Void> {
