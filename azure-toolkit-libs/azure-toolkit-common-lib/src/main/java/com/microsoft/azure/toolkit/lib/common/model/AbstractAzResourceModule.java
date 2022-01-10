@@ -12,6 +12,7 @@ import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGet
 import com.azure.resourcemanager.resources.fluentcore.collection.SupportsDeletingById;
 import com.azure.resourcemanager.resources.fluentcore.collection.SupportsListing;
 import com.google.common.collect.Sets;
+import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.IResourceManager;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource.Status;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
@@ -214,6 +215,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         if (this.getParent() instanceof IResourceManager) {
             final AzResourceModule<P, ?, ?> service = this.getParent().getModule();
             AzureEventBus.emit("service.children_changed.service", service);
+        }
+        if (this instanceof AzService) {
+            AzureEventBus.emit("service.children_changed.service", this);
         }
         AzureEventBus.emit("resource.children_changed.resource", this.getParent());
         AzureEventBus.emit("module.children_changed.module", this);
