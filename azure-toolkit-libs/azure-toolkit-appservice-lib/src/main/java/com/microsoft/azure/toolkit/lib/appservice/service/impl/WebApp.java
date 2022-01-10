@@ -83,7 +83,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     }
 
     @Override
-    @AzureOperation(name = "webapp.delete", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "webapp.delete_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
         if (this.exists()) {
             this.status(Status.PENDING);
@@ -93,19 +93,19 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     }
 
     @Override
-    @AzureOperation(name = "webapp.start", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "webapp.start_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
         super.start();
     }
 
     @Override
-    @AzureOperation(name = "webapp.stop", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "webapp.stop_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void stop() {
         super.stop();
     }
 
     @Override
-    @AzureOperation(name = "webapp.restart", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "webapp.restart_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
         super.restart();
     }

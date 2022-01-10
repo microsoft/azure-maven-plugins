@@ -114,7 +114,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
         remote().syncTriggers();
     }
 
-    @AzureOperation(name = "function.delete", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "functionapp.delete_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
         if (this.exists()) {
             this.status(Status.PENDING);
@@ -137,19 +137,19 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     }
 
     @Override
-    @AzureOperation(name = "function.start", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "functionapp.start_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
         super.start();
     }
 
     @Override
-    @AzureOperation(name = "function.stop", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "functionapp.stop_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void stop() {
         super.stop();
     }
 
     @Override
-    @AzureOperation(name = "function.restart", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "functionapp.restart_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
         super.restart();
     }
