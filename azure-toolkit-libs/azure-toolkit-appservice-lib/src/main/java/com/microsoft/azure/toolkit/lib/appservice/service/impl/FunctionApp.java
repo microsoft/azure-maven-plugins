@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceUpda
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceCreator;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -89,7 +90,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     @Cacheable(cacheName = "appservice/functionapp/{}/slots", key = "${this.name()}", condition = "!(force&&force[0])")
     public List<FunctionAppDeploymentSlot> deploymentSlots(boolean... force) {
         return remote().deploymentSlots().list().stream().parallel()
-                .map(functionSlotBasic -> new FunctionAppDeploymentSlot(this, remote(), functionSlotBasic))
+                .map(functionSlotBasic -> deploymentSlot(functionSlotBasic.name()))
                 .collect(Collectors.toList());
     }
 
@@ -130,6 +131,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
         } finally {
             try {
                 CacheManager.evictCache("appservice/functionapp/{}/slots", this.name());
+                CacheManager.evictCache("appservice/functionapp/{}/slot/{}", CacheEvict.ALL);
             } catch (Throwable e) {
                 log.warn("failed to evict cache", e);
             }

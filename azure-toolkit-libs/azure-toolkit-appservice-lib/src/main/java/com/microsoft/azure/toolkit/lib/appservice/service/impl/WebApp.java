@@ -23,6 +23,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceCrea
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -130,6 +131,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
         } finally {
             try {
                 CacheManager.evictCache("appservice/webapp/{}/slots", this.name());
+                CacheManager.evictCache("appservice/webapp/{}/slot/{}", CacheEvict.ALL);
             } catch (Throwable e) {
                 log.warn("failed to evict cache", e);
             }
@@ -143,7 +145,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
 
     @Cacheable(cacheName = "appservice/webapp/{}/slots", key = "${this.name()}", condition = "!(force&&force[0])")
     public List<WebAppDeploymentSlot> deploymentSlots(boolean... force) {
-        return remote().deploymentSlots().list().stream().map(slot -> new WebAppDeploymentSlot(this, remote(), slot)).collect(Collectors.toList());
+        return remote().deploymentSlots().list().stream().map(slot -> deploymentSlot(slot.name())).collect(Collectors.toList());
     }
 
     public void swap(String slotName) {
