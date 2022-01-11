@@ -112,31 +112,31 @@ public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzu
     interface Status {
         // unstable states
         String UNSTABLE = "UNSTABLE";
-        String PENDING = "PENDING";
+        String PENDING = "Pending";
 
-        String CREATING = "CREATING";
-        String DELETING = "DELETING";
-        String LOADING = "LOADING";
-        String UPDATING = "UPDATING";
-        String SCALING = "SCALING";
+        String CREATING = "Creating";
+        String DELETING = "Deleting";
+        String LOADING = "Loading";
+        String UPDATING = "Updating";
+        String SCALING = "Scaling";
 
-        String STARTING = "STARTING";
-        String RESTARTING = "RESTARTING";
-        String STOPPING = "STOPPING";
+        String STARTING = "Starting";
+        String RESTARTING = "Restarting";
+        String STOPPING = "Stopping";
 
         // Draft
-        String DRAFT = "DRAFT";
+        String DRAFT = "Draft";
         String NULL = "NULL";
 
         // stable states
         String STABLE = "STABLE";
-        String DELETED = "DELETED";
-        String ERROR = "ERROR";
-        String DISCONNECTED = "DISCONNECTED"; // failed to get remote/client
-        String INACTIVE = "INACTIVE"; // no active deployment/...
-        String RUNNING = "RUNNING";
-        String STOPPED = "STOPPED";
-        String UNKNOWN = "UNKNOWN";
+        String DELETED = "Deleted";
+        String ERROR = "Error";
+        String DISCONNECTED = "Disconnected"; // failed to get remote/client
+        String INACTIVE = "Inactive"; // no active deployment/...
+        String RUNNING = "Running";
+        String STOPPED = "Stopped";
+        String UNKNOWN = "Unknown";
 
         List<String> status = Arrays.asList(UNSTABLE, PENDING, DRAFT, STABLE, LOADING, ERROR, RUNNING, STOPPED, UNKNOWN);
     }
