@@ -7,6 +7,8 @@ package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.resources.fluentcore.model.Refreshable;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -65,6 +67,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     private synchronized void reload() {
+        Azure.az(IAzureAccount.class).account();
         this.doModify(() -> {
             try {
                 return this.getModule().loadResourceFromAzure(this.name, this.resourceGroupName);
@@ -127,7 +130,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @Nonnull
-    public synchronized String getStatus() {
+    public String getStatus() {
         final R remote = this.getRemote();
         if (Objects.nonNull(remote) && Objects.isNull(this.status)) {
             this.setStatus(this.loadStatus(remote));

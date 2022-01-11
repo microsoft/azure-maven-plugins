@@ -13,7 +13,9 @@ import com.azure.resourcemanager.resources.fluentcore.collection.SupportsDeletin
 import com.azure.resourcemanager.resources.fluentcore.collection.SupportsListing;
 import com.google.common.collect.Sets;
 import com.microsoft.azure.toolkit.lib.AzService;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.IResourceManager;
+import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource.Status;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -59,6 +61,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nonnull
     @Override
     public synchronized List<T> list() {
+        Azure.az(IAzureAccount.class).account();
         if (this.syncTime < 0) {
             this.reload();
         }
@@ -68,6 +71,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nullable
     @Override
     public T get(@Nonnull String name, String resourceGroup) {
+        Azure.az(IAzureAccount.class).account();
         if (!this.resources.containsKey(name)) {
             R remote = null;
             try {
