@@ -65,9 +65,9 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
             withCreate = withCreate.withGeneralPurposeAccountKindV2();
         }
         final IAzureMessager messager = AzureMessager.getMessager();
-        messager.info(AzureString.format("Start creating Redis Cache({0})...", name));
+        messager.info(AzureString.format("Start creating Storage Account({0})...", name));
         final com.azure.resourcemanager.storage.models.StorageAccount account = withCreate.create();
-        messager.success(AzureString.format("Redis Cache({0}) is successfully created.", name));
+        messager.success(AzureString.format("Storage Account({0}) is successfully created.", name));
         return account;
     }
 
