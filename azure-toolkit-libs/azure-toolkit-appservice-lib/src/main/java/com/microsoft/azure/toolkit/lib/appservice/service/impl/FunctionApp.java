@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceUpda
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceCreator;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -89,7 +90,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     @Cacheable(cacheName = "appservice/functionapp/{}/slots", key = "${this.name()}", condition = "!(force&&force[0])")
     public List<FunctionAppDeploymentSlot> deploymentSlots(boolean... force) {
         return remote().deploymentSlots().list().stream().parallel()
-                .map(functionSlotBasic -> new FunctionAppDeploymentSlot(this, remote(), functionSlotBasic))
+                .map(functionSlotBasic -> deploymentSlot(functionSlotBasic.name()))
                 .collect(Collectors.toList());
     }
 
@@ -114,7 +115,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
         remote().syncTriggers();
     }
 
-    @AzureOperation(name = "function.delete", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "functionapp.delete_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
         if (this.exists()) {
             this.status(Status.PENDING);
@@ -130,6 +131,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
         } finally {
             try {
                 CacheManager.evictCache("appservice/functionapp/{}/slots", this.name());
+                CacheManager.evictCache("appservice/functionapp/{}/slot/{}", CacheEvict.ALL);
             } catch (Throwable e) {
                 log.warn("failed to evict cache", e);
             }
@@ -137,19 +139,19 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     }
 
     @Override
-    @AzureOperation(name = "function.start", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "functionapp.start_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
         super.start();
     }
 
     @Override
-    @AzureOperation(name = "function.stop", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "functionapp.stop_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void stop() {
         super.stop();
     }
 
     @Override
-    @AzureOperation(name = "function.restart", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "functionapp.restart_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
         super.restart();
     }

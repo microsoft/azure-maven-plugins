@@ -23,6 +23,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceCrea
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -83,7 +84,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     }
 
     @Override
-    @AzureOperation(name = "webapp.delete", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "webapp.delete_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
         if (this.exists()) {
             this.status(Status.PENDING);
@@ -93,19 +94,19 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     }
 
     @Override
-    @AzureOperation(name = "webapp.start", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "webapp.start_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
         super.start();
     }
 
     @Override
-    @AzureOperation(name = "webapp.stop", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "webapp.stop_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void stop() {
         super.stop();
     }
 
     @Override
-    @AzureOperation(name = "webapp.restart", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "webapp.restart_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
         super.restart();
     }
@@ -130,6 +131,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
         } finally {
             try {
                 CacheManager.evictCache("appservice/webapp/{}/slots", this.name());
+                CacheManager.evictCache("appservice/webapp/{}/slot/{}", CacheEvict.ALL);
             } catch (Throwable e) {
                 log.warn("failed to evict cache", e);
             }
@@ -143,7 +145,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
 
     @Cacheable(cacheName = "appservice/webapp/{}/slots", key = "${this.name()}", condition = "!(force&&force[0])")
     public List<WebAppDeploymentSlot> deploymentSlots(boolean... force) {
-        return remote().deploymentSlots().list().stream().map(slot -> new WebAppDeploymentSlot(this, remote(), slot)).collect(Collectors.toList());
+        return remote().deploymentSlots().list().stream().map(slot -> deploymentSlot(slot.name())).collect(Collectors.toList());
     }
 
     public void swap(String slotName) {

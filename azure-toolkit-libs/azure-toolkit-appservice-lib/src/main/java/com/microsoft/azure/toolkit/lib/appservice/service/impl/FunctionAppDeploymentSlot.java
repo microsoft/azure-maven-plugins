@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -68,9 +69,28 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
     }
 
     @Override
+    @AzureOperation(name = "functionapp.delete_slot.slot|app", params = {"this.name(), this.parent.name()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
         functionAppClient.deploymentSlots().deleteById(this.id());
         functionApp().refresh();
+    }
+
+    @Override
+    @AzureOperation(name = "functionapp.start_slot.slot|app", params = {"this.name(), this.parent.name()"}, type = AzureOperation.Type.SERVICE)
+    public void start() {
+        super.start();
+    }
+
+    @Override
+    @AzureOperation(name = "functionapp.stop_slot.slot|app", params = {"this.name(), this.parent.name()"}, type = AzureOperation.Type.SERVICE)
+    public void stop() {
+        super.stop();
+    }
+
+    @Override
+    @AzureOperation(name = "functionapp.restart_slot.slot|app", params = {"this.name(), this.parent.name()"}, type = AzureOperation.Type.SERVICE)
+    public void restart() {
+        super.restart();
     }
 
     @Nullable

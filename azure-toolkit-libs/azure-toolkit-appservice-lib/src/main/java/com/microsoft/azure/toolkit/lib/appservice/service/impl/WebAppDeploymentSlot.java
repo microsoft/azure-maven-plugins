@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -82,9 +83,28 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
     }
 
     @Override
+    @AzureOperation(name = "webapp.delete_slot.slot|app", params = {"this.name(), this.parent.name()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
         remote().parent().deploymentSlots().deleteById(this.id());
         webApp().refresh();
+    }
+
+    @Override
+    @AzureOperation(name = "webapp.start_slot.slot|app", params = {"this.name(), this.parent.name()"}, type = AzureOperation.Type.SERVICE)
+    public void start() {
+        super.start();
+    }
+
+    @Override
+    @AzureOperation(name = "webapp.stop_slot.slot|app", params = {"this.name(), this.parent.name()"}, type = AzureOperation.Type.SERVICE)
+    public void stop() {
+        super.stop();
+    }
+
+    @Override
+    @AzureOperation(name = "webapp.restart_slot.slot|app", params = {"this.name(), this.parent.name()"}, type = AzureOperation.Type.SERVICE)
+    public void restart() {
+        super.restart();
     }
 
     @Override
