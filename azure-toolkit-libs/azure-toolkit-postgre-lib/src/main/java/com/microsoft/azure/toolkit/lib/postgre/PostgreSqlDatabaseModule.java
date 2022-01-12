@@ -31,7 +31,11 @@ public class PostgreSqlDatabaseModule extends AbstractAzResourceModule<PostgreSq
     @Nonnull
     @Override
     protected Stream<Database> loadResourcesFromAzure() {
-        return this.getClient().listByServer(this.getParent().getResourceGroupName(), this.getParent().getName()).stream();
+        // https://docs.microsoft.com/en-us/azure/postgresql/concepts-servers
+        // azure_maintenance - This database is used to separate the processes that provide the managed service from user actions.
+        // You do not have access to this database.
+        return this.getClient().listByServer(this.getParent().getResourceGroupName(), this.getParent().getName()).stream()
+            .filter(d -> !"azure_maintenance".equals(d.name()));
     }
 
     @Nullable
