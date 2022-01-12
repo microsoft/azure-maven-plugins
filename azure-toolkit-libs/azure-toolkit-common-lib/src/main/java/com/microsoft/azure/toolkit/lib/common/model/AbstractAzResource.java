@@ -64,6 +64,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     public void refresh() {
         this.syncTime = -1;
         AzureEventBus.emit("resource.status_changed.resource", this);
+        this.getSubModules().forEach(AzResourceModule::refresh);
     }
 
     private synchronized void reload() {
@@ -78,7 +79,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
                 throw e;
             }
         }, Status.LOADING);
-        this.doModify(() -> this.getSubModules().parallelStream().forEach(AzResourceModule::refresh), Status.LOADING);
     }
 
     @Override

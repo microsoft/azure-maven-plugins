@@ -64,7 +64,7 @@ public class MicrosoftSqlResourceManager extends AbstractAzResource<MicrosoftSql
         return (AzureSqlServer) this.getModule();
     }
 
-    public CheckNameAvailabilityResultEntity checkNameAvailability(String name) {
+    public CheckNameAvailabilityResultEntity checkNameAvailability(@Nonnull String name) {
         CheckNameAvailabilityResult result = Objects.requireNonNull(this.getRemote()).sqlServers().checkNameAvailability(name);
         return new CheckNameAvailabilityResultEntity(result.isAvailable(), result.unavailabilityReason(), result.unavailabilityMessage());
     }

@@ -7,8 +7,11 @@ package com.microsoft.azure.toolkit.lib.storage;
 
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.storage.StorageManager;
+import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
+import com.azure.resourcemanager.storage.models.Reason;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.IResourceManager;
+import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
@@ -19,6 +22,7 @@ import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Getter
 public class StorageResourceManager extends AbstractAzResource<StorageResourceManager, AzResource.None, StorageManager>
@@ -64,6 +68,12 @@ public class StorageResourceManager extends AbstractAzResource<StorageResourceMa
     @Override
     public ResourceManager getResourceManager() {
         return Objects.requireNonNull(this.getRemote()).resourceManager();
+    }
+
+    public CheckNameAvailabilityResultEntity checkNameAvailability(@Nonnull String name) {
+        CheckNameAvailabilityResult result = Objects.requireNonNull(this.getRemote()).storageAccounts().checkNameAvailability(name);
+        return new CheckNameAvailabilityResultEntity(result.isAvailable(),
+            Optional.ofNullable(result.reason()).map(Reason::toString).orElse(null), result.message());
     }
 }
 

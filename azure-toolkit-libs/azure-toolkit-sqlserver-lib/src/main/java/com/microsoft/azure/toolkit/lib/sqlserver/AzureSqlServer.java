@@ -8,29 +8,23 @@ import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.sql.SqlServerManager;
-import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @Slf4j
-public class AzureSqlServer extends AbstractAzResourceModule<MicrosoftSqlResourceManager, AzResource.None, SqlServerManager>
-    implements AzService {
+public class AzureSqlServer extends AbstractAzService<MicrosoftSqlResourceManager, SqlServerManager> {
 
     public AzureSqlServer() {
-        super("Microsoft.SQL", AzResource.NONE);
+        super("Microsoft.SQL");
     }
 
     @Nonnull
@@ -38,17 +32,6 @@ public class AzureSqlServer extends AbstractAzResourceModule<MicrosoftSqlResourc
         final MicrosoftSqlResourceManager rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getServerModule();
-    }
-
-    public MicrosoftSqlResourceManager forSubscription(@Nonnull String subscriptionId) {
-        return this.get(subscriptionId, null);
-    }
-
-    @Nonnull
-    @Override
-    protected Stream<SqlServerManager> loadResourcesFromAzure() {
-        return Azure.az(AzureAccount.class).account().getSelectedSubscriptions().stream().parallel()
-            .map(Subscription::getId).map(i -> loadResourceFromAzure(i, null));
     }
 
     @Nullable
@@ -69,12 +52,5 @@ public class AzureSqlServer extends AbstractAzResourceModule<MicrosoftSqlResourc
     @Override
     protected MicrosoftSqlResourceManager newResource(@Nonnull SqlServerManager manager) {
         return new MicrosoftSqlResourceManager(manager, this);
-    }
-
-    @Nonnull
-    @Override
-    public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
-        final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
-        return String.format("/subscriptions/%s/resourceGroups/%s/providers/%s", resourceName, rg, this.getName());
     }
 }

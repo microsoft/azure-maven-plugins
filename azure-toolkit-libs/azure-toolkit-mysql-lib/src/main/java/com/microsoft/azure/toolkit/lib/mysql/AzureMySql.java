@@ -10,30 +10,24 @@ import com.azure.core.management.profile.AzureProfile;
 import com.azure.core.util.ExpandableStringEnum;
 import com.azure.resourcemanager.mysql.MySqlManager;
 import com.azure.resourcemanager.mysql.models.ServerVersion;
-import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
-public class AzureMySql extends AbstractAzResourceModule<MySqlResourceManager, AzResource.None, MySqlManager>
-    implements AzService {
+public class AzureMySql extends AbstractAzService<MySqlResourceManager, MySqlManager> {
 
     public AzureMySql() {
-        super("Microsoft.DBforMySQL", AzResource.NONE);
+        super("Microsoft.DBforMySQL");
     }
 
     @Nonnull
@@ -41,17 +35,6 @@ public class AzureMySql extends AbstractAzResourceModule<MySqlResourceManager, A
         final MySqlResourceManager rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getServerModule();
-    }
-
-    public MySqlResourceManager forSubscription(@Nonnull String subscriptionId) {
-        return this.get(subscriptionId, null);
-    }
-
-    @Nonnull
-    @Override
-    protected Stream<MySqlManager> loadResourcesFromAzure() {
-        return Azure.az(AzureAccount.class).account().getSelectedSubscriptions().stream().parallel()
-            .map(Subscription::getId).map(i -> loadResourceFromAzure(i, null));
     }
 
     @Nonnull
@@ -72,13 +55,6 @@ public class AzureMySql extends AbstractAzResourceModule<MySqlResourceManager, A
     @Override
     protected MySqlResourceManager newResource(@Nonnull MySqlManager manager) {
         return new MySqlResourceManager(manager, this);
-    }
-
-    @Nonnull
-    @Override
-    public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
-        final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
-        return String.format("/subscriptions/%s/resourceGroups/%s/providers/%s", resourceName, rg, this.getName());
     }
 
     public List<String> listSupportedVersions() {
