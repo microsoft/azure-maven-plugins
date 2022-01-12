@@ -6,9 +6,12 @@
 package com.microsoft.azure.toolkit.lib.database.entity;
 
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 
 public interface IDatabase extends AzResourceBase {
     String getCollation();
 
     IDatabaseServer<? extends IDatabase> getServer();
+
+    JdbcUrl getJdbcUrl();
 }

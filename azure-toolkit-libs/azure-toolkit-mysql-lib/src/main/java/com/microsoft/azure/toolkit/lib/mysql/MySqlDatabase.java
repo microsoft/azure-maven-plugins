@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.mysql;
 import com.azure.resourcemanager.mysql.models.Database;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
 
 import javax.annotation.Nonnull;
@@ -52,5 +53,9 @@ public class MySqlDatabase extends AbstractAzResource<MySqlDatabase, MySqlServer
 
     public String getCharset() {
         return this.remoteOptional().map(Database::charset).orElse(null);
+    }
+
+    public JdbcUrl getJdbcUrl() {
+        return JdbcUrl.mysql(this.getParent().getFullyQualifiedDomainName(), this.getName());
     }
 }

@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.postgre;
 import com.azure.resourcemanager.postgresql.models.Database;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
 
 import javax.annotation.Nonnull;
@@ -52,5 +53,9 @@ public class PostgreSqlDatabase extends AbstractAzResource<PostgreSqlDatabase, P
 
     public String getCharset() {
         return this.remoteOptional().map(Database::charset).orElse(null);
+    }
+
+    public JdbcUrl getJdbcUrl() {
+        return JdbcUrl.postgre(this.getParent().getFullyQualifiedDomainName(), this.getName());
     }
 }

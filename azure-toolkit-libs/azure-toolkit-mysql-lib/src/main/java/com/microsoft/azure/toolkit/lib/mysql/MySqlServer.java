@@ -165,6 +165,10 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
         return NetUtils.getPublicIp();
     }
 
+    public JdbcUrl getJdbcUrl() {
+        return JdbcUrl.mysql(this.getFullyQualifiedDomainName());
+    }
+
     @Override
     public List<MySqlDatabase> listDatabases() {
         return this.databases().list();

@@ -166,6 +166,10 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
         return NetUtils.getPublicIp();
     }
 
+    public JdbcUrl getJdbcUrl() {
+        return JdbcUrl.postgre(this.getFullyQualifiedDomainName(), "postgre");
+    }
+
     @Override
     public List<PostgreSqlDatabase> listDatabases() {
         return this.databases().list();

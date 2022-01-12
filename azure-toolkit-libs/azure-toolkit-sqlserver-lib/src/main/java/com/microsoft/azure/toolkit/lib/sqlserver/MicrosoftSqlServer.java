@@ -133,6 +133,10 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
         return ip;
     }
 
+    public JdbcUrl getJdbcUrl() {
+        return JdbcUrl.sqlserver(this.getFullyQualifiedDomainName());
+    }
+
     @Override
     public List<MicrosoftSqlDatabase> listDatabases() {
         return this.databases().list();

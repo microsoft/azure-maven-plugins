@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.sqlserver;
 import com.azure.resourcemanager.sql.models.SqlDatabase;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
 
 import javax.annotation.Nonnull;
@@ -53,5 +54,9 @@ public class MicrosoftSqlDatabase extends AbstractAzResource<MicrosoftSqlDatabas
 
     public OffsetDateTime getCreationDate() {
         return this.remoteOptional().map(SqlDatabase::creationDate).orElse(null);
+    }
+
+    public JdbcUrl getJdbcUrl() {
+        return JdbcUrl.sqlserver(this.getParent().getFullyQualifiedDomainName(), this.getName());
     }
 }
