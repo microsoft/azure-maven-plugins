@@ -12,8 +12,10 @@ import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages.
 import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages.WithProximityPlacementGroup;
 import com.azure.resourcemanager.compute.models.VirtualMachineEvictionPolicyTypes;
 import com.azure.resourcemanager.network.models.NetworkInterface;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
 import com.azure.resourcemanager.storage.models.StorageAccount;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -30,7 +32,7 @@ import com.microsoft.azure.toolkit.lib.compute.security.model.SecurityRule;
 import com.microsoft.azure.toolkit.lib.compute.vm.model.AuthenticationType;
 import com.microsoft.azure.toolkit.lib.compute.vm.model.AzureSpotConfig;
 import com.microsoft.azure.toolkit.lib.compute.vm.model.OperatingSystem;
-import com.microsoft.azure.toolkit.lib.storage.StorageManagerFactory;
+import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountConfig;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -160,7 +162,8 @@ public class DraftVirtualMachine extends VirtualMachine implements AzureResource
     }
 
     private StorageAccount getStorageAccountClient() {
-        return StorageManagerFactory.create(subscriptionId).storageAccounts().getById(storageAccount.getId());
+        final ResourceId id = ResourceId.fromString(storageAccount.getId());
+        return Azure.az(AzureStorageAccount.class).accounts(subscriptionId).get(id.name(), id.resourceGroupName()).getRemote();
     }
 
     private WithCreate configureImage(final WithProximityPlacementGroup withCreate) {

@@ -2,151 +2,182 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
+
 package com.microsoft.azure.toolkit.lib.postgre;
 
-import com.azure.core.management.exception.ManagementException;
-import com.azure.resourcemanager.postgresql.PostgreSqlManager;
-import com.azure.resourcemanager.postgresql.models.Database;
+import com.azure.core.util.ExpandableStringEnum;
 import com.azure.resourcemanager.postgresql.models.Server;
-import com.google.common.base.Preconditions;
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
-import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureResource;
+import com.azure.resourcemanager.postgresql.models.Sku;
+import com.azure.resourcemanager.postgresql.models.SslEnforcementEnum;
+import com.azure.resourcemanager.postgresql.models.StorageProfile;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.entity.Startable;
-import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabaseServer;
-import com.microsoft.azure.toolkit.lib.postgre.model.PostgreSqlDatabaseEntity;
-import com.microsoft.azure.toolkit.lib.postgre.model.PostgreSqlServerEntity;
-import lombok.extern.slf4j.Slf4j;
+import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
-/***
- * See: https://docs.microsoft.com/en-us/cli/azure/postgres/server?view=azure-cli-latest
- */
-@Slf4j
-public class PostgreSqlServer extends AbstractAzureResource<PostgreSqlServer, PostgreSqlServerEntity, Server> implements AzureOperationEvent.Source<PostgreSqlServer>,
-        IAzureResource<PostgreSqlServerEntity>, IDatabaseServer, Startable<PostgreSqlServerEntity>, Removable {
-    public static final String NOT_SUPPORTED_BY_AZURE_POSTGRE_SQL = "Start and stop are not supported by Azure PostgreSQL.";
+public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, PostgreSqlResourceManager, Server>
+    implements Removable, Startable, IDatabaseServer<PostgreSqlDatabase> {
+
+    private final PostgreSqlDatabaseModule databaseModule;
+    private final PostgreSqlFirewallRuleModule firewallRuleModule;
+
+    protected PostgreSqlServer(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull PostgreSqlServerModule module) {
+        super(name, resourceGroup, module);
+        this.databaseModule = new PostgreSqlDatabaseModule(this);
+        this.firewallRuleModule = new PostgreSqlFirewallRuleModule(this);
+    }
+
+    protected PostgreSqlServer(@Nonnull String name, @Nonnull PostgreSqlServerModule module) {
+        this(name, module.getParent().getResourceGroupName(), module);
+    }
+
+    protected PostgreSqlServer(@Nonnull Server remote, @Nonnull PostgreSqlServerModule module) {
+        this(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
+    }
+
+    @Override
+    protected void refreshRemote() {
+        this.remoteOptional().ifPresent(Server::refresh);
+    }
+
+    @Override
+    public List<AzResourceModule<?, PostgreSqlServer, ?>> getSubModules() {
+        return Arrays.asList(this.firewallRuleModule, this.databaseModule);
+    }
+
+    public PostgreSqlFirewallRuleModule firewallRules() {
+        return this.firewallRuleModule;
+    }
+
+    public PostgreSqlDatabaseModule databases() {
+        return this.databaseModule;
+    }
+
     @Nonnull
-    private final PostgreSqlManager manager;
-
-    public PostgreSqlServer(@Nonnull PostgreSqlManager manager, @Nonnull Server server) {
-        super(new PostgreSqlServerEntity(manager, server));
-        this.manager = manager;
+    @Override
+    public String loadStatus(@Nonnull Server remote) {
+        return remote.userVisibleState().toString();
     }
 
     @Override
-    protected Server loadRemote() {
-        try {
-            return manager.servers().getById(this.entity.getId());
-        } catch (ManagementException ex) {
-            if (HttpStatus.SC_NOT_FOUND == ex.getResponse().getStatusCode()) {
-                return null;
-            }
-            throw ex;
-        }
+    public String status() {
+        return this.getStatus();
     }
 
     @Override
-    public PostgreSqlServer refresh() {
-        try {
-            return super.refresh();
-        } finally {
-            try {
-                CacheManager.evictCache("postgre/{}", this.id());
-                CacheManager.evictCache("postgre/{}/rg/{}/postgre/{}", String.format("%s/%s/%s", this.subscriptionId(), this.resourceGroup(), this.name()));
-            } catch (Throwable e) {
-                log.warn("failed to evict cache", e);
-            }
-        }
+    public void start() {
+        throw new AzureToolkitRuntimeException("not supported");
     }
 
-    public String getPublicIpForLocalMachine() {
+    @Override
+    public void stop() {
+        throw new AzureToolkitRuntimeException("not supported");
+    }
+
+    @AzureOperation(name = "postgre.restart_server.server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    public void restart() {
+        this.doModify(() -> Objects.requireNonNull(this.getRemote()).restart(), Status.RESTARTING);
+    }
+
+    @Override
+    public Region getRegion() {
+        return remoteOptional().map(remote -> Region.fromName(remote.regionName())).orElse(null);
+    }
+
+    @Override
+    public String getAdminName() {
+        return remoteOptional().map(Server::administratorLogin).orElse(null);
+    }
+
+    @Override
+    public String getFullyQualifiedDomainName() {
+        return remoteOptional().map(Server::fullyQualifiedDomainName).orElse(null);
+    }
+
+    @Override
+    public boolean isAzureServiceAccessAllowed() {
+        final String ruleName = PostgreSqlFirewallRule.AZURE_SERVICES_ACCESS_FIREWALL_RULE_NAME;
+        return this.firewallRules().exists(ruleName, this.getResourceGroupName());
+    }
+
+    @Override
+    public boolean isLocalMachineAccessAllowed() {
+        final String ruleName = IFirewallRule.getLocalMachineAccessRuleName();
+        return this.firewallRules().exists(ruleName, this.getResourceGroupName());
+    }
+
+    @Override
+    public String getVersion() {
+        return remoteOptional().map(Server::version).map(ExpandableStringEnum::toString).orElse(null);
+    }
+
+    @Override
+    public String getType() {
+        return remoteOptional().map(Server::type).orElse(null);
+    }
+
+    public String getSkuTier() {
+        return remoteOptional().map(Server::sku).map(Sku::tier).map(ExpandableStringEnum::toString).orElse(null);
+    }
+
+    public int getVCore() {
+        return remoteOptional().map(Server::sku).map(Sku::capacity).orElse(0);
+    }
+
+    public int getStorageInMB() {
+        return remoteOptional().map(Server::storageProfile).map(StorageProfile::storageMB).orElse(0);
+    }
+
+    public String getSslEnforceStatus() {
+        return remoteOptional().map(Server::sslEnforcement).map(SslEnforcementEnum::name).orElse(null);
+    }
+
+    @Override
+    public String getLocalMachinePublicIp() {
         // try to get public IP by ping PostgreSQL Server
-        String username = entity.getAdministratorLoginName() + "@" + entity.getName();
+        String username = this.getAdminName() + "@" + this.getName();
         try {
             Class.forName("org.postgresql.Driver");
-            DriverManager.getConnection(JdbcUrl.postgre(entity.getFullyQualifiedDomainName(), "postgre").toString(), username, null);
+            DriverManager.getConnection(JdbcUrl.postgre(this.getFullyQualifiedDomainName(), "postgre").toString(), username, null);
         } catch (SQLException e) {
             String ip = NetUtils.parseIpAddressFromMessage(e.getMessage());
             if (StringUtils.isNotBlank(ip)) {
                 return ip;
             }
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException ignored) {
         }
         // Alternatively, get public IP by ping public URL
         return NetUtils.getPublicIp();
     }
 
-    public PostgreSqlFirewallRules firewallRules() {
-        return new PostgreSqlFirewallRules(this.manager, this.entity);
-    }
-
-    @AzureOperation(name = "postgre.delete_server.server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
-    public void delete() {
-        if (this.exists()) {
-            this.status(Status.PENDING);
-            PostgreSqlServer.this.manager.servers().deleteById(entity.getId());
-            Azure.az(AzurePostgreSql.class).refresh();
-        }
-    }
-
     @Override
-    public void start() {
-        throw new UnsupportedOperationException(NOT_SUPPORTED_BY_AZURE_POSTGRE_SQL);
-    }
-
-    @Override
-    public void stop() {
-        throw new UnsupportedOperationException(NOT_SUPPORTED_BY_AZURE_POSTGRE_SQL);
-    }
-
-    @AzureOperation(name = "postgre.restart_server.server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
-    public void restart() {
-        Preconditions.checkArgument(StringUtils.equalsIgnoreCase("Ready", entity().getState()), "Restart action is not supported for non-ready server.");
-        if (this.exists()) {
-            this.status(Status.PENDING);
-            PostgreSqlServer.this.manager.servers().restart(this.entity.getResourceGroupName(), this.entity.getName());
-            this.refresh();
-        }
-    }
-
-    public List<PostgreSqlDatabaseEntity> databases() {
-        return manager.databases().listByServer(this.entity.getResourceGroupName(), this.entity.getName())
-            .stream().map(this::toPostgreSqlDatabaseEntity).collect(Collectors.toList());
-    }
-
-    public List<PostgreSqlDatabase> databasesV2() {
-        return manager.databases().listByServer(this.entity.getResourceGroupName(), this.entity.getName())
-                .stream().map(this::toPostgreSqlDatabase).collect(Collectors.toList());
-    }
-
-    public PostgreSqlDatabase database(@Nonnull String databaseName) {
-        return toPostgreSqlDatabase(manager.databases().get(this.entity.getResourceGroupName(), this.entity.getName(), databaseName));
-    }
-
-    private PostgreSqlDatabase toPostgreSqlDatabase(Database database) {
-        return new PostgreSqlDatabase(manager, toPostgreSqlDatabaseEntity(database));
-    }
-
-    private PostgreSqlDatabaseEntity toPostgreSqlDatabaseEntity(Database database) {
-        return new PostgreSqlDatabaseEntity(manager, database);
+    public List<PostgreSqlDatabase> listDatabases() {
+        return this.databases().list();
     }
 
     @Override
     public void remove() {
-        delete();
+        this.delete();
+    }
+
+    @Override
+    public boolean isStoppable() {
+        return StringUtils.equalsIgnoreCase(this.getStatus(), "Ready");
     }
 }

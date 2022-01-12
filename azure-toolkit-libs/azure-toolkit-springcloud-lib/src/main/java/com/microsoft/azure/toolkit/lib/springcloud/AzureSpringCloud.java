@@ -6,129 +6,70 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.core.http.policy.HttpLogDetailLevel;
-import com.azure.core.http.policy.HttpPipelinePolicy;
-import com.azure.core.management.exception.ManagementException;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
-import com.azure.resourcemanager.appplatform.models.SpringService;
-import com.azure.resourcemanager.appplatform.models.SpringServices;
+import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
-import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
-import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
-import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
-import com.microsoft.azure.toolkit.lib.common.cache.Preload;
-import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpStatus;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-@Slf4j
-public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud>
-        implements AzureService, AzureOperationEvent.Source<AzureSpringCloud> {
-
-    public AzureSpringCloud() { // for SPI
-        super(AzureSpringCloud::new);
-    }
-
-    private AzureSpringCloud(@Nonnull final List<Subscription> subscriptions) { // for creating scoped AzureSpringCloud
-        super(AzureSpringCloud::new, subscriptions);
-    }
-
-    @Nullable
-    @Cacheable(cacheName = "asc/cluster/{}", key = "$name")
-    @AzureOperation(name = "springcloud.get_cluster.cluster", params = {"name"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudCluster cluster(@Nonnull String name) {
-        return this.clusters().stream()
-                .filter((s) -> Objects.equals(s.name(), name))
-                .findAny().orElse(null);
+public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloudResourceManager, AzResource.None, AppPlatformManager>
+    implements AzService {
+    public AzureSpringCloud() {
+        super("Microsoft.AppPlatform", AzResource.NONE); // for SPI
     }
 
     @Nonnull
-    SpringCloudCluster cluster(@Nonnull SpringService remote) {
-        return this.cluster(new SpringCloudClusterEntity(remote));
+    public SpringCloudClusterModule clusters(@Nonnull String subscriptionId) {
+        final SpringCloudResourceManager rm = get(subscriptionId, null);
+        assert rm != null;
+        return rm.getClusterModule();
+    }
+
+    public SpringCloudResourceManager forSubscription(@Nonnull String subscriptionId) {
+        return this.get(subscriptionId, null);
     }
 
     @Nonnull
-    private SpringCloudCluster cluster(@Nonnull SpringCloudClusterEntity cluster) {
-        return new SpringCloudCluster(cluster, this.getClient(cluster.getSubscriptionId()));
-    }
-
-    @Nonnull
-    @Preload
-    @AzureOperation(name = "springcloud.list_clusters", type = AzureOperation.Type.SERVICE)
-    public List<SpringCloudCluster> clusters() {
-        return this.getSubscriptions().stream().parallel()
-                .flatMap(s -> clusters(s.getId()).stream())
-                .collect(Collectors.toList());
-    }
-
-    @Nonnull
-    @Cacheable(cacheName = "asc/{}/clusters", key = "$subscriptionId")
-    @AzureOperation(name = "springcloud.list_clusters.subscription", params = "subscriptionId", type = AzureOperation.Type.SERVICE)
-    private List<SpringCloudCluster> clusters(@Nonnull String subscriptionId) {
-        try {
-            return getClient(subscriptionId).list().stream()
-                    .map(this::cluster)
-                    .collect(Collectors.toList());
-        } catch (ManagementException e) {
-            log.warn(String.format("failed to list spring cloud services of subscription(%s)", subscriptionId), e);
-            if (HttpStatus.SC_FORBIDDEN == e.getResponse().getStatusCode()) {
-                return Collections.emptyList();
-            }
-            throw e;
-        }
-    }
-
-    @AzureOperation(name = "service.refresh.service", params = "this.name()", type = AzureOperation.Type.SERVICE)
-    public void refresh() {
-        try {
-            CacheManager.evictCache("asc/{}/clusters", CacheEvict.ALL);
-        } catch (ExecutionException e) {
-            log.warn("failed to evict cache", e);
-        }
+    protected Stream<AppPlatformManager> loadResourcesFromAzure() {
+        return Azure.az(AzureAccount.class).account().getSelectedSubscriptions().stream().parallel()
+            .map(Subscription::getId).map(i -> loadResourceFromAzure(i, null));
     }
 
     @Override
-    public String name() {
-        return "Spring Cloud";
-    }
-
-    @Cacheable(cacheName = "asc/{}/client", key = "$subscriptionId")
-    @AzureOperation(name = "springcloud.get_client.subscription", params = "subscriptionId", type = AzureOperation.Type.SERVICE)
-    protected SpringServices getClient(final String subscriptionId) {
+    protected AppPlatformManager loadResourceFromAzure(@Nonnull String subscriptionId, String resourceGroup) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
         final String userAgent = config.getUserAgent();
         final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         return AppPlatformManager.configure()
-                .withHttpClient(AzureService.getDefaultHttpClient())
-                .withLogLevel(logLevel)
-                .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
-                .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
-                .springServices();
+            .withHttpClient(AzureService.getDefaultHttpClient())
+            .withLogLevel(logLevel)
+            .withPolicy(AzureService.getUserAgentPolicy(userAgent)) // set user agent with policy
+            .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
-    private HttpPipelinePolicy getUserAgentPolicy(String userAgent) {
-        return (httpPipelineCallContext, httpPipelineNextPolicy) -> {
-            final String previousUserAgent = httpPipelineCallContext.getHttpRequest().getHeaders().getValue("User-Agent");
-            httpPipelineCallContext.getHttpRequest().setHeader("User-Agent", String.format("%s %s", userAgent, previousUserAgent));
-            return httpPipelineNextPolicy.process();
-        };
+    @Override
+    protected SpringCloudResourceManager newResource(@Nonnull AppPlatformManager remote) {
+        return new SpringCloudResourceManager(remote, this);
+    }
+
+    @Nonnull
+    @Override
+    public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
+        final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
+        return String.format("/subscriptions/%s/resourceGroups/%s/providers/%s", resourceName, rg, this.getName());
     }
 }

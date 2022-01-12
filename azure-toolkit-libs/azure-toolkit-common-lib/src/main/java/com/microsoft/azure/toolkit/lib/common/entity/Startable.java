@@ -5,9 +5,10 @@
 
 package com.microsoft.azure.toolkit.lib.common.entity;
 
-import java.util.Objects;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource.Status;
+import org.apache.commons.lang3.StringUtils;
 
-public interface Startable<T extends IAzureResourceEntity> extends IAzureResource<T> {
+public interface Startable {
 
     void start();
 
@@ -16,14 +17,16 @@ public interface Startable<T extends IAzureResourceEntity> extends IAzureResourc
     void restart();
 
     default boolean isStartable() {
-        return Objects.equals(this.status(), Status.STOPPED);
+        return StringUtils.equalsIgnoreCase(this.status(), Status.STOPPED);
     }
 
     default boolean isStoppable() {
-        return Objects.equals(this.status(), Status.RUNNING);
+        return StringUtils.equalsAnyIgnoreCase(this.status(), Status.RUNNING);
     }
 
     default boolean isRestartable() {
-        return Objects.equals(this.status(), Status.RUNNING);
+        return this.isStoppable();
     }
+
+    String status();
 }

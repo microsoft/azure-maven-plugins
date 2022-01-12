@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
+import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
 import com.azure.resourcemanager.appplatform.models.DeploymentResourceStatus;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -28,12 +29,12 @@ public class Utils {
         if (deployment == null) {
             return false;
         }
-        final String deploymentResourceStatus = deployment.entity().getStatus().getLabel();
+        final String deploymentResourceStatus = deployment.getStatus();
         if (DEPLOYMENT_PROCESSING_STATUS.contains(deploymentResourceStatus)) {
             return false;
         }
-        final String finalDiscoverStatus = BooleanUtils.isTrue(deployment.entity().isActive()) ? "UP" : "OUT_OF_SERVICE";
-        final List<SpringCloudDeploymentInstanceEntity> instanceList = deployment.entity().getInstances();
+        final String finalDiscoverStatus = BooleanUtils.isTrue(deployment.isActive()) ? "UP" : "OUT_OF_SERVICE";
+        final List<DeploymentInstance> instanceList = deployment.getInstances();
         if (CollectionUtils.isEmpty(instanceList)) {
             return false;
         }

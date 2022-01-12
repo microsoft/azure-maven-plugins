@@ -125,9 +125,9 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     }
 
     @Override
-    public AbstractAppService<com.azure.resourcemanager.appservice.models.FunctionApp, FunctionAppEntity> refresh() {
+    public void refresh() {
         try {
-            return super.refresh();
+            super.refresh();
         } finally {
             try {
                 CacheManager.evictCache("appservice/functionapp/{}/slots", this.name());

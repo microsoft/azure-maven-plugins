@@ -13,9 +13,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * @deprecated use {@link com.microsoft.azure.toolkit.redis.RedisCacheDraft} instead.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Deprecated
 public class RedisConfig {
     private String name;
     private String id;

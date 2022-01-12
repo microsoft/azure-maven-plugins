@@ -5,12 +5,14 @@
 
 package com.microsoft.azure.toolkit.lib.common.event;
 
+import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NonNls;
+import reactor.core.scheduler.Schedulers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,6 +35,16 @@ public class AzureEventBus {
 
     public static <T, E extends AzureEvent<T>> void on(@Nonnull final String type, @Nonnull Consumer<T> listener) {
         getBus(type).register(new EventListener<T, E>((e) -> listener.accept(e.getPayload())));
+    }
+
+    public static <T, E extends AzureEvent<T>> void once(@Nonnull final String type, @Nonnull Consumer<T> listener) {
+        final EventBus bus = getBus(type);
+        final EventListener<T, E>[] listeners = new EventListener[1];
+        listeners[0] = new EventListener<>((e) -> {
+            listener.accept(e.getPayload());
+            bus.unregister(listeners[0]);
+        });
+        bus.register(listeners[0]);
     }
 
     public static <T, E extends AzureEvent<T>> void after(@Nonnull final String operation, @Nonnull Consumer<T> listener) {
@@ -72,7 +84,7 @@ public class AzureEventBus {
     }
 
     private static EventBus getBus(String eventType) {
-        return buses.computeIfAbsent(eventType, EventBus::new);
+        return buses.computeIfAbsent(eventType, (e) -> new AsyncEventBus(command -> Schedulers.boundedElastic().schedule(command)));
     }
 
     @RequiredArgsConstructor

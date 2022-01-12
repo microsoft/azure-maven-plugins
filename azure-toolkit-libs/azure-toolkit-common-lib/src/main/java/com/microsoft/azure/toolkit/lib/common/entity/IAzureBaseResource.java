@@ -9,50 +9,96 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
-public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzureBaseResource> {
+public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzureBaseResource> extends AzResourceBase {
     String REST_SEGMENT_JOB_MANAGEMENT_TENANTID = "/#@";
     String REST_SEGMENT_JOB_MANAGEMENT_RESOURCE = "/resource";
 
+    void refresh();
+
+    boolean exists();
+
+    @Nonnull
+    default String getName() {
+        return this.name();
+    }
+
+    @Nonnull
+    default String getId() {
+        return this.id();
+    }
+
+    @Nonnull
+    default String getSubscriptionId() {
+        return this.subscriptionId();
+    }
+
+    default String getResourceGroupName() {
+        return this.resourceGroup();
+    }
+
+    default String getStatus() {
+        return this.status();
+    }
+
+    default Subscription getSubscription() {
+        return this.subscription();
+    }
+
+    default String getPortalUrl() {
+        return this.portalUrl();
+    }
+
     @Nullable
+    @Deprecated
     default P parent() {
         return null;
     }
 
     // todo: Change to Nonnull
     @Nullable
+    @Deprecated
     default IAzureModule<? extends T, ? extends P> module() {
         return null;
     }
 
-    IAzureBaseResource<T, P> refresh();
-
-    boolean exists();
-
+    @Deprecated
     String name();
 
+    @Deprecated
     String id();
 
+    @Deprecated
     default String status() {
         return null;
     }
 
+    default String getFormalStatus() {
+        return this.status();
+    }
+
+    @Deprecated
     default void refreshStatus() {
     }
 
+    @Deprecated
     default String subscriptionId() {
         return ResourceId.fromString(id()).subscriptionId();
     }
 
+    @Deprecated
     default String resourceGroup() {
         return ResourceId.fromString(id()).resourceGroupName();
     }
 
+    @Deprecated
     default Subscription subscription() {
         return Azure.az(IAzureAccount.class).account().getSubscription(this.subscriptionId());
     }
@@ -66,18 +112,31 @@ public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzu
     interface Status {
         // unstable states
         String UNSTABLE = "UNSTABLE";
-        String PENDING = "PENDING";
+        String PENDING = "Pending";
+
+        String CREATING = "Creating";
+        String DELETING = "Deleting";
+        String LOADING = "Loading";
+        String UPDATING = "Updating";
+        String SCALING = "Scaling";
+
+        String STARTING = "Starting";
+        String RESTARTING = "Restarting";
+        String STOPPING = "Stopping";
 
         // Draft
-        String DRAFT = "DRAFT";
+        String DRAFT = "Draft";
+        String NULL = "NULL";
 
         // stable states
         String STABLE = "STABLE";
-        String LOADING = "LOADING";
-        String ERROR = "ERROR";
-        String RUNNING = "RUNNING";
-        String STOPPED = "STOPPED";
-        String UNKNOWN = "UNKNOWN";
+        String DELETED = "Deleted";
+        String ERROR = "Error";
+        String DISCONNECTED = "Disconnected"; // failed to get remote/client
+        String INACTIVE = "Inactive"; // no active deployment/...
+        String RUNNING = "Running";
+        String STOPPED = "Stopped";
+        String UNKNOWN = "Unknown";
 
         List<String> status = Arrays.asList(UNSTABLE, PENDING, DRAFT, STABLE, LOADING, ERROR, RUNNING, STOPPED, UNKNOWN);
     }

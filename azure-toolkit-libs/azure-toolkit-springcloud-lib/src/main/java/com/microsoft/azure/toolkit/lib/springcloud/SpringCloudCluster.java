@@ -5,98 +5,50 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.appplatform.models.ProvisioningState;
-import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringService;
-import com.azure.resourcemanager.appplatform.models.SpringServices;
-import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
-import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
-import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
+import com.azure.resourcemanager.appplatform.models.TestKeys;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudSku;
 import lombok.Getter;
-import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
+import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
-public class SpringCloudCluster
-        extends AbstractAzureResource<SpringCloudCluster, SpringCloudClusterEntity, SpringService>
-        implements AzureOperationEvent.Source<SpringCloudCluster> {
-    @Getter
+@Getter
+public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, SpringCloudResourceManager, SpringService> {
+
     @Nonnull
-    final SpringServices client;
+    private final SpringCloudAppModule appModule;
 
-    public SpringCloudCluster(@Nonnull SpringCloudClusterEntity entity, @Nonnull SpringServices client) {
-        super(entity);
-        this.client = client;
+    protected SpringCloudCluster(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull SpringCloudClusterModule module) {
+        super(name, resourceGroup, module);
+        this.appModule = new SpringCloudAppModule(this);
     }
 
+    protected SpringCloudCluster(@Nonnull SpringService remote, @Nonnull SpringCloudClusterModule module) {
+        this(remote.name(), remote.resourceGroupName(), module);
+    }
+
+    @Nonnull
     @Override
-    @AzureOperation(name = "springcloud.load_cluster.cluster", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
-    protected SpringService loadRemote() {
-        try {
-            return this.client.getByResourceGroup(entity.getResourceGroup(), entity.getName());
-        } catch (ManagementException e) { // if cluster with specified resourceGroup/name removed.
-            if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatusCode()) {
-                return null;
-            }
-            throw e;
-        }
-    }
-
-    @Nonnull
-    @Cacheable(cacheName = "resource/{}/child/{}", key = "${this.id()}/$name")
-    @AzureOperation(name = "springcloud.get_app.app", params = {"name"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudApp app(final String name) {
-        if (this.exists()) {
-            try {
-                final SpringApp app = Objects.requireNonNull(this.remote()).apps().getByName(name);
-                return this.app(app);
-            } catch (ManagementException ignored) {
-            }
-        }
-        // if app with `name` not exist or this cluster removed?
-        return this.app(new SpringCloudAppEntity(name, this.entity));
-    }
-
-    @Nonnull
-    SpringCloudApp app(@Nonnull SpringApp app) {
-        return this.app(new SpringCloudAppEntity(app, this.entity()));
-    }
-
-    @Nonnull
-    public SpringCloudApp app(@Nonnull SpringCloudAppEntity app) {
-        return new SpringCloudApp(app, this);
-    }
-
-    @Nonnull
-    public SpringCloudApp app(@Nonnull SpringCloudAppConfig config) {
-        return this.app(new SpringCloudAppEntity(config, this.entity));
-    }
-
-    @Nonnull
-    @Cacheable(cacheName = "resource/{}/children", key = "${this.id()}")
-    @AzureOperation(name = "springcloud.list_apps.cluster", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
-    public List<SpringCloudApp> apps() {
-        if (this.exists()) {
-            return Objects.requireNonNull(this.remote()).apps().list().stream().map(this::app).collect(Collectors.toList());
-        }
-        return new ArrayList<>();
-    }
-
-    @Override
-    protected String loadStatus() {
-        final SpringService remote = this.remote();
-        if (Objects.isNull(remote)) {
-            return Status.UNKNOWN;
-        }
+    public String loadStatus(@Nonnull SpringService remote) {
         final ProvisioningState state = remote.refresh().innerModel().properties().provisioningState();
-        switch (state.toString().toUpperCase()) {
+        return state.toString();
+    }
+
+    @Override
+    public List<AzResourceModule<?, SpringCloudCluster, ?>> getSubModules() {
+        return Collections.singletonList(appModule);
+    }
+
+    @Override
+    public String formalizeStatus(String status) {
+        switch (status.toUpperCase()) {
             case "CREATING":
             case "MOVING":
             case "UPDATING":
@@ -112,5 +64,34 @@ public class SpringCloudCluster
             default:
                 return Status.UNKNOWN;
         }
+    }
+
+    @Nonnull
+    public SpringCloudAppModule apps() {
+        return appModule;
+    }
+
+    @Nullable
+    public String getTestEndpoint() {
+        return Optional.ofNullable(this.getRemote()).map(SpringService::listTestKeys).map(TestKeys::primaryTestEndpoint).orElse(null);
+    }
+
+    @Nullable
+    public String getTestKey() {
+        return Optional.ofNullable(this.getRemote()).map(SpringService::listTestKeys).map(TestKeys::primaryKey).orElse(null);
+    }
+
+    @Nonnull
+    public SpringCloudSku getSku() {
+        final SpringCloudSku dft = SpringCloudSku.builder()
+            .capacity(25)
+            .name("Basic")
+            .tier("B0")
+            .build();
+        return Optional.ofNullable(this.getRemote()).map(SpringService::sku).map(s -> SpringCloudSku.builder()
+            .capacity(s.capacity())
+            .name(s.name())
+            .tier(s.tier())
+            .build()).orElse(dft);
     }
 }

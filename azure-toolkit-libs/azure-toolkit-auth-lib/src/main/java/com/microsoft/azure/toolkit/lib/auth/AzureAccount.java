@@ -27,6 +27,7 @@ import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.AccessLevel;
@@ -106,6 +107,7 @@ public class AzureAccount implements IAzureAccount {
             Account tempAccount = this.account;
             this.account = null;
             tempAccount.logout();
+            AzureEventBus.emit("account.logout");
         }
     }
 

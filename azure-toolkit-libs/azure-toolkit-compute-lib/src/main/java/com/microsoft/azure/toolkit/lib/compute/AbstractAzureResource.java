@@ -51,7 +51,7 @@ public abstract class AbstractAzureResource<T extends HasId, P extends IAzureBas
     }
 
     @Override
-    public AbstractAzureResource<T, P> refresh() {
+    public void refresh() {
         try {
             this.remote = loadRemote();
             this.isRefreshed = true;
@@ -63,7 +63,6 @@ public abstract class AbstractAzureResource<T extends HasId, P extends IAzureBas
                 throw e;
             }
         }
-        return this;
     }
 
     @Override
@@ -103,7 +102,10 @@ public abstract class AbstractAzureResource<T extends HasId, P extends IAzureBas
     }
 
     public final void refreshStatus() {
-        AzureTaskManager.getInstance().runOnPooledThread(() -> this.status(this.refresh().loadStatus()));
+        AzureTaskManager.getInstance().runOnPooledThread(() -> {
+            this.refresh();
+            this.status(this.loadStatus());
+        });
     }
 
     protected final void status(@Nonnull String status) {

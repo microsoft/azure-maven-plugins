@@ -40,6 +40,7 @@ import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetryClient;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.maven.common.action.MavenActionManager;
 import com.microsoft.azure.toolkit.maven.common.messager.MavenAzureMessager;
 import com.microsoft.azure.toolkit.maven.common.task.MavenAzureTaskManager;
 import lombok.Getter;
@@ -493,6 +494,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException {
         try {
+            MavenActionManager.register();
             AzureTaskManager.register(new MavenAzureTaskManager());
             AzureMessager.setDefaultMessager(new MavenAzureMessager());
             Azure.az().config().setLogLevel(HttpLogDetailLevel.NONE.name());

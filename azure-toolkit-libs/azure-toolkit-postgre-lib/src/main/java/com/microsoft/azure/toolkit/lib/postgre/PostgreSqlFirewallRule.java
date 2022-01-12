@@ -5,41 +5,49 @@
 
 package com.microsoft.azure.toolkit.lib.postgre;
 
-import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.postgresql.models.FirewallRule;
-import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
-import com.microsoft.azure.toolkit.lib.database.entity.FirewallRuleEntity;
-import com.microsoft.azure.toolkit.lib.postgre.model.PostgreSqlServerEntity;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
 
-@AllArgsConstructor
-public class PostgreSqlFirewallRule {
-    private final PostgreSqlManager manager;
-    private final PostgreSqlServerEntity serverEntity;
-    @Getter
-    private FirewallRuleEntity entity;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 
-    static FirewallRuleEntity fromFirewallRule(FirewallRule firewallRule) {
-        return FirewallRuleEntity.builder()
-            .id(firewallRule.id())
-            .name(firewallRule.name())
-            .startIpAddress(firewallRule.startIpAddress())
-            .endIpAddress(firewallRule.endIpAddress()).build();
+public class PostgreSqlFirewallRule extends AbstractAzResource<PostgreSqlFirewallRule, PostgreSqlServer, FirewallRule> implements IFirewallRule {
+
+    protected PostgreSqlFirewallRule(@Nonnull FirewallRule rule, @Nonnull PostgreSqlFirewallRuleModule module) {
+        this(rule.name(), module.getParent().getResourceGroupName(), module);
     }
 
-    public void delete() {
-        manager.firewallRules().delete(serverEntity.getResourceGroupName(), this.serverEntity.getName(), this.entity.getName());
+    protected PostgreSqlFirewallRule(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull PostgreSqlFirewallRuleModule module) {
+        super(name, resourceGroupName, module);
     }
 
-    public ICommittable<PostgreSqlFirewallRule> update(String startIpAddress, String endIpAddress) {
-        return () -> {
-            FirewallRule rule = manager.firewallRules().get(serverEntity.getResourceGroupName(),
-                PostgreSqlFirewallRule.this.serverEntity.getName(), PostgreSqlFirewallRule.this.entity.getName()).update()
-                .withStartIpAddress(startIpAddress)
-                .withEndIpAddress(endIpAddress).apply();
-            PostgreSqlFirewallRule.this.entity = fromFirewallRule(rule);
-            return PostgreSqlFirewallRule.this;
-        };
+    @Override
+    protected void refreshRemote() {
+        this.remoteOptional().ifPresent(FirewallRule::refresh);
+    }
+
+    @Override
+    public List<AzResourceModule<?, PostgreSqlFirewallRule, ?>> getSubModules() {
+        return Collections.emptyList();
+    }
+
+    @Nonnull
+    @Override
+    public String loadStatus(@Nonnull FirewallRule remote) {
+        return Status.UNKNOWN;
+    }
+
+    @Nullable
+    public String getStartIpAddress() {
+        return this.remoteOptional().map(FirewallRule::startIpAddress).orElse(null);
+    }
+
+    @Nullable
+    public String getEndIpAddress() {
+        return this.remoteOptional().map(FirewallRule::endIpAddress).orElse(null);
     }
 }
