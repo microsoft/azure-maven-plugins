@@ -13,6 +13,8 @@ import com.azure.resourcemanager.mysql.models.ServerVersion;
 import com.azure.resourcemanager.mysql.models.Sku;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationBundle;
@@ -91,7 +93,10 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
             .withExistingResourceGroup(this.getResourceGroupName())
             .withProperties(parameters)
             .withSku(sku);
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Start creating MySQL server ({0})...", this.getName()));
         final Server remote = this.doModify(() -> create.create(), Status.CREATING);
+        messager.success(AzureString.format("MySQL server({0}) is successfully created.", this.getName()));
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
             final AzureString title = AzureOperationBundle.title("mysql.add_special_firewall_rule.server", this.getName());

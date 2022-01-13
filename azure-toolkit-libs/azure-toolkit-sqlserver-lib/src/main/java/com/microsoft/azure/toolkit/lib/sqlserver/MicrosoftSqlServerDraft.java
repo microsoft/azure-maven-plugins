@@ -9,6 +9,8 @@ import com.azure.resourcemanager.sql.SqlServerManager;
 import com.azure.resourcemanager.sql.models.SqlServer;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationBundle;
@@ -55,7 +57,10 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
             .withExistingResourceGroup(this.getResourceGroupName())
             .withAdministratorLogin(this.getAdminName())
             .withAdministratorPassword(this.getAdminPassword());
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Start creating SQL server ({0})...", this.getName()));
         final SqlServer remote = this.doModify(() -> create.create(), Status.CREATING);
+        messager.success(AzureString.format("SQL server({0}) is successfully created.", this.getName()));
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
             final AzureString title = AzureOperationBundle.title("sqlserver.add_special_firewall_rule.server", this.getName());
