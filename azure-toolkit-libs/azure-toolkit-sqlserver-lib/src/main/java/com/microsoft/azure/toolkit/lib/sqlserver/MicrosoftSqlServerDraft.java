@@ -7,9 +7,12 @@ package com.microsoft.azure.toolkit.lib.sqlserver;
 
 import com.azure.resourcemanager.sql.SqlServerManager;
 import com.azure.resourcemanager.sql.models.SqlServer;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationBundle;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 
@@ -53,8 +56,14 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
             .withAdministratorLogin(this.getAdminName())
             .withAdministratorPassword(this.getAdminPassword());
         final SqlServer remote = this.doModify(() -> create.create(), Status.CREATING);
-        this.firewallRules().toggleAzureServiceAccess(this.isAzureServiceAccessAllowed());
-        this.firewallRules().toggleLocalMachineAccess(this.isLocalMachineAccessAllowed());
+        if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
+            this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
+            final AzureString title = AzureOperationBundle.title("sqlserver.add_special_firewall_rule.server", this.getName());
+            AzureTaskManager.getInstance().runInBackground(title, () -> {
+                this.firewallRules().toggleAzureServiceAccess(this.isAzureServiceAccessAllowed());
+                this.firewallRules().toggleLocalMachineAccess(this.isLocalMachineAccessAllowed());
+            });
+        }
         return remote;
     }
 
