@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.compute.AbstractAzureResource;
+import com.microsoft.azure.toolkit.lib.compute.vm.model.OperatingSystem;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
@@ -49,6 +50,11 @@ public class VirtualMachine extends AbstractAzureResource<com.azure.resourcemana
         this.status(Status.PENDING);
         remote().start();
         this.refreshStatus();
+    }
+
+    public OperatingSystem getOperatingSystem() {
+        return Optional.ofNullable(remote().osProfile()).map(OSProfile::windowsConfiguration)
+                .map(ignore -> OperatingSystem.Windows).orElse(OperatingSystem.Linux);
     }
 
     public void stop() {
