@@ -52,8 +52,8 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
     }
 
     @Override
-    protected void refreshRemote() {
-        this.remoteOptional().ifPresent(Server::refresh);
+    protected Server refreshRemote() {
+        return this.remoteOptional().map(Server::refresh).orElse(null);
     }
 
     @Override

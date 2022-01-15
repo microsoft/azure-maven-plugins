@@ -26,8 +26,8 @@ public class PostgreSqlFirewallRule extends AbstractAzResource<PostgreSqlFirewal
     }
 
     @Override
-    protected void refreshRemote() {
-        this.remoteOptional().ifPresent(FirewallRule::refresh);
+    protected FirewallRule refreshRemote() {
+        return this.remoteOptional().map(FirewallRule::refresh).orElse(null);
     }
 
     @Override

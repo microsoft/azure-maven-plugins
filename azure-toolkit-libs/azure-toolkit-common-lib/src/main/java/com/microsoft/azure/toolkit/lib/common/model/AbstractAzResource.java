@@ -71,7 +71,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         Azure.az(IAzureAccount.class).account();
         this.doModify(() -> {
             try {
-                return this.getModule().loadResourceFromAzure(this.name, this.resourceGroupName);
+                final R refreshed = this.syncTime > 0 && Objects.nonNull(this.remote) ? this.refreshRemote() : null;
+                return Objects.nonNull(refreshed) ? refreshed : this.getModule().loadResourceFromAzure(this.name, this.resourceGroupName);
             } catch (ManagementException e) {
                 if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatusCode()) {
                     return null;
@@ -156,10 +157,12 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
-    protected void refreshRemote() {
+    protected R refreshRemote() {
         if (this.remote instanceof Refreshable) {
-            ((Refreshable<?>) this.remote).refresh();
+            // noinspection unchecked
+            return ((Refreshable<R>) this.remote).refresh();
         }
+        return null;
     }
 
     protected void doModifyAsync(Runnable body, String status) {

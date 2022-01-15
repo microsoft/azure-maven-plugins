@@ -51,8 +51,8 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
     }
 
     @Override
-    protected void refreshRemote() {
-        this.remoteOptional().ifPresent(Server::refresh);
+    protected Server refreshRemote() {
+        return this.remoteOptional().map(Server::refresh).orElse(null);
     }
 
     @Override

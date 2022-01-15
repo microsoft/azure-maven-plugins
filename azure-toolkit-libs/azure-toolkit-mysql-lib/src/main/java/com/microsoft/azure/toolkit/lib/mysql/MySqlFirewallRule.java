@@ -25,8 +25,8 @@ public class MySqlFirewallRule extends AbstractAzResource<MySqlFirewallRule, MyS
     }
 
     @Override
-    protected void refreshRemote() {
-        this.remoteOptional().ifPresent(FirewallRule::refresh);
+    protected FirewallRule refreshRemote() {
+        return this.remoteOptional().map(FirewallRule::refresh).orElse(null);
     }
 
     @Override

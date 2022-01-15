@@ -27,11 +27,6 @@ public class MicrosoftSqlDatabase extends AbstractAzResource<MicrosoftSqlDatabas
     }
 
     @Override
-    protected void refreshRemote() {
-        this.remoteOptional().ifPresent(SqlDatabase::refresh);
-    }
-
-    @Override
     public List<AzResourceModule<?, MicrosoftSqlDatabase, ?>> getSubModules() {
         return Collections.emptyList();
     }

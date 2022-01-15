@@ -45,11 +45,6 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
     }
 
     @Override
-    protected void refreshRemote() {
-        this.remoteOptional().ifPresent(SqlServer::refresh);
-    }
-
-    @Override
     public List<AzResourceModule<?, MicrosoftSqlServer, ?>> getSubModules() {
         return Arrays.asList(this.firewallRuleModule, this.databaseModule);
     }

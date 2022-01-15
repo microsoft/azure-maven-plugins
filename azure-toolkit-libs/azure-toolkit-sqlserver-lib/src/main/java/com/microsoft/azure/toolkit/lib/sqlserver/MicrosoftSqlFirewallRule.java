@@ -25,11 +25,6 @@ public class MicrosoftSqlFirewallRule extends AbstractAzResource<MicrosoftSqlFir
     }
 
     @Override
-    protected void refreshRemote() {
-        this.remoteOptional().ifPresent(SqlFirewallRule::refresh);
-    }
-
-    @Override
     public List<AzResourceModule<?, MicrosoftSqlFirewallRule, ?>> getSubModules() {
         return Collections.emptyList();
     }
