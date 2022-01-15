@@ -60,10 +60,10 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
         return Optional.ofNullable(this.getParent().getRemote()).map(SqlServer::firewallRules).orElse(null);
     }
 
-    public void toggleAzureServiceAccess(boolean allowed) {
+    void toggleAzureServiceAccess(boolean allowed) {
         final String ruleName = IFirewallRule.AZURE_SERVICES_ACCESS_FIREWALL_RULE_NAME;
         final String rgName = this.getParent().getResourceGroupName();
-        final boolean exists = this.exists(rgName, rgName);
+        final boolean exists = this.exists(ruleName, rgName);
         if (!allowed && exists) {
             this.delete(ruleName, rgName);
         }
@@ -75,10 +75,10 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
         }
     }
 
-    public void toggleLocalMachineAccess(boolean allowed) {
+    void toggleLocalMachineAccess(boolean allowed) {
         final String ruleName = IFirewallRule.getLocalMachineAccessRuleName();
         final String rgName = this.getParent().getResourceGroupName();
-        final boolean exists = this.exists(rgName, rgName);
+        final boolean exists = this.exists(ruleName, rgName);
         if (!allowed && exists) {
             this.delete(ruleName, rgName);
         }

@@ -61,10 +61,10 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
         return Optional.ofNullable(this.getParent().getParent().getRemote()).map(PostgreSqlManager::firewallRules).orElse(null);
     }
 
-    public void toggleAzureServiceAccess(boolean allowed) {
+    void toggleAzureServiceAccess(boolean allowed) {
         final String ruleName = IFirewallRule.AZURE_SERVICES_ACCESS_FIREWALL_RULE_NAME;
         final String rgName = this.getParent().getResourceGroupName();
-        final boolean exists = this.exists(rgName, rgName);
+        final boolean exists = this.exists(ruleName, rgName);
         if (!allowed && exists) {
             this.delete(ruleName, rgName);
         }
@@ -76,10 +76,10 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
         }
     }
 
-    public void toggleLocalMachineAccess(boolean allowed) {
+    void toggleLocalMachineAccess(boolean allowed) {
         final String ruleName = IFirewallRule.getLocalMachineAccessRuleName();
         final String rgName = this.getParent().getResourceGroupName();
-        final boolean exists = this.exists(rgName, rgName);
+        final boolean exists = this.exists(ruleName, rgName);
         if (!allowed && exists) {
             this.delete(ruleName, rgName);
         }
