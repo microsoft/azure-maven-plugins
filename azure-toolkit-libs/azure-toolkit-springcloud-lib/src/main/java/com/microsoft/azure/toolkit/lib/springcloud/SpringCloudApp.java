@@ -37,14 +37,14 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     protected SpringCloudApp(@Nonnull SpringCloudApp origin) {
         super(origin.getName(), origin.getModule());
-        this.setRemote(origin.getRemote());
         this.deploymentModule = origin.deploymentModule;
+        this.setRemote(origin.getRemote());
     }
 
     protected SpringCloudApp(@Nonnull SpringApp remote, @Nonnull SpringCloudAppModule module) {
         super(remote.name(), module);
-        this.setRemote(remote);
         this.deploymentModule = new SpringCloudDeploymentModule(this);
+        this.setRemote(remote);
     }
 
     @Override

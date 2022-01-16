@@ -44,16 +44,16 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
 
     protected MySqlServer(@Nonnull MySqlServer origin) {
         super(origin.getName(), origin.getResourceGroupName(), origin.getModule());
-        this.setRemote(origin.getRemote());
         this.databaseModule = origin.databaseModule;
         this.firewallRuleModule = origin.firewallRuleModule;
+        this.setRemote(origin.getRemote());
     }
 
     protected MySqlServer(@Nonnull Server remote, @Nonnull MySqlServerModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
-        this.setRemote(remote);
         this.databaseModule = new MySqlDatabaseModule(this);
         this.firewallRuleModule = new MySqlFirewallRuleModule(this);
+        this.setRemote(remote);
     }
 
     @Override

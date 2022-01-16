@@ -45,16 +45,16 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
 
     public PostgreSqlServer(@Nonnull PostgreSqlServer origin) {
         super(origin.getName(), origin.getResourceGroupName(), origin.getModule());
-        this.setRemote(origin.getRemote());
         this.databaseModule = origin.databaseModule;
         this.firewallRuleModule = origin.firewallRuleModule;
+        this.setRemote(origin.getRemote());
     }
 
     protected PostgreSqlServer(@Nonnull Server remote, @Nonnull PostgreSqlServerModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
-        this.setRemote(remote);
         this.databaseModule = new PostgreSqlDatabaseModule(this);
         this.firewallRuleModule = new PostgreSqlFirewallRuleModule(this);
+        this.setRemote(remote);
     }
 
     @Override

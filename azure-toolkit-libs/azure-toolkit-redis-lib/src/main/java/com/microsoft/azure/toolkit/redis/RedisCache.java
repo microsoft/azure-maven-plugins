@@ -33,8 +33,8 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceMana
 
     protected RedisCache(@Nonnull RedisCache origin) {
         super(origin.getName(), origin.getResourceGroupName(), origin.getModule());
-        this.setRemote(origin.getRemote());
         this.jedisPool = origin.jedisPool;
+        this.setRemote(origin.getRemote());
     }
 
     protected RedisCache(@Nonnull com.azure.resourcemanager.redis.models.RedisCache remote, @Nonnull RedisCacheModule module) {

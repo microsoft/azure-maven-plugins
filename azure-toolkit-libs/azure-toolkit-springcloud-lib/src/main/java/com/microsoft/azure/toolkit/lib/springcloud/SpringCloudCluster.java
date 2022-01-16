@@ -32,14 +32,14 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
 
     protected SpringCloudCluster(@Nonnull SpringCloudCluster origin) {
         super(origin.getName(), origin.getResourceGroupName(), origin.getModule());
-        this.setRemote(origin.getRemote());
         this.appModule = origin.appModule;
+        this.setRemote(origin.getRemote());
     }
 
     protected SpringCloudCluster(@Nonnull SpringService remote, @Nonnull SpringCloudClusterModule module) {
         super(remote.name(), remote.resourceGroupName(), module);
-        this.setRemote(remote);
         this.appModule = new SpringCloudAppModule(this);
+        this.setRemote(remote);
     }
 
     @Nonnull
