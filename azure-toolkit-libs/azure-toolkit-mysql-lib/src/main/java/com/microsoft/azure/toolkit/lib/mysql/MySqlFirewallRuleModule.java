@@ -40,15 +40,14 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
     @Nullable
     @Override
     protected FirewallRule loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
-        return this.getClient().get(fixResourceGroup(resourceGroup), this.getParent().getName(), name);
+        return this.getClient().get(this.getParent().getResourceGroupName(), this.getParent().getName(), name);
     }
 
     @Override
     protected void deleteResourceFromAzure(@Nonnull String id) {
         final ResourceId resourceId = ResourceId.fromString(id);
         final String name = resourceId.name();
-        final String resourceGroup = resourceId.resourceGroupName();
-        this.getClient().delete(fixResourceGroup(resourceGroup), this.getParent().getName(), name);
+        this.getClient().delete(this.getParent().getResourceGroupName(), this.getParent().getName(), name);
     }
 
     @Override

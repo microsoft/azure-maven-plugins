@@ -201,14 +201,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
-        final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
-        return String.format("%s/%s/%s", this.parent.getId(), this.getName(), resourceName).replace(AzResource.RESOURCE_GROUP_PLACEHOLDER, rg);
-    }
-
-    protected String fixResourceGroup(String resourceGroup) {
-        resourceGroup = StringUtils.equalsAnyIgnoreCase(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER) ? null : resourceGroup;
-        resourceGroup = StringUtils.firstNonBlank(resourceGroup, this.getParent().getResourceGroupName());
-        return resourceGroup;
+        resourceGroup = StringUtils.firstNonBlank(resourceGroup, this.getParent().getResourceGroupName(), AzResource.RESOURCE_GROUP_PLACEHOLDER);
+        return String.format("%s/%s/%s", this.parent.getId(), this.getName(), resourceName).replace(AzResource.RESOURCE_GROUP_PLACEHOLDER, resourceGroup);
     }
 
     @Nullable
