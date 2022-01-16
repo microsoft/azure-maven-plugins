@@ -95,7 +95,16 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
     }
 
     public void setNonSslPortEnabled(boolean enabled) {
-        this.ensureConfig().setEnableNonSslPort(enabled);
+        this.ensureConfig().setNonSslPortEnabled(enabled);
+    }
+
+    @Override
+    public boolean isModified() {
+        final boolean notModified = Objects.isNull(this.config) ||
+            Objects.isNull(this.config.getRegion()) || Objects.equals(this.config.getRegion(), super.getRegion()) ||
+            Objects.equals(this.config.getPricingTier(), super.getPricingTier()) ||
+            Objects.equals(this.config.isNonSslPortEnabled(), super.isNonSslPortEnabled());
+        return !notModified;
     }
 
     /**
@@ -105,6 +114,6 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
     private static class Config {
         private Region region;
         private PricingTier pricingTier;
-        private boolean enableNonSslPort;
+        private boolean nonSslPortEnabled;
     }
 }

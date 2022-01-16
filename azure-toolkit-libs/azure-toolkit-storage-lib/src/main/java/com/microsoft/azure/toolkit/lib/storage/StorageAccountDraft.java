@@ -138,6 +138,17 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
         this.ensureConfig().setAccessTier(tier);
     }
 
+    @Override
+    public boolean isModified() {
+        final boolean notModified = Objects.isNull(this.config) ||
+            Objects.isNull(this.config.getRegion()) || Objects.equals(this.config.getRegion(), super.getRegion()) ||
+            Objects.isNull(this.config.getPerformance()) || Objects.equals(this.config.getPerformance(), super.getPerformance()) ||
+            Objects.isNull(this.config.getKind()) || Objects.equals(this.config.getKind(), super.getKind()) ||
+            Objects.isNull(this.config.getRedundancy()) || Objects.equals(this.config.getRedundancy(), super.getRedundancy()) ||
+            Objects.isNull(this.config.getAccessTier()) || Objects.equals(this.config.getAccessTier(), super.getAccessTier());
+        return !notModified;
+    }
+
     /**
      * {@code null} means not modified for properties
      */

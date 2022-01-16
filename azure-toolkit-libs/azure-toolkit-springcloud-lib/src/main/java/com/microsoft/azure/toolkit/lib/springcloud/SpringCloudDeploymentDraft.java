@@ -215,6 +215,18 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         return handle.invokeWithArguments(args);
     }
 
+    @Override
+    public boolean isModified() {
+        final boolean notModified = Objects.isNull(this.config) || Objects.isNull(this.config.getArtifact()) ||
+            Objects.isNull(this.config.getEnvironmentVariables()) || Objects.equals(this.config.getEnvironmentVariables(), super.getEnvironmentVariables()) ||
+            Objects.isNull(this.config.getJvmOptions()) || Objects.equals(this.config.getJvmOptions(), super.getJvmOptions()) ||
+            Objects.isNull(this.config.getRuntimeVersion()) || Objects.equals(this.config.getRuntimeVersion(), super.getRuntimeVersion()) ||
+            Objects.isNull(this.config.getCpu()) || Objects.equals(this.config.getCpu(), super.getCpu()) ||
+            Objects.isNull(this.config.getMemoryInGB()) || Objects.equals(this.config.getMemoryInGB(), super.getMemoryInGB()) ||
+            Objects.isNull(this.config.getInstanceNum()) || Objects.equals(this.config.getInstanceNum(), super.getInstanceNum());
+        return !notModified;
+    }
+
     /**
      * {@code null} means not modified for properties
      */

@@ -191,5 +191,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         }
 
         R updateResourceInAzure(@Nonnull R origin);
+
+        boolean isModified();
     }
 }

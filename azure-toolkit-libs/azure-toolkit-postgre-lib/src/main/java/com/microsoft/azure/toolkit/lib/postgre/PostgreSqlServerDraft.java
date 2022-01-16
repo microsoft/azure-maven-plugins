@@ -180,6 +180,20 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
         this.ensureConfig().setAzureServiceAccessAllowed(allowed);
     }
 
+    @Override
+    public boolean isModified() {
+        final boolean notModified = Objects.isNull(this.config) ||
+            Objects.equals(this.config.isLocalMachineAccessAllowed(), super.isLocalMachineAccessAllowed()) ||
+            Objects.equals(this.config.isAzureServiceAccessAllowed(), super.isAzureServiceAccessAllowed()) ||
+            Objects.isNull(this.config.getAdminPassword()) ||
+            Objects.isNull(this.config.getAdminName()) || Objects.equals(this.config.getAdminName(), super.getAdminName()) ||
+            Objects.isNull(this.config.getRegion()) || Objects.equals(this.config.getRegion(), super.getRegion()) ||
+            Objects.isNull(this.config.getVersion()) || Objects.equals(this.config.getVersion(), super.getVersion()) ||
+            Objects.isNull(this.config.getFullyQualifiedDomainName()) ||
+            Objects.equals(this.config.getFullyQualifiedDomainName(), super.getFullyQualifiedDomainName());
+        return !notModified;
+    }
+
     @Data
     private static class Config {
         private String adminName;

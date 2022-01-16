@@ -89,6 +89,14 @@ public class MicrosoftSqlFirewallRuleDraft extends MicrosoftSqlFirewallRule impl
         this.ensureConfig().setEndIpAddress(endIpAddress);
     }
 
+    @Override
+    public boolean isModified() {
+        final boolean notModified = Objects.isNull(this.config) ||
+            Objects.isNull(this.config.getStartIpAddress()) || Objects.equals(this.config.getStartIpAddress(), super.getStartIpAddress()) ||
+            Objects.isNull(this.config.getEndIpAddress()) || Objects.equals(this.config.getEndIpAddress(), super.getEndIpAddress());
+        return !notModified;
+    }
+
     @Data
     private static class Config {
         private String startIpAddress;
