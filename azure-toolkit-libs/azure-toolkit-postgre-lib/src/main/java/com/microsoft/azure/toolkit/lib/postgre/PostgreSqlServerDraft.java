@@ -21,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
+import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -33,12 +34,20 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResource.Draft<PostgreSqlServer, Server> {
+    @Getter
+    @Nullable
+    private final PostgreSqlServer origin;
     @Nullable
     private Config config;
 
-    PostgreSqlServerDraft(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull PostgreSqlServerModule module) {
-        super(name, resourceGroup, module);
-        this.setStatus(Status.DRAFT);
+    PostgreSqlServerDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull PostgreSqlServerModule module) {
+        super(name, resourceGroupName, module);
+        this.origin = null;
+    }
+
+    PostgreSqlServerDraft(@Nonnull PostgreSqlServer origin) {
+        super(origin);
+        this.origin = origin;
     }
 
     @Override
@@ -97,20 +106,19 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
         messager.info(AzureString.format("Start creating PostgreSQL server ({0})...", this.getName()));
         final Server remote = this.doModify(() -> create.create(), Status.CREATING);
         messager.success(AzureString.format("PostgreSQL server({0}) is successfully created.", this.getName()));
-        if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
-            this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
-            final AzureString title = AzureOperationBundle.title("postgre.add_special_firewall_rule.server", this.getName());
-            AzureTaskManager.getInstance().runInBackground(title, () -> {
-                this.firewallRules().toggleAzureServiceAccess(this.isAzureServiceAccessAllowed());
-                this.firewallRules().toggleLocalMachineAccess(this.isLocalMachineAccessAllowed());
-            });
-        }
-        return remote;
+        final AzureString title = AzureOperationBundle.title("postgre.add_special_firewall_rule.server", this.getName());
+        AzureTaskManager.getInstance().runInBackground(title, () -> this.updateResourceInAzure(remote));
+        return this.updateResourceInAzure(remote);
     }
 
     @Override
     public Server updateResourceInAzure(@Nonnull Server origin) {
-        throw new AzureToolkitRuntimeException("not supported");
+        if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
+            this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
+            this.firewallRules().toggleAzureServiceAccess(this.isAzureServiceAccessAllowed());
+            this.firewallRules().toggleLocalMachineAccess(this.isLocalMachineAccessAllowed());
+        }
+        return origin;
     }
 
     private synchronized Config ensureConfig() {

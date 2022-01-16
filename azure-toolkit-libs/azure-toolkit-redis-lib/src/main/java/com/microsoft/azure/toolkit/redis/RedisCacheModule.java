@@ -25,13 +25,18 @@ public class RedisCacheModule extends AbstractAzResourceModule<RedisCache, Redis
         return Optional.ofNullable(this.parent.getRemote()).map(RedisManager::redisCaches).orElse(null);
     }
 
-    @Nonnull
-    protected RedisCache newResource(@Nonnull com.azure.resourcemanager.redis.models.RedisCache r) {
-        return new RedisCache(r, this);
+    @Override
+    protected RedisCacheDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
+        return new RedisCacheDraft(name, resourceGroupName, this);
     }
 
     @Override
-    protected RedisCacheDraft newDraft(@Nonnull String name, String resourceGroup) {
-        return new RedisCacheDraft(name, resourceGroup, this);
+    protected RedisCacheDraft newDraftForUpdate(@Nonnull RedisCache redis) {
+        return new RedisCacheDraft(redis);
+    }
+
+    @Nonnull
+    protected RedisCache newResource(@Nonnull com.azure.resourcemanager.redis.models.RedisCache r) {
+        return new RedisCache(r, this);
     }
 }

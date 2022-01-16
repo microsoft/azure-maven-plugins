@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.sqlserver;
 
-import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.models.SqlServer;
 import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -30,18 +29,24 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
     private final MicrosoftSqlDatabaseModule databaseModule;
     private final MicrosoftSqlFirewallRuleModule firewallRuleModule;
 
-    protected MicrosoftSqlServer(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull MicrosoftSqlServerModule module) {
-        super(name, resourceGroup, module);
+    protected MicrosoftSqlServer(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull MicrosoftSqlServerModule module) {
+        super(name, resourceGroupName, module);
         this.databaseModule = new MicrosoftSqlDatabaseModule(this);
         this.firewallRuleModule = new MicrosoftSqlFirewallRuleModule(this);
     }
 
-    protected MicrosoftSqlServer(@Nonnull String name, @Nonnull MicrosoftSqlServerModule module) {
-        this(name, module.getParent().getResourceGroupName(), module);
+    public MicrosoftSqlServer(@Nonnull MicrosoftSqlServer origin) {
+        super(origin.getName(), origin.getResourceGroupName(), origin.getModule());
+        this.setRemote(origin.getRemote());
+        this.databaseModule = origin.databaseModule;
+        this.firewallRuleModule = origin.firewallRuleModule;
     }
 
     protected MicrosoftSqlServer(@Nonnull SqlServer remote, @Nonnull MicrosoftSqlServerModule module) {
-        this(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
+        super(remote.name(), remote.resourceGroupName(), module);
+        this.setRemote(remote);
+        this.databaseModule = new MicrosoftSqlDatabaseModule(this);
+        this.firewallRuleModule = new MicrosoftSqlFirewallRuleModule(this);
     }
 
     @Override

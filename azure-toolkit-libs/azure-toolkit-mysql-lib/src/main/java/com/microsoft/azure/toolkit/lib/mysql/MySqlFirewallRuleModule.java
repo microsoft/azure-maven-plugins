@@ -31,11 +31,6 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
         return new MySqlFirewallRule(rule, this);
     }
 
-    @Override
-    protected MySqlFirewallRuleDraft newDraft(@Nonnull String name, String resourceGroup) {
-        return new MySqlFirewallRuleDraft(name, resourceGroup, this);
-    }
-
     @Nonnull
     @Override
     protected Stream<FirewallRule> loadResourcesFromAzure() {
@@ -54,6 +49,16 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
         final String name = resourceId.name();
         final String resourceGroup = resourceId.resourceGroupName();
         this.getClient().delete(fixResourceGroup(resourceGroup), this.getParent().getName(), name);
+    }
+
+    @Override
+    protected MySqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
+        return new MySqlFirewallRuleDraft(name, this);
+    }
+
+    @Override
+    protected MySqlFirewallRuleDraft newDraftForUpdate(@Nonnull MySqlFirewallRule rule) {
+        return new MySqlFirewallRuleDraft(rule);
     }
 
     @Override

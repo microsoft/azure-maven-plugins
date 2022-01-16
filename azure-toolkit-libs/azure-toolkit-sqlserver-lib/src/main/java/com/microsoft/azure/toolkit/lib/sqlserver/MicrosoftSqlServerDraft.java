@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.sqlserver;
 import com.azure.resourcemanager.sql.SqlServerManager;
 import com.azure.resourcemanager.sql.models.SqlServer;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
@@ -17,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
+import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -24,12 +24,20 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzResource.Draft<MicrosoftSqlServer, SqlServer> {
+    @Getter
+    @Nullable
+    private final MicrosoftSqlServer origin;
     @Nullable
     private Config config;
 
-    MicrosoftSqlServerDraft(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull MicrosoftSqlServerModule module) {
-        super(name, resourceGroup, module);
-        this.setStatus(Status.DRAFT);
+    MicrosoftSqlServerDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull MicrosoftSqlServerModule module) {
+        super(name, resourceGroupName, module);
+        this.origin = null;
+    }
+
+    MicrosoftSqlServerDraft(@Nonnull MicrosoftSqlServer origin) {
+        super(origin);
+        this.origin = origin;
     }
 
     @Override
@@ -61,20 +69,19 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
         messager.info(AzureString.format("Start creating SQL server ({0})...", this.getName()));
         final SqlServer remote = this.doModify(() -> create.create(), Status.CREATING);
         messager.success(AzureString.format("SQL server({0}) is successfully created.", this.getName()));
-        if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
-            this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
-            final AzureString title = AzureOperationBundle.title("sqlserver.add_special_firewall_rule.server", this.getName());
-            AzureTaskManager.getInstance().runInBackground(title, () -> {
-                this.firewallRules().toggleAzureServiceAccess(this.isAzureServiceAccessAllowed());
-                this.firewallRules().toggleLocalMachineAccess(this.isLocalMachineAccessAllowed());
-            });
-        }
+        final AzureString title = AzureOperationBundle.title("sqlserver.add_special_firewall_rule.server", this.getName());
+        AzureTaskManager.getInstance().runInBackground(title, () -> this.updateResourceInAzure(remote));
         return remote;
     }
 
     @Override
     public SqlServer updateResourceInAzure(@Nonnull SqlServer origin) {
-        throw new AzureToolkitRuntimeException("not supported");
+        if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
+            this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
+            this.firewallRules().toggleAzureServiceAccess(this.isAzureServiceAccessAllowed());
+            this.firewallRules().toggleLocalMachineAccess(this.isLocalMachineAccessAllowed());
+        }
+        return origin;
     }
 
     private synchronized Config ensureConfig() {

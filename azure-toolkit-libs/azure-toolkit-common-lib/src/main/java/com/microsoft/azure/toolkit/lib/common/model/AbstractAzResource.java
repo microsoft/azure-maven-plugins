@@ -56,6 +56,17 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         this.module = module;
     }
 
+    /**
+     * constructor for non-top resource only.
+     * {@link AbstractAzResource#getResourceGroupName() module.getParent().getResourceGroupName()} is only reliable
+     * if current resource is not root of resource hierarchy tree.
+     */
+    protected AbstractAzResource(@Nonnull String name, @Nonnull AbstractAzResourceModule<T, P, R> module) {
+        this.name = name;
+        this.resourceGroupName = module.getParent().getResourceGroupName();
+        this.module = module;
+    }
+
     public final boolean exists() {
         return Objects.nonNull(this.getRemote());
     }
@@ -98,7 +109,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }, Status.DELETING);
     }
 
-    synchronized void setRemote(@Nullable R remote) {
+    protected synchronized void setRemote(@Nullable R remote) {
         if (this.syncTime > 0 && Objects.equals(this.remote, remote)) {
             this.setStatus(Objects.nonNull(remote) ? this.loadStatus(remote) : Status.DISCONNECTED);
         } else {

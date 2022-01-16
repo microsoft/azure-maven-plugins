@@ -17,6 +17,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.Data;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -36,13 +37,21 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
      * @see <a href="https://azure.microsoft.com/en-us/pricing/details/spring-cloud/">Pricing - Azure Spring Cloud</a>
      */
     public static final int STANDARD_TIER_DEFAULT_DISK_SIZE = 50;
+    @Getter
+    @Nullable
+    private final SpringCloudApp origin;
     private SpringCloudDeployment activeDeployment;
     @Nullable
     private Config config;
 
     SpringCloudAppDraft(@Nonnull String name, @Nonnull SpringCloudAppModule module) {
         super(name, module);
-        this.setStatus(Status.DRAFT);
+        this.origin = null;
+    }
+
+    SpringCloudAppDraft(@Nonnull SpringCloudApp origin) {
+        super(origin);
+        this.origin = origin;
     }
 
     public void setConfig(SpringCloudAppConfig c) {
@@ -73,6 +82,9 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     @Override
     public void reset() {
         this.config = null;
+        if (this.activeDeployment instanceof Draft) {
+            ((Draft<?, ?>) this.activeDeployment).reset();
+        }
         this.activeDeployment = null;
     }
 

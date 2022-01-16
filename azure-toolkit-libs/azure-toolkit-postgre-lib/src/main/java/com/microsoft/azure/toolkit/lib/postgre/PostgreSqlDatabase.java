@@ -17,12 +17,13 @@ import java.util.List;
 
 public class PostgreSqlDatabase extends AbstractAzResource<PostgreSqlDatabase, PostgreSqlServer, Database> implements IDatabase {
 
-    protected PostgreSqlDatabase(Database database, PostgreSqlDatabaseModule module) {
-        this(database.name(), module.getParent().getResourceGroupName(), module);
+    protected PostgreSqlDatabase(@Nonnull String name, @Nonnull PostgreSqlDatabaseModule module) {
+        super(name, module);
     }
 
-    protected PostgreSqlDatabase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull PostgreSqlDatabaseModule module) {
-        super(name, resourceGroupName, module);
+    protected PostgreSqlDatabase(@Nonnull Database remote, @Nonnull PostgreSqlDatabaseModule module) {
+        super(remote.name(), module);
+        this.setRemote(remote);
     }
 
     @Override

@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import lombok.Data;
+import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -20,12 +21,20 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class MicrosoftSqlFirewallRuleDraft extends MicrosoftSqlFirewallRule implements AzResource.Draft<MicrosoftSqlFirewallRule, SqlFirewallRule> {
+    @Getter
+    @Nullable
+    private final MicrosoftSqlFirewallRule origin;
     @Nullable
     private Config config;
 
-    MicrosoftSqlFirewallRuleDraft(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull MicrosoftSqlFirewallRuleModule module) {
-        super(name, resourceGroup, module);
-        this.setStatus(Status.DRAFT);
+    MicrosoftSqlFirewallRuleDraft(@Nonnull String name, @Nonnull MicrosoftSqlFirewallRuleModule module) {
+        super(name, module);
+        this.origin = null;
+    }
+
+    MicrosoftSqlFirewallRuleDraft(@Nonnull MicrosoftSqlFirewallRule origin) {
+        super(origin);
+        this.origin = null;
     }
 
     @Override

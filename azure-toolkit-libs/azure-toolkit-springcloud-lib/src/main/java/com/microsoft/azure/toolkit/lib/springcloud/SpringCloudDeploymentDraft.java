@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import lombok.Data;
+import lombok.Getter;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
@@ -51,11 +52,20 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
 
     @Delegate
     private final IConfig configProxy;
+    @Getter
+    @Nullable
+    private final SpringCloudDeployment origin;
     private Config config;
 
     protected SpringCloudDeploymentDraft(@Nonnull String name, @Nonnull SpringCloudDeploymentModule module) {
         super(name, module);
-        this.setStatus(Status.DRAFT);
+        this.origin = null;
+        this.configProxy = (IConfig) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{IConfig.class}, this);
+    }
+
+    protected SpringCloudDeploymentDraft(@Nonnull SpringCloudDeployment origin) {
+        super(origin);
+        this.origin = origin;
         this.configProxy = (IConfig) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{IConfig.class}, this);
     }
 

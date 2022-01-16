@@ -41,6 +41,16 @@ public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlS
     }
 
     @Override
+    protected PostgreSqlServerDraft newDraftForCreate(@Nonnull String name, @Nonnull String resourceGroupName) {
+        return new PostgreSqlServerDraft(name, resourceGroupName, this);
+    }
+
+    @Override
+    protected PostgreSqlServerDraft newDraftForUpdate(@Nonnull PostgreSqlServer server) {
+        return new PostgreSqlServerDraft(server);
+    }
+
+    @Override
     public Servers getClient() {
         return Optional.ofNullable(this.parent.getRemote()).map(PostgreSqlManager::servers).orElse(null);
     }
@@ -48,10 +58,5 @@ public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlS
     @Nonnull
     protected PostgreSqlServer newResource(@Nonnull Server r) {
         return new PostgreSqlServer(r, this);
-    }
-
-    @Override
-    protected PostgreSqlServerDraft newDraft(@Nonnull String name, String resourceGroup) {
-        return new PostgreSqlServerDraft(name, resourceGroup, this);
     }
 }

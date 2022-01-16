@@ -18,12 +18,13 @@ import java.util.List;
 
 public class MicrosoftSqlDatabase extends AbstractAzResource<MicrosoftSqlDatabase, MicrosoftSqlServer, SqlDatabase> implements IDatabase {
 
-    protected MicrosoftSqlDatabase(SqlDatabase database, MicrosoftSqlDatabaseModule module) {
-        this(database.name(), module.getParent().getResourceGroupName(), module);
+    protected MicrosoftSqlDatabase(@Nonnull String name, @Nonnull MicrosoftSqlDatabaseModule module) {
+        super(name, module);
     }
 
-    protected MicrosoftSqlDatabase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull MicrosoftSqlDatabaseModule module) {
-        super(name, resourceGroupName, module);
+    protected MicrosoftSqlDatabase(@Nonnull SqlDatabase remote, @Nonnull MicrosoftSqlDatabaseModule module) {
+        super(remote.name(), module);
+        this.setRemote(remote);
     }
 
     @Override

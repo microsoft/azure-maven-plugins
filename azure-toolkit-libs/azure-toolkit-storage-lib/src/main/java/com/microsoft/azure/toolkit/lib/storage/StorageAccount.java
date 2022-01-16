@@ -28,16 +28,18 @@ import java.util.Objects;
 public class StorageAccount extends AbstractAzResource<StorageAccount, StorageResourceManager, com.azure.resourcemanager.storage.models.StorageAccount>
     implements Removable {
 
-    protected StorageAccount(@Nonnull String name, @Nonnull StorageAccountModule module) {
-        super(name, module.getParent().getResourceGroupName(), module);
+    protected StorageAccount(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull StorageAccountModule module) {
+        super(name, resourceGroupName, module);
     }
 
-    protected StorageAccount(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull StorageAccountModule module) {
-        super(name, resourceGroup, module);
+    public StorageAccount(@Nonnull StorageAccount origin) {
+        super(origin.getName(), origin.getResourceGroupName(), origin.getModule());
+        this.setRemote(origin.getRemote());
     }
 
     protected StorageAccount(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount remote, @Nonnull StorageAccountModule module) {
-        this(remote.name(), remote.resourceGroupName(), module);
+        super(remote.name(), remote.resourceGroupName(), module);
+        this.setRemote(remote);
     }
 
     @Override

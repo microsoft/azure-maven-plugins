@@ -21,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
+import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -33,12 +34,20 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<MySqlServer, Server> {
+    @Getter
+    @Nullable
+    private final MySqlServer origin;
     @Nullable
     private Config config;
 
-    MySqlServerDraft(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull MySqlServerModule module) {
-        super(name, resourceGroup, module);
-        this.setStatus(Status.DRAFT);
+    MySqlServerDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull MySqlServerModule module) {
+        super(name, resourceGroupName, module);
+        this.origin = null;
+    }
+
+    MySqlServerDraft(@Nonnull MySqlServer origin) {
+        super(origin);
+        this.origin = origin;
     }
 
     @Override
@@ -97,20 +106,20 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
         messager.info(AzureString.format("Start creating MySQL server ({0})...", this.getName()));
         final Server remote = this.doModify(() -> create.create(), Status.CREATING);
         messager.success(AzureString.format("MySQL server({0}) is successfully created.", this.getName()));
-        if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
-            this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
-            final AzureString title = AzureOperationBundle.title("mysql.add_special_firewall_rule.server", this.getName());
-            AzureTaskManager.getInstance().runInBackground(title, () -> {
-                this.firewallRules().toggleAzureServiceAccess(this.isAzureServiceAccessAllowed());
-                this.firewallRules().toggleLocalMachineAccess(this.isLocalMachineAccessAllowed());
-            });
-        }
+        final AzureString title = AzureOperationBundle.title("mysql.add_special_firewall_rule.server", this.getName());
+        AzureTaskManager.getInstance().runInBackground(title, () -> this.updateResourceInAzure(remote));
         return remote;
     }
 
     @Override
     public Server updateResourceInAzure(@Nonnull Server origin) {
-        throw new AzureToolkitRuntimeException("not supported");
+        // TODO: update other properties
+        if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
+            this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
+            this.firewallRules().toggleAzureServiceAccess(this.isAzureServiceAccessAllowed());
+            this.firewallRules().toggleLocalMachineAccess(this.isLocalMachineAccessAllowed());
+        }
+        return origin;
     }
 
     private synchronized Config ensureConfig() {

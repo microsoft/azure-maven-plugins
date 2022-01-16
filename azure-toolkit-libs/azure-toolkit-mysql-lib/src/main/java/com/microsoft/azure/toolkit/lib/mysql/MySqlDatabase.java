@@ -17,12 +17,13 @@ import java.util.List;
 
 public class MySqlDatabase extends AbstractAzResource<MySqlDatabase, MySqlServer, Database> implements IDatabase {
 
-    protected MySqlDatabase(Database database, MySqlDatabaseModule module) {
-        this(database.name(), module.getParent().getResourceGroupName(), module);
+    protected MySqlDatabase(@Nonnull String name, @Nonnull MySqlDatabaseModule module) {
+        super(name, module);
     }
 
-    protected MySqlDatabase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull MySqlDatabaseModule module) {
-        super(name, resourceGroupName, module);
+    protected MySqlDatabase(@Nonnull Database remote, @Nonnull MySqlDatabaseModule module) {
+        super(remote.name(), module);
+        this.setRemote(remote);
     }
 
     @Override

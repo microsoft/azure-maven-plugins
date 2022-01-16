@@ -41,6 +41,16 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
     }
 
     @Override
+    protected MicrosoftSqlServerDraft newDraftForCreate(@Nonnull String name, @Nonnull String resourceGroupName) {
+        return new MicrosoftSqlServerDraft(name, resourceGroupName, this);
+    }
+
+    @Override
+    protected MicrosoftSqlServerDraft newDraftForUpdate(@Nonnull MicrosoftSqlServer server) {
+        return new MicrosoftSqlServerDraft(server);
+    }
+
+    @Override
     public SqlServers getClient() {
         return Optional.ofNullable(this.parent.getRemote()).map(SqlServerManager::sqlServers).orElse(null);
     }
@@ -48,10 +58,5 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
     @Nonnull
     protected MicrosoftSqlServer newResource(@Nonnull SqlServer r) {
         return new MicrosoftSqlServer(r, this);
-    }
-
-    @Override
-    protected MicrosoftSqlServerDraft newDraft(@Nonnull String name, String resourceGroup) {
-        return new MicrosoftSqlServerDraft(name, resourceGroup, this);
     }
 }

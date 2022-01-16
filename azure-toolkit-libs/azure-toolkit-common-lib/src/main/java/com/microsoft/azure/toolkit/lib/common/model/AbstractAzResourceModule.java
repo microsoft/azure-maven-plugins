@@ -110,11 +110,15 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     public T getOrDraft(@Nonnull String name, String resourceGroup) {
-        return Optional.ofNullable(this.get(name, resourceGroup)).orElseGet(() -> this.newDraft(name, resourceGroup));
+        return Optional.ofNullable(this.get(name, resourceGroup)).orElseGet(() -> this.newDraftForCreate(name, resourceGroup));
     }
 
     public <D extends AzResource.Draft<T, R>> D updateOrCreate(String name, String resourceGroup) {
-        return this.cast(this.newDraft(name, resourceGroup));
+        final T resource = this.get(name, resourceGroup);
+        if (Objects.nonNull(resource)) {
+            return this.cast(this.newDraftForUpdate(resource));
+        }
+        return this.cast(this.newDraftForCreate(name, resourceGroup));
     }
 
     @Nonnull
@@ -271,22 +275,15 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     /**
      * @param <D> type of draft, it must extend {@link D} and implement {@link AzResource.Draft}
      */
-    protected <D extends T> D newDraft(@Nonnull String name, String resourceGroup) {
+    protected <D extends T> D newDraftForCreate(@Nonnull String name, String resourceGroup) {
         throw new AzureToolkitRuntimeException("not supported");
     }
 
     /**
      * @param <D> type of draft, it must extend {@link D} and implement {@link AzResource.Draft}
      */
-    protected <D extends T> D newDraftForCreate(@Nonnull String name, String resourceGroup) {
-        return this.newDraft(name, resourceGroup);
-    }
-
-    /**
-     * @param <D> type of draft, it must extend {@link D} and implement {@link AzResource.Draft}
-     */
     protected <D extends T> D newDraftForUpdate(@Nonnull T t) {
-        return this.newDraft(t.getName(), t.getResourceGroupName());
+        return this.newDraftForCreate(t.getName(), t.getResourceGroupName());
     }
 
     protected abstract T newResource(@Nonnull R r);

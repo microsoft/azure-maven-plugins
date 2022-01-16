@@ -16,12 +16,19 @@ import java.util.Collections;
 import java.util.List;
 
 public class MicrosoftSqlFirewallRule extends AbstractAzResource<MicrosoftSqlFirewallRule, MicrosoftSqlServer, SqlFirewallRule> implements IFirewallRule {
-    protected MicrosoftSqlFirewallRule(@Nonnull SqlFirewallRule rule, @Nonnull MicrosoftSqlFirewallRuleModule module) {
-        this(rule.name(), module.getParent().getResourceGroupName(), module);
+
+    protected MicrosoftSqlFirewallRule(@Nonnull String name, @Nonnull MicrosoftSqlFirewallRuleModule module) {
+        super(name, module);
     }
 
-    protected MicrosoftSqlFirewallRule(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull MicrosoftSqlFirewallRuleModule module) {
-        super(name, resourceGroupName, module);
+    protected MicrosoftSqlFirewallRule(MicrosoftSqlFirewallRule origin) {
+        super(origin.getName(), origin.getModule());
+        this.setRemote(origin.getRemote());
+    }
+
+    protected MicrosoftSqlFirewallRule(@Nonnull SqlFirewallRule remote, @Nonnull MicrosoftSqlFirewallRuleModule module) {
+        super(remote.name(), module);
+        this.setRemote(remote);
     }
 
     @Override

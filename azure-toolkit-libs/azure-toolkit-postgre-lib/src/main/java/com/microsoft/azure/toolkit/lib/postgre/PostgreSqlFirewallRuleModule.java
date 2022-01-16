@@ -31,11 +31,6 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
         return new PostgreSqlFirewallRule(rule, this);
     }
 
-    @Override
-    protected PostgreSqlFirewallRuleDraft newDraft(@Nonnull String name, String resourceGroup) {
-        return new PostgreSqlFirewallRuleDraft(name, resourceGroup, this);
-    }
-
     @Nonnull
     @Override
     protected Stream<FirewallRule> loadResourcesFromAzure() {
@@ -54,6 +49,16 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
         final String name = resourceId.name();
         final String resourceGroup = resourceId.resourceGroupName();
         this.getClient().delete(fixResourceGroup(resourceGroup), this.getParent().getName(), name);
+    }
+
+    @Override
+    protected PostgreSqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
+        return new PostgreSqlFirewallRuleDraft(name, this);
+    }
+
+    @Override
+    protected PostgreSqlFirewallRuleDraft newDraftForUpdate(@Nonnull PostgreSqlFirewallRule postgreSqlFirewallRule) {
+        return new PostgreSqlFirewallRuleDraft(postgreSqlFirewallRule);
     }
 
     @Override

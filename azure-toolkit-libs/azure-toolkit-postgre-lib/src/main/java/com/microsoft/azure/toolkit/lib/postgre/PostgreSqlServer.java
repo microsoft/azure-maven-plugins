@@ -37,18 +37,24 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
     private final PostgreSqlDatabaseModule databaseModule;
     private final PostgreSqlFirewallRuleModule firewallRuleModule;
 
-    protected PostgreSqlServer(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull PostgreSqlServerModule module) {
-        super(name, resourceGroup, module);
+    protected PostgreSqlServer(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull PostgreSqlServerModule module) {
+        super(name, resourceGroupName, module);
         this.databaseModule = new PostgreSqlDatabaseModule(this);
         this.firewallRuleModule = new PostgreSqlFirewallRuleModule(this);
     }
 
-    protected PostgreSqlServer(@Nonnull String name, @Nonnull PostgreSqlServerModule module) {
-        this(name, module.getParent().getResourceGroupName(), module);
+    public PostgreSqlServer(@Nonnull PostgreSqlServer origin) {
+        super(origin.getName(), origin.getResourceGroupName(), origin.getModule());
+        this.setRemote(origin.getRemote());
+        this.databaseModule = origin.databaseModule;
+        this.firewallRuleModule = origin.firewallRuleModule;
     }
 
     protected PostgreSqlServer(@Nonnull Server remote, @Nonnull PostgreSqlServerModule module) {
-        this(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
+        super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
+        this.setRemote(remote);
+        this.databaseModule = new PostgreSqlDatabaseModule(this);
+        this.firewallRuleModule = new PostgreSqlFirewallRuleModule(this);
     }
 
     @Override

@@ -41,6 +41,16 @@ public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MyS
     }
 
     @Override
+    protected MySqlServerDraft newDraftForCreate(@Nonnull String name, @Nonnull String resourceGroupName) {
+        return new MySqlServerDraft(name, resourceGroupName, this);
+    }
+
+    @Override
+    protected MySqlServerDraft newDraftForUpdate(@Nonnull MySqlServer server) {
+        return new MySqlServerDraft(server);
+    }
+
+    @Override
     public Servers getClient() {
         return Optional.ofNullable(this.parent.getRemote()).map(MySqlManager::servers).orElse(null);
     }
@@ -48,10 +58,5 @@ public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MyS
     @Nonnull
     protected MySqlServer newResource(@Nonnull Server r) {
         return new MySqlServer(r, this);
-    }
-
-    @Override
-    protected MySqlServerDraft newDraft(@Nonnull String name, String resourceGroup) {
-        return new MySqlServerDraft(name, resourceGroup, this);
     }
 }

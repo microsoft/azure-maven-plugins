@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import lombok.Data;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -20,12 +21,20 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class PostgreSqlFirewallRuleDraft extends PostgreSqlFirewallRule implements AzResource.Draft<PostgreSqlFirewallRule, FirewallRule> {
+    @Getter
+    @Nullable
+    private final PostgreSqlFirewallRule origin;
     @Nullable
     private Config config;
 
-    PostgreSqlFirewallRuleDraft(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull PostgreSqlFirewallRuleModule module) {
-        super(name, resourceGroup, module);
-        this.setStatus(Status.DRAFT);
+    PostgreSqlFirewallRuleDraft(@Nonnull String name, @Nonnull PostgreSqlFirewallRuleModule module) {
+        super(name, module);
+        this.origin = null;
+    }
+
+    PostgreSqlFirewallRuleDraft(@Nonnull PostgreSqlFirewallRule origin) {
+        super(origin);
+        this.origin = origin;
     }
 
     @Override
