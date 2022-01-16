@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.model;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -18,6 +19,7 @@ public abstract class AbstractAzService<T extends AbstractAzResource<T, AzResour
 
     public AbstractAzService(@Nonnull String name) {
         super(name, AzResource.NONE);
+        AzureEventBus.on("account.logout.account", (e) -> this.clear());
     }
 
     public T forSubscription(@Nonnull String subscriptionId) {

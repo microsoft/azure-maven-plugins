@@ -15,6 +15,7 @@ import com.google.common.collect.Sets;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource.Status;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -58,6 +59,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private final Map<String, Optional<T>> resources = new ConcurrentHashMap<>();
 
     @Nonnull
+    @Preload
     @Override
     public synchronized List<T> list() {
         Azure.az(IAzureAccount.class).account();
@@ -66,6 +68,11 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         }
         return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
             .sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
+    }
+
+    public synchronized void clear() {
+        this.syncTime = -1;
+        this.resources.clear();
     }
 
     @Nullable

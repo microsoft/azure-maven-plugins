@@ -107,7 +107,7 @@ public class AzureAccount implements IAzureAccount {
             Account tempAccount = this.account;
             this.account = null;
             tempAccount.logout();
-            AzureEventBus.emit("account.logout");
+            AzureEventBus.emit("account.logout.account", tempAccount);
         }
     }
 
