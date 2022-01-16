@@ -103,8 +103,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         final T resource = this.get(name, resourceGroup);
         if (Objects.nonNull(resource)) {
             resource.delete();
+        } else {
+            throw new AzureToolkitRuntimeException(String.format("resource \"%s\" doesn't exist", name));
         }
-        throw new AzureToolkitRuntimeException(String.format("resource \"%s\" doesn't exist", name));
     }
 
     @Nonnull
