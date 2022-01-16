@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib;
+package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.azure.core.http.HttpClient;
 import com.azure.core.http.ProxyOptions;
@@ -15,10 +15,11 @@ import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.policy.ProviderRegistrationPolicy;
 import com.azure.resourcemanager.resources.models.ProviderResourceType;
 import com.azure.resourcemanager.resources.models.Providers;
+import com.microsoft.azure.toolkit.lib.AzService;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.Region;
 import io.netty.resolver.AddressResolverGroup;
 import io.netty.resolver.DefaultAddressResolverGroup;
 import io.netty.resolver.NoopAddressResolverGroup;
@@ -33,9 +34,13 @@ import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.lib.Azure.az;
 
-public interface IResourceManager<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R> extends AzResource<T, P, R> {
+public abstract class AbstractAzResourceManager<T extends AbstractAzResource<T, AzResource.None, R>, R>
+    extends AbstractAzResource<T, AzResource.None, R> {
+    protected AbstractAzResourceManager(@Nonnull String name, @Nonnull AbstractAzResourceModule<T, None, R> module) {
+        super(name, AzResource.RESOURCE_GROUP_PLACEHOLDER, module);
+    }
 
-    default List<Region> listSupportedRegions(String resourceType) {
+    public List<Region> listSupportedRegions(String resourceType) {
         final String provider = getService().getName();
         final String subscriptionId = this.getSubscriptionId();
         List<Region> allRegionList = az(IAzureAccount.class).listRegions(subscriptionId);
@@ -49,11 +54,16 @@ public interface IResourceManager<T extends AzResource<T, P, R>, P extends AzRes
     }
 
     @Nonnull
-    String getSubscriptionId();
+    @Override
+    public String loadStatus(@Nonnull R remote) {
+        return Status.UNKNOWN;
+    }
 
-    AzService getService();
+    public AzService getService() {
+        return ((AzService) this.getModule());
+    }
 
-    default ResourceManager getResourceManager() {
+    public ResourceManager getResourceManager() {
         final IAccount account = az(IAzureAccount.class).account();
         final String subscriptionId = this.getSubscriptionId();
         final AzureConfiguration config = Azure.az().config();
@@ -84,7 +94,7 @@ public interface IResourceManager<T extends AzResource<T, P, R>, P extends AzRes
         };
     }
 
-    class HttpClientHolder {
+    public static class HttpClientHolder {
         private static HttpClient defaultHttpClient = null;
 
         private static synchronized HttpClient getHttpClient() {

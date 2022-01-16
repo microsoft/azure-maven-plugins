@@ -14,7 +14,6 @@ import com.azure.resourcemanager.resources.fluentcore.collection.SupportsListing
 import com.google.common.collect.Sets;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.IResourceManager;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource.Status;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
@@ -224,7 +223,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     private void fireResourcesChangedEvent() {
-        if (this.getParent() instanceof IResourceManager) {
+        if (this.getParent() instanceof AbstractAzResourceManager) {
             final AzResourceModule<P, ?, ?> service = this.getParent().getModule();
             AzureEventBus.emit("service.children_changed.service", service);
         }

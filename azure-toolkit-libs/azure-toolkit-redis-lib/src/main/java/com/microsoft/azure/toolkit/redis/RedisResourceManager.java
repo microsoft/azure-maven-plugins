@@ -11,11 +11,8 @@ import com.azure.resourcemanager.redis.RedisManager;
 import com.azure.resourcemanager.redis.fluent.RedisClient;
 import com.azure.resourcemanager.redis.models.CheckNameAvailabilityParameters;
 import com.azure.resourcemanager.resources.ResourceManager;
-import com.microsoft.azure.toolkit.lib.AzService;
-import com.microsoft.azure.toolkit.lib.IResourceManager;
 import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -27,14 +24,13 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-public class RedisResourceManager extends AbstractAzResource<RedisResourceManager, AzResource.None, RedisManager>
-    implements IResourceManager<RedisResourceManager, AzResource.None, RedisManager> {
+public class RedisResourceManager extends AbstractAzResourceManager<RedisResourceManager, RedisManager> {
     @Nonnull
     private final String subscriptionId;
     private final RedisCacheModule cacheModule;
 
     RedisResourceManager(@Nonnull String subscriptionId, AzureRedis service) {
-        super(subscriptionId, AzResource.RESOURCE_GROUP_PLACEHOLDER, service);
+        super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.cacheModule = new RedisCacheModule(this);
     }
@@ -48,23 +44,12 @@ public class RedisResourceManager extends AbstractAzResource<RedisResourceManage
         return Collections.singletonList(cacheModule);
     }
 
-    @Nonnull
-    @Override
-    public String loadStatus(@Nonnull RedisManager remote) {
-        return Status.UNKNOWN;
-    }
-
     public RedisCacheModule caches() {
         return this.cacheModule;
     }
 
     public List<Region> listSupportedRegions() {
-        return IResourceManager.super.listSupportedRegions(this.cacheModule.getName());
-    }
-
-    @Override
-    public AzService getService() {
-        return (AzureRedis) this.getModule();
+        return super.listSupportedRegions(this.cacheModule.getName());
     }
 
     @Override
