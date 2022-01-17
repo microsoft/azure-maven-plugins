@@ -11,14 +11,24 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.ServiceLoader;
 
 public class Azure {
     private final AzureConfiguration configuration;
+    private ClassLoader classLoader;
     private static final Azure defaultInstance = new Azure();
 
     private Azure() {
         this.configuration = new AzureConfiguration();
+    }
+
+    public void setClassLoader(@Nonnull ClassLoader classLoader) {
+        if (!Objects.equals(classLoader, this.classLoader)) {
+            this.classLoader = classLoader;
+            Holder.azLoader = ServiceLoader.load(AzService.class, this.classLoader);
+            Holder.loader = ServiceLoader.load(AzureService.class, this.classLoader);
+        }
     }
 
     public static synchronized <T extends AzService> T az(final Class<T> clazz) {
@@ -74,7 +84,7 @@ public class Azure {
     }
 
     private static class Holder {
-        private static final ServiceLoader<AzService> azLoader = ServiceLoader.load(AzService.class);
-        private static final ServiceLoader<AzureService> loader = ServiceLoader.load(AzureService.class);
+        private static ServiceLoader<AzService> azLoader = ServiceLoader.load(AzService.class);
+        private static ServiceLoader<AzureService> loader = ServiceLoader.load(AzureService.class);
     }
 }
