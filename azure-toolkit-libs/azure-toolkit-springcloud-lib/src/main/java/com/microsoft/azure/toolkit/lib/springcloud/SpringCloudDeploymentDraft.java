@@ -166,7 +166,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             (Objects.nonNull(newArtifact));
         if (modified) {
             if (Objects.nonNull(newEnv)) {
-                Optional.ofNullable(oldEnv).ifPresent((e) -> e.forEach((key, value) -> deployment.withoutEnvironment(key)));
+                Optional.ofNullable(oldEnv).ifPresent(e -> e.keySet().forEach(deployment::withoutEnvironment));
                 Optional.of(newEnv).ifPresent((e) -> e.forEach(deployment::withEnvironment));
             }
             Optional.ofNullable(newJvmOptions).ifPresent(deployment::withJvmOptions);
