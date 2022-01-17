@@ -58,7 +58,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         this.remoteRef = new AtomicReference<>();
         this.syncTimeRef = new AtomicLong(-1);
         this.statusRef = new AtomicReference<>("");
-
     }
 
     /**
@@ -93,7 +92,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         this.getSubModules().forEach(AzResourceModule::refresh);
     }
 
-    private synchronized void reload() {
+    private void reload() {
         Azure.az(IAzureAccount.class).account();
         final long syncTime = this.syncTimeRef.get();
         final R remote = this.remoteRef.get();
@@ -128,8 +127,11 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     protected synchronized void setRemote(@Nullable R newRemote) {
         final R oldRemote = this.remoteRef.get();
+        if (Objects.equals(oldRemote, newRemote) && Objects.isNull(newRemote)) {
+            return;
+        }
         if (this.syncTimeRef.get() > 0 && Objects.equals(oldRemote, newRemote)) {
-            this.setStatus(Objects.nonNull(newRemote) ? this.loadStatus(newRemote) : Status.DISCONNECTED);
+            this.setStatus(this.loadStatus(newRemote));
         } else {
             this.syncTimeRef.set(System.currentTimeMillis());
             this.remoteRef.set(newRemote);
@@ -143,7 +145,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @Override
     @Nullable
-    public final synchronized R getRemote() {
+    public final R getRemote() {
         if (this.syncTimeRef.get() < 0) {
             this.reload();
         }
