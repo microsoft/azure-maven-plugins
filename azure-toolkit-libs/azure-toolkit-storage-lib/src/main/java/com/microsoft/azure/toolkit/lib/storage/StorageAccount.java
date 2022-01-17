@@ -32,9 +32,11 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageRe
         super(name, resourceGroupName, module);
     }
 
+    /**
+     * copy constructor
+     */
     public StorageAccount(@Nonnull StorageAccount origin) {
-        super(origin.getName(), origin.getResourceGroupName(), origin.getModule());
-        this.setRemote(origin.getRemote());
+        super(origin);
     }
 
     protected StorageAccount(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount remote, @Nonnull StorageAccountModule module) {

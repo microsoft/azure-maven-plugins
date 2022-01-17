@@ -21,9 +21,11 @@ public class MySqlFirewallRule extends AbstractAzResource<MySqlFirewallRule, MyS
         super(name, module);
     }
 
-    protected MySqlFirewallRule(MySqlFirewallRule origin) {
-        super(origin.getName(), origin.getModule());
-        this.setRemote(origin.getRemote());
+    /**
+     * copy constructor
+     */
+    protected MySqlFirewallRule(@Nonnull MySqlFirewallRule origin) {
+        super(origin);
     }
 
     protected MySqlFirewallRule(@Nonnull FirewallRule remote, @Nonnull MySqlFirewallRuleModule module) {

@@ -35,11 +35,13 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
         this.firewallRuleModule = new MicrosoftSqlFirewallRuleModule(this);
     }
 
+    /**
+     * copy constructor
+     */
     public MicrosoftSqlServer(@Nonnull MicrosoftSqlServer origin) {
-        super(origin.getName(), origin.getResourceGroupName(), origin.getModule());
+        super(origin);
         this.databaseModule = origin.databaseModule;
         this.firewallRuleModule = origin.firewallRuleModule;
-        this.setRemote(origin.getRemote());
     }
 
     protected MicrosoftSqlServer(@Nonnull SqlServer remote, @Nonnull MicrosoftSqlServerModule module) {

@@ -21,9 +21,11 @@ public class PostgreSqlFirewallRule extends AbstractAzResource<PostgreSqlFirewal
         super(name, module);
     }
 
+    /**
+     * copy constructor
+     */
     protected PostgreSqlFirewallRule(@Nonnull PostgreSqlFirewallRule origin) {
-        super(origin.getName(), origin.getModule());
-        this.setRemote(origin.getRemote());
+        super(origin);
     }
 
     protected PostgreSqlFirewallRule(@Nonnull FirewallRule remote, @Nonnull PostgreSqlFirewallRuleModule module) {

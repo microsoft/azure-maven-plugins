@@ -40,9 +40,11 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
         super(name, module);
     }
 
+    /**
+     * copy constructor
+     */
     protected SpringCloudDeployment(@Nonnull SpringCloudDeployment origin) {
-        super(origin.getName(), origin.getModule());
-        this.setRemote(origin.getRemote());
+        super(origin);
     }
 
     protected SpringCloudDeployment(@Nonnull SpringAppDeployment remote, @Nonnull SpringCloudDeploymentModule module) {
