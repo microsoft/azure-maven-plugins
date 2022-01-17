@@ -106,8 +106,6 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
         messager.info(AzureString.format("Start creating PostgreSQL server ({0})...", this.getName()));
         final Server remote = create.create();
         messager.success(AzureString.format("PostgreSQL server({0}) is successfully created.", this.getName()));
-        final AzureString title = AzureOperationBundle.title("postgre.add_special_firewall_rule.server", this.getName());
-        AzureTaskManager.getInstance().runInBackground(title, () -> this.updateResourceInAzure(remote));
         return this.updateResourceInAzure(remote);
     }
 
@@ -115,8 +113,11 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
     public Server updateResourceInAzure(@Nonnull Server origin) {
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
+            final IAzureMessager messager = AzureMessager.getMessager();
+            messager.info(AzureString.format("Start updating firewall rules of PostgreSQL server ({0})...", this.getName()));
             this.firewallRules().toggleAzureServiceAccess(this.isAzureServiceAccessAllowed());
             this.firewallRules().toggleLocalMachineAccess(this.isLocalMachineAccessAllowed());
+            messager.success(AzureString.format("Firewall rules of PostgreSQL server({0}) is successfully updated.", this.getName()));
         }
         return origin;
     }

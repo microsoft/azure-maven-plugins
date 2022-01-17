@@ -17,8 +17,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationBundle;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 import lombok.Getter;
@@ -106,9 +104,7 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
         messager.info(AzureString.format("Start creating MySQL server ({0})...", this.getName()));
         final Server remote = create.create();
         messager.success(AzureString.format("MySQL server({0}) is successfully created.", this.getName()));
-        final AzureString title = AzureOperationBundle.title("mysql.add_special_firewall_rule.server", this.getName());
-        AzureTaskManager.getInstance().runInBackground(title, () -> this.updateResourceInAzure(remote));
-        return remote;
+        return this.updateResourceInAzure(remote);
     }
 
     @Override
@@ -116,8 +112,11 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
         // TODO: update other properties
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
+            final IAzureMessager messager = AzureMessager.getMessager();
+            messager.info(AzureString.format("Start updating firewall rules of MySQL server ({0})...", this.getName()));
             this.firewallRules().toggleAzureServiceAccess(this.isAzureServiceAccessAllowed());
             this.firewallRules().toggleLocalMachineAccess(this.isLocalMachineAccessAllowed());
+            messager.success(AzureString.format("Firewall rules of MySQL server({0}) is successfully updated.", this.getName()));
         }
         return origin;
     }
