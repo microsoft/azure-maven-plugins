@@ -104,7 +104,7 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
             .withSku(sku);
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating MySQL server ({0})...", this.getName()));
-        final Server remote = this.doModify(() -> create.create(), Status.CREATING);
+        final Server remote = create.create();
         messager.success(AzureString.format("MySQL server({0}) is successfully created.", this.getName()));
         final AzureString title = AzureOperationBundle.title("mysql.add_special_firewall_rule.server", this.getName());
         AzureTaskManager.getInstance().runInBackground(title, () -> this.updateResourceInAzure(remote));

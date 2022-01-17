@@ -110,7 +110,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         modify(create);
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating deployment({0})...", name));
-        SpringAppDeployment deployment = this.doModify(() -> create.create(), Status.CREATING);
+        SpringAppDeployment deployment = create.create();
         messager.success(AzureString.format("Deployment({0}) is successfully created", name));
         deployment = this.scaleDeploymentInAzure(deployment);
         return deployment;
@@ -127,7 +127,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         if (modify(update)) {
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating deployment({0})...", deployment.name()));
-            deployment = this.doModify(() -> update.apply(), Status.UPDATING);
+            deployment = update.apply();
             messager.success(AzureString.format("Deployment({0}) is successfully updated", deployment.name()));
         }
         deployment = this.scaleDeploymentInAzure(deployment);
@@ -144,9 +144,11 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         boolean modified = scale(deployment, update);
         if (modified) {
             final IAzureMessager messager = AzureMessager.getMessager();
-            messager.info(AzureString.format("Start scaling deployment({0})...", deployment.name()));
-            deployment = this.doModify(() -> update.apply(), Status.SCALING);
-            messager.success(AzureString.format("Deployment({0}) is successfully scaled.", deployment.name()));
+            this.doModifyAsync(() -> {
+                messager.info(AzureString.format("Start scaling deployment({0})...", deployment.name()));
+                update.apply();
+                messager.success(AzureString.format("Deployment({0}) is successfully scaled.", deployment.name()));
+            }, Status.SCALING);
         }
         return deployment;
     }

@@ -157,7 +157,6 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             return this.cast(resource);
         }
         final T draft = this.newDraftForUpdate(resource);
-        this.<T>cast(draft).setRemote(resource.getRemote());
         return this.cast(draft);
     }
 
@@ -165,9 +164,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public T update(@NotNull AzResource.Draft<T, R> draft) {
         final T resource = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.nonNull(resource) && Objects.nonNull(resource.getRemote())) {
-            this.<T>cast(draft).setRemote(resource.getRemote());
             resource.doModify(() -> draft.updateResourceInAzure(resource.getRemote()), Status.UPDATING);
-            this.<T>cast(draft).setRemote(resource.getRemote());
             return resource;
         }
         throw new AzureToolkitRuntimeException(String.format("resource \"%s\" doesn't exist", draft.getName()));
