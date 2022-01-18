@@ -17,8 +17,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationBundle;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 import lombok.Getter;
