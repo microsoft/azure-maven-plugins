@@ -96,6 +96,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         Azure.az(IAzureAccount.class).account();
         final long syncTime = this.syncTimeRef.get();
         final R remote = this.remoteRef.get();
+        if (Objects.isNull(remote) && StringUtils.equals(this.statusRef.get(), Status.CREATING)) {
+            return;
+        }
         this.doModify(() -> {
             try {
                 final R refreshed = syncTime > 0 && Objects.nonNull(remote) ? this.refreshRemote() : null;
@@ -157,9 +160,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         final String oldStatus = this.statusRef.get();
         if (!Objects.equals(oldStatus, status)) {
             this.statusRef.set(status);
-            if (StringUtils.isNotBlank(oldStatus)) {
-                AzureEventBus.emit("resource.status_changed.resource", this);
-            }
+            AzureEventBus.emit("resource.status_changed.resource", this);
         }
     }
 
