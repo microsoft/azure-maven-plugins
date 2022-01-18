@@ -187,7 +187,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             this.refreshRemote();
             this.setRemote(this.remoteRef.get());
         } catch (Throwable t) {
-            this.setStatus(Status.ERROR);
+            this.setStatus(Status.UNKNOWN);
             throw t;
         }
     }
@@ -214,7 +214,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             this.setRemote(remote);
             return remote;
         } catch (Throwable t) {
-            this.setStatus(Status.ERROR);
+            this.setStatus(Status.UNKNOWN);
             throw new AzureToolkitRuntimeException(t);
         }
     }
