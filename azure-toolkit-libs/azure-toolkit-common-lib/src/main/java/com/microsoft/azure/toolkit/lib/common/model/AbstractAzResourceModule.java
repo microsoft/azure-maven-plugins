@@ -92,7 +92,6 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 this.addResourceToLocal(name, null);
             } else {
                 final T resource = newResource(remote);
-                resource.setRemote(remote);
                 this.addResourceToLocal(name, resource);
             }
         }
@@ -184,11 +183,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             this.syncTime = -1;
             throw t;
         }
-        final Map<String, T> loadedResources = loaded.parallel().map(remote -> {
-            final T resource = this.newResource(remote);
-            resource.setRemote(remote);
-            return resource;
-        }).collect(Collectors.toMap(AbstractAzResource::getName, r -> r));
+        final Map<String, T> loadedResources = loaded.parallel().map(this::newResource).collect(Collectors.toMap(AbstractAzResource::getName, r -> r));
         final Set<String> localResources = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
             .map(AbstractAzResource::getName).collect(Collectors.toSet());
         final Set<String> creating = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
