@@ -134,12 +134,12 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             return;
         }
         if (this.syncTimeRef.get() > 0 && Objects.equals(oldRemote, newRemote)) {
-            this.setStatus(this.loadStatus(newRemote));
+            this.refreshStatusAsync();
         } else {
             this.syncTimeRef.set(System.currentTimeMillis());
             this.remoteRef.set(newRemote);
             if (Objects.nonNull(newRemote)) {
-                this.doModifyAsync(() -> this.setStatus(this.loadStatus(newRemote)), Status.LOADING);
+                this.refreshStatusAsync();
             } else {
                 this.setStatus(Status.DISCONNECTED);
             }
@@ -164,12 +164,23 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
+    private void refreshStatusAsync() {
+        this.setStatus(Status.LOADING);
+        AzureTaskManager.getInstance().runOnPooledThread(() -> {
+            try {
+                this.setStatus(this.loadStatus(this.remoteRef.get()));
+            } catch (Throwable t) {
+                this.setStatus(Status.UNKNOWN);
+                throw new AzureToolkitRuntimeException(t);
+            }
+        });
+    }
+
     @Nonnull
     public String getStatus() {
-        final R remote = this.getRemote();
         final String status = this.statusRef.get();
-        if (Objects.nonNull(remote) && Objects.isNull(status)) {
-            this.setStatus(this.loadStatus(remote));
+        if (Objects.isNull(status)) {
+            AzureTaskManager.getInstance().runOnPooledThread(this::getRemote); // trigger to load remote.
         }
         return status;
     }
