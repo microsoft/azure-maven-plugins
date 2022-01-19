@@ -63,6 +63,7 @@ public class AzureFunction extends AbstractAzureResourceModule<FunctionApp> impl
     public void refresh() {
         try {
             CacheManager.evictCache("appservice/{}/functionapps", CacheEvict.ALL);
+            CacheManager.evictCache("appservice/{}/rg/{}/functionapp/{}", CacheEvict.ALL);
         } catch (ExecutionException e) {
             log.warn("failed to evict cache", e);
         }

@@ -36,6 +36,8 @@ public class AzureAppServicePlan extends AbstractAzureResourceModule<AppServiceP
     public void refresh() {
         try {
             CacheManager.evictCache("appservice/{}/plans", CacheEvict.ALL);
+            CacheManager.evictCache("appservice/rg/{}/plans", CacheEvict.ALL);
+            CacheManager.evictCache("appservice/{}/rg/{}/plan/{}", CacheEvict.ALL);
         } catch (ExecutionException e) {
             log.warn("failed to evict cache", e);
         }
