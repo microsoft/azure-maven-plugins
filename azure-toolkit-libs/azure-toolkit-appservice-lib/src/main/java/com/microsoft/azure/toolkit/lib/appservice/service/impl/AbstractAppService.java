@@ -109,6 +109,11 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
         return entity;
     }
 
+    @Deprecated
+    public R getRawEntity() {
+        return entity;
+    }
+
     @Override
     public String hostName() {
         return remote().defaultHostname();
