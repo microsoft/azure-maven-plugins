@@ -31,6 +31,9 @@ public interface IAppService<T extends AppServiceBaseEntity> extends IFileClient
 
     Runtime getRuntime();
 
+    @Deprecated
+    T getRawEntity();
+
     PublishingProfile getPublishingProfile();
 
     InputStream listPublishingProfileXmlWithSecrets();

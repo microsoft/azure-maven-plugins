@@ -74,6 +74,7 @@ public class AzureWebApp extends AbstractAzureResourceModule<WebApp> implements 
     public void refresh() {
         try {
             CacheManager.evictCache("appservice/{}/webapps", CacheEvict.ALL);
+            CacheManager.evictCache("appservice/{}/rg/{}/webapp/{}", CacheEvict.ALL);
         } catch (ExecutionException e) {
             log.warn("failed to evict cache", e);
         }
