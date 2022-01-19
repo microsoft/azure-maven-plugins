@@ -7,11 +7,14 @@ package com.microsoft.azure.toolkit.lib.sqlserver;
 
 import com.azure.resourcemanager.sql.SqlServerManager;
 import com.azure.resourcemanager.sql.models.SqlServer;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
+import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -19,12 +22,20 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzResource.Draft<MicrosoftSqlServer, SqlServer> {
+    @Getter
+    @Nullable
+    private final MicrosoftSqlServer origin;
     @Nullable
     private Config config;
 
-    MicrosoftSqlServerDraft(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull MicrosoftSqlServerModule module) {
-        super(name, resourceGroup, module);
-        this.setStatus(Status.DRAFT);
+    MicrosoftSqlServerDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull MicrosoftSqlServerModule module) {
+        super(name, resourceGroupName, module);
+        this.origin = null;
+    }
+
+    MicrosoftSqlServerDraft(@Nonnull MicrosoftSqlServer origin) {
+        super(origin);
+        this.origin = origin;
     }
 
     @Override
@@ -52,15 +63,24 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
             .withExistingResourceGroup(this.getResourceGroupName())
             .withAdministratorLogin(this.getAdminName())
             .withAdministratorPassword(this.getAdminPassword());
-        final SqlServer remote = this.doModify(() -> create.create(), Status.CREATING);
-        this.firewallRules().toggleAzureServiceAccess(this.isAzureServiceAccessAllowed());
-        this.firewallRules().toggleLocalMachineAccess(this.isLocalMachineAccessAllowed());
-        return remote;
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Start creating SQL server ({0})...", this.getName()));
+        final SqlServer remote = create.create();
+        messager.success(AzureString.format("SQL server({0}) is successfully created.", this.getName()));
+        return this.updateResourceInAzure(remote);
     }
 
     @Override
     public SqlServer updateResourceInAzure(@Nonnull SqlServer origin) {
-        throw new AzureToolkitRuntimeException("not supported");
+        if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
+            this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
+            final IAzureMessager messager = AzureMessager.getMessager();
+            messager.info(AzureString.format("Start updating firewall rules of SQL server ({0})...", this.getName()));
+            this.firewallRules().toggleAzureServiceAccess(this.isAzureServiceAccessAllowed());
+            this.firewallRules().toggleLocalMachineAccess(this.isLocalMachineAccessAllowed());
+            messager.success(AzureString.format("Firewall rules of SQL server({0}) is successfully updated.", this.getName()));
+        }
+        return origin;
     }
 
     private synchronized Config ensureConfig() {
@@ -128,6 +148,20 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
 
     public void setAzureServiceAccessAllowed(boolean allowed) {
         this.ensureConfig().setAzureServiceAccessAllowed(allowed);
+    }
+
+    @Override
+    public boolean isModified() {
+        final boolean notModified = Objects.isNull(this.config) ||
+            Objects.equals(this.config.isLocalMachineAccessAllowed(), super.isLocalMachineAccessAllowed()) ||
+            Objects.equals(this.config.isAzureServiceAccessAllowed(), super.isAzureServiceAccessAllowed()) ||
+            Objects.isNull(this.config.getAdminPassword()) ||
+            Objects.isNull(this.config.getAdminName()) || Objects.equals(this.config.getAdminName(), super.getAdminName()) ||
+            Objects.isNull(this.config.getRegion()) || Objects.equals(this.config.getRegion(), super.getRegion()) ||
+            Objects.isNull(this.config.getVersion()) || Objects.equals(this.config.getVersion(), super.getVersion()) ||
+            Objects.isNull(this.config.getFullyQualifiedDomainName()) ||
+            Objects.equals(this.config.getFullyQualifiedDomainName(), super.getFullyQualifiedDomainName());
+        return !notModified;
     }
 
     @Data

@@ -37,11 +37,19 @@ import java.util.function.Consumer;
 public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment> {
 
     protected SpringCloudDeployment(@Nonnull String name, @Nonnull SpringCloudDeploymentModule module) {
-        super(name, module.getParent().getResourceGroupName(), module);
+        super(name, module);
+    }
+
+    /**
+     * copy constructor
+     */
+    protected SpringCloudDeployment(@Nonnull SpringCloudDeployment origin) {
+        super(origin);
     }
 
     protected SpringCloudDeployment(@Nonnull SpringAppDeployment remote, @Nonnull SpringCloudDeploymentModule module) {
-        this(remote.name(), module);
+        super(remote.name(), module);
+        this.setRemote(remote);
     }
 
     // MODIFY

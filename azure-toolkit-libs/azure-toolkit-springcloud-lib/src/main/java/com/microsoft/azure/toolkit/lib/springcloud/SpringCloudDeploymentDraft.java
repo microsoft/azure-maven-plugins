@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import lombok.Data;
+import lombok.Getter;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
@@ -51,11 +52,20 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
 
     @Delegate
     private final IConfig configProxy;
+    @Getter
+    @Nullable
+    private final SpringCloudDeployment origin;
     private Config config;
 
     protected SpringCloudDeploymentDraft(@Nonnull String name, @Nonnull SpringCloudDeploymentModule module) {
         super(name, module);
-        this.setStatus(Status.DRAFT);
+        this.origin = null;
+        this.configProxy = (IConfig) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{IConfig.class}, this);
+    }
+
+    protected SpringCloudDeploymentDraft(@Nonnull SpringCloudDeployment origin) {
+        super(origin);
+        this.origin = origin;
         this.configProxy = (IConfig) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{IConfig.class}, this);
     }
 
@@ -100,7 +110,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         modify(create);
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating deployment({0})...", name));
-        SpringAppDeployment deployment = this.doModify(() -> create.create(), Status.CREATING);
+        SpringAppDeployment deployment = create.create();
         messager.success(AzureString.format("Deployment({0}) is successfully created", name));
         deployment = this.scaleDeploymentInAzure(deployment);
         return deployment;
@@ -117,7 +127,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         if (modify(update)) {
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating deployment({0})...", deployment.name()));
-            deployment = this.doModify(() -> update.apply(), Status.UPDATING);
+            deployment = update.apply();
             messager.success(AzureString.format("Deployment({0}) is successfully updated", deployment.name()));
         }
         deployment = this.scaleDeploymentInAzure(deployment);
@@ -134,9 +144,11 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         boolean modified = scale(deployment, update);
         if (modified) {
             final IAzureMessager messager = AzureMessager.getMessager();
-            messager.info(AzureString.format("Start scaling deployment({0})...", deployment.name()));
-            deployment = this.doModify(() -> update.apply(), Status.SCALING);
-            messager.success(AzureString.format("Deployment({0}) is successfully scaled.", deployment.name()));
+            this.doModifyAsync(() -> {
+                messager.info(AzureString.format("Start scaling deployment({0})...", deployment.name()));
+                update.apply();
+                messager.success(AzureString.format("Deployment({0}) is successfully scaled.", deployment.name()));
+            }, Status.SCALING);
         }
         return deployment;
     }
@@ -154,7 +166,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             (Objects.nonNull(newArtifact));
         if (modified) {
             if (Objects.nonNull(newEnv)) {
-                Optional.ofNullable(oldEnv).ifPresent((e) -> e.forEach((key, value) -> deployment.withoutEnvironment(key)));
+                Optional.ofNullable(oldEnv).ifPresent(e -> e.keySet().forEach(deployment::withoutEnvironment));
                 Optional.of(newEnv).ifPresent((e) -> e.forEach(deployment::withEnvironment));
             }
             Optional.ofNullable(newJvmOptions).ifPresent(deployment::withJvmOptions);
@@ -213,6 +225,18 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         final MethodType type = MethodType.methodType(method.getReturnType(), classes);
         final var handle = MethodHandles.lookup().findSpecial(SpringCloudDeployment.class, method.getName(), type, this.getClass()).bindTo(this);
         return handle.invokeWithArguments(args);
+    }
+
+    @Override
+    public boolean isModified() {
+        final boolean notModified = Objects.isNull(this.config) || Objects.isNull(this.config.getArtifact()) ||
+            Objects.isNull(this.config.getEnvironmentVariables()) || Objects.equals(this.config.getEnvironmentVariables(), super.getEnvironmentVariables()) ||
+            Objects.isNull(this.config.getJvmOptions()) || Objects.equals(this.config.getJvmOptions(), super.getJvmOptions()) ||
+            Objects.isNull(this.config.getRuntimeVersion()) || Objects.equals(this.config.getRuntimeVersion(), super.getRuntimeVersion()) ||
+            Objects.isNull(this.config.getCpu()) || Objects.equals(this.config.getCpu(), super.getCpu()) ||
+            Objects.isNull(this.config.getMemoryInGB()) || Objects.equals(this.config.getMemoryInGB(), super.getMemoryInGB()) ||
+            Objects.isNull(this.config.getInstanceNum()) || Objects.equals(this.config.getInstanceNum(), super.getInstanceNum());
+        return !notModified;
     }
 
     /**

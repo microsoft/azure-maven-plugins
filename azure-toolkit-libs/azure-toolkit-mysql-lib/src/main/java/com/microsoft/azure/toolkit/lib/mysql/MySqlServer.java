@@ -42,17 +42,25 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
         this.firewallRuleModule = new MySqlFirewallRuleModule(this);
     }
 
-    protected MySqlServer(@Nonnull String name, @Nonnull MySqlServerModule module) {
-        this(name, module.getParent().getResourceGroupName(), module);
+    /**
+     * copy constructor
+     */
+    protected MySqlServer(@Nonnull MySqlServer origin) {
+        super(origin);
+        this.databaseModule = origin.databaseModule;
+        this.firewallRuleModule = origin.firewallRuleModule;
     }
 
     protected MySqlServer(@Nonnull Server remote, @Nonnull MySqlServerModule module) {
-        this(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
+        super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
+        this.databaseModule = new MySqlDatabaseModule(this);
+        this.firewallRuleModule = new MySqlFirewallRuleModule(this);
+        this.setRemote(remote);
     }
 
     @Override
-    protected void refreshRemote() {
-        this.remoteOptional().ifPresent(Server::refresh);
+    protected Server refreshRemote() {
+        return this.remoteOptional().map(Server::refresh).orElse(null);
     }
 
     @Override
@@ -163,6 +171,10 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
         }
         // Alternatively, get public IP by ping public URL
         return NetUtils.getPublicIp();
+    }
+
+    public JdbcUrl getJdbcUrl() {
+        return JdbcUrl.mysql(this.getFullyQualifiedDomainName());
     }
 
     @Override

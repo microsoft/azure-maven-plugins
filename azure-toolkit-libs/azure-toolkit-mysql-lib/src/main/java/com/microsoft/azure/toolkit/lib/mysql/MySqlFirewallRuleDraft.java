@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import lombok.Data;
+import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -19,12 +20,20 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class MySqlFirewallRuleDraft extends MySqlFirewallRule implements AzResource.Draft<MySqlFirewallRule, FirewallRule> {
+    @Getter
+    @Nullable
+    private final MySqlFirewallRule origin;
     @Nullable
     private Config config;
 
-    MySqlFirewallRuleDraft(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull MySqlFirewallRuleModule module) {
-        super(name, resourceGroup, module);
-        this.setStatus(Status.DRAFT);
+    MySqlFirewallRuleDraft(@Nonnull String name, @Nonnull MySqlFirewallRuleModule module) {
+        super(name, module);
+        this.origin = null;
+    }
+
+    MySqlFirewallRuleDraft(@Nonnull MySqlFirewallRule origin) {
+        super(origin);
+        this.origin = origin;
     }
 
     @Override
@@ -89,6 +98,14 @@ public class MySqlFirewallRuleDraft extends MySqlFirewallRule implements AzResou
 
     public void setEndIpAddress(String endIpAddress) {
         this.ensureConfig().setEndIpAddress(endIpAddress);
+    }
+
+    @Override
+    public boolean isModified() {
+        final boolean notModified = Objects.isNull(this.config) ||
+            Objects.isNull(this.config.getStartIpAddress()) || Objects.equals(this.config.getStartIpAddress(), super.getStartIpAddress()) ||
+            Objects.isNull(this.config.getEndIpAddress()) || Objects.equals(this.config.getEndIpAddress(), super.getEndIpAddress());
+        return !notModified;
     }
 
     @Data

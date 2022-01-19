@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.sqlserver;
 import com.azure.resourcemanager.sql.models.SqlDatabase;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
 
 import javax.annotation.Nonnull;
@@ -17,17 +18,13 @@ import java.util.List;
 
 public class MicrosoftSqlDatabase extends AbstractAzResource<MicrosoftSqlDatabase, MicrosoftSqlServer, SqlDatabase> implements IDatabase {
 
-    protected MicrosoftSqlDatabase(SqlDatabase database, MicrosoftSqlDatabaseModule module) {
-        this(database.name(), module.getParent().getResourceGroupName(), module);
+    protected MicrosoftSqlDatabase(@Nonnull String name, @Nonnull MicrosoftSqlDatabaseModule module) {
+        super(name, module);
     }
 
-    protected MicrosoftSqlDatabase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull MicrosoftSqlDatabaseModule module) {
-        super(name, resourceGroupName, module);
-    }
-
-    @Override
-    protected void refreshRemote() {
-        this.remoteOptional().ifPresent(SqlDatabase::refresh);
+    protected MicrosoftSqlDatabase(@Nonnull SqlDatabase remote, @Nonnull MicrosoftSqlDatabaseModule module) {
+        super(remote.name(), module);
+        this.setRemote(remote);
     }
 
     @Override
@@ -53,5 +50,9 @@ public class MicrosoftSqlDatabase extends AbstractAzResource<MicrosoftSqlDatabas
 
     public OffsetDateTime getCreationDate() {
         return this.remoteOptional().map(SqlDatabase::creationDate).orElse(null);
+    }
+
+    public JdbcUrl getJdbcUrl() {
+        return JdbcUrl.sqlserver(this.getParent().getFullyQualifiedDomainName(), this.getName());
     }
 }

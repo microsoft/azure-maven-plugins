@@ -27,8 +27,13 @@ public class SpringCloudAppModule extends AbstractAzResourceModule<SpringCloudAp
     }
 
     @Override
-    protected SpringCloudAppDraft newDraft(@Nonnull String name, @Nonnull String resourceGroup) {
+    protected SpringCloudAppDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
         return new SpringCloudAppDraft(name, this);
+    }
+
+    @Override
+    protected SpringCloudAppDraft newDraftForUpdate(@Nonnull SpringCloudApp app) {
+        return new SpringCloudAppDraft(app);
     }
 
     @Nonnull

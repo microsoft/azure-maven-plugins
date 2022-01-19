@@ -17,17 +17,25 @@ import java.util.List;
 
 public class PostgreSqlFirewallRule extends AbstractAzResource<PostgreSqlFirewallRule, PostgreSqlServer, FirewallRule> implements IFirewallRule {
 
-    protected PostgreSqlFirewallRule(@Nonnull FirewallRule rule, @Nonnull PostgreSqlFirewallRuleModule module) {
-        this(rule.name(), module.getParent().getResourceGroupName(), module);
+    protected PostgreSqlFirewallRule(@Nonnull String name, @Nonnull PostgreSqlFirewallRuleModule module) {
+        super(name, module);
     }
 
-    protected PostgreSqlFirewallRule(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull PostgreSqlFirewallRuleModule module) {
-        super(name, resourceGroupName, module);
+    /**
+     * copy constructor
+     */
+    protected PostgreSqlFirewallRule(@Nonnull PostgreSqlFirewallRule origin) {
+        super(origin);
+    }
+
+    protected PostgreSqlFirewallRule(@Nonnull FirewallRule remote, @Nonnull PostgreSqlFirewallRuleModule module) {
+        super(remote.name(), module);
+        this.setRemote(remote);
     }
 
     @Override
-    protected void refreshRemote() {
-        this.remoteOptional().ifPresent(FirewallRule::refresh);
+    protected FirewallRule refreshRemote() {
+        return this.remoteOptional().map(FirewallRule::refresh).orElse(null);
     }
 
     @Override

@@ -5,8 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.common.cache;
 
+import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.AzureService;
 import lombok.extern.java.Log;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
@@ -71,9 +71,9 @@ public class Preloader {
     private static Object getSingleton(final Method m) {
         final Class<?> clazz = m.getDeclaringClass();
         try {
-            if (AzureService.class.isAssignableFrom(clazz)) {
+            if (AzService.class.isAssignableFrom(clazz)) {
                 //noinspection unchecked
-                return Azure.az((Class<? extends AzureService>) clazz);
+                return Azure.az((Class<? extends AzService>) clazz);
             }
             final String methodName = "getInstance";
             final Method getInstance = clazz.getDeclaredMethod(methodName);

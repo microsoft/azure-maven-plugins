@@ -31,11 +31,6 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
         return new MicrosoftSqlFirewallRule(rule, this);
     }
 
-    @Override
-    protected MicrosoftSqlFirewallRuleDraft newDraft(@Nonnull String name, String resourceGroup) {
-        return new MicrosoftSqlFirewallRuleDraft(name, resourceGroup, this);
-    }
-
     @Nonnull
     @Override
     protected Stream<SqlFirewallRule> loadResourcesFromAzure() {
@@ -56,14 +51,24 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
     }
 
     @Override
+    protected MicrosoftSqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
+        return new MicrosoftSqlFirewallRuleDraft(name, this);
+    }
+
+    @Override
+    protected MicrosoftSqlFirewallRuleDraft newDraftForUpdate(@Nonnull MicrosoftSqlFirewallRule rule) {
+        return new MicrosoftSqlFirewallRuleDraft(rule);
+    }
+
+    @Override
     protected SqlFirewallRuleOperations.SqlFirewallRuleActionsDefinition getClient() {
         return Optional.ofNullable(this.getParent().getRemote()).map(SqlServer::firewallRules).orElse(null);
     }
 
-    public void toggleAzureServiceAccess(boolean allowed) {
+    void toggleAzureServiceAccess(boolean allowed) {
         final String ruleName = IFirewallRule.AZURE_SERVICES_ACCESS_FIREWALL_RULE_NAME;
         final String rgName = this.getParent().getResourceGroupName();
-        final boolean exists = this.exists(rgName, rgName);
+        final boolean exists = this.exists(ruleName, rgName);
         if (!allowed && exists) {
             this.delete(ruleName, rgName);
         }
@@ -75,10 +80,10 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
         }
     }
 
-    public void toggleLocalMachineAccess(boolean allowed) {
+    void toggleLocalMachineAccess(boolean allowed) {
         final String ruleName = IFirewallRule.getLocalMachineAccessRuleName();
         final String rgName = this.getParent().getResourceGroupName();
-        final boolean exists = this.exists(rgName, rgName);
+        final boolean exists = this.exists(ruleName, rgName);
         if (!allowed && exists) {
             this.delete(ruleName, rgName);
         }

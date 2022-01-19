@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.database.entity;
 
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -35,6 +36,8 @@ public interface IDatabaseServer<T extends IDatabase> extends AzResourceBase {
     String getType();
 
     String getLocalMachinePublicIp();
+
+    JdbcUrl getJdbcUrl();
 
     List<T> listDatabases();
 }

@@ -27,8 +27,13 @@ public class SpringCloudDeploymentModule extends AbstractAzResourceModule<Spring
     }
 
     @Override
-    protected SpringCloudDeploymentDraft newDraft(@Nonnull String name, @Nonnull String resourceGroup) {
+    protected SpringCloudDeploymentDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
         return new SpringCloudDeploymentDraft(name, this);
+    }
+
+    @Override
+    protected SpringCloudDeploymentDraft newDraftForUpdate(@Nonnull SpringCloudDeployment deployment) {
+        return new SpringCloudDeploymentDraft(deployment);
     }
 
     @Nonnull

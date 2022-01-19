@@ -17,6 +17,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.Data;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -36,13 +37,21 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
      * @see <a href="https://azure.microsoft.com/en-us/pricing/details/spring-cloud/">Pricing - Azure Spring Cloud</a>
      */
     public static final int STANDARD_TIER_DEFAULT_DISK_SIZE = 50;
+    @Getter
+    @Nullable
+    private final SpringCloudApp origin;
     private SpringCloudDeployment activeDeployment;
     @Nullable
     private Config config;
 
     SpringCloudAppDraft(@Nonnull String name, @Nonnull SpringCloudAppModule module) {
         super(name, module);
-        this.setStatus(Status.DRAFT);
+        this.origin = null;
+    }
+
+    SpringCloudAppDraft(@Nonnull SpringCloudApp origin) {
+        super(origin);
+        this.origin = origin;
     }
 
     public void setConfig(SpringCloudAppConfig c) {
@@ -73,6 +82,9 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     @Override
     public void reset() {
         this.config = null;
+        if (this.activeDeployment instanceof Draft) {
+            ((Draft<?, ?>) this.activeDeployment).reset();
+        }
         this.activeDeployment = null;
     }
 
@@ -192,6 +204,17 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     public void setActiveDeployment(SpringCloudDeployment activeDeployment) {
         this.activeDeployment = activeDeployment;
         Optional.ofNullable(activeDeployment).map(AbstractAzResource::getName).ifPresent(this::setActiveDeploymentName);
+    }
+
+    @Override
+    public boolean isModified() {
+        final boolean notModified = Objects.isNull(this.config) ||
+            Objects.isNull(this.config.getName()) || Objects.equals(this.config.getName(), super.getName()) ||
+            Objects.isNull(this.config.getActiveDeploymentName()) || Objects.equals(this.config.getActiveDeploymentName(), super.getActiveDeploymentName()) ||
+            Objects.equals(this.isPublicEndpointEnabled(), super.isPublicEndpointEnabled()) ||
+            Objects.equals(this.isPersistentDiskEnabled(), super.isPersistentDiskEnabled()) ||
+            !(this.activeDeployment instanceof Draft) || !((SpringCloudDeploymentDraft) this.activeDeployment).isModified();
+        return !notModified;
     }
 
     /**

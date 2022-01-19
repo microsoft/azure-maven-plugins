@@ -16,17 +16,26 @@ import java.util.Collections;
 import java.util.List;
 
 public class MySqlFirewallRule extends AbstractAzResource<MySqlFirewallRule, MySqlServer, FirewallRule> implements IFirewallRule {
-    protected MySqlFirewallRule(@Nonnull FirewallRule rule, @Nonnull MySqlFirewallRuleModule module) {
-        this(rule.name(), module.getParent().getResourceGroupName(), module);
+
+    protected MySqlFirewallRule(@Nonnull String name, @Nonnull MySqlFirewallRuleModule module) {
+        super(name, module);
     }
 
-    protected MySqlFirewallRule(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull MySqlFirewallRuleModule module) {
-        super(name, resourceGroupName, module);
+    /**
+     * copy constructor
+     */
+    protected MySqlFirewallRule(@Nonnull MySqlFirewallRule origin) {
+        super(origin);
+    }
+
+    protected MySqlFirewallRule(@Nonnull FirewallRule remote, @Nonnull MySqlFirewallRuleModule module) {
+        super(remote.name(), module);
+        this.setRemote(remote);
     }
 
     @Override
-    protected void refreshRemote() {
-        this.remoteOptional().ifPresent(FirewallRule::refresh);
+    protected FirewallRule refreshRemote() {
+        return this.remoteOptional().map(FirewallRule::refresh).orElse(null);
     }
 
     @Override

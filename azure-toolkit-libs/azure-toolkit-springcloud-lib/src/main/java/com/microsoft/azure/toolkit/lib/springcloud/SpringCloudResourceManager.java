@@ -7,9 +7,7 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.azure.resourcemanager.resources.ResourceManager;
-import com.microsoft.azure.toolkit.lib.IResourceManager;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
@@ -20,14 +18,13 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-public class SpringCloudResourceManager extends AbstractAzResource<SpringCloudResourceManager, AzResource.None, AppPlatformManager>
-    implements IResourceManager<SpringCloudResourceManager, AzResource.None, AppPlatformManager> {
+public class SpringCloudResourceManager extends AbstractAzResourceManager<SpringCloudResourceManager, AppPlatformManager> {
     @Nonnull
     private final String subscriptionId;
     private final SpringCloudClusterModule clusterModule;
 
     SpringCloudResourceManager(@Nonnull String subscriptionId, AzureSpringCloud service) {
-        super(subscriptionId, AzResource.RESOURCE_GROUP_PLACEHOLDER, service);
+        super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.clusterModule = new SpringCloudClusterModule(this);
     }
@@ -41,23 +38,12 @@ public class SpringCloudResourceManager extends AbstractAzResource<SpringCloudRe
         return Collections.singletonList(clusterModule);
     }
 
-    @Nonnull
-    @Override
-    public String loadStatus(@Nonnull AppPlatformManager remote) {
-        return Status.UNKNOWN;
-    }
-
     public SpringCloudClusterModule clusters() {
         return this.clusterModule;
     }
 
     public List<Region> listSupportedRegions() {
-        return IResourceManager.super.listSupportedRegions(this.clusterModule.getName());
-    }
-
-    @Override
-    public AzureSpringCloud getService() {
-        return (AzureSpringCloud) this.getModule();
+        return super.listSupportedRegions(this.clusterModule.getName());
     }
 
     @Override

@@ -12,10 +12,10 @@ import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
@@ -24,36 +24,61 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
-@Getter
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, P extends AbstractAzResource<P, ?, ?>, R> implements AzResource<T, P, R> {
     @Nonnull
+    @Getter
     @ToString.Include
     @EqualsAndHashCode.Include
     private final String name;
     @Nonnull
+    @Getter
     @ToString.Include
     @EqualsAndHashCode.Include
     private final String resourceGroupName;
     @Nonnull
+    @Getter
     @EqualsAndHashCode.Include
     private final AbstractAzResourceModule<T, P, R> module;
-    @Nullable
-    @Getter(AccessLevel.NONE)
-    private R remote;
+    @Nonnull
+    final AtomicReference<R> remoteRef;
     @ToString.Include
-    @Getter(AccessLevel.NONE)
-    private long syncTime = -1;
+    final AtomicLong syncTimeRef;
     @ToString.Include
-    @Getter(AccessLevel.NONE)
-    private String status = Status.DISCONNECTED;
+    final AtomicReference<String> statusRef;
 
     protected AbstractAzResource(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, R> module) {
         this.name = name;
         this.resourceGroupName = resourceGroupName;
         this.module = module;
+        this.remoteRef = new AtomicReference<>();
+        this.syncTimeRef = new AtomicLong(-1);
+        this.statusRef = new AtomicReference<>("");
+    }
+
+    /**
+     * constructor for non-top resource only.
+     * {@link AbstractAzResource#getResourceGroupName() module.getParent().getResourceGroupName()} is only reliable
+     * if current resource is not root of resource hierarchy tree.
+     */
+    protected AbstractAzResource(@Nonnull String name, @Nonnull AbstractAzResourceModule<T, P, R> module) {
+        this(name, module.getParent().getResourceGroupName(), module);
+    }
+
+    /**
+     * copy constructor
+     */
+    protected AbstractAzResource(@Nonnull T origin) {
+        this.name = origin.getName();
+        this.resourceGroupName = origin.getResourceGroupName();
+        this.module = origin.getModule();
+        this.remoteRef = origin.remoteRef;
+        this.statusRef = origin.statusRef;
+        this.syncTimeRef = origin.syncTimeRef;
     }
 
     public final boolean exists() {
@@ -62,15 +87,22 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @Override
     public void refresh() {
-        this.syncTime = -1;
+        this.syncTimeRef.set(-1);
         AzureEventBus.emit("resource.status_changed.resource", this);
+        this.getSubModules().forEach(AzResourceModule::refresh);
     }
 
-    private synchronized void reload() {
+    private void reload() {
         Azure.az(IAzureAccount.class).account();
+        final long syncTime = this.syncTimeRef.get();
+        final R remote = this.remoteRef.get();
+        if (Objects.isNull(remote) && StringUtils.equals(this.statusRef.get(), Status.CREATING)) {
+            return;
+        }
         this.doModify(() -> {
             try {
-                return this.getModule().loadResourceFromAzure(this.name, this.resourceGroupName);
+                final R refreshed = syncTime > 0 && Objects.nonNull(remote) ? this.refreshRemote() : null;
+                return Objects.nonNull(refreshed) ? refreshed : this.getModule().loadResourceFromAzure(this.name, this.resourceGroupName);
             } catch (ManagementException e) {
                 if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatusCode()) {
                     return null;
@@ -78,7 +110,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
                 throw e;
             }
         }, Status.LOADING);
-        this.doModify(() -> this.getSubModules().parallelStream().forEach(AzResourceModule::refresh), Status.LOADING);
     }
 
     @Override
@@ -97,14 +128,18 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }, Status.DELETING);
     }
 
-    synchronized void setRemote(@Nullable R remote) {
-        if (this.syncTime > 0 && Objects.equals(this.remote, remote)) {
-            this.setStatus(Objects.nonNull(remote) ? this.loadStatus(remote) : Status.DISCONNECTED);
+    protected synchronized void setRemote(@Nullable R newRemote) {
+        final R oldRemote = this.remoteRef.get();
+        if (Objects.equals(oldRemote, newRemote) && Objects.isNull(newRemote)) {
+            return;
+        }
+        if (this.syncTimeRef.get() > 0 && Objects.equals(oldRemote, newRemote)) {
+            this.setStatus(this.loadStatus(newRemote));
         } else {
-            this.syncTime = System.currentTimeMillis();
-            this.remote = remote;
-            if (Objects.nonNull(remote)) {
-                this.doModifyAsync(() -> this.setStatus(this.loadStatus(remote)), Status.LOADING);
+            this.syncTimeRef.set(System.currentTimeMillis());
+            this.remoteRef.set(newRemote);
+            if (Objects.nonNull(newRemote)) {
+                this.doModifyAsync(() -> this.setStatus(this.loadStatus(newRemote)), Status.LOADING);
             } else {
                 this.setStatus(Status.DISCONNECTED);
             }
@@ -113,18 +148,18 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @Override
     @Nullable
-    public final synchronized R getRemote() {
-        if (this.syncTime < 0) {
+    public final R getRemote() {
+        if (this.syncTimeRef.get() < 0) {
             this.reload();
         }
-        return this.remote;
+        return this.remoteRef.get();
     }
 
     protected synchronized void setStatus(@Nonnull String status) {
         // TODO: state engine to manage status, e.g. DRAFT -> CREATING
-        final String oldStatus = this.status;
+        final String oldStatus = this.statusRef.get();
         if (!Objects.equals(oldStatus, status)) {
-            this.status = status;
+            this.statusRef.set(status);
             AzureEventBus.emit("resource.status_changed.resource", this);
         }
     }
@@ -132,10 +167,11 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nonnull
     public String getStatus() {
         final R remote = this.getRemote();
-        if (Objects.nonNull(remote) && Objects.isNull(this.status)) {
+        final String status = this.statusRef.get();
+        if (Objects.nonNull(remote) && Objects.isNull(status)) {
             this.setStatus(this.loadStatus(remote));
         }
-        return this.status;
+        return status;
     }
 
     @Override
@@ -149,17 +185,20 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         try {
             body.run();
             this.refreshRemote();
-            this.setRemote(this.remote);
+            this.setRemote(this.remoteRef.get());
         } catch (Throwable t) {
-            this.setStatus(Status.ERROR);
+            this.setStatus(Status.UNKNOWN);
             throw t;
         }
     }
 
-    protected void refreshRemote() {
-        if (this.remote instanceof Refreshable) {
-            ((Refreshable<?>) this.remote).refresh();
+    protected R refreshRemote() {
+        final R remote = this.remoteRef.get();
+        if (remote instanceof Refreshable) {
+            // noinspection unchecked
+            return ((Refreshable<R>) remote).refresh();
         }
+        return null;
     }
 
     protected void doModifyAsync(Runnable body, String status) {
@@ -175,7 +214,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             this.setRemote(remote);
             return remote;
         } catch (Throwable t) {
-            this.setStatus(Status.ERROR);
+            this.setStatus(Status.UNKNOWN);
             throw new AzureToolkitRuntimeException(t);
         }
     }

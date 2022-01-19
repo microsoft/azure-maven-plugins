@@ -5,17 +5,12 @@
 
 package com.microsoft.azure.toolkit.lib.postgre;
 
-import com.azure.core.util.ExpandableStringEnum;
 import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.postgresql.models.NameAvailability;
 import com.azure.resourcemanager.postgresql.models.NameAvailabilityRequest;
 import com.azure.resourcemanager.postgresql.models.PerformanceTierProperties;
-import com.azure.resourcemanager.postgresql.models.ServerVersion;
-import com.microsoft.azure.toolkit.lib.AzService;
-import com.microsoft.azure.toolkit.lib.IResourceManager;
 import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
@@ -28,14 +23,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Getter
-public class PostgreSqlResourceManager extends AbstractAzResource<PostgreSqlResourceManager, AzResource.None, PostgreSqlManager>
-    implements IResourceManager<PostgreSqlResourceManager, AzResource.None, PostgreSqlManager> {
+public class PostgreSqlResourceManager extends AbstractAzResourceManager<PostgreSqlResourceManager, PostgreSqlManager> {
     @Nonnull
     private final String subscriptionId;
     private final PostgreSqlServerModule serverModule;
 
     PostgreSqlResourceManager(@Nonnull String subscriptionId, AzurePostgreSql service) {
-        super(subscriptionId, AzResource.RESOURCE_GROUP_PLACEHOLDER, service);
+        super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.serverModule = new PostgreSqlServerModule(this);
     }
@@ -49,23 +43,12 @@ public class PostgreSqlResourceManager extends AbstractAzResource<PostgreSqlReso
         return Collections.singletonList(serverModule);
     }
 
-    @Nonnull
-    @Override
-    public String loadStatus(@Nonnull PostgreSqlManager remote) {
-        return Status.UNKNOWN;
-    }
-
     public PostgreSqlServerModule servers() {
         return this.serverModule;
     }
 
     public List<Region> listSupportedRegions() {
-        return IResourceManager.super.listSupportedRegions(this.serverModule.getName());
-    }
-
-    @Override
-    public AzService getService() {
-        return (AzurePostgreSql) this.getModule();
+        return super.listSupportedRegions(this.serverModule.getName());
     }
 
     public CheckNameAvailabilityResultEntity checkNameAvailability(@Nonnull String name) {

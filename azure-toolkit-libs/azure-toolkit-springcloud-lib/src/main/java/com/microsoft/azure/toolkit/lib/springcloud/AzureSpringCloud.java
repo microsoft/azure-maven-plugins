@@ -8,26 +8,19 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
-import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import org.apache.commons.lang3.StringUtils;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
-import java.util.stream.Stream;
 
-public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloudResourceManager, AzResource.None, AppPlatformManager>
-    implements AzService {
+public final class AzureSpringCloud extends AbstractAzService<SpringCloudResourceManager, AppPlatformManager> {
     public AzureSpringCloud() {
-        super("Microsoft.AppPlatform", AzResource.NONE); // for SPI
+        super("Microsoft.AppPlatform"); // for SPI
     }
 
     @Nonnull
@@ -35,16 +28,6 @@ public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloud
         final SpringCloudResourceManager rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getClusterModule();
-    }
-
-    public SpringCloudResourceManager forSubscription(@Nonnull String subscriptionId) {
-        return this.get(subscriptionId, null);
-    }
-
-    @Nonnull
-    protected Stream<AppPlatformManager> loadResourcesFromAzure() {
-        return Azure.az(AzureAccount.class).account().getSelectedSubscriptions().stream().parallel()
-            .map(Subscription::getId).map(i -> loadResourceFromAzure(i, null));
     }
 
     @Override
@@ -64,12 +47,5 @@ public final class AzureSpringCloud extends AbstractAzResourceModule<SpringCloud
     @Override
     protected SpringCloudResourceManager newResource(@Nonnull AppPlatformManager remote) {
         return new SpringCloudResourceManager(remote, this);
-    }
-
-    @Nonnull
-    @Override
-    public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
-        final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
-        return String.format("/subscriptions/%s/resourceGroups/%s/providers/%s", resourceName, rg, this.getName());
     }
 }

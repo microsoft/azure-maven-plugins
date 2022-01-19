@@ -8,24 +8,16 @@ package com.microsoft.azure.toolkit.lib.storage;
 import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.storage.StorageManager;
-import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
-import com.azure.resourcemanager.storage.models.Reason;
-import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Performance;
 import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,14 +25,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
-public class AzureStorageAccount extends AbstractAzResourceModule<StorageResourceManager, AzResource.None, StorageManager>
-    implements AzService {
+public class AzureStorageAccount extends AbstractAzService<StorageResourceManager, StorageManager> {
 
     public AzureStorageAccount() {
-        super("Microsoft.Storage", AzResource.NONE);
+        super("Microsoft.Storage");
     }
 
     @Nonnull
@@ -48,16 +38,6 @@ public class AzureStorageAccount extends AbstractAzResourceModule<StorageResourc
         final StorageResourceManager rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getStorageModule();
-    }
-
-    public StorageResourceManager forSubscription(@Nonnull String subscriptionId) {
-        return this.get(subscriptionId, null);
-    }
-
-    @Nonnull
-    protected Stream<StorageManager> loadResourcesFromAzure() {
-        return Azure.az(AzureAccount.class).account().getSelectedSubscriptions().stream().parallel()
-            .map(Subscription::getId).map(i -> loadResourceFromAzure(i, null));
     }
 
     @Nonnull
@@ -78,25 +58,6 @@ public class AzureStorageAccount extends AbstractAzResourceModule<StorageResourc
     @Override
     protected StorageResourceManager newResource(@Nonnull StorageManager remote) {
         return new StorageResourceManager(remote, this);
-    }
-
-    @Override
-    protected Object getClient() {
-        throw new AzureToolkitRuntimeException("not supported");
-    }
-
-    @Nonnull
-    @Override
-    public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
-        final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
-        return String.format("/subscriptions/%s/resourceGroups/%s/providers/%s", resourceName, rg, this.getName());
-    }
-
-    public CheckNameAvailabilityResultEntity checkNameAvailability(String subscriptionId, String name) {
-        final StorageManager manager = loadResourceFromAzure(subscriptionId, null);
-        CheckNameAvailabilityResult result = manager.storageAccounts().checkNameAvailability(name);
-        return new CheckNameAvailabilityResultEntity(result.isAvailable(),
-            Optional.ofNullable(result.reason()).map(Reason::toString).orElse(null), result.message());
     }
 
     public List<Performance> listSupportedPerformances() {

@@ -25,13 +25,18 @@ public class StorageAccountModule extends AbstractAzResourceModule<StorageAccoun
         return Optional.ofNullable(this.parent.getRemote()).map(StorageManager::storageAccounts).orElse(null);
     }
 
-    @Nonnull
-    protected StorageAccount newResource(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount r) {
-        return new StorageAccount(r, this);
+    @Override
+    protected StorageAccountDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
+        return new StorageAccountDraft(name, resourceGroupName, this);
     }
 
     @Override
-    protected StorageAccountDraft newDraft(@Nonnull String name, String resourceGroup) {
-        return new StorageAccountDraft(name, resourceGroup, this);
+    protected StorageAccountDraft newDraftForUpdate(@Nonnull StorageAccount account) {
+        return new StorageAccountDraft(account);
+    }
+
+    @Nonnull
+    protected StorageAccount newResource(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount r) {
+        return new StorageAccount(r, this);
     }
 }

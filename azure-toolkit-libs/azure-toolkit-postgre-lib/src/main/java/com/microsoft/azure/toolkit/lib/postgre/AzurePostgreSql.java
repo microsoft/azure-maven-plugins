@@ -10,17 +10,13 @@ import com.azure.core.management.profile.AzureProfile;
 import com.azure.core.util.ExpandableStringEnum;
 import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.postgresql.models.ServerVersion;
-import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,14 +24,12 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
-public class AzurePostgreSql extends AbstractAzResourceModule<PostgreSqlResourceManager, AzResource.None, PostgreSqlManager>
-    implements AzService {
+public class AzurePostgreSql extends AbstractAzService<PostgreSqlResourceManager, PostgreSqlManager> {
 
     public AzurePostgreSql() {
-        super("Microsoft.DBforPostgreSQL", AzResource.NONE);
+        super("Microsoft.DBforPostgreSQL");
     }
 
     @Nonnull
@@ -43,17 +37,6 @@ public class AzurePostgreSql extends AbstractAzResourceModule<PostgreSqlResource
         final PostgreSqlResourceManager rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getServerModule();
-    }
-
-    public PostgreSqlResourceManager forSubscription(@Nonnull String subscriptionId) {
-        return this.get(subscriptionId, null);
-    }
-
-    @NotNull
-    @Override
-    protected Stream<PostgreSqlManager> loadResourcesFromAzure() {
-        return Azure.az(AzureAccount.class).account().getSelectedSubscriptions().stream().parallel()
-            .map(Subscription::getId).map(i -> loadResourceFromAzure(i, null));
     }
 
     @Nullable
@@ -74,13 +57,6 @@ public class AzurePostgreSql extends AbstractAzResourceModule<PostgreSqlResource
     @Override
     protected PostgreSqlResourceManager newResource(@NotNull PostgreSqlManager manager) {
         return new PostgreSqlResourceManager(manager, this);
-    }
-
-    @Nonnull
-    @Override
-    public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
-        final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
-        return String.format("/subscriptions/%s/resourceGroups/%s/providers/%s", resourceName, rg, this.getName());
     }
 
     public List<String> listSupportedVersions() {

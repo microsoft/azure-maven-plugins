@@ -5,17 +5,12 @@
 
 package com.microsoft.azure.toolkit.lib.mysql;
 
-import com.azure.core.util.ExpandableStringEnum;
 import com.azure.resourcemanager.mysql.MySqlManager;
 import com.azure.resourcemanager.mysql.models.NameAvailability;
 import com.azure.resourcemanager.mysql.models.NameAvailabilityRequest;
 import com.azure.resourcemanager.mysql.models.PerformanceTierProperties;
-import com.azure.resourcemanager.mysql.models.ServerVersion;
-import com.microsoft.azure.toolkit.lib.AzService;
-import com.microsoft.azure.toolkit.lib.IResourceManager;
 import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
@@ -28,14 +23,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Getter
-public class MySqlResourceManager extends AbstractAzResource<MySqlResourceManager, AzResource.None, MySqlManager>
-    implements IResourceManager<MySqlResourceManager, AzResource.None, MySqlManager> {
+public class MySqlResourceManager extends AbstractAzResourceManager<MySqlResourceManager, MySqlManager> {
     @Nonnull
     private final String subscriptionId;
     private final MySqlServerModule serverModule;
 
     MySqlResourceManager(@Nonnull String subscriptionId, AzureMySql service) {
-        super(subscriptionId, AzResource.RESOURCE_GROUP_PLACEHOLDER, service);
+        super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.serverModule = new MySqlServerModule(this);
     }
@@ -49,23 +43,12 @@ public class MySqlResourceManager extends AbstractAzResource<MySqlResourceManage
         return Collections.singletonList(serverModule);
     }
 
-    @Nonnull
-    @Override
-    public String loadStatus(@Nonnull MySqlManager remote) {
-        return Status.UNKNOWN;
-    }
-
     public MySqlServerModule servers() {
         return this.serverModule;
     }
 
     public List<Region> listSupportedRegions() {
-        return IResourceManager.super.listSupportedRegions(this.serverModule.getName());
-    }
-
-    @Override
-    public AzService getService() {
-        return (AzureMySql) this.getModule();
+        return super.listSupportedRegions(this.serverModule.getName());
     }
 
     public CheckNameAvailabilityResultEntity checkNameAvailability(@Nonnull String name) {

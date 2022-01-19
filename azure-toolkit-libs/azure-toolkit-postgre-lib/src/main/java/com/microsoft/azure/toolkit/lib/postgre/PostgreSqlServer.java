@@ -37,23 +37,31 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
     private final PostgreSqlDatabaseModule databaseModule;
     private final PostgreSqlFirewallRuleModule firewallRuleModule;
 
-    protected PostgreSqlServer(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull PostgreSqlServerModule module) {
-        super(name, resourceGroup, module);
+    protected PostgreSqlServer(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull PostgreSqlServerModule module) {
+        super(name, resourceGroupName, module);
         this.databaseModule = new PostgreSqlDatabaseModule(this);
         this.firewallRuleModule = new PostgreSqlFirewallRuleModule(this);
     }
 
-    protected PostgreSqlServer(@Nonnull String name, @Nonnull PostgreSqlServerModule module) {
-        this(name, module.getParent().getResourceGroupName(), module);
+    /**
+     * copy constructor
+     */
+    public PostgreSqlServer(@Nonnull PostgreSqlServer origin) {
+        super(origin);
+        this.databaseModule = origin.databaseModule;
+        this.firewallRuleModule = origin.firewallRuleModule;
     }
 
     protected PostgreSqlServer(@Nonnull Server remote, @Nonnull PostgreSqlServerModule module) {
-        this(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
+        super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
+        this.databaseModule = new PostgreSqlDatabaseModule(this);
+        this.firewallRuleModule = new PostgreSqlFirewallRuleModule(this);
+        this.setRemote(remote);
     }
 
     @Override
-    protected void refreshRemote() {
-        this.remoteOptional().ifPresent(Server::refresh);
+    protected Server refreshRemote() {
+        return this.remoteOptional().map(Server::refresh).orElse(null);
     }
 
     @Override
@@ -164,6 +172,10 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
         }
         // Alternatively, get public IP by ping public URL
         return NetUtils.getPublicIp();
+    }
+
+    public JdbcUrl getJdbcUrl() {
+        return JdbcUrl.postgre(this.getFullyQualifiedDomainName(), "postgre");
     }
 
     @Override

@@ -11,11 +11,15 @@ import com.azure.resourcemanager.postgresql.models.Server;
 import com.azure.resourcemanager.postgresql.models.ServerPropertiesForDefaultCreate;
 import com.azure.resourcemanager.postgresql.models.ServerVersion;
 import com.azure.resourcemanager.postgresql.models.Sku;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
+import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,12 +32,20 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResource.Draft<PostgreSqlServer, Server> {
+    @Getter
+    @Nullable
+    private final PostgreSqlServer origin;
     @Nullable
     private Config config;
 
-    PostgreSqlServerDraft(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull PostgreSqlServerModule module) {
-        super(name, resourceGroup, module);
-        this.setStatus(Status.DRAFT);
+    PostgreSqlServerDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull PostgreSqlServerModule module) {
+        super(name, resourceGroupName, module);
+        this.origin = null;
+    }
+
+    PostgreSqlServerDraft(@Nonnull PostgreSqlServer origin) {
+        super(origin);
+        this.origin = origin;
     }
 
     @Override
@@ -88,15 +100,24 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
             .withExistingResourceGroup(this.getResourceGroupName())
             .withProperties(parameters)
             .withSku(sku);
-        final Server remote = this.doModify(() -> create.create(), Status.CREATING);
-        this.firewallRules().toggleAzureServiceAccess(this.isAzureServiceAccessAllowed());
-        this.firewallRules().toggleLocalMachineAccess(this.isLocalMachineAccessAllowed());
-        return remote;
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Start creating PostgreSQL server ({0})...", this.getName()));
+        final Server remote = create.create();
+        messager.success(AzureString.format("PostgreSQL server({0}) is successfully created.", this.getName()));
+        return this.updateResourceInAzure(remote);
     }
 
     @Override
     public Server updateResourceInAzure(@Nonnull Server origin) {
-        throw new AzureToolkitRuntimeException("not supported");
+        if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
+            this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
+            final IAzureMessager messager = AzureMessager.getMessager();
+            messager.info(AzureString.format("Start updating firewall rules of PostgreSQL server ({0})...", this.getName()));
+            this.firewallRules().toggleAzureServiceAccess(this.isAzureServiceAccessAllowed());
+            this.firewallRules().toggleLocalMachineAccess(this.isLocalMachineAccessAllowed());
+            messager.success(AzureString.format("Firewall rules of PostgreSQL server({0}) is successfully updated.", this.getName()));
+        }
+        return origin;
     }
 
     private synchronized Config ensureConfig() {
@@ -164,6 +185,20 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
 
     public void setAzureServiceAccessAllowed(boolean allowed) {
         this.ensureConfig().setAzureServiceAccessAllowed(allowed);
+    }
+
+    @Override
+    public boolean isModified() {
+        final boolean notModified = Objects.isNull(this.config) ||
+            Objects.equals(this.config.isLocalMachineAccessAllowed(), super.isLocalMachineAccessAllowed()) ||
+            Objects.equals(this.config.isAzureServiceAccessAllowed(), super.isAzureServiceAccessAllowed()) ||
+            Objects.isNull(this.config.getAdminPassword()) ||
+            Objects.isNull(this.config.getAdminName()) || Objects.equals(this.config.getAdminName(), super.getAdminName()) ||
+            Objects.isNull(this.config.getRegion()) || Objects.equals(this.config.getRegion(), super.getRegion()) ||
+            Objects.isNull(this.config.getVersion()) || Objects.equals(this.config.getVersion(), super.getVersion()) ||
+            Objects.isNull(this.config.getFullyQualifiedDomainName()) ||
+            Objects.equals(this.config.getFullyQualifiedDomainName(), super.getFullyQualifiedDomainName());
+        return !notModified;
     }
 
     @Data

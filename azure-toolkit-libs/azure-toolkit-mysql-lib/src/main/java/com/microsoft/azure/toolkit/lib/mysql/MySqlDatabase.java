@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.mysql;
 import com.azure.resourcemanager.mysql.models.Database;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
 
 import javax.annotation.Nonnull;
@@ -16,17 +17,18 @@ import java.util.List;
 
 public class MySqlDatabase extends AbstractAzResource<MySqlDatabase, MySqlServer, Database> implements IDatabase {
 
-    protected MySqlDatabase(Database database, MySqlDatabaseModule module) {
-        this(database.name(), module.getParent().getResourceGroupName(), module);
+    protected MySqlDatabase(@Nonnull String name, @Nonnull MySqlDatabaseModule module) {
+        super(name, module);
     }
 
-    protected MySqlDatabase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull MySqlDatabaseModule module) {
-        super(name, resourceGroupName, module);
+    protected MySqlDatabase(@Nonnull Database remote, @Nonnull MySqlDatabaseModule module) {
+        super(remote.name(), module);
+        this.setRemote(remote);
     }
 
     @Override
-    protected void refreshRemote() {
-        this.remoteOptional().ifPresent(Database::refresh);
+    protected Database refreshRemote() {
+        return this.remoteOptional().map(Database::refresh).orElse(null);
     }
 
     @Override
@@ -52,5 +54,9 @@ public class MySqlDatabase extends AbstractAzResource<MySqlDatabase, MySqlServer
 
     public String getCharset() {
         return this.remoteOptional().map(Database::charset).orElse(null);
+    }
+
+    public JdbcUrl getJdbcUrl() {
+        return JdbcUrl.mysql(this.getParent().getFullyQualifiedDomainName(), this.getName());
     }
 }

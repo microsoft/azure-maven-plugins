@@ -9,7 +9,6 @@ import com.azure.resourcemanager.storage.StorageManager;
 import com.azure.resourcemanager.storage.models.SkuName;
 import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -21,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.storage.model.Performance;
 import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountConfig;
 import lombok.Data;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -29,12 +29,20 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class StorageAccountDraft extends StorageAccount implements AzResource.Draft<StorageAccount, com.azure.resourcemanager.storage.models.StorageAccount> {
+    @Getter
+    @Nullable
+    private final StorageAccount origin;
     @Nullable
     private Config config;
 
-    StorageAccountDraft(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull StorageAccountModule module) {
-        super(name, resourceGroup, module);
-        this.setStatus(IAzureBaseResource.Status.DRAFT);
+    StorageAccountDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull StorageAccountModule module) {
+        super(name, resourceGroupName, module);
+        this.origin = null;
+    }
+
+    StorageAccountDraft(@Nonnull StorageAccount origin) {
+        super(origin);
+        this.origin = origin;
     }
 
     @Override
@@ -65,9 +73,9 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
             withCreate = withCreate.withGeneralPurposeAccountKindV2();
         }
         final IAzureMessager messager = AzureMessager.getMessager();
-        messager.info(AzureString.format("Start creating Redis Cache({0})...", name));
+        messager.info(AzureString.format("Start creating Storage Account({0})...", name));
         final com.azure.resourcemanager.storage.models.StorageAccount account = withCreate.create();
-        messager.success(AzureString.format("Redis Cache({0}) is successfully created.", name));
+        messager.success(AzureString.format("Storage Account({0}) is successfully created.", name));
         return account;
     }
 
@@ -136,6 +144,17 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
 
     public void setAccessTier(@Nonnull AccessTier tier) {
         this.ensureConfig().setAccessTier(tier);
+    }
+
+    @Override
+    public boolean isModified() {
+        final boolean notModified = Objects.isNull(this.config) ||
+            Objects.isNull(this.config.getRegion()) || Objects.equals(this.config.getRegion(), super.getRegion()) ||
+            Objects.isNull(this.config.getPerformance()) || Objects.equals(this.config.getPerformance(), super.getPerformance()) ||
+            Objects.isNull(this.config.getKind()) || Objects.equals(this.config.getKind(), super.getKind()) ||
+            Objects.isNull(this.config.getRedundancy()) || Objects.equals(this.config.getRedundancy(), super.getRedundancy()) ||
+            Objects.isNull(this.config.getAccessTier()) || Objects.equals(this.config.getAccessTier(), super.getAccessTier());
+        return !notModified;
     }
 
     /**

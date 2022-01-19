@@ -31,11 +31,6 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
         return new PostgreSqlFirewallRule(rule, this);
     }
 
-    @Override
-    protected PostgreSqlFirewallRuleDraft newDraft(@Nonnull String name, String resourceGroup) {
-        return new PostgreSqlFirewallRuleDraft(name, resourceGroup, this);
-    }
-
     @Nonnull
     @Override
     protected Stream<FirewallRule> loadResourcesFromAzure() {
@@ -45,15 +40,24 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
     @Nullable
     @Override
     protected FirewallRule loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
-        return this.getClient().get(fixResourceGroup(resourceGroup), this.getParent().getName(), name);
+        return this.getClient().get(this.getParent().getResourceGroupName(), this.getParent().getName(), name);
     }
 
     @Override
     protected void deleteResourceFromAzure(@Nonnull String id) {
         final ResourceId resourceId = ResourceId.fromString(id);
         final String name = resourceId.name();
-        final String resourceGroup = resourceId.resourceGroupName();
-        this.getClient().delete(fixResourceGroup(resourceGroup), this.getParent().getName(), name);
+        this.getClient().delete(this.getParent().getResourceGroupName(), this.getParent().getName(), name);
+    }
+
+    @Override
+    protected PostgreSqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
+        return new PostgreSqlFirewallRuleDraft(name, this);
+    }
+
+    @Override
+    protected PostgreSqlFirewallRuleDraft newDraftForUpdate(@Nonnull PostgreSqlFirewallRule postgreSqlFirewallRule) {
+        return new PostgreSqlFirewallRuleDraft(postgreSqlFirewallRule);
     }
 
     @Override
@@ -61,10 +65,10 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
         return Optional.ofNullable(this.getParent().getParent().getRemote()).map(PostgreSqlManager::firewallRules).orElse(null);
     }
 
-    public void toggleAzureServiceAccess(boolean allowed) {
+    void toggleAzureServiceAccess(boolean allowed) {
         final String ruleName = IFirewallRule.AZURE_SERVICES_ACCESS_FIREWALL_RULE_NAME;
         final String rgName = this.getParent().getResourceGroupName();
-        final boolean exists = this.exists(rgName, rgName);
+        final boolean exists = this.exists(ruleName, rgName);
         if (!allowed && exists) {
             this.delete(ruleName, rgName);
         }
@@ -76,10 +80,10 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
         }
     }
 
-    public void toggleLocalMachineAccess(boolean allowed) {
+    void toggleLocalMachineAccess(boolean allowed) {
         final String ruleName = IFirewallRule.getLocalMachineAccessRuleName();
         final String rgName = this.getParent().getResourceGroupName();
-        final boolean exists = this.exists(rgName, rgName);
+        final boolean exists = this.exists(ruleName, rgName);
         if (!allowed && exists) {
             this.delete(ruleName, rgName);
         }
