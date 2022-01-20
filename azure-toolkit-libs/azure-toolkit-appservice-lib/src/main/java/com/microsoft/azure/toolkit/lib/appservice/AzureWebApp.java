@@ -16,7 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +26,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-@Slf4j
+@Log4j2
 public class AzureWebApp extends AbstractAzureResourceModule<WebApp> implements AzureOperationEvent.Source<AzureWebApp> {
     public AzureWebApp() { // for SPI
         super(AzureWebApp::new);
@@ -42,9 +42,9 @@ public class AzureWebApp extends AbstractAzureResourceModule<WebApp> implements 
     public List<WebApp> list(@NotNull String sid, boolean... force) {
         final AppServiceManager azureResourceManager = getAppServiceManager(sid);
         return azureResourceManager.webApps().list().stream().parallel()
-                .filter(webAppBasic -> !StringUtils.containsIgnoreCase(webAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
-                .map(webAppBasic -> get(webAppBasic.id()))
-                .collect(Collectors.toList());
+            .filter(webAppBasic -> !StringUtils.containsIgnoreCase(webAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
+            .map(webAppBasic -> get(webAppBasic.id()))
+            .collect(Collectors.toList());
     }
 
     @NotNull
@@ -59,8 +59,8 @@ public class AzureWebApp extends AbstractAzureResourceModule<WebApp> implements 
     @AzureOperation(name = "webapp.list_runtimes.os|version", params = {"os.getValue()", "version.getValue()"}, type = AzureOperation.Type.SERVICE)
     public List<Runtime> listWebAppRuntimes(@Nonnull OperatingSystem os, @Nonnull JavaVersion version) {
         return Runtime.WEBAPP_RUNTIME.stream()
-                .filter(runtime -> Objects.equals(os, runtime.getOperatingSystem()) && Objects.equals(version, runtime.getJavaVersion()))
-                .collect(Collectors.toList());
+            .filter(runtime -> Objects.equals(os, runtime.getOperatingSystem()) && Objects.equals(version, runtime.getJavaVersion()))
+            .collect(Collectors.toList());
     }
 
     // todo: share codes within app service module

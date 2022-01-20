@@ -21,7 +21,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Delegate;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import lombok.var;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +43,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Slf4j
+@Log4j2
 public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     implements AzResource.Draft<SpringCloudDeployment, SpringAppDeployment>, InvocationHandler {
 

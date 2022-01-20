@@ -15,11 +15,10 @@ import com.microsoft.azure.toolkit.lib.legacy.function.handlers.CommandHandlerIm
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreToolsHandler;
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreToolsHandlerImpl;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
@@ -29,11 +28,18 @@ import java.lang.reflect.Parameter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+@Log4j2
 public class DefaultFunctionProject extends FunctionProject {
-    private static final Logger log = LoggerFactory.getLogger(DefaultFunctionProject.class);
 
     @Override
     public List<FunctionMethod> findAnnotatedMethods() {
@@ -61,7 +67,7 @@ public class DefaultFunctionProject extends FunctionProject {
         final CommandHandler commandHandler = new CommandHandlerImpl();
         final FunctionCoreToolsHandler functionCoreToolsHandler = getFunctionCoreToolsHandler(commandHandler);
         functionCoreToolsHandler.installExtension(getStagingFolder(),
-                getBaseDirectory());
+            getBaseDirectory());
     }
 
     private static FunctionCoreToolsHandler getFunctionCoreToolsHandler(final CommandHandler commandHandler) {
@@ -89,11 +95,11 @@ public class DefaultFunctionProject extends FunctionProject {
 
     private static Set<Method> findFunctions(final List<URL> urls) {
         return new Reflections(
-                new ConfigurationBuilder()
-                        .addUrls(urls)
-                        .setScanners(Scanners.MethodsAnnotated)
-                        .addClassLoaders(getClassLoader(urls)))
-                .getMethodsAnnotatedWith(FunctionName.class);
+            new ConfigurationBuilder()
+                .addUrls(urls)
+                .setScanners(Scanners.MethodsAnnotated)
+                .addClassLoaders(getClassLoader(urls)))
+            .getMethodsAnnotatedWith(FunctionName.class);
     }
 
     private static ClassLoader getClassLoader(final List<URL> urlList) {
@@ -114,13 +120,13 @@ public class DefaultFunctionProject extends FunctionProject {
         functionMethod.setName(method.getName());
         functionMethod.setReturnTypeName(method.getReturnType().getCanonicalName());
         functionMethod.setAnnotations(method.getAnnotations() == null ? Collections.emptyList() :
-                Arrays.stream(method.getAnnotations()).map(DefaultFunctionProject::create).collect(Collectors.toList()));
+            Arrays.stream(method.getAnnotations()).map(DefaultFunctionProject::create).collect(Collectors.toList()));
 
         List<FunctionAnnotation[]> parameterAnnotations = Arrays.stream(method.getParameters())
-                .map(Parameter::getAnnotations).filter(Objects::nonNull)
-                .map(a -> Arrays.stream(a)
-                        .map(DefaultFunctionProject::create)
-                        .collect(Collectors.toList()).toArray(new FunctionAnnotation[0])).collect(Collectors.toList());
+            .map(Parameter::getAnnotations).filter(Objects::nonNull)
+            .map(a -> Arrays.stream(a)
+                .map(DefaultFunctionProject::create)
+                .collect(Collectors.toList()).toArray(new FunctionAnnotation[0])).collect(Collectors.toList());
 
         functionMethod.setParameterAnnotations(parameterAnnotations);
         functionMethod.setDeclaringTypeName(method.getDeclaringClass().getCanonicalName());
@@ -140,8 +146,8 @@ public class DefaultFunctionProject extends FunctionProject {
                 }
             } catch (IllegalAccessException | InvocationTargetException e) {
                 throw new AzureToolkitRuntimeException(String.format("Cannot invoke method '%s' for annotation class '%s'",
-                        method.getName(),
-                        annotation.getClass().getSimpleName()
+                    method.getName(),
+                    annotation.getClass().getSimpleName()
                 ), e);
             }
         }

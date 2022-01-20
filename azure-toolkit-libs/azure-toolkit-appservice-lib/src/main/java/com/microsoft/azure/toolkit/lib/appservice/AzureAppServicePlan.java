@@ -13,7 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-@Slf4j
+@Log4j2
 public class AzureAppServicePlan extends AbstractAzureResourceModule<AppServicePlan> implements AzureOperationEvent.Source<AzureAppServicePlan> {
 
     public AzureAppServicePlan() { // for SPI
@@ -54,18 +54,18 @@ public class AzureAppServicePlan extends AbstractAzureResourceModule<AppServiceP
     public List<AppServicePlan> list(@NotNull String subscriptionId, boolean... force) {
         final AppServiceManager azureResourceManager = getAppServiceManager(subscriptionId);
         return azureResourceManager.appServicePlans().list().stream().parallel()
-                .map(appServicePlan -> get(appServicePlan.id()))
-                .collect(Collectors.toList());
+            .map(appServicePlan -> get(appServicePlan.id()))
+            .collect(Collectors.toList());
     }
 
     @Cacheable(cacheName = "appservice/rg/{}/plans", key = "$rg", condition = "!(force&&force[0])")
     @AzureOperation(name = "appservice.list_plans.rg", params = "rg", type = AzureOperation.Type.SERVICE)
     public List<AppServicePlan> appServicePlansByResourceGroup(String rg, boolean... force) {
         return getSubscriptions().stream().parallel()
-                .map(subscription -> getAppServiceManager(subscription.getId()))
-                .flatMap(azureResourceManager -> azureResourceManager.appServicePlans().listByResourceGroup(rg).stream()
-                        .map(appServicePlan -> new AppServicePlan(appServicePlan, azureResourceManager)))
-                .collect(Collectors.toList());
+            .map(subscription -> getAppServiceManager(subscription.getId()))
+            .flatMap(azureResourceManager -> azureResourceManager.appServicePlans().listByResourceGroup(rg).stream()
+                .map(appServicePlan -> new AppServicePlan(appServicePlan, azureResourceManager)))
+            .collect(Collectors.toList());
     }
 
     @NotNull
