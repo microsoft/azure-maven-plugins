@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.common.utils;
 
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
@@ -23,7 +23,7 @@ import java.util.Map;
  * copied from: https://github.com/microsoft/azure-tools-for-java/blob/
  * 0efe5e430305369e17dadc214c256cbb4a906372/Utils/azuretools-core/src/com/microsoft/azuretools/utils/CommandUtils.java
  */
-@Slf4j
+@Log4j2
 public class CommandUtils {
     private static final String WINDOWS_STARTER = "cmd.exe";
     private static final String LINUX_MAC_STARTER = "/bin/sh";
@@ -66,7 +66,7 @@ public class CommandUtils {
     }
 
     private static String executeCommandAndGetOutput(final String starter, final String switcher, final String commandWithArgs,
-                                                    final File directory, Map<String, String> env, boolean mergeErrorStream) throws IOException {
+                                                     final File directory, Map<String, String> env, boolean mergeErrorStream) throws IOException {
         final CommandLine commandLine = new CommandLine(starter);
         commandLine.addArgument(switcher, false);
         commandLine.addArgument(commandWithArgs, false);
@@ -81,7 +81,7 @@ public class CommandUtils {
         final DefaultExecutor executor = new DefaultExecutor();
         executor.setWorkingDirectory(directory);
         executor.setStreamHandler(streamHandler);
-        executor.setExitValues(new int[] {0});
+        executor.setExitValues(new int[]{0});
         try {
             Map<String, String> newEnv = new HashMap<>(System.getenv());
             if (env != null) {

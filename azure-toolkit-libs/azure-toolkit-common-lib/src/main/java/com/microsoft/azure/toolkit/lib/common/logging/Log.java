@@ -5,57 +5,54 @@
 
 package com.microsoft.azure.toolkit.lib.common.logging;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-
+@Log4j2
 public final class Log {
-    private static Logger logger = LoggerFactory.getLogger(Log.class);
-
     public static void error(String message) {
-        logger.error(message);
+        log.error(message);
     }
 
     public static void error(Exception error) {
-        logger.error(getErrorDetail(error));
+        log.error(getErrorDetail(error));
     }
 
     public static void info(String message) {
-        logger.info(message);
+        log.info(message);
     }
 
     public static void info(Exception error) {
-        logger.info(getErrorDetail(error));
+        log.info(getErrorDetail(error));
     }
 
     public static void debug(String message) {
-        logger.debug(message);
+        log.debug(message);
     }
 
     public static void debug(Exception error) {
-        logger.debug(getErrorDetail(error));
+        log.debug(getErrorDetail(error));
     }
 
     public static void warn(String message) {
-        logger.warn(message);
+        log.warn(message);
     }
 
     public static void warn(Exception error) {
-        logger.warn(getErrorDetail(error));
+        log.warn(getErrorDetail(error));
     }
 
     public static boolean isDebugEnabled() {
-        return logger.isDebugEnabled();
+        return log.isDebugEnabled();
     }
 
     public static void prompt(String message) {
         // legacy code for prompt, will be replaced by new method: Notifier.noticeUser later
-        if (logger.isInfoEnabled()) {
-            logger.info(message);
+        if (log.isInfoEnabled()) {
+            log.info(message);
         } else {
             System.out.println(message);
         }

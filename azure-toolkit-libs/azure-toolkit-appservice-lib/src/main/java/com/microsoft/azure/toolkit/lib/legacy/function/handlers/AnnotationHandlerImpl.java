@@ -15,7 +15,7 @@ import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingEnum;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingFactory;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.Retry;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
@@ -36,21 +36,21 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-@Slf4j
+@Log4j2
 @Deprecated
 public class AnnotationHandlerImpl implements AnnotationHandler {
 
     private static final String MULTI_RETRY_ANNOTATION = "Fixed delay retry and exponential backoff retry are not compatible, " +
-            "please use either of them for one trigger";
+        "please use either of them for one trigger";
 
     @Override
     public Set<Method> findFunctions(final List<URL> urls) {
         return new Reflections(
-                new ConfigurationBuilder()
-                        .addUrls(urls)
-                        .setScanners(Scanners.MethodsAnnotated)
-                        .addClassLoaders(getClassLoader(urls)))
-                .getMethodsAnnotatedWith(FunctionName.class);
+            new ConfigurationBuilder()
+                .addUrls(urls)
+                .setScanners(Scanners.MethodsAnnotated)
+                .addClassLoaders(getClassLoader(urls)))
+            .getMethodsAnnotatedWith(FunctionName.class);
     }
 
     protected ClassLoader getClassLoader(final List<URL> urlList) {
@@ -122,7 +122,7 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
             bindings.addAll(parseAnnotations(method::getAnnotations, this::parseMethodAnnotation));
 
             if (bindings.stream().anyMatch(b -> b.getBindingEnum() == BindingEnum.HttpTrigger) &&
-                    bindings.stream().noneMatch(b -> b.getName().equalsIgnoreCase("$return"))) {
+                bindings.stream().noneMatch(b -> b.getName().equalsIgnoreCase("$return"))) {
                 bindings.add(BindingFactory.getHTTPOutBinding());
             }
         }
@@ -157,16 +157,16 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
 
     protected void patchStorageBinding(final Method method, final List<Binding> bindings) {
         final Optional<Annotation> storageAccount = Arrays.stream(method.getAnnotations())
-                .filter(annotation -> annotation instanceof StorageAccount)
-                .findFirst();
+            .filter(annotation -> annotation instanceof StorageAccount)
+            .findFirst();
 
         if (storageAccount.isPresent()) {
             log.debug("StorageAccount annotation found.");
             final String connectionString = ((StorageAccount) storageAccount.get()).value();
             // Replace empty connection string
             bindings.stream().filter(binding -> binding.getBindingEnum().isStorage())
-                    .filter(binding -> StringUtils.isEmpty((String) binding.getAttribute("connection")))
-                    .forEach(binding -> binding.setAttribute("connection", connectionString));
+                .filter(binding -> StringUtils.isEmpty((String) binding.getAttribute("connection")))
+                .forEach(binding -> binding.setAttribute("connection", connectionString));
         } else {
             log.debug("No StorageAccount annotation found.");
         }

@@ -13,7 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-@Slf4j
+@Log4j2
 public class AzureFunction extends AbstractAzureResourceModule<FunctionApp> implements AzureOperationEvent.Source<AzureFunction> {
     public AzureFunction() { // for SPI
         super(AzureFunction::new);
@@ -38,10 +38,10 @@ public class AzureFunction extends AbstractAzureResourceModule<FunctionApp> impl
     public List<FunctionApp> list(@NotNull String sid, boolean... force) {
         final AppServiceManager azureResourceManager = getAppServiceManager(sid);
         return azureResourceManager
-                .functionApps().list().stream().parallel()
-                .filter(functionAppBasic -> StringUtils.containsIgnoreCase(functionAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
-                .map(functionAppBasic -> get(functionAppBasic.id()))
-                .collect(Collectors.toList());
+            .functionApps().list().stream().parallel()
+            .filter(functionAppBasic -> StringUtils.containsIgnoreCase(functionAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
+            .map(functionAppBasic -> get(functionAppBasic.id()))
+            .collect(Collectors.toList());
     }
 
     @NotNull

@@ -32,7 +32,7 @@ import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import io.jsonwebtoken.lang.Collections;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.RandomUtils;
@@ -47,9 +47,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Slf4j
+@Log4j2
 public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appservice.models.FunctionApp, FunctionAppEntity>
-        implements IFunctionAppBase<FunctionAppEntity> {
+    implements IFunctionAppBase<FunctionAppEntity> {
     public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8;
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     private final AppServiceManager azureClient;
@@ -60,7 +60,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     }
 
     public FunctionApp(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name,
-                  @Nonnull final AppServiceManager azureClient) {
+                       @Nonnull final AppServiceManager azureClient) {
         super(subscriptionId, resourceGroup, name);
         this.azureClient = azureClient;
     }
@@ -90,17 +90,17 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     @Cacheable(cacheName = "appservice/functionapp/{}/slots", key = "${this.name()}", condition = "!(force&&force[0])")
     public List<FunctionAppDeploymentSlot> deploymentSlots(boolean... force) {
         return remote().deploymentSlots().list().stream().parallel()
-                .map(functionSlotBasic -> deploymentSlot(functionSlotBasic.name()))
-                .collect(Collectors.toList());
+            .map(functionSlotBasic -> deploymentSlot(functionSlotBasic.name()))
+            .collect(Collectors.toList());
     }
 
     @Cacheable(cacheName = "appservice/functionapp/{}/functions", key = "${this.name()}", condition = "!(force&&force[0])")
     public List<FunctionEntity> listFunctions(boolean... force) {
         return azureClient.functionApps()
-                .listFunctions(resourceGroup, name).stream()
-                .map(AppServiceUtils::fromFunctionAppEnvelope)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+            .listFunctions(resourceGroup, name).stream()
+            .map(AppServiceUtils::fromFunctionAppEnvelope)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
 
     public void triggerFunction(String functionName, Object input) {
@@ -223,15 +223,15 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
 
         WithCreate createWindowsFunctionApp(Blank blank, com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan, Runtime runtime) {
             return (WithCreate) blank.withExistingAppServicePlan(appServicePlan)
-                    .withExistingResourceGroup(resourceGroup)
-                    .withJavaVersion(AppServiceUtils.toJavaVersion(runtime.getJavaVersion()))
-                    .withWebContainer(null);
+                .withExistingResourceGroup(resourceGroup)
+                .withJavaVersion(AppServiceUtils.toJavaVersion(runtime.getJavaVersion()))
+                .withWebContainer(null);
         }
 
         WithCreate createLinuxFunctionApp(Blank blank, com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan, Runtime runtime) {
             return blank.withExistingLinuxAppServicePlan(appServicePlan)
-                    .withExistingResourceGroup(resourceGroup)
-                    .withBuiltInImage(AppServiceUtils.toFunctionRuntimeStack(runtime));
+                .withExistingResourceGroup(resourceGroup)
+                .withBuiltInImage(AppServiceUtils.toFunctionRuntimeStack(runtime));
         }
 
         WithCreate createDockerFunctionApp(Blank blank, com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan,
@@ -241,21 +241,21 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
                 throw new AzureToolkitRuntimeException("Docker function is not supported in consumption service plan");
             }
             final WithDockerContainerImage withLinuxAppFramework =
-                    blank.withExistingLinuxAppServicePlan(appServicePlan).withExistingResourceGroup(resourceGroup);
+                blank.withExistingLinuxAppServicePlan(appServicePlan).withExistingResourceGroup(resourceGroup);
             WithCreate withCreate;
             if (StringUtils.isAllEmpty(dockerConfiguration.getUserName(), dockerConfiguration.getPassword())) {
                 withCreate = withLinuxAppFramework.withPublicDockerHubImage(dockerConfiguration.getImage());
             } else if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
                 withCreate = withLinuxAppFramework.withPrivateDockerHubImage(dockerConfiguration.getImage())
-                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+                    .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             } else {
                 withCreate = withLinuxAppFramework.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
-                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+                    .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             }
             final String decryptionKey = generateDecryptionKey();
             return (WithCreate) withCreate.withAppSetting(APP_SETTING_MACHINEKEY_DECRYPTION_KEY, decryptionKey)
-                    .withAppSetting(APP_SETTING_WEBSITES_ENABLE_APP_SERVICE_STORAGE, APP_SETTING_DISABLE_WEBSITES_APP_SERVICE_STORAGE)
-                    .withAppSetting(APP_SETTING_FUNCTION_APP_EDIT_MODE, APP_SETTING_FUNCTION_APP_EDIT_MODE_READONLY);
+                .withAppSetting(APP_SETTING_WEBSITES_ENABLE_APP_SERVICE_STORAGE, APP_SETTING_DISABLE_WEBSITES_APP_SERVICE_STORAGE)
+                .withAppSetting(APP_SETTING_FUNCTION_APP_EDIT_MODE, APP_SETTING_FUNCTION_APP_EDIT_MODE_READONLY);
         }
 
         protected String generateDecryptionKey() {
@@ -305,8 +305,8 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
             final String servicePlanId = remote().appServicePlanId();
             final AppServicePlanEntity currentServicePlan = Azure.az(AzureAppServicePlan.class).get(servicePlanId).entity();
             if (StringUtils.equalsIgnoreCase(currentServicePlan.getId(), newServicePlan.getId()) ||
-                    (StringUtils.equalsIgnoreCase(currentServicePlan.getName(), newServicePlan.getName()) &&
-                            StringUtils.equalsIgnoreCase(currentServicePlan.getResourceGroup(), newServicePlan.getResourceGroup()))) {
+                (StringUtils.equalsIgnoreCase(currentServicePlan.getName(), newServicePlan.getName()) &&
+                    StringUtils.equalsIgnoreCase(currentServicePlan.getResourceGroup(), newServicePlan.getResourceGroup()))) {
                 return update;
             }
             final AppServicePlan newPlanServiceModel = AppServiceUtils.getAppServicePlan(newServicePlan, azureClient);
@@ -342,10 +342,10 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
                 return update.withPublicDockerHubImage(dockerConfiguration.getImage());
             } else if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
                 return update.withPrivateDockerHubImage(dockerConfiguration.getImage())
-                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+                    .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             } else {
                 return update.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
-                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+                    .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             }
         }
 
@@ -354,7 +354,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
                 final JavaVersion javaVersion = Optional.ofNullable(newRuntime.getJavaVersion()).orElse(DEFAULT_JAVA_VERSION);
                 return (Update) update.withJavaVersion(AppServiceUtils.toJavaVersion(javaVersion)).withWebContainer(null);
             } else if (ObjectUtils.notEqual(newRuntime.getJavaVersion(), JavaVersion.OFF) &&
-                    ObjectUtils.notEqual(newRuntime.getJavaVersion(), currentRuntime.getJavaVersion())) {
+                ObjectUtils.notEqual(newRuntime.getJavaVersion(), currentRuntime.getJavaVersion())) {
                 return (Update) update.withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime.getJavaVersion())).withWebContainer(null);
             } else {
                 return update;

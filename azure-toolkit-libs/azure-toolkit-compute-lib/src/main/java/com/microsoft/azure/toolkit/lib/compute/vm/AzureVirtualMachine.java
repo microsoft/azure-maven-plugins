@@ -11,6 +11,7 @@ import com.azure.resourcemanager.compute.models.ComputeResourceType;
 import com.azure.resourcemanager.compute.models.KnownLinuxVirtualMachineImage;
 import com.azure.resourcemanager.compute.models.KnownWindowsVirtualMachineImage;
 import com.azure.resourcemanager.compute.models.VirtualMachines;
+import com.microsoft.azure.toolkit.lib.AbstractAzureResourceModule;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
@@ -18,8 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.AbstractAzureResourceModule;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -29,15 +29,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Slf4j
+@Log4j2
 public class AzureVirtualMachine extends AbstractAzureResourceModule<VirtualMachine> implements AzureOperationEvent.Source<AzureVirtualMachine> {
 
     private static final List<AzureImage> linuxImages =
-            Arrays.stream(KnownLinuxVirtualMachineImage.values()).map(AzureImage::new).collect(Collectors.toList());
+        Arrays.stream(KnownLinuxVirtualMachineImage.values()).map(AzureImage::new).collect(Collectors.toList());
     private static final List<AzureImage> windowsImages =
-            Arrays.stream(KnownWindowsVirtualMachineImage.values()).map(AzureImage::new).collect(Collectors.toList());
+        Arrays.stream(KnownWindowsVirtualMachineImage.values()).map(AzureImage::new).collect(Collectors.toList());
     private static final List<AzureImage> images =
-            Collections.unmodifiableList(Stream.of(linuxImages, windowsImages).flatMap(List::stream).collect(Collectors.toList()));
+        Collections.unmodifiableList(Stream.of(linuxImages, windowsImages).flatMap(List::stream).collect(Collectors.toList()));
 
     public AzureVirtualMachine() { // for SPI
         super(AzureVirtualMachine::new);
@@ -51,7 +51,7 @@ public class AzureVirtualMachine extends AbstractAzureResourceModule<VirtualMach
     public List<VirtualMachine> list(@Nonnull final String subscriptionId, boolean... force) {
         final VirtualMachines virtualMachines = getVirtualMachinesManager(subscriptionId);
         return virtualMachines.list().stream()
-                .map(vm -> new VirtualMachine(vm, this)).collect(Collectors.toList());
+            .map(vm -> new VirtualMachine(vm, this)).collect(Collectors.toList());
     }
 
     @Nonnull
@@ -74,7 +74,7 @@ public class AzureVirtualMachine extends AbstractAzureResourceModule<VirtualMach
 
     public List<AzureImagePublisher> publishers(final String subscriptionId, final Region region) {
         return getVirtualMachinesManager(subscriptionId).manager().virtualMachineImages()
-                .publishers().listByRegion(region.getName()).stream().map(AzureImagePublisher::new).collect(Collectors.toList());
+            .publishers().listByRegion(region.getName()).stream().map(AzureImagePublisher::new).collect(Collectors.toList());
     }
 
     public List<AzureVirtualMachineSize> listPricing(final Region region) {
@@ -83,8 +83,8 @@ public class AzureVirtualMachine extends AbstractAzureResourceModule<VirtualMach
 
     public List<AzureVirtualMachineSize> listPricing(final String subscriptionId, final Region region) {
         return getVirtualMachinesManager(subscriptionId).manager().computeSkus()
-                .listByRegionAndResourceType(com.azure.core.management.Region.fromName(region.getName()), ComputeResourceType.VIRTUALMACHINES).stream()
-                .map(AzureVirtualMachineSize::new).collect(Collectors.toList());
+            .listByRegionAndResourceType(com.azure.core.management.Region.fromName(region.getName()), ComputeResourceType.VIRTUALMACHINES).stream()
+            .map(AzureVirtualMachineSize::new).collect(Collectors.toList());
     }
 
     public List<AzureImage> getKnownImages() {

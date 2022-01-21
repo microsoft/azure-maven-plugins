@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.artifact;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 
@@ -21,7 +21,7 @@ import java.nio.file.Paths;
 /**
  * Utility class to upload directory to FTP server
  */
-@Slf4j
+@Log4j2
 public class FTPUploader {
     public static final String UPLOAD_START = "Uploading files to FTP server: ";
     public static final String UPLOAD_SUCCESS = "Successfully uploaded files to FTP server: ";
@@ -58,6 +58,7 @@ public class FTPUploader {
 
     /**
      * Upload directory to specified FTP server without retries.
+     *
      * @return Boolean to indicate whether uploading is successful.
      */
     protected boolean uploadDirectory(final String ftpServer, final String username, final String password,
@@ -107,7 +108,7 @@ public class FTPUploader {
                 uploadFile(ftpClient, file.getAbsolutePath(), targetDirectoryPath, nextLevelPrefix);
             } else {
                 uploadDirectory(ftpClient, Paths.get(sourceDirectoryPath, file.getName()).toString(),
-                        targetDirectoryPath + "/" + file.getName(), nextLevelPrefix);
+                    targetDirectoryPath + "/" + file.getName(), nextLevelPrefix);
             }
         }
     }
@@ -136,7 +137,7 @@ public class FTPUploader {
     }
 
     protected FTPClient getFTPClient(final String ftpServer, final String username, final String password)
-            throws IOException {
+        throws IOException {
         final FTPClient ftpClient = new FTPClient();
         ftpClient.connect(ftpServer);
         ftpClient.login(username, password);
