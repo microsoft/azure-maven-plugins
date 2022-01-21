@@ -36,6 +36,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -144,7 +145,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         boolean modified = scale(deployment, update);
         if (modified) {
             final IAzureMessager messager = AzureMessager.getMessager();
-            this.doModifyAsync(() -> {
+            this.doModify(() -> {
                 messager.info(AzureString.format("Start scaling deployment({0})...", deployment.name()));
                 update.apply();
                 messager.success(AzureString.format("Deployment({0}) is successfully scaled.", deployment.name()));
@@ -166,7 +167,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             (Objects.nonNull(newArtifact));
         if (modified) {
             if (Objects.nonNull(newEnv)) {
-                Optional.ofNullable(oldEnv).ifPresent(e -> e.keySet().forEach(deployment::withoutEnvironment));
+                Optional.ofNullable(oldEnv).ifPresent(e -> new HashSet<>(e.keySet()).forEach(deployment::withoutEnvironment));
                 Optional.of(newEnv).ifPresent((e) -> e.forEach(deployment::withEnvironment));
             }
             Optional.ofNullable(newJvmOptions).ifPresent(deployment::withJvmOptions);

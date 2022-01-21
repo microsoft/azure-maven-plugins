@@ -47,7 +47,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nonnull
     final AtomicReference<R> remoteRef;
     @ToString.Include
-    final AtomicLong syncTimeRef;
+    final AtomicLong syncTimeRef; // 0:loading, <0:invalidated
     @ToString.Include
     final AtomicReference<String> statusRef;
 
@@ -94,14 +94,13 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     private void reload() {
         Azure.az(IAzureAccount.class).account();
-        final long syncTime = this.syncTimeRef.get();
         final R remote = this.remoteRef.get();
         if (Objects.isNull(remote) && StringUtils.equals(this.statusRef.get(), Status.CREATING)) {
             return;
         }
         this.doModify(() -> {
             try {
-                final R refreshed = syncTime > 0 && Objects.nonNull(remote) ? this.refreshRemote() : null;
+                final R refreshed = Objects.nonNull(remote) ? this.refreshRemote() : null;
                 return Objects.nonNull(refreshed) ? refreshed : this.getModule().loadResourceFromAzure(this.name, this.resourceGroupName);
             } catch (ManagementException e) {
                 if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatusCode()) {
@@ -134,12 +133,12 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             return;
         }
         if (this.syncTimeRef.get() > 0 && Objects.equals(oldRemote, newRemote)) {
-            this.refreshStatusAsync();
+            this.reloadStatus();
         } else {
             this.syncTimeRef.set(System.currentTimeMillis());
             this.remoteRef.set(newRemote);
             if (Objects.nonNull(newRemote)) {
-                this.refreshStatusAsync();
+                this.reloadStatus();
             } else {
                 this.setStatus(Status.DISCONNECTED);
             }
@@ -149,7 +148,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Override
     @Nullable
     public final R getRemote() {
-        if (this.syncTimeRef.get() < 0) {
+        if (this.syncTimeRef.compareAndSet(-1, 0)) {
             this.reload();
         }
         return this.remoteRef.get();
@@ -164,30 +163,37 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
-    private void refreshStatusAsync() {
+    private void reloadStatus() {
         this.setStatus(Status.LOADING);
-        AzureTaskManager.getInstance().runOnPooledThread(() -> {
-            try {
-                this.setStatus(this.loadStatus(this.remoteRef.get()));
-            } catch (Throwable t) {
-                this.setStatus(Status.UNKNOWN);
-                throw new AzureToolkitRuntimeException(t);
-            }
-        });
+        AzureTaskManager.getInstance().runOnPooledThread(this::reloadStatusSync);
+    }
+
+    private void reloadStatusSync() {
+        this.setStatus(Status.LOADING);
+        try {
+            this.setStatus(this.remoteOptional().map(this::loadStatus).orElse(Status.UNKNOWN));
+        } catch (Throwable t) {
+            this.setStatus(Status.UNKNOWN);
+        }
     }
 
     @Nonnull
     public String getStatus() {
         final String status = this.statusRef.get();
-        if (Objects.isNull(status)) {
+        if (Objects.isNull(status) || (this.syncTimeRef.get() < 0)) {
             AzureTaskManager.getInstance().runOnPooledThread(this::getRemote); // trigger to load remote.
         }
         return status;
     }
 
-    @Override
-    public String getFormalStatus() {
-        return this.formalizeStatus(this.getStatus());
+    @Nonnull
+    public String getStatusSync() {
+        final String status = this.statusRef.get();
+        if (Objects.isNull(status) || (this.syncTimeRef.get() < 0)) {
+            this.reloadStatusSync();
+            return this.getStatus();
+        }
+        return status;
     }
 
     protected void doModify(Runnable body, String status) {
@@ -241,10 +247,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     public abstract List<AzResourceModule<?, T, ?>> getSubModules();
-
-    public String formalizeStatus(String status) {
-        return status;
-    }
 
     @Nonnull
     public abstract String loadStatus(@Nonnull R remote);

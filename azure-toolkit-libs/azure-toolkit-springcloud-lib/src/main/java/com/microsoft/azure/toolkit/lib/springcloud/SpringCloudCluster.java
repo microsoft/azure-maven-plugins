@@ -56,26 +56,6 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
         return Collections.singletonList(appModule);
     }
 
-    @Override
-    public String formalizeStatus(String status) {
-        switch (status.toUpperCase()) {
-            case "CREATING":
-            case "MOVING":
-            case "UPDATING":
-            case "DELETING":
-                return Status.PENDING;
-            case "SUCCEEDED":
-                return Status.RUNNING;
-            case "MOVEFAILED":
-            case "DELETED":
-            case "MOVED":
-            case "FAILED":
-                return Status.ERROR;
-            default:
-                return Status.UNKNOWN;
-        }
-    }
-
     @Nonnull
     public SpringCloudAppModule apps() {
         return appModule;

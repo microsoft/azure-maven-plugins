@@ -61,7 +61,8 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
         if (Objects.isNull(active)) {
             return Status.INACTIVE;
         }
-        return active.getStatus();
+        active.refresh();
+        return active.getStatusSync();
     }
 
     @Nonnull
