@@ -47,7 +47,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nonnull
     final AtomicReference<R> remoteRef;
     @ToString.Include
-    final AtomicLong syncTimeRef;
+    final AtomicLong syncTimeRef; // 0:loading, <0:invalidated
     @ToString.Include
     final AtomicReference<String> statusRef;
 
@@ -94,14 +94,13 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     private void reload() {
         Azure.az(IAzureAccount.class).account();
-        final long syncTime = this.syncTimeRef.get();
         final R remote = this.remoteRef.get();
         if (Objects.isNull(remote) && StringUtils.equals(this.statusRef.get(), Status.CREATING)) {
             return;
         }
         this.doModify(() -> {
             try {
-                final R refreshed = syncTime > 0 && Objects.nonNull(remote) ? this.refreshRemote() : null;
+                final R refreshed = Objects.nonNull(remote) ? this.refreshRemote() : null;
                 return Objects.nonNull(refreshed) ? refreshed : this.getModule().loadResourceFromAzure(this.name, this.resourceGroupName);
             } catch (ManagementException e) {
                 if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatusCode()) {
@@ -149,7 +148,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Override
     @Nullable
     public final R getRemote() {
-        if (this.syncTimeRef.get() < 0) {
+        if (this.syncTimeRef.compareAndSet(-1, 0)) {
             this.reload();
         }
         return this.remoteRef.get();
@@ -181,7 +180,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nonnull
     public String getStatus() {
         final String status = this.statusRef.get();
-        if (Objects.isNull(status) || this.syncTimeRef.get() < 0) {
+        if (Objects.isNull(status) || (this.syncTimeRef.get() < 0)) {
             AzureTaskManager.getInstance().runOnPooledThread(this::getRemote); // trigger to load remote.
         }
         return status;
