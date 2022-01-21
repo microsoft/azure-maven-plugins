@@ -50,6 +50,7 @@ public class Preloader {
 
     private static void invoke(final Method m, final Object instance) {
         try {
+            m.setAccessible(true);
             if (m.isVarArgs()) {
                 final Class<?> varargType = m.getParameterTypes()[0].getComponentType();
                 if (varargType.equals(Boolean.class)) {
