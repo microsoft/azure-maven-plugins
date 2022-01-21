@@ -1,9 +1,11 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ */
 package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServiceBaseEntity;
 import com.microsoft.azure.toolkit.lib.appservice.manager.AzureFunctionsResourceManager;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
@@ -61,7 +63,7 @@ public abstract class FunctionAppBase<T extends WebAppBase, R extends AppService
         if (getRuntime().getOperatingSystem() == OperatingSystem.WINDOWS) {
             return FunctionDeployType.RUN_FROM_ZIP;
         }
-        final PricingTier pricingTier = Azure.az(AzureAppService.class).appServicePlan(remote().appServicePlanId()).entity().getPricingTier();
+        final PricingTier pricingTier = getAppServicePlan().getPricingTier();
         return StringUtils.equalsAnyIgnoreCase(pricingTier.getTier(), "Dynamic", "ElasticPremium") ?
                 FunctionDeployType.RUN_FROM_BLOB : FunctionDeployType.RUN_FROM_ZIP;
     }

@@ -302,11 +302,10 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
         }
 
         private Update updateAppServicePlan(Update update, AppServicePlanEntity newServicePlan) {
-            final String servicePlanId = remote().appServicePlanId();
-            final AppServicePlanEntity currentServicePlan = Azure.az(AzureAppServicePlan.class).get(servicePlanId).entity();
-            if (StringUtils.equalsIgnoreCase(currentServicePlan.getId(), newServicePlan.getId()) ||
-                (StringUtils.equalsIgnoreCase(currentServicePlan.getName(), newServicePlan.getName()) &&
-                    StringUtils.equalsIgnoreCase(currentServicePlan.getResourceGroup(), newServicePlan.getResourceGroup()))) {
+            final com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan plan = FunctionApp.this.getAppServicePlan();
+            if (StringUtils.equalsIgnoreCase(plan.getId(), newServicePlan.getId()) ||
+                    (StringUtils.equalsIgnoreCase(plan.getName(), newServicePlan.getName()) &&
+                            StringUtils.equalsIgnoreCase(plan.getResourceGroupName(), newServicePlan.getResourceGroup()))) {
                 return update;
             }
             final AppServicePlan newPlanServiceModel = AppServiceUtils.getAppServicePlan(newServicePlan, azureClient);

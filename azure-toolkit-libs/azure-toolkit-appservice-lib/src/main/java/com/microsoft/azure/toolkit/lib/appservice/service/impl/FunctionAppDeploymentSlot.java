@@ -101,9 +101,8 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
     @Override
     public String getMasterKey() {
-        final String resourceGroup = entity().getResourceGroup();
-        final String name = String.format("%s/slots/%s", entity().getFunctionAppName(), entity().getName());
-        return remote().manager().serviceClient().getWebApps().listHostKeysAsync(resourceGroup, name).map(HostKeysInner::masterKey).block();
+        final String name = String.format("%s/slots/%s", parent.getName(), this.getName());
+        return remote().manager().serviceClient().getWebApps().listHostKeysAsync(this.getResourceGroupName(), name).map(HostKeysInner::masterKey).block();
     }
 
     @Override

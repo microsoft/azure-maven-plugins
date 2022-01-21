@@ -57,7 +57,7 @@ class AppServiceUtils {
     private static final String ENTRY_POINT = "entryPoint";
     private static final String BINDINGS = "bindings";
 
-    static Runtime getRuntimeFromAppService(WebAppBase webAppBase) {
+    public static Runtime getRuntimeFromAppService(WebAppBase webAppBase) {
         if (StringUtils.startsWithIgnoreCase(webAppBase.linuxFxVersion(), "docker")) {
             return Runtime.DOCKER;
         }

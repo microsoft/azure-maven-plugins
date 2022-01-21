@@ -8,11 +8,14 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.AppServiceBaseEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureResource;
 import com.microsoft.azure.toolkit.lib.common.entity.Removable;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import reactor.core.publisher.Flux;
 
 import java.io.InputStream;
+import java.util.Map;
 
 public interface IAppService<T extends AppServiceBaseEntity> extends IFileClient, IProcessClient, IAzureResource<T>, Removable {
     void start();
@@ -30,6 +33,12 @@ public interface IAppService<T extends AppServiceBaseEntity> extends IFileClient
     String state();
 
     Runtime getRuntime();
+
+    AppServicePlan getAppServicePlan();
+
+    Map<String, String> getAppSettings();
+
+    Region getRegion();
 
     @Deprecated
     T getRawEntity();

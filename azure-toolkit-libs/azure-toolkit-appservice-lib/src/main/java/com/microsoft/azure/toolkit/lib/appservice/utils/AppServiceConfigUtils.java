@@ -32,14 +32,13 @@ public class AppServiceConfigUtils {
         AppServiceConfig config = new AppServiceConfig();
         config.appName(appService.name());
 
-        config.resourceGroup(appService.entity().getResourceGroup());
+        config.resourceGroup(appService.getResourceGroupName());
         config.subscriptionId(Utils.getSubscriptionId(appService.id()));
-        config.region(appService.entity().getRegion());
-        config.pricingTier(servicePlan.entity().getPricingTier());
+        config.region(appService.getRegion());
         RuntimeConfig runtimeConfig = new RuntimeConfig();
         if (AppServiceUtils.isDockerAppService(appService)) {
             runtimeConfig.os(OperatingSystem.DOCKER);
-            final Map<String, String> settings = appService.entity().getAppSettings();
+            final Map<String, String> settings = appService.getAppSettings();
 
             final String imageSetting = settings.get(SETTING_DOCKER_IMAGE);
             if (StringUtils.isNotBlank(imageSetting)) {
@@ -57,11 +56,9 @@ public class AppServiceConfigUtils {
             runtimeConfig.javaVersion(appService.getRuntime().getJavaVersion());
         }
         config.runtime(runtimeConfig);
-        if (servicePlan.entity() != null) {
-            config.pricingTier(servicePlan.entity().getPricingTier());
-            config.servicePlanName(servicePlan.name());
-            config.servicePlanResourceGroup(servicePlan.entity().getResourceGroup());
-        }
+        config.pricingTier(servicePlan.getPricingTier());
+        config.servicePlanName(servicePlan.name());
+        config.servicePlanResourceGroup(servicePlan.getResourceGroupName());
         return config;
     }
 
