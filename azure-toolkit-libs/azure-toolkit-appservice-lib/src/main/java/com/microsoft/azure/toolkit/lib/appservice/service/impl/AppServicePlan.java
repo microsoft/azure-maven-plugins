@@ -63,11 +63,25 @@ public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanag
         return String.format(APP_SERVICE_PLAN_ID_TEMPLATE, subscriptionId, resourceGroup, name);
     }
 
+    @Deprecated
     public AppServicePlanEntity entity() {
         if (remote == null) {
             refresh();
         }
         return entity;
+    }
+
+    public PricingTier getPricingTier() {
+        final com.azure.resourcemanager.appservice.models.PricingTier pricingTier = remote().pricingTier();
+        return PricingTier.fromString(pricingTier.toSkuDescription().tier(), pricingTier.toSkuDescription().size());
+    }
+
+    public Region getRegion() {
+        return Region.fromName(remote().regionName());
+    }
+
+    public OperatingSystem getOperatingSystem() {
+        return OperatingSystem.fromString(remote().operatingSystem().name());
     }
 
     public List<WebApp> webapps() {
