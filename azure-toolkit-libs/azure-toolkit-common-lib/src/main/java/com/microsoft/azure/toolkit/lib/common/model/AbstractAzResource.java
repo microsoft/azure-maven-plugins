@@ -57,7 +57,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         this.module = module;
         this.remoteRef = new AtomicReference<>();
         this.syncTimeRef = new AtomicLong(-1);
-        this.statusRef = new AtomicReference<>("");
+        this.statusRef = new AtomicReference<>(Status.UNKNOWN);
     }
 
     /**
@@ -133,12 +133,12 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             return;
         }
         if (this.syncTimeRef.get() > 0 && Objects.equals(oldRemote, newRemote)) {
-            this.reloadStatus();
+            AzureTaskManager.getInstance().runOnPooledThread(this::reloadStatus);
         } else {
             this.syncTimeRef.set(System.currentTimeMillis());
             this.remoteRef.set(newRemote);
             if (Objects.nonNull(newRemote)) {
-                this.reloadStatus();
+                AzureTaskManager.getInstance().runOnPooledThread(this::reloadStatus);
             } else {
                 this.setStatus(Status.DISCONNECTED);
             }
@@ -165,11 +165,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     private void reloadStatus() {
         this.setStatus(Status.LOADING);
-        AzureTaskManager.getInstance().runOnPooledThread(this::reloadStatusSync);
-    }
-
-    private void reloadStatusSync() {
-        this.setStatus(Status.LOADING);
         try {
             this.setStatus(this.remoteOptional().map(this::loadStatus).orElse(Status.UNKNOWN));
         } catch (Throwable t) {
@@ -180,8 +175,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nonnull
     public String getStatus() {
         final String status = this.statusRef.get();
-        if (Objects.isNull(status) || (this.syncTimeRef.get() < 0)) {
-            AzureTaskManager.getInstance().runOnPooledThread(this::getRemote); // trigger to load remote.
+        if ((this.syncTimeRef.get() < 0)) {
+            AzureTaskManager.getInstance().runOnPooledThread(this::reloadStatus);
+            return this.statusRef.get();
         }
         return status;
     }
@@ -189,9 +185,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nonnull
     public String getStatusSync() {
         final String status = this.statusRef.get();
-        if (Objects.isNull(status) || (this.syncTimeRef.get() < 0)) {
-            this.reloadStatusSync();
-            return this.getStatus();
+        if (this.syncTimeRef.get() < 0) {
+            this.reloadStatus();
+            return this.statusRef.get();
         }
         return status;
     }
