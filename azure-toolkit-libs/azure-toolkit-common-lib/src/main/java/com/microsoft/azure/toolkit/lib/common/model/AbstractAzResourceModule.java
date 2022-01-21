@@ -59,7 +59,6 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private final Map<String, Optional<T>> resources = new ConcurrentHashMap<>();
 
     @Nonnull
-    @Preload
     @Override
     public synchronized List<T> list() {
         Azure.az(IAzureAccount.class).account();

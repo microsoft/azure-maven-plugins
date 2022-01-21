@@ -8,18 +8,30 @@ package com.microsoft.azure.toolkit.lib.common.model;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.stream.Stream;
 
-public abstract class AbstractAzService<T extends AbstractAzResource<T, AzResource.None, R>, R> extends AbstractAzResourceModule<T, AzResource.None, R>
+public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R>, R> extends AbstractAzResourceModule<T, AzResource.None, R>
     implements AzService {
 
     public AbstractAzService(@Nonnull String name) {
         super(name, AzResource.NONE);
         AzureEventBus.on("account.logout.account", (e) -> this.clear());
+    }
+
+    @Preload
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void preload() {
+        final List<AbstractAzService> services = Azure.getServices(AbstractAzService.class);
+        services.stream().parallel()
+            .flatMap(s -> s.list().stream())
+            .flatMap(m -> ((AbstractAzResourceManager) m).getSubModules().stream())
+            .forEach(m -> ((AzResourceModule) m).list());
     }
 
     public T forSubscription(@Nonnull String subscriptionId) {
