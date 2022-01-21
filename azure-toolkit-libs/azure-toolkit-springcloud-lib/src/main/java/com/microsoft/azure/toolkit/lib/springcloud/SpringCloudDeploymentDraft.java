@@ -145,7 +145,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         boolean modified = scale(deployment, update);
         if (modified) {
             final IAzureMessager messager = AzureMessager.getMessager();
-            this.doModifyAsync(() -> {
+            this.doModify(() -> {
                 messager.info(AzureString.format("Start scaling deployment({0})...", deployment.name()));
                 update.apply();
                 messager.success(AzureString.format("Deployment({0}) is successfully scaled.", deployment.name()));
