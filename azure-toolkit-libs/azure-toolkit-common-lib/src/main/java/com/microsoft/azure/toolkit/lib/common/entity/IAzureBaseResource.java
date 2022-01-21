@@ -80,10 +80,6 @@ public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzu
         return null;
     }
 
-    default String getFormalStatus() {
-        return this.status();
-    }
-
     @Deprecated
     default void refreshStatus() {
     }

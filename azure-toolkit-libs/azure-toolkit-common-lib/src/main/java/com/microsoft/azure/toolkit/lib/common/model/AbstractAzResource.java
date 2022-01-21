@@ -185,11 +185,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return status;
     }
 
-    @Override
-    public String getFormalStatus() {
-        return this.formalizeStatus(this.getStatus());
-    }
-
     protected void doModify(Runnable body, String status) {
         // TODO: lock so that can not modify if modifying.
         this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
@@ -241,10 +236,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     public abstract List<AzResourceModule<?, T, ?>> getSubModules();
-
-    public String formalizeStatus(String status) {
-        return status;
-    }
 
     @Nonnull
     public abstract String loadStatus(@Nonnull R remote);
