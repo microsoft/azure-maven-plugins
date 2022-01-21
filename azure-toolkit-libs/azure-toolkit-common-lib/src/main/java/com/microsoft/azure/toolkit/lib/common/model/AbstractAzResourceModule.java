@@ -77,7 +77,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nullable
     @Override
-    public T get(@Nonnull String name, String resourceGroup) {
+    public T get(@Nullable String name, String resourceGroup) {
+        if (StringUtils.isBlank(name)) {
+            return null;
+        }
         Azure.az(IAzureAccount.class).account();
         if (!this.resources.containsKey(name)) {
             R remote = null;
