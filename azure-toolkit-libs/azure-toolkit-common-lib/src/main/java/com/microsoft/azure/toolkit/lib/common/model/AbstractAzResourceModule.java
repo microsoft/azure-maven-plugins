@@ -211,13 +211,17 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         if (Objects.nonNull(removed) && removed.isPresent()) {
             fireResourcesChangedEvent();
         }
-        return removed.orElse(null);
+        return Objects.nonNull(removed) ? removed.orElse(null) : null;
     }
 
     private synchronized void addResourceToLocal(@Nonnull String name, @Nullable T resource) {
-        if (!this.resources.getOrDefault(name, Optional.empty()).isPresent()) {
-            this.resources.put(name, Optional.ofNullable(resource));
-            fireResourcesChangedEvent();
+        final Optional<T> oldResource = this.resources.getOrDefault(name, Optional.empty());
+        final Optional<T> newResource = Optional.ofNullable(resource);
+        if (!oldResource.isPresent()) {
+            this.resources.put(name, newResource);
+            if (newResource.isPresent()) {
+                fireResourcesChangedEvent();
+            }
         }
     }
 

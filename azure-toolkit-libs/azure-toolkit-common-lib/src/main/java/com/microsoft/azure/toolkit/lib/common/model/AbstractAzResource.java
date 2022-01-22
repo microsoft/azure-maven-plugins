@@ -164,9 +164,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     private void reloadStatus() {
-        this.setStatus(Status.LOADING);
         try {
-            this.setStatus(this.remoteOptional().map(this::loadStatus).orElse(Status.UNKNOWN));
+            this.remoteOptional().map(this::loadStatus).ifPresent(this::setStatus);
         } catch (Throwable t) {
             this.setStatus(Status.UNKNOWN);
         }
