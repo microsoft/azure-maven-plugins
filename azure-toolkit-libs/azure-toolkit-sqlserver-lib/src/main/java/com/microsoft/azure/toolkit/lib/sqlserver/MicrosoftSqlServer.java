@@ -108,7 +108,7 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
     }
 
     @Override
-    public String getType() {
+public String getType() {
         return remoteOptional().map(SqlServer::type).orElse(null);
     }
 

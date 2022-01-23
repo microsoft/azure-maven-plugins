@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResult
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -55,6 +56,7 @@ public class StorageResourceManager extends AbstractAzResourceManager<StorageRes
         return Objects.requireNonNull(this.getRemote()).resourceManager();
     }
 
+    @AzureOperation(name = "storage.check_name.name", params = {"name"}, type = AzureOperation.Type.SERVICE)
     public CheckNameAvailabilityResultEntity checkNameAvailability(@Nonnull String name) {
         CheckNameAvailabilityResult result = Objects.requireNonNull(this.getRemote()).storageAccounts().checkNameAvailability(name);
         return new CheckNameAvailabilityResultEntity(result.isAvailable(),

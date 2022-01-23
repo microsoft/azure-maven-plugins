@@ -17,6 +17,8 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 import lombok.Getter;
@@ -80,8 +82,15 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.create_resource.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     public Server createResourceInAzure() {
         assert this.config != null;
+        AzureTelemetry.getActionContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final MySqlManager manager = Objects.requireNonNull(this.getParent().getRemote());
 
         final ServerPropertiesForDefaultCreate parameters = new ServerPropertiesForDefaultCreate()
@@ -108,6 +117,11 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.update_resource.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     public Server updateResourceInAzure(@Nonnull Server origin) {
         // TODO: update other properties
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||

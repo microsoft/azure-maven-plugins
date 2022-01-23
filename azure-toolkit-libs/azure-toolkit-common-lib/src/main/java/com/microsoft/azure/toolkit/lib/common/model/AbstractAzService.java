@@ -10,6 +10,8 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -24,9 +26,16 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
         AzureEventBus.on("account.logout.account", (e) -> this.clear());
     }
 
+    @Override
+    public String getFullResourceType() {
+        return this.getName();
+    }
+
     @Preload
+    @AzureOperation(name = "resource.preload", type = AzureOperation.Type.ACTION)
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static void preload() {
+        AzureTelemetry.getActionContext().setProperty("preloading", String.valueOf(true));
         final List<AbstractAzService> services = Azure.getServices(AbstractAzService.class);
         services.stream().parallel()
             .flatMap(s -> s.list().stream())

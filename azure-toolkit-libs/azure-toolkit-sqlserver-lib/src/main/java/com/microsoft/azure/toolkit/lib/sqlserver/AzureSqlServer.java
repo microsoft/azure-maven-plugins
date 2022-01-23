@@ -53,4 +53,9 @@ public class AzureSqlServer extends AbstractAzService<MicrosoftSqlResourceManage
     protected MicrosoftSqlResourceManager newResource(@Nonnull SqlServerManager manager) {
         return new MicrosoftSqlResourceManager(manager, this);
     }
+
+    @Override
+    public String getResourceTypeName() {
+        return "SQL servers";
+    }
 }

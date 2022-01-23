@@ -60,14 +60,14 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageRe
         return this.getStatus();
     }
 
-    @AzureOperation(name = "storage|account.get_connection_string", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "storage.get_connection_string.account", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public String getConnectionString() {
         // see https://github.com/Azure/azure-cli/blob/ac3b190d4d/src/azure-cli/azure/cli/command_modules/storage/operations/account.py#L232
         final AzureEnvironment environment = Azure.az(AzureCloud.class).get();
         return ResourceManagerUtils.getStorageConnectionString(this.name(), getKey(), environment);
     }
 
-    @AzureOperation(name = "storage|account.get_key", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "storage.get_key.account", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public String getKey() {
         return Objects.requireNonNull(this.getRemote()).getKeys().get(0).value();
     }

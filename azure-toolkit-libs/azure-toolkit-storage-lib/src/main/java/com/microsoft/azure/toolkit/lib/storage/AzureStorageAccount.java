@@ -74,4 +74,9 @@ public class AzureStorageAccount extends AbstractAzService<StorageResourceManage
             .filter(r -> !(Objects.equals(Kind.PAGE_BLOB_STORAGE, kind) && Objects.equals(r, Redundancy.PREMIUM_ZRS)))
             .collect(Collectors.toList());
     }
+
+    @Override
+    public String getResourceTypeName() {
+        return "Storage accounts";
+    }
 }

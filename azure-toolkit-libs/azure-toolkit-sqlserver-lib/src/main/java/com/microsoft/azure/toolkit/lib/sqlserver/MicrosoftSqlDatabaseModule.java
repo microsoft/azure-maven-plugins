@@ -51,4 +51,9 @@ public class MicrosoftSqlDatabaseModule extends AbstractAzResourceModule<Microso
     protected SqlDatabaseOperations.SqlDatabaseActionsDefinition getClient() {
         return Optional.ofNullable(this.getParent().getRemote()).map(SqlServer::databases).orElse(null);
     }
+
+    @Override
+    public String getResourceTypeName() {
+        return "SQL server database";
+    }
 }

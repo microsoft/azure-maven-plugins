@@ -14,6 +14,8 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.storage.model.AccessTier;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Performance;
@@ -51,7 +53,14 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.create_resource.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     public com.azure.resourcemanager.storage.models.StorageAccount createResourceInAzure() {
+        AzureTelemetry.getActionContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final String name = this.getName();
         final StorageManager manager = Objects.requireNonNull(this.getParent().getRemote());
         com.azure.resourcemanager.storage.models.StorageAccount.DefinitionStages.WithCreate withCreate =
@@ -80,6 +89,11 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.update_resource.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     public com.azure.resourcemanager.storage.models.StorageAccount updateResourceInAzure(@NotNull com.azure.resourcemanager.storage.models.StorageAccount origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

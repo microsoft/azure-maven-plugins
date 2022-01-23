@@ -48,4 +48,9 @@ public final class AzureSpringCloud extends AbstractAzService<SpringCloudResourc
     protected SpringCloudResourceManager newResource(@Nonnull AppPlatformManager remote) {
         return new SpringCloudResourceManager(remote, this);
     }
+
+    @Override
+    public String getResourceTypeName() {
+        return "Azure Spring Cloud";
+    }
 }

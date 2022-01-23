@@ -34,6 +34,14 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
     @Nonnull
     String getName();
 
+    default String getFullResourceType() {
+        return this.getModule().getFullResourceType();
+    }
+
+    default String getResourceTypeName() {
+        return this.getModule().getResourceTypeName();
+    }
+
     @Nonnull
     default String getId() {
         return String.format("%s/%s", this.getModule().getId(), this.getName());
@@ -131,6 +139,16 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         @Override
         public AbstractAzResourceModule<None, None, Void> getModule() {
             return AzResourceModule.NONE;
+        }
+
+        @Override
+        public String getFullResourceType() {
+            return NONE;
+        }
+
+        @Override
+        public String getResourceTypeName() {
+            return NONE;
         }
 
         @Nonnull

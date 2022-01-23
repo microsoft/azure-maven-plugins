@@ -12,6 +12,8 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.redis.model.PricingTier;
 import lombok.Data;
 import lombok.Getter;
@@ -44,7 +46,14 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.create_resource.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     public com.azure.resourcemanager.redis.models.RedisCache createResourceInAzure() {
+        AzureTelemetry.getActionContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final String redisName = this.getName();
         final RedisManager manager = Objects.requireNonNull(this.getParent().getRemote());
         final com.azure.resourcemanager.redis.models.RedisCache.DefinitionStages.WithSku toCreate =
@@ -71,6 +80,11 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.update_resource.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     public com.azure.resourcemanager.redis.models.RedisCache updateResourceInAzure(@Nonnull com.azure.resourcemanager.redis.models.RedisCache origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }
