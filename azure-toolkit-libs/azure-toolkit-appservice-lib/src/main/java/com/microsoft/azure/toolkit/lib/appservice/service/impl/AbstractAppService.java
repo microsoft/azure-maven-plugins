@@ -74,8 +74,8 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     public void refresh() {
         this.status(Status.PENDING);
         super.refresh();
-        this.entity = Optional.ofNullable(this.remote).map(this::getEntityFromRemoteResource).orElse(null);
         this.refreshStatus();
+        this.entity = null;
         try {
             CacheManager.evictCache("appservice/{}/runtime", this.id());
             CacheManager.evictCache("appservice/{}/appSettings", this.id());
@@ -136,6 +136,11 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     @Override
     public String state() {
         return remote().state();
+    }
+
+    @Override
+    public String linuxFxVersion() {
+        return remote().linuxFxVersion();
     }
 
     @Override
