@@ -24,6 +24,7 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
     public AbstractAzService(@Nonnull String name) {
         super(name, AzResource.NONE);
         AzureEventBus.on("account.logout.account", (e) -> this.clear());
+        AzureEventBus.on("account.subscription_changed.account", (e) -> this.refresh());
     }
 
     @Override

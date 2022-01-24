@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.Preloader;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -119,6 +120,7 @@ public abstract class Account implements IAccount {
         }
         if (entity.getSubscriptions().stream().anyMatch(s -> Utils.containsIgnoreCase(selectedSubscriptionIds, s.getId()))) {
             selectSubscriptionInner(this.getSubscriptions(), selectedSubscriptionIds);
+            AzureEventBus.emit("account.subscription_changed.account", this);
             final AzureTaskManager manager = AzureTaskManager.getInstance();
             if (Objects.nonNull(manager)) {
                 manager.runOnPooledThread(Preloader::load);
