@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource.Status;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.AccessLevel;
@@ -37,6 +38,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -54,7 +56,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     protected final P parent;
     @ToString.Include
     @Getter(AccessLevel.NONE)
-    private long syncTime = -1;
+    private final AtomicLong syncTime = new AtomicLong(-1);
     @Getter(AccessLevel.NONE)
     private final Map<String, Optional<T>> resources = new ConcurrentHashMap<>();
 
@@ -62,7 +64,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Override
     public synchronized List<T> list() {
         Azure.az(IAzureAccount.class).account();
-        if (this.syncTime < 0) {
+        if (this.syncTime.compareAndSet(-1, 0)) {
             this.reload();
         }
         return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
@@ -70,7 +72,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     public synchronized void clear() {
-        this.syncTime = -1;
+        this.syncTime.set(-1);
         this.resources.clear();
     }
 
@@ -173,7 +175,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Override
     public void refresh() {
-        this.syncTime = -1;
+        this.syncTime.set(-1);
         fireResourcesChangedEvent();
     }
 
@@ -182,8 +184,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         try {
             loaded = this.loadResourcesFromAzure();
         } catch (Throwable t) {
-            this.syncTime = -1;
-            throw t;
+            this.syncTime.set(-1);
+            AzureMessager.getMessager().error(t);
+            return;
         }
         final Map<String, T> loadedResources = loaded.parallel().map(this::newResource).collect(Collectors.toMap(AbstractAzResource::getName, r -> r));
         final Set<String> localResources = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
@@ -197,7 +200,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         refreshed.forEach(name -> this.resources.get(name).ifPresent(r -> r.setRemote(loadedResources.get(name).getRemote())));
         deleted.forEach(name -> Optional.ofNullable(this.deleteResourceFromLocal(name)).ifPresent(t -> t.setStatus(Status.DELETED)));
         added.forEach(name -> this.addResourceToLocal(name, loadedResources.get(name)));
-        this.syncTime = System.currentTimeMillis();
+        this.syncTime.set(System.currentTimeMillis());
     }
 
     @Nonnull
