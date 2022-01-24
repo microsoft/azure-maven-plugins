@@ -110,7 +110,7 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
             .withSku(sku);
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating PostgreSQL server ({0})...", this.getName()));
-        final Server remote = create.create();
+        final Server remote = this.doModify(() -> create.create(), Status.CREATING);
         messager.success(AzureString.format("PostgreSQL server({0}) is successfully created.", this.getName()));
         return this.updateResourceInAzure(remote);
     }

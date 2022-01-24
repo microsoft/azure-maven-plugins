@@ -114,7 +114,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         modify(create);
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating deployment({0})...", name));
-        SpringAppDeployment deployment = create.create();
+        SpringAppDeployment deployment = this.doModify(() -> create.create(), Status.CREATING);
         messager.success(AzureString.format("Deployment({0}) is successfully created", name));
         deployment = this.scaleDeploymentInAzure(deployment);
         return deployment;

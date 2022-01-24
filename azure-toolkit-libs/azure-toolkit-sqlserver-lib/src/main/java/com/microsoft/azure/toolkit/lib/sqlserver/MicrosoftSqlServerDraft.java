@@ -73,7 +73,7 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
             .withAdministratorPassword(this.getAdminPassword());
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating SQL server ({0})...", this.getName()));
-        final SqlServer remote = create.create();
+        final SqlServer remote = this.doModify(() -> create.create(), Status.CREATING);
         messager.success(AzureString.format("SQL server({0}) is successfully created.", this.getName()));
         return this.updateResourceInAzure(remote);
     }
