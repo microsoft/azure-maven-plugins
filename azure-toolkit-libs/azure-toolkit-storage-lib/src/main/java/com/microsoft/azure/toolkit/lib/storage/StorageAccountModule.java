@@ -8,6 +8,8 @@ package com.microsoft.azure.toolkit.lib.storage;
 import com.azure.resourcemanager.storage.StorageManager;
 import com.azure.resourcemanager.storage.models.StorageAccounts;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
@@ -26,17 +28,30 @@ public class StorageAccountModule extends AbstractAzResourceModule<StorageAccoun
     }
 
     @Override
+    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected StorageAccountDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         return new StorageAccountDraft(name, resourceGroupName, this);
     }
 
     @Override
-    protected StorageAccountDraft newDraftForUpdate(@Nonnull StorageAccount account) {
-        return new StorageAccountDraft(account);
+    @AzureOperation(
+        name = "resource.draft_for_update.resource|type",
+        params = {"origin.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
+    protected StorageAccountDraft newDraftForUpdate(@Nonnull StorageAccount origin) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        return new StorageAccountDraft(origin);
     }
 
     @Nonnull
     protected StorageAccount newResource(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount r) {
         return new StorageAccount(r, this);
+    }
+
+    @Override
+    public String getResourceTypeName() {
+        return "Azure Storage Account";
     }
 }

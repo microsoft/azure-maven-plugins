@@ -18,6 +18,8 @@ import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource.Status;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -25,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -100,7 +101,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Override
-    public boolean exists(@NotNull String name, String resourceGroup) {
+    public boolean exists(@Nonnull String name, String resourceGroup) {
         final T resource = this.get(name, resourceGroup);
         return Objects.nonNull(resource) && resource.exists();
     }
@@ -139,7 +140,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Override
-    public T create(@NotNull AzResource.Draft<T, R> draft) {
+    public T create(@Nonnull AzResource.Draft<T, R> draft) {
         final T existing = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.isNull(existing)) {
             final T resource = cast(draft);
@@ -161,7 +162,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Override
-    public T update(@NotNull AzResource.Draft<T, R> draft) {
+    public T update(@Nonnull AzResource.Draft<T, R> draft) {
         final T resource = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.nonNull(resource) && Objects.nonNull(resource.getRemote())) {
             resource.doModify(() -> draft.updateResourceInAzure(resource.getRemote()), Status.UPDATING);
@@ -238,7 +239,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
+    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<R> loadResourcesFromAzure() {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final Object client = this.getClient();
         if (client instanceof SupportsListing) {
             return this.<SupportsListing<R>>cast(client).list().stream();
@@ -248,7 +251,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nullable
+    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected R loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final Object client = this.getClient();
         resourceGroup = StringUtils.firstNonBlank(resourceGroup, this.getParent().getResourceGroupName());
         resourceGroup = StringUtils.equals(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER) ? null : resourceGroup;
@@ -263,7 +268,13 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         }
     }
 
+    @AzureOperation(
+        name = "resource.delete_resource.resource|type",
+        params = {"nameFromResourceId(resourceId)", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final Object client = this.getClient();
         if (client instanceof SupportsDeletingById) {
             ((SupportsDeletingById) client).deleteById(resourceId);
@@ -281,7 +292,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
      * @param <D> type of draft, it must extend {@link D} and implement {@link AzResource.Draft}
      */
     protected <D extends T> D newDraftForUpdate(@Nonnull T t) {
-        return this.newDraftForCreate(t.getName(), t.getResourceGroupName());
+        throw new AzureToolkitRuntimeException("not supported");
     }
 
     protected abstract T newResource(@Nonnull R r);

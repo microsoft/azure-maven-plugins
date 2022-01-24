@@ -62,4 +62,9 @@ public class AzurePostgreSql extends AbstractAzService<PostgreSqlResourceManager
     public List<String> listSupportedVersions() {
         return ServerVersion.values().stream().map(ExpandableStringEnum::toString).sorted().collect(Collectors.toList());
     }
+
+    @Override
+    public String getResourceTypeName() {
+        return "Azure Database for PostgreSQL servers";
+    }
 }

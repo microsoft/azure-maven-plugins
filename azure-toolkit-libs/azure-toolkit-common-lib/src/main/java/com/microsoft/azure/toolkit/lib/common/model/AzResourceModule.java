@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,6 +34,12 @@ public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzRes
     @Nonnull
     String getName();
 
+    default String getFullResourceType() {
+        return this.getParent().getFullResourceType() + "/" + this.getName();
+    }
+
+    String getResourceTypeName();
+
     @Nonnull
     P getParent();
 
@@ -59,7 +64,12 @@ public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzRes
             return AzResource.NONE;
         }
 
-        @NotNull
+        @Override
+        public String getResourceTypeName() {
+            return "NONE";
+        }
+
+        @Nonnull
         @Override
         public AzResource.None getParent() {
             return AzResource.NONE;

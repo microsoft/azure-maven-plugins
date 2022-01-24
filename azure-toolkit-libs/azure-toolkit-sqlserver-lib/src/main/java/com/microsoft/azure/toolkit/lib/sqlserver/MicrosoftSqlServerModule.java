@@ -9,6 +9,8 @@ import com.azure.resourcemanager.sql.SqlServerManager;
 import com.azure.resourcemanager.sql.models.SqlServer;
 import com.azure.resourcemanager.sql.models.SqlServers;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,12 +43,20 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
     }
 
     @Override
+    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected MicrosoftSqlServerDraft newDraftForCreate(@Nonnull String name, @Nonnull String resourceGroupName) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         return new MicrosoftSqlServerDraft(name, resourceGroupName, this);
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.draft_for_update.resource|type",
+        params = {"origin.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     protected MicrosoftSqlServerDraft newDraftForUpdate(@Nonnull MicrosoftSqlServer server) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         return new MicrosoftSqlServerDraft(server);
     }
 
@@ -58,5 +68,10 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
     @Nonnull
     protected MicrosoftSqlServer newResource(@Nonnull SqlServer r) {
         return new MicrosoftSqlServer(r, this);
+    }
+
+    @Override
+    public String getResourceTypeName() {
+        return "SQL server firewall rule";
     }
 }

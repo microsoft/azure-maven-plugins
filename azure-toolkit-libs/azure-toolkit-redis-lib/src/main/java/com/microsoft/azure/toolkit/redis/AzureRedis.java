@@ -51,4 +51,9 @@ public class AzureRedis extends AbstractAzService<RedisResourceManager, RedisMan
     protected RedisResourceManager newResource(@Nonnull RedisManager remote) {
         return new RedisResourceManager(remote, this);
     }
+
+    @Override
+    public String getResourceTypeName() {
+        return "Azure Cache for Redis";
+    }
 }

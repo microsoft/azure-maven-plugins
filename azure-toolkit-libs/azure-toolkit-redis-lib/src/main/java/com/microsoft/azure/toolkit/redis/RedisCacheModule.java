@@ -8,6 +8,8 @@ package com.microsoft.azure.toolkit.redis;
 import com.azure.resourcemanager.redis.RedisManager;
 import com.azure.resourcemanager.redis.models.RedisCaches;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
@@ -26,17 +28,30 @@ public class RedisCacheModule extends AbstractAzResourceModule<RedisCache, Redis
     }
 
     @Override
+    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected RedisCacheDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         return new RedisCacheDraft(name, resourceGroupName, this);
     }
 
     @Override
-    protected RedisCacheDraft newDraftForUpdate(@Nonnull RedisCache redis) {
-        return new RedisCacheDraft(redis);
+    @AzureOperation(
+        name = "resource.draft_for_update.resource|type",
+        params = {"origin.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
+    protected RedisCacheDraft newDraftForUpdate(@Nonnull RedisCache origin) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        return new RedisCacheDraft(origin);
     }
 
     @Nonnull
     protected RedisCache newResource(@Nonnull com.azure.resourcemanager.redis.models.RedisCache r) {
         return new RedisCache(r, this);
+    }
+
+    @Override
+    public String getResourceTypeName() {
+        return "Redis cache";
     }
 }

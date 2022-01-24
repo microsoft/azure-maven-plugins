@@ -9,6 +9,8 @@ import com.azure.resourcemanager.mysql.MySqlManager;
 import com.azure.resourcemanager.mysql.models.Server;
 import com.azure.resourcemanager.mysql.models.Servers;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,13 +43,21 @@ public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MyS
     }
 
     @Override
+    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected MySqlServerDraft newDraftForCreate(@Nonnull String name, @Nonnull String resourceGroupName) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         return new MySqlServerDraft(name, resourceGroupName, this);
     }
 
     @Override
-    protected MySqlServerDraft newDraftForUpdate(@Nonnull MySqlServer server) {
-        return new MySqlServerDraft(server);
+    @AzureOperation(
+        name = "resource.draft_for_update.resource|type",
+        params = {"origin.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
+    protected MySqlServerDraft newDraftForUpdate(@Nonnull MySqlServer origin) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        return new MySqlServerDraft(origin);
     }
 
     @Override
@@ -58,5 +68,10 @@ public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MyS
     @Nonnull
     protected MySqlServer newResource(@Nonnull Server r) {
         return new MySqlServer(r, this);
+    }
+
+    @Override
+    public String getResourceTypeName() {
+        return "MySQL server";
     }
 }

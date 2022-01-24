@@ -102,7 +102,7 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceMana
         return remoteOptional().map(com.azure.resourcemanager.redis.models.RedisCache::hostname).orElse(null);
     }
 
-    @AzureOperation(name = "redis.get_jedis_pool", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "redis.get_jedis_pool.redis", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public synchronized JedisPool getJedisPool() {
         if (Objects.isNull(this.jedisPool)) {
             final String hostName = this.getHostName();

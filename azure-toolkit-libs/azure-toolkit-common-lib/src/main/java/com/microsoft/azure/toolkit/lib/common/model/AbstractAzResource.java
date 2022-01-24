@@ -11,7 +11,9 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -92,7 +94,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         this.getSubModules().forEach(AzResourceModule::refresh);
     }
 
+    @AzureOperation(name = "resource.reload.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     private void reload() {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         Azure.az(IAzureAccount.class).account();
         final R remote = this.remoteRef.get();
         if (Objects.isNull(remote) && StringUtils.equals(this.statusRef.get(), Status.CREATING)) {
@@ -163,7 +167,13 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
+    @AzureOperation(
+        name = "resource.reload_status.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     private void reloadStatus() {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         try {
             this.remoteOptional().map(this::loadStatus).ifPresent(this::setStatus);
         } catch (Throwable t) {

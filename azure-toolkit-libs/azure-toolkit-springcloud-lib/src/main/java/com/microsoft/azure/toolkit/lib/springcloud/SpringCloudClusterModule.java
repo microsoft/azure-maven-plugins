@@ -30,4 +30,9 @@ public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringClo
     protected SpringCloudCluster newResource(@Nonnull SpringService r) {
         return new SpringCloudCluster(r, this);
     }
+
+    @Override
+    public String getResourceTypeName() {
+        return "Spring Cloud service";
+    }
 }

@@ -20,6 +20,8 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import io.netty.resolver.AddressResolverGroup;
 import io.netty.resolver.DefaultAddressResolverGroup;
 import io.netty.resolver.NoopAddressResolverGroup;
@@ -40,7 +42,9 @@ public abstract class AbstractAzResourceManager<T extends AbstractAzResource<T, 
         super(name, AzResource.RESOURCE_GROUP_PLACEHOLDER, module);
     }
 
+    @AzureOperation(name = "resource.list_supported_regions.type", params = {"resourceType"}, type = AzureOperation.Type.SERVICE)
     public List<Region> listSupportedRegions(String resourceType) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final String provider = getService().getName();
         final String subscriptionId = this.getSubscriptionId();
         List<Region> allRegionList = az(IAzureAccount.class).listRegions(subscriptionId);
@@ -61,6 +65,11 @@ public abstract class AbstractAzResourceManager<T extends AbstractAzResource<T, 
 
     public AzService getService() {
         return ((AzService) this.getModule());
+    }
+
+    @Override
+    public String getFullResourceType() {
+        return this.getService().getName();
     }
 
     public ResourceManager getResourceManager() {

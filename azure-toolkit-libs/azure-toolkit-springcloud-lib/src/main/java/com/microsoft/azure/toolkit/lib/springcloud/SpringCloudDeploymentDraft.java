@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import lombok.Data;
@@ -98,12 +99,14 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         this.config = null;
     }
 
+    @Override
     @AzureOperation(
-        name = "springcloud.create_deployment.deployment|app",
-        params = {"this.getName()", "this.getParent().getName()"},
+        name = "resource.create_resource.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
         type = AzureOperation.Type.SERVICE
     )
     public SpringAppDeployment createResourceInAzure() {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final String name = this.getName();
         final SpringApp app = Objects.requireNonNull(this.getParent().getRemote());
         final SpringAppDeploymentImpl create = ((SpringAppDeploymentImpl) app.deployments().define(name));
@@ -119,11 +122,12 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
 
     @Override
     @AzureOperation(
-        name = "springcloud.update_deployment.deployment|app",
-        params = {"this.getName()", "this.getParent().getName()"},
+        name = "resource.update_resource.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
         type = AzureOperation.Type.SERVICE
     )
     public SpringAppDeployment updateResourceInAzure(@Nonnull SpringAppDeployment deployment) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final SpringAppDeploymentImpl update = ((SpringAppDeploymentImpl) Objects.requireNonNull(deployment).update());
         if (modify(update)) {
             final IAzureMessager messager = AzureMessager.getMessager();
@@ -135,11 +139,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         return deployment;
     }
 
-    @AzureOperation(
-        name = "springcloud.scale_deployment.deployment|app",
-        params = {"this.getName()", "this.getParent().getName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "springcloud.scale_deployment.deployment", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     SpringAppDeployment scaleDeploymentInAzure(SpringAppDeployment deployment) {
         final SpringAppDeployment.Update update = deployment.update();
         boolean modified = scale(deployment, update);

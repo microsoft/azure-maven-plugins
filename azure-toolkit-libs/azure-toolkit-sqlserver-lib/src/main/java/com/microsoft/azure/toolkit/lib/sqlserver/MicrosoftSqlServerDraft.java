@@ -12,6 +12,8 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 import lombok.Getter;
@@ -54,8 +56,14 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.create_resource.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     public SqlServer createResourceInAzure() {
         assert this.config != null;
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final SqlServerManager manager = Objects.requireNonNull(this.getParent().getRemote());
         final SqlServer.DefinitionStages.WithCreate create = manager.sqlServers()
             .define(this.getName())
@@ -71,7 +79,13 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.update_resource.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     public SqlServer updateResourceInAzure(@Nonnull SqlServer origin) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
             final IAzureMessager messager = AzureMessager.getMessager();

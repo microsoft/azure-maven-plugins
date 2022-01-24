@@ -60,4 +60,9 @@ public class AzureMySql extends AbstractAzService<MySqlResourceManager, MySqlMan
     public List<String> listSupportedVersions() {
         return ServerVersion.values().stream().map(ExpandableStringEnum::toString).collect(Collectors.toList());
     }
+
+    @Override
+    public String getResourceTypeName() {
+        return "Azure Database for MySQL servers";
+    }
 }
