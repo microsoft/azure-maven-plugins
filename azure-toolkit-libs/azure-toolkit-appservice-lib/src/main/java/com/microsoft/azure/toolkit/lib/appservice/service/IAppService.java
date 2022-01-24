@@ -32,6 +32,8 @@ public interface IAppService<T extends AppServiceBaseEntity> extends IFileClient
 
     String state();
 
+    String linuxFxVersion();
+
     Runtime getRuntime();
 
     AppServicePlan getAppServicePlan();

@@ -44,7 +44,7 @@ public class AppServiceConfigUtils {
             if (StringUtils.isNotBlank(imageSetting)) {
                 runtimeConfig.image(imageSetting);
             } else {
-                runtimeConfig.image(appService.entity().getDockerImageName());
+                runtimeConfig.image(Utils.getDockerImageNameFromLinuxFxVersion(appService.linuxFxVersion()));
             }
             final String registryServerSetting = settings.get(SETTING_REGISTRY_SERVER);
             if (StringUtils.isNotBlank(registryServerSetting)) {
