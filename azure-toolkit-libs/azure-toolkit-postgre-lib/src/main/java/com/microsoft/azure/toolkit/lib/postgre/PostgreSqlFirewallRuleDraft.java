@@ -51,7 +51,6 @@ public class PostgreSqlFirewallRuleDraft extends PostgreSqlFirewallRule implemen
         type = AzureOperation.Type.SERVICE
     )
     public FirewallRule createResourceInAzure() {
-        AzureTelemetry.getActionContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final PostgreSqlServer server = this.getParent();
         final PostgreSqlManager manager = Objects.requireNonNull(server.getParent().getRemote());
@@ -73,7 +72,6 @@ public class PostgreSqlFirewallRuleDraft extends PostgreSqlFirewallRule implemen
         type = AzureOperation.Type.SERVICE
     )
     public FirewallRule updateResourceInAzure(@NotNull FirewallRule origin) {
-        AzureTelemetry.getActionContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final Optional<String> modifiedStartIp = Optional.ofNullable(this.getStartIpAddress()).filter(n -> !Objects.equals(n, super.getStartIpAddress()));
         final Optional<String> modifiedEndIp = Optional.ofNullable(this.getEndIpAddress()).filter(n -> !Objects.equals(n, super.getEndIpAddress()));

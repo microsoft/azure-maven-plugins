@@ -52,7 +52,6 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
         type = AzureOperation.Type.SERVICE
     )
     public com.azure.resourcemanager.redis.models.RedisCache createResourceInAzure() {
-        AzureTelemetry.getActionContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final String redisName = this.getName();
         final RedisManager manager = Objects.requireNonNull(this.getParent().getRemote());

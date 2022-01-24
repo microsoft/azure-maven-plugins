@@ -106,7 +106,6 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         type = AzureOperation.Type.SERVICE
     )
     public SpringAppDeployment createResourceInAzure() {
-        AzureTelemetry.getActionContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final String name = this.getName();
         final SpringApp app = Objects.requireNonNull(this.getParent().getRemote());
@@ -128,7 +127,6 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         type = AzureOperation.Type.SERVICE
     )
     public SpringAppDeployment updateResourceInAzure(@Nonnull SpringAppDeployment deployment) {
-        AzureTelemetry.getActionContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final SpringAppDeploymentImpl update = ((SpringAppDeploymentImpl) Objects.requireNonNull(deployment).update());
         if (modify(update)) {

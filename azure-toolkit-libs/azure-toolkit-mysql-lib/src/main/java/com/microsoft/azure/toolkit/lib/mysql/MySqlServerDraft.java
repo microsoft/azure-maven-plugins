@@ -89,7 +89,6 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
     )
     public Server createResourceInAzure() {
         assert this.config != null;
-        AzureTelemetry.getActionContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final MySqlManager manager = Objects.requireNonNull(this.getParent().getRemote());
 

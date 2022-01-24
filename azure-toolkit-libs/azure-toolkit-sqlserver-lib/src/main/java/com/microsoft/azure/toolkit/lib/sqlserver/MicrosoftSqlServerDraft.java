@@ -63,7 +63,6 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
     )
     public SqlServer createResourceInAzure() {
         assert this.config != null;
-        AzureTelemetry.getActionContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final SqlServerManager manager = Objects.requireNonNull(this.getParent().getRemote());
         final SqlServer.DefinitionStages.WithCreate create = manager.sqlServers()
@@ -86,7 +85,6 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
         type = AzureOperation.Type.SERVICE
     )
     public SqlServer updateResourceInAzure(@Nonnull SqlServer origin) {
-        AzureTelemetry.getActionContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {

@@ -50,7 +50,6 @@ public class MySqlFirewallRuleDraft extends MySqlFirewallRule implements AzResou
         type = AzureOperation.Type.SERVICE
     )
     public FirewallRule createResourceInAzure() {
-        AzureTelemetry.getActionContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final MySqlServer server = this.getParent();
         final MySqlManager manager = Objects.requireNonNull(server.getParent().getRemote());
@@ -72,7 +71,6 @@ public class MySqlFirewallRuleDraft extends MySqlFirewallRule implements AzResou
         type = AzureOperation.Type.SERVICE
     )
     public FirewallRule updateResourceInAzure(@Nonnull FirewallRule origin) {
-        AzureTelemetry.getActionContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final Optional<String> modifiedStartIp = Optional.ofNullable(this.getStartIpAddress()).filter(n -> !Objects.equals(n, super.getStartIpAddress()));
         final Optional<String> modifiedEndIp = Optional.ofNullable(this.getEndIpAddress()).filter(n -> !Objects.equals(n, super.getEndIpAddress()));

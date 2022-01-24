@@ -59,7 +59,6 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
         type = AzureOperation.Type.SERVICE
     )
     public com.azure.resourcemanager.storage.models.StorageAccount createResourceInAzure() {
-        AzureTelemetry.getActionContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final String name = this.getName();
         final StorageManager manager = Objects.requireNonNull(this.getParent().getRemote());

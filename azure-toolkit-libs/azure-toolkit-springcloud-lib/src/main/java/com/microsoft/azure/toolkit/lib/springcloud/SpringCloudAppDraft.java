@@ -97,7 +97,6 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         type = AzureOperation.Type.SERVICE
     )
     public SpringApp createResourceInAzure() {
-        AzureTelemetry.getActionContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final String appName = this.getName();
         final SpringService service = Objects.requireNonNull(this.getParent().getRemote());
@@ -117,7 +116,6 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         type = AzureOperation.Type.SERVICE
     )
     public SpringApp updateResourceInAzure(@Nonnull SpringApp origin) {
-        AzureTelemetry.getActionContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         final SpringAppImpl update = ((SpringAppImpl) origin.update());
         if (modify(update)) {
