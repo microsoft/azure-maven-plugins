@@ -138,14 +138,17 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     protected synchronized void setRemote(@Nullable R newRemote) {
         final R oldRemote = this.remoteRef.get();
         if (Objects.equals(oldRemote, newRemote) && Objects.isNull(newRemote)) {
+            this.setStatus(Status.UNKNOWN);
             return;
         }
         if (this.syncTimeRef.get() > 0 && Objects.equals(oldRemote, newRemote)) {
+            this.setStatus(Status.LOADING);
             AzureTaskManager.getInstance().runOnPooledThread(this::reloadStatus);
         } else {
             this.syncTimeRef.set(System.currentTimeMillis());
             this.remoteRef.set(newRemote);
             if (Objects.nonNull(newRemote)) {
+                this.setStatus(Status.LOADING);
                 AzureTaskManager.getInstance().runOnPooledThread(this::reloadStatus);
             } else {
                 this.setStatus(Status.DISCONNECTED);
