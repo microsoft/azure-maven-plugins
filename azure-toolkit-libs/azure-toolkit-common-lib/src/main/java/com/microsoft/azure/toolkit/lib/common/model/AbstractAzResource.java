@@ -18,6 +18,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
@@ -106,9 +107,12 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             try {
                 final R refreshed = Objects.nonNull(remote) ? this.refreshRemote() : null;
                 return Objects.nonNull(refreshed) ? refreshed : this.getModule().loadResourceFromAzure(this.name, this.resourceGroupName);
-            } catch (ManagementException e) {
-                if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatusCode()) {
-                    return null;
+            } catch (Exception e) {
+                final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
+                if (cause instanceof ManagementException) {
+                    if (HttpStatus.SC_NOT_FOUND == ((ManagementException) cause).getResponse().getStatusCode()) {
+                        return null;
+                    }
                 }
                 throw e;
             }

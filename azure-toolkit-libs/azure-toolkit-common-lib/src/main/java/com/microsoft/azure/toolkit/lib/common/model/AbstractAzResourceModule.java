@@ -27,6 +27,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
@@ -87,9 +88,12 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             R remote = null;
             try {
                 remote = loadResourceFromAzure(name, resourceGroup);
-            } catch (ManagementException e) {
-                if (HttpStatus.SC_NOT_FOUND != e.getResponse().getStatusCode()) {
-                    throw e;
+            } catch (Exception e) {
+                final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
+                if (cause instanceof ManagementException) {
+                    if (HttpStatus.SC_NOT_FOUND != ((ManagementException) cause).getResponse().getStatusCode()) {
+                        throw e;
+                    }
                 }
             }
             if (Objects.isNull(remote)) {
@@ -184,7 +188,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         try {
             loaded = this.loadResourcesFromAzure();
         } catch (Throwable t) {
-            this.syncTime.set(-1);
+            this.syncTime.set(-2);
             AzureMessager.getMessager().error(t);
             return;
         }
