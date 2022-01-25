@@ -17,8 +17,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import static com.microsoft.azure.toolkit.lib.common.action.Action.RESOURCE_TYPE;
+
 @Getter
 public class AzureTelemetryClient {
+    private static final String[] SYSTEM_PROPERTIES = new String[]{RESOURCE_TYPE};
     // refers https://github.com/microsoft/vscode-extension-telemetry/blob/main/src/telemetryReporter.ts
     private static final String FILE_PATH_REGEX =
             "(file://)?([a-zA-Z]:(\\\\\\\\|\\\\|/)|(\\\\\\\\|\\\\|/))?([\\w-._]+(\\\\\\\\|\\\\|/))+[\\w-._]*";
@@ -104,7 +107,7 @@ public class AzureTelemetryClient {
 
     private void anonymizePersonallyIdentifiableInformation(final Map<String, String> properties) {
         properties.replaceAll((key, value) -> {
-            if (StringUtils.isBlank(value)) {
+            if (StringUtils.isBlank(value) || StringUtils.equalsAnyIgnoreCase(key, SYSTEM_PROPERTIES)) {
                 return value;
             }
             final String input = FILE_PATH_PATTERN.matcher(value).replaceAll("<REDACTED: user-file-path>");
