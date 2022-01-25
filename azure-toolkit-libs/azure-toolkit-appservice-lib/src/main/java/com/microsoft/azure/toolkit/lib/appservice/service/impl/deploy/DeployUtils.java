@@ -4,7 +4,6 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.service.impl.deploy;
 
-import com.azure.resourcemanager.appservice.models.AppSetting;
 import com.azure.resourcemanager.appservice.models.FunctionApp;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
@@ -14,7 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
-import java.util.Map;
 import java.util.Optional;
 
 class DeployUtils {
@@ -28,10 +26,9 @@ class DeployUtils {
      * @return StorageAccount specified in AzureWebJobsStorage
      */
     static CloudStorageAccount getCloudStorageAccount(final WebAppBase functionApp) {
-        final Map<String, AppSetting> settingsMap = functionApp.getAppSettings();
-        return Optional.ofNullable(settingsMap)
+        // Call functionApp.getSiteAppSettings() to get the app settings with key vault reference
+        return Optional.ofNullable(functionApp.getSiteAppSettings())
                 .map(map -> map.get(INTERNAL_STORAGE_KEY))
-                .map(AppSetting::value)
                 .filter(StringUtils::isNotEmpty)
                 .map(key -> {
                     try {
