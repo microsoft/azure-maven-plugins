@@ -33,6 +33,7 @@ import java.util.function.Predicate;
 @Accessors(chain = true, fluent = true)
 public class Action<D> {
     public static final String SOURCE = "ACTION_SOURCE";
+    public static final String RESOURCE_TYPE = "resourceType";
     public static final Id<Runnable> REQUIRE_AUTH = Id.of("action.common.requireAuth");
     public static final Id<Void> AUTHENTICATE = Id.of("action.account.authenticate");
     @Nonnull
@@ -112,7 +113,7 @@ public class Action<D> {
     protected void handle(D source, Object e, BiConsumer<D, Object> handler) {
         if (source instanceof IAzureBaseResource) {
             AzureTelemetry.getActionContext().setProperty("subscriptionId", ((IAzureBaseResource<?, ?>) source).subscriptionId());
-            AzureTelemetry.getActionContext().setProperty("resourceType", source.getClass().getSimpleName());
+            AzureTelemetry.getActionContext().setProperty(RESOURCE_TYPE, source.getClass().getSimpleName());
         }
         handler.accept(source, e);
     }

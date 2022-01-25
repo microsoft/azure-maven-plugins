@@ -17,7 +17,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.Utils;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.task.DeploySpringCloudAppTask;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -33,7 +33,7 @@ import java.util.List;
  * Deploy your project to target Azure Spring Cloud app. If target app doesn't exist, it will be created.
  */
 @Mojo(name = "deploy")
-@Slf4j
+@Log4j2
 public class DeployMojo extends AbstractMojoBase {
 
     private static final int GET_URL_TIMEOUT = 60;
@@ -41,9 +41,9 @@ public class DeployMojo extends AbstractMojoBase {
     private static final String PROJECT_SKIP = "Packaging type is pom, taking no actions.";
     private static final String PROJECT_NO_CONFIGURATION = "Configuration does not exist, taking no actions.";
     private static final String PROJECT_NOT_SUPPORT = "`azure-spring-cloud:deploy` does not support maven project with " +
-            "packaging %s, only jar is supported";
+        "packaging %s, only jar is supported";
     private static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
-            "you can check the app status from Azure Portal.";
+        "you can check the app status from Azure Portal.";
     private static final String CONFIRM_PROMPT_START = "`azure-spring-cloud:deploy` will perform the following tasks";
     private static final String CONFIRM_PROMPT_CONFIRM = "Perform the above tasks? (Y/n):";
 
@@ -120,8 +120,8 @@ public class DeployMojo extends AbstractMojoBase {
     protected void printStatus(SpringCloudDeployment deployment) {
         log.info("Deployment Status: {}", color(deployment.getStatus()));
         deployment.getInstances().forEach(instance ->
-                log.info(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s",
-                        instance.name(), color(instance.status()), instance.reason(), instance.discoveryStatus())));
+            log.info(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s",
+                instance.name(), color(instance.status()), instance.reason(), instance.discoveryStatus())));
     }
 
     private static String color(String status) {

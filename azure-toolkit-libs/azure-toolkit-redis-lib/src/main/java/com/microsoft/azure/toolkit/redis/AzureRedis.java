@@ -14,12 +14,12 @@ import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
-@Slf4j
+@Log4j2
 public class AzureRedis extends AbstractAzService<RedisResourceManager, RedisManager> {
     public AzureRedis() {
         super("Microsoft.Cache");
@@ -50,5 +50,10 @@ public class AzureRedis extends AbstractAzService<RedisResourceManager, RedisMan
     @Override
     protected RedisResourceManager newResource(@Nonnull RedisManager remote) {
         return new RedisResourceManager(remote, this);
+    }
+
+    @Override
+    public String getResourceTypeName() {
+        return "Azure Cache for Redis";
     }
 }

@@ -15,18 +15,20 @@ import com.google.common.collect.Sets;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
-import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource.Status;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpStatus;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -37,6 +39,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -54,16 +57,15 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     protected final P parent;
     @ToString.Include
     @Getter(AccessLevel.NONE)
-    private long syncTime = -1;
+    private final AtomicLong syncTime = new AtomicLong(-1);
     @Getter(AccessLevel.NONE)
     private final Map<String, Optional<T>> resources = new ConcurrentHashMap<>();
 
     @Nonnull
-    @Preload
     @Override
     public synchronized List<T> list() {
         Azure.az(IAzureAccount.class).account();
-        if (this.syncTime < 0) {
+        if (this.syncTime.compareAndSet(-1, 0)) {
             this.reload();
         }
         return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
@@ -71,21 +73,27 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     public synchronized void clear() {
-        this.syncTime = -1;
+        this.syncTime.set(-1);
         this.resources.clear();
     }
 
     @Nullable
     @Override
-    public T get(@Nonnull String name, String resourceGroup) {
+    public T get(@Nullable String name, String resourceGroup) {
+        if (StringUtils.isBlank(name)) {
+            return null;
+        }
         Azure.az(IAzureAccount.class).account();
         if (!this.resources.containsKey(name)) {
             R remote = null;
             try {
                 remote = loadResourceFromAzure(name, resourceGroup);
-            } catch (ManagementException e) {
-                if (HttpStatus.SC_NOT_FOUND != e.getResponse().getStatusCode()) {
-                    throw e;
+            } catch (Exception e) {
+                final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
+                if (cause instanceof ManagementException) {
+                    if (HttpStatus.SC_NOT_FOUND != ((ManagementException) cause).getResponse().getStatusCode()) {
+                        throw e;
+                    }
                 }
             }
             if (Objects.isNull(remote)) {
@@ -99,7 +107,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Override
-    public boolean exists(@NotNull String name, String resourceGroup) {
+    public boolean exists(@Nonnull String name, String resourceGroup) {
         final T resource = this.get(name, resourceGroup);
         return Objects.nonNull(resource) && resource.exists();
     }
@@ -138,7 +146,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Override
-    public T create(@NotNull AzResource.Draft<T, R> draft) {
+    public T create(@Nonnull AzResource.Draft<T, R> draft) {
         final T existing = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.isNull(existing)) {
             final T resource = cast(draft);
@@ -160,7 +168,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Override
-    public T update(@NotNull AzResource.Draft<T, R> draft) {
+    public T update(@Nonnull AzResource.Draft<T, R> draft) {
         final T resource = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.nonNull(resource) && Objects.nonNull(resource.getRemote())) {
             resource.doModify(() -> draft.updateResourceInAzure(resource.getRemote()), Status.UPDATING);
@@ -171,7 +179,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Override
     public void refresh() {
-        this.syncTime = -1;
+        this.syncTime.set(-1);
         fireResourcesChangedEvent();
     }
 
@@ -180,8 +188,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         try {
             loaded = this.loadResourcesFromAzure();
         } catch (Throwable t) {
-            this.syncTime = -1;
-            throw t;
+            this.syncTime.set(-2);
+            AzureMessager.getMessager().error(t);
+            return;
         }
         final Map<String, T> loadedResources = loaded.parallel().map(this::newResource).collect(Collectors.toMap(AbstractAzResource::getName, r -> r));
         final Set<String> localResources = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
@@ -195,7 +204,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         refreshed.forEach(name -> this.resources.get(name).ifPresent(r -> r.setRemote(loadedResources.get(name).getRemote())));
         deleted.forEach(name -> Optional.ofNullable(this.deleteResourceFromLocal(name)).ifPresent(t -> t.setStatus(Status.DELETED)));
         added.forEach(name -> this.addResourceToLocal(name, loadedResources.get(name)));
-        this.syncTime = System.currentTimeMillis();
+        this.syncTime.set(System.currentTimeMillis());
     }
 
     @Nonnull
@@ -210,13 +219,17 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         if (Objects.nonNull(removed) && removed.isPresent()) {
             fireResourcesChangedEvent();
         }
-        return removed.orElse(null);
+        return Objects.nonNull(removed) ? removed.orElse(null) : null;
     }
 
     private synchronized void addResourceToLocal(@Nonnull String name, @Nullable T resource) {
-        if (!this.resources.getOrDefault(name, Optional.empty()).isPresent()) {
-            this.resources.put(name, Optional.ofNullable(resource));
-            fireResourcesChangedEvent();
+        final Optional<T> oldResource = this.resources.getOrDefault(name, Optional.empty());
+        final Optional<T> newResource = Optional.ofNullable(resource);
+        if (!oldResource.isPresent()) {
+            this.resources.put(name, newResource);
+            if (newResource.isPresent()) {
+                fireResourcesChangedEvent();
+            }
         }
     }
 
@@ -233,7 +246,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
+    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<R> loadResourcesFromAzure() {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final Object client = this.getClient();
         if (client instanceof SupportsListing) {
             return this.<SupportsListing<R>>cast(client).list().stream();
@@ -243,7 +259,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nullable
+    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected R loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final Object client = this.getClient();
         resourceGroup = StringUtils.firstNonBlank(resourceGroup, this.getParent().getResourceGroupName());
         resourceGroup = StringUtils.equals(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER) ? null : resourceGroup;
@@ -258,7 +277,14 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         }
     }
 
+    @AzureOperation(
+        name = "resource.delete_resource.resource|type",
+        params = {"nameFromResourceId(resourceId)", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final Object client = this.getClient();
         if (client instanceof SupportsDeletingById) {
             ((SupportsDeletingById) client).deleteById(resourceId);
@@ -276,7 +302,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
      * @param <D> type of draft, it must extend {@link D} and implement {@link AzResource.Draft}
      */
     protected <D extends T> D newDraftForUpdate(@Nonnull T t) {
-        return this.newDraftForCreate(t.getName(), t.getResourceGroupName());
+        throw new AzureToolkitRuntimeException("not supported");
     }
 
     protected abstract T newResource(@Nonnull R r);

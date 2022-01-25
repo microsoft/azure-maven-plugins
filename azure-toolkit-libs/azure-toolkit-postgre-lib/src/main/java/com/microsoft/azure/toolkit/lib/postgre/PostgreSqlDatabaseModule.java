@@ -55,4 +55,9 @@ public class PostgreSqlDatabaseModule extends AbstractAzResourceModule<PostgreSq
     protected Databases getClient() {
         return Optional.ofNullable(this.getParent().getParent().getRemote()).map(PostgreSqlManager::databases).orElse(null);
     }
+
+    @Override
+    public String getResourceTypeName() {
+        return "PostgreSQL database";
+    }
 }

@@ -10,7 +10,6 @@ import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
-import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
@@ -47,11 +46,11 @@ public class CreateOrUpdateAppServicePlanTask extends AzureTask<AppServicePlan> 
                 .commit();
             AzureMessager.getMessager().info(String.format(CREATE_APP_SERVICE_PLAN_DONE, appServicePlan.name()));
         } else {
-            if (config.region() != null && !Objects.equals(config.region(), Region.fromName(appServicePlan.entity().getRegion()))) {
+            if (config.region() != null && !Objects.equals(config.region(), appServicePlan.getRegion())) {
                 AzureMessager.getMessager().warning(String.format("Skip region update for existing service plan '%s' since it is not allowed.",
                     appServicePlan.name()));
             }
-            if (config.pricingTier() != null && !Objects.equals(config.pricingTier(), appServicePlan.entity().getPricingTier())) {
+            if (config.pricingTier() != null && !Objects.equals(config.pricingTier(), appServicePlan.getPricingTier())) {
                 // apply pricing tier to service plan
                 appServicePlan.update().withPricingTier(config.pricingTier()).commit();
             }

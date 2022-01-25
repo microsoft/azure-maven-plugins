@@ -13,8 +13,10 @@ import com.azure.resourcemanager.resources.fluentcore.arm.Manager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,6 +27,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class AbstractAzureResourceModule<T extends IAzureBaseResource> extends SubscriptionScoped<AbstractAzureResourceModule<T>>
         implements AzureService<T> {
@@ -45,7 +48,15 @@ public abstract class AbstractAzureResourceModule<T extends IAzureBaseResource> 
 
     public List<T> list(boolean... force) {
         return getSubscriptions().stream().parallel()
-                .flatMap(subscription -> list(subscription.getId(), force).stream())
+                .flatMap(subscription -> {
+                    try {
+                        return list(subscription.getId(), force).stream();
+                    } catch (final RuntimeException e) {
+                        AzureMessager.getMessager().warning(AzureString.format("%s : Failed to list resources in subscription %s",
+                                this.getClass().getSimpleName(), subscription.getId()));
+                        return Stream.empty();
+                    }
+                })
                 .collect(Collectors.toList());
     }
 

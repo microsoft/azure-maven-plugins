@@ -11,6 +11,8 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.Data;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +45,14 @@ public class PostgreSqlFirewallRuleDraft extends PostgreSqlFirewallRule implemen
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.create_resource.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     public FirewallRule createResourceInAzure() {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final PostgreSqlServer server = this.getParent();
         final PostgreSqlManager manager = Objects.requireNonNull(server.getParent().getRemote());
         final FirewallRule.DefinitionStages.WithCreate withCreate = manager.firewallRules().define(this.getName())
@@ -58,7 +67,14 @@ public class PostgreSqlFirewallRuleDraft extends PostgreSqlFirewallRule implemen
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.update_resource.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     public FirewallRule updateResourceInAzure(@NotNull FirewallRule origin) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final Optional<String> modifiedStartIp = Optional.ofNullable(this.getStartIpAddress()).filter(n -> !Objects.equals(n, super.getStartIpAddress()));
         final Optional<String> modifiedEndIp = Optional.ofNullable(this.getEndIpAddress()).filter(n -> !Objects.equals(n, super.getEndIpAddress()));
         if (modifiedStartIp.isPresent() || modifiedEndIp.isPresent()) {

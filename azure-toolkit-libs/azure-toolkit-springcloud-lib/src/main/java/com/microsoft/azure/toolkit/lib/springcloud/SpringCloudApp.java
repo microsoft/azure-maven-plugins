@@ -57,11 +57,12 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     @Nonnull
     @Override
     public String loadStatus(@Nonnull SpringApp remote) {
-        final SpringCloudDeployment active = this.getActiveDeployment();
-        if (Objects.isNull(active)) {
+        final SpringCloudDeployment activeDeployment = this.getActiveDeployment();
+        if (Objects.isNull(activeDeployment)) {
             return Status.INACTIVE;
         }
-        return active.getStatus();
+        activeDeployment.refresh();
+        return activeDeployment.getStatusSync();
     }
 
     @Nonnull

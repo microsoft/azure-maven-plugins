@@ -6,23 +6,35 @@
 package com.microsoft.azure.toolkit.lib.appservice.function.core;
 
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.ClassUtils;
-import com.microsoft.azure.functions.annotation.*;
+import com.microsoft.azure.functions.annotation.CustomBinding;
+import com.microsoft.azure.functions.annotation.ExponentialBackoffRetry;
+import com.microsoft.azure.functions.annotation.FixedDelayRetry;
+import com.microsoft.azure.functions.annotation.FunctionName;
+import com.microsoft.azure.functions.annotation.StorageAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.Binding;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingEnum;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.Retry;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
-@Slf4j
+
+@Log4j2
 abstract class AzureFunctionPackagerBase {
     private static final List<String> CUSTOM_BINDING_RESERVED_PROPERTIES = Arrays.asList("type", "name", "direction");
     private static final String MULTI_RETRY_ANNOTATION = "Fixed delay retry and exponential backoff retry are not compatible, " +
-            "please use either of them for one trigger";
+        "please use either of them for one trigger";
 
     private static final String HTTP_OUTPUT_DEFAULT_NAME = "$return";
     private static final Map<BindingEnum, List<String>> REQUIRED_ATTRIBUTE_MAP = new HashMap<>();
@@ -63,16 +75,16 @@ abstract class AzureFunctionPackagerBase {
 
     private void patchStorageBinding(final FunctionMethod method, final List<Binding> bindings) {
         final Optional<FunctionAnnotation> storageAccount = method.getAnnotations().stream()
-                .filter(annotation -> annotation.isAnnotationType(StorageAccount.class))
-                .findFirst();
+            .filter(annotation -> annotation.isAnnotationType(StorageAccount.class))
+            .findFirst();
 
         if (storageAccount.isPresent()) {
             log.debug("StorageAccount annotation found.");
             final String connectionString = storageAccount.get().getStringValue("value", true);
             // Replace empty connection string
             bindings.stream().filter(binding -> binding.getBindingEnum().isStorage())
-                    .filter(binding -> StringUtils.isEmpty((String) binding.getAttribute("connection")))
-                    .forEach(binding -> binding.setAttribute("connection", connectionString));
+                .filter(binding -> StringUtils.isEmpty((String) binding.getAttribute("connection")))
+                .forEach(binding -> binding.setAttribute("connection", connectionString));
         } else {
             log.debug("No StorageAccount annotation found.");
         }
@@ -83,7 +95,7 @@ abstract class AzureFunctionPackagerBase {
             bindings.addAll(parseAnnotations(method.getAnnotations(), this::parseMethodAnnotation));
 
             if (bindings.stream().anyMatch(b -> b.getBindingEnum() == BindingEnum.HttpTrigger) &&
-                    bindings.stream().noneMatch(b -> b.getName().equalsIgnoreCase("$return"))) {
+                bindings.stream().noneMatch(b -> b.getName().equalsIgnoreCase("$return"))) {
                 bindings.add(getHTTPOutBinding());
             }
         }
@@ -104,7 +116,7 @@ abstract class AzureFunctionPackagerBase {
     }
 
     private List<Binding> parseAnnotations(List<FunctionAnnotation> annotationBindings,
-                                             Function<FunctionAnnotation, Binding> annotationParser) {
+                                           Function<FunctionAnnotation, Binding> annotationParser) {
         final List<Binding> bindings = new ArrayList<>();
 
         for (final FunctionAnnotation annotation : annotationBindings) {
@@ -121,7 +133,7 @@ abstract class AzureFunctionPackagerBase {
     private Binding createBinding(BindingEnum bindingEnum, FunctionAnnotation annotationBinding) {
         final Binding binding = new Binding(bindingEnum);
         annotationBinding.getPropertiesWithRequiredProperties(REQUIRED_ATTRIBUTE_MAP.get(bindingEnum))
-                .forEach(binding::setAttribute);
+            .forEach(binding::setAttribute);
         return binding;
     }
 
@@ -141,11 +153,11 @@ abstract class AzureFunctionPackagerBase {
     private Binding getBinding(final FunctionAnnotation annotation) {
         String fqn = annotation.getAnnotationClassName();
         final BindingEnum annotationEnum =
-                Arrays.stream(BindingEnum.values())
-                        .filter(bindingEnum -> StringUtils.equalsIgnoreCase(bindingEnum.name(),
-                                ClassUtils.getShortClassName(fqn)))
-                        .findFirst()
-                        .orElse(null);
+            Arrays.stream(BindingEnum.values())
+                .filter(bindingEnum -> StringUtils.equalsIgnoreCase(bindingEnum.name(),
+                    ClassUtils.getShortClassName(fqn)))
+                .findFirst()
+                .orElse(null);
         FunctionAnnotation customBindingAnnotation = annotation.getAnnotationClass().getAnnotation(CustomBinding.class);
         if (customBindingAnnotation != null) {
             Map<String, Object> annotationProperties = customBindingAnnotation.getPropertiesWithRequiredProperties(CUSTOM_BINDING_RESERVED_PROPERTIES);
@@ -168,7 +180,7 @@ abstract class AzureFunctionPackagerBase {
             mergedMap.putAll(map2);
         }
         final Binding extendBinding = new ExtendedCustomBinding((String) mergedMap.get("name"),
-                (String) mergedMap.get("direction"), (String) mergedMap.get("type")
+            (String) mergedMap.get("direction"), (String) mergedMap.get("type")
         );
 
         mergedMap.forEach((name, value) -> {

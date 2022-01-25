@@ -17,7 +17,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Performance;
 import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -26,7 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Slf4j
+@Log4j2
 public class AzureStorageAccount extends AbstractAzService<StorageResourceManager, StorageManager> {
 
     public AzureStorageAccount() {
@@ -70,8 +70,13 @@ public class AzureStorageAccount extends AbstractAzService<StorageResourceManage
 
     public List<Redundancy> listSupportedRedundancies(@Nonnull Performance performance, @Nullable Kind kind) {
         return Redundancy.values().stream()
-                .filter(r -> Objects.equals(r.getPerformance(), performance))
-                .filter(r -> !(Objects.equals(Kind.PAGE_BLOB_STORAGE, kind) && Objects.equals(r, Redundancy.PREMIUM_ZRS)))
-                .collect(Collectors.toList());
+            .filter(r -> Objects.equals(r.getPerformance(), performance))
+            .filter(r -> !(Objects.equals(Kind.PAGE_BLOB_STORAGE, kind) && Objects.equals(r, Redundancy.PREMIUM_ZRS)))
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public String getResourceTypeName() {
+        return "Storage accounts";
     }
 }

@@ -10,6 +10,8 @@ import com.azure.resourcemanager.appservice.models.PublishingProfileFormat;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.arm.resources.ResourceId;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.AzureAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServiceBaseEntity;
 import com.microsoft.azure.toolkit.lib.appservice.manager.AppServiceKuduManager;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
@@ -22,8 +24,12 @@ import com.microsoft.azure.toolkit.lib.appservice.model.TunnelStatus;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.service.IProcessClient;
+import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
+import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +40,7 @@ import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -67,8 +74,14 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     public void refresh() {
         this.status(Status.PENDING);
         super.refresh();
-        this.entity = Optional.ofNullable(this.remote).map(this::getEntityFromRemoteResource).orElse(null);
         this.refreshStatus();
+        this.entity = null;
+        try {
+            CacheManager.evictCache("appservice/{}/runtime", this.id());
+            CacheManager.evictCache("appservice/{}/appSettings", this.id());
+        } catch (Throwable e) {
+            // swallow exception for cache
+        }
     }
 
     @Override
@@ -102,10 +115,16 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
 
     @Override
     @Nonnull
+    @Deprecated
     public synchronized R entity() {
         if (entity == null) {
             entity = getEntityFromRemoteResource(remote());
         }
+        return entity;
+    }
+
+    @Deprecated
+    public R getRawEntity() {
         return entity;
     }
 
@@ -120,8 +139,8 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     }
 
     @Override
-    public Runtime getRuntime() {
-        return entity().getRuntime();
+    public String linuxFxVersion() {
+        return remote().linuxFxVersion();
     }
 
     @Override
@@ -221,6 +240,28 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
 
     public final void refreshStatus() {
         AzureTaskManager.getInstance().runOnPooledThread(() -> this.status(this.loadStatus()));
+    }
+
+    @Override
+    public AppServicePlan getAppServicePlan() {
+        return Azure.az(AzureAppServicePlan.class).get(remote().appServicePlanId());
+    }
+
+    @Override
+    public Region getRegion() {
+        return Region.fromName(remote().regionName());
+    }
+
+    @Override
+    @Cacheable(cacheName = "appservice/{}/appSettings", key = "${this.getId()}")
+    public Map<String, String> getAppSettings() {
+        return Utils.normalizeAppSettings(remote().getAppSettings());
+    }
+
+    @Override
+    @Cacheable(cacheName = "appservice/{}/runtime", key = "${this.getId()}")
+    public Runtime getRuntime() {
+        return AppServiceUtils.getRuntimeFromAppService(remote());
     }
 
     protected final void status(@Nonnull String status) {

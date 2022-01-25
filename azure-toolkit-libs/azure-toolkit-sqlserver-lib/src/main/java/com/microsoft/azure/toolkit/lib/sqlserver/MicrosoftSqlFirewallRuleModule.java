@@ -11,6 +11,8 @@ import com.azure.resourcemanager.sql.models.SqlFirewallRuleOperations;
 import com.azure.resourcemanager.sql.models.SqlServer;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
 import org.apache.commons.lang3.StringUtils;
 
@@ -51,13 +53,23 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
     }
 
     @Override
+    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected MicrosoftSqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new MicrosoftSqlFirewallRuleDraft(name, this);
     }
 
     @Override
-    protected MicrosoftSqlFirewallRuleDraft newDraftForUpdate(@Nonnull MicrosoftSqlFirewallRule rule) {
-        return new MicrosoftSqlFirewallRuleDraft(rule);
+    @AzureOperation(
+        name = "resource.draft_for_update.resource|type",
+        params = {"origin.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
+    protected MicrosoftSqlFirewallRuleDraft newDraftForUpdate(@Nonnull MicrosoftSqlFirewallRule origin) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
+        return new MicrosoftSqlFirewallRuleDraft(origin);
     }
 
     @Override
@@ -96,5 +108,10 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
             draft.setEndIpAddress(publicIp);
             draft.commit();
         }
+    }
+
+    @Override
+    public String getResourceTypeName() {
+        return "SQL server firewall rule";
     }
 }

@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.messager;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
@@ -24,7 +24,7 @@ public abstract class AzureMessager implements IAzureMessager {
     @Nonnull
     public static IAzureMessager getDefaultMessager() {
         return Optional.ofNullable(AzureMessager.defaultMessager)
-                .orElse(new DummyMessager());
+            .orElse(new DummyMessager());
     }
 
     @Nonnull
@@ -37,7 +37,7 @@ public abstract class AzureMessager implements IAzureMessager {
         return AzureMessage.getContext();
     }
 
-    @Slf4j
+    @Log4j2
     public static class DummyMessager implements IAzureMessager {
         @Override
         public boolean show(IAzureMessage message) {

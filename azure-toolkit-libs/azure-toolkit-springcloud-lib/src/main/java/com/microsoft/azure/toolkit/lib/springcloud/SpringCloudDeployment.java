@@ -81,24 +81,6 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
         return Collections.emptyList();
     }
 
-    @Override
-    public String formalizeStatus(String status) {
-        switch (status.toUpperCase()) {
-            case "ALLOCATING":
-            case "UPGRADING":
-            case "COMPILING":
-                return Status.PENDING;
-            case "RUNNING":
-                return Status.RUNNING;
-            case "STOPPED":
-                return Status.STOPPED;
-            case "FAILED":
-                return Status.ERROR;
-            default:
-                return Status.UNKNOWN;
-        }
-    }
-
     @SneakyThrows
     public Flux<String> streamLogs(final String instance) {
         return streamLogs(instance, 0, 10, 0, true);

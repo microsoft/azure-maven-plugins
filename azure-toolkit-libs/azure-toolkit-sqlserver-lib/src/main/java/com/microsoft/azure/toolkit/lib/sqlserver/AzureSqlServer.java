@@ -14,13 +14,13 @@ import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-@Slf4j
+@Log4j2
 public class AzureSqlServer extends AbstractAzService<MicrosoftSqlResourceManager, SqlServerManager> {
 
     public AzureSqlServer() {
@@ -52,5 +52,10 @@ public class AzureSqlServer extends AbstractAzService<MicrosoftSqlResourceManage
     @Override
     protected MicrosoftSqlResourceManager newResource(@Nonnull SqlServerManager manager) {
         return new MicrosoftSqlResourceManager(manager, this);
+    }
+
+    @Override
+    public String getResourceTypeName() {
+        return "SQL servers";
     }
 }

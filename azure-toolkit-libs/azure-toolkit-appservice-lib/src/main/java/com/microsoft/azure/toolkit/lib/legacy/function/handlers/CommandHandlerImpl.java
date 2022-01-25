@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.legacy.function.handlers;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.function.utils.CommandUtils;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -20,7 +20,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-@Slf4j
+@Log4j2
 public class CommandHandlerImpl implements CommandHandler {
     @Override
     public void runCommandWithReturnCodeCheck(final String command,
@@ -51,7 +51,7 @@ public class CommandHandlerImpl implements CommandHandler {
 
     protected String getOutputFromProcess(final Process process) throws IOException {
         try (final BufferedReader stdInput = new BufferedReader(
-                new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+            new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
             final StringBuilder stdout = new StringBuilder();
             String s;
             while ((s = stdInput.readLine()) != null) {
@@ -68,8 +68,8 @@ public class CommandHandlerImpl implements CommandHandler {
 
         final ProcessBuilder.Redirect redirect = getStdoutRedirect(showStdout);
         final ProcessBuilder processBuilder = new ProcessBuilder(buildCommand(command))
-                .redirectOutput(redirect)
-                .redirectErrorStream(true);
+            .redirectOutput(redirect)
+            .redirectErrorStream(true);
 
         if (workingDirectory != null) {
             processBuilder.directory(new File(workingDirectory));
@@ -84,8 +84,8 @@ public class CommandHandlerImpl implements CommandHandler {
 
     protected static String[] buildCommand(final String command) {
         return CommandUtils.isWindows() ?
-                new String[]{"cmd.exe", "/c", command} :
-                new String[]{"sh", "-c", command};
+            new String[]{"cmd.exe", "/c", command} :
+            new String[]{"sh", "-c", command};
     }
 
     protected static ProcessBuilder.Redirect getStdoutRedirect(boolean showStdout) {

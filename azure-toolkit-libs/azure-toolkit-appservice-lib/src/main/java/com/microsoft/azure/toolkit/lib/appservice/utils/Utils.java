@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Utils {
@@ -86,5 +87,18 @@ public class Utils {
     public static void throwForbidCreateResourceWarning(String resourceType, String name) {
         throw new AzureToolkitRuntimeException(String.format("%s(%s) cannot be found, if you want to create azure resources please remove command line arguments: " +
             "`-Dazure.resource.create.skip=true` or `-DskipCreateAzureResource`.", resourceType, name));
+    }
+
+    public static String getDockerImageNameFromLinuxFxVersion(String linuxFxVersion) {
+        String[] segments = linuxFxVersion.split(Pattern.quote("|"));
+        if (segments.length != 2) {
+            return null;
+        }
+        final String image = segments[1];
+        if (!image.contains("/")) {
+            return image;
+        }
+        segments = image.split(Pattern.quote("/"));
+        return segments[segments.length - 1].trim();
     }
 }

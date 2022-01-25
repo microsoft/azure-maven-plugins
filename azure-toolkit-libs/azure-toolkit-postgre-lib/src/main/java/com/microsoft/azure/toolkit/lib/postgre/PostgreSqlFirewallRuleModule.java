@@ -11,6 +11,8 @@ import com.azure.resourcemanager.postgresql.models.FirewallRules;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
 import org.apache.commons.lang3.StringUtils;
 
@@ -51,13 +53,23 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
     }
 
     @Override
+    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected PostgreSqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new PostgreSqlFirewallRuleDraft(name, this);
     }
 
     @Override
-    protected PostgreSqlFirewallRuleDraft newDraftForUpdate(@Nonnull PostgreSqlFirewallRule postgreSqlFirewallRule) {
-        return new PostgreSqlFirewallRuleDraft(postgreSqlFirewallRule);
+    @AzureOperation(
+        name = "resource.draft_for_update.resource|type",
+        params = {"origin.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
+    protected PostgreSqlFirewallRuleDraft newDraftForUpdate(@Nonnull PostgreSqlFirewallRule origin) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
+        return new PostgreSqlFirewallRuleDraft(origin);
     }
 
     @Override
@@ -96,5 +108,10 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
             draft.setEndIpAddress(publicIp);
             draft.commit();
         }
+    }
+
+    @Override
+    public String getResourceTypeName() {
+        return "PostgreSQL firewall rule";
     }
 }

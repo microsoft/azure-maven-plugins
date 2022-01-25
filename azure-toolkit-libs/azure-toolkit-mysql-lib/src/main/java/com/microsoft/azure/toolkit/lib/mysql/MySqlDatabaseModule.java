@@ -51,4 +51,9 @@ public class MySqlDatabaseModule extends AbstractAzResourceModule<MySqlDatabase,
     protected Databases getClient() {
         return Optional.ofNullable(this.getParent().getParent().getRemote()).map(MySqlManager::databases).orElse(null);
     }
+
+    @Override
+    public String getResourceTypeName() {
+        return "MySQL database";
+    }
 }

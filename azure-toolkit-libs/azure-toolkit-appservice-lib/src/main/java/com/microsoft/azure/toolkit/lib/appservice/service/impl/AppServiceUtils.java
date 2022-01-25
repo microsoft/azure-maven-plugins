@@ -49,7 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 class AppServiceUtils {
@@ -57,7 +56,7 @@ class AppServiceUtils {
     private static final String ENTRY_POINT = "entryPoint";
     private static final String BINDINGS = "bindings";
 
-    static Runtime getRuntimeFromAppService(WebAppBase webAppBase) {
+    public static Runtime getRuntimeFromAppService(WebAppBase webAppBase) {
         if (StringUtils.startsWithIgnoreCase(webAppBase.linuxFxVersion(), "docker")) {
             return Runtime.DOCKER;
         }
@@ -224,7 +223,7 @@ class AppServiceUtils {
 
         final String linuxFxVersion = webAppBase.linuxFxVersion();
         if (StringUtils.startsWithIgnoreCase(linuxFxVersion, "docker")) {
-            builder.dockerImageName(getDockerImageNameFromLinuxFxVersion(linuxFxVersion));
+            builder.dockerImageName(Utils.getDockerImageNameFromLinuxFxVersion(linuxFxVersion));
         }
         return builder.build();
     }
@@ -399,16 +398,4 @@ class AppServiceUtils {
                 .properties(bindingProperties).build();
     }
 
-    private static String getDockerImageNameFromLinuxFxVersion(String linuxFxVersion) {
-        String[] segments = linuxFxVersion.split(Pattern.quote("|"));
-        if (segments.length != 2) {
-            return null;
-        }
-        final String image = segments[1];
-        if (!image.contains("/")) {
-            return image;
-        }
-        segments = image.split(Pattern.quote("/"));
-        return segments[segments.length - 1].trim();
-    }
 }

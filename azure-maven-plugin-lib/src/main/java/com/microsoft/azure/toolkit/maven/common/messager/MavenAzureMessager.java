@@ -8,12 +8,12 @@ package com.microsoft.azure.toolkit.maven.common.messager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-@Slf4j
+@Log4j2
 public class MavenAzureMessager implements IAzureMessager, IAzureMessage.ValueDecorator {
     @Override
     public boolean show(IAzureMessage message) {

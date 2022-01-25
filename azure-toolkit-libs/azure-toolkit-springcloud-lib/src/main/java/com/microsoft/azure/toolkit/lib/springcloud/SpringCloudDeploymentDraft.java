@@ -16,19 +16,20 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Delegate;
-import lombok.extern.slf4j.Slf4j;
-import lombok.var;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationHandler;
@@ -36,6 +37,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -43,7 +45,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Slf4j
+@Log4j2
 public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     implements AzResource.Draft<SpringCloudDeployment, SpringAppDeployment>, InvocationHandler {
 
@@ -97,12 +99,15 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         this.config = null;
     }
 
+    @Override
     @AzureOperation(
-        name = "springcloud.create_deployment.deployment|app",
-        params = {"this.getName()", "this.getParent().getName()"},
+        name = "resource.create_resource.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
         type = AzureOperation.Type.SERVICE
     )
     public SpringAppDeployment createResourceInAzure() {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final String name = this.getName();
         final SpringApp app = Objects.requireNonNull(this.getParent().getRemote());
         final SpringAppDeploymentImpl create = ((SpringAppDeploymentImpl) app.deployments().define(name));
@@ -110,7 +115,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         modify(create);
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating deployment({0})...", name));
-        SpringAppDeployment deployment = create.create();
+        SpringAppDeployment deployment = this.doModify(() -> create.create(), Status.CREATING);
         messager.success(AzureString.format("Deployment({0}) is successfully created", name));
         deployment = this.scaleDeploymentInAzure(deployment);
         return deployment;
@@ -118,11 +123,13 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
 
     @Override
     @AzureOperation(
-        name = "springcloud.update_deployment.deployment|app",
-        params = {"this.getName()", "this.getParent().getName()"},
+        name = "resource.update_resource.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
         type = AzureOperation.Type.SERVICE
     )
     public SpringAppDeployment updateResourceInAzure(@Nonnull SpringAppDeployment deployment) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final SpringAppDeploymentImpl update = ((SpringAppDeploymentImpl) Objects.requireNonNull(deployment).update());
         if (modify(update)) {
             final IAzureMessager messager = AzureMessager.getMessager();
@@ -134,17 +141,13 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         return deployment;
     }
 
-    @AzureOperation(
-        name = "springcloud.scale_deployment.deployment|app",
-        params = {"this.getName()", "this.getParent().getName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "springcloud.scale_deployment.deployment", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     SpringAppDeployment scaleDeploymentInAzure(SpringAppDeployment deployment) {
         final SpringAppDeployment.Update update = deployment.update();
         boolean modified = scale(deployment, update);
         if (modified) {
             final IAzureMessager messager = AzureMessager.getMessager();
-            this.doModifyAsync(() -> {
+            this.doModify(() -> {
                 messager.info(AzureString.format("Start scaling deployment({0})...", deployment.name()));
                 update.apply();
                 messager.success(AzureString.format("Deployment({0}) is successfully scaled.", deployment.name()));
@@ -166,7 +169,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             (Objects.nonNull(newArtifact));
         if (modified) {
             if (Objects.nonNull(newEnv)) {
-                Optional.ofNullable(oldEnv).ifPresent(e -> e.keySet().forEach(deployment::withoutEnvironment));
+                Optional.ofNullable(oldEnv).ifPresent(e -> new HashSet<>(e.keySet()).forEach(deployment::withoutEnvironment));
                 Optional.of(newEnv).ifPresent((e) -> e.forEach(deployment::withEnvironment));
             }
             Optional.ofNullable(newJvmOptions).ifPresent(deployment::withJvmOptions);
@@ -223,7 +226,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     private Object invokeSuper(Method method, Object[] args) throws Throwable {
         final Class<?>[] classes = Arrays.stream(args).map(Object::getClass).toArray(value -> new Class<?>[0]);
         final MethodType type = MethodType.methodType(method.getReturnType(), classes);
-        final var handle = MethodHandles.lookup().findSpecial(SpringCloudDeployment.class, method.getName(), type, this.getClass()).bindTo(this);
+        final MethodHandle handle = MethodHandles.lookup().findSpecial(SpringCloudDeployment.class, method.getName(), type, this.getClass()).bindTo(this);
         return handle.invokeWithArguments(args);
     }
 

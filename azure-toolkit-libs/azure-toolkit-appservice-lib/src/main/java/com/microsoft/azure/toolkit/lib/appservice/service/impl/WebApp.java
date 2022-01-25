@@ -30,7 +30,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import io.jsonwebtoken.lang.Collections;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Slf4j
+@Log4j2
 public class WebApp extends AbstractAppService<com.azure.resourcemanager.appservice.models.WebApp, WebAppEntity> implements IWebAppBase<WebAppEntity> {
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
 
@@ -54,7 +54,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     }
 
     public WebApp(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name,
-                              @Nonnull final AppServiceManager azureClient) {
+                  @Nonnull final AppServiceManager azureClient) {
         super(subscriptionId, resourceGroup, name);
         this.azureClient = azureClient;
     }
@@ -115,8 +115,8 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     public void deploy(@Nonnull DeployType deployType, @Nonnull File targetFile, @Nullable String targetPath) {
         final DeployOptions options = new DeployOptions().withPath(targetPath);
         AzureMessager.getMessager().info(AzureString.format("Deploying (%s)[%s] %s ...", targetFile.toString(),
-                (deployType.toString()),
-                StringUtils.isBlank(targetPath) ? "" : (" to " + (targetPath))));
+            (deployType.toString()),
+            StringUtils.isBlank(targetPath) ? "" : (" to " + (targetPath))));
         remote().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
     }
 
@@ -206,16 +206,16 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
 
         DefinitionStages.WithCreate createDockerWebApp(DefinitionStages.Blank blank, AppServicePlan appServicePlan, DockerConfiguration dockerConfiguration) {
             final DefinitionStages.WithLinuxAppFramework withLinuxAppFramework =
-                    blank.withExistingLinuxPlan(appServicePlan).withExistingResourceGroup(resourceGroup);
+                blank.withExistingLinuxPlan(appServicePlan).withExistingResourceGroup(resourceGroup);
             final DefinitionStages.WithStartUpCommand draft;
             if (StringUtils.isAllEmpty(dockerConfiguration.getUserName(), dockerConfiguration.getPassword())) {
                 draft = withLinuxAppFramework.withPublicDockerHubImage(dockerConfiguration.getImage());
             } else if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
                 draft = withLinuxAppFramework.withPrivateDockerHubImage(dockerConfiguration.getImage())
-                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+                    .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             } else {
                 draft = withLinuxAppFramework.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
-                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+                    .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             }
             return draft.withStartUpCommand(dockerConfiguration.getStartUpCommand());
         }
@@ -260,11 +260,10 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
         }
 
         private Update updateAppServicePlan(Update update, AppServicePlanEntity newServicePlan) {
-            final String servicePlanId = remote().appServicePlanId();
-            final AppServicePlanEntity currentServicePlan = Azure.az(AzureAppServicePlan.class).get(servicePlanId).entity();
-            if (StringUtils.equalsIgnoreCase(currentServicePlan.getId(), newServicePlan.getId()) ||
-                (StringUtils.equalsIgnoreCase(currentServicePlan.getName(), newServicePlan.getName()) &&
-                    StringUtils.equalsIgnoreCase(currentServicePlan.getResourceGroup(), newServicePlan.getResourceGroup()))) {
+            final com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan appServicePlan = WebApp.this.getAppServicePlan();
+            if (StringUtils.equalsIgnoreCase(appServicePlan.getId(), newServicePlan.getId()) ||
+                (StringUtils.equalsIgnoreCase(appServicePlan.getName(), newServicePlan.getName()) &&
+                    StringUtils.equalsIgnoreCase(appServicePlan.getResourceGroupName(), newServicePlan.getResourceGroup()))) {
                 return update;
             }
             final AppServicePlan newPlanServiceModel = AppServiceUtils.getAppServicePlan(newServicePlan, azureClient);
@@ -281,10 +280,10 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
                 draft = update.withPublicDockerHubImage(dockerConfiguration.getImage());
             } else if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
                 draft = update.withPrivateDockerHubImage(dockerConfiguration.getImage())
-                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+                    .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             } else {
                 draft = update.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
-                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+                    .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             }
             modified = true;
             return draft.withStartUpCommand(dockerConfiguration.getStartUpCommand());

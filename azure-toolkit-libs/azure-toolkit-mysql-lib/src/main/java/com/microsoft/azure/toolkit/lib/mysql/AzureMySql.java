@@ -16,14 +16,14 @@ import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Slf4j
+@Log4j2
 public class AzureMySql extends AbstractAzService<MySqlResourceManager, MySqlManager> {
 
     public AzureMySql() {
@@ -59,5 +59,10 @@ public class AzureMySql extends AbstractAzService<MySqlResourceManager, MySqlMan
 
     public List<String> listSupportedVersions() {
         return ServerVersion.values().stream().map(ExpandableStringEnum::toString).collect(Collectors.toList());
+    }
+
+    @Override
+    public String getResourceTypeName() {
+        return "Azure Database for MySQL servers";
     }
 }
