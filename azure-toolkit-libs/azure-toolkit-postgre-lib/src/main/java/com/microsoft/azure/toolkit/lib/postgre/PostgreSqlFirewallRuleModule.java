@@ -56,6 +56,7 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected PostgreSqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new PostgreSqlFirewallRuleDraft(name, this);
     }
 
@@ -67,6 +68,7 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
     )
     protected PostgreSqlFirewallRuleDraft newDraftForUpdate(@Nonnull PostgreSqlFirewallRule origin) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new PostgreSqlFirewallRuleDraft(origin);
     }
 

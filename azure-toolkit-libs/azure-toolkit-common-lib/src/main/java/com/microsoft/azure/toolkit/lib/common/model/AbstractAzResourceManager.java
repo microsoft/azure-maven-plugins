@@ -45,6 +45,7 @@ public abstract class AbstractAzResourceManager<T extends AbstractAzResource<T, 
     @AzureOperation(name = "resource.list_supported_regions.type", params = {"resourceType"}, type = AzureOperation.Type.SERVICE)
     public List<Region> listSupportedRegions(String resourceType) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final String provider = getService().getName();
         final String subscriptionId = this.getSubscriptionId();
         List<Region> allRegionList = az(IAzureAccount.class).listRegions(subscriptionId);

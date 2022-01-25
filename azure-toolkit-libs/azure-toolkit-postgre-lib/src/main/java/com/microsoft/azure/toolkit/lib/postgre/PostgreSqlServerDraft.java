@@ -89,6 +89,7 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
     )
     public Server createResourceInAzure() {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         assert this.config != null;
         final PostgreSqlManager manager = Objects.requireNonNull(this.getParent().getRemote());
 
@@ -123,6 +124,7 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
     )
     public Server updateResourceInAzure(@Nonnull Server origin) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
             final IAzureMessager messager = AzureMessager.getMessager();

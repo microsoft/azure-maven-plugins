@@ -31,6 +31,7 @@ public class StorageAccountModule extends AbstractAzResourceModule<StorageAccoun
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected StorageAccountDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new StorageAccountDraft(name, resourceGroupName, this);
     }
 
@@ -42,6 +43,7 @@ public class StorageAccountModule extends AbstractAzResourceModule<StorageAccoun
     )
     protected StorageAccountDraft newDraftForUpdate(@Nonnull StorageAccount origin) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new StorageAccountDraft(origin);
     }
 

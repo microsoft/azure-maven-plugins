@@ -46,6 +46,7 @@ public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MyS
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected MySqlServerDraft newDraftForCreate(@Nonnull String name, @Nonnull String resourceGroupName) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new MySqlServerDraft(name, resourceGroupName, this);
     }
 
@@ -57,6 +58,7 @@ public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MyS
     )
     protected MySqlServerDraft newDraftForUpdate(@Nonnull MySqlServer origin) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new MySqlServerDraft(origin);
     }
 

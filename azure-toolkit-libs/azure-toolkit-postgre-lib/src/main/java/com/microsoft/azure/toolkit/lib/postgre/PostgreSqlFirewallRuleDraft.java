@@ -52,6 +52,7 @@ public class PostgreSqlFirewallRuleDraft extends PostgreSqlFirewallRule implemen
     )
     public FirewallRule createResourceInAzure() {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final PostgreSqlServer server = this.getParent();
         final PostgreSqlManager manager = Objects.requireNonNull(server.getParent().getRemote());
         final FirewallRule.DefinitionStages.WithCreate withCreate = manager.firewallRules().define(this.getName())
@@ -73,6 +74,7 @@ public class PostgreSqlFirewallRuleDraft extends PostgreSqlFirewallRule implemen
     )
     public FirewallRule updateResourceInAzure(@NotNull FirewallRule origin) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final Optional<String> modifiedStartIp = Optional.ofNullable(this.getStartIpAddress()).filter(n -> !Objects.equals(n, super.getStartIpAddress()));
         final Optional<String> modifiedEndIp = Optional.ofNullable(this.getEndIpAddress()).filter(n -> !Objects.equals(n, super.getEndIpAddress()));
         if (modifiedStartIp.isPresent() || modifiedEndIp.isPresent()) {

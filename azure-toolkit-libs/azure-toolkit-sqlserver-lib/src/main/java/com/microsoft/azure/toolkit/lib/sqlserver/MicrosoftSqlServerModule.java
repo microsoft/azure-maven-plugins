@@ -46,6 +46,7 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected MicrosoftSqlServerDraft newDraftForCreate(@Nonnull String name, @Nonnull String resourceGroupName) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new MicrosoftSqlServerDraft(name, resourceGroupName, this);
     }
 
@@ -57,6 +58,7 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
     )
     protected MicrosoftSqlServerDraft newDraftForUpdate(@Nonnull MicrosoftSqlServer server) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new MicrosoftSqlServerDraft(server);
     }
 

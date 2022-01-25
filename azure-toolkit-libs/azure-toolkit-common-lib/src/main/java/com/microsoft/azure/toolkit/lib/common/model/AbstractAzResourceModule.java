@@ -249,6 +249,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<R> loadResourcesFromAzure() {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final Object client = this.getClient();
         if (client instanceof SupportsListing) {
             return this.<SupportsListing<R>>cast(client).list().stream();
@@ -261,6 +262,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected R loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final Object client = this.getClient();
         resourceGroup = StringUtils.firstNonBlank(resourceGroup, this.getParent().getResourceGroupName());
         resourceGroup = StringUtils.equals(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER) ? null : resourceGroup;
@@ -282,6 +284,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     )
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final Object client = this.getClient();
         if (client instanceof SupportsDeletingById) {
             ((SupportsDeletingById) client).deleteById(resourceId);

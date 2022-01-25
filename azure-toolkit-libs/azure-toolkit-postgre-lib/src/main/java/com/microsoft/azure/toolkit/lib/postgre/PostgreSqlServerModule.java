@@ -46,6 +46,7 @@ public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlS
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected PostgreSqlServerDraft newDraftForCreate(@Nonnull String name, @Nonnull String resourceGroupName) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new PostgreSqlServerDraft(name, resourceGroupName, this);
     }
 
@@ -57,6 +58,7 @@ public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlS
     )
     protected PostgreSqlServerDraft newDraftForUpdate(@Nonnull PostgreSqlServer origin) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new PostgreSqlServerDraft(origin);
     }
 

@@ -56,6 +56,7 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected MySqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new MySqlFirewallRuleDraft(name, this);
     }
 
@@ -67,6 +68,7 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
     )
     protected MySqlFirewallRuleDraft newDraftForUpdate(@Nonnull MySqlFirewallRule origin) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new MySqlFirewallRuleDraft(origin);
     }
 

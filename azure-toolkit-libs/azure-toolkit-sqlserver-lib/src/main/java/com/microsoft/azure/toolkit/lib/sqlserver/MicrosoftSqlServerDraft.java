@@ -64,6 +64,7 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
     public SqlServer createResourceInAzure() {
         assert this.config != null;
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final SqlServerManager manager = Objects.requireNonNull(this.getParent().getRemote());
         final SqlServer.DefinitionStages.WithCreate create = manager.sqlServers()
             .define(this.getName())
@@ -86,6 +87,7 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
     )
     public SqlServer updateResourceInAzure(@Nonnull SqlServer origin) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
             final IAzureMessager messager = AzureMessager.getMessager();
