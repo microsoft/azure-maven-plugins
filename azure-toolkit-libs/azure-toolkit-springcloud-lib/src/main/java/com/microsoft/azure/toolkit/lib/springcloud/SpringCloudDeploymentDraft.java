@@ -23,13 +23,13 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Delegate;
 import lombok.extern.log4j.Log4j2;
-import lombok.var;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationHandler;
@@ -226,7 +226,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     private Object invokeSuper(Method method, Object[] args) throws Throwable {
         final Class<?>[] classes = Arrays.stream(args).map(Object::getClass).toArray(value -> new Class<?>[0]);
         final MethodType type = MethodType.methodType(method.getReturnType(), classes);
-        final var handle = MethodHandles.lookup().findSpecial(SpringCloudDeployment.class, method.getName(), type, this.getClass()).bindTo(this);
+        final MethodHandle handle = MethodHandles.lookup().findSpecial(SpringCloudDeployment.class, method.getName(), type, this.getClass()).bindTo(this);
         return handle.invokeWithArguments(args);
     }
 
