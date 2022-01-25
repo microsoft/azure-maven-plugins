@@ -56,6 +56,7 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected MicrosoftSqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new MicrosoftSqlFirewallRuleDraft(name, this);
     }
 
@@ -67,6 +68,7 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
     )
     protected MicrosoftSqlFirewallRuleDraft newDraftForUpdate(@Nonnull MicrosoftSqlFirewallRule origin) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new MicrosoftSqlFirewallRuleDraft(origin);
     }
 

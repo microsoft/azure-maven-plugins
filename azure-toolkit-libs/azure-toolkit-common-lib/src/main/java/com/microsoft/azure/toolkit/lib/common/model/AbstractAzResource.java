@@ -98,6 +98,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @AzureOperation(name = "resource.reload.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     private void reload() {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         Azure.az(IAzureAccount.class).account();
         final R remote = this.remoteRef.get();
         if (Objects.isNull(remote) && StringUtils.equals(this.statusRef.get(), Status.CREATING)) {
@@ -181,6 +182,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     )
     private void reloadStatus() {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         try {
             this.remoteOptional().map(this::loadStatus).ifPresent(this::setStatus);
         } catch (Throwable t) {

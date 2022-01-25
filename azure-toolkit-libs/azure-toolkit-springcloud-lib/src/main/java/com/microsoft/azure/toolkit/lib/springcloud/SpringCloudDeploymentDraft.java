@@ -107,6 +107,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     )
     public SpringAppDeployment createResourceInAzure() {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final String name = this.getName();
         final SpringApp app = Objects.requireNonNull(this.getParent().getRemote());
         final SpringAppDeploymentImpl create = ((SpringAppDeploymentImpl) app.deployments().define(name));
@@ -128,6 +129,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     )
     public SpringAppDeployment updateResourceInAzure(@Nonnull SpringAppDeployment deployment) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final SpringAppDeploymentImpl update = ((SpringAppDeploymentImpl) Objects.requireNonNull(deployment).update());
         if (modify(update)) {
             final IAzureMessager messager = AzureMessager.getMessager();

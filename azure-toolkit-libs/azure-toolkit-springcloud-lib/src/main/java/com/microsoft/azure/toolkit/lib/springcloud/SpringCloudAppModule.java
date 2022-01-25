@@ -32,6 +32,7 @@ public class SpringCloudAppModule extends AbstractAzResourceModule<SpringCloudAp
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected SpringCloudAppDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new SpringCloudAppDraft(name, this);
     }
 
@@ -43,6 +44,7 @@ public class SpringCloudAppModule extends AbstractAzResourceModule<SpringCloudAp
     )
     protected SpringCloudAppDraft newDraftForUpdate(@Nonnull SpringCloudApp origin) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new SpringCloudAppDraft(origin);
     }
 
