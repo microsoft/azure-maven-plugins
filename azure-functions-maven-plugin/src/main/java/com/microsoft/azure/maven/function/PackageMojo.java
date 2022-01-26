@@ -90,6 +90,8 @@ public class PackageMojo extends AbstractFunctionMojo {
     public static final String HOST_JSON = "host.json";
     public static final String LOCAL_SETTINGS_JSON = "local.settings.json";
     public static final String EXTENSION_BUNDLE = "extensionBundle";
+    private static final String AZURE_FUNCTIONS_JAVA_LIBRARY = "azure-functions-java-library";
+    private static final String AZURE_FUNCTIONS_JAVA_CORE_LIBRARY = "azure-functions-java-core-library";
     private static final String DEFAULT_LOCAL_SETTINGS_JSON = "{ \"IsEncrypted\": false, \"Values\": " +
             "{ \"FUNCTIONS_WORKER_RUNTIME\": \"java\" } }";
     private static final String DEFAULT_HOST_JSON = "{\"version\":\"2.0\",\"extensionBundle\":" +
@@ -334,8 +336,12 @@ public class PackageMojo extends AbstractFunctionMojo {
         if (libFolder.exists()) {
             FileUtils.cleanDirectory(libFolder);
         }
-        for (final Artifact artifact : project.getArtifacts()) {
-            if (!StringUtils.equalsIgnoreCase(artifact.getArtifactId(), "azure-functions-java-library")) {
+        final Set<Artifact> artifacts = project.getArtifacts();
+        final String libraryToExclude = artifacts.stream()
+                .filter(artifact -> StringUtils.equalsAnyIgnoreCase(artifact.getArtifactId(), AZURE_FUNCTIONS_JAVA_CORE_LIBRARY))
+                .map(Artifact::getArtifactId).findFirst().orElse(AZURE_FUNCTIONS_JAVA_LIBRARY);
+        for (final Artifact artifact : artifacts) {
+            if (!StringUtils.equalsIgnoreCase(artifact.getArtifactId(), libraryToExclude)) {
                 FileUtils.copyFileToDirectory(artifact.getFile(), libFolder);
             }
         }
