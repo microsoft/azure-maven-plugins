@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.azure.core.management.exception.ManagementException;
+import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
 import com.azure.resourcemanager.resources.fluentcore.model.Refreshable;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
@@ -257,6 +258,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @Nonnull
     public String getId() {
+        if (this.remoteRef.get() instanceof HasId) {
+            return ((HasId) this.remoteRef.get()).id();
+        }
         return this.getModule().toResourceId(this.name, this.resourceGroupName);
     }
 

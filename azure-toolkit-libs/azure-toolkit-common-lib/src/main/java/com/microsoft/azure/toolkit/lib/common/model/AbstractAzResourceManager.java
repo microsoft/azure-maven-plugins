@@ -74,8 +74,12 @@ public abstract class AbstractAzResourceManager<T extends AbstractAzResource<T, 
     }
 
     public ResourceManager getResourceManager() {
-        final IAccount account = az(IAzureAccount.class).account();
         final String subscriptionId = this.getSubscriptionId();
+        return getResourceManager(subscriptionId);
+    }
+
+    public static ResourceManager getResourceManager(final String subscriptionId) {
+        final IAccount account = az(IAzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
         final String userAgent = config.getUserAgent();
         final HttpLogDetailLevel logDetailLevel = config.getLogLevel() == null ?
