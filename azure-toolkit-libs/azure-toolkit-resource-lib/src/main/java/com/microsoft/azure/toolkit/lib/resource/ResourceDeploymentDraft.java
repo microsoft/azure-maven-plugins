@@ -70,8 +70,8 @@ public class ResourceDeploymentDraft extends ResourceDeployment
         final ResourceManager manager = Objects.requireNonNull(this.getParent().getParent().getRemote());
         final Deployment.DefinitionStages.Blank define = manager.deployments().define(name);
         final Deployment.DefinitionStages.WithTemplate withTemplate = group.exists() ?
-            define.withNewResourceGroup(group.getName(), com.azure.core.management.Region.fromName(group.getRegion().getName())) :
-            define.withExistingResourceGroup(group.getName());
+            define.withExistingResourceGroup(group.getName()) :
+            define.withNewResourceGroup(group.getName(), com.azure.core.management.Region.fromName(group.getRegion().getName()));
         final Deployment.DefinitionStages.WithCreate definition = withTemplate
             .withTemplate(template)
             .withParameters(parameters)
