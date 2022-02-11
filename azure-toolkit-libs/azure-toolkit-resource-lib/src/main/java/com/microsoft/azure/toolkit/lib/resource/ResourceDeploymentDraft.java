@@ -111,6 +111,7 @@ public class ResourceDeploymentDraft extends ResourceDeployment
         if (modified) {
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start creating Deployment({0})...", name));
+            update.withMode(DeploymentMode.INCREMENTAL);
             origin = update.apply();
             messager.success(AzureString.format("Deployment({0}) is successfully created.", name));
         }
