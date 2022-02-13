@@ -43,7 +43,7 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
     }
 
     protected ResourceDeployment(@Nonnull Deployment remote, @Nonnull ResourceDeploymentModule module) {
-        super(remote.name(), remote.name(), module);
+        super(remote.name(), remote.resourceGroupName(), module);
         this.setRemote(remote);
     }
 
