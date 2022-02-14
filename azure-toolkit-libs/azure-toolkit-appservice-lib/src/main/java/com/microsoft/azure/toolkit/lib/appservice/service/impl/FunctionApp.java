@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appservice.models.FunctionApp, FunctionAppEntity>
     implements IFunctionAppBase<FunctionAppEntity> {
+    public static final String FUNCTIONS_EXTENSION_VERSION = "FUNCTIONS_EXTENSION_VERSION";
     public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8;
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     private final AppServiceManager azureClient;
@@ -192,10 +193,11 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
             if (appServicePlan == null) {
                 throw new AzureToolkitRuntimeException("Target app service plan not exists");
             }
+            final String functionExtensionVersion = getAppSettings().map(map -> map.get(FUNCTIONS_EXTENSION_VERSION)).orElse(null);
             final WithCreate withCreate;
             switch (runtime.getOperatingSystem()) {
                 case LINUX:
-                    withCreate = createLinuxFunctionApp(blank, appServicePlan, runtime);
+                    withCreate = createLinuxFunctionApp(blank, appServicePlan, runtime, functionExtensionVersion);
                     break;
                 case WINDOWS:
                     withCreate = createWindowsFunctionApp(blank, appServicePlan, runtime);
@@ -228,10 +230,11 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
                 .withWebContainer(null);
         }
 
-        WithCreate createLinuxFunctionApp(Blank blank, com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan, Runtime runtime) {
+        WithCreate createLinuxFunctionApp(Blank blank, com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan, Runtime runtime,
+                                          String functionExtensionVersion) {
             return blank.withExistingLinuxAppServicePlan(appServicePlan)
                 .withExistingResourceGroup(resourceGroup)
-                .withBuiltInImage(AppServiceUtils.toFunctionRuntimeStack(runtime));
+                .withBuiltInImage(AppServiceUtils.toFunctionRuntimeStack(runtime, functionExtensionVersion));
         }
 
         WithCreate createDockerFunctionApp(Blank blank, com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan,
@@ -271,11 +274,13 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
         @Override
         public FunctionApp commit() {
             Update update = remote().update();
+            final String functionExtensionVersion = Optional.ofNullable(getAppSettingsToAdd().get(FUNCTIONS_EXTENSION_VERSION))
+                    .orElseGet(() -> FunctionApp.this.getAppSettings().get(FUNCTIONS_EXTENSION_VERSION));
             if (getAppServicePlan() != null && getAppServicePlan().isPresent()) {
                 update = updateAppServicePlan(update, getAppServicePlan().get());
             }
             if (getRuntime() != null && getRuntime().isPresent()) {
-                update = updateRuntime(update, getRuntime().get());
+                update = updateRuntime(update, getRuntime().get(), functionExtensionVersion);
             }
             if (getDockerConfiguration() != null && getDockerConfiguration().isPresent() && FunctionApp.this.getRuntime().isDocker()) {
                 modified = true;
@@ -316,7 +321,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
             return update.withExistingAppServicePlan(newPlanServiceModel);
         }
 
-        private Update updateRuntime(Update update, Runtime newRuntime) {
+        private Update updateRuntime(Update update, Runtime newRuntime, String functionExtensionVersion) {
             final Runtime current = FunctionApp.this.getRuntime();
             if (newRuntime.getOperatingSystem() != null && current.getOperatingSystem() != newRuntime.getOperatingSystem()) {
                 throw new AzureToolkitRuntimeException(CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS);
@@ -328,7 +333,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
             final OperatingSystem operatingSystem = ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), current.getOperatingSystem());
             switch (operatingSystem) {
                 case LINUX:
-                    return update.withBuiltInImage(AppServiceUtils.toFunctionRuntimeStack(newRuntime));
+                    return update.withBuiltInImage(AppServiceUtils.toFunctionRuntimeStack(newRuntime, functionExtensionVersion));
                 case WINDOWS:
                     return updateWindowsFunctionApp(update, current, newRuntime);
                 default:
