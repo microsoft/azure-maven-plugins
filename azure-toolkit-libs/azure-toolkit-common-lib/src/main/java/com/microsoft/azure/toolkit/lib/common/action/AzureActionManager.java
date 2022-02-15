@@ -48,4 +48,48 @@ public abstract class AzureActionManager {
         final Action<D> action = this.getAction(id);
         action.registerHandler(condition, handler);
     }
+
+    @Nonnull
+    public Shortcuts getIDEDefaultShortcuts() {
+        return new Shortcuts() {
+        };
+    }
+
+    public interface Shortcuts {
+        default Object add() {
+            return null;
+        }
+
+        default Object delete() {
+            return null;
+        }
+
+        default Object view() {
+            return null;
+        }
+
+        default Object edit() {
+            return null;
+        }
+
+        default Object refresh() {
+            return null;
+        }
+
+        default Object start() {
+            return null;
+        }
+
+        default Object stop() {
+            return null;
+        }
+
+        default Object restart() {
+            return null;
+        }
+
+        default Object deploy() {
+            return null;
+        }
+    }
 }

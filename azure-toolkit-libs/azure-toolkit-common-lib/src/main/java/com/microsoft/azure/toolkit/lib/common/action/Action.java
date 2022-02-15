@@ -44,6 +44,15 @@ public class Action<D> {
     @Setter
     @Getter
     private boolean authRequired = true;
+    /**
+     * shortcuts for this action.
+     * 1. directly bound to this action if it's IDE-specific type of shortcuts (e.g. {@code ShortcutSet} in IntelliJ).
+     * 2. interpreted into native shortcuts first and then bound to this action if it's {@code String[]/String} (e.g. {@code "alt X"}).
+     * 3. copy shortcuts from actions specified by this action id and then bound to this action if it's {@link Id} of another action.
+     */
+    @Setter
+    @Getter
+    private Object shortcuts;
 
     public Action(@Nullable ActionView.Builder view) {
         this.view = view;
