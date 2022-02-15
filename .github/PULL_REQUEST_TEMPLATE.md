@@ -9,7 +9,7 @@ Does this close any currently open issues?
 <!-- #123 -->
 
 
-Any relevant logs, error output, etc?
+Any relevant logs, screenshots, error output, etc.?
 -------------------------------------
 <!-- If it’s long, please paste to https://gist.github.com/ and insert the link here. -->
 
