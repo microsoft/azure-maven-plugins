@@ -19,6 +19,4 @@ Any other comments?
 
 Has this been tested?
 ---------------------------
-- [ ] Test team
-- [ ] Dev team
-- [ ] Myself
+- [ ] Tested
