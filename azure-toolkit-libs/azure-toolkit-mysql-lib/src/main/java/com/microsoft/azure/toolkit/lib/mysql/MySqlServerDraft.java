@@ -149,9 +149,8 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
         return Optional.ofNullable(this.config).map(Config::getAdminPassword).orElse(null);
     }
 
-    @Nonnull
     public Region getRegion() {
-        return Objects.requireNonNull(Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion));
+        return Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion);
     }
 
     @Override
