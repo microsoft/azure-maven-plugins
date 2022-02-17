@@ -253,9 +253,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         final Object client = this.getClient();
         if (client instanceof SupportsListing) {
             return this.<SupportsListing<R>>cast(client).list().stream();
-        } else {
+        } else if (client != null) {
             throw new AzureToolkitRuntimeException("not supported");
         }
+        return Stream.empty();
     }
 
     @Nullable

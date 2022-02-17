@@ -30,7 +30,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-@Accessors(chain = true, fluent = true)
+@Accessors(chain = true)
 public class Action<D> {
     public static final String SOURCE = "ACTION_SOURCE";
     public static final String RESOURCE_TYPE = "resourceType";
@@ -42,7 +42,17 @@ public class Action<D> {
     @Getter
     private ActionView.Builder view;
     @Setter
+    @Getter
     private boolean authRequired = true;
+    /**
+     * shortcuts for this action.
+     * 1. directly bound to this action if it's IDE-specific type of shortcuts (e.g. {@code ShortcutSet} in IntelliJ).
+     * 2. interpreted into native shortcuts first and then bound to this action if it's {@code String[]/String} (e.g. {@code "alt X"}).
+     * 3. copy shortcuts from actions specified by this action id and then bound to this action if it's {@link Id} of another action.
+     */
+    @Setter
+    @Getter
+    private Object shortcuts;
 
     public Action(@Nullable ActionView.Builder view) {
         this.view = view;
@@ -72,12 +82,12 @@ public class Action<D> {
     }
 
     @Nullable
-    public IView.Label view(D source) {
+    public IView.Label getView(D source) {
         return Objects.nonNull(this.view) ? this.view.toActionView(source) : null;
     }
 
     @SuppressWarnings("unchecked")
-    public BiConsumer<D, Object> handler(D source, Object e) {
+    public BiConsumer<D, Object> getHandler(D source, Object e) {
         for (int i = this.handlers.size() - 1; i >= 0; i--) {
             final AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>> p = this.handlers.get(i);
             final BiPredicate<D, Object> condition = (BiPredicate<D, Object>) p.getKey();
@@ -91,7 +101,7 @@ public class Action<D> {
 
     public void handle(D source, Object e) {
         final Runnable runnable = () -> {
-            final BiConsumer<D, Object> handler = this.handler(source, e);
+            final BiConsumer<D, Object> handler = this.getHandler(source, e);
             if (Objects.nonNull(handler)) {
                 final AzureString title = Optional.ofNullable(this.view).map(b -> b.title).map(t -> t.apply(source))
                     .orElse(AzureString.fromString(IAzureOperation.UNKNOWN_NAME));

@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.action;
 
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import javax.annotation.Nonnull;
@@ -15,11 +16,13 @@ import java.util.Arrays;
 import java.util.List;
 
 @Getter
-@Accessors(chain = true, fluent = true)
+@Accessors(chain = true)
 public class ActionGroup {
     @Nullable
     private IView.Label view;
     private final List<Object> actions;
+    @Setter
+    private Object origin; // ide's action group.
 
     public ActionGroup(@Nonnull List<Object> actions) {
         this.actions = actions;
@@ -32,26 +35,5 @@ public class ActionGroup {
     public ActionGroup(@Nonnull List<Object> actions, @Nullable IView.Label view) {
         this.view = view;
         this.actions = actions;
-    }
-
-    @Getter
-    @Accessors(chain = true, fluent = true)
-    public static class Proxy extends ActionGroup {
-        @Nullable
-        private final String id;
-        @Nonnull
-        private final ActionGroup group;
-
-        public Proxy(@Nonnull ActionGroup group) {
-            super(group.actions, group.view);
-            this.id = null;
-            this.group = group;
-        }
-
-        public Proxy(@Nonnull ActionGroup group, @Nonnull String id) {
-            super(group.actions, group.view);
-            this.id = id;
-            this.group = group;
-        }
     }
 }
