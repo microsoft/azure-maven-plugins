@@ -53,7 +53,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     private static final String CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING = "App setting `FUNCTIONS_WORKER_RUNTIME` doesn't " +
             "meet the requirement of Azure Java Functions, the value should be `java`.";
     private static final String FUNCTIONS_EXTENSION_VERSION_NAME = "FUNCTIONS_EXTENSION_VERSION";
-    private static final String FUNCTIONS_EXTENSION_VERSION_VALUE = "~3";
+    private static final String FUNCTIONS_EXTENSION_VERSION_VALUE = "~4";
     private static final String SET_FUNCTIONS_EXTENSION_VERSION = "Functions extension version " +
             "isn't configured, setting up the default value.";
     private static final String FUNCTION_APP_NOT_EXIST_FOR_SLOT = "The Function App specified in pom.xml does not exist. " +

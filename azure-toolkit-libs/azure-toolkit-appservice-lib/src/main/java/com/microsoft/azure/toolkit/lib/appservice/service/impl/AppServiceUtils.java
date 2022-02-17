@@ -129,18 +129,19 @@ class AppServiceUtils {
         return String.format("java%s", javaVersion.getValue());
     }
 
-    static FunctionRuntimeStack toFunctionRuntimeStack(@Nonnull Runtime runtime) {
+    static FunctionRuntimeStack toFunctionRuntimeStack(@Nonnull Runtime runtime, String functionExtensionVersion) {
         if (runtime.getOperatingSystem() != OperatingSystem.LINUX) {
             throw new AzureToolkitRuntimeException(String.format("Can not convert %s runtime to FunctionRuntimeStack", runtime.getOperatingSystem()));
         }
+        final String javaVersion;
         if (Objects.equals(runtime.getJavaVersion(), JavaVersion.JAVA_8)) {
-            return FunctionRuntimeStack.JAVA_8;
+            javaVersion = "java|8";
+        } else if (Objects.equals(runtime.getJavaVersion(), JavaVersion.JAVA_11)) {
+            javaVersion = "java|11";
+        } else {
+            javaVersion = String.format("java|%s", runtime.getJavaVersion().getValue());
         }
-        if (Objects.equals(runtime.getJavaVersion(), JavaVersion.JAVA_11)) {
-            return FunctionRuntimeStack.JAVA_11;
-        }
-        final String javaVersion = String.format("java|%s", runtime.getJavaVersion().getValue());
-        return new FunctionRuntimeStack("java", "~3", javaVersion);
+        return new FunctionRuntimeStack("java", functionExtensionVersion, javaVersion);
     }
 
     static com.azure.resourcemanager.appservice.models.WebContainer toWebContainer(Runtime runtime) {
