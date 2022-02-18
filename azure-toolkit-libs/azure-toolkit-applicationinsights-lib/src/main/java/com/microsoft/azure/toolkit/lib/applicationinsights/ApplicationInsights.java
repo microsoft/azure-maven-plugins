@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Deprecated
 public class ApplicationInsights extends SubscriptionScoped<ApplicationInsights> implements AzureService {
     public ApplicationInsights() { // for SPI
         super(ApplicationInsights::new);

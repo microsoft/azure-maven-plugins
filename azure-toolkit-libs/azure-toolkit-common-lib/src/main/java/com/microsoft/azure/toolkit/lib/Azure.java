@@ -74,7 +74,7 @@ public class Azure {
     }
 
     private static class Holder {
-        private static final ServiceLoader<AzService> azLoader = ServiceLoader.load(AzService.class);
-        private static final ServiceLoader<AzureService> loader = ServiceLoader.load(AzureService.class);
+        private static final ServiceLoader<AzService> azLoader = ServiceLoader.load(AzService.class, Azure.class.getClassLoader());
+        private static final ServiceLoader<AzureService> loader = ServiceLoader.load(AzureService.class, Azure.class.getClassLoader());
     }
 }
