@@ -15,7 +15,7 @@ import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingEnum;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingFactory;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.Retry;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-@Log4j2
+@Slf4j
 @Deprecated
 public class AnnotationHandlerImpl implements AnnotationHandler {
 

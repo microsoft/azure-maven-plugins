@@ -14,13 +14,13 @@ import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-@Log4j2
+@Slf4j
 public class AzureSqlServer extends AbstractAzService<MicrosoftSqlResourceManager, SqlServerManager> {
 
     public AzureSqlServer() {

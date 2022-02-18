@@ -8,11 +8,11 @@ package com.microsoft.azure.toolkit.lib.resource;
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
 
-@Log4j2
+@Slf4j
 public class AzureResources extends AbstractAzService<ResourceGroupManager, ResourceManager> {
     public AzureResources() {
         super("Microsoft.Resources");

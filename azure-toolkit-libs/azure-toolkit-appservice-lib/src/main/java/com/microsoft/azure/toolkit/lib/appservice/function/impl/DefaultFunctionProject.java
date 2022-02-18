@@ -15,7 +15,7 @@ import com.microsoft.azure.toolkit.lib.legacy.function.handlers.CommandHandlerIm
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreToolsHandler;
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreToolsHandlerImpl;
 import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
@@ -38,7 +38,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Log4j2
+@Slf4j
 public class DefaultFunctionProject extends FunctionProject {
 
     @Override

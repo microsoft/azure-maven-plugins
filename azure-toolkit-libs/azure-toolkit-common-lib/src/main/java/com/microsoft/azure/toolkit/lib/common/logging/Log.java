@@ -5,13 +5,13 @@
 
 package com.microsoft.azure.toolkit.lib.common.logging;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-@Log4j2
+@Slf4j
 public final class Log {
     public static void error(String message) {
         log.error(message);
