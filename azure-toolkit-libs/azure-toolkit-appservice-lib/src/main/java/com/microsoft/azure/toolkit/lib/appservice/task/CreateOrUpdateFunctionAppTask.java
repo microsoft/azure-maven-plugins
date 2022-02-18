@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.task;
 
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsightsEntity;
+import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
 import com.microsoft.azure.toolkit.lib.applicationinsights.task.GetOrCreateApplicationInsightsTask;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
@@ -16,9 +16,9 @@ import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.FunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -71,7 +71,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
 
     private ResourceGroup resourceGroup;
     private AppServicePlan appServicePlan;
-    private ApplicationInsightsEntity applicationInsights;
+    private String instrumentationKey;
     private IFunctionAppBase<?> functionApp;
 
 
@@ -88,10 +88,10 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
         // get/create AI instances only if user didn't specify AI connection string in app settings
         if (!functionAppConfig.disableAppInsights() && !functionAppConfig.appSettings().containsKey(APPINSIGHTS_INSTRUMENTATION_KEY)) {
             if (StringUtils.isNotEmpty(functionAppConfig.appInsightsKey())) {
-                this.applicationInsights = ApplicationInsightsEntity.builder().instrumentationKey(functionAppConfig.appInsightsKey()).build();
+                this.instrumentationKey = functionAppConfig.appInsightsKey();
             } else if (StringUtils.isNotEmpty(functionAppConfig.appInsightsInstance()) || !app.exists()) {
                 // create AI instance by default when create new function
-                registerSubTask(getApplicationInsightsTask(), result -> this.applicationInsights = result);
+                registerSubTask(getApplicationInsightsTask(), result -> this.instrumentationKey = result.getInstrumentationKey());
             }
         }
         if (StringUtils.isEmpty(functionAppConfig.deploymentSlotName())) {
@@ -121,8 +121,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
             AzureTelemetry.getActionContext().setProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
             AzureMessager.getMessager().info(String.format(CREATE_FUNCTION_APP, functionAppConfig.appName()));
             final Map<String, String> appSettings = processAppSettingsWithDefaultValue();
-            Optional.ofNullable(applicationInsights).ifPresent(insights ->
-                    appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, applicationInsights.getInstrumentationKey()));
+            Optional.ofNullable(instrumentationKey).filter(StringUtils::isNoneEmpty).ifPresent(key ->
+                    appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, key));
             final FunctionApp result = functionApp.create().withName(functionAppConfig.appName())
                     .withResourceGroup(resourceGroup.getName())
                     .withPlan(appServicePlan.id())
@@ -167,8 +167,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
             final Map<String, String> appSettings = processAppSettingsWithDefaultValue();
             if (functionAppConfig.disableAppInsights()) {
                 update.withoutAppSettings(APPINSIGHTS_INSTRUMENTATION_KEY);
-            } else if (applicationInsights != null) {
-                appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, applicationInsights.getInstrumentationKey());
+            } else if (StringUtils.isNotEmpty(instrumentationKey)) {
+                appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, instrumentationKey);
             }
             final FunctionApp result = update.withPlan(appServicePlan.id())
                     .withRuntime(getRuntime(functionAppConfig.runtime()))
@@ -186,8 +186,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
         return new AzureTask<>(title, () -> {
             AzureMessager.getMessager().info(FUNCTION_SLOT_CREATE_START);
             final Map<String, String> appSettings = processAppSettingsWithDefaultValue();
-            Optional.ofNullable(applicationInsights).ifPresent(insights ->
-                    appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, applicationInsights.getInstrumentationKey()));
+            Optional.ofNullable(instrumentationKey).filter(StringUtils::isNoneEmpty).ifPresent(key ->
+                    appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, key));
             final FunctionAppDeploymentSlot result = deploymentSlot.create().withAppSettings(appSettings)
                     .withConfigurationSource(functionAppConfig.deploymentSlotConfigurationSource())
                     .withName(functionAppConfig.deploymentSlotName()).commit();
@@ -204,8 +204,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
             final FunctionAppDeploymentSlot.FunctionAppDeploymentSlotUpdater update = deploymentSlot.update();
             if (functionAppConfig.disableAppInsights()) {
                 update.withoutAppSettings(APPINSIGHTS_INSTRUMENTATION_KEY);
-            } else if (applicationInsights != null) {
-                appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, applicationInsights.getInstrumentationKey());
+            } else if (StringUtils.isNotEmpty(instrumentationKey)) {
+                appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, instrumentationKey);
             }
             final FunctionAppDeploymentSlot result = update.withAppSettings(appSettings).commit();
             AzureMessager.getMessager().info(String.format(FUNCTION_SLOT_UPDATE_DONE, result.name()));
@@ -220,7 +220,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
         return functionApp.deploymentSlot(functionAppConfig.deploymentSlotName());
     }
 
-    private AzureTask<ApplicationInsightsEntity> getApplicationInsightsTask() {
+    private AzureTask<ApplicationInsight> getApplicationInsightsTask() {
         return new AzureTask<>(() -> {
             try {
                 final String name = StringUtils.firstNonEmpty(functionAppConfig.appInsightsInstance(), functionAppConfig.appName());
