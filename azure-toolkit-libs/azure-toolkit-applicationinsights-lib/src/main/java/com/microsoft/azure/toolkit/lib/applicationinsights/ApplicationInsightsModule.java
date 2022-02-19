@@ -72,7 +72,6 @@ public class ApplicationInsightsModule extends AbstractAzResourceModule<Applicat
         return Optional.ofNullable(this.parent.getRemote()).map(ApplicationInsightsManager::components).orElse(null);
     }
 
-
     @Override
     public String getResourceTypeName() {
         return "Azure Application Insights";

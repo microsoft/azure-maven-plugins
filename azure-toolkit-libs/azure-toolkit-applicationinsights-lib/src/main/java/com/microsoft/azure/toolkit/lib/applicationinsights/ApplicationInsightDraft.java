@@ -23,7 +23,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 
-public class ApplicationInsightDraft extends ApplicationInsight implements AzResource.Draft<ApplicationInsight, ApplicationInsightsComponent>{
+public class ApplicationInsightDraft extends ApplicationInsight implements AzResource.Draft<ApplicationInsight, ApplicationInsightsComponent> {
 
     private static final String REGION_IS_REQUIRED = "'region' is required to create application insight.";
     private static final String START_CREATING_APPLICATION_INSIGHT = "Start creating Application Insight ({0})...";
