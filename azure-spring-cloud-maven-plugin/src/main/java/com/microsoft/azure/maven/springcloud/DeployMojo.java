@@ -28,6 +28,7 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Deploy your project to target Azure Spring Cloud app. If target app doesn't exist, it will be created.
@@ -91,7 +92,8 @@ public class DeployMojo extends AbstractMojoBase {
         try {
             final IPrompter prompter = new DefaultPrompter();
             System.out.println(CONFIRM_PROMPT_START);
-            tasks.stream().filter(t -> StringUtils.isNotBlank(t.getTitle().toString())).forEach((t) -> System.out.printf("\t- %s%n", t.getTitle()));
+            tasks.stream().filter(t -> Objects.nonNull(t.getTitle()) && StringUtils.isNotBlank(t.getTitle().toString()))
+                .forEach((t) -> System.out.printf("\t- %s%n", t.getTitle()));
             return prompter.promoteYesNo(CONFIRM_PROMPT_CONFIRM, true, true);
         } catch (IOException e) {
             throw new MojoFailureException(e.getMessage(), e);
