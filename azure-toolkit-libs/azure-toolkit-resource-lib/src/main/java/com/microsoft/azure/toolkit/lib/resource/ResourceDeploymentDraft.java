@@ -100,7 +100,9 @@ public class ResourceDeploymentDraft extends ResourceDeployment
         final String newParameters = this.getParametersAsJson();
         final Deployment.Update update = origin.update();
         boolean modified = false;
-        if (!StringUtils.equals(newTemplate, oldTemplate) && StringUtils.isNotBlank(newTemplate)) {
+        if (!StringUtils.equals(newTemplate, oldTemplate) || StringUtils.isNotBlank(newTemplate)) {
+            update.withTemplate(oldTemplate);
+        } else {
             modified = true;
             update.withTemplate(newTemplate);
         }
@@ -110,10 +112,10 @@ public class ResourceDeploymentDraft extends ResourceDeployment
         }
         final IAzureMessager messager = AzureMessager.getMessager();
         if (modified) {
-            messager.info(AzureString.format("Start creating Deployment({0})...", name));
+            messager.info(AzureString.format("Start updating Deployment({0})...", name));
             update.withMode(DeploymentMode.INCREMENTAL);
             origin = update.apply();
-            messager.success(AzureString.format("Deployment({0}) is successfully created.", name));
+            messager.success(AzureString.format("Deployment({0}) is successfully updated.", name));
         } else {
             messager.info(AzureString.format("Nothing to update for {0}.", name));
         }

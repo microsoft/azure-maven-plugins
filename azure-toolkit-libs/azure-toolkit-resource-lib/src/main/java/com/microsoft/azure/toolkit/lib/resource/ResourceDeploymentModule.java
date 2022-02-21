@@ -57,7 +57,10 @@ public class ResourceDeploymentModule extends
 
     @Nullable
     @Override
+    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Deployment loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
+        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
+        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         try {
             return super.loadResourceFromAzure(name, resourceGroup);
         } catch (Exception e) {
