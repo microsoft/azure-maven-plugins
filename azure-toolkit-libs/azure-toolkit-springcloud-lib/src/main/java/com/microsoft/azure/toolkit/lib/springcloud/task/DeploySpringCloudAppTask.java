@@ -45,7 +45,8 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final String appName = config.getAppName();
         final String resourceGroup = config.getResourceGroup();
         final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(config.getSubscriptionId()).get(clusterName, resourceGroup);
-        Optional.ofNullable(cluster).orElseThrow(() -> new AzureToolkitRuntimeException(String.format("Service(%s) is not found", clusterName)));
+        Optional.ofNullable(cluster).orElseThrow(() -> new AzureToolkitRuntimeException(
+            String.format("Service(%s) in subscription(%s) is not found", clusterName, config.getSubscriptionId())));
         final SpringCloudAppDraft app = cluster.apps().updateOrCreate(appName, resourceGroup);
         final String deploymentName = StringUtils.firstNonBlank(
             deploymentConfig.getDeploymentName(),
@@ -63,7 +64,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         AzureTelemetry.getContext().setProperty("isCreateDeployment", String.valueOf(toCreateDeployment));
         AzureTelemetry.getContext().setProperty("isDeploymentNameGiven", String.valueOf(StringUtils.isNotEmpty(deploymentConfig.getDeploymentName())));
 
-        final AzureString CREATE_APP_TITLE = AzureString.format("Create new app({0}) on service({1})", appName, clusterName);
+        final AzureString CREATE_APP_TITLE = AzureString.format("Create new app({0}) in service({1})", appName, clusterName);
         final AzureString UPDATE_APP_TITLE = AzureString.format("Update app({0}) of service({1})", appName, clusterName);
         final AzureString CREATE_DEPLOYMENT_TITLE = AzureString.format("Create new deployment({0}) in app({1})", deploymentName, appName);
         final AzureString UPDATE_DEPLOYMENT_TITLE = AzureString.format("Update deployment({0}) of app({1})", deploymentName, appName);
