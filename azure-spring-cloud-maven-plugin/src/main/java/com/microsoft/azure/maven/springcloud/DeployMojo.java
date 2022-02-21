@@ -17,7 +17,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.Utils;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.task.DeploySpringCloudAppTask;
 import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -33,7 +33,7 @@ import java.util.List;
  * Deploy your project to target Azure Spring Cloud app. If target app doesn't exist, it will be created.
  */
 @Mojo(name = "deploy")
-@Log4j2
+@Slf4j
 public class DeployMojo extends AbstractMojoBase {
 
     private static final int GET_URL_TIMEOUT = 60;

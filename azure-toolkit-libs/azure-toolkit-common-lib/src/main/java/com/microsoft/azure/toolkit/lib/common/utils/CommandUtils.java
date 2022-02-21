@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.common.utils;
 
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
@@ -23,7 +23,7 @@ import java.util.Map;
  * copied from: https://github.com/microsoft/azure-tools-for-java/blob/
  * 0efe5e430305369e17dadc214c256cbb4a906372/Utils/azuretools-core/src/com/microsoft/azuretools/utils/CommandUtils.java
  */
-@Log4j2
+@Slf4j
 public class CommandUtils {
     private static final String WINDOWS_STARTER = "cmd.exe";
     private static final String LINUX_MAC_STARTER = "/bin/sh";

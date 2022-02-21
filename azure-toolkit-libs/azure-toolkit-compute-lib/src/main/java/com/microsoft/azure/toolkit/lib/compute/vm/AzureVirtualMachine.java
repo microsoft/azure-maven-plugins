@@ -19,7 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -29,7 +29,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Log4j2
+@Slf4j
 public class AzureVirtualMachine extends AbstractAzureResourceModule<VirtualMachine> implements AzureOperationEvent.Source<AzureVirtualMachine> {
 
     private static final List<AzureImage> linuxImages =

@@ -30,7 +30,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import io.jsonwebtoken.lang.Collections;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Log4j2
+@Slf4j
 public class WebApp extends AbstractAppService<com.azure.resourcemanager.appservice.models.WebApp, WebAppEntity> implements IWebAppBase<WebAppEntity> {
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
 
