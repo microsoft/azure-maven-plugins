@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.common.operation;
 
-import com.microsoft.azure.toolkit.lib.common.Executable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
@@ -19,6 +18,7 @@ import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 
 import java.util.Objects;
+import java.util.concurrent.Callable;
 
 @Aspect
 @Log
@@ -97,10 +97,10 @@ public final class AzureOperationAspect {
     }
 
     public static <T> T execute(IAzureOperation<T> operation, Object source) throws Throwable {
-        final Executable<T> body = operation.getBody();
+        final Callable<T> body = operation.getBody();
         try {
             AzureOperationAspect.beforeEnter(operation, source);
-            final T result = body.execute();
+            final T result = body.call();
             AzureOperationAspect.afterReturning(operation, source);
             return result;
         } catch (Throwable e) {

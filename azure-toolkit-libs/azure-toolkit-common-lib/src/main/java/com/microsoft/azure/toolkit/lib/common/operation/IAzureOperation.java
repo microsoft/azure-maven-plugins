@@ -6,13 +6,13 @@
 package com.microsoft.azure.toolkit.lib.common.operation;
 
 import com.microsoft.azure.toolkit.lib.common.DataStore;
-import com.microsoft.azure.toolkit.lib.common.Executable;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 public interface IAzureOperation<T> extends DataStore {
     String UNKNOWN_NAME = "<unknown>.<unknown>";
@@ -27,7 +27,7 @@ public interface IAzureOperation<T> extends DataStore {
         return Optional.ofNullable(this.getTitle()).map(AzureString::getName).orElse(UNKNOWN_NAME);
     }
 
-    Executable<T> getBody();
+    Callable<T> getBody();
 
     @Nonnull
     String getType();

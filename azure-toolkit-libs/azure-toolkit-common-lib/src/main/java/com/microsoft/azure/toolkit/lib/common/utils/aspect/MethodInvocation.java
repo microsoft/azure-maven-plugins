@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.utils.aspect;
 
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -35,9 +36,15 @@ public class MethodInvocation {
         this.method = signature.getMethod();
     }
 
-    public Object invoke() throws Throwable {
+    public Object invoke() throws Exception {
         if (this.point instanceof ProceedingJoinPoint) {
-            return ((ProceedingJoinPoint) this.point).proceed();
+            try {
+                return ((ProceedingJoinPoint) this.point).proceed();
+            } catch (Exception e) {
+                throw e;
+            } catch (Throwable t) {
+                throw new AzureToolkitException(t.getMessage(), t);
+            }
         }
         return null;
     }

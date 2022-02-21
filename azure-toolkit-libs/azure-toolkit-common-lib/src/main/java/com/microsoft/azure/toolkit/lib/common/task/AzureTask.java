@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.common.task;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.Executable;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -17,6 +16,7 @@ import lombok.SneakyThrows;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 @Getter
 @Setter
@@ -25,7 +25,7 @@ public class AzureTask<T> implements IAzureOperation<T> {
     private final Modality modality;
     @Getter(AccessLevel.NONE)
     @Nullable
-    private final Executable<T> body;
+    private final Callable<T> body;
     @Nullable
     private final Object project;
     private final boolean cancellable;
@@ -42,7 +42,7 @@ public class AzureTask<T> implements IAzureOperation<T> {
     private Monitor monitor;
 
     public AzureTask() {
-        this((Executable<T>) null);
+        this((Callable<T>) null);
     }
 
     public AzureTask(@Nonnull Runnable runnable) {
@@ -57,15 +57,15 @@ public class AzureTask<T> implements IAzureOperation<T> {
         this(title, runnable, Modality.DEFAULT);
     }
 
-    public AzureTask(@Nullable Executable<T> body) {
+    public AzureTask(@Nullable Callable<T> body) {
         this(body, Modality.DEFAULT);
     }
 
-    public AzureTask(@Nonnull String title, @Nonnull Executable<T> body) {
+    public AzureTask(@Nonnull String title, @Nonnull Callable<T> body) {
         this(null, title, false, body, Modality.DEFAULT);
     }
 
-    public AzureTask(@Nonnull AzureString title, @Nonnull Executable<T> body) {
+    public AzureTask(@Nonnull AzureString title, @Nonnull Callable<T> body) {
         this(null, title, false, body, Modality.DEFAULT);
     }
 
@@ -81,15 +81,15 @@ public class AzureTask<T> implements IAzureOperation<T> {
         this(null, title, false, runnable, modality);
     }
 
-    public AzureTask(@Nullable Executable<T> body, @Nonnull Modality modality) {
+    public AzureTask(@Nullable Callable<T> body, @Nonnull Modality modality) {
         this(null, (String) null, false, body, modality);
     }
 
-    public AzureTask(@Nonnull String title, @Nonnull Executable<T> body, @Nonnull Modality modality) {
+    public AzureTask(@Nonnull String title, @Nonnull Callable<T> body, @Nonnull Modality modality) {
         this(null, title, false, body, modality);
     }
 
-    public AzureTask(@Nonnull AzureString title, @Nonnull Executable<T> body, @Nonnull Modality modality) {
+    public AzureTask(@Nonnull AzureString title, @Nonnull Callable<T> body, @Nonnull Modality modality) {
         this(null, title, false, body, modality);
     }
 
@@ -101,11 +101,11 @@ public class AzureTask<T> implements IAzureOperation<T> {
         this(project, title, cancellable, runnable, Modality.DEFAULT);
     }
 
-    public AzureTask(@Nullable Object project, @Nonnull String title, boolean cancellable, @Nonnull Executable<T> body) {
+    public AzureTask(@Nullable Object project, @Nonnull String title, boolean cancellable, @Nonnull Callable<T> body) {
         this(project, title, cancellable, body, Modality.DEFAULT);
     }
 
-    public AzureTask(@Nullable Object project, @Nonnull AzureString title, boolean cancellable, @Nonnull Executable<T> body) {
+    public AzureTask(@Nullable Object project, @Nonnull AzureString title, boolean cancellable, @Nonnull Callable<T> body) {
         this(project, title, cancellable, body, Modality.DEFAULT);
     }
 
@@ -120,11 +120,11 @@ public class AzureTask<T> implements IAzureOperation<T> {
         }, modality);
     }
 
-    public AzureTask(@Nullable Object project, @Nullable String title, boolean cancellable, @Nullable Executable<T> body, @Nonnull Modality modality) {
+    public AzureTask(@Nullable Object project, @Nullable String title, boolean cancellable, @Nullable Callable<T> body, @Nonnull Modality modality) {
         this(project, Optional.ofNullable(title).map(AzureString::fromString).orElse(null), cancellable, body, modality);
     }
 
-    public AzureTask(@Nullable Object project, @Nullable AzureString title, boolean cancellable, @Nullable Executable<T> body, @Nonnull Modality modality) {
+    public AzureTask(@Nullable Object project, @Nullable AzureString title, boolean cancellable, @Nullable Callable<T> body, @Nonnull Modality modality) {
         this.project = project;
         this.title = title;
         this.cancellable = cancellable;
@@ -144,16 +144,16 @@ public class AzureTask<T> implements IAzureOperation<T> {
     }
 
     @Nonnull
-    public Executable<T> getBody() {
+    public Callable<T> getBody() {
         return Optional.ofNullable(this.body).orElse(this::doExecute);
     }
 
     @SneakyThrows
     public final T execute() {
-        return this.getBody().execute();
+        return this.getBody().call();
     }
 
-    protected T doExecute() throws Throwable {
+    protected T doExecute() throws Exception {
         throw new UnsupportedOperationException();
     }
 

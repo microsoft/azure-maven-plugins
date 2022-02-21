@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.common.operation;
 
-import com.microsoft.azure.toolkit.lib.common.Executable;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.utils.aspect.ExpressionUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.aspect.MethodInvocation;
@@ -16,6 +15,7 @@ import lombok.Setter;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
+import java.util.concurrent.Callable;
 
 @Getter
 @RequiredArgsConstructor
@@ -40,7 +40,7 @@ public class MethodOperation implements IAzureOperation<Object> {
     }
 
     @Override
-    public Executable<Object> getBody() {
+    public Callable<Object> getBody() {
         return this.invocation::invoke;
     }
 

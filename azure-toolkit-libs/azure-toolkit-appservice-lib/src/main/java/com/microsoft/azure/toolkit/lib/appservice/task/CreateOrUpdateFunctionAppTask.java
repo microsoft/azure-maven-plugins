@@ -111,7 +111,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     private <T> void registerSubTask(AzureTask<T> task, Consumer<T> consumer) {
         if (task != null) {
             tasks.add(new AzureTask<>(() -> {
-                T result = task.getBody().execute();
+                T result = task.getBody().call();
                 consumer.accept(result);
                 return result;
             }));
@@ -229,7 +229,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
             try {
                 final String name = StringUtils.firstNonEmpty(functionAppConfig.appInsightsInstance(), functionAppConfig.appName());
                 return new GetOrCreateApplicationInsightsTask(functionAppConfig.subscriptionId(),
-                        functionAppConfig.resourceGroup(), functionAppConfig.region(), name).getBody().execute();
+                        functionAppConfig.resourceGroup(), functionAppConfig.region(), name).getBody().call();
             } catch (final Throwable e) {
                 final String errorMessage = Optional.ofNullable(ExceptionUtils.getRootCause(e)).orElse(e).getMessage();
                 AzureMessager.getMessager().warning(String.format(APPLICATION_INSIGHTS_CREATE_FAILED, errorMessage));
@@ -271,9 +271,9 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     }
 
     @Override
-    public IFunctionAppBase<?> doExecute() throws Throwable {
+    public IFunctionAppBase<?> doExecute() throws Exception {
         for (AzureTask<?> task : this.tasks) {
-            task.getBody().execute();
+            task.getBody().call();
         }
         return functionApp;
     }
