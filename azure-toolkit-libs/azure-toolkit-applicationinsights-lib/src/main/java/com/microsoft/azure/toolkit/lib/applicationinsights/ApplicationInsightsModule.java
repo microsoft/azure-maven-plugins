@@ -74,6 +74,6 @@ public class ApplicationInsightsModule extends AbstractAzResourceModule<Applicat
 
     @Override
     public String getResourceTypeName() {
-        return "Azure Application Insights";
+        return "Application Insights";
     }
 }
