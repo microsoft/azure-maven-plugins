@@ -5,21 +5,19 @@
 
 package com.microsoft.azure.toolkit.lib.applicationinsights.task;
 
-import com.azure.core.management.AzureEnvironment;
-import com.azure.core.management.exception.ManagementException;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsights;
-import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsightsEntity;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
+import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsightDraft;
+import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsightsModule;
+import com.microsoft.azure.toolkit.lib.applicationinsights.AzureApplicationInsights;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
+import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
-import static com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils.getPortalUrl;
-
-public class GetOrCreateApplicationInsightsTask extends AzureTask<ApplicationInsightsEntity> {
+public class GetOrCreateApplicationInsightsTask extends AzureTask<ApplicationInsight> {
     private static final String APPLICATION_INSIGHTS_CREATE_START = "Creating application insights...";
     private static final String APPLICATION_INSIGHTS_CREATED = "Successfully created the application insights %s " +
             "for this Function App. You can visit %s/#@/resource%s/overview to view your " +
@@ -38,19 +36,13 @@ public class GetOrCreateApplicationInsightsTask extends AzureTask<ApplicationIns
     }
 
     @Override
-    public ApplicationInsightsEntity execute() {
-        final ApplicationInsights az = Azure.az(ApplicationInsights.class).subscription(subscriptionId);
-        try {
-            return az.get(resourceGroup, name);
-        } catch (ManagementException e) {
-            if (e.getResponse().getStatusCode() != 404) {
-                throw e;
-            }
-        }
-        AzureMessager.getMessager().info(APPLICATION_INSIGHTS_CREATE_START);
-        final AzureEnvironment environment = Azure.az(AzureAccount.class).account().getEnvironment();
-        final ApplicationInsightsEntity resource = Azure.az(ApplicationInsights.class).create(resourceGroup, region, name);
-        AzureMessager.getMessager().info(String.format(APPLICATION_INSIGHTS_CREATED, resource.getName(), getPortalUrl(environment), resource.getId()));
-        return resource;
+    public ApplicationInsight execute() {
+        Azure.az(AzureResources.class).groups(subscriptionId).createResourceGroupIfNotExist(this.resourceGroup, this.region);
+        final ApplicationInsightsModule insightsModule = Azure.az(AzureApplicationInsights.class).applicationInsights(subscriptionId);
+        return Optional.ofNullable(insightsModule.get(name, this.resourceGroup)).orElseGet(() -> {
+            final ApplicationInsightDraft draft = insightsModule.create(name, this.resourceGroup);
+            draft.setRegion(region);
+            return draft.commit();
+        });
     }
 }
