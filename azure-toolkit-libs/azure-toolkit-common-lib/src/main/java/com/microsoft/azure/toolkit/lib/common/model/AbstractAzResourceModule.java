@@ -21,6 +21,8 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
+import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -62,6 +64,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private final AtomicLong syncTime = new AtomicLong(-1);
     @Getter(AccessLevel.NONE)
     private final Map<String, Optional<T>> resources = new ConcurrentHashMap<>();
+    private final Debouncer fireEvents = new TailingDebouncer(this::fireResourcesChangedEvent, 300);
 
     @Nonnull
     @Override
@@ -210,7 +213,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public void refresh() {
         log.debug("[{}]:refresh()", this.name);
         this.syncTime.set(-1);
-        fireResourcesChangedEvent();
+        fireEvents.debounce();
     }
 
     private synchronized void reload() {
@@ -260,7 +263,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         final Optional<T> removed = this.resources.remove(name);
         if (Objects.nonNull(removed) && removed.isPresent()) {
             log.debug("[{}]:deleteResourceFromLocal->fireResourcesChangedEvent()", this.name);
-            fireResourcesChangedEvent();
+            fireEvents.debounce();
         }
         return Objects.nonNull(removed) ? removed.orElse(null) : null;
     }
@@ -274,7 +277,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             this.resources.put(name, newResource);
             if (newResource.isPresent()) {
                 log.debug("[{}]:addResourceToLocal->fireResourcesChangedEvent()", this.name);
-                fireResourcesChangedEvent();
+                fireEvents.debounce();
             }
         }
     }
