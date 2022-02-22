@@ -84,7 +84,8 @@ public abstract class AbstractAzureResourceModule<T extends IAzureBaseResource> 
         final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         final TokenCredential tokenCredential = account.getTokenCredential(subscriptionId);
-        final R configurable = configurableSupplier.get().withPolicy(getUserAgentPolicy(userAgent)).withLogLevel(logLevel);
+        final R configurable = configurableSupplier.get().withPolicy(getUserAgentPolicy(userAgent)).withLogLevel(logLevel)
+                .withHttpClient(AzureService.getDefaultHttpClient());
         return authenticationMethod.apply(configurable, tokenCredential, azureProfile);
     }
 
