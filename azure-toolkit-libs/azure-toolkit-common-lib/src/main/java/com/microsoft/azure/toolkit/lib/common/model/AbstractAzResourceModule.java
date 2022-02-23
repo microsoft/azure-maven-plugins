@@ -26,6 +26,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpStatus;
@@ -43,6 +44,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 @Getter
 @RequiredArgsConstructor
 @ToString(onlyExplicitlyIncluded = true)
@@ -64,15 +66,19 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nonnull
     @Override
     public synchronized List<T> list() {
+        log.debug("[{}]:list()", this.name);
         Azure.az(IAzureAccount.class).account();
         if (this.syncTime.compareAndSet(-1, 0)) {
+            log.debug("[{}]:list->this.reload()", this.name);
             this.reload();
         }
+        log.debug("[{}]:list->this.resources.values()", this.name);
         return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
             .sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
     }
 
     public synchronized void clear() {
+        log.debug("[{}]:clear()", this.name);
         this.syncTime.set(-1);
         this.resources.clear();
     }
@@ -80,42 +86,54 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nullable
     @Override
     public T get(@Nullable String name, String resourceGroup) {
+        log.debug("[{}]:get({}, {})", this.name, name, resourceGroup);
         if (StringUtils.isBlank(name)) {
+            log.debug("[{}]:get->isBlank(name)=true", this.name);
             return null;
         }
         Azure.az(IAzureAccount.class).account();
         if (!this.resources.containsKey(name)) {
             R remote = null;
             try {
+                log.debug("[{}]:get({}, {})->loadResourceFromAzure()", this.name, name, resourceGroup);
                 remote = loadResourceFromAzure(name, resourceGroup);
             } catch (Exception e) {
+                log.debug("[{}]:get({}, {})->loadResourceFromAzure()=EXCEPTION", this.name, name, resourceGroup, e);
                 final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
                 if (cause instanceof ManagementException) {
                     if (HttpStatus.SC_NOT_FOUND != ((ManagementException) cause).getResponse().getStatusCode()) {
+                        log.debug("[{}]:get({}, {})->loadResourceFromAzure()=SC_NOT_FOUND", this.name, name, resourceGroup, e);
                         throw e;
                     }
                 }
             }
             if (Objects.isNull(remote)) {
+                log.debug("[{}]:get({}, {})->addResourceToLocal({}, null)", this.name, name, resourceGroup, name);
                 this.addResourceToLocal(name, null);
             } else {
                 final T resource = newResource(remote);
+                log.debug("[{}]:get({}, {})->addResourceToLocal({}, resource)", this.name, name, resourceGroup, name);
                 this.addResourceToLocal(name, resource);
             }
         }
+        log.debug("[{}]:get({}, {})->this.resources.get({})", this.name, name, resourceGroup, name);
         return this.resources.get(name).orElse(null);
     }
 
     @Override
     public boolean exists(@Nonnull String name, String resourceGroup) {
+        log.debug("[{}]:exists({}, {})", this.name, name, resourceGroup);
         final T resource = this.get(name, resourceGroup);
         return Objects.nonNull(resource) && resource.exists();
     }
 
     @Override
     public void delete(@Nonnull String name, String resourceGroup) {
+        log.debug("[{}]:delete({}, {})", this.name, name, resourceGroup);
+        log.debug("[{}]:delete->this.get({}, {})", this.name, name, resourceGroup);
         final T resource = this.get(name, resourceGroup);
         if (Objects.nonNull(resource)) {
+            log.debug("[{}]:delete->resource.delete()", this.name);
             resource.delete();
         } else {
             throw new AzureToolkitRuntimeException(String.format("resource \"%s\" doesn't exist", name));
@@ -124,10 +142,12 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     public T getOrDraft(@Nonnull String name, String resourceGroup) {
+        log.debug("[{}]:getOrDraft({}, {})", this.name, name, resourceGroup);
         return Optional.ofNullable(this.get(name, resourceGroup)).orElseGet(() -> this.newDraftForCreate(name, resourceGroup));
     }
 
     public <D extends AzResource.Draft<T, R>> D updateOrCreate(String name, String resourceGroup) {
+        log.debug("[{}]:updateOrCreate({}, {})", this.name, name, resourceGroup);
         final T resource = this.get(name, resourceGroup);
         if (Objects.nonNull(resource)) {
             return this.cast(this.newDraftForUpdate(resource));
@@ -137,9 +157,11 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     public <D extends AzResource.Draft<T, R>> D create(@Nonnull String name, String resourceGroup) {
+        log.debug("[{}]:create({}, {})", this.name, name, resourceGroup);
         final T resource = this.get(name, resourceGroup);
         if (Objects.isNull(resource)) {
             // TODO: use generics to avoid class casting
+            log.debug("[{}]:create->newDraftForCreate({}, {})", this.name, name, resourceGroup);
             return this.cast(this.newDraftForCreate(name, resourceGroup));
         }
         throw new AzureToolkitRuntimeException(String.format("resource \"%s\" is existing", name));
@@ -147,11 +169,14 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Override
     public T create(@Nonnull AzResource.Draft<T, R> draft) {
+        log.debug("[{}]:create(draft:{})", this.name, draft);
         final T existing = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.isNull(existing)) {
             final T resource = cast(draft);
             // this will notify azure explorer to show a draft resource first
+            log.debug("[{}]:create->addResourceToLocal({})", this.name, resource);
             this.addResourceToLocal(resource.getName(), resource);
+            log.debug("[{}]:create->doModify(draft.createResourceInAzure({}))", this.name, resource);
             resource.doModify(draft::createResourceInAzure, Status.CREATING);
             return resource;
         }
@@ -160,17 +185,21 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     <D extends AzResource.Draft<T, R>> D update(@Nonnull T resource) {
+        log.debug("[{}]:update(resource:{})", this.name, resource);
         if (resource instanceof AzResource.Draft) {
             return this.cast(resource);
         }
+        log.debug("[{}]:update->newDraftForUpdate({})", this.name, resource);
         final T draft = this.newDraftForUpdate(resource);
         return this.cast(draft);
     }
 
     @Override
     public T update(@Nonnull AzResource.Draft<T, R> draft) {
+        log.debug("[{}]:update(draft:{})", this.name, draft);
         final T resource = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.nonNull(resource) && Objects.nonNull(resource.getRemote())) {
+            log.debug("[{}]:update->doModify(draft.updateResourceInAzure({}))", this.name, resource.getRemote());
             resource.doModify(() -> draft.updateResourceInAzure(resource.getRemote()), Status.UPDATING);
             return resource;
         }
@@ -179,30 +208,41 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Override
     public void refresh() {
+        log.debug("[{}]:refresh()", this.name);
         this.syncTime.set(-1);
         fireResourcesChangedEvent();
     }
 
     private synchronized void reload() {
+        log.debug("[{}]:reload()", this.name);
         Stream<R> loaded;
         try {
+            log.debug("[{}]:reload->loadResourcesFromAzure()", this.name);
             loaded = this.loadResourcesFromAzure();
         } catch (Throwable t) {
+            log.debug("[{}]:reload->loadResourcesFromAzure()=EXCEPTION", this.name, t);
             this.syncTime.set(-2);
             AzureMessager.getMessager().error(t);
             return;
         }
-        final Map<String, T> loadedResources = loaded.parallel().map(this::newResource).collect(Collectors.toMap(AbstractAzResource::getName, r -> r));
+        final Map<String, T> loadedResources = loaded.map(this::newResource).collect(Collectors.toMap(AbstractAzResource::getName, r -> r));
         final Set<String> localResources = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
             .map(AbstractAzResource::getName).collect(Collectors.toSet());
         final Set<String> creating = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
             .filter(r -> Status.CREATING.equals(r.getStatus())).map(AbstractAzResource::getName).collect(Collectors.toSet());
+        log.debug("[{}]:reload().creating={}", this.name, creating);
         final Sets.SetView<String> refreshed = Sets.intersection(localResources, loadedResources.keySet());
+        log.debug("[{}]:reload().refreshed={}", this.name, refreshed);
         final Sets.SetView<String> deleted = Sets.difference(Sets.difference(localResources, loadedResources.keySet()), creating);
+        log.debug("[{}]:reload().deleted={}", this.name, deleted);
         final Sets.SetView<String> added = Sets.difference(loadedResources.keySet(), localResources);
+        log.debug("[{}]:reload().added={}", this.name, added);
 
+        log.debug("[{}]:reload.refreshed->resource.setRemote", this.name);
         refreshed.forEach(name -> this.resources.get(name).ifPresent(r -> r.setRemote(loadedResources.get(name).getRemote())));
+        log.debug("[{}]:reload.deleted->deleteResourceFromLocal", this.name);
         deleted.forEach(name -> Optional.ofNullable(this.deleteResourceFromLocal(name)).ifPresent(t -> t.setStatus(Status.DELETED)));
+        log.debug("[{}]:reload.added->addResourceToLocal", this.name);
         added.forEach(name -> this.addResourceToLocal(name, loadedResources.get(name)));
         this.syncTime.set(System.currentTimeMillis());
     }
@@ -215,25 +255,32 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nullable
     T deleteResourceFromLocal(@Nonnull String name) {
+        log.debug("[{}]:deleteResourceFromLocal({})", this.name, name);
+        log.debug("[{}]:deleteResourceFromLocal->this.resources.remove({})", this.name, name);
         final Optional<T> removed = this.resources.remove(name);
         if (Objects.nonNull(removed) && removed.isPresent()) {
+            log.debug("[{}]:deleteResourceFromLocal->fireResourcesChangedEvent()", this.name);
             fireResourcesChangedEvent();
         }
         return Objects.nonNull(removed) ? removed.orElse(null) : null;
     }
 
     private synchronized void addResourceToLocal(@Nonnull String name, @Nullable T resource) {
+        log.debug("[{}]:addResourceToLocal({}, {})", this.name, name, resource);
         final Optional<T> oldResource = this.resources.getOrDefault(name, Optional.empty());
         final Optional<T> newResource = Optional.ofNullable(resource);
         if (!oldResource.isPresent()) {
+            log.debug("[{}]:addResourceToLocal->this.resources.put({}, {})", this.name, name, resource);
             this.resources.put(name, newResource);
             if (newResource.isPresent()) {
+                log.debug("[{}]:addResourceToLocal->fireResourcesChangedEvent()", this.name);
                 fireResourcesChangedEvent();
             }
         }
     }
 
     private void fireResourcesChangedEvent() {
+        log.debug("[{}]:fireResourcesChangedEvent()", this.name);
         if (this.getParent() instanceof AbstractAzResourceManager) {
             final AzResourceModule<P, ?, ?> service = this.getParent().getModule();
             AzureEventBus.emit("service.children_changed.service", service);
@@ -248,12 +295,15 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nonnull
     @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<R> loadResourcesFromAzure() {
+        log.debug("[{}]:loadResourcesFromAzure()", this.name);
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final Object client = this.getClient();
         if (client instanceof SupportsListing) {
+            log.debug("[{}]:loadResourcesFromAzure->client.list()", this.name);
             return this.<SupportsListing<R>>cast(client).list().stream();
         } else if (client != null) {
+            log.debug("[{}]:loadResourcesFromAzure->NOT Supported", this.name);
             throw new AzureToolkitRuntimeException("not supported");
         }
         return Stream.empty();
@@ -262,18 +312,23 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nullable
     @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected R loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
+        log.debug("[{}]:loadResourceFromAzure({}, {})", this.name, name, resourceGroup);
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final Object client = this.getClient();
         resourceGroup = StringUtils.firstNonBlank(resourceGroup, this.getParent().getResourceGroupName());
         resourceGroup = StringUtils.equals(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER) ? null : resourceGroup;
         if (client instanceof SupportsGettingByName) {
+            log.debug("[{}]:loadResourceFromAzure->client.getByName({})", this.name, name);
             return this.<SupportsGettingByName<R>>cast(client).getByName(name);
         } else if (client instanceof SupportsGettingByResourceGroup && StringUtils.isNotEmpty(resourceGroup)) {
+            log.debug("[{}]:loadResourceFromAzure->client.getByResourceGroup({}, {})", this.name, resourceGroup, name);
             return this.<SupportsGettingByResourceGroup<R>>cast(client).getByResourceGroup(resourceGroup, name);
         } else if (client instanceof SupportsGettingById && StringUtils.isNotEmpty(resourceGroup)) {
+            log.debug("[{}]:loadResourceFromAzure->client.getByIdAsync({}, {})", this.name, resourceGroup, name);
             return this.<SupportsGettingById<R>>cast(client).getByIdAsync(toResourceId(name, resourceGroup)).block();
         } else { // fallback to filter the named resource from all resources in current module.
+            log.debug("[{}]:loadResourceFromAzure->this.list().filter({}).getRemote()", this.name, name);
             return this.list().stream().filter(r -> StringUtils.equals(name, r.getName())).findAny().map(AbstractAzResource::getRemote).orElse(null);
         }
     }
@@ -284,10 +339,12 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         type = AzureOperation.Type.SERVICE
     )
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
+        log.debug("[{}]:deleteResourceFromAzure({})", this.name, resourceId);
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final Object client = this.getClient();
         if (client instanceof SupportsDeletingById) {
+            log.debug("[{}]:deleteResourceFromAzure->client.deleteById({})", this.name, resourceId);
             ((SupportsDeletingById) client).deleteById(resourceId);
         }
     }
