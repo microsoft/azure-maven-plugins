@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -152,11 +154,9 @@ public class AzureMessage implements IAzureMessage {
                 .filter(p -> p instanceof Throwable)
                 .map(p -> getExceptionOperations((Throwable) p))
                 .orElse(new ArrayList<>());
-        final Map<String, IAzureOperation> operations = new HashMap<>();
-        Streams.concat(contextOperations.stream(), exceptionOperations.stream())
-                .filter(o -> !operations.containsKey(o.getName()))
-                .forEachOrdered(o -> operations.put(o.getName(), o));
-        return new ArrayList<>(operations.values());
+        final Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return Streams.concat(contextOperations.stream(), exceptionOperations.stream())
+            .filter(t -> seen.add(t.getName())).collect(Collectors.toList());
     }
 
     @Nonnull

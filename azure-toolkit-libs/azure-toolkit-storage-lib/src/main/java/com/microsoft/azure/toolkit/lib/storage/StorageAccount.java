@@ -10,6 +10,7 @@ import com.azure.resourcemanager.resources.fluentcore.utils.ResourceManagerUtils
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.common.entity.Removable;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -69,7 +70,11 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageRe
 
     @AzureOperation(name = "storage.get_key.account", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public String getKey() {
-        return Objects.requireNonNull(this.getRemote()).getKeys().get(0).value();
+        final com.azure.resourcemanager.storage.models.StorageAccount remote = this.getRemote();
+        if (Objects.isNull(remote)) {
+            throw new AzureToolkitRuntimeException(String.format("Storage Account(%s) doesn't exist.", this.getName()));
+        }
+        return remote.getKeys().get(0).value();
     }
 
     @Nullable
