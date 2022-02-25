@@ -107,11 +107,13 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     }
 
     private <T> void registerSubTask(AzureTask<T> task, Consumer<T> consumer) {
-        tasks.add(new AzureTask<>(() -> {
-            T result = task.getSupplier().get();
-            consumer.accept(result);
-            return result;
-        }));
+        if (task != null) {
+            tasks.add(new AzureTask<>(() -> {
+                T result = task.getSupplier().get();
+                consumer.accept(result);
+                return result;
+            }));
+        }
     }
 
     private AzureTask<FunctionApp> getCreateFunctionAppTask(final FunctionApp functionApp) {
@@ -238,6 +240,10 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     }
 
     private CreateOrUpdateAppServicePlanTask getServicePlanTask() {
+        if (StringUtils.isNotEmpty(functionAppConfig.deploymentSlotName())) {
+            AzureMessager.getMessager().info("Skip update app service plan for deployment slot");
+            return null;
+        }
         return new CreateOrUpdateAppServicePlanTask(functionAppConfig.getServicePlanConfig());
     }
 
