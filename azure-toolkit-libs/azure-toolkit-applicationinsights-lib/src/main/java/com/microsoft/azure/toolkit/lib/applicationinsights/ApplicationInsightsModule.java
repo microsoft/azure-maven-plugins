@@ -19,7 +19,7 @@ import java.util.stream.Stream;
 
 public class ApplicationInsightsModule extends AbstractAzResourceModule<ApplicationInsight, ApplicationInsightsResourceManager, ApplicationInsightsComponent> {
 
-    public static final String NAME = "applicationInsights";
+    public static final String NAME = "components";
 
     public ApplicationInsightsModule(@Nonnull ApplicationInsightsResourceManager parent) {
         super(NAME, parent);
