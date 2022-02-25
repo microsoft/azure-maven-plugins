@@ -43,9 +43,9 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
     private static final String CREATE_NEW_WEB_APP = "createNewWebApp";
 
     private static final String CREATE_WEBAPP = "Creating web app %s...";
-    private static final String CREATE_WEB_APP_DONE = "Successfully created Web App %s.";
-    private static final String UPDATE_WEBAPP = "Updating target Web App %s...";
-    private static final String UPDATE_WEBAPP_DONE = "Successfully updated Web App %s.";
+    private static final String CREATE_WEB_APP_DONE = "Successfully created web app %s.";
+    private static final String UPDATE_WEBAPP = "Updating target web app %s...";
+    private static final String UPDATE_WEBAPP_DONE = "Successfully updated web app %s.";
 
     private final AppServiceConfig config;
     private final List<AzureTask<?>> subTasks;
