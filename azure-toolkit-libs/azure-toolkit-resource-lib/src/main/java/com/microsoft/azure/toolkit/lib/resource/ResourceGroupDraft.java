@@ -63,7 +63,7 @@ public class ResourceGroupDraft extends ResourceGroup implements AzResource.Draf
         }
         final ResourceManager manager = Objects.requireNonNull(this.getParent().getRemote());
         final IAzureMessager messager = AzureMessager.getMessager();
-        messager.info(AzureString.format("Start creating Resource Group({0})...", name));
+        messager.info(AzureString.format("Start creating Resource Group({0}) in region ({1})...", name, region.getLabel()));
         final com.azure.resourcemanager.resources.models.ResourceGroup group =
             manager.resourceGroups().define(name).withRegion(region.getName()).create();
         messager.success(AzureString.format("Resource Group({0}) is successfully created.", name));
