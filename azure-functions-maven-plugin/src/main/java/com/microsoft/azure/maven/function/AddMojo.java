@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -227,7 +227,7 @@ public class AddMojo extends AbstractFunctionMojo {
 
         preparePackageName();
 
-        final Map<String, String> params = new HashMap<>();
+        final Map<String, String> params = new LinkedHashMap<>();
         params.put("functionName", getFunctionName());
         params.put("className", getClassName());
         params.put("packageName", getFunctionPackageName());
