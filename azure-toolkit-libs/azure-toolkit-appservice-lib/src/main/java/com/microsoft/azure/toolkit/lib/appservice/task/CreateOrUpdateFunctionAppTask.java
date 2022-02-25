@@ -91,7 +91,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
                 this.instrumentationKey = functionAppConfig.appInsightsKey();
             } else if (StringUtils.isNotEmpty(functionAppConfig.appInsightsInstance()) || !app.exists()) {
                 // create AI instance by default when create new function
-                registerSubTask(getApplicationInsightsTask(), result -> this.instrumentationKey = result.getInstrumentationKey());
+                registerSubTask(getApplicationInsightsTask(),
+                        result -> this.instrumentationKey = Optional.ofNullable(result).map(ApplicationInsight::getInstrumentationKey).orElse(null));
             }
         }
         if (StringUtils.isEmpty(functionAppConfig.deploymentSlotName())) {
