@@ -4,19 +4,21 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.service.impl.deploy;
 
+import com.azure.resourcemanager.appservice.models.AppSetting;
 import com.azure.resourcemanager.appservice.models.FunctionApp;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import org.apache.commons.lang3.StringUtils;
 
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
+import java.util.Arrays;
 import java.util.Optional;
 
 class DeployUtils {
-    private static final String INTERNAL_STORAGE_NOT_FOUND = "Application setting 'AzureWebJobsStorage' not found.";
+    private static final String INTERNAL_STORAGE_NOT_FOUND = "Application setting 'AzureWebJobsStorage' not found or value is invalid, " +
+            "please check the app setting and try deploy later.";
     private static final String INTERNAL_STORAGE_KEY = "AzureWebJobsStorage";
     private static final String UNSUPPORTED_DEPLOYMENT_TARGET = "Unsupported deployment target, only function is supported";
 
@@ -27,17 +29,19 @@ class DeployUtils {
      */
     static CloudStorageAccount getCloudStorageAccount(final WebAppBase functionApp) {
         // Call functionApp.getSiteAppSettings() to get the app settings with key vault reference
-        return Optional.ofNullable(functionApp.getSiteAppSettings())
-                .map(map -> map.get(INTERNAL_STORAGE_KEY))
-                .filter(StringUtils::isNotEmpty)
-                .map(key -> {
-                    try {
-                        return CloudStorageAccount.parse(key);
-                    } catch (InvalidKeyException | URISyntaxException e) {
-                        throw new AzureToolkitRuntimeException("given Azure Storage Account connection string is invalid", e);
-                    }
-                })
-                .orElseThrow(() -> new AzureToolkitRuntimeException(INTERNAL_STORAGE_NOT_FOUND));
+        final String kuduStorageSetting = Optional.ofNullable(functionApp.getSiteAppSettings())
+                .map(map -> map.get(INTERNAL_STORAGE_KEY)).orElse(null);
+        final String storageSetting = Optional.ofNullable(functionApp.getAppSettings())
+                .map(map -> map.get(INTERNAL_STORAGE_KEY)).map(AppSetting::value).orElse(null);
+        for (final String connectionString : Arrays.asList(storageSetting, kuduStorageSetting)) {
+            try {
+                return CloudStorageAccount.parse(connectionString);
+            } catch (InvalidKeyException | URISyntaxException | RuntimeException e) {
+                // swallow exception here
+                continue;
+            }
+        }
+        throw new AzureToolkitRuntimeException(INTERNAL_STORAGE_NOT_FOUND);
     }
 
     static void updateFunctionAppSetting(final WebAppBase deployTarget, final String key, final String value) {
