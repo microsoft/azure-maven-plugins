@@ -47,7 +47,9 @@ public class PricingTier {
     public static final PricingTier PREMIUM_C4 = new PricingTier(PREMIUM, "P4");
     public static final PricingTier PREMIUM_C5 = new PricingTier(PREMIUM, "P5");
 
+    @EqualsAndHashCode.Include
     private final String family;
+    @EqualsAndHashCode.Include
     private final String capacity;
 
     public static PricingTier from(Sku sku) {

@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.redis;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
 import com.microsoft.azure.toolkit.lib.common.entity.Removable;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -42,6 +43,19 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceMana
     protected RedisCache(@Nonnull com.azure.resourcemanager.redis.models.RedisCache remote, @Nonnull RedisCacheModule module) {
         super(remote.name(), remote.resourceGroupName(), module);
         this.setRemote(remote);
+    }
+
+    @Override
+    public void delete() {
+        if (Objects.nonNull(this.jedisPool) && !this.jedisPool.isClosed()) {
+            try {
+                this.jedisPool.close();
+            } catch (Exception e) {
+                final String message = String.format("Failed to close jedis pool of Redis Cache(%s)", this.getName());
+                AzureMessager.getMessager().warning(message);
+            }
+        }
+        super.delete();
     }
 
     @Override
@@ -104,7 +118,7 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceMana
 
     @AzureOperation(name = "redis.get_jedis_pool.redis", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public synchronized JedisPool getJedisPool() {
-        if (Objects.isNull(this.jedisPool)) {
+        if (Objects.isNull(this.jedisPool) || this.jedisPool.isClosed()) {
             final String hostName = this.getHostName();
             final String password = this.getPrimaryKey();
             final int port = this.getSSLPort();

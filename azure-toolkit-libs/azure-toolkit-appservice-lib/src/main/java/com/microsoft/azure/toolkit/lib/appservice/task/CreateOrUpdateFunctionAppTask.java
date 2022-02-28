@@ -29,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     private static final String CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING = "App setting `FUNCTIONS_WORKER_RUNTIME` doesn't " +
             "meet the requirement of Azure Java Functions, the value should be `java`.";
     private static final String FUNCTIONS_EXTENSION_VERSION_NAME = "FUNCTIONS_EXTENSION_VERSION";
-    private static final String FUNCTIONS_EXTENSION_VERSION_VALUE = "~4";
+    private static final String FUNCTIONS_EXTENSION_VERSION_VALUE = "~3";
     private static final String SET_FUNCTIONS_EXTENSION_VERSION = "Functions extension version " +
             "isn't configured, setting up the default value.";
     private static final String FUNCTION_APP_NOT_EXIST_FOR_SLOT = "The Function App specified in pom.xml does not exist. " +
@@ -91,7 +92,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
                 this.instrumentationKey = functionAppConfig.appInsightsKey();
             } else if (StringUtils.isNotEmpty(functionAppConfig.appInsightsInstance()) || !app.exists()) {
                 // create AI instance by default when create new function
-                registerSubTask(getApplicationInsightsTask(), result -> this.instrumentationKey = result.getInstrumentationKey());
+                registerSubTask(getApplicationInsightsTask(),
+                        result -> this.instrumentationKey = Optional.ofNullable(result).map(ApplicationInsight::getInstrumentationKey).orElse(null));
             }
         }
         if (StringUtils.isEmpty(functionAppConfig.deploymentSlotName())) {
@@ -107,11 +109,13 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     }
 
     private <T> void registerSubTask(AzureTask<T> task, Consumer<T> consumer) {
-        tasks.add(new AzureTask<>(() -> {
-            T result = task.getSupplier().get();
-            consumer.accept(result);
-            return result;
-        }));
+        if (task != null) {
+            tasks.add(new AzureTask<>(() -> {
+                T result = task.getSupplier().get();
+                consumer.accept(result);
+                return result;
+            }));
+        }
     }
 
     private AzureTask<FunctionApp> getCreateFunctionAppTask(final FunctionApp functionApp) {
@@ -227,7 +231,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
                 return new GetOrCreateApplicationInsightsTask(functionAppConfig.subscriptionId(),
                         functionAppConfig.resourceGroup(), functionAppConfig.region(), name).getSupplier().get();
             } catch (final Exception e) {
-                AzureMessager.getMessager().warning(String.format(APPLICATION_INSIGHTS_CREATE_FAILED, e.getMessage()));
+                final String errorMessage = Optional.ofNullable(ExceptionUtils.getRootCause(e)).orElse(e).getMessage();
+                AzureMessager.getMessager().warning(String.format(APPLICATION_INSIGHTS_CREATE_FAILED, errorMessage));
                 return null;
             }
         });
@@ -238,6 +243,10 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     }
 
     private CreateOrUpdateAppServicePlanTask getServicePlanTask() {
+        if (StringUtils.isNotEmpty(functionAppConfig.deploymentSlotName())) {
+            AzureMessager.getMessager().info("Skip update app service plan for deployment slot");
+            return null;
+        }
         return new CreateOrUpdateAppServicePlanTask(functionAppConfig.getServicePlanConfig());
     }
 

@@ -28,8 +28,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
     private static final String REGION_IS_REQUIRED = "'region' is required to create application insight.";
     private static final String START_CREATING_APPLICATION_INSIGHT = "Start creating Application Insight ({0})...";
     private static final String APPLICATION_INSIGHTS_CREATED = "Application Insight ({0}) is successfully created. " +
-            "You can visit {1}/#@/resource{2}}/overview to view your " +
-            "Application Insights component.";
+            "You can visit {1} to view your Application Insights component.";
 
     @Getter
     @Setter
@@ -73,7 +72,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
                 .withExistingResourceGroup(getResourceGroupName())
                 .withKind("web")
                 .withApplicationType(ApplicationType.WEB).create();
-        messager.success(AzureString.format(APPLICATION_INSIGHTS_CREATED, getName(), getPortalUrl(), result.id()));
+        messager.success(AzureString.format(APPLICATION_INSIGHTS_CREATED, getName(), getPortalUrl()));
         return result;
     }
 
