@@ -97,13 +97,10 @@ public class DefaultFunctionProject extends FunctionProject {
 
     private static Set<Method> findFunctions(final List<URL> urls) {
         try {
-            final Class<?> functionNameAnnotation = ClassUtils.getClass(FUNCTION_NAME);
-            return new Reflections(
-                    new ConfigurationBuilder()
-                            .addUrls(urls)
-                            .setScanners(Scanners.MethodsAnnotated)
-                            .addClassLoaders(getClassLoader(urls)))
-                    .getMethodsAnnotatedWith((Class<? extends Annotation>) functionNameAnnotation);
+            final ClassLoader classLoader = getClassLoader(urls);
+            final Class<?> functionNameAnnotation = ClassUtils.getClass(classLoader, FUNCTION_NAME);
+            final ConfigurationBuilder builder = new ConfigurationBuilder().addUrls(urls).setScanners(Scanners.MethodsAnnotated).addClassLoaders(classLoader);
+            return new Reflections(builder).getMethodsAnnotatedWith((Class<? extends Annotation>) functionNameAnnotation);
         } catch (ClassNotFoundException e) {
             throw new AzureToolkitRuntimeException(e);
         }
