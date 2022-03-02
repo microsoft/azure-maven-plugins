@@ -111,10 +111,6 @@
             <artifactId>azure-maven-plugin-lib</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.microsoft.azure.functions</groupId>
-            <artifactId>azure-functions-java-library</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
         </dependency>

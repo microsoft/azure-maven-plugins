@@ -5,17 +5,18 @@
 
 package com.microsoft.azure.toolkit.lib.legacy.function.handlers;
 
-import com.microsoft.azure.functions.annotation.ExponentialBackoffRetry;
-import com.microsoft.azure.functions.annotation.FixedDelayRetry;
-import com.microsoft.azure.functions.annotation.FunctionName;
-import com.microsoft.azure.functions.annotation.StorageAccount;
+import com.microsoft.azure.toolkit.lib.appservice.function.core.FunctionAnnotation;
+import com.microsoft.azure.toolkit.lib.appservice.function.core.FunctionMethod;
+import com.microsoft.azure.toolkit.lib.appservice.function.impl.DefaultFunctionProject;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.Binding;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingEnum;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingFactory;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.Retry;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
@@ -27,14 +28,17 @@ import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.EXPONENTIAL_BACKOFF_RETRY;
+import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.FIXED_DELAY_RETRY;
+import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.FUNCTION_NAME;
+import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.STORAGE_ACCOUNT;
 
 @Slf4j
 @Deprecated
@@ -45,12 +49,17 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
 
     @Override
     public Set<Method> findFunctions(final List<URL> urls) {
-        return new Reflections(
-            new ConfigurationBuilder()
-                .addUrls(urls)
-                .setScanners(Scanners.MethodsAnnotated)
-                .addClassLoaders(getClassLoader(urls)))
-            .getMethodsAnnotatedWith(FunctionName.class);
+        try {
+            final Class<?> functionNameAnnotation = ClassUtils.getClass(FUNCTION_NAME);
+            return new Reflections(
+                    new ConfigurationBuilder()
+                            .addUrls(urls)
+                            .setScanners(Scanners.MethodsAnnotated)
+                            .addClassLoaders(getClassLoader(urls)))
+                    .getMethodsAnnotatedWith((Class<? extends Annotation>) functionNameAnnotation);
+        } catch (ClassNotFoundException e) {
+            throw new AzureToolkitRuntimeException(e);
+        }
     }
 
     protected ClassLoader getClassLoader(final List<URL> urlList) {
@@ -62,8 +71,12 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
     public Map<String, FunctionConfiguration> generateConfigurations(final Set<Method> methods) throws AzureExecutionException {
         final Map<String, FunctionConfiguration> configMap = new HashMap<>();
         for (final Method method : methods) {
-            final FunctionName functionAnnotation = method.getAnnotation(FunctionName.class);
-            final String functionName = functionAnnotation.value();
+            final FunctionMethod functionMethod = DefaultFunctionProject.create(method);
+            final FunctionAnnotation functionNameAnnotation = functionMethod.getAnnotation(FUNCTION_NAME);
+            if (functionNameAnnotation == null) {
+                continue;
+            }
+            final String functionName = functionNameAnnotation.getStringValue("value", true);
             validateFunctionName(configMap.keySet(), functionName);
             log.debug("Starting processing function : " + functionName);
             configMap.put(functionName, generateConfiguration(method));
@@ -97,8 +110,9 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
     }
 
     private Retry getRetryConfigurationFromMethod(Method method) throws AzureExecutionException {
-        final FixedDelayRetry fixedDelayRetry = method.getDeclaredAnnotation(FixedDelayRetry.class);
-        final ExponentialBackoffRetry exponentialBackoffRetry = method.getDeclaredAnnotation(ExponentialBackoffRetry.class);
+        final FunctionMethod functionMethod = DefaultFunctionProject.create(method);
+        final FunctionAnnotation fixedDelayRetry = functionMethod.getAnnotation(FIXED_DELAY_RETRY);
+        final FunctionAnnotation exponentialBackoffRetry = functionMethod.getAnnotation(EXPONENTIAL_BACKOFF_RETRY);
         if (fixedDelayRetry != null && exponentialBackoffRetry != null) {
             throw new AzureExecutionException(MULTI_RETRY_ANNOTATION);
         }
@@ -156,13 +170,12 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
     }
 
     protected void patchStorageBinding(final Method method, final List<Binding> bindings) {
-        final Optional<Annotation> storageAccount = Arrays.stream(method.getAnnotations())
-            .filter(annotation -> annotation instanceof StorageAccount)
-            .findFirst();
+        final FunctionMethod functionMethod = DefaultFunctionProject.create(method);
+        final FunctionAnnotation storageAccount = functionMethod.getAnnotation(STORAGE_ACCOUNT);
 
-        if (storageAccount.isPresent()) {
+        if (storageAccount != null) {
             log.debug("StorageAccount annotation found.");
-            final String connectionString = ((StorageAccount) storageAccount.get()).value();
+            final String connectionString = storageAccount.getStringValue("value", true);
             // Replace empty connection string
             bindings.stream().filter(binding -> binding.getBindingEnum().isStorage())
                 .filter(binding -> StringUtils.isEmpty((String) binding.getAttribute("connection")))

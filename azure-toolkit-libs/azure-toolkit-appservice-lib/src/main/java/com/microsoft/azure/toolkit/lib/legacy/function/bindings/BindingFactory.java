@@ -5,11 +5,13 @@
 
 package com.microsoft.azure.toolkit.lib.legacy.function.bindings;
 
-import com.microsoft.azure.functions.annotation.CustomBinding;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Locale;
+
+import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.CUSTOM_BINDING;
 
 @Deprecated
 public class BindingFactory {
@@ -24,8 +26,9 @@ public class BindingFactory {
     }
 
     public static Binding getUserDefinedBinding(final Annotation annotation) {
-        final CustomBinding customBindingAnnotation = annotation.annotationType()
-            .getDeclaredAnnotation(com.microsoft.azure.functions.annotation.CustomBinding.class);
+        final Annotation customBindingAnnotation = Arrays.stream(annotation.annotationType().getDeclaredAnnotations())
+                .filter(declaredAnnotation -> StringUtils.equals(declaredAnnotation.annotationType().getCanonicalName(), CUSTOM_BINDING))
+                .findFirst().orElse(null);
         return customBindingAnnotation == null ? null : new ExtendedCustomBinding(BindingEnum.ExtendedCustomBinding,
                 customBindingAnnotation, annotation);
     }

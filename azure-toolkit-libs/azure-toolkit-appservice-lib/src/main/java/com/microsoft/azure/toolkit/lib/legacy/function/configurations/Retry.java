@@ -5,10 +5,12 @@
 
 package com.microsoft.azure.toolkit.lib.legacy.function.configurations;
 
-import com.microsoft.azure.functions.annotation.ExponentialBackoffRetry;
-import com.microsoft.azure.functions.annotation.FixedDelayRetry;
+import com.microsoft.azure.toolkit.lib.appservice.function.core.FunctionAnnotation;
+import com.microsoft.azure.toolkit.lib.appservice.function.impl.DefaultFunctionProject;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
+
+import java.lang.annotation.Annotation;
 
 @Getter()
 @SuperBuilder(toBuilder = true)
@@ -19,18 +21,26 @@ public class Retry {
     private String minimumInterval;
     private String maximumInterval;
 
-    public static Retry createFixedDelayRetryFromAnnotation(final FixedDelayRetry fixedDelayRetry) {
+    public static Retry createFixedDelayRetryFromAnnotation(final FunctionAnnotation annotation) {
         return Retry.builder()
-                .strategy(fixedDelayRetry.strategy())
-                .maxRetryCount(fixedDelayRetry.maxRetryCount())
-                .delayInterval(fixedDelayRetry.delayInterval()).build();
+                .strategy(annotation.getStringValue("strategy", true))
+                .maxRetryCount(Integer.valueOf(annotation.getStringValue("strategy", true)))
+                .delayInterval(annotation.getStringValue("delayInterval", true)).build();
     }
 
-    public static Retry createExponentialBackoffRetryFromAnnotation(final ExponentialBackoffRetry exponentialBackoffRetry) {
+    public static Retry createFixedDelayRetryFromAnnotation(final Annotation fixedDelayRetry) {
+        return createFixedDelayRetryFromAnnotation(DefaultFunctionProject.create(fixedDelayRetry));
+    }
+
+    public static Retry createExponentialBackoffRetryFromAnnotation(final FunctionAnnotation annotation) {
         return Retry.builder()
-                .strategy(exponentialBackoffRetry.strategy())
-                .maxRetryCount(exponentialBackoffRetry.maxRetryCount())
-                .minimumInterval(exponentialBackoffRetry.minimumInterval())
-                .maximumInterval(exponentialBackoffRetry.maximumInterval()).build();
+                .strategy(annotation.getStringValue("strategy", true))
+                .maxRetryCount(Integer.valueOf(annotation.getStringValue("strategy", true)))
+                .minimumInterval(annotation.getStringValue("minimumInterval", true))
+                .maximumInterval(annotation.getStringValue("maximumInterval", true)).build();
+    }
+
+    public static Retry createExponentialBackoffRetryFromAnnotation(final Annotation exponentialBackoffRetry) {
+        return createExponentialBackoffRetryFromAnnotation(DefaultFunctionProject.create(exponentialBackoffRetry));
     }
 }

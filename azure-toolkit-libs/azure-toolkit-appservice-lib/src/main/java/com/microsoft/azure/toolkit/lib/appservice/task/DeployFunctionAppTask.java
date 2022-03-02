@@ -5,7 +5,6 @@
 package com.microsoft.azure.toolkit.lib.appservice.task;
 
 import com.azure.core.management.exception.ManagementException;
-import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
@@ -33,6 +32,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.ANONYMOUS;
 
 public class DeployFunctionAppTask extends AzureTask<IFunctionAppBase<?>> {
 
@@ -124,7 +125,7 @@ public class DeployFunctionAppTask extends AzureTask<IFunctionAppBase<?>> {
                     .collect(Collectors.toList());
             final List<FunctionEntity> anonymousTriggers = httpFunction.stream()
                     .filter(bindingResource -> bindingResource.getTrigger() != null &&
-                            StringUtils.equalsIgnoreCase(bindingResource.getTrigger().getProperty(AUTH_LEVEL), AuthorizationLevel.ANONYMOUS.toString()))
+                            StringUtils.equalsIgnoreCase(bindingResource.getTrigger().getProperty(AUTH_LEVEL), ANONYMOUS))
                     .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(httpFunction) || CollectionUtils.isEmpty(anonymousTriggers)) {
                 AzureMessager.getMessager().info(NO_ANONYMOUS_HTTP_TRIGGER);

@@ -4,7 +4,6 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.function.impl;
 
-import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.toolkit.lib.appservice.function.core.FunctionAnnotation;
 import com.microsoft.azure.toolkit.lib.appservice.function.core.FunctionAnnotationClass;
 import com.microsoft.azure.toolkit.lib.appservice.function.core.FunctionMethod;
@@ -16,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreTool
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreToolsHandlerImpl;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ClassUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
@@ -37,6 +37,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.FUNCTION_NAME;
 
 @Slf4j
 public class DefaultFunctionProject extends FunctionProject {
@@ -94,12 +96,17 @@ public class DefaultFunctionProject extends FunctionProject {
     }
 
     private static Set<Method> findFunctions(final List<URL> urls) {
-        return new Reflections(
-            new ConfigurationBuilder()
-                .addUrls(urls)
-                .setScanners(Scanners.MethodsAnnotated)
-                .addClassLoaders(getClassLoader(urls)))
-            .getMethodsAnnotatedWith(FunctionName.class);
+        try {
+            final Class<?> functionNameAnnotation = ClassUtils.getClass(FUNCTION_NAME);
+            return new Reflections(
+                    new ConfigurationBuilder()
+                            .addUrls(urls)
+                            .setScanners(Scanners.MethodsAnnotated)
+                            .addClassLoaders(getClassLoader(urls)))
+                    .getMethodsAnnotatedWith((Class<? extends Annotation>) functionNameAnnotation);
+        } catch (ClassNotFoundException e) {
+            throw new AzureToolkitRuntimeException(e);
+        }
     }
 
     private static ClassLoader getClassLoader(final List<URL> urlList) {
