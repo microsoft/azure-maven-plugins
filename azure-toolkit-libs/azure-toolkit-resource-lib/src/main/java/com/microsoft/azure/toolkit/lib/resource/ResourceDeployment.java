@@ -48,6 +48,11 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
     }
 
     @Override
+    protected Deployment refreshRemote() {
+        return this.getParent().getParent().getResourceManager().deployments().getById(this.getId());
+    }
+
+    @Override
     public List<AzResourceModule<?, ResourceDeployment, ?>> getSubModules() {
         return Collections.emptyList();
     }
