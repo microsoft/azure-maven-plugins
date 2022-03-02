@@ -321,15 +321,15 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         final Object client = this.getClient();
         resourceGroup = StringUtils.firstNonBlank(resourceGroup, this.getParent().getResourceGroupName());
         resourceGroup = StringUtils.equals(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER) ? null : resourceGroup;
-        if (client instanceof SupportsGettingByName) {
-            log.debug("[{}]:loadResourceFromAzure->client.getByName({})", this.name, name);
-            return this.<SupportsGettingByName<R>>cast(client).getByName(name);
+        if (client instanceof SupportsGettingById && StringUtils.isNotEmpty(resourceGroup)) {
+            log.debug("[{}]:loadResourceFromAzure->client.getById({}, {})", this.name, resourceGroup, name);
+            return this.<SupportsGettingById<R>>cast(client).getById(toResourceId(name, resourceGroup));
         } else if (client instanceof SupportsGettingByResourceGroup && StringUtils.isNotEmpty(resourceGroup)) {
             log.debug("[{}]:loadResourceFromAzure->client.getByResourceGroup({}, {})", this.name, resourceGroup, name);
             return this.<SupportsGettingByResourceGroup<R>>cast(client).getByResourceGroup(resourceGroup, name);
-        } else if (client instanceof SupportsGettingById && StringUtils.isNotEmpty(resourceGroup)) {
-            log.debug("[{}]:loadResourceFromAzure->client.getByIdAsync({}, {})", this.name, resourceGroup, name);
-            return this.<SupportsGettingById<R>>cast(client).getByIdAsync(toResourceId(name, resourceGroup)).block();
+        } else if (client instanceof SupportsGettingByName) {
+            log.debug("[{}]:loadResourceFromAzure->client.getByName({})", this.name, name);
+            return this.<SupportsGettingByName<R>>cast(client).getByName(name);
         } else { // fallback to filter the named resource from all resources in current module.
             log.debug("[{}]:loadResourceFromAzure->this.list().filter({}).getRemote()", this.name, name);
             return this.list().stream().filter(r -> StringUtils.equals(name, r.getName())).findAny().map(AbstractAzResource::getRemote).orElse(null);
