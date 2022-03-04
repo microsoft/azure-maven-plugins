@@ -5,8 +5,8 @@
 package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.core.management.exception.ManagementException;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
-import com.microsoft.azure.arm.resources.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.http.HttpStatus;
 

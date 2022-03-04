@@ -9,7 +9,7 @@ import com.azure.resourcemanager.appservice.models.CsmPublishingProfileOptions;
 import com.azure.resourcemanager.appservice.models.PublishingProfileFormat;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
-import com.microsoft.azure.arm.resources.ResourceId;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServiceBaseEntity;
