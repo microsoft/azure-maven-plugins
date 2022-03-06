@@ -10,13 +10,18 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apache.commons.lang3.ObjectUtils;
 
+import javax.annotation.Nonnull;
+
 @Getter
 @Builder
 @EqualsAndHashCode
 @Deprecated
 public class ScaleSettings {
+    @Nonnull
     private final Integer cpu;
+    @Nonnull
     private final Integer memoryInGB;
+    @Nonnull
     private final Integer capacity;
 
     public boolean isEmpty() {

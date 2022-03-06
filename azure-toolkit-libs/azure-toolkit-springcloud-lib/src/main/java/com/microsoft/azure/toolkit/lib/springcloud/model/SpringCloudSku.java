@@ -9,11 +9,16 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import javax.annotation.Nonnull;
+
 @Getter
 @Builder
 @EqualsAndHashCode
 public class SpringCloudSku {
+    @Nonnull
     private final String name;
+    @Nonnull
     private final String tier;
+    @Nonnull
     private final Integer capacity;
 }

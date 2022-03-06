@@ -13,6 +13,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.annotation.Nullable;
 import java.util.Objects;
 
 /**
@@ -23,7 +24,7 @@ import java.util.Objects;
 @Builder
 @EqualsAndHashCode
 @Deprecated
-public class StorageAccountConfig implements IStorageAccountEntity {
+public class StorageAccountConfig {
 
     private String name;
     private String id;
@@ -36,12 +37,12 @@ public class StorageAccountConfig implements IStorageAccountEntity {
     private Redundancy redundancy;
     private AccessTier accessTier;
 
-    @Override
+    @Nullable
     public String getSubscriptionId() {
         return Objects.nonNull(subscription) ? subscription.getId() : null;
     }
 
-    @Override
+    @Nullable
     public String getResourceGroupName() {
         return Objects.nonNull(resourceGroup) ? resourceGroup.getName() : null;
     }

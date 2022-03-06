@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class PostgreSqlDatabase extends AbstractAzResource<PostgreSqlDatabase, P
         this.setRemote(remote);
     }
 
+    @Nullable
     @Override
     protected Database refreshRemote() {
         return this.remoteOptional().map(Database::refresh).orElse(null);
@@ -48,15 +50,18 @@ public class PostgreSqlDatabase extends AbstractAzResource<PostgreSqlDatabase, P
         return this.remoteOptional().map(Database::collation).orElse(null);
     }
 
+    @Nonnull
     @Override
     public PostgreSqlServer getServer() {
         return this.getParent();
     }
 
+    @Nullable
     public String getCharset() {
         return this.remoteOptional().map(Database::charset).orElse(null);
     }
 
+    @Nonnull
     public JdbcUrl getJdbcUrl() {
         return JdbcUrl.postgre(this.getParent().getFullyQualifiedDomainName(), this.getName());
     }

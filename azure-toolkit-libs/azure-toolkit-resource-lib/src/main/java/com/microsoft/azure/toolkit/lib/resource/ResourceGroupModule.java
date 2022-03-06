@@ -24,8 +24,9 @@ public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup,
         super(NAME, parent);
     }
 
+    @Nonnull
     @AzureOperation(name = "group.create.rg", params = {"name"}, type = AzureOperation.Type.SERVICE)
-    public com.microsoft.azure.toolkit.lib.common.model.ResourceGroup createResourceGroupIfNotExist(String name, Region region) {
+    public com.microsoft.azure.toolkit.lib.common.model.ResourceGroup createResourceGroupIfNotExist(@Nonnull String name, @Nonnull Region region) {
         final com.microsoft.azure.toolkit.lib.resource.ResourceGroup group = this.getOrDraft(name, name);
         if (group instanceof ResourceGroupDraft && !group.exists()) {
             ((ResourceGroupDraft) group).setRegion(region);
@@ -48,7 +49,7 @@ public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup,
     @Nonnull
     @Override
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
-    protected ResourceGroupDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
+    protected ResourceGroupDraft newDraftForCreate(@Nonnull String name, @Nonnull String resourceGroupName) {
         return new ResourceGroupDraft(name, resourceGroupName, this);
     }
 

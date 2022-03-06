@@ -59,6 +59,7 @@ public class AzurePostgreSql extends AbstractAzService<PostgreSqlResourceManager
         return new PostgreSqlResourceManager(manager, this);
     }
 
+    @Nonnull
     public List<String> listSupportedVersions() {
         return ServerVersion.values().stream().map(ExpandableStringEnum::toString).sorted().collect(Collectors.toList());
     }

@@ -24,6 +24,7 @@ import java.util.Objects;
 public class MicrosoftSqlResourceManager extends AbstractAzResourceManager<MicrosoftSqlResourceManager, SqlServerManager> {
     @Nonnull
     private final String subscriptionId;
+    @Nonnull
     private final MicrosoftSqlServerModule serverModule;
 
     MicrosoftSqlResourceManager(@Nonnull String subscriptionId, @Nonnull AzureSqlServer service) {

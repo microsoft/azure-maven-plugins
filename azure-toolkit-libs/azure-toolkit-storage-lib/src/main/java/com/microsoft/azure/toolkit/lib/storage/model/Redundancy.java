@@ -42,6 +42,7 @@ public class Redundancy implements ExpandableParameter {
         return values;
     }
 
+    @Nonnull
     public static Redundancy fromName(@Nonnull String value) {
         return values().stream()
                 .filter(region -> StringUtils.equalsAnyIgnoreCase(value, region.name, region.label))

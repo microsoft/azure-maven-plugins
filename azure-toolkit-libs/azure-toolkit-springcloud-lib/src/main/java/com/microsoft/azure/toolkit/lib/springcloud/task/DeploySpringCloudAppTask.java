@@ -21,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentC
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +31,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     public static final String DEFAULT_DEPLOYMENT_NAME = "default";
 
     private final SpringCloudAppConfig config;
+    @Nonnull
     private final List<AzureTask<?>> subTasks;
     private SpringCloudDeploymentDraft deployment;
 
@@ -38,6 +40,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         this.subTasks = this.initTasks();
     }
 
+    @Nonnull
     private List<AzureTask<?>> initTasks() {
         // Init spring clients, and prompt users to confirm
         final SpringCloudDeploymentConfig deploymentConfig = config.getDeployment();

@@ -64,6 +64,7 @@ public class PostgreSqlDatabaseModule extends AbstractAzResourceModule<PostgreSq
         Optional.ofNullable(this.getClient()).ifPresent(c -> c.delete(p.getResourceGroupName(), p.getName(), name));
     }
 
+    @Nullable
     @Override
     protected Databases getClient() {
         return Optional.ofNullable(this.getParent().getParent().getRemote()).map(PostgreSqlManager::databases).orElse(null);

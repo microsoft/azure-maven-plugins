@@ -64,11 +64,12 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
         this.setLocalMachineAccessAllowed(config.isLocalMachineAccessAllowed());
     }
 
-    private int getTierPriority(PerformanceTierProperties tier) {
+    private int getTierPriority(@Nonnull PerformanceTierProperties tier) {
         return StringUtils.equals("Basic", tier.id()) ? 1 :
             StringUtils.equals("GeneralPurpose", tier.id()) ? 2 : StringUtils.equals("MemoryOptimized", tier.id()) ? 3 : 4;
     }
 
+    @Nullable
     private ServerVersion validateServerVersion(String version) {
         if (StringUtils.isNotBlank(version)) {
             final ServerVersion res = ServerVersion.fromString(version);
@@ -80,6 +81,7 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
         return null;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.create_resource.resource|type",
@@ -110,9 +112,10 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
         messager.info(AzureString.format("Start creating PostgreSQL server ({0})...", this.getName()));
         final Server remote = this.doModify(() -> create.create(), Status.CREATING);
         messager.success(AzureString.format("PostgreSQL server({0}) is successfully created.", this.getName()));
-        return this.updateResourceInAzure(remote);
+        return this.updateResourceInAzure(Objects.requireNonNull(remote));
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.update_resource.resource|type",
@@ -131,29 +134,36 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
         return origin;
     }
 
+    @Nonnull
     private synchronized Config ensureConfig() {
         this.config = Optional.ofNullable(this.config).orElseGet(Config::new);
         return this.config;
     }
 
+    @Nullable
     @Override
     public String getAdminName() {
         return Optional.ofNullable(this.config).map(Config::getAdminName).orElseGet(super::getAdminName);
     }
 
+    @Nullable
     public String getAdminPassword() {
         return Optional.ofNullable(this.config).map(Config::getAdminPassword).orElse(null);
     }
 
+    @Nullable
+    @Override
     public Region getRegion() {
         return Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion);
     }
 
+    @Nullable
     @Override
     public String getVersion() {
         return Optional.ofNullable(this.config).map(Config::getVersion).orElseGet(super::getVersion);
     }
 
+    @Nullable
     @Override
     public String getFullyQualifiedDomainName() {
         return Optional.ofNullable(this.config).map(Config::getFullyQualifiedDomainName).orElseGet(super::getFullyQualifiedDomainName);

@@ -35,6 +35,7 @@ public class Performance implements ExpandableParameter {
         return values;
     }
 
+    @Nonnull
     public static Performance fromName(@Nonnull String value) {
         return values().stream()
                 .filter(region -> StringUtils.equalsAnyIgnoreCase(value, region.name, region.label))

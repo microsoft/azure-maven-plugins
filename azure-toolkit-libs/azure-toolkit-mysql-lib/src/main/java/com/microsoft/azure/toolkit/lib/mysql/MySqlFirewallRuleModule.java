@@ -80,6 +80,7 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
         return new MySqlFirewallRuleDraft(origin);
     }
 
+    @Nullable
     @Override
     protected FirewallRules getClient() {
         return Optional.ofNullable(this.getParent().getParent().getRemote()).map(MySqlManager::firewallRules).orElse(null);

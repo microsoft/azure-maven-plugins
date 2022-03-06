@@ -18,18 +18,20 @@ import java.util.List;
 public class ApplicationInsightsResourceManager extends AbstractAzResourceManager<ApplicationInsightsResourceManager, ApplicationInsightsManager> {
     @Nonnull
     private final String subscriptionId;
+    @Nonnull
     private final ApplicationInsightsModule applicationInsightsModule;
 
-    protected ApplicationInsightsResourceManager(@Nonnull String subscriptionId, AzureApplicationInsights service) {
+    protected ApplicationInsightsResourceManager(@Nonnull String subscriptionId, @Nonnull AzureApplicationInsights service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.applicationInsightsModule = new ApplicationInsightsModule(this);
     }
 
-    protected ApplicationInsightsResourceManager(@Nonnull ApplicationInsightsManager manager, AzureApplicationInsights service) {
+    protected ApplicationInsightsResourceManager(@Nonnull ApplicationInsightsManager manager, @Nonnull AzureApplicationInsights service) {
         this(manager.serviceClient().getSubscriptionId(), service);
     }
 
+    @Nonnull
     public ApplicationInsightsModule applicationInsights() {
         return this.applicationInsightsModule;
     }

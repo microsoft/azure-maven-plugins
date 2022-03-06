@@ -42,6 +42,7 @@ public class Kind implements ExpandableParameter {
         return values;
     }
 
+    @Nonnull
     public static Kind fromName(@Nonnull String value) {
         return values().stream()
                 .filter(region -> StringUtils.equalsAnyIgnoreCase(value, region.name, region.label))

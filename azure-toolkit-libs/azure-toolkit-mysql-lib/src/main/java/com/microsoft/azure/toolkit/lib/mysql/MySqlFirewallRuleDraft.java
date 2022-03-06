@@ -42,6 +42,7 @@ public class MySqlFirewallRuleDraft extends MySqlFirewallRule implements AzResou
         this.config = null;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.create_resource.resource|type",
@@ -62,6 +63,7 @@ public class MySqlFirewallRuleDraft extends MySqlFirewallRule implements AzResou
         return rule;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.update_resource.resource|type",
@@ -86,6 +88,7 @@ public class MySqlFirewallRuleDraft extends MySqlFirewallRule implements AzResou
         return origin;
     }
 
+    @Nonnull
     private synchronized Config ensureConfig() {
         this.config = Optional.ofNullable(this.config).orElseGet(Config::new);
         return this.config;

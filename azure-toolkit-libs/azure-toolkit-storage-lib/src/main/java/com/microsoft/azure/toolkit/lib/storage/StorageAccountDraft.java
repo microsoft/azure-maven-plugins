@@ -50,6 +50,7 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
         this.config = null;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.create_resource.resource|type",
@@ -84,6 +85,7 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
         return account;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.update_resource.resource|type",
