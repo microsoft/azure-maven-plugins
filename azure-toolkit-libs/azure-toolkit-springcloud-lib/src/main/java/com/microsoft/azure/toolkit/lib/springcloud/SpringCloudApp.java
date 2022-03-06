@@ -49,6 +49,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
         this.setRemote(remote);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, SpringCloudApp, ?>> getSubModules() {
         return Collections.singletonList(deploymentModule);

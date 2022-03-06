@@ -53,6 +53,7 @@ public class DraftPublicIpAddress extends PublicIpAddress implements AzureResour
         return Optional.ofNullable(remote).map(ignore -> super.hasAssignedNetworkInterface()).orElse(false);
     }
 
+    @Nonnull
     @Override
     public String getId() {
         return Optional.ofNullable(remote).map(HasId::id).orElseGet(() -> getResourceId(subscriptionId, resourceGroup, name));

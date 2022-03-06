@@ -34,6 +34,7 @@ public class ApplicationInsightsResourceManager extends AbstractAzResourceManage
         return this.applicationInsightsModule;
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, ApplicationInsightsResourceManager, ?>> getSubModules() {
         return Collections.singletonList(applicationInsightsModule);

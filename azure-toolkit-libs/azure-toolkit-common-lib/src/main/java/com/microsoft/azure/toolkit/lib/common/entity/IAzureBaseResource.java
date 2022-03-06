@@ -40,18 +40,22 @@ public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzu
         return this.subscriptionId();
     }
 
+    @Nonnull
     default String getResourceGroupName() {
         return this.resourceGroup();
     }
 
+    @Nonnull
     default String getStatus() {
         return this.status();
     }
 
+    @Nonnull
     default Subscription getSubscription() {
         return this.subscription();
     }
 
+    @Nonnull
     default String getPortalUrl() {
         return this.portalUrl();
     }

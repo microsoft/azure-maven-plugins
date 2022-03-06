@@ -38,6 +38,7 @@ public class PostgreSqlResourceManager extends AbstractAzResourceManager<Postgre
         this(manager.serviceClient().getSubscriptionId(), service);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, PostgreSqlResourceManager, ?>> getSubModules() {
         return Collections.singletonList(serverModule);

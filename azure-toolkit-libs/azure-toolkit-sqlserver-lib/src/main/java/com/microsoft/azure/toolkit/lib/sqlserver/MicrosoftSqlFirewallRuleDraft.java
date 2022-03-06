@@ -13,7 +13,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.Data;
 import lombok.Getter;
 
@@ -44,6 +43,7 @@ public class MicrosoftSqlFirewallRuleDraft extends MicrosoftSqlFirewallRule impl
         this.config = null;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.create_resource.resource|type",
@@ -51,8 +51,6 @@ public class MicrosoftSqlFirewallRuleDraft extends MicrosoftSqlFirewallRule impl
         type = AzureOperation.Type.SERVICE
     )
     public SqlFirewallRule createResourceInAzure() {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final SqlServer server = Objects.requireNonNull(this.getParent().getRemote());
         SqlFirewallRuleOperations.DefinitionStages.WithCreate withCreate = server.firewallRules().define(this.getName())
             .withIpAddressRange(this.getStartIpAddress(), this.getEndIpAddress());
@@ -63,6 +61,7 @@ public class MicrosoftSqlFirewallRuleDraft extends MicrosoftSqlFirewallRule impl
         return rule;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.update_resource.resource|type",
@@ -70,8 +69,6 @@ public class MicrosoftSqlFirewallRuleDraft extends MicrosoftSqlFirewallRule impl
         type = AzureOperation.Type.SERVICE
     )
     public SqlFirewallRule updateResourceInAzure(@Nonnull SqlFirewallRule origin) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final Optional<String> modifiedStartIp = Optional.ofNullable(this.getStartIpAddress()).filter(n -> !Objects.equals(n, super.getStartIpAddress()));
         final Optional<String> modifiedEndIp = Optional.ofNullable(this.getEndIpAddress()).filter(n -> !Objects.equals(n, super.getEndIpAddress()));
         if (modifiedStartIp.isPresent() || modifiedEndIp.isPresent()) {
@@ -89,6 +86,7 @@ public class MicrosoftSqlFirewallRuleDraft extends MicrosoftSqlFirewallRule impl
         return origin;
     }
 
+    @Nonnull
     private synchronized Config ensureConfig() {
         this.config = Optional.ofNullable(this.config).orElseGet(Config::new);
         return this.config;
@@ -100,7 +98,7 @@ public class MicrosoftSqlFirewallRuleDraft extends MicrosoftSqlFirewallRule impl
         return Optional.ofNullable(this.config).map(Config::getStartIpAddress).orElseGet(super::getStartIpAddress);
     }
 
-    public void setStartIpAddress(String startIpAddress) {
+    public void setStartIpAddress(@Nullable String startIpAddress) {
         this.ensureConfig().setStartIpAddress(startIpAddress);
     }
 
@@ -110,7 +108,7 @@ public class MicrosoftSqlFirewallRuleDraft extends MicrosoftSqlFirewallRule impl
         return Optional.ofNullable(this.config).map(Config::getEndIpAddress).orElseGet(super::getEndIpAddress);
     }
 
-    public void setEndIpAddress(String endIpAddress) {
+    public void setEndIpAddress(@Nullable String endIpAddress) {
         this.ensureConfig().setEndIpAddress(endIpAddress);
     }
 
@@ -124,7 +122,9 @@ public class MicrosoftSqlFirewallRuleDraft extends MicrosoftSqlFirewallRule impl
 
     @Data
     private static class Config {
+        @Nullable
         private String startIpAddress;
+        @Nullable
         private String endIpAddress;
     }
 }

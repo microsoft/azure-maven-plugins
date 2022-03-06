@@ -30,6 +30,7 @@ public class AzureApplicationInsights extends AbstractAzService<ApplicationInsig
         super("Microsoft.Insights");
     }
 
+    @Nonnull
     @Override
     protected ApplicationInsightsResourceManager newResource(@Nonnull ApplicationInsightsManager applicationInsightsManager) {
         return new ApplicationInsightsResourceManager(applicationInsightsManager.serviceClient().getSubscriptionId(), this);
@@ -67,6 +68,7 @@ public class AzureApplicationInsights extends AbstractAzService<ApplicationInsig
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Application Insights";

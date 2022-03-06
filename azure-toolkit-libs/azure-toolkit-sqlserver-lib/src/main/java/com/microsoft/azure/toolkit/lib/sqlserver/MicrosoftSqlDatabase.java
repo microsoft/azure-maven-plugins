@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +28,7 @@ public class MicrosoftSqlDatabase extends AbstractAzResource<MicrosoftSqlDatabas
         this.setRemote(remote);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, MicrosoftSqlDatabase, ?>> getSubModules() {
         return Collections.emptyList();
@@ -38,20 +40,24 @@ public class MicrosoftSqlDatabase extends AbstractAzResource<MicrosoftSqlDatabas
         return Status.UNKNOWN;
     }
 
-    @Override
-    public String getCollation() {
-        return this.remoteOptional().map(SqlDatabase::collation).orElse(null);
-    }
-
+    @Nonnull
     @Override
     public MicrosoftSqlServer getServer() {
         return this.getParent();
     }
 
+    @Nullable
+    @Override
+    public String getCollation() {
+        return this.remoteOptional().map(SqlDatabase::collation).orElse(null);
+    }
+
+    @Nullable
     public OffsetDateTime getCreationDate() {
         return this.remoteOptional().map(SqlDatabase::creationDate).orElse(null);
     }
 
+    @Nonnull
     public JdbcUrl getJdbcUrl() {
         return JdbcUrl.sqlserver(this.getParent().getFullyQualifiedDomainName(), this.getName());
     }

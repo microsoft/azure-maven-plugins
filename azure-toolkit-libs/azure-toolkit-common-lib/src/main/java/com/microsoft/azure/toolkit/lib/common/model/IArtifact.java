@@ -9,9 +9,11 @@ package com.microsoft.azure.toolkit.lib.common.model;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 
 public interface IArtifact {
+    @Nullable
     File getFile();
 
     @Nonnull
@@ -21,6 +23,7 @@ public interface IArtifact {
 
     @Getter
     class FileArtifact implements IArtifact {
+        @Nonnull
         private final File file;
 
         public FileArtifact(@Nonnull final File file) {

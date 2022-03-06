@@ -13,7 +13,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.redis.model.PricingTier;
 import lombok.Data;
 import lombok.Getter;
@@ -52,8 +51,6 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
         type = AzureOperation.Type.SERVICE
     )
     public com.azure.resourcemanager.redis.models.RedisCache createResourceInAzure() {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final String redisName = this.getName();
         final RedisManager manager = Objects.requireNonNull(this.getParent().getRemote());
         final com.azure.resourcemanager.redis.models.RedisCache.DefinitionStages.WithSku toCreate =

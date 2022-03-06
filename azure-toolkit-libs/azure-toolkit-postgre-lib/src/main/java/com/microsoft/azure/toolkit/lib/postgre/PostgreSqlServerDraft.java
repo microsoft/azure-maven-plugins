@@ -18,7 +18,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 import lombok.Getter;
@@ -88,8 +87,6 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
         type = AzureOperation.Type.SERVICE
     )
     public Server createResourceInAzure() {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         assert this.config != null;
         final PostgreSqlManager manager = Objects.requireNonNull(this.getParent().getRemote());
 
@@ -123,8 +120,6 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
         type = AzureOperation.Type.SERVICE
     )
     public Server updateResourceInAzure(@Nonnull Server origin) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
             final IAzureMessager messager = AzureMessager.getMessager();

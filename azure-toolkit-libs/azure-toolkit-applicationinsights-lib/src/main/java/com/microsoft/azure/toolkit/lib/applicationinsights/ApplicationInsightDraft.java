@@ -15,7 +15,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -59,8 +58,6 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
             type = AzureOperation.Type.SERVICE
     )
     public ApplicationInsightsComponent createResourceInAzure() {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         if (Objects.isNull(region)) {
             throw new AzureToolkitRuntimeException(REGION_IS_REQUIRED);
         }

@@ -10,9 +10,9 @@ import com.azure.resourcemanager.resources.models.Deployment;
 import com.azure.resourcemanager.resources.models.Deployments;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -31,14 +31,15 @@ public class ResourceDeploymentModule extends
         return Optional.ofNullable(this.parent.getParent().getRemote()).map(ResourceManager::deployments).orElse(null);
     }
 
+    @Nonnull
     @Override
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
-    protected ResourceDeploymentDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
+    protected ResourceDeploymentDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
+        assert resourceGroupName != null : "resource group is required.";
         return new ResourceDeploymentDraft(name, resourceGroupName, this);
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.draft_for_update.resource|type",
@@ -46,8 +47,6 @@ public class ResourceDeploymentModule extends
         type = AzureOperation.Type.SERVICE
     )
     protected ResourceDeploymentDraft newDraftForUpdate(@Nonnull ResourceDeployment origin) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new ResourceDeploymentDraft(origin);
     }
 
@@ -55,8 +54,6 @@ public class ResourceDeploymentModule extends
     @Override
     @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<Deployment> loadResourcesFromAzure() {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final ResourceManager manager = Objects.requireNonNull(this.parent.getParent().getRemote());
         return manager.deployments().listByResourceGroup(this.parent.getName()).stream();
     }
@@ -66,6 +63,7 @@ public class ResourceDeploymentModule extends
         return new ResourceDeployment(r, this);
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Resource deployment";

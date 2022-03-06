@@ -76,6 +76,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
             .orElse(DeploymentResourceStatus.UNKNOWN).toString();
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, SpringCloudDeployment, ?>> getSubModules() {
         return Collections.emptyList();

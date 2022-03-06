@@ -42,7 +42,7 @@ public class AzureStorageAccount extends AbstractAzService<StorageResourceManage
 
     @Nonnull
     @Override
-    protected StorageManager loadResourceFromAzure(@Nonnull String subscriptionId, String resourceGroup) {
+    protected StorageManager loadResourceFromAzure(@Nonnull String subscriptionId, @Nullable String resourceGroup) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
         final String userAgent = config.getUserAgent();
@@ -55,19 +55,23 @@ public class AzureStorageAccount extends AbstractAzService<StorageResourceManage
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
+    @Nonnull
     @Override
     protected StorageResourceManager newResource(@Nonnull StorageManager remote) {
         return new StorageResourceManager(remote, this);
     }
 
+    @Nonnull
     public List<Performance> listSupportedPerformances() {
         return Performance.values();
     }
 
+    @Nonnull
     public List<Kind> listSupportedKinds(@Nonnull Performance performance) {
         return Kind.values().stream().filter(k -> Objects.equals(k.getPerformance(), performance)).collect(Collectors.toList());
     }
 
+    @Nonnull
     public List<Redundancy> listSupportedRedundancies(@Nonnull Performance performance, @Nullable Kind kind) {
         return Redundancy.values().stream()
             .filter(r -> Objects.equals(r.getPerformance(), performance))
@@ -75,6 +79,7 @@ public class AzureStorageAccount extends AbstractAzService<StorageResourceManage
             .collect(Collectors.toList());
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Storage accounts";

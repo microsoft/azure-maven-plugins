@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -52,8 +51,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     private final AbstractAzResourceModule<T, P, R> module;
     @Nonnull
     final AtomicReference<R> remoteRef;
+    @Nonnull
     @ToString.Include
     final AtomicLong syncTimeRef; // 0:loading, <0:invalidated
+    @Nonnull
     @ToString.Include
     final AtomicReference<String> statusRef;
 
@@ -103,8 +104,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @AzureOperation(name = "resource.reload.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     private void reload() {
         log.debug("[{}:{}]:reload()", this.module.getName(), this.name);
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         Azure.az(IAzureAccount.class).account();
         final R remote = this.remoteRef.get();
         if (Objects.isNull(remote) && StringUtils.equals(this.statusRef.get(), Status.CREATING)) {
@@ -129,6 +128,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }, Status.LOADING);
     }
 
+    @Nonnull
     @Override
     public AzResource.Draft<T, R> update() {
         log.debug("[{}:{}]:update()", this.module.getName(), this.name);
@@ -206,8 +206,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     )
     private void reloadStatus() {
         log.debug("[{}:{}]:reloadStatus()", this.module.getName(), this.name);
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         try {
             log.debug("[{}:{}]:reloadStatus->loadStatus()", this.module.getName(), this.name);
             this.remoteOptional().map(this::loadStatus).ifPresent(this::setStatus);
@@ -239,7 +237,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return status;
     }
 
-    protected void doModify(Runnable body, String status) {
+    protected void doModify(@Nonnull Runnable body, @Nullable String status) {
         // TODO: lock so that can not modify if modifying.
         this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
         try {
@@ -254,6 +252,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
+    @Nullable
     protected R refreshRemote() {
         log.debug("[{}:{}]:refreshRemote()", this.module.getName(), this.name);
         final R remote = this.remoteRef.get();
@@ -265,12 +264,13 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return null;
     }
 
-    protected void doModifyAsync(Runnable body, String status) {
+    protected void doModifyAsync(@Nonnull Runnable body, @Nullable String status) {
         this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
         AzureTaskManager.getInstance().runOnPooledThread(() -> this.doModify(body, status));
     }
 
-    protected R doModify(Callable<R> body, String status) {
+    @Nullable
+    protected R doModify(@Nonnull Callable<R> body, @Nullable String status) {
         // TODO: lock so that can not modify if modifying.
         this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
         try {
@@ -284,7 +284,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
-    protected void doModifyAsync(Callable<R> body, String status) {
+    protected void doModifyAsync(@Nonnull Callable<R> body, @Nullable String status) {
         this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
         AzureTaskManager.getInstance().runOnPooledThread(() -> this.doModify(body, status));
     }
@@ -297,15 +297,18 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return this.getModule().toResourceId(this.name, this.resourceGroupName);
     }
 
+    @Nonnull
     public abstract List<AzResourceModule<?, T, ?>> getSubModules();
 
     @Nonnull
     public abstract String loadStatus(@Nonnull R remote);
 
+    @Nonnull
     protected Optional<R> remoteOptional() {
         return Optional.ofNullable(this.getRemote());
     }
 
+    @Nonnull
     private <D> D cast(@Nonnull Object origin) {
         //noinspection unchecked
         return (D) origin;

@@ -10,6 +10,7 @@ import com.azure.resourcemanager.postgresql.models.Database;
 import com.azure.resourcemanager.postgresql.models.Databases;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -23,6 +24,7 @@ public class PostgreSqlDatabaseModule extends AbstractAzResourceModule<PostgreSq
         super(NAME, parent);
     }
 
+    @Nonnull
     @Override
     protected PostgreSqlDatabase newResource(@Nonnull Database database) {
         return new PostgreSqlDatabase(database, this);
@@ -30,25 +32,36 @@ public class PostgreSqlDatabaseModule extends AbstractAzResourceModule<PostgreSq
 
     @Nonnull
     @Override
+    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<Database> loadResourcesFromAzure() {
         // https://docs.microsoft.com/en-us/azure/postgresql/concepts-servers
         // azure_maintenance - This database is used to separate the processes that provide the managed service from user actions.
         // You do not have access to this database.
-        return this.getClient().listByServer(this.getParent().getResourceGroupName(), this.getParent().getName()).stream()
-            .filter(d -> !"azure_maintenance".equals(d.name()));
+        final PostgreSqlServer p = this.getParent();
+        return Optional.ofNullable(this.getClient())
+            .map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).stream().filter(d -> !"azure_maintenance".equals(d.name())))
+            .orElse(Stream.empty());
     }
 
     @Nullable
     @Override
+    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Database loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
-        return this.getClient().get(this.getParent().getResourceGroupName(), this.getParent().getName(), name);
+        final PostgreSqlServer p = this.getParent();
+        return Optional.ofNullable(this.getClient()).map(c -> c.get(p.getResourceGroupName(), p.getName(), name)).orElse(null);
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.delete_resource.resource|type",
+        params = {"nameFromResourceId(id)", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     protected void deleteResourceFromAzure(@Nonnull String id) {
+        final PostgreSqlServer p = this.getParent();
         final ResourceId resourceId = ResourceId.fromString(id);
         final String name = resourceId.name();
-        this.getClient().delete(this.getParent().getResourceGroupName(), this.getParent().getName(), name);
+        Optional.ofNullable(this.getClient()).ifPresent(c -> c.delete(p.getResourceGroupName(), p.getName(), name));
     }
 
     @Override
@@ -56,6 +69,7 @@ public class PostgreSqlDatabaseModule extends AbstractAzResourceModule<PostgreSq
         return Optional.ofNullable(this.getParent().getParent().getRemote()).map(PostgreSqlManager::databases).orElse(null);
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "PostgreSQL database";

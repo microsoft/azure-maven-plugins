@@ -31,6 +31,7 @@ public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringClo
         return new SpringCloudCluster(r, this);
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Spring Cloud service";

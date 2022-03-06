@@ -38,6 +38,7 @@ public class MySqlFirewallRule extends AbstractAzResource<MySqlFirewallRule, MyS
         return this.remoteOptional().map(FirewallRule::refresh).orElse(null);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, MySqlFirewallRule, ?>> getSubModules() {
         return Collections.emptyList();

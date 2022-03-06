@@ -52,6 +52,7 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
         return this.getParent().getParent().getResourceManager().deployments().getById(this.getId());
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, ResourceDeployment, ?>> getSubModules() {
         return Collections.emptyList();

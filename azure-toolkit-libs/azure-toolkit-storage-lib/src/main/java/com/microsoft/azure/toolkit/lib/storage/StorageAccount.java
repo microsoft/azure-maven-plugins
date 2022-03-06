@@ -45,6 +45,7 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageRe
         this.setRemote(remote);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, StorageAccount, ?>> getSubModules() {
         return Collections.emptyList();
@@ -56,11 +57,13 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageRe
         return remote.innerModel().provisioningState().toString();
     }
 
+    @Nonnull
     @Override
     public String status() {
         return this.getStatus();
     }
 
+    @Nonnull
     @AzureOperation(name = "storage.get_connection_string.account", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public String getConnectionString() {
         // see https://github.com/Azure/azure-cli/blob/ac3b190d4d/src/azure-cli/azure/cli/command_modules/storage/operations/account.py#L232
@@ -68,13 +71,14 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageRe
         return ResourceManagerUtils.getStorageConnectionString(this.name(), getKey(), environment);
     }
 
+    @Nonnull
     @AzureOperation(name = "storage.get_key.account", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public String getKey() {
         final com.azure.resourcemanager.storage.models.StorageAccount remote = this.getRemote();
         if (Objects.isNull(remote)) {
             throw new AzureToolkitRuntimeException(String.format("Storage Account(%s) doesn't exist.", this.getName()));
         }
-        return remote.getKeys().get(0).value();
+        return Objects.requireNonNull(remote.getKeys().get(0).value());
     }
 
     @Nullable

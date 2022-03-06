@@ -38,6 +38,7 @@ public class MySqlResourceManager extends AbstractAzResourceManager<MySqlResourc
         this(manager.serviceClient().getSubscriptionId(), service);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, MySqlResourceManager, ?>> getSubModules() {
         return Collections.singletonList(serverModule);

@@ -63,6 +63,7 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
         return this.remoteOptional().map(Server::refresh).orElse(null);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, MySqlServer, ?>> getSubModules() {
         return Arrays.asList(this.firewallRuleModule, this.databaseModule);

@@ -64,6 +64,7 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
         return this.remoteOptional().map(Server::refresh).orElse(null);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, PostgreSqlServer, ?>> getSubModules() {
         return Arrays.asList(this.firewallRuleModule, this.databaseModule);

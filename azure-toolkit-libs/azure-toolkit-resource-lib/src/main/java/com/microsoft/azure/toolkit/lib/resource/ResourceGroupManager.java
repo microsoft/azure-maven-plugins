@@ -32,6 +32,7 @@ public class ResourceGroupManager extends AbstractAzResourceManager<ResourceGrou
         this(remote.subscriptionId(), service);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, ResourceGroupManager, ?>> getSubModules() {
         return Collections.singletonList(groupModule);
@@ -51,6 +52,7 @@ public class ResourceGroupManager extends AbstractAzResourceManager<ResourceGrou
         return String.format("/subscriptions/%s/resourceGroups", this.subscriptionId);
     }
 
+    @Nonnull
     @Override
     public ResourceManager getResourceManager() {
         return Objects.requireNonNull(this.getRemote()).resourceManager();

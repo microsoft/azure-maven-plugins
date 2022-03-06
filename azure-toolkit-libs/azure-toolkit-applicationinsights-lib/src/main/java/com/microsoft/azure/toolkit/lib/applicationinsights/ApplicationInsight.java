@@ -46,9 +46,10 @@ public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, A
         return Optional.ofNullable(getRemote()).map(ApplicationInsightsComponent::instrumentationKey).orElse(null);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, ApplicationInsight, ?>> getSubModules() {
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 
     @Nonnull

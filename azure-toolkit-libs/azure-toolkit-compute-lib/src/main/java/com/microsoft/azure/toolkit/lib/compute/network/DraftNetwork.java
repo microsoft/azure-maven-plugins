@@ -60,6 +60,7 @@ public class DraftNetwork extends Network implements AzureResourceDraft<Network>
         this.name = name;
     }
 
+    @Nonnull
     @Override
     public String getId() {
         return Optional.ofNullable(remote).map(HasId::id).orElseGet(() -> getResourceId(subscriptionId, resourceGroup, name));

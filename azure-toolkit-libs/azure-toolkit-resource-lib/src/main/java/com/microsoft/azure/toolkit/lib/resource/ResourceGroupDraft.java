@@ -54,8 +54,6 @@ public class ResourceGroupDraft extends ResourceGroup implements AzResource.Draf
     )
     public com.azure.resourcemanager.resources.models.ResourceGroup createResourceInAzure() {
         AzureTelemetry.getActionContext().setProperty(CREATE_NEW_RESOURCE_GROUP_KEY, String.valueOf(true));
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final String name = this.getName();
         final Region region = this.getRegion();
         if (Objects.isNull(region)) {

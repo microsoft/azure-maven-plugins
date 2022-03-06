@@ -51,6 +51,7 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourceGro
         return manager.resourceGroups().getByName(this.getName());
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, ResourceGroup, ?>> getSubModules() {
         return Collections.singletonList(deploymentModule);

@@ -33,6 +33,7 @@ public class SpringCloudResourceManager extends AbstractAzResourceManager<Spring
         this(remote.subscriptionId(), service);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, SpringCloudResourceManager, ?>> getSubModules() {
         return Collections.singletonList(clusterModule);
@@ -46,6 +47,7 @@ public class SpringCloudResourceManager extends AbstractAzResourceManager<Spring
         return super.listSupportedRegions(this.clusterModule.getName());
     }
 
+    @Nonnull
     @Override
     public ResourceManager getResourceManager() {
         return Objects.requireNonNull(this.getRemote()).resourceManager();
