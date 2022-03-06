@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -51,7 +50,7 @@ public class AzureAppServicePlan extends AbstractAzureResourceModule<AppServiceP
     @Override
     @Cacheable(cacheName = "appservice/{}/plans", key = "$subscriptionId", condition = "!(force&&force[0])")
     @AzureOperation(name = "appservice.list_plans.subscription", params = "subscriptionId", type = AzureOperation.Type.SERVICE)
-    public List<AppServicePlan> list(@NotNull String subscriptionId, boolean... force) {
+    public List<AppServicePlan> list(@Nonnull String subscriptionId, boolean... force) {
         final AppServiceManager azureResourceManager = getAppServiceManager(subscriptionId);
         return azureResourceManager.appServicePlans().list().stream().parallel()
             .map(appServicePlan -> get(appServicePlan.id()))
@@ -68,11 +67,11 @@ public class AzureAppServicePlan extends AbstractAzureResourceModule<AppServiceP
             .collect(Collectors.toList());
     }
 
-    @NotNull
+    @Nonnull
     @Override
     @Cacheable(cacheName = "appservice/{}/rg/{}/plan/{}", key = "$subscriptionId/$resourceGroup/$name")
     @AzureOperation(name = "appservice.get_plan.plan|rg", params = {"name", "resourceGroup"}, type = AzureOperation.Type.SERVICE)
-    public AppServicePlan get(@NotNull String subscriptionId, @NotNull String resourceGroup, @NotNull String name) {
+    public AppServicePlan get(@Nonnull String subscriptionId, @Nonnull String resourceGroup, @Nonnull String name) {
         return new AppServicePlan(subscriptionId, resourceGroup, name, getAppServiceManager(subscriptionId));
     }
 

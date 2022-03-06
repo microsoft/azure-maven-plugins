@@ -15,7 +15,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.Data;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -72,7 +71,7 @@ public class PostgreSqlFirewallRuleDraft extends PostgreSqlFirewallRule implemen
         params = {"this.getName()", "this.getResourceTypeName()"},
         type = AzureOperation.Type.SERVICE
     )
-    public FirewallRule updateResourceInAzure(@NotNull FirewallRule origin) {
+    public FirewallRule updateResourceInAzure(@Nonnull FirewallRule origin) {
         AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
         AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final Optional<String> modifiedStartIp = Optional.ofNullable(this.getStartIpAddress()).filter(n -> !Objects.equals(n, super.getStartIpAddress()));

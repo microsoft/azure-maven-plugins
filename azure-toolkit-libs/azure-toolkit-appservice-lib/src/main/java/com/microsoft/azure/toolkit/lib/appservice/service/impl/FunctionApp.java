@@ -37,7 +37,6 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -159,7 +158,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
 
     @Nonnull
     @Override
-    protected FunctionAppEntity getEntityFromRemoteResource(@NotNull com.azure.resourcemanager.appservice.models.FunctionApp remote) {
+    protected FunctionAppEntity getEntityFromRemoteResource(@Nonnull com.azure.resourcemanager.appservice.models.FunctionApp remote) {
         return AppServiceUtils.fromFunctionApp(remote);
     }
 

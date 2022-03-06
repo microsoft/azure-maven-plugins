@@ -5,11 +5,10 @@
 
 package com.microsoft.azure.toolkit.lib.auth;
 
-import com.azure.core.credential.TokenCredential;
-import com.azure.core.management.AzureEnvironment;
-
 import com.azure.core.credential.AccessToken;
+import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
+import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.implementation.MsalToken;
 import com.azure.identity.implementation.util.ScopeUtil;
 import com.microsoft.aad.adal4j.AuthenticationContext;
@@ -20,7 +19,6 @@ import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
@@ -94,7 +92,7 @@ public class RefreshTokenTokenCredentialManager extends TokenCredentialManagerWi
         return null;
     }
 
-    @NotNull
+    @Nonnull
     private static Mono<TokenCredentialManager> fromCredential(@Nonnull AzureEnvironment env, @Nonnull String clientId, Mono<AccessToken> rootAccessToken) {
         return rootAccessToken.map(accessToken -> {
             if (accessToken instanceof MsalToken) {
