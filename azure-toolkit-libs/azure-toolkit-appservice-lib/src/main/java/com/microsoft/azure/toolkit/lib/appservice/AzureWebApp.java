@@ -18,7 +18,6 @@ import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -39,7 +38,7 @@ public class AzureWebApp extends AbstractAzureResourceModule<WebApp> implements 
     @Override
     @Cacheable(cacheName = "appservice/{}/webapps", key = "$sid", condition = "!(force&&force[0])")
     @AzureOperation(name = "webapp.list_apps.subscription", params = "sid", type = AzureOperation.Type.SERVICE)
-    public List<WebApp> list(@NotNull String sid, boolean... force) {
+    public List<WebApp> list(@Nonnull String sid, boolean... force) {
         final AppServiceManager azureResourceManager = getAppServiceManager(sid);
         return azureResourceManager.webApps().list().stream().parallel()
             .filter(webAppBasic -> !StringUtils.containsIgnoreCase(webAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
@@ -47,11 +46,11 @@ public class AzureWebApp extends AbstractAzureResourceModule<WebApp> implements 
             .collect(Collectors.toList());
     }
 
-    @NotNull
+    @Nonnull
     @Override
     @Cacheable(cacheName = "appservice/{}/rg/{}/webapp/{}", key = "$sid/$rg/$name")
     @AzureOperation(name = "webapp.get_app.app|rg", params = {"name", "rg"}, type = AzureOperation.Type.SERVICE)
-    public WebApp get(@NotNull String sid, @NotNull String rg, @NotNull String name) {
+    public WebApp get(@Nonnull String sid, @Nonnull String rg, @Nonnull String name) {
         return new WebApp(sid, rg, name, getAppServiceManager(sid));
     }
 

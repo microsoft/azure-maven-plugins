@@ -21,22 +21,22 @@ import com.microsoft.azure.toolkit.lib.appservice.service.impl.deploy.RunFromZip
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.deploy.ZIPFunctionDeployHandler;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 
 public abstract class FunctionAppBase<T extends WebAppBase, R extends AppServiceBaseEntity> extends AbstractAppService<T, R> implements IFunctionAppBase<R> {
     private AzureFunctionsResourceManager functionsResourceManager;
 
-    public FunctionAppBase(@NotNull String id) {
+    public FunctionAppBase(@Nonnull String id) {
         super(id);
     }
 
-    public FunctionAppBase(@NotNull String subscriptionId, @NotNull String resourceGroup, @NotNull String name) {
+    public FunctionAppBase(@Nonnull String subscriptionId, @Nonnull String resourceGroup, @Nonnull String name) {
         super(subscriptionId, resourceGroup, name);
     }
 
-    public FunctionAppBase(@NotNull WebSiteBase webSiteBase) {
+    public FunctionAppBase(@Nonnull WebSiteBase webSiteBase) {
         super(webSiteBase);
     }
 

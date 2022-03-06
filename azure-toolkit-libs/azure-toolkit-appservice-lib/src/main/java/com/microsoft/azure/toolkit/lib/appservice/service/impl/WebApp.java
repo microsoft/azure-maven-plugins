@@ -33,7 +33,6 @@ import io.jsonwebtoken.lang.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -72,9 +71,9 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
         return new WebAppCreator();
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected WebAppEntity getEntityFromRemoteResource(@NotNull com.azure.resourcemanager.appservice.models.WebApp remote) {
+    protected WebAppEntity getEntityFromRemoteResource(@Nonnull com.azure.resourcemanager.appservice.models.WebApp remote) {
         return AppServiceUtils.fromWebApp(remote);
     }
 
