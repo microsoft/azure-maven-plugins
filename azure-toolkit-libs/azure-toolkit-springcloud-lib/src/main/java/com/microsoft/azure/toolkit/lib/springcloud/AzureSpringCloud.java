@@ -30,6 +30,7 @@ public final class AzureSpringCloud extends AbstractAzService<SpringCloudResourc
         return rm.getClusterModule();
     }
 
+    @Nonnull
     @Override
     protected AppPlatformManager loadResourceFromAzure(@Nonnull String subscriptionId, String resourceGroup) {
         final Account account = Azure.az(AzureAccount.class).account();

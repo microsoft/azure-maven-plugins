@@ -32,7 +32,7 @@ public class StorageAccountModule extends AbstractAzResourceModule<StorageAccoun
     @Override
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected StorageAccountDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
-        assert resourceGroupName != null : "resource group is required.";
+        assert resourceGroupName != null : "'Resource group' is required.";
         return new StorageAccountDraft(name, resourceGroupName, this);
     }
 

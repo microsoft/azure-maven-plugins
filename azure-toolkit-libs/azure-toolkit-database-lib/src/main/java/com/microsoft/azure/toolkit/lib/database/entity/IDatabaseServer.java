@@ -36,9 +36,12 @@ public interface IDatabaseServer<T extends IDatabase> extends AzResourceBase {
     @Nullable
     String getType();
 
+    @Nonnull
     String getLocalMachinePublicIp();
 
+    @Nonnull
     JdbcUrl getJdbcUrl();
 
+    @Nonnull
     List<T> listDatabases();
 }

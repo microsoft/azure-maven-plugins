@@ -21,6 +21,7 @@ import lombok.Setter;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.Optional;
 
 public class ApplicationInsightDraft extends ApplicationInsight implements AzResource.Draft<ApplicationInsight, ApplicationInsightsComponent> {
 
@@ -29,14 +30,14 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
     private static final String APPLICATION_INSIGHTS_CREATED = "Application Insight ({0}) is successfully created. " +
             "You can visit {1} to view your Application Insights component.";
 
-    @Getter
     @Setter
+    @Nullable
     private Region region;
-
     @Getter
+    @Nullable
     private final ApplicationInsight origin;
 
-    protected ApplicationInsightDraft(@Nonnull String name, @Nonnull String resourceGroupName, ApplicationInsightsModule module) {
+    protected ApplicationInsightDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull ApplicationInsightsModule module) {
         super(name, resourceGroupName, module);
         this.origin = null;
     }
@@ -51,11 +52,12 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
         this.region = null;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
-            name = "resource.create_resource.resource|type",
-            params = {"this.getName()", "this.getResourceTypeName()"},
-            type = AzureOperation.Type.SERVICE
+        name = "resource.create_resource.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
     )
     public ApplicationInsightsComponent createResourceInAzure() {
         if (Objects.isNull(region)) {
@@ -65,32 +67,33 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format(START_CREATING_APPLICATION_INSIGHT, getName()));
         final ApplicationInsightsComponent result = applicationInsightsManager.components().define(getName())
-                .withRegion(region.getName())
-                .withExistingResourceGroup(getResourceGroupName())
-                .withKind("web")
-                .withApplicationType(ApplicationType.WEB).create();
+            .withRegion(region.getName())
+            .withExistingResourceGroup(getResourceGroupName())
+            .withKind("web")
+            .withApplicationType(ApplicationType.WEB).create();
         messager.success(AzureString.format(APPLICATION_INSIGHTS_CREATED, getName(), getPortalUrl()));
         return result;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
-            name = "resource.update_resource.resource|type",
-            params = {"this.getName()", "this.getResourceTypeName()"},
-            type = AzureOperation.Type.SERVICE
+        name = "resource.update_resource.resource|type",
+        params = {"this.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
     )
     public ApplicationInsightsComponent updateResourceInAzure(@Nonnull ApplicationInsightsComponent origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }
 
-    @Override
-    public boolean isModified() {
-        return this.region != null && !Objects.equals(this.region, this.origin);
-    }
-
     @Nullable
     @Override
-    public ApplicationInsight getOrigin() {
-        return this.origin;
+    public Region getRegion() {
+        return Optional.ofNullable(this.region).orElseGet(super::getRegion);
+    }
+
+    @Override
+    public boolean isModified() {
+        return this.region != null && !Objects.equals(this.region, super.getRegion());
     }
 }

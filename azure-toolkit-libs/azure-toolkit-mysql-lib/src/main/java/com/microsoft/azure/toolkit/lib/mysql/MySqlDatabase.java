@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class MySqlDatabase extends AbstractAzResource<MySqlDatabase, MySqlServer
         this.setRemote(remote);
     }
 
+    @Nullable
     @Override
     protected Database refreshRemote() {
         return this.remoteOptional().map(Database::refresh).orElse(null);
@@ -43,20 +45,24 @@ public class MySqlDatabase extends AbstractAzResource<MySqlDatabase, MySqlServer
         return Status.UNKNOWN;
     }
 
+    @Nullable
     @Override
     public String getCollation() {
         return this.remoteOptional().map(Database::collation).orElse(null);
     }
 
+    @Nonnull
     @Override
     public MySqlServer getServer() {
         return this.getParent();
     }
 
+    @Nullable
     public String getCharset() {
         return this.remoteOptional().map(Database::charset).orElse(null);
     }
 
+    @Nonnull
     public JdbcUrl getJdbcUrl() {
         return JdbcUrl.mysql(this.getParent().getFullyQualifiedDomainName(), this.getName());
     }

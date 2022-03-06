@@ -37,14 +37,16 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
     @Override
     @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<FirewallRule> loadResourcesFromAzure() {
-        return this.getClient().listByServer(this.getParent().getResourceGroupName(), this.getParent().getName()).stream();
+        final PostgreSqlServer p = this.getParent();
+        return Optional.ofNullable(this.getClient()).map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).stream()).orElse(Stream.empty());
     }
 
     @Nullable
     @Override
     @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected FirewallRule loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
-        return this.getClient().get(this.getParent().getResourceGroupName(), this.getParent().getName(), name);
+        final PostgreSqlServer p = this.getParent();
+        return Optional.ofNullable(this.getClient()).map(c -> c.get(p.getResourceGroupName(), p.getName(), name)).orElse(null);
     }
 
     @Override
@@ -54,16 +56,17 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
         type = AzureOperation.Type.SERVICE
     )
     protected void deleteResourceFromAzure(@Nonnull String id) {
+        final PostgreSqlServer p = this.getParent();
         final ResourceId resourceId = ResourceId.fromString(id);
         final String name = resourceId.name();
-        this.getClient().delete(this.getParent().getResourceGroupName(), this.getParent().getName(), name);
+        Optional.ofNullable(this.getClient()).ifPresent(c -> c.delete(p.getResourceGroupName(), p.getName(), name));
     }
 
     @Nonnull
     @Override
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected PostgreSqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
-        assert resourceGroupName != null : "resource group is required.";
+        assert resourceGroupName != null : "'Resource group' is required.";
         return new PostgreSqlFirewallRuleDraft(name, this);
     }
 
@@ -78,6 +81,7 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
         return new PostgreSqlFirewallRuleDraft(origin);
     }
 
+    @Nullable
     @Override
     protected FirewallRules getClient() {
         return Optional.ofNullable(this.getParent().getParent().getRemote()).map(PostgreSqlManager::firewallRules).orElse(null);

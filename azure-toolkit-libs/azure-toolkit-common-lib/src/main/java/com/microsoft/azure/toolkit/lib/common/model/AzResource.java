@@ -194,6 +194,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
 
         void reset();
 
+        @Nonnull
         default T createIfNotExist() {
             final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
             if (Objects.isNull(origin) || !origin.exists()) {
@@ -202,6 +203,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
             return origin;
         }
 
+        @Nullable
         default T updateIfExist() {
             final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
             if (Objects.nonNull(origin) && origin.exists()) {
@@ -210,6 +212,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
             return origin;
         }
 
+        @Nonnull
         R createResourceInAzure();
 
         default T asResource() {
@@ -217,6 +220,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
             return (T) this;
         }
 
+        @Nonnull
         R updateResourceInAzure(@Nonnull R origin);
 
         boolean isModified();

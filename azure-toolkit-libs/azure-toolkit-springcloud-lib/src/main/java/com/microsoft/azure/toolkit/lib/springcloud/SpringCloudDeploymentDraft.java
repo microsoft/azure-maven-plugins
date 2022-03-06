@@ -51,11 +51,13 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     private static final String DEFAULT_RUNTIME_VERSION = SpringCloudJavaVersion.JAVA_8;
     private static final String RUNTIME_VERSION_PATTERN = "[Jj]ava((\\s)?|_)(8|11)$";
 
+    @Nonnull
     @Delegate
     private final IConfig configProxy;
     @Getter
     @Nullable
     private final SpringCloudDeployment origin;
+    @Nullable
     private Config config;
 
     protected SpringCloudDeploymentDraft(@Nonnull String name, @Nonnull SpringCloudDeploymentModule module) {
@@ -70,7 +72,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         this.configProxy = (IConfig) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{IConfig.class}, this);
     }
 
-    public void setConfig(SpringCloudDeploymentConfig deploymentConfig) {
+    public void setConfig(@Nonnull SpringCloudDeploymentConfig deploymentConfig) {
         this.setCpu(deploymentConfig.getCpu());
         this.setMemoryInGB(deploymentConfig.getMemoryInGB());
         this.setInstanceNum(deploymentConfig.getInstanceCount());
@@ -80,6 +82,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         this.setArtifact(deploymentConfig.getArtifact());
     }
 
+    @Nonnull
     public SpringCloudDeploymentConfig getConfig() {
         return SpringCloudDeploymentConfig.builder()
             .deploymentName(this.getName())
@@ -98,6 +101,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         this.config = null;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.create_resource.resource|type",
@@ -118,6 +122,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         return deployment;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.update_resource.resource|type",
@@ -136,8 +141,9 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         return deployment;
     }
 
+    @Nonnull
     @AzureOperation(name = "springcloud.scale_deployment.deployment", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
-    SpringAppDeployment scaleDeploymentInAzure(SpringAppDeployment deployment) {
+    SpringAppDeployment scaleDeploymentInAzure(@Nonnull SpringAppDeployment deployment) {
         final SpringAppDeployment.Update update = deployment.update();
         boolean modified = scale(deployment, update);
         if (modified) {
@@ -174,7 +180,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         return modified;
     }
 
-    private boolean scale(SpringAppDeployment deployment, SpringAppDeployment.Update update) {
+    private boolean scale(@Nonnull SpringAppDeployment deployment, @Nonnull SpringAppDeployment.Update update) {
         final Integer newCpu = this.getCpu();
         final Integer newMemoryInGB = this.getMemoryInGB();
         final Integer newInstanceNum = this.getInstanceNum();
@@ -189,6 +195,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         return scaled;
     }
 
+    @Nonnull
     private static String formalizeRuntimeVersion(String runtimeVersion) {
         if (StringUtils.isEmpty(runtimeVersion)) {
             return DEFAULT_RUNTIME_VERSION;
@@ -203,8 +210,9 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         }
     }
 
+    @Nullable
     @Override
-    public synchronized Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public synchronized Object invoke(Object proxy, @Nonnull Method method, Object[] args) throws Throwable {
         args = ObjectUtils.firstNonNull(args, new Object[0]);
         if (method.getName().startsWith("set")) {
             synchronized (this) {
@@ -218,7 +226,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         }
     }
 
-    private Object invokeSuper(Method method, Object[] args) throws Throwable {
+    private Object invokeSuper(@Nonnull Method method, @Nonnull Object[] args) throws Throwable {
         final Class<?>[] classes = Arrays.stream(args).map(Object::getClass).toArray(value -> new Class<?>[0]);
         final MethodType type = MethodType.methodType(method.getReturnType(), classes);
         final MethodHandle handle = MethodHandles.lookup().findSpecial(SpringCloudDeployment.class, method.getName(), type, this.getClass()).bindTo(this);
@@ -274,18 +282,25 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
 
         void setInstanceNum(Integer instanceNum);
 
+        @Nullable
         Map<String, String> getEnvironmentVariables();
 
+        @Nullable
         String getJvmOptions();
 
+        @Nullable
         String getRuntimeVersion();
 
+        @Nullable
         IArtifact getArtifact();
 
+        @Nullable
         Integer getCpu();
 
+        @Nullable
         Integer getMemoryInGB();
 
+        @Nullable
         Integer getInstanceNum();
     }
 }

@@ -10,6 +10,7 @@ import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsC
 import com.azure.resourcemanager.applicationinsights.models.Components;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,6 +36,7 @@ public class ApplicationInsightsModule extends AbstractAzResourceModule<Applicat
     @Override
     @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected ApplicationInsightsComponent loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
+        assert StringUtils.isNoneBlank(resourceGroup) : "resource group can not be empty";
         return Optional.ofNullable(this.getClient()).map(c -> c.getByResourceGroup(resourceGroup, name)).orElse(null);
     }
 
@@ -52,7 +54,7 @@ public class ApplicationInsightsModule extends AbstractAzResourceModule<Applicat
     @Override
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected ApplicationInsightDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
-        assert resourceGroupName != null : "resource group is required.";
+        assert resourceGroupName != null : "'Resource group' is required.";
         return new ApplicationInsightDraft(name, resourceGroupName, this);
     }
 
@@ -73,6 +75,7 @@ public class ApplicationInsightsModule extends AbstractAzResourceModule<Applicat
         return new ApplicationInsight(remote, this);
     }
 
+    @Nullable
     @Override
     public Components getClient() {
         return Optional.ofNullable(this.parent.getRemote()).map(ApplicationInsightsManager::components).orElse(null);

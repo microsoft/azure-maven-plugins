@@ -9,14 +9,18 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import javax.annotation.Nonnull;
 import java.util.Objects;
 
 @Getter
 @Builder
 @EqualsAndHashCode
 public class SpringCloudPersistentDisk {
+    @Nonnull
     private final Integer sizeInGB;
+    @Nonnull
     private final Integer usedInGB;
+    @Nonnull
     private final String mountPath;
 
     public String toString() {

@@ -34,7 +34,7 @@ public class ResourceDeploymentDraft extends ResourceDeployment
     @Nullable
     private Config config;
 
-    ResourceDeploymentDraft(@Nonnull String name, String resourceGroupName, @Nonnull ResourceDeploymentModule module) {
+    ResourceDeploymentDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull ResourceDeploymentModule module) {
         super(name, resourceGroupName, module);
         this.origin = null;
     }
@@ -49,6 +49,7 @@ public class ResourceDeploymentDraft extends ResourceDeployment
         this.config = null;
     }
 
+    @Nonnull
     @SneakyThrows({IOException.class})
     @Override
     @AzureOperation(
@@ -80,6 +81,7 @@ public class ResourceDeploymentDraft extends ResourceDeployment
         return deployment;
     }
 
+    @Nonnull
     @SneakyThrows({IOException.class})
     @Override
     @AzureOperation(
@@ -117,6 +119,7 @@ public class ResourceDeploymentDraft extends ResourceDeployment
         return origin;
     }
 
+    @Nonnull
     private synchronized Config ensureConfig() {
         this.config = Optional.ofNullable(this.config).orElseGet(Config::new);
         return this.config;
@@ -159,7 +162,9 @@ public class ResourceDeploymentDraft extends ResourceDeployment
      */
     @Data
     private static class Config {
+        @Nullable
         private String templateAsJson;
+        @Nullable
         private String parametersAsJson;
     }
 }

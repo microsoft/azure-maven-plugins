@@ -8,10 +8,16 @@ package com.microsoft.azure.toolkit.lib.database.entity;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public interface IDatabase extends AzResourceBase {
+    @Nullable
     String getCollation();
 
+    @Nonnull
     IDatabaseServer<? extends IDatabase> getServer();
 
+    @Nonnull
     JdbcUrl getJdbcUrl();
 }

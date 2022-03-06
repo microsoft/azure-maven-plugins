@@ -24,6 +24,7 @@ import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -58,6 +59,7 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
         this.setRemote(remote);
     }
 
+    @Nullable
     @Override
     protected Server refreshRemote() {
         return this.remoteOptional().map(Server::refresh).orElse(null);
@@ -69,10 +71,12 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
         return Arrays.asList(this.firewallRuleModule, this.databaseModule);
     }
 
+    @Nonnull
     public MySqlFirewallRuleModule firewallRules() {
         return this.firewallRuleModule;
     }
 
+    @Nonnull
     public MySqlDatabaseModule databases() {
         return this.databaseModule;
     }
@@ -83,6 +87,7 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
         return remote.userVisibleState().toString();
     }
 
+    @Nonnull
     @Override
     public String status() {
         return this.getStatus();
@@ -103,16 +108,19 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
         this.doModify(() -> Objects.requireNonNull(this.getParent().getRemote()).servers().restart(this.getResourceGroupName(), this.getName()), Status.RESTARTING);
     }
 
+    @Nullable
     @Override
     public Region getRegion() {
         return remoteOptional().map(remote -> Region.fromName(remote.regionName())).orElse(null);
     }
 
+    @Nullable
     @Override
     public String getAdminName() {
         return remoteOptional().map(Server::administratorLogin).orElse(null);
     }
 
+    @Nullable
     @Override
     public String getFullyQualifiedDomainName() {
         return remoteOptional().map(Server::fullyQualifiedDomainName).orElse(null);
@@ -130,16 +138,19 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
         return this.firewallRules().exists(ruleName, this.getResourceGroupName());
     }
 
+    @Nullable
     @Override
     public String getVersion() {
         return remoteOptional().map(Server::version).map(ExpandableStringEnum::toString).orElse(null);
     }
 
+    @Nullable
     @Override
     public String getType() {
         return remoteOptional().map(Server::type).orElse(null);
     }
 
+    @Nullable
     public String getSkuTier() {
         return remoteOptional().map(Server::sku).map(Sku::tier).map(ExpandableStringEnum::toString).orElse(null);
     }
@@ -152,10 +163,12 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
         return remoteOptional().map(Server::storageProfile).map(StorageProfile::storageMB).orElse(0);
     }
 
+    @Nullable
     public String getSslEnforceStatus() {
         return remoteOptional().map(Server::sslEnforcement).map(SslEnforcementEnum::name).orElse(null);
     }
 
+    @Nonnull
     @Override
     public String getLocalMachinePublicIp() {
         // try to get public IP by ping MYSQL Server
@@ -174,10 +187,12 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
         return NetUtils.getPublicIp();
     }
 
+    @Nonnull
     public JdbcUrl getJdbcUrl() {
         return JdbcUrl.mysql(this.getFullyQualifiedDomainName());
     }
 
+    @Nonnull
     @Override
     public List<MySqlDatabase> listDatabases() {
         return this.databases().list();

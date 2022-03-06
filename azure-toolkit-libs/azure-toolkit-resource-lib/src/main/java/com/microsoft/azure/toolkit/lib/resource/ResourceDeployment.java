@@ -47,6 +47,7 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
         this.setRemote(remote);
     }
 
+    @Nonnull
     @Override
     protected Deployment refreshRemote() {
         return this.getParent().getParent().getResourceManager().deployments().getById(this.getId());
@@ -58,18 +59,22 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
         return Collections.emptyList();
     }
 
+    @Nonnull
     public String getMode() {
         return this.remoteOptional().map(Deployment::mode).orElse(DeploymentMode.INCREMENTAL).toString();
     }
 
+    @Nullable
     public OffsetDateTime getTimestamp() {
         return this.remoteOptional().map(Deployment::timestamp).orElse(null);
     }
 
+    @Nonnull
     public Stream<DeploymentOperation> getOperations() {
         return this.remoteOptional().map(d -> d.deploymentOperations().list().stream()).orElse(Stream.empty());
     }
 
+    @Nonnull
     public List<String> getParameters() {
         return this.remoteOptional().map(r -> ((Map<String, Object>) r.exportTemplate().template()))
             .map(t -> ((Map<String, Map<String, String>>) t.get("parameters")))
@@ -78,6 +83,7 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
             .collect(Collectors.toList());
     }
 
+    @Nonnull
     public List<String> getVariables() {
         return this.remoteOptional().map(r -> ((Map<String, Object>) r.exportTemplate().template()))
             .map(t -> ((Map<String, Map<String, String>>) t.get("variables")))
@@ -85,6 +91,7 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
             .collect(Collectors.toList());
     }
 
+    @Nonnull
     public List<String> getResources() {
         return this.remoteOptional().map(r -> ((Map<String, Object>) r.exportTemplate().template()))
             .map(t -> ((List<Map<String, String>>) t.get("resources")))
@@ -107,7 +114,8 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
     @Nullable
     public String getParametersAsJson() {
         final ObjectMapper mapper = new ObjectMapper();
-        @SuppressWarnings({"UnnecessaryParentheses", "unchecked"}) final Map<String, Map<String, String>> parameters = ((Map<String, Map<String, String>>) this.remoteOptional().map(Deployment::parameters)
+        @SuppressWarnings({"UnnecessaryParentheses", "unchecked"})
+        final Map<String, Map<String, String>> parameters = ((Map<String, Map<String, String>>) this.remoteOptional().map(Deployment::parameters)
             .filter(p -> p instanceof Map).orElse(null));
         // Remove extra attributes in parameters
         // Refers https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#
@@ -136,6 +144,7 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
         return remote.provisioningState();
     }
 
+    @Nonnull
     @Override
     public String status() {
         return this.getStatus();

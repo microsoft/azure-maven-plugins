@@ -82,11 +82,13 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
         return Collections.emptyList();
     }
 
+    @Nonnull
     @SneakyThrows
     public Flux<String> streamLogs(final String instance) {
         return streamLogs(instance, 0, 10, 0, true);
     }
 
+    @Nonnull
     @SneakyThrows
     public Flux<String> streamLogs(final String instance, int sinceSeconds, int tailLines, int limitBytes, boolean follow) {
         final HttpClient client = HttpClient.create().keepAlive(true);

@@ -9,6 +9,8 @@ import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import lombok.Builder;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
+
 @Builder
 public class DatabaseTemplateUtils {
 
@@ -27,7 +29,7 @@ public class DatabaseTemplateUtils {
             "String url =\"%s\";" + System.lineSeparator()
             + "Connection myDbConnection = DriverManager.getConnection(url, \"%s\", \"%s\");";
 
-    public static String toSpringTemplate(JdbcUrl jdbcUrl, String driverClassName) {
+    public static String toSpringTemplate(@Nonnull JdbcUrl jdbcUrl, String driverClassName) {
         String driverClass = StringUtils.firstNonBlank(driverClassName, DEFAULT_MYSQL_DRIVER_CLASS_NAME);
         String username = StringUtils.firstNonBlank(jdbcUrl.getUsername(), DEFAULT_USERNAME);
         String password = StringUtils.firstNonBlank(jdbcUrl.getPassword(), DEFAULT_PASSWORD);
@@ -35,7 +37,7 @@ public class DatabaseTemplateUtils {
         return String.format(PROPERTY_PATTERN_SPRING, driverClass, url, username, password);
     }
 
-    public static String toJdbcTemplate(JdbcUrl jdbcUrl) {
+    public static String toJdbcTemplate(@Nonnull JdbcUrl jdbcUrl) {
         String username = StringUtils.firstNonBlank(jdbcUrl.getUsername(), DEFAULT_USERNAME);
         String password = StringUtils.firstNonBlank(jdbcUrl.getPassword(), DEFAULT_PASSWORD);
         String url = jdbcUrl.toString();

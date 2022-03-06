@@ -13,6 +13,8 @@ import org.apache.commons.lang3.StringUtils;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -25,7 +27,7 @@ public class Utils {
     protected static final List<String> DEPLOYMENT_PROCESSING_STATUS =
             Arrays.asList(DeploymentResourceStatus.COMPILING.toString(), DeploymentResourceStatus.ALLOCATING.toString(), DeploymentResourceStatus.UPGRADING.toString());
 
-    public static boolean isDeploymentDone(SpringCloudDeployment deployment) {
+    public static boolean isDeploymentDone(@Nullable SpringCloudDeployment deployment) {
         if (deployment == null) {
             return false;
         }
@@ -54,7 +56,7 @@ public class Utils {
      * @param timeOutInSeconds max time for the method
      * @return the first resource which fit the predicate or the last result before timeout
      */
-    public static <T> T pollUntil(Callable<T> callable, Predicate<T> predicate, int timeOutInSeconds) {
+    public static <T> T pollUntil(Callable<T> callable, @Nonnull Predicate<T> predicate, int timeOutInSeconds) {
         return Utils.pollUntil(callable, predicate, timeOutInSeconds, POLLING_INTERVAL);
     }
 
@@ -67,7 +69,7 @@ public class Utils {
      * @param pollingInterval  polling interval
      * @return the first resource which fit the predicate or the last result before timeout
      */
-    public static <T> T pollUntil(Callable<T> callable, Predicate<T> predicate, int timeOutInSeconds, int pollingInterval) {
+    public static <T> T pollUntil(Callable<T> callable, @Nonnull Predicate<T> predicate, int timeOutInSeconds, int pollingInterval) {
         final long timeout = System.currentTimeMillis() + timeOutInSeconds * 1000L;
         return Observable.interval(pollingInterval, TimeUnit.SECONDS)
                 .timeout(timeOutInSeconds, TimeUnit.SECONDS)

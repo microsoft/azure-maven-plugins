@@ -92,6 +92,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
         this.delete();
     }
 
+    @Nonnull
     @Override
     public String status() {
         return this.getStatus();

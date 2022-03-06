@@ -11,6 +11,7 @@ import com.azure.resourcemanager.sql.models.SqlServers;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,7 +31,6 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
     @Override
     @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<SqlServer> loadResourcesFromAzure() {
-        log.debug("[{}]:loadResourcesFromAzure()", this.getName());
         return Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());
     }
 
@@ -38,7 +38,7 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
     @Override
     @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected SqlServer loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        log.debug("[{}]:loadResourceFromAzure({}, {})", this.getName(), name, resourceGroup);
+        assert StringUtils.isNoneBlank(resourceGroup) : "resource group can not be empty";
         return Optional.ofNullable(this.getClient()).map(c -> c.getByResourceGroup(resourceGroup, name)).orElse(null);
     }
 
@@ -49,7 +49,6 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
         type = AzureOperation.Type.SERVICE
     )
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
-        log.debug("[{}]:deleteResourceFromAzure({})", this.getName(), resourceId);
         Optional.ofNullable(this.getClient()).ifPresent(c -> c.deleteById(resourceId));
     }
 
@@ -57,7 +56,7 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
     @Override
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected MicrosoftSqlServerDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
-        assert resourceGroupName != null : "resource group is required.";
+        assert resourceGroupName != null : "'Resource group' is required.";
         return new MicrosoftSqlServerDraft(name, resourceGroupName, this);
     }
 

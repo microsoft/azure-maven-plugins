@@ -41,6 +41,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     @Getter
     @Nullable
     private final SpringCloudApp origin;
+    @Nullable
     private SpringCloudDeployment activeDeployment;
     @Nullable
     private Config config;
@@ -55,7 +56,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         this.origin = origin;
     }
 
-    public void setConfig(SpringCloudAppConfig c) {
+    public void setConfig(@Nonnull SpringCloudAppConfig c) {
         this.setName(c.getAppName());
         this.setActiveDeploymentName(c.getActiveDeploymentName());
         this.setPublicEndpointEnabled(c.getIsPublic());
@@ -65,6 +66,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         deploymentDraft.setConfig(deploymentConfig);
     }
 
+    @Nonnull
     public SpringCloudAppConfig getConfig() {
         final SpringCloudDeploymentConfig deploymentConfig = activeDeployment instanceof SpringCloudDeploymentDraft ?
             ((SpringCloudDeploymentDraft) activeDeployment).getConfig() : SpringCloudDeploymentConfig.builder().build();
@@ -89,6 +91,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         this.activeDeployment = null;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.create_resource.resource|type",
@@ -107,6 +110,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         return app;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.update_resource.resource|type",
@@ -152,6 +156,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         return modified;
     }
 
+    @Nonnull
     private synchronized Config ensureConfig() {
         this.config = Optional.ofNullable(this.config).orElseGet(Config::new);
         return this.config;
