@@ -18,10 +18,9 @@ import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -32,12 +31,12 @@ import java.util.stream.Stream;
 public abstract class AbstractAzureResourceModule<T extends IAzureBaseResource> extends SubscriptionScoped<AbstractAzureResourceModule<T>>
         implements AzureService<T> {
 
-    public AbstractAzureResourceModule(@NotNull Function<List<Subscription>, AbstractAzureResourceModule<T>> creator,
+    public AbstractAzureResourceModule(@Nonnull Function<List<Subscription>, AbstractAzureResourceModule<T>> creator,
                                        @Nullable List<Subscription> subscriptions) {
         super(creator, subscriptions);
     }
 
-    public AbstractAzureResourceModule(@NotNull Function<List<Subscription>, AbstractAzureResourceModule<T>> creator) {
+    public AbstractAzureResourceModule(@Nonnull Function<List<Subscription>, AbstractAzureResourceModule<T>> creator) {
         super(creator);
     }
 

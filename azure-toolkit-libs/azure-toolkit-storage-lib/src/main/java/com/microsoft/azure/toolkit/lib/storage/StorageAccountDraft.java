@@ -23,7 +23,6 @@ import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountConfig;
 import lombok.Data;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -94,7 +93,7 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
         params = {"this.getName()", "this.getResourceTypeName()"},
         type = AzureOperation.Type.SERVICE
     )
-    public com.azure.resourcemanager.storage.models.StorageAccount updateResourceInAzure(@NotNull com.azure.resourcemanager.storage.models.StorageAccount origin) {
+    public com.azure.resourcemanager.storage.models.StorageAccount updateResourceInAzure(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }
 

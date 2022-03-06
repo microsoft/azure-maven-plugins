@@ -17,10 +17,9 @@ import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -41,7 +40,7 @@ public class AzurePostgreSql extends AbstractAzService<PostgreSqlResourceManager
 
     @Nullable
     @Override
-    protected PostgreSqlManager loadResourceFromAzure(@NotNull String subscriptionId, String resourceGroup) {
+    protected PostgreSqlManager loadResourceFromAzure(@Nonnull String subscriptionId, String resourceGroup) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
         final String userAgent = config.getUserAgent();
@@ -55,7 +54,7 @@ public class AzurePostgreSql extends AbstractAzService<PostgreSqlResourceManager
     }
 
     @Override
-    protected PostgreSqlResourceManager newResource(@NotNull PostgreSqlManager manager) {
+    protected PostgreSqlResourceManager newResource(@Nonnull PostgreSqlManager manager) {
         return new PostgreSqlResourceManager(manager, this);
     }
 
