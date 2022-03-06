@@ -9,9 +9,9 @@ import com.azure.resourcemanager.redis.RedisManager;
 import com.azure.resourcemanager.redis.models.RedisCaches;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class RedisCacheModule extends AbstractAzResourceModule<RedisCache, RedisResourceManager, com.azure.resourcemanager.redis.models.RedisCache> {
@@ -27,14 +27,15 @@ public class RedisCacheModule extends AbstractAzResourceModule<RedisCache, Redis
         return Optional.ofNullable(this.parent.getRemote()).map(RedisManager::redisCaches).orElse(null);
     }
 
+    @Nonnull
     @Override
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
-    protected RedisCacheDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
+    protected RedisCacheDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
+        assert resourceGroupName != null : "resource group is required.";
         return new RedisCacheDraft(name, resourceGroupName, this);
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.draft_for_update.resource|type",
@@ -42,8 +43,6 @@ public class RedisCacheModule extends AbstractAzResourceModule<RedisCache, Redis
         type = AzureOperation.Type.SERVICE
     )
     protected RedisCacheDraft newDraftForUpdate(@Nonnull RedisCache origin) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new RedisCacheDraft(origin);
     }
 
@@ -52,6 +51,7 @@ public class RedisCacheModule extends AbstractAzResourceModule<RedisCache, Redis
         return new RedisCache(r, this);
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Redis cache";

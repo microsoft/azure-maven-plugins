@@ -96,6 +96,7 @@ public class DraftVirtualMachine extends VirtualMachine implements AzureResource
         this.name = name;
     }
 
+    @Nonnull
     @Override
     public String getId() {
         return Optional.ofNullable(remote).map(HasId::id).orElseGet(() -> getResourceId(subscriptionId, resourceGroup, name));

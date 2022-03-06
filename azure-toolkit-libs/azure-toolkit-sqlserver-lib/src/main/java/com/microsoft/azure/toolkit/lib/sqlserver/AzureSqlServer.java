@@ -10,9 +10,9 @@ import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.sql.SqlServerManager;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
-import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,24 +36,26 @@ public class AzureSqlServer extends AbstractAzService<MicrosoftSqlResourceManage
 
     @Nullable
     @Override
-    protected SqlServerManager loadResourceFromAzure(@Nonnull String subscriptionId, String resourceGroup) {
+    protected SqlServerManager loadResourceFromAzure(@Nonnull String subscriptionId, @Nullable String resourceGroup) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
         final String userAgent = config.getUserAgent();
         final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         return SqlServerManager.configure()
-            .withHttpClient(AzureService.getDefaultHttpClient())
+            .withHttpClient(AbstractAzResourceManager.getDefaultHttpClient())
             .withLogOptions(new HttpLogOptions().setLogLevel(logLevel))
-            .withPolicy(AzureService.getUserAgentPolicy(userAgent))
+            .withPolicy(AbstractAzResourceManager.getUserAgentPolicy(userAgent))
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
+    @Nonnull
     @Override
     protected MicrosoftSqlResourceManager newResource(@Nonnull SqlServerManager manager) {
         return new MicrosoftSqlResourceManager(manager, this);
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "SQL servers";

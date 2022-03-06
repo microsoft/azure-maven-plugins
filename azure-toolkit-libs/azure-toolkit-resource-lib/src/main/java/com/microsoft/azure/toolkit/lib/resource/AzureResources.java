@@ -31,11 +31,13 @@ public class AzureResources extends AbstractAzService<ResourceGroupManager, Reso
         return AbstractAzResourceManager.getResourceManager(subscriptionId);
     }
 
+    @Nonnull
     @Override
     protected ResourceGroupManager newResource(@Nonnull ResourceManager remote) {
         return new ResourceGroupManager(remote, this);
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Resource groups";

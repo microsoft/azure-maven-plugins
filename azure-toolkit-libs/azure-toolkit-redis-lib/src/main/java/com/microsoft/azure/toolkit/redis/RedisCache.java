@@ -58,6 +58,7 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceMana
         super.delete();
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, RedisCache, ?>> getSubModules() {
         return Collections.emptyList();

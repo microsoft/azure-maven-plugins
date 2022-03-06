@@ -31,6 +31,7 @@ public class MySqlDatabase extends AbstractAzResource<MySqlDatabase, MySqlServer
         return this.remoteOptional().map(Database::refresh).orElse(null);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, MySqlDatabase, ?>> getSubModules() {
         return Collections.emptyList();

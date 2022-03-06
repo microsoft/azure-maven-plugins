@@ -91,7 +91,9 @@ public class Region implements ExpandableParameter {
             GERMANY_NORTHEAST, GOV_US_VIRGINIA, GOV_US_IOWA, GOV_US_ARIZONA, GOV_US_TEXAS, GOV_US_DOD_EAST, GOV_US_DOD_CENTRAL, US_WEST3,
             US_CENTRAL_EUAP, US_EAST2_EUAP, INDIA_JIO_WEST));
 
+    @Nonnull
     private String name;
+    @Nonnull
     private String label;
 
     public static Set<Region> values() {

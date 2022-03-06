@@ -18,7 +18,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 import lombok.Getter;
@@ -89,8 +88,6 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
     )
     public Server createResourceInAzure() {
         assert this.config != null;
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final MySqlManager manager = Objects.requireNonNull(this.getParent().getRemote());
 
         final ServerPropertiesForDefaultCreate parameters = new ServerPropertiesForDefaultCreate()

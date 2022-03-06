@@ -53,6 +53,7 @@ public class AzurePostgreSql extends AbstractAzService<PostgreSqlResourceManager
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
+    @Nonnull
     @Override
     protected PostgreSqlResourceManager newResource(@Nonnull PostgreSqlManager manager) {
         return new PostgreSqlResourceManager(manager, this);
@@ -62,6 +63,7 @@ public class AzurePostgreSql extends AbstractAzService<PostgreSqlResourceManager
         return ServerVersion.values().stream().map(ExpandableStringEnum::toString).sorted().collect(Collectors.toList());
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Azure Database for PostgreSQL servers";

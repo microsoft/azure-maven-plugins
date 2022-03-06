@@ -39,6 +39,7 @@ public class RedisResourceManager extends AbstractAzResourceManager<RedisResourc
         this(remote.subscriptionId(), service);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, RedisResourceManager, ?>> getSubModules() {
         return Collections.singletonList(cacheModule);
@@ -52,6 +53,7 @@ public class RedisResourceManager extends AbstractAzResourceManager<RedisResourc
         return super.listSupportedRegions(this.cacheModule.getName());
     }
 
+    @Nonnull
     @Override
     public ResourceManager getResourceManager() {
         return Objects.requireNonNull(this.getRemote()).resourceManager();

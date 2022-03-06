@@ -12,7 +12,6 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,6 +27,7 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
         super(NAME, parent);
     }
 
+    @Nonnull
     @Override
     protected PostgreSqlFirewallRule newResource(@Nonnull FirewallRule rule) {
         return new PostgreSqlFirewallRule(rule, this);
@@ -35,31 +35,39 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
 
     @Nonnull
     @Override
+    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<FirewallRule> loadResourcesFromAzure() {
         return this.getClient().listByServer(this.getParent().getResourceGroupName(), this.getParent().getName()).stream();
     }
 
     @Nullable
     @Override
+    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected FirewallRule loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
         return this.getClient().get(this.getParent().getResourceGroupName(), this.getParent().getName(), name);
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.delete_resource.resource|type",
+        params = {"nameFromResourceId(id)", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     protected void deleteResourceFromAzure(@Nonnull String id) {
         final ResourceId resourceId = ResourceId.fromString(id);
         final String name = resourceId.name();
         this.getClient().delete(this.getParent().getResourceGroupName(), this.getParent().getName(), name);
     }
 
+    @Nonnull
     @Override
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
-    protected PostgreSqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
+    protected PostgreSqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
+        assert resourceGroupName != null : "resource group is required.";
         return new PostgreSqlFirewallRuleDraft(name, this);
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.draft_for_update.resource|type",
@@ -67,8 +75,6 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
         type = AzureOperation.Type.SERVICE
     )
     protected PostgreSqlFirewallRuleDraft newDraftForUpdate(@Nonnull PostgreSqlFirewallRule origin) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new PostgreSqlFirewallRuleDraft(origin);
     }
 
@@ -110,6 +116,7 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
         }
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "PostgreSQL firewall rule";

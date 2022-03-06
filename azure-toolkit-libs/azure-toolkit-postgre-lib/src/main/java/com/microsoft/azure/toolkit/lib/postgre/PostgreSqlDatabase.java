@@ -31,6 +31,7 @@ public class PostgreSqlDatabase extends AbstractAzResource<PostgreSqlDatabase, P
         return this.remoteOptional().map(Database::refresh).orElse(null);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, PostgreSqlDatabase, ?>> getSubModules() {
         return Collections.emptyList();

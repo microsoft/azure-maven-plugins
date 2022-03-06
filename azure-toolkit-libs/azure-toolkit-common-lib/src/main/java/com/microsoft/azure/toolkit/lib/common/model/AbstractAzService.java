@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R>, R> extends AbstractAzResourceModule<T, AzResource.None, R>
@@ -27,6 +28,7 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
         AzureEventBus.on("account.subscription_changed.account", (e) -> this.refresh());
     }
 
+    @Nonnull
     @Override
     public String getFullResourceType() {
         return this.getName();
@@ -44,8 +46,9 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
             .forEach(m -> ((AzResourceModule) m).list());
     }
 
+    @Nonnull
     public T forSubscription(@Nonnull String subscriptionId) {
-        return this.get(subscriptionId, null);
+        return Objects.requireNonNull(this.get(subscriptionId, null));
     }
 
     @Override
@@ -56,6 +59,7 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
 
     @Nonnull
     @Override
+    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<R> loadResourcesFromAzure() {
         return Azure.az(IAzureAccount.class).account().getSelectedSubscriptions().stream().parallel()
             .map(Subscription::getId).map(i -> loadResourceFromAzure(i, null));

@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.Data;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -58,8 +57,6 @@ public class ResourceDeploymentDraft extends ResourceDeployment
         type = AzureOperation.Type.SERVICE
     )
     public com.azure.resourcemanager.resources.models.Deployment createResourceInAzure() {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final ResourceGroup group = this.getParent();
         final String name = this.getName();
         final String template = this.getTemplateAsJson();
@@ -91,8 +88,6 @@ public class ResourceDeploymentDraft extends ResourceDeployment
         type = AzureOperation.Type.SERVICE
     )
     public com.azure.resourcemanager.resources.models.Deployment updateResourceInAzure(@Nonnull com.azure.resourcemanager.resources.models.Deployment origin) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final String name = this.getName();
         final String oldTemplate = super.getTemplateAsJson();
         final String oldParameters = super.getParametersAsJson();

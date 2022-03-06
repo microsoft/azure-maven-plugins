@@ -24,12 +24,16 @@ public interface AzResourceBase {
     @Nonnull
     String getSubscriptionId();
 
+    @Nonnull
     String getResourceGroupName();
 
+    @Nonnull
     String getStatus();
 
+    @Nonnull
     Subscription getSubscription();
 
+    @Nonnull
     String getPortalUrl();
 
     default FormalStatus getFormalStatus() {

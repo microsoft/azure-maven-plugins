@@ -34,10 +34,12 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
     @Nonnull
     String getName();
 
+    @Nonnull
     default String getFullResourceType() {
         return this.getModule().getFullResourceType();
     }
 
+    @Nonnull
     default String getResourceTypeName() {
         return this.getModule().getResourceTypeName();
     }
@@ -62,6 +64,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         return ResourceId.fromString(this.getId()).resourceGroupName();
     }
 
+    @Nonnull
     AzResource.Draft<T, R> update();
 
     void delete();
@@ -69,12 +72,15 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
     @Nullable
     R getRemote();
 
+    @Nonnull
     String getStatus();
 
+    @Nonnull
     default Subscription getSubscription() {
         return Azure.az(IAzureAccount.class).account().getSubscription(this.getSubscriptionId());
     }
 
+    @Nonnull
     default String getPortalUrl() {
         final IAccount account = Azure.az(IAzureAccount.class).account();
         Subscription subscription = account.getSubscription(this.getSubscriptionId());
@@ -130,6 +136,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
             super("$NONE$", AzResource.RESOURCE_GROUP_PLACEHOLDER, AzResourceModule.NONE);
         }
 
+        @Nonnull
         @Override
         public List<AzResourceModule<?, None, ?>> getSubModules() {
             return Collections.emptyList();
@@ -141,11 +148,13 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
             return AzResourceModule.NONE;
         }
 
+        @Nonnull
         @Override
         public String getFullResourceType() {
             return NONE;
         }
 
+        @Nonnull
         @Override
         public String getResourceTypeName() {
             return NONE;
