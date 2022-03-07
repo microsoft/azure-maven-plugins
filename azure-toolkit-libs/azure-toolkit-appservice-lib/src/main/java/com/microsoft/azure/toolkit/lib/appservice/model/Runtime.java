@@ -43,10 +43,13 @@ public class Runtime {
     public static final Runtime LINUX_JAVA11 = new Runtime(OperatingSystem.LINUX, WebContainer.JAVA_SE, JavaVersion.JAVA_11);
     public static final Runtime LINUX_JAVA8_TOMCAT9 = new Runtime(OperatingSystem.LINUX, WebContainer.TOMCAT_9, JavaVersion.JAVA_8);
     public static final Runtime LINUX_JAVA8_TOMCAT85 = new Runtime(OperatingSystem.LINUX, WebContainer.TOMCAT_85, JavaVersion.JAVA_8);
+    public static final Runtime LINUX_JAVA8_TOMCAT10 = new Runtime(OperatingSystem.LINUX, WebContainer.TOMCAT_10, JavaVersion.JAVA_8);
     public static final Runtime LINUX_JAVA8_JBOSS7 = new Runtime(OperatingSystem.LINUX, WebContainer.JBOSS_7, JavaVersion.JAVA_8);
     public static final Runtime LINUX_JAVA11_JBOSS7 = new Runtime(OperatingSystem.LINUX, WebContainer.JBOSS_7, JavaVersion.JAVA_11);
     public static final Runtime LINUX_JAVA11_TOMCAT9 = new Runtime(OperatingSystem.LINUX, WebContainer.TOMCAT_9, JavaVersion.JAVA_11);
     public static final Runtime LINUX_JAVA11_TOMCAT85 = new Runtime(OperatingSystem.LINUX, WebContainer.TOMCAT_85, JavaVersion.JAVA_11);
+    public static final Runtime LINUX_JAVA11_TOMCAT10 = new Runtime(OperatingSystem.LINUX, WebContainer.TOMCAT_10, JavaVersion.JAVA_11);
+    public static final Runtime LINUX_JAVA17_TOMCAT10 = new Runtime(OperatingSystem.LINUX, WebContainer.TOMCAT_10, JavaVersion.JAVA_17);
     // Function
     public static final Runtime FUNCTION_WINDOWS_JAVA8 = new Runtime(OperatingSystem.WINDOWS, WebContainer.JAVA_OFF, JavaVersion.JAVA_8);
     public static final Runtime FUNCTION_WINDOWS_JAVA11 = new Runtime(OperatingSystem.WINDOWS, WebContainer.JAVA_OFF, JavaVersion.JAVA_11);

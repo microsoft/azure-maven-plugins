@@ -46,6 +46,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -96,18 +97,26 @@ class AppServiceUtils {
                     Objects.equals(stackRuntime.getWebContainer(), runtime.getWebContainer());
         }).findFirst().orElseGet(() -> {
             if (Objects.equals(runtime.getWebContainer(), WebContainer.JAVA_SE)) {
-                return new RuntimeStack("JAVA", getJavaVersionValueForJavaSERuntimeStack(runtime.getJavaVersion()));
+                return getRuntimeStackForJavaSERuntime(runtime);
             }
             final String[] containerInfo = runtime.getWebContainer().getValue().split(" ");
             if (containerInfo.length != 2) {
                 throw new AzureToolkitRuntimeException(String.format("Invalid webContainer '%s'.", runtime.getWebContainer()));
             }
-            final String stack = containerInfo[0];
+            final String stack = containerInfo[0].toUpperCase(Locale.ENGLISH);
             final String stackVersion = containerInfo[1];
             final String javaVersion = getJavaVersionValueForContainerRuntimeStack(runtime.getJavaVersion());
             final String version = String.format("%s-%s", stackVersion, javaVersion);
             return new RuntimeStack(stack, version);
         });
+    }
+
+    static RuntimeStack getRuntimeStackForJavaSERuntime(Runtime runtime) {
+        final JavaVersion javaVersion = runtime.getJavaVersion();
+        if (Objects.equals(javaVersion, JavaVersion.JAVA_17)) {
+            return new RuntimeStack("JAVA", "17-java17");
+        }
+        return new RuntimeStack("JAVA", getJavaVersionValueForJavaSERuntimeStack(runtime.getJavaVersion()));
     }
 
     static String getJavaVersionValueForJavaSERuntimeStack(@Nonnull JavaVersion javaVersion) {
@@ -118,10 +127,13 @@ class AppServiceUtils {
     static String getJavaVersionValueForContainerRuntimeStack(@Nonnull JavaVersion javaVersion) {
         // Runtime stack for java containers follow pattern STACK|STACK_VERSION-JAVA_VERSION, like TOMCAT|9.0.41-java11, JBOSSEAP|7-java8
         if (Objects.equals(javaVersion, JavaVersion.JAVA_8)) {
-            return "java8";
+            return "jre8";
         }
-        if (Objects.equals(javaVersion, JavaVersion.JAVA_8)) {
+        if (Objects.equals(javaVersion, JavaVersion.JAVA_11)) {
             return "java11";
+        }
+        if (Objects.equals(javaVersion, JavaVersion.JAVA_17)) {
+            return "java17";
         }
         if (StringUtils.startsWithAny(javaVersion.getValue().toLowerCase(), "java", "jre")) {
             return javaVersion.getValue();

@@ -33,6 +33,7 @@ public class JavaVersion implements ExpandableParameter {
     public static final JavaVersion JAVA_7 = new JavaVersion("1.7");
     public static final JavaVersion JAVA_8 = new JavaVersion("1.8");
     public static final JavaVersion JAVA_11 = new JavaVersion("11");
+    public static final JavaVersion JAVA_17 = new JavaVersion("17");
 
     private static final JavaVersion JAVA_1_7_0_51 = new JavaVersion("1.7.0_51");
     private static final JavaVersion JAVA_1_7_0_71 = new JavaVersion("1.7.0_71");
@@ -55,7 +56,8 @@ public class JavaVersion implements ExpandableParameter {
 
     private static final Set<JavaVersion> values = Collections.unmodifiableSet(Sets.newHashSet(OFF, JAVA_7, JAVA_1_7_0_51, JAVA_1_7_0_71, JAVA_1_7_0_80,
             JAVA_ZULU_1_7_0_191, JAVA_8, JAVA_1_8_0_25, JAVA_1_8_0_60, JAVA_1_8_0_73, JAVA_1_8_0_111, JAVA_1_8_0_144, JAVA_1_8_0_172, JAVA_ZULU_1_8_0_172,
-            JAVA_ZULU_1_8_0_92, JAVA_ZULU_1_8_0_102, JAVA_1_8_0_181, JAVA_ZULU_1_8_0_181, JAVA_1_8_0_202, JAVA_ZULU_1_8_0_202, JAVA_11, JAVA_ZULU_11_0_2));
+            JAVA_ZULU_1_8_0_92, JAVA_ZULU_1_8_0_102, JAVA_1_8_0_181, JAVA_ZULU_1_8_0_181, JAVA_1_8_0_202, JAVA_ZULU_1_8_0_202, JAVA_11, JAVA_ZULU_11_0_2,
+            JAVA_17));
 
     private String value;
 
