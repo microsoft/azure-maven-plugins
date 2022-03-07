@@ -399,7 +399,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 Utils.isJarPackagingProject(this.project.getPackaging()));
         if (!validWebContainers.contains(webContainerOrDefault)) {
             Log.warn(String.format("'%s' is not supported.", webContainerOrDefault));
-            webContainerOrDefault = WebAppConfiguration.DEFAULT_CONTAINER.toString();
+            final String defaultWebContainer = WebAppConfiguration.DEFAULT_CONTAINER.toString();
+            webContainerOrDefault = validWebContainers.contains(defaultWebContainer) ? defaultWebContainer : validWebContainers.get(0);
         }
         final String webContainerInput = queryer.assureInputFromUser(WEB_CONTAINER, webContainerOrDefault,
                 validWebContainers,
@@ -449,7 +450,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     }
 
     public static List<String> getValidJavaVersions() {
-        return Stream.of(JavaVersion.JAVA_8, JavaVersion.JAVA_11).map(Object::toString).collect(Collectors.toList());
+        return Stream.of(JavaVersion.JAVA_8, JavaVersion.JAVA_11, JavaVersion.JAVA_17).map(Object::toString).collect(Collectors.toList());
     }
 
     private String getDefaultValue(String defaultValue, String fallBack, String pattern) {
