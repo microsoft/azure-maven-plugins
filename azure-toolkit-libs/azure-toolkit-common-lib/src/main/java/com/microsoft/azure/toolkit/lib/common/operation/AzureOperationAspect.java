@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.lib.common.operation;
 
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.utils.aspect.MethodInvocation;
 import lombok.extern.java.Log;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -16,9 +16,9 @@ import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
-import org.aspectj.lang.reflect.MethodSignature;
 
 import java.util.Objects;
+import java.util.concurrent.Callable;
 
 @Aspect
 @Log
@@ -30,10 +30,35 @@ public final class AzureOperationAspect {
 
     @Before("operation()")
     public void beforeEnter(JoinPoint point) {
-        final AzureOperationRef operation = toOperationRef(point);
-        AzureTelemeter.beforeEnter(operation);
-        AzureTaskContext.current().pushOperation(operation);
+        final IAzureOperation<?> operation = toOperation(point);
         final Object source = point.getThis();
+        beforeEnter(operation, source);
+    }
+
+    @AfterReturning("operation()")
+    public void afterReturning(JoinPoint point) {
+        final IAzureOperation<?> current = toOperation(point);
+        final Object source = point.getThis();
+        afterReturning(current, source);
+    }
+
+    @AfterThrowing(pointcut = "operation()", throwing = "e")
+    public void afterThrowing(JoinPoint point, Throwable e) throws Throwable {
+        final IAzureOperation<?> current = toOperation(point);
+        final Object source = point.getThis();
+        afterThrowing(e, current, source);
+    }
+
+    //    @Around("operation()")
+    //    public Object around(ProceedingJoinPoint point) throws Throwable {
+    //        final IAzureOperation<?> current = toOperation(point);
+    //        final Object source = point.getThis();
+    //        return execute(current, source);
+    //    }
+
+    public static void beforeEnter(IAzureOperation<?> operation, Object source) {
+        AzureTelemeter.beforeEnter(operation);
+        AzureOperationContext.current().pushOperation(operation);
         if (source instanceof AzureOperationEvent.Source) {
             final AzureOperationEvent.Source<?> target = ((AzureOperationEvent.Source<?>) source).getEventSource();
             final AzureOperationEvent<?> event = new AzureOperationEvent(target, operation, AzureOperationEvent.Stage.BEFORE);
@@ -41,15 +66,12 @@ public final class AzureOperationAspect {
         }
     }
 
-    @AfterReturning("operation()")
-    public void afterReturning(JoinPoint point) {
-        final AzureOperationRef current = toOperationRef(point);
-        final AzureOperationRef operation = (AzureOperationRef) AzureTaskContext.current().popOperation();
+    public static void afterReturning(IAzureOperation<?> current, Object source) {
+        final IAzureOperation<?> operation = AzureOperationContext.current().popOperation();
         // TODO: this cannot ensure same operation actually, considering recursive call
-        assert Objects.nonNull(operation) && operation.getMethod().equals(current.getMethod()) :
+        assert Objects.nonNull(operation) && Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the exiting operation[%s]", current, operation);
         AzureTelemeter.afterExit(operation);
-        final Object source = point.getThis();
         if (source instanceof AzureOperationEvent.Source) {
             final AzureOperationEvent.Source<?> target = ((AzureOperationEvent.Source<?>) source).getEventSource();
             final AzureOperationEvent<?> event = new AzureOperationEvent(target, operation, AzureOperationEvent.Stage.AFTER);
@@ -57,35 +79,37 @@ public final class AzureOperationAspect {
         }
     }
 
-    @AfterThrowing(pointcut = "operation()", throwing = "e")
-    public void afterThrowing(JoinPoint point, Throwable e) throws Throwable {
-        final AzureOperationRef current = toOperationRef(point);
-        final AzureOperationRef operation = (AzureOperationRef) AzureTaskContext.current().popOperation();
+    public static void afterThrowing(Throwable e, IAzureOperation<?> current, Object source) throws Throwable {
+        final IAzureOperation<?> operation = AzureOperationContext.current().popOperation();
         // TODO: this cannot ensure same operation actually, considering recursive call
-        assert Objects.nonNull(operation) && operation.getMethod().equals(current.getMethod()) :
+        assert Objects.nonNull(operation) && Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the operation[%s] throwing exception", current, operation);
         AzureTelemeter.onError(operation, e);
-        final Object source = point.getThis();
         if (source instanceof AzureOperationEvent.Source) {
             final AzureOperationEvent.Source<?> target = ((AzureOperationEvent.Source<?>) source).getEventSource();
             final AzureOperationEvent<?> event = new AzureOperationEvent(target, operation, AzureOperationEvent.Stage.ERROR);
             AzureEventBus.emit(operation.getName(), event);
         }
-        if (e instanceof Exception && !(e instanceof RuntimeException)) {
-            throw e; // do not wrap checked exception
+        if (e instanceof AzureOperationException || (e instanceof Exception && !(e instanceof RuntimeException))) {
+            throw e; // do not wrap checked exception and AzureOperationException
         }
         throw new AzureOperationException(operation, e);
     }
 
-    private static AzureOperationRef toOperationRef(JoinPoint point) {
-        final MethodSignature signature = (MethodSignature) point.getSignature();
-        final Object[] args = point.getArgs();
-        final Object instance = point.getThis();
-        return AzureOperationRef.builder()
-            .instance(instance)
-            .method(signature.getMethod())
-            .paramNames(signature.getParameterNames())
-            .paramValues(args)
-            .build();
+    public static <T> T execute(IAzureOperation<T> operation, Object source) throws Throwable {
+        final Callable<T> body = operation.getBody();
+        try {
+            AzureOperationAspect.beforeEnter(operation, source);
+            final T result = body.call();
+            AzureOperationAspect.afterReturning(operation, source);
+            return result;
+        } catch (Throwable e) {
+            AzureOperationAspect.afterThrowing(e, operation, source);
+            throw e;
+        }
+    }
+
+    private static IAzureOperation<?> toOperation(JoinPoint point) {
+        return new MethodOperation(MethodInvocation.from(point));
     }
 }

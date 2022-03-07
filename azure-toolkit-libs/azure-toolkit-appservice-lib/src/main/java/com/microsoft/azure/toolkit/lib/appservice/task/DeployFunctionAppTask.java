@@ -74,7 +74,7 @@ public class DeployFunctionAppTask extends AzureTask<IFunctionAppBase<?>> {
     }
 
     @Override
-    public IFunctionAppBase<?> execute() {
+    public IFunctionAppBase<?> doExecute() {
         if (target.getRuntime().isDocker()) {
             AzureMessager.getMessager().info(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE);
             return target;
@@ -96,7 +96,7 @@ public class DeployFunctionAppTask extends AzureTask<IFunctionAppBase<?>> {
         } else {
             target.deploy(file, deployType);
         }
-        AzureTelemetry.getActionContext().setProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
+        AzureTelemetry.getContext().getActionParent().setProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
         if (!StringUtils.equalsIgnoreCase(target.state(), RUNNING)) {
             target.start();
         }

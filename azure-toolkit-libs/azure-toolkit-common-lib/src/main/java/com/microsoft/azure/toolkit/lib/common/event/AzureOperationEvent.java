@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.event;
 
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationRef;
+import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -18,7 +18,7 @@ import javax.annotation.Nullable;
 @RequiredArgsConstructor
 public class AzureOperationEvent<T extends AzureOperationEvent.Source<T>> implements AzureEvent<T> {
     private final T source;
-    private final AzureOperationRef operation;
+    private final IAzureOperation<?> operation;
     private final Stage stage;
 
     @Nonnull

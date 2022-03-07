@@ -15,8 +15,8 @@ import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
@@ -29,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
@@ -39,6 +40,7 @@ import java.util.List;
 
 import static com.microsoft.azure.toolkit.lib.appservice.utils.Utils.throwForbidCreateResourceWarning;
 
+@Slf4j
 public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
     private static final String CREATE_NEW_WEB_APP = "createNewWebApp";
 
@@ -72,8 +74,8 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
                 CheckNameAvailabilityResultEntity result = az.checkNameAvailability(config.subscriptionId(), config.appName());
                 if (!result.isAvailable()) {
                     throw new AzureToolkitRuntimeException(AzureString.format("Cannot create webapp {0} due to error: {1}",
-                            config.appName(),
-                            result.getUnavailabilityReason()).getString());
+                        config.appName(),
+                        result.getUnavailabilityReason()).getString());
                 }
                 return create();
             }
@@ -84,15 +86,15 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
 
     @AzureOperation(name = "webapp.create_app.app", params = {"this.config.appName()"}, type = Type.SERVICE)
     private WebApp create() {
-        AzureTelemetry.getActionContext().setProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
+        AzureTelemetry.getContext().getActionParent().setProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
         AzureMessager.getMessager().info(String.format(CREATE_WEBAPP, config.appName()));
 
         final Region region = this.config.region();
-        new CreateResourceGroupTask(this.config.subscriptionId(), this.config.resourceGroup(), region).execute();
+        new CreateResourceGroupTask(this.config.subscriptionId(), this.config.resourceGroup(), region).doExecute();
         final AzureAppService az = Azure.az(AzureAppService.class).subscription(config.subscriptionId());
         final WebApp webapp = az.webapp(config.resourceGroup(), config.appName());
         final AppServicePlanConfig servicePlanConfig = config.getServicePlanConfig();
-        final AppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig).execute();
+        final AppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig).doExecute();
 
         final WebApp result = webapp.create().withName(config.appName())
             .withResourceGroup(config.resourceGroup())
@@ -112,12 +114,12 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
         final AppServicePlanConfig servicePlanConfig = config.getServicePlanConfig();
 
         if (skipCreateAzureResource && !Azure.az(AzureAppService.class)
-                .appServicePlan(servicePlanConfig.servicePlanResourceGroup(), servicePlanConfig.servicePlanName()).exists()) {
+            .appServicePlan(servicePlanConfig.servicePlanResourceGroup(), servicePlanConfig.servicePlanName()).exists()) {
             throwForbidCreateResourceWarning("Service plan", servicePlanConfig.servicePlanResourceGroup() + "/" + servicePlanConfig.servicePlanName());
         }
 
         final Runtime runtime = getRuntime(config.runtime());
-        final AppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig).execute();
+        final AppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig).doExecute();
         final IAppServiceUpdater<? extends WebApp> draft = webApp.update();
         if (!(StringUtils.equalsIgnoreCase(config.servicePlanResourceGroup(), currentPlan.resourceGroup()) &&
             StringUtils.equalsIgnoreCase(config.servicePlanName(), currentPlan.name()))) {
@@ -161,7 +163,14 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
 
     @Override
     @AzureOperation(name = "webapp.create_update_app.app", params = {"this.config.appName()"}, type = Type.SERVICE)
-    public WebApp execute() {
-        return (WebApp) Flux.fromStream(this.subTasks.stream().map(t -> t.getSupplier().get())).last().block();
+    public WebApp doExecute() {
+        return (WebApp) Flux.fromStream(this.subTasks.stream().map(t -> {
+            try {
+                return t.getBody().call();
+            } catch (Throwable e) {
+                log.warn(e.getMessage(), e);
+            }
+            return null;
+        })).last().block();
     }
 }

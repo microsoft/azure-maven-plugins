@@ -35,7 +35,7 @@ public class DeployExternalResourcesTask extends AzureTask<IWebAppBase<?>> {
     }
 
     @Override
-    public IWebAppBase<?> execute() {
+    public IWebAppBase<?> doExecute() {
         AzureMessager.getMessager().info(AzureString.format(DEPLOY_START, target.name()));
         deployExternalResources(target, resources);
         AzureMessager.getMessager().info(AzureString.format(DEPLOY_FINISH, target.name()));

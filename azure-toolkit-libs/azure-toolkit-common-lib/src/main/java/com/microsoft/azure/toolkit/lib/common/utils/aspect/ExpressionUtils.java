@@ -11,11 +11,14 @@ import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
 import lombok.extern.java.Log;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Triple;
 import org.codehaus.groovy.runtime.MethodClosure;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Parameter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -52,11 +55,10 @@ public class ExpressionUtils {
 
     @Nonnull
     private static Map<String, Object> initBindings(@Nonnull final MethodInvocation invocation) {
-        final String[] paramNames = invocation.getParamNames();
-        final Object[] paramValues = invocation.getParamValues();
+        final List<Triple<String, Parameter, Object>> args = invocation.getArgs();
         final Map<String, Object> bindings = new HashMap<>();
-        for (int i = 0; i < paramNames.length; i++) {
-            bindings.put(paramNames[i], paramValues[i]);
+        for (Triple<String, Parameter, Object> arg : args) {
+            bindings.put(arg.getLeft(), arg.getRight());
         }
         bindings.put("_this_", invocation.getInstance());
         bindPredefinedFunctions(bindings);

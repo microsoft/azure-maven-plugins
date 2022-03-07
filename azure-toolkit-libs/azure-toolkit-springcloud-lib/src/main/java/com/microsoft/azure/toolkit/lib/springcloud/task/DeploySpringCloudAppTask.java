@@ -59,7 +59,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final boolean toCreateDeployment = !deployment.exists() && !(toCreateApp && DEFAULT_DEPLOYMENT_NAME.equals(deployment.getName()));
         config.setActiveDeploymentName(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateDeployment ? deploymentName : null));
 
-        AzureTelemetry.getActionContext().setProperty("subscriptionId", config.getSubscriptionId());
+        AzureTelemetry.getContext().getActionParent().setProperty("subscriptionId", config.getSubscriptionId());
         AzureTelemetry.getContext().setProperty("isCreateNewApp", String.valueOf(toCreateApp));
         AzureTelemetry.getContext().setProperty("isCreateDeployment", String.valueOf(toCreateDeployment));
         AzureTelemetry.getContext().setProperty("isDeploymentNameGiven", String.valueOf(StringUtils.isNotEmpty(deploymentConfig.getDeploymentName())));
@@ -85,8 +85,10 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
 
     @Override
     @AzureOperation(name = "springcloud.create_update_app.app", params = {"this.config.getAppName()"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudDeployment execute() {
-        this.subTasks.forEach(t -> t.getSupplier().get());
+    public SpringCloudDeployment doExecute() throws Exception {
+        for (final AzureTask<?> t : this.subTasks) {
+            t.getBody().call();
+        }
         return this.deployment;
     }
 }

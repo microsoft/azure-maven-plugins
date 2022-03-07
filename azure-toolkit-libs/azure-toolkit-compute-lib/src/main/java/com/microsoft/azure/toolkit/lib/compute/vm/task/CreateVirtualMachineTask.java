@@ -22,10 +22,10 @@ import com.microsoft.azure.toolkit.lib.compute.vm.AzureVirtualMachine;
 import com.microsoft.azure.toolkit.lib.compute.vm.DraftVirtualMachine;
 import com.microsoft.azure.toolkit.lib.compute.vm.VirtualMachine;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
-import com.microsoft.azure.toolkit.lib.storage.StorageAccountDraft;
-import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountConfig;
 import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.StorageAccountDraft;
+import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountConfig;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -61,7 +61,7 @@ public class CreateVirtualMachineTask extends AzureTask<VirtualMachine> {
         if (securityGroup instanceof DraftNetworkSecurityGroup && StringUtils.equalsIgnoreCase(securityGroup.status(), IAzureBaseResource.Status.DRAFT)) {
             final AzureString title = AzureString.format("Create security group ({0})", securityGroup.getName());
             tasks.add(new AzureTask<DraftNetworkSecurityGroup>(title, () ->
-                    Azure.az(AzureNetworkSecurityGroup.class).create((DraftNetworkSecurityGroup) securityGroup)));
+                Azure.az(AzureNetworkSecurityGroup.class).create((DraftNetworkSecurityGroup) securityGroup)));
         }
         // Create Storage Account
         // todo: migrate storage account to draft style
@@ -86,8 +86,10 @@ public class CreateVirtualMachineTask extends AzureTask<VirtualMachine> {
         return tasks;
     }
 
-    public VirtualMachine execute() {
-        this.subTasks.forEach(t -> t.getSupplier().get());
+    public VirtualMachine doExecute() throws Exception {
+        for (final AzureTask<?> t : this.subTasks) {
+            t.getBody().call();
+        }
         return this.result;
     }
 }

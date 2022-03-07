@@ -77,7 +77,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             }
             final CreateOrUpdateWebAppTask task = new CreateOrUpdateWebAppTask(appServiceConfig);
             task.setSkipCreateAzureResource(skipCreate);
-            return task.execute();
+            return task.doExecute();
         } else {
             // todo: New CreateOrUpdateDeploymentSlotTask
             final DeploymentSlotConfig config = getConfigParser().getDeploymentSlotConfig();
@@ -134,10 +134,10 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deploy(IWebAppBase<?> target, List<WebAppArtifact> artifacts) {
-        new DeployWebAppTask(target, artifacts, isStopAppDuringDeployment()).execute();
+        new DeployWebAppTask(target, artifacts, isStopAppDuringDeployment()).doExecute();
     }
 
     private void deployExternalResources(final IWebAppBase<?> target, final List<DeploymentResource> resources) {
-        new DeployExternalResourcesTask(target, resources).execute();
+        new DeployExternalResourcesTask(target, resources).doExecute();
     }
 }

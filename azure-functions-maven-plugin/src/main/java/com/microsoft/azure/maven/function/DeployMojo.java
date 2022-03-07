@@ -90,7 +90,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     @Override
     @AzureOperation(name = "functionapp.deploy_app", type = AzureOperation.Type.ACTION)
-    protected void doExecute() throws AzureExecutionException {
+    protected void doExecute() throws Throwable {
         doValidate();
         getOrCreateAzureAppServiceClient();
 
@@ -159,7 +159,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected IFunctionAppBase<?> createOrUpdateResource(final FunctionAppConfig config) {
+    protected IFunctionAppBase<?> createOrUpdateResource(final FunctionAppConfig config) throws Throwable {
         FunctionApp app = Azure.az(AzureAppService.class).functionApp(config.resourceGroup(), config.appName());
         final boolean newFunctionApp = !app.exists();
         AppServiceConfig defaultConfig = !newFunctionApp ? fromAppService(app, app.plan()) : buildDefaultConfig(config.subscriptionId(),
@@ -169,7 +169,7 @@ public class DeployMojo extends AbstractFunctionMojo {
             // fill ai key from existing app settings
             config.appInsightsKey(app.getAppSettings().get(CreateOrUpdateFunctionAppTask.APPINSIGHTS_INSTRUMENTATION_KEY));
         }
-        return new CreateOrUpdateFunctionAppTask(config).execute();
+        return new CreateOrUpdateFunctionAppTask(config).doExecute();
     }
 
     private AppServiceConfig buildDefaultConfig(String subscriptionId, String resourceGroup, String appName) {
@@ -193,7 +193,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     private void deployArtifact(final IFunctionAppBase<?> target) {
         final File file = new File(getDeploymentStagingDirectoryPath());
         final FunctionDeployType type = StringUtils.isEmpty(deploymentType) ? null : FunctionDeployType.fromString(deploymentType);
-        new DeployFunctionAppTask(target, file, type).execute();
+        new DeployFunctionAppTask(target, file, type).doExecute();
     }
 
     protected void validateArtifactCompileVersion() throws AzureExecutionException {

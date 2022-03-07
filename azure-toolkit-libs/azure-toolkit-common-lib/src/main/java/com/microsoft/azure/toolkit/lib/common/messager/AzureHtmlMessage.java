@@ -51,7 +51,7 @@ public class AzureHtmlMessage extends AzureMessage {
     }
 
     @Override
-    protected String getDetailItem(IAzureOperation o) {
+    protected String getDetailItem(IAzureOperation<?> o) {
         return String.format("<li>%s</li>", super.getDetailItem(o));
     }
 

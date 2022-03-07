@@ -7,7 +7,9 @@ package com.microsoft.azure.toolkit.lib.common.messager;
 
 import com.azure.core.exception.HttpResponseException;
 import com.azure.core.management.exception.ManagementException;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
+import com.microsoft.azure.toolkit.lib.common.DataStore;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -15,10 +17,9 @@ import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationContext;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationException;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationRef;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -48,6 +49,7 @@ import java.util.stream.Collectors;
 @Setter
 public class AzureMessage implements IAzureMessage {
     static final String DEFAULT_MESSAGE_TITLE = "Azure";
+    static final DataStore.Field<Context> MESSAGE_CONTEXT = DataStore.Field.of("messageContext");
     @Nonnull
     protected final Type type;
     @Nonnull
@@ -66,27 +68,27 @@ public class AzureMessage implements IAzureMessage {
             return ObjectUtils.firstNonNull(this.decorateText(this.message, null), this.message.getString());
         }
         final Throwable throwable = (Throwable) getPayload();
-        final List<IAzureOperation> operations = this.getOperations();
+        final List<IAzureOperation<?>> operations = this.getOperations();
         final String failure = operations.stream().findFirst().map(IAzureOperation::getTitle)
-                .map(azureString -> "Failed to " + this.decorateText(azureString, azureString::getString)).orElse("Failed to proceed");
+            .map(azureString -> "Failed to " + this.decorateText(azureString, azureString::getString)).orElse("Failed to proceed");
         final String cause = Optional.ofNullable(this.getCause(throwable)).map(c -> ", " + c).orElse("");
         final String tips = Optional.ofNullable(this.getExceptionTips(throwable)).map(c -> System.lineSeparator() + c).orElse("");
         return failure + cause + tips;
     }
 
     public String getDetails() {
-        final List<IAzureOperation> operations = this.getOperations();
+        final List<IAzureOperation<?>> operations = this.getOperations();
         return operations.size() < 2 ? "" : operations.stream()
-                .map(this::getDetailItem)
-                .collect(Collectors.joining("", "", ""));
+            .map(this::getDetailItem)
+            .collect(Collectors.joining("", "", ""));
     }
 
-    protected String getDetailItem(IAzureOperation o) {
+    protected String getDetailItem(IAzureOperation<?> o) {
         return Optional.ofNullable(o.getTitle())
-                .map(t -> decorateText(t, t::getString))
-                .map(StringUtils::capitalize)
-                .map(t -> String.format("● %s", t))
-                .orElse(null);
+            .map(t -> decorateText(t, t::getString))
+            .map(StringUtils::capitalize)
+            .map(t -> String.format("● %s", t))
+            .orElse(null);
     }
 
     @Override
@@ -113,10 +115,10 @@ public class AzureMessage implements IAzureMessage {
         }
         final String causeMsg = StringUtils.firstNonBlank(cause, root.getMessage());
         return Optional.ofNullable(causeMsg)
-                .filter(StringUtils::isNotBlank)
-                .map(StringUtils::uncapitalize)
-                .map(c -> c.endsWith(".") ? c : c + '.')
-                .orElse(null);
+            .filter(StringUtils::isNotBlank)
+            .map(StringUtils::uncapitalize)
+            .map(c -> c.endsWith(".") ? c : c + '.')
+            .orElse(null);
     }
 
     @Nullable
@@ -148,28 +150,26 @@ public class AzureMessage implements IAzureMessage {
 
     @Nonnull
     @Cacheable(cacheName = "message/operations", key = "${this.hashCode()}")
-    protected List<IAzureOperation> getOperations() {
-        final List<IAzureOperation> contextOperations = getContextOperations();
-        final List<IAzureOperation> exceptionOperations = Optional.ofNullable(this.getPayload())
-                .filter(p -> p instanceof Throwable)
-                .map(p -> getExceptionOperations((Throwable) p))
-                .orElse(new ArrayList<>());
+    protected List<IAzureOperation<?>> getOperations() {
+        final List<IAzureOperation<?>> exceptionOperations = Optional.ofNullable(this.getPayload())
+            .filter(p -> p instanceof Throwable)
+            .map(p -> getExceptionOperations((Throwable) p))
+            .orElse(new ArrayList<>());
+        final IAzureOperation<?> current = exceptionOperations.isEmpty() ? AzureOperationContext.current().currentOperation() : exceptionOperations.get(0);
+        final List<IAzureOperation<?>> contextOperations = getAncestorOperationsUtilAction(current);
         final Set<Object> seen = ConcurrentHashMap.newKeySet();
-        return Streams.concat(contextOperations.stream(), exceptionOperations.stream())
+        final List<IAzureOperation<?>> operations = Streams.concat(contextOperations.stream(), exceptionOperations.stream())
             .filter(t -> seen.add(t.getName())).collect(Collectors.toList());
+        return Lists.reverse(operations);
     }
 
     @Nonnull
-    private static List<IAzureOperation> getContextOperations() {
-        final LinkedList<IAzureOperation> result = new LinkedList<>();
-        IAzureOperation current = AzureTaskContext.current().currentOperation();
+    private static List<IAzureOperation<?>> getAncestorOperationsUtilAction(IAzureOperation<?> current) {
+        final LinkedList<IAzureOperation<?>> result = new LinkedList<>();
         while (Objects.nonNull(current)) {
-            if (current instanceof AzureOperationRef) {
-                result.addFirst(current);
-                final AzureOperation annotation = ((AzureOperationRef) current).getAnnotation(AzureOperation.class);
-                if (annotation.type() == AzureOperation.Type.ACTION) {
-                    break;
-                }
+            result.addFirst(current);
+            if (AzureOperation.Type.ACTION.name().equals(current.getType())) {
+                break;
             }
             current = current.getParent();
         }
@@ -177,11 +177,11 @@ public class AzureMessage implements IAzureMessage {
     }
 
     @Nonnull
-    private static List<IAzureOperation> getExceptionOperations(@Nonnull Throwable throwable) {
+    private static List<IAzureOperation<?>> getExceptionOperations(@Nonnull Throwable throwable) {
         return ExceptionUtils.getThrowableList(throwable).stream()
-                .filter(object -> object instanceof AzureOperationException)
-                .map(o -> ((AzureOperationException) o).getOperation())
-                .collect(Collectors.toList());
+            .filter(object -> object instanceof AzureOperationException)
+            .map(o -> ((AzureOperationException) o).getOperation())
+            .sorted().collect(Collectors.toList());
     }
 
     @Nonnull
@@ -238,30 +238,19 @@ public class AzureMessage implements IAzureMessage {
     }
 
     @Nonnull
-    public static AzureMessage.Context getContext() {
-        return getContext(IAzureOperation.current());
-    }
-
-    @Nonnull
     public static AzureMessage.Context getActionContext() {
-        final IAzureOperation operation = IAzureOperation.current();
-        return Optional.ofNullable(operation)
-                .map(IAzureOperation::getActionParent)
-                .map(AzureMessage::getContext)
-                .orElse(new AzureMessage.Context(operation));
+        return AzureMessage.getContext().getActionParent();
     }
 
     @Nonnull
-    public static AzureMessage.Context getContext(@Nullable IAzureOperation operation) {
-        return Optional.ofNullable(operation)
-                .map(o -> o.get(AzureMessage.Context.class, new AzureMessage.Context(operation)))
-                .orElse(new AzureMessage.Context(operation));
+    public static AzureMessage.Context getContext() {
+        return Optional.ofNullable(IAzureOperation.current()).map(o -> o.get(MESSAGE_CONTEXT, new Context(o))).orElse(new Context(null));
     }
 
     @RequiredArgsConstructor
-    public static class Context implements IAzureOperation.IContext {
+    public static class Context {
         @Nullable
-        private final IAzureOperation operation;
+        private final IAzureOperation<?> operation;
         private IAzureMessager messager = null;
         private final Map<String, Object> properties = new HashMap<>();
 
@@ -279,23 +268,19 @@ public class AzureMessage implements IAzureMessage {
 
         @Nonnull
         public IAzureMessager getMessager() {
-            if (Objects.nonNull(this.messager)) {
-                return messager;
-            }
-            return getMessager(Optional.ofNullable(this.operation).map(IAzureOperation::getParent).orElse(null));
-        }
-
-        @Nonnull
-        public IAzureMessager getActionMessager() {
-            return getMessager(Optional.ofNullable(this.operation).map(IAzureOperation::getActionParent).orElse(null));
-        }
-
-        @Nonnull
-        private IAzureMessager getMessager(@Nullable IAzureOperation op) {
-            return Optional.ofNullable(op)
-                    .map(AzureMessage::getContext)
+            if (Objects.isNull(this.messager)) {
+                this.messager = Optional.ofNullable(this.operation).map(IAzureOperation::getParent)
+                    .map(o -> o.get(MESSAGE_CONTEXT))
                     .map(Context::getMessager)
                     .orElse(AzureMessager.getDefaultMessager());
+            }
+            return this.messager;
+        }
+
+        public Context getActionParent() {
+            return Optional.ofNullable(this.operation).map(IAzureOperation::getActionParent)
+                .map(o -> o.get(MESSAGE_CONTEXT, new Context(o)))
+                .orElse(new Context(this.operation)); // TODO: @wangmi should return null when action parent is null
         }
     }
 }

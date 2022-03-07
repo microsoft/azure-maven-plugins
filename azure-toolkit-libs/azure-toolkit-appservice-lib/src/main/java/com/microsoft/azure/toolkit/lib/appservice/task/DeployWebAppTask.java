@@ -45,7 +45,7 @@ public class DeployWebAppTask extends AzureTask<IWebAppBase<?>> {
 
     @Override
     @AzureOperation(name = "webapp.deploy_app.app", params = {"this.webApp.entity().getName()"}, type = AzureOperation.Type.SERVICE)
-    public IWebAppBase<?> execute() {
+    public IWebAppBase<?> doExecute() {
         if (webApp.getRuntime().isDocker()) {
             AzureMessager.getMessager().info(AzureString.format(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE, "https://" + webApp.hostName()));
             return webApp;
@@ -72,7 +72,7 @@ public class DeployWebAppTask extends AzureTask<IWebAppBase<?>> {
             .filter(artifact -> artifact.getDeployType() != null)
             .collect(Collectors.toList());
         artifactsOneDeploy.forEach(resource -> webApp.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
-        AzureTelemetry.getActionContext().setProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
+        AzureTelemetry.getContext().getActionParent().setProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
     }
 
     private static void stopAppService(IWebAppBase<?> target) {

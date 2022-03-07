@@ -111,7 +111,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     private <T> void registerSubTask(AzureTask<T> task, Consumer<T> consumer) {
         if (task != null) {
             tasks.add(new AzureTask<>(() -> {
-                T result = task.getSupplier().get();
+                T result = task.getBody().call();
                 consumer.accept(result);
                 return result;
             }));
@@ -122,7 +122,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
         final AzureString title = AzureString.format("Create new app({0}) on subscription({1})",
                 functionAppConfig.appName(), functionAppConfig.subscriptionId());
         return new AzureTask<>(title, () -> {
-            AzureTelemetry.getActionContext().setProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
+            AzureTelemetry.getContext().getActionParent().setProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
             AzureMessager.getMessager().info(String.format(CREATE_FUNCTION_APP, functionAppConfig.appName()));
             final Map<String, String> appSettings = processAppSettingsWithDefaultValue();
             Optional.ofNullable(instrumentationKey).filter(StringUtils::isNoneEmpty).ifPresent(key ->
@@ -229,8 +229,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
             try {
                 final String name = StringUtils.firstNonEmpty(functionAppConfig.appInsightsInstance(), functionAppConfig.appName());
                 return new GetOrCreateApplicationInsightsTask(functionAppConfig.subscriptionId(),
-                        functionAppConfig.resourceGroup(), functionAppConfig.region(), name).getSupplier().get();
-            } catch (final Exception e) {
+                        functionAppConfig.resourceGroup(), functionAppConfig.region(), name).getBody().call();
+            } catch (final Throwable e) {
                 final String errorMessage = Optional.ofNullable(ExceptionUtils.getRootCause(e)).orElse(e).getMessage();
                 AzureMessager.getMessager().warning(String.format(APPLICATION_INSIGHTS_CREATE_FAILED, errorMessage));
                 return null;
@@ -271,8 +271,10 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     }
 
     @Override
-    public IFunctionAppBase<?> execute() {
-        this.tasks.forEach(t -> t.getSupplier().get());
+    public IFunctionAppBase<?> doExecute() throws Exception {
+        for (AzureTask<?> task : this.tasks) {
+            task.getBody().call();
+        }
         return functionApp;
     }
 }

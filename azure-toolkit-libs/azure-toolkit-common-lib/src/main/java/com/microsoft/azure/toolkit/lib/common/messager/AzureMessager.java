@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.messager;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public abstract class AzureMessager implements IAzureMessager {
@@ -32,7 +33,7 @@ public abstract class AzureMessager implements IAzureMessager {
         return getContext().getMessager();
     }
 
-    @Nonnull
+    @Nullable
     public static AzureMessage.Context getContext() {
         return AzureMessage.getContext();
     }
