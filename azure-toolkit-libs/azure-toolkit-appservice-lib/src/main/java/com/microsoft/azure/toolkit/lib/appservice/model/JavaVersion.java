@@ -27,6 +27,7 @@ public class JavaVersion implements ExpandableParameter {
     private static final String JAVA_8_VALUE = "8";
     private static final String JAVA_8_DISPLAY_NAME = "Java 8";
     private static final String JAVA_11_DISPLAY_NAME = "Java 11";
+    private static final String JAVA_17_DISPLAY_NAME = "Java 17";
     private static final String NULL = "null";
 
     public static final JavaVersion OFF = new JavaVersion("<null>");
@@ -113,6 +114,9 @@ public class JavaVersion implements ExpandableParameter {
         }
         if (this.equals(JAVA_11)) {
             return JAVA_11_DISPLAY_NAME;
+        }
+        if (this.equals(JAVA_17)) {
+            return JAVA_17_DISPLAY_NAME;
         }
         return this.value;
     }
