@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.auth.util;
 
+import com.github.zafarkhaja.semver.Version;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -13,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthentication
 import com.microsoft.azure.toolkit.lib.auth.model.AzureCliSubscription;
 import com.microsoft.azure.toolkit.lib.common.utils.CommandUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
-import com.vdurmont.semver4j.Semver;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -31,7 +31,7 @@ public class AzureCliUtils {
             final JsonObject result = JsonUtils.getGson().fromJson(AzureCliUtils.executeAzureCli("az version --output json"), JsonObject.class);
             final String cliVersion = result.get("azure-cli").getAsString();
             // we require at least azure cli version 2.11.0
-            if (compareWithMinimVersion(cliVersion) < 0) {
+            if (Version.valueOf(cliVersion).lessThan(Version.valueOf(MIN_VERSION))) {
                 throw new AzureToolkitAuthenticationException(String.format("your Azure Cli version '%s' is too old, " +
                         "you need to upgrade your CLI with 'az upgrade'.", cliVersion));
             }
@@ -98,10 +98,5 @@ public class AzureCliUtils {
             throw new AzureToolkitAuthenticationException(
                     String.format("execute Azure Cli command '%s' failed due to error: %s.", command, e.getMessage()));
         }
-    }
-
-    private static int compareWithMinimVersion(String version) {
-        final Semver current = new Semver(version);
-        return current.compareTo(new Semver(MIN_VERSION));
     }
 }
