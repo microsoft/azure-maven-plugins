@@ -156,7 +156,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         final R oldRemote = this.remoteRef.get();
         if (Objects.equals(oldRemote, newRemote) && Objects.isNull(newRemote)) {
             log.debug("[{}:{}]:setRemote->setStatus(UNKNOWN)", this.module.getName(), this.name);
-            this.setStatus(Status.UNKNOWN);
+            this.setStatus(Status.DISCONNECTED);
             return;
         }
         if (this.syncTimeRef.get() > 0 && Objects.equals(oldRemote, newRemote)) {
@@ -312,5 +312,11 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     private <D> D cast(@Nonnull Object origin) {
         //noinspection unchecked
         return (D) origin;
+    }
+
+    @Nonnull
+    public AzResourceModule<?, T, ?> getSubModule(String moduleName) {
+        return this.getSubModules().stream().filter(m -> m.getName().equals(moduleName)).findAny()
+            .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("invalid module \"%s\"", moduleName)));
     }
 }

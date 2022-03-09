@@ -30,8 +30,6 @@ import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
-import lombok.AccessLevel;
-import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -49,7 +47,6 @@ import java.util.stream.Collectors;
 
 public class AzureAccount implements IAzureAccount {
 
-    @Setter(AccessLevel.PACKAGE)
     private Account account;
 
     /**
@@ -67,6 +64,10 @@ public class AzureAccount implements IAzureAccount {
 
     public List<Account> accounts() {
         return Flux.fromIterable(buildAccountMap().values()).map(Supplier::get).collectList().block();
+    }
+
+    public boolean isSignedIn() {
+        return Objects.nonNull(this.account);
     }
 
     public AzureAccount login(@Nonnull AuthType type) {
@@ -100,6 +101,11 @@ public class AzureAccount implements IAzureAccount {
             throw new IllegalArgumentException("You shall not call login in sync mode for device code login, you need to call loginAsync instead.");
         }
         return finishLogin(loginAsync(auth, enablePersistence));
+    }
+
+    void setAccount(Account account) {
+        this.account = account;
+        AzureEventBus.emit("account.login.account", account);
     }
 
     public void logout() {

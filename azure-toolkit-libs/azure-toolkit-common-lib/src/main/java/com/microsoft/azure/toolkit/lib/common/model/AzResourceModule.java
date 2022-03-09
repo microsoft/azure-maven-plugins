@@ -23,6 +23,9 @@ public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzRes
     @Nullable
     T get(@Nonnull String name, @Nullable String resourceGroup);
 
+    @Nonnull
+    T getOrDraft(@Nonnull String name, @Nullable String resourceGroup);
+
     boolean exists(@Nonnull String name, @Nullable String resourceGroup);
 
     void delete(@Nonnull String name, @Nullable String resourceGroup);
