@@ -19,6 +19,5 @@ public class SpringCloudSku {
     private final String name;
     @Nonnull
     private final String tier;
-    @Nonnull
     private final Integer capacity;
 }

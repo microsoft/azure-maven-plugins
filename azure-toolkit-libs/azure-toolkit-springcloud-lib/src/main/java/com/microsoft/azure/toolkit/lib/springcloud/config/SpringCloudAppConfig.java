@@ -36,7 +36,6 @@ public class SpringCloudAppConfig {
     private String clusterName;
     private String appName;
     private String resourceGroup;
-    @Nonnull
     @Builder.Default
     private Boolean isPublic = false;
     @Builder.Default
