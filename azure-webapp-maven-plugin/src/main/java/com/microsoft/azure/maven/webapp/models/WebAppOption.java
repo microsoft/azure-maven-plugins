@@ -9,7 +9,8 @@ package com.microsoft.azure.maven.webapp.models;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
+import lombok.Getter;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,6 +20,7 @@ import java.util.Objects;
 public class WebAppOption implements Comparable<WebAppOption> {
     public static final WebAppOption CREATE_NEW = new WebAppOption();
     private static final String CREATE_NEW_STRING = "<create>";
+    @Getter
     private WebApp webappInner;
     private boolean createNewPlaceHolder = false;
 
@@ -63,7 +65,7 @@ public class WebAppOption implements Comparable<WebAppOption> {
         if (webappInner == null) {
             return null;
         }
-        return webappInner.plan().id();
+        return webappInner.getAppServicePlan().getId();
     }
 
     public boolean isDockerWebapp() {

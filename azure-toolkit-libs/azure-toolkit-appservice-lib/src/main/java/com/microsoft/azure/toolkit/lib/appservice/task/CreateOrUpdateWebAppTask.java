@@ -15,13 +15,12 @@ import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
-import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
-import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
+import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDraft;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation.Type;
@@ -31,7 +30,6 @@ import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
@@ -43,11 +41,6 @@ import static com.microsoft.azure.toolkit.lib.appservice.utils.Utils.throwForbid
 @Slf4j
 public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
     private static final String CREATE_NEW_WEB_APP = "createNewWebApp";
-
-    private static final String CREATE_WEBAPP = "Creating web app %s...";
-    private static final String CREATE_WEB_APP_DONE = "Successfully created web app %s.";
-    private static final String UPDATE_WEBAPP = "Updating target web app %s...";
-    private static final String UPDATE_WEBAPP_DONE = "Successfully updated web app %s.";
 
     private final AppServiceConfig config;
     private final List<AzureTask<?>> subTasks;
@@ -65,13 +58,13 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
         final AzureString title = AzureString.format("Create new web app({0})", this.config.appName());
         AzureAppService az = Azure.az(AzureAppService.class);
         tasks.add(new AzureTask<>(title, () -> {
-            final WebApp target = az.subscription(config.subscriptionId())
-                .webapp(config.resourceGroup(), config.appName());
+            final WebApp target = az.webApps(config.subscriptionId())
+                .getOrDraft(config.appName(), config.resourceGroup());
             if (!target.exists()) {
                 if (skipCreateAzureResource) {
                     throwForbidCreateResourceWarning("Web app", config.appName());
                 }
-                CheckNameAvailabilityResultEntity result = az.checkNameAvailability(config.subscriptionId(), config.appName());
+                CheckNameAvailabilityResultEntity result = az.get(config.subscriptionId(), null).checkNameAvailability(config.appName());
                 if (!result.isAvailable()) {
                     throw new AzureToolkitRuntimeException(AzureString.format("Cannot create webapp {0} due to error: {1}",
                         config.appName(),
@@ -87,53 +80,42 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
     @AzureOperation(name = "webapp.create_app.app", params = {"this.config.appName()"}, type = Type.SERVICE)
     private WebApp create() {
         AzureTelemetry.getContext().getActionParent().setProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
-        AzureMessager.getMessager().info(String.format(CREATE_WEBAPP, config.appName()));
-
         final Region region = this.config.region();
-        new CreateResourceGroupTask(this.config.subscriptionId(), this.config.resourceGroup(), region).doExecute();
-        final AzureAppService az = Azure.az(AzureAppService.class).subscription(config.subscriptionId());
-        final WebApp webapp = az.webapp(config.resourceGroup(), config.appName());
-        final AppServicePlanConfig servicePlanConfig = config.getServicePlanConfig();
-        final AppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig).doExecute();
+        final AppServicePlanConfig planConfig = config.getServicePlanConfig();
 
-        final WebApp result = webapp.create().withName(config.appName())
-            .withResourceGroup(config.resourceGroup())
-            .withPlan(appServicePlan.id())
-            .withRuntime(getRuntime(config.runtime()))
-            .withDockerConfiguration(getDockerConfiguration(config.runtime()))
-            .withAppSettings(config.appSettings())
-            .commit();
-        AzureMessager.getMessager().info(String.format(CREATE_WEB_APP_DONE, result.name()));
-        return result;
+        new CreateResourceGroupTask(this.config.subscriptionId(), this.config.resourceGroup(), region).doExecute();
+        final AzureAppService az = Azure.az(AzureAppService.class);
+
+        final AppServicePlanDraft planDraft = az.plans(planConfig.subscriptionId())
+            .updateOrCreate(planConfig.servicePlanName(), planConfig.servicePlanResourceGroup());
+        planDraft.setPlanConfig(planConfig);
+
+        final WebAppDraft appDraft = az.webApps(config.subscriptionId()).create(config.appName(), config.resourceGroup());
+        appDraft.setAppServicePlan(planDraft.commit());
+        appDraft.setRuntime(getRuntime(config.runtime()));
+        appDraft.setDockerConfiguration(getDockerConfiguration(config.runtime()));
+        appDraft.setAppSettings(config.appSettings());
+        return appDraft.createIfNotExist();
     }
 
     @AzureOperation(name = "webapp.update_app.app", params = {"this.config.appName()"}, type = Type.SERVICE)
     private WebApp update(final WebApp webApp) {
-        AzureMessager.getMessager().info(String.format(UPDATE_WEBAPP, webApp.name()));
-        final AppServicePlan currentPlan = webApp.plan();
+        final WebAppDraft draft = (WebAppDraft) webApp.update();
         final AppServicePlanConfig servicePlanConfig = config.getServicePlanConfig();
+        final Runtime runtime = getRuntime(config.runtime());
 
-        if (skipCreateAzureResource && !Azure.az(AzureAppService.class)
-            .appServicePlan(servicePlanConfig.servicePlanResourceGroup(), servicePlanConfig.servicePlanName()).exists()) {
+        AppServicePlanDraft planDraft = Azure.az(AzureAppService.class).plans(servicePlanConfig.subscriptionId())
+            .updateOrCreate(servicePlanConfig.servicePlanName(), servicePlanConfig.servicePlanResourceGroup());
+        if (skipCreateAzureResource && !planDraft.exists()) {
             throwForbidCreateResourceWarning("Service plan", servicePlanConfig.servicePlanResourceGroup() + "/" + servicePlanConfig.servicePlanName());
         }
+        planDraft.setPlanConfig(servicePlanConfig);
 
-        final Runtime runtime = getRuntime(config.runtime());
-        final AppServicePlan appServicePlan = new CreateOrUpdateAppServicePlanTask(servicePlanConfig).doExecute();
-        final IAppServiceUpdater<? extends WebApp> draft = webApp.update();
-        if (!(StringUtils.equalsIgnoreCase(config.servicePlanResourceGroup(), currentPlan.resourceGroup()) &&
-            StringUtils.equalsIgnoreCase(config.servicePlanName(), currentPlan.name()))) {
-            draft.withPlan(appServicePlan.id());
-        }
-        if (!webApp.getRuntime().equals(runtime)) {
-            draft.withRuntime(runtime);
-        }
-        final WebApp result = draft
-            .withDockerConfiguration(getDockerConfiguration(config.runtime()))
-            .withAppSettings(ObjectUtils.firstNonNull(config.appSettings(), new HashMap<>()))
-            .commit();
-        AzureMessager.getMessager().info(String.format(UPDATE_WEBAPP_DONE, webApp.name()));
-        return result;
+        draft.setAppServicePlan(planDraft.commit());
+        draft.setRuntime(runtime);
+        draft.setDockerConfiguration(getDockerConfiguration(config.runtime()));
+        draft.setAppSettings(ObjectUtils.firstNonNull(config.appSettings(), new HashMap<>()));
+        return draft.updateIfExist();
     }
 
     private DockerConfiguration getDockerConfiguration(RuntimeConfig runtime) {

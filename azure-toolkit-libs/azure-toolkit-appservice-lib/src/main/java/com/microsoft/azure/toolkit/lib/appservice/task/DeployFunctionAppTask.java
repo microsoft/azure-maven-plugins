@@ -5,6 +5,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.task;
 
 import com.azure.core.management.exception.ManagementException;
+import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.ANONYMOUS;
 
-public class DeployFunctionAppTask extends AzureTask<IFunctionAppBase<?>> {
+public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
 
     private static final int SYNC_FUNCTION_MAX_ATTEMPTS = 5;
     private static final int SYNC_FUNCTION_DELAY = 1;
@@ -59,11 +60,11 @@ public class DeployFunctionAppTask extends AzureTask<IFunctionAppBase<?>> {
     private static final String LIST_TRIGGERS = "Querying triggers...";
     private static final String LIST_TRIGGERS_WITH_RETRY = "Querying triggers (Attempt {0}/{1})...";
 
-    private final IFunctionAppBase<?> target;
+    private final FunctionAppBase<?, ?, ?> target;
     private final File stagingDirectory;
     private final FunctionDeployType deployType;
 
-    public DeployFunctionAppTask(@Nonnull IFunctionAppBase<?> target, @Nonnull File stagingFolder, @Nullable FunctionDeployType deployType) {
+    public DeployFunctionAppTask(@Nonnull FunctionAppBase<?, ?, ?> target, @Nonnull File stagingFolder, @Nullable FunctionDeployType deployType) {
         this.target = target;
         this.stagingDirectory = stagingFolder;
         this.deployType = deployType;
@@ -75,7 +76,7 @@ public class DeployFunctionAppTask extends AzureTask<IFunctionAppBase<?>> {
     }
 
     @Override
-    public IFunctionAppBase<?> doExecute() {
+    public FunctionAppBase<?, ?, ?> doExecute() {
         if (target.getRuntime().isDocker()) {
             AzureMessager.getMessager().info(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE);
             return target;
@@ -98,10 +99,10 @@ public class DeployFunctionAppTask extends AzureTask<IFunctionAppBase<?>> {
             target.deploy(file, deployType);
         }
         AzureTelemetry.getContext().getActionParent().setProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
-        if (!StringUtils.equalsIgnoreCase(target.state(), RUNNING)) {
+        if (!StringUtils.equalsIgnoreCase(target.getStatus(), RUNNING)) {
             target.start();
         }
-        AzureMessager.getMessager().info(String.format(DEPLOY_FINISH, target.hostName()));
+        AzureMessager.getMessager().info(String.format(DEPLOY_FINISH, target.getHostName()));
     }
 
     private File packageStagingDirectory() {
@@ -149,11 +150,10 @@ public class DeployFunctionAppTask extends AzureTask<IFunctionAppBase<?>> {
         Thread.sleep(5 * 1000);
         Mono.fromRunnable(() -> {
             try {
-                Azure.az(AzureAppService.class).getAppServiceManager(functionApp.subscriptionId())
-                        .functionApps().manager().serviceClient().getWebApps().syncFunctions(functionApp.resourceGroup(), functionApp.name());
+                functionApp.syncTriggers();
             } catch (ManagementException e) {
-                if (e.getResponse().getStatusCode() == 200) {
-                    // Java SDK throw exception with 200 response, swallow exception in this case
+                if (e.getResponse().getStatusCode() != 200) {// Java SDK throw exception with 200 response, swallow exception in this case
+                    throw e;
                 }
             }
         }).subscribeOn(Schedulers.boundedElastic())
@@ -166,7 +166,7 @@ public class DeployFunctionAppTask extends AzureTask<IFunctionAppBase<?>> {
             final AzureString message = count[0]++ == 0 ?
                     AzureString.fromString(LIST_TRIGGERS) : AzureString.format(LIST_TRIGGERS_WITH_RETRY, count[0], LIST_TRIGGERS_MAX_RETRY);
             AzureMessager.getMessager().info(message);
-            return Optional.ofNullable(functionApp.listFunctions(true))
+                return Optional.ofNullable(functionApp.listFunctions())
                     .filter(CollectionUtils::isNotEmpty)
                     .orElseThrow(() -> new AzureToolkitRuntimeException(NO_TRIGGERS_FOUNDED));
         }).subscribeOn(Schedulers.boundedElastic())

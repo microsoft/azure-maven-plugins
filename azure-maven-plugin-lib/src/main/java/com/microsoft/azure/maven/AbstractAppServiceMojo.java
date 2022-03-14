@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
@@ -172,7 +173,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
                 final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
                 checkSubscription(subscriptions, targetSubscriptionId);
                 com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account().selectSubscription(Collections.singletonList(targetSubscriptionId));
-                appServiceClient = Azure.az(AzureAppService.class).subscription(targetSubscriptionId);
+                appServiceClient = Azure.az(AzureAppService.class);
                 printCurrentSubscription(appServiceClient);
                 this.subscriptionId = targetSubscriptionId;
             } catch (AzureLoginException | AzureExecutionException | IOException e) {
@@ -187,7 +188,8 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         if (appServiceClient == null) {
             return;
         }
-        final Subscription subscription = appServiceClient.getDefaultSubscription();
+        final List<Subscription> subscriptions = Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
+        final Subscription subscription = subscriptions.get(0);
         if (subscription != null) {
             Log.info(String.format(SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.getName()), TextUtils.cyan(subscription.getId())));
         }

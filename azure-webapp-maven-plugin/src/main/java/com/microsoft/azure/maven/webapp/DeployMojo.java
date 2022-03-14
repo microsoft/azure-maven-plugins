@@ -8,20 +8,18 @@ package com.microsoft.azure.maven.webapp;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotConfig;
 import com.microsoft.azure.maven.webapp.task.DeployExternalResourcesTask;
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
-import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
-import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateWebAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlotDraft;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -46,9 +44,6 @@ import static com.microsoft.azure.toolkit.lib.appservice.utils.Utils.throwForbid
 public class DeployMojo extends AbstractWebAppMojo {
     private static final String WEBAPP_NOT_EXIST_FOR_SLOT = "The Web App specified in pom.xml does not exist. " +
             "Please make sure the Web App name is correct.";
-    private static final String CREATE_DEPLOYMENT_SLOT = "Creating deployment slot %s in web app %s";
-    private static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created the Deployment Slot.";
-    private static final String CREATE_NEW_DEPLOYMENT_SLOT = "createNewDeploymentSlot";
 
     @Override
     @AzureOperation(name = "webapp.deploy_app", type = AzureOperation.Type.ACTION)
@@ -56,19 +51,18 @@ public class DeployMojo extends AbstractWebAppMojo {
         validateConfiguration(message -> AzureMessager.getMessager().error(message.getMessage()), true);
         // initialize library client
         az = getOrCreateAzureAppServiceClient();
-        final IWebAppBase<?> target = createOrUpdateResource();
+        final WebAppBase<?, ?, ?> target = createOrUpdateResource();
         deployExternalResources(target, getConfigParser().getExternalArtifacts());
         deploy(target, getConfigParser().getArtifacts());
         updateTelemetryProperties();
     }
 
-    private IWebAppBase<?> createOrUpdateResource() throws AzureExecutionException {
+    private WebAppBase<?, ?, ?> createOrUpdateResource() throws AzureExecutionException {
         final boolean skipCreate = skipAzureResourceCreate || skipCreateAzureResource;
         if (!isDeployToDeploymentSlot()) {
             final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
-            WebApp app = Azure.az(AzureAppService.class).webapp(appServiceConfig.resourceGroup(), appServiceConfig.appName());
-            final boolean newWebApp = !app.exists();
-            AppServiceConfig defaultConfig = !newWebApp ? fromAppService(app, app.plan()) : buildDefaultConfig(appServiceConfig.subscriptionId(),
+            WebApp app = az.webApps(appServiceConfig.subscriptionId()).getOrDraft(appServiceConfig.appName(), appServiceConfig.resourceGroup());
+            AppServiceConfig defaultConfig = app.exists() ? fromAppService(app, app.getAppServicePlan()) : buildDefaultConfig(appServiceConfig.subscriptionId(),
                 appServiceConfig.resourceGroup(), appServiceConfig.appName());
             mergeAppServiceConfig(appServiceConfig, defaultConfig);
             if (appServiceConfig.pricingTier() == null) {
@@ -81,12 +75,12 @@ public class DeployMojo extends AbstractWebAppMojo {
         } else {
             // todo: New CreateOrUpdateDeploymentSlotTask
             final DeploymentSlotConfig config = getConfigParser().getDeploymentSlotConfig();
-            final WebAppDeploymentSlot slot = getDeploymentSlot(config);
-            final boolean slotExists = slot.exists();
+            final WebAppDeploymentSlotDraft slotDraft = getDeploymentSlot(config);
+            final boolean slotExists = slotDraft.exists();
             if (!slotExists && skipCreate) {
                 throwForbidCreateResourceWarning("Deployment slot", config.getName());
             }
-            return slotExists ? updateDeploymentSlot(slot, config) : createDeploymentSlot(slot, config);
+            return slotExists ? updateDeploymentSlot(slotDraft, config) : createDeploymentSlot(slotDraft, config);
         }
     }
 
@@ -108,36 +102,31 @@ public class DeployMojo extends AbstractWebAppMojo {
         return AppServiceConfigUtils.buildDefaultWebAppConfig(subscriptionId, resourceGroup, appName, this.project.getPackaging(), javaVersion);
     }
 
-    private WebAppDeploymentSlot getDeploymentSlot(final DeploymentSlotConfig config) throws AzureExecutionException {
-        final WebApp webApp = az.webapp(config.getResourceGroup(), config.getAppName());
+    private WebAppDeploymentSlotDraft getDeploymentSlot(final DeploymentSlotConfig config) throws AzureExecutionException {
+        final WebApp webApp = az.webApps(config.getSubscriptionId()).getOrDraft(config.getAppName(), config.getResourceGroup());
         if (!webApp.exists()) {
             throw new AzureExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
         }
-        return webApp.deploymentSlot(config.getName());
+        return webApp.slots().updateOrCreate(config.getName(), config.getResourceGroup());
     }
 
-    private WebAppDeploymentSlot createDeploymentSlot(final WebAppDeploymentSlot slot, final DeploymentSlotConfig slotConfig) {
-        AzureMessager.getMessager().info(AzureString.format(CREATE_DEPLOYMENT_SLOT, slotConfig.getName(), slotConfig.getAppName()));
-        getTelemetryProxy().addDefaultProperty(CREATE_NEW_DEPLOYMENT_SLOT, String.valueOf(true));
-        final WebAppDeploymentSlot result = slot.create().withName(slotConfig.getName())
-                .withConfigurationSource(slotConfig.getConfigurationSource())
-                .withAppSettings(slotConfig.getAppSettings())
-                .commit();
-        AzureMessager.getMessager().info(CREATE_DEPLOYMENT_SLOT_DONE);
-        return result;
+    private WebAppDeploymentSlot createDeploymentSlot(final WebAppDeploymentSlotDraft draft, final DeploymentSlotConfig slotConfig) {
+        draft.setConfigurationSource(slotConfig.getConfigurationSource());
+        draft.setAppSettings(slotConfig.getAppSettings());
+        return draft.commit();
     }
 
     // update existing slot is not supported in current version, will implement it later
-    private WebAppDeploymentSlot updateDeploymentSlot(final WebAppDeploymentSlot slot, final DeploymentSlotConfig slotConfig) {
+    private WebAppDeploymentSlot updateDeploymentSlot(final WebAppDeploymentSlotDraft slot, final DeploymentSlotConfig slotConfig) {
         AzureMessager.getMessager().warning("update existing slot is not supported in current version");
         return slot;
     }
 
-    private void deploy(IWebAppBase<?> target, List<WebAppArtifact> artifacts) {
+    private void deploy(WebAppBase<?, ?, ?> target, List<WebAppArtifact> artifacts) {
         new DeployWebAppTask(target, artifacts, isStopAppDuringDeployment()).doExecute();
     }
 
-    private void deployExternalResources(final IWebAppBase<?> target, final List<DeploymentResource> resources) {
+    private void deployExternalResources(final WebAppBase<?, ?, ?> target, final List<DeploymentResource> resources) {
         new DeployExternalResourcesTask(target, resources).doExecute();
     }
 }

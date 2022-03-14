@@ -119,6 +119,7 @@ public interface IAzureBaseResource<T extends IAzureBaseResource, P extends IAzu
         String LOADING = "Loading";
         String UPDATING = "Updating";
         String SCALING = "Scaling";
+        String DEPLOYING = "Deploying";
 
         String STARTING = "Starting";
         String RESTARTING = "Restarting";

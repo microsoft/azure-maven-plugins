@@ -5,9 +5,9 @@
 
 package com.microsoft.azure.toolkit.lib.legacy.appservice;
 
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public class AppServiceUtils {
         }
     }
 
-    public static boolean isDockerAppService(IAppService<?> appService) {
+    public static boolean isDockerAppService(AppServiceAppBase<?, ?, ?> appService) {
         return appService != null && appService.getRuntime() != null && appService.getRuntime().isDocker();
     }
 

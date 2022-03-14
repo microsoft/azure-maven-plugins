@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.model;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 import org.jetbrains.annotations.Contract;
@@ -19,6 +20,12 @@ public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzRes
 
     @Nonnull
     List<T> list();
+
+    @Nullable
+    default T get(@Nonnull String resourceId) {
+        final ResourceId id = ResourceId.fromString(resourceId);
+        return this.get(id.name(), id.resourceGroupName());
+    }
 
     @Nullable
     T get(@Nonnull String name, @Nullable String resourceGroup);

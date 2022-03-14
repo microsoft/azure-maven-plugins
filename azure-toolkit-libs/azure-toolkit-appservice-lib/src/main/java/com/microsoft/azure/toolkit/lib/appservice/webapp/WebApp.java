@@ -1,0 +1,58 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ */
+
+package com.microsoft.azure.toolkit.lib.appservice.webapp;
+
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
+import com.microsoft.azure.toolkit.lib.common.entity.Removable;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import lombok.Getter;
+
+import javax.annotation.Nonnull;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+
+@Getter
+public class WebApp extends WebAppBase<WebApp, AppServiceResourceManager, com.azure.resourcemanager.appservice.models.WebApp>
+    implements Removable {
+
+    @Nonnull
+    private final WebAppDeploymentSlotModule deploymentModule;
+
+    protected WebApp(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull WebAppModule module) {
+        super(name, resourceGroupName, module);
+        this.deploymentModule = new WebAppDeploymentSlotModule(this);
+    }
+
+    /**
+     * copy constructor
+     */
+    protected WebApp(@Nonnull WebApp origin) {
+        super(origin);
+        this.deploymentModule = origin.deploymentModule;
+    }
+
+    protected WebApp(@Nonnull com.azure.resourcemanager.appservice.models.WebApp remote, @Nonnull WebAppModule module) {
+        super(remote.name(), remote.resourceGroupName(), module);
+        this.deploymentModule = new WebAppDeploymentSlotModule(this);
+        this.setRemote(remote);
+    }
+
+    public void swap(String slotName) {
+        this.doModify(() -> Objects.requireNonNull(this.getRemote()).swap(slotName), Status.UPDATING);
+    }
+
+    @Nonnull
+    @Override
+    public List<AzResourceModule<?, WebApp, ?>> getSubModules() {
+        return Collections.singletonList(deploymentModule);
+    }
+
+    @Nonnull
+    public WebAppDeploymentSlotModule slots() {
+        return this.deploymentModule;
+    }
+}

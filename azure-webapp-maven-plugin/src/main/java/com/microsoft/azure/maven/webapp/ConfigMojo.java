@@ -16,6 +16,7 @@ import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
 import com.microsoft.azure.maven.webapp.models.WebAppOption;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
@@ -23,7 +24,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -469,16 +470,19 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebAppConfiguration chooseExistingWebappForConfiguration()
             throws AzureAuthFailureException {
         try {
+            final List<Subscription> subscriptions = Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
+            final Subscription defaultSubs = subscriptions.get(0);
             final AzureAppService az = getOrCreateAzureAppServiceClient();
             if (Objects.isNull(az)) {
                 return null;
             }
             // get user selected sub id to persistent it in pom.xml
-            this.subscriptionId = az.getDefaultSubscription().getId();
+            this.subscriptionId = defaultSubs.getId();
             // load configuration to detecting java or docker
             Log.info(LONG_LOADING_HINT);
-            final List<WebAppOption> webAppOptionList = az.webapps().stream()
-                    .map(WebAppOption::new).sorted().collect(Collectors.toList());
+            final List<WebAppOption> webAppOptionList = az.list().stream().flatMap(m -> m.webApps().list().stream())
+                .map(WebAppOption::new)
+                .collect(Collectors.toList());
 
             // check empty: first time
             if (webAppOptionList.isEmpty()) {
@@ -488,15 +492,15 @@ public class ConfigMojo extends AbstractWebAppMojo {
             final boolean isContainer = !Utils.isJarPackagingProject(this.project.getPackaging());
             final boolean isDockerOnly = Utils.isPomPackagingProject(this.project.getPackaging());
             final List<WebAppOption> javaOrDockerWebapps = webAppOptionList.stream().filter(app -> app.isJavaWebApp() || app.isDockerWebapp())
-                    .filter(app -> checkWebAppVisible(isContainer, isDockerOnly, app.isJavaSE(), app.isDockerWebapp())).sorted()
-                    .collect(Collectors.toList());
+                .filter(app -> checkWebAppVisible(isContainer, isDockerOnly, app.isJavaSE(), app.isDockerWebapp())).sorted()
+                .collect(Collectors.toList());
             final WebAppOption selectedApp = selectAzureWebApp(javaOrDockerWebapps,
-                    getWebAppTypeByPackaging(this.project.getPackaging()), az.getDefaultSubscription());
+                getWebAppTypeByPackaging(this.project.getPackaging()), defaultSubs);
             if (selectedApp == null || selectedApp.isCreateNew()) {
                 return null;
             }
 
-            final WebApp webapp = az.webapp(selectedApp.getId());
+            final WebApp webapp = selectedApp.getWebappInner();
 
             final WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder = WebAppConfiguration.builder();
             if (!AppServiceUtils.isDockerAppService(webapp)) {
@@ -526,13 +530,13 @@ public class ConfigMojo extends AbstractWebAppMojo {
     }
 
     private WebAppConfiguration getConfigurationFromExisting(WebApp webapp,
-                                                                    WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder) {
-        final AppServiceConfig appServiceConfig = fromAppService(webapp, webapp.plan());
+                                                             WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder) {
+        final AppServiceConfig appServiceConfig = fromAppService(webapp, webapp.getAppServicePlan());
         // common configuration
         builder.appName(appServiceConfig.appName())
-                .resourceGroup(appServiceConfig.resourceGroup())
-                .subscriptionId(appServiceConfig.subscriptionId())
-                .region(appServiceConfig.region());
+            .resourceGroup(appServiceConfig.resourceGroup())
+            .subscriptionId(appServiceConfig.subscriptionId())
+            .region(appServiceConfig.region());
         builder.os(appServiceConfig.runtime().os());
         if (AppServiceUtils.isDockerAppService(webapp)) {
             final Map<String, String> settings = webapp.getAppSettings();
