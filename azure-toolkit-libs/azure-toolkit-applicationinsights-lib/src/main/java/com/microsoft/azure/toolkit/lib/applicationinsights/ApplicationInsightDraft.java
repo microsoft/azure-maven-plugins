@@ -94,6 +94,6 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
 
     @Override
     public boolean isModified() {
-        return this.region != null && !Objects.equals(this.region, super.getRegion());
+        return this.region != null && !Objects.equals(this.region, this.origin.getRegion());
     }
 }
