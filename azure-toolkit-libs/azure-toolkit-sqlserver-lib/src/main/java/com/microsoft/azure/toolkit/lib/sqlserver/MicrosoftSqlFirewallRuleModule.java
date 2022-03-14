@@ -12,8 +12,8 @@ import com.azure.resourcemanager.sql.models.SqlServer;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -21,6 +21,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+@Slf4j
 public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<MicrosoftSqlFirewallRule, MicrosoftSqlServer, SqlFirewallRule> {
     public static final String NAME = "firewallRules";
 
@@ -28,6 +29,7 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
         super(NAME, parent);
     }
 
+    @Nonnull
     @Override
     protected MicrosoftSqlFirewallRule newResource(@Nonnull SqlFirewallRule rule) {
         return new MicrosoftSqlFirewallRule(rule, this);
@@ -35,31 +37,39 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
 
     @Nonnull
     @Override
+    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<SqlFirewallRule> loadResourcesFromAzure() {
-        return this.getClient().list().stream();
+        return Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());
     }
 
     @Nullable
     @Override
+    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected SqlFirewallRule loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
-        return this.getClient().get(name);
+        return Optional.ofNullable(this.getClient()).map(c -> c.get(name)).orElse(null);
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.delete_resource.resource|type",
+        params = {"nameFromResourceId(id)", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     protected void deleteResourceFromAzure(@Nonnull String id) {
         final ResourceId resourceId = ResourceId.fromString(id);
         final String name = resourceId.name();
-        this.getClient().delete(name);
+        Optional.ofNullable(this.getClient()).ifPresent(c -> c.delete(name));
     }
 
+    @Nonnull
     @Override
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
-    protected MicrosoftSqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
+    protected MicrosoftSqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
+        assert resourceGroupName != null : "'Resource group' is required.";
         return new MicrosoftSqlFirewallRuleDraft(name, this);
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.draft_for_update.resource|type",
@@ -67,11 +77,10 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
         type = AzureOperation.Type.SERVICE
     )
     protected MicrosoftSqlFirewallRuleDraft newDraftForUpdate(@Nonnull MicrosoftSqlFirewallRule origin) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new MicrosoftSqlFirewallRuleDraft(origin);
     }
 
+    @Nullable
     @Override
     protected SqlFirewallRuleOperations.SqlFirewallRuleActionsDefinition getClient() {
         return Optional.ofNullable(this.getParent().getRemote()).map(SqlServer::firewallRules).orElse(null);
@@ -110,6 +119,7 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
         }
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "SQL server firewall rule";

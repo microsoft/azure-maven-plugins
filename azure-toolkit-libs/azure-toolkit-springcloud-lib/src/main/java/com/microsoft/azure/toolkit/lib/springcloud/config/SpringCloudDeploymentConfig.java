@@ -23,6 +23,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.List;
@@ -47,8 +48,10 @@ public class SpringCloudDeploymentConfig {
     private static final String DEFAULT_RUNTIME_VERSION = SpringCloudJavaVersion.JAVA_8;
     private static final String RUNTIME_VERSION_PATTERN = "[Jj]ava((\\s)?|_)(8|11)$";
 
+    @Nullable
     @Builder.Default
     private Integer cpu = 1;
+    @Nullable
     @Builder.Default
     private Integer memoryInGB = 1;
     private Integer instanceCount;
@@ -57,6 +60,7 @@ public class SpringCloudDeploymentConfig {
     private String jvmOptions;
     @Builder.Default
     private String runtimeVersion = RuntimeVersion.JAVA_8.toString();
+    @Nonnull
     @Builder.Default
     private Boolean enablePersistentStorage = false;
     @Nullable
@@ -64,6 +68,7 @@ public class SpringCloudDeploymentConfig {
     @Nullable
     private IArtifact artifact;
 
+    @Nonnull
     public Boolean isEnablePersistentStorage() {
         return BooleanUtils.isTrue(enablePersistentStorage);
     }
@@ -80,6 +85,7 @@ public class SpringCloudDeploymentConfig {
         return normalize(runtimeVersion);
     }
 
+    @Nonnull
     public static String normalize(String runtimeVersion) {
         if (StringUtils.isEmpty(runtimeVersion)) {
             return DEFAULT_RUNTIME_VERSION;

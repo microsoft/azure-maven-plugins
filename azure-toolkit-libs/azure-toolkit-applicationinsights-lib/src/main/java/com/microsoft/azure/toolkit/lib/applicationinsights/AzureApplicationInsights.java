@@ -18,10 +18,9 @@ import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.lib.AzureService.getUserAgentPolicy;
@@ -31,6 +30,7 @@ public class AzureApplicationInsights extends AbstractAzService<ApplicationInsig
         super("Microsoft.Insights");
     }
 
+    @Nonnull
     @Override
     protected ApplicationInsightsResourceManager newResource(@Nonnull ApplicationInsightsManager applicationInsightsManager) {
         return new ApplicationInsightsResourceManager(applicationInsightsManager.serviceClient().getSubscriptionId(), this);
@@ -45,7 +45,7 @@ public class AzureApplicationInsights extends AbstractAzService<ApplicationInsig
 
     @Nullable
     @Override
-    protected ApplicationInsightsManager loadResourceFromAzure(@NotNull String subscriptionId, String resourceGroup) {
+    protected ApplicationInsightsManager loadResourceFromAzure(@Nonnull String subscriptionId, String resourceGroup) {
         final Account account = Azure.az(AzureAccount.class).account();
         final String tenantId = account.getSubscription(subscriptionId).getTenantId();
         final AzureConfiguration config = Azure.az().config();
@@ -55,7 +55,7 @@ public class AzureApplicationInsights extends AbstractAzService<ApplicationInsig
         final AzureProfile azureProfile = new AzureProfile(tenantId, subscriptionId, account.getEnvironment());
         // todo: migrate resource provider related codes to common library
         final Providers providers = ResourceManager.configure()
-                .withHttpClient(AzureService.getDefaultHttpClient())
+            .withHttpClient(AzureService.getDefaultHttpClient())
                 .withPolicy(getUserAgentPolicy(userAgent))
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
                 .withSubscription(subscriptionId).providers();
@@ -68,6 +68,7 @@ public class AzureApplicationInsights extends AbstractAzService<ApplicationInsig
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Application Insights";

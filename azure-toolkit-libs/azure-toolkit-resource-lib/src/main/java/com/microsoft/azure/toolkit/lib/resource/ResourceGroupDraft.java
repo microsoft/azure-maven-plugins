@@ -31,7 +31,7 @@ public class ResourceGroupDraft extends ResourceGroup implements AzResource.Draf
     @Nullable
     private Config config;
 
-    ResourceGroupDraft(@Nonnull String name, String resourceGroupName, @Nonnull ResourceGroupModule module) {
+    ResourceGroupDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull ResourceGroupModule module) {
         super(name, resourceGroupName, module);
         this.origin = null;
     }
@@ -46,6 +46,7 @@ public class ResourceGroupDraft extends ResourceGroup implements AzResource.Draf
         this.config = null;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.create_resource.resource|type",
@@ -54,8 +55,6 @@ public class ResourceGroupDraft extends ResourceGroup implements AzResource.Draf
     )
     public com.azure.resourcemanager.resources.models.ResourceGroup createResourceInAzure() {
         AzureTelemetry.getActionContext().setProperty(CREATE_NEW_RESOURCE_GROUP_KEY, String.valueOf(true));
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final String name = this.getName();
         final Region region = this.getRegion();
         if (Objects.isNull(region)) {
@@ -70,6 +69,7 @@ public class ResourceGroupDraft extends ResourceGroup implements AzResource.Draf
         return group;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.update_resource.resource|type",
@@ -80,6 +80,7 @@ public class ResourceGroupDraft extends ResourceGroup implements AzResource.Draf
         throw new AzureToolkitRuntimeException("not supported");
     }
 
+    @Nonnull
     private synchronized Config ensureConfig() {
         this.config = Optional.ofNullable(this.config).orElseGet(Config::new);
         return this.config;

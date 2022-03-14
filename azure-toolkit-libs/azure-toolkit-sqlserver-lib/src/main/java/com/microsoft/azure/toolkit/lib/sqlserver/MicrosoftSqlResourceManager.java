@@ -24,37 +24,42 @@ import java.util.Objects;
 public class MicrosoftSqlResourceManager extends AbstractAzResourceManager<MicrosoftSqlResourceManager, SqlServerManager> {
     @Nonnull
     private final String subscriptionId;
+    @Nonnull
     private final MicrosoftSqlServerModule serverModule;
 
-    MicrosoftSqlResourceManager(@Nonnull String subscriptionId, AzureSqlServer service) {
+    MicrosoftSqlResourceManager(@Nonnull String subscriptionId, @Nonnull AzureSqlServer service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.serverModule = new MicrosoftSqlServerModule(this);
     }
 
-    MicrosoftSqlResourceManager(SqlServerManager manager, AzureSqlServer service) {
+    MicrosoftSqlResourceManager(@Nonnull SqlServerManager manager, @Nonnull AzureSqlServer service) {
         this(manager.serviceClient().getSubscriptionId(), service);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, MicrosoftSqlResourceManager, ?>> getSubModules() {
         return Collections.singletonList(serverModule);
     }
 
+    @Nonnull
     public MicrosoftSqlServerModule servers() {
         return this.serverModule;
     }
 
+    @Nonnull
     public List<Region> listSupportedRegions() {
         return super.listSupportedRegions(this.serverModule.getName());
     }
 
+    @Nonnull
     public CheckNameAvailabilityResultEntity checkNameAvailability(@Nonnull String name) {
         CheckNameAvailabilityResult result = Objects.requireNonNull(this.getRemote()).sqlServers().checkNameAvailability(name);
         return new CheckNameAvailabilityResultEntity(result.isAvailable(), result.unavailabilityReason(), result.unavailabilityMessage());
     }
 
-    public boolean checkRegionAvailability(Region region) {
+    public boolean checkRegionAvailability(@Nonnull Region region) {
         RegionCapabilities capabilities = Objects.requireNonNull(this.getRemote()).sqlServers()
             .getCapabilitiesByRegion(com.azure.core.management.Region.fromName(region.getName()));
         return Objects.nonNull(capabilities.status()) && CapabilityStatus.AVAILABLE == capabilities.status();

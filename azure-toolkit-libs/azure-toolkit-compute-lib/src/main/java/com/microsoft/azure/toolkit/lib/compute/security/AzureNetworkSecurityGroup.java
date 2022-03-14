@@ -7,10 +7,9 @@ package com.microsoft.azure.toolkit.lib.compute.security;
 
 import com.azure.resourcemanager.compute.ComputeManager;
 import com.azure.resourcemanager.network.models.NetworkSecurityGroups;
+import com.microsoft.azure.toolkit.lib.AbstractAzureResourceModule;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.AbstractAzureResourceModule;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -32,7 +31,7 @@ public class AzureNetworkSecurityGroup extends AbstractAzureResourceModule<Netwo
         return getSecurityGroupManager(subscriptionId).list().stream().map(group -> new NetworkSecurityGroup(group, this)).collect(Collectors.toList());
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public NetworkSecurityGroup get(@Nonnull String subscriptionId, @Nonnull String resourceGroup, @Nonnull String name) {
         final NetworkSecurityGroups securityGroupManager = getSecurityGroupManager(subscriptionId);

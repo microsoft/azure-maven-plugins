@@ -8,10 +8,12 @@ package com.microsoft.azure.toolkit.lib.database;
 import lombok.Builder;
 import lombok.Getter;
 
+import javax.annotation.Nonnull;
+
 @Getter
 @Builder
 public class FirewallRuleConfig {
-
+    @Nonnull
     private String name;
     private String startIpAddress;
     private String endIpAddress;

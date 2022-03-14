@@ -13,7 +13,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 import lombok.Getter;
@@ -55,6 +54,7 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
         this.setLocalMachineAccessAllowed(config.isLocalMachineAccessAllowed());
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.create_resource.resource|type",
@@ -63,12 +63,10 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
     )
     public SqlServer createResourceInAzure() {
         assert this.config != null;
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final SqlServerManager manager = Objects.requireNonNull(this.getParent().getRemote());
         final SqlServer.DefinitionStages.WithCreate create = manager.sqlServers()
             .define(this.getName())
-            .withRegion(this.getRegion().getName())
+            .withRegion(Objects.requireNonNull(this.getRegion(), "'region' is required to create Sql server").getName())
             .withExistingResourceGroup(this.getResourceGroupName())
             .withAdministratorLogin(this.getAdminName())
             .withAdministratorPassword(this.getAdminPassword());
@@ -76,9 +74,10 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
         messager.info(AzureString.format("Start creating SQL server ({0})...", this.getName()));
         final SqlServer remote = this.doModify(() -> create.create(), Status.CREATING);
         messager.success(AzureString.format("SQL server({0}) is successfully created.", this.getName()));
-        return this.updateResourceInAzure(remote);
+        return this.updateResourceInAzure(Objects.requireNonNull(remote));
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.update_resource.resource|type",
@@ -86,8 +85,6 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
         type = AzureOperation.Type.SERVICE
     )
     public SqlServer updateResourceInAzure(@Nonnull SqlServer origin) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
             final IAzureMessager messager = AzureMessager.getMessager();
@@ -99,29 +96,35 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
         return origin;
     }
 
+    @Nonnull
     private synchronized Config ensureConfig() {
         this.config = Optional.ofNullable(this.config).orElseGet(Config::new);
         return this.config;
     }
 
+    @Nullable
     @Override
     public String getAdminName() {
         return Optional.ofNullable(this.config).map(Config::getAdminName).orElseGet(super::getAdminName);
     }
 
+    @Nullable
     public String getAdminPassword() {
         return Optional.ofNullable(this.config).map(Config::getAdminPassword).orElse(null);
     }
 
+    @Nullable
     public Region getRegion() {
         return Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion);
     }
 
+    @Nullable
     @Override
     public String getVersion() {
         return Optional.ofNullable(this.config).map(Config::getVersion).orElseGet(super::getVersion);
     }
 
+    @Nullable
     @Override
     public String getFullyQualifiedDomainName() {
         return Optional.ofNullable(this.config).map(Config::getFullyQualifiedDomainName).orElseGet(super::getFullyQualifiedDomainName);
@@ -137,23 +140,23 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
         return Optional.ofNullable(this.config).map(Config::isAzureServiceAccessAllowed).orElseGet(super::isAzureServiceAccessAllowed);
     }
 
-    public void setAdminName(String name) {
+    public void setAdminName(@Nullable String name) {
         this.ensureConfig().setAdminName(name);
     }
 
-    public void setAdminPassword(String password) {
+    public void setAdminPassword(@Nullable String password) {
         this.ensureConfig().setAdminPassword(password);
     }
 
-    public void setRegion(Region region) {
+    public void setRegion(@Nullable Region region) {
         this.ensureConfig().setRegion(region);
     }
 
-    public void setVersion(String version) {
+    public void setVersion(@Nullable String version) {
         this.ensureConfig().setVersion(version);
     }
 
-    public void setFullyQualifiedDomainName(String name) {
+    public void setFullyQualifiedDomainName(@Nullable String name) {
         this.ensureConfig().setFullyQualifiedDomainName(name);
     }
 
@@ -181,10 +184,15 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
 
     @Data
     private static class Config {
+        @Nullable
         private String adminName;
+        @Nullable
         private String adminPassword;
+        @Nullable
         private Region region;
+        @Nullable
         private String version;
+        @Nullable
         private String fullyQualifiedDomainName;
         private boolean azureServiceAccessAllowed;
         private boolean localMachineAccessAllowed;

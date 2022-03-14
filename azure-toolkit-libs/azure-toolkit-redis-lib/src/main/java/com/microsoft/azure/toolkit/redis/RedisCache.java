@@ -58,6 +58,7 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceMana
         super.delete();
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, RedisCache, ?>> getSubModules() {
         return Collections.emptyList();
@@ -69,6 +70,7 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceMana
         return remote.innerModel().provisioningState().toString();
     }
 
+    @Nonnull
     @Override
     public String status() {
         return this.getStatus();
@@ -79,8 +81,9 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceMana
         return remoteOptional().map(remote -> Region.fromName(remote.regionName())).orElse(null);
     }
 
+    @Nullable
     public PricingTier getPricingTier() {
-        return remoteOptional().map(com.azure.resourcemanager.redis.models.RedisCache::sku).map(s -> PricingTier.from(s)).orElse(null);
+        return remoteOptional().map(com.azure.resourcemanager.redis.models.RedisCache::sku).map(PricingTier::from).orElse(null);
     }
 
     @Nullable
@@ -116,6 +119,7 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceMana
         return remoteOptional().map(com.azure.resourcemanager.redis.models.RedisCache::hostname).orElse(null);
     }
 
+    @Nonnull
     @AzureOperation(name = "redis.get_jedis_pool.redis", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public synchronized JedisPool getJedisPool() {
         if (Objects.isNull(this.jedisPool) || this.jedisPool.isClosed()) {

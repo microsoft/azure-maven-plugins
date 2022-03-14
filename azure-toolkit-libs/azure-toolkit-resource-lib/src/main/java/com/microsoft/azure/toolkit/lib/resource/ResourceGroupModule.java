@@ -10,7 +10,6 @@ import com.azure.resourcemanager.resources.models.ResourceGroups;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -25,8 +24,9 @@ public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup,
         super(NAME, parent);
     }
 
+    @Nonnull
     @AzureOperation(name = "group.create.rg", params = {"name"}, type = AzureOperation.Type.SERVICE)
-    public com.microsoft.azure.toolkit.lib.common.model.ResourceGroup createResourceGroupIfNotExist(String name, Region region) {
+    public com.microsoft.azure.toolkit.lib.common.model.ResourceGroup createResourceGroupIfNotExist(@Nonnull String name, @Nonnull Region region) {
         final com.microsoft.azure.toolkit.lib.resource.ResourceGroup group = this.getOrDraft(name, name);
         if (group instanceof ResourceGroupDraft && !group.exists()) {
             ((ResourceGroupDraft) group).setRegion(region);
@@ -46,14 +46,14 @@ public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup,
         return Optional.ofNullable(this.getClient()).map(c -> c.contain(resourceName)).orElse(false);
     }
 
+    @Nonnull
     @Override
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
-    protected ResourceGroupDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
+    protected ResourceGroupDraft newDraftForCreate(@Nonnull String name, @Nonnull String resourceGroupName) {
         return new ResourceGroupDraft(name, resourceGroupName, this);
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.draft_for_update.resource|type",
@@ -61,8 +61,6 @@ public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup,
         type = AzureOperation.Type.SERVICE
     )
     protected ResourceGroupDraft newDraftForUpdate(@Nonnull ResourceGroup origin) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new ResourceGroupDraft(origin);
     }
 
@@ -78,6 +76,7 @@ public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup,
         return new ResourceGroup(r, this);
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Resource group";

@@ -21,7 +21,6 @@ import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import io.netty.resolver.AddressResolverGroup;
 import io.netty.resolver.DefaultAddressResolverGroup;
 import io.netty.resolver.NoopAddressResolverGroup;
@@ -43,9 +42,7 @@ public abstract class AbstractAzResourceManager<T extends AbstractAzResource<T, 
     }
 
     @AzureOperation(name = "resource.list_supported_regions.type", params = {"resourceType"}, type = AzureOperation.Type.SERVICE)
-    public List<Region> listSupportedRegions(String resourceType) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
+    public List<Region> listSupportedRegions(@Nonnull String resourceType) {
         final String provider = getService().getName();
         final String subscriptionId = this.getSubscriptionId();
         List<Region> allRegionList = az(IAzureAccount.class).listRegions(subscriptionId);
@@ -64,21 +61,25 @@ public abstract class AbstractAzResourceManager<T extends AbstractAzResource<T, 
         return Status.UNKNOWN;
     }
 
+    @Nonnull
     public AzService getService() {
         return ((AzService) this.getModule());
     }
 
+    @Nonnull
     @Override
     public String getFullResourceType() {
         return this.getService().getName();
     }
 
+    @Nonnull
     public ResourceManager getResourceManager() {
         final String subscriptionId = this.getSubscriptionId();
         return getResourceManager(subscriptionId);
     }
 
-    public static ResourceManager getResourceManager(final String subscriptionId) {
+    @Nonnull
+    public static ResourceManager getResourceManager(@Nonnull final String subscriptionId) {
         final IAccount account = az(IAzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
         final String userAgent = config.getUserAgent();
@@ -100,7 +101,8 @@ public abstract class AbstractAzResourceManager<T extends AbstractAzResource<T, 
             .withSubscription(subscriptionId);
     }
 
-    static HttpPipelinePolicy getUserAgentPolicy(String userAgent) {
+    @Nonnull
+    public static HttpPipelinePolicy getUserAgentPolicy(@Nonnull String userAgent) {
         return (httpPipelineCallContext, httpPipelineNextPolicy) -> {
             final String previousUserAgent = httpPipelineCallContext.getHttpRequest().getHeaders().getValue("User-Agent");
             httpPipelineCallContext.getHttpRequest().setHeader("User-Agent", String.format("%s %s", userAgent, previousUserAgent));
@@ -111,6 +113,7 @@ public abstract class AbstractAzResourceManager<T extends AbstractAzResource<T, 
     public static class HttpClientHolder {
         private static HttpClient defaultHttpClient = null;
 
+        @Nonnull
         private static synchronized HttpClient getHttpClient() {
             if (defaultHttpClient != null) {
                 return defaultHttpClient;
@@ -138,7 +141,8 @@ public abstract class AbstractAzResourceManager<T extends AbstractAzResource<T, 
         }
     }
 
-    static HttpClient getDefaultHttpClient() {
+    @Nonnull
+    public static HttpClient getDefaultHttpClient() {
         return HttpClientHolder.getHttpClient();
     }
 }

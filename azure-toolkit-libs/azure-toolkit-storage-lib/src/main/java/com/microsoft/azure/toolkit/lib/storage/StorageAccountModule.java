@@ -9,9 +9,9 @@ import com.azure.resourcemanager.storage.StorageManager;
 import com.azure.resourcemanager.storage.models.StorageAccounts;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class StorageAccountModule extends AbstractAzResourceModule<StorageAccount, StorageResourceManager, com.azure.resourcemanager.storage.models.StorageAccount> {
@@ -22,19 +22,21 @@ public class StorageAccountModule extends AbstractAzResourceModule<StorageAccoun
         super(NAME, parent);
     }
 
+    @Nullable
     @Override
     public StorageAccounts getClient() {
         return Optional.ofNullable(this.parent.getRemote()).map(StorageManager::storageAccounts).orElse(null);
     }
 
+    @Nonnull
     @Override
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
-    protected StorageAccountDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
+    protected StorageAccountDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
+        assert resourceGroupName != null : "'Resource group' is required.";
         return new StorageAccountDraft(name, resourceGroupName, this);
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.draft_for_update.resource|type",
@@ -42,8 +44,6 @@ public class StorageAccountModule extends AbstractAzResourceModule<StorageAccoun
         type = AzureOperation.Type.SERVICE
     )
     protected StorageAccountDraft newDraftForUpdate(@Nonnull StorageAccount origin) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new StorageAccountDraft(origin);
     }
 
@@ -52,6 +52,7 @@ public class StorageAccountModule extends AbstractAzResourceModule<StorageAccoun
         return new StorageAccount(r, this);
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Azure Storage Account";

@@ -13,7 +13,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.redis.model.PricingTier;
 import lombok.Data;
 import lombok.Getter;
@@ -30,7 +29,7 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
     @Nullable
     private Config config;
 
-    RedisCacheDraft(@Nonnull String name, String resourceGroupName, @Nonnull RedisCacheModule module) {
+    RedisCacheDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull RedisCacheModule module) {
         super(name, resourceGroupName, module);
         this.origin = null;
     }
@@ -45,6 +44,7 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
         this.config = null;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.create_resource.resource|type",
@@ -52,16 +52,14 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
         type = AzureOperation.Type.SERVICE
     )
     public com.azure.resourcemanager.redis.models.RedisCache createResourceInAzure() {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final String redisName = this.getName();
         final RedisManager manager = Objects.requireNonNull(this.getParent().getRemote());
         final com.azure.resourcemanager.redis.models.RedisCache.DefinitionStages.WithSku toCreate =
             manager.redisCaches().define(redisName)
-                .withRegion(this.getRegion().getName())
+                .withRegion(Objects.requireNonNull(this.getRegion(), "'region' is required to create Redis cache").getName())
                 .withExistingResourceGroup(this.getResourceGroupName());
         com.azure.resourcemanager.redis.models.RedisCache.DefinitionStages.WithCreate withCreate;
-        final PricingTier tier = this.getPricingTier();
+        final PricingTier tier = Optional.ofNullable(this.getPricingTier()).orElse(PricingTier.STANDARD_C1);
         if (tier.isStandard()) {
             withCreate = toCreate.withStandardSku(tier.getSize());
         } else if (tier.isPremium()) {
@@ -79,6 +77,7 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
         return redis;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.update_resource.resource|type",
@@ -89,6 +88,7 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
         throw new AzureToolkitRuntimeException("not supported");
     }
 
+    @Nonnull
     private synchronized Config ensureConfig() {
         this.config = Optional.ofNullable(this.config).orElseGet(Config::new);
         return this.config;
@@ -98,6 +98,7 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
         this.ensureConfig().setPricingTier(tier);
     }
 
+    @Nullable
     public PricingTier getPricingTier() {
         return Optional.ofNullable(config).map(Config::getPricingTier).orElseGet(super::getPricingTier);
     }
@@ -106,7 +107,7 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
         this.ensureConfig().setRegion(region);
     }
 
-    @Nonnull
+    @Nullable
     public Region getRegion() {
         return Objects.requireNonNull(Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion));
     }

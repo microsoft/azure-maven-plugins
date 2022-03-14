@@ -17,10 +17,9 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -62,9 +61,9 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
         return new FunctionAppDeploymentSlotUpdater();
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected FunctionAppDeploymentSlotEntity getEntityFromRemoteResource(@NotNull FunctionDeploymentSlot remote) {
+    protected FunctionAppDeploymentSlotEntity getEntityFromRemoteResource(@Nonnull FunctionDeploymentSlot remote) {
         return AppServiceUtils.fromFunctionAppDeploymentSlot(remote);
     }
 

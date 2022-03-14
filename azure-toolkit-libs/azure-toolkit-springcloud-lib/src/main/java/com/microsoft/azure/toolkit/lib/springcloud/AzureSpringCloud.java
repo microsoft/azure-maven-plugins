@@ -30,6 +30,7 @@ public final class AzureSpringCloud extends AbstractAzService<SpringCloudResourc
         return rm.getClusterModule();
     }
 
+    @Nonnull
     @Override
     protected AppPlatformManager loadResourceFromAzure(@Nonnull String subscriptionId, String resourceGroup) {
         final Account account = Azure.az(AzureAccount.class).account();
@@ -44,11 +45,13 @@ public final class AzureSpringCloud extends AbstractAzService<SpringCloudResourc
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
+    @Nonnull
     @Override
     protected SpringCloudResourceManager newResource(@Nonnull AppPlatformManager remote) {
         return new SpringCloudResourceManager(remote, this);
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Azure Spring Cloud";

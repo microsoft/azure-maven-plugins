@@ -15,7 +15,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.storage.model.AccessTier;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Performance;
@@ -23,7 +22,6 @@ import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountConfig;
 import lombok.Data;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -52,6 +50,7 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
         this.config = null;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.create_resource.resource|type",
@@ -59,8 +58,6 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
         type = AzureOperation.Type.SERVICE
     )
     public com.azure.resourcemanager.storage.models.StorageAccount createResourceInAzure() {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final String name = this.getName();
         final StorageManager manager = Objects.requireNonNull(this.getParent().getRemote());
         com.azure.resourcemanager.storage.models.StorageAccount.DefinitionStages.WithCreate withCreate =
@@ -88,22 +85,24 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
         return account;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.update_resource.resource|type",
         params = {"this.getName()", "this.getResourceTypeName()"},
         type = AzureOperation.Type.SERVICE
     )
-    public com.azure.resourcemanager.storage.models.StorageAccount updateResourceInAzure(@NotNull com.azure.resourcemanager.storage.models.StorageAccount origin) {
+    public com.azure.resourcemanager.storage.models.StorageAccount updateResourceInAzure(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }
 
+    @Nonnull
     private synchronized Config ensureConfig() {
         this.config = Optional.ofNullable(this.config).orElseGet(Config::new);
         return this.config;
     }
 
-    public void setConfig(StorageAccountConfig storageAccount) {
+    public void setConfig(@Nonnull StorageAccountConfig storageAccount) {
         this.setRegion(storageAccount.getRegion());
         this.setPerformance(storageAccount.getPerformance());
         this.setKind(storageAccount.getKind());
@@ -115,7 +114,7 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
         this.ensureConfig().setRegion(region);
     }
 
-    @Nonnull
+    @Nullable
     public Region getRegion() {
         return Objects.requireNonNull(Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion));
     }
@@ -175,6 +174,7 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
      * {@code null} means not modified for properties
      */
     @Data
+    @Nullable
     private static class Config {
         private Region region;
         private Performance performance;

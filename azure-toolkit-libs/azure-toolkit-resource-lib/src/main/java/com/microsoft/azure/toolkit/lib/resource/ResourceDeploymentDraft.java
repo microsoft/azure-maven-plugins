@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.Data;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -35,7 +34,7 @@ public class ResourceDeploymentDraft extends ResourceDeployment
     @Nullable
     private Config config;
 
-    ResourceDeploymentDraft(@Nonnull String name, String resourceGroupName, @Nonnull ResourceDeploymentModule module) {
+    ResourceDeploymentDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull ResourceDeploymentModule module) {
         super(name, resourceGroupName, module);
         this.origin = null;
     }
@@ -50,6 +49,7 @@ public class ResourceDeploymentDraft extends ResourceDeployment
         this.config = null;
     }
 
+    @Nonnull
     @SneakyThrows({IOException.class})
     @Override
     @AzureOperation(
@@ -58,8 +58,6 @@ public class ResourceDeploymentDraft extends ResourceDeployment
         type = AzureOperation.Type.SERVICE
     )
     public com.azure.resourcemanager.resources.models.Deployment createResourceInAzure() {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final ResourceGroup group = this.getParent();
         final String name = this.getName();
         final String template = this.getTemplateAsJson();
@@ -83,6 +81,7 @@ public class ResourceDeploymentDraft extends ResourceDeployment
         return deployment;
     }
 
+    @Nonnull
     @SneakyThrows({IOException.class})
     @Override
     @AzureOperation(
@@ -91,8 +90,6 @@ public class ResourceDeploymentDraft extends ResourceDeployment
         type = AzureOperation.Type.SERVICE
     )
     public com.azure.resourcemanager.resources.models.Deployment updateResourceInAzure(@Nonnull com.azure.resourcemanager.resources.models.Deployment origin) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final String name = this.getName();
         final String oldTemplate = super.getTemplateAsJson();
         final String oldParameters = super.getParametersAsJson();
@@ -122,6 +119,7 @@ public class ResourceDeploymentDraft extends ResourceDeployment
         return origin;
     }
 
+    @Nonnull
     private synchronized Config ensureConfig() {
         this.config = Optional.ofNullable(this.config).orElseGet(Config::new);
         return this.config;
@@ -164,7 +162,9 @@ public class ResourceDeploymentDraft extends ResourceDeployment
      */
     @Data
     private static class Config {
+        @Nullable
         private String templateAsJson;
+        @Nullable
         private String parametersAsJson;
     }
 }

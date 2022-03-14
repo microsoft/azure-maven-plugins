@@ -21,31 +21,36 @@ import java.util.Objects;
 public class SpringCloudResourceManager extends AbstractAzResourceManager<SpringCloudResourceManager, AppPlatformManager> {
     @Nonnull
     private final String subscriptionId;
+    @Nonnull
     private final SpringCloudClusterModule clusterModule;
 
-    SpringCloudResourceManager(@Nonnull String subscriptionId, AzureSpringCloud service) {
+    SpringCloudResourceManager(@Nonnull String subscriptionId, @Nonnull AzureSpringCloud service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.clusterModule = new SpringCloudClusterModule(this);
     }
 
-    SpringCloudResourceManager(@Nonnull AppPlatformManager remote, AzureSpringCloud service) {
+    SpringCloudResourceManager(@Nonnull AppPlatformManager remote, @Nonnull AzureSpringCloud service) {
         this(remote.subscriptionId(), service);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, SpringCloudResourceManager, ?>> getSubModules() {
         return Collections.singletonList(clusterModule);
     }
 
+    @Nonnull
     public SpringCloudClusterModule clusters() {
         return this.clusterModule;
     }
 
+    @Nonnull
     public List<Region> listSupportedRegions() {
         return super.listSupportedRegions(this.clusterModule.getName());
     }
 
+    @Nonnull
     @Override
     public ResourceManager getResourceManager() {
         return Objects.requireNonNull(this.getRemote()).resourceManager();

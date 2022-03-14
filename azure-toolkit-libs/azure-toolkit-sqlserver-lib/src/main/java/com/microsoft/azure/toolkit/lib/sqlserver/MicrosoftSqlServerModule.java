@@ -10,13 +10,15 @@ import com.azure.resourcemanager.sql.models.SqlServer;
 import com.azure.resourcemanager.sql.models.SqlServers;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+@Slf4j
 public class MicrosoftSqlServerModule extends AbstractAzResourceModule<MicrosoftSqlServer, MicrosoftSqlResourceManager, SqlServer> {
 
     public static final String NAME = "servers";
@@ -27,29 +29,38 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
 
     @Nonnull
     @Override
+    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<SqlServer> loadResourcesFromAzure() {
-        return this.getClient().list().stream();
+        return Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());
     }
 
     @Nullable
     @Override
-    protected SqlServer loadResourceFromAzure(@Nonnull String name, @Nonnull String resourceGroup) {
-        return this.getClient().getByResourceGroup(resourceGroup, name);
+    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    protected SqlServer loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
+        assert StringUtils.isNoneBlank(resourceGroup) : "resource group can not be empty";
+        return Optional.ofNullable(this.getClient()).map(c -> c.getByResourceGroup(resourceGroup, name)).orElse(null);
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.delete_resource.resource|type",
+        params = {"nameFromResourceId(resourceId)", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
-        this.getClient().deleteById(resourceId);
+        Optional.ofNullable(this.getClient()).ifPresent(c -> c.deleteById(resourceId));
     }
 
+    @Nonnull
     @Override
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
-    protected MicrosoftSqlServerDraft newDraftForCreate(@Nonnull String name, @Nonnull String resourceGroupName) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
+    protected MicrosoftSqlServerDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
+        assert resourceGroupName != null : "'Resource group' is required.";
         return new MicrosoftSqlServerDraft(name, resourceGroupName, this);
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.draft_for_update.resource|type",
@@ -57,8 +68,6 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
         type = AzureOperation.Type.SERVICE
     )
     protected MicrosoftSqlServerDraft newDraftForUpdate(@Nonnull MicrosoftSqlServer server) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new MicrosoftSqlServerDraft(server);
     }
 
@@ -72,6 +81,7 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
         return new MicrosoftSqlServer(r, this);
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "SQL server firewall rule";

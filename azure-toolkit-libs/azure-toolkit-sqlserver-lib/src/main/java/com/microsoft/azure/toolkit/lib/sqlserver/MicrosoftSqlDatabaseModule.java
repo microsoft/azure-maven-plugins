@@ -10,6 +10,7 @@ import com.azure.resourcemanager.sql.models.SqlDatabase;
 import com.azure.resourcemanager.sql.models.SqlDatabaseOperations;
 import com.azure.resourcemanager.sql.models.SqlServer;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -23,6 +24,7 @@ public class MicrosoftSqlDatabaseModule extends AbstractAzResourceModule<Microso
         super(NAME, parent);
     }
 
+    @Nonnull
     @Override
     protected MicrosoftSqlDatabase newResource(@Nonnull SqlDatabase database) {
         return new MicrosoftSqlDatabase(database, this);
@@ -30,28 +32,37 @@ public class MicrosoftSqlDatabaseModule extends AbstractAzResourceModule<Microso
 
     @Nonnull
     @Override
+    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<SqlDatabase> loadResourcesFromAzure() {
-        return this.getClient().list().stream();
+        return Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());
     }
 
     @Nullable
     @Override
-    protected SqlDatabase loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
-        return this.getClient().get(name);
+    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    protected SqlDatabase loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
+        return Optional.ofNullable(this.getClient()).map(c -> c.get(name)).orElse(null);
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.delete_resource.resource|type",
+        params = {"nameFromResourceId(id)", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     protected void deleteResourceFromAzure(@Nonnull String id) {
         final ResourceId resourceId = ResourceId.fromString(id);
         final String name = resourceId.name();
-        this.getClient().delete(name);
+        Optional.ofNullable(this.getClient()).ifPresent(c -> c.delete(name));
     }
 
+    @Nullable
     @Override
     protected SqlDatabaseOperations.SqlDatabaseActionsDefinition getClient() {
         return Optional.ofNullable(this.getParent().getRemote()).map(SqlServer::databases).orElse(null);
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "SQL server database";

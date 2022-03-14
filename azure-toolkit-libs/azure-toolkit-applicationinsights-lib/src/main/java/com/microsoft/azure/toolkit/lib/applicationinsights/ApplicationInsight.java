@@ -12,12 +12,13 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, ApplicationInsightsResourceManager, ApplicationInsightsComponent> {
-    protected ApplicationInsight(@Nonnull String name, @Nonnull String resourceGroupName, ApplicationInsightsModule module) {
+    protected ApplicationInsight(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull ApplicationInsightsModule module) {
         super(name, resourceGroupName, module);
     }
 
@@ -25,30 +26,35 @@ public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, A
         super(insight);
     }
 
-    protected ApplicationInsight(@Nonnull ApplicationInsightsComponent remote, ApplicationInsightsModule module) {
+    protected ApplicationInsight(@Nonnull ApplicationInsightsComponent remote, @Nonnull ApplicationInsightsModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
         this.setRemote(remote);
     }
 
+    @Nullable
     public Region getRegion() {
         return Optional.ofNullable(getRemote()).map(component -> Region.fromName(component.name())).orElse(null);
     }
 
+    @Nullable
     public String getType() {
         return Optional.ofNullable(getRemote()).map(ApplicationInsightsComponent::type).orElse(null);
     }
 
+    @Nullable
     public String getKind() {
         return Optional.ofNullable(getRemote()).map(ApplicationInsightsComponent::kind).orElse(null);
     }
 
+    @Nullable
     public String getInstrumentationKey() {
         return Optional.ofNullable(getRemote()).map(ApplicationInsightsComponent::instrumentationKey).orElse(null);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, ApplicationInsight, ?>> getSubModules() {
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 
     @Nonnull

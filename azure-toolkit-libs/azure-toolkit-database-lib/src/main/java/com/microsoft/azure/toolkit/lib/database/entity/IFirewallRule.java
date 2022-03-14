@@ -9,6 +9,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public interface IFirewallRule extends AzResourceBase {
@@ -22,6 +23,7 @@ public interface IFirewallRule extends AzResourceBase {
     @Nullable
     String getEndIpAddress();
 
+    @Nonnull
     static String getLocalMachineAccessRuleName() {
         final String prefix = "ClientIPAddress_";
         final String suffix = "_" + NetUtils.getMac();

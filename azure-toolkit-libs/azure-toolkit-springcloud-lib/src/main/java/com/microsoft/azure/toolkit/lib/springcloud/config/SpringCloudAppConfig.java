@@ -44,10 +44,12 @@ public class SpringCloudAppConfig {
     private String activeDeploymentName;
     private SpringCloudDeploymentConfig deployment;
 
+    @Nonnull
     public Boolean isPublic() {
         return BooleanUtils.isTrue(isPublic);
     }
 
+    @Nonnull
     public static SpringCloudAppConfig fromApp(@Nonnull SpringCloudApp app) { // get config from app
         final SpringCloudDeployment deployment = Optional.ofNullable(app.getActiveDeployment())
             .orElse(app.deployments().getOrDraft("default", app.getResourceGroupName()));

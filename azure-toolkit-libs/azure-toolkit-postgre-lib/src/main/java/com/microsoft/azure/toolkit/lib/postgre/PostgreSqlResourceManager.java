@@ -17,6 +17,7 @@ import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -26,31 +27,36 @@ import java.util.stream.Collectors;
 public class PostgreSqlResourceManager extends AbstractAzResourceManager<PostgreSqlResourceManager, PostgreSqlManager> {
     @Nonnull
     private final String subscriptionId;
+    @Nonnull
     private final PostgreSqlServerModule serverModule;
 
-    PostgreSqlResourceManager(@Nonnull String subscriptionId, AzurePostgreSql service) {
+    PostgreSqlResourceManager(@Nonnull String subscriptionId, @Nonnull AzurePostgreSql service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.serverModule = new PostgreSqlServerModule(this);
     }
 
-    PostgreSqlResourceManager(PostgreSqlManager manager, AzurePostgreSql service) {
+    PostgreSqlResourceManager(@Nonnull PostgreSqlManager manager, @Nonnull AzurePostgreSql service) {
         this(manager.serviceClient().getSubscriptionId(), service);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, PostgreSqlResourceManager, ?>> getSubModules() {
         return Collections.singletonList(serverModule);
     }
 
+    @Nonnull
     public PostgreSqlServerModule servers() {
         return this.serverModule;
     }
 
+    @Nonnull
     public List<Region> listSupportedRegions() {
         return super.listSupportedRegions(this.serverModule.getName());
     }
 
+    @Nonnull
     public CheckNameAvailabilityResultEntity checkNameAvailability(@Nonnull String name) {
         final NameAvailabilityRequest request = new NameAvailabilityRequest().withName(name).withType(this.getParent().getName());
         final NameAvailability result = Objects.requireNonNull(this.getRemote()).checkNameAvailabilities().execute(request);

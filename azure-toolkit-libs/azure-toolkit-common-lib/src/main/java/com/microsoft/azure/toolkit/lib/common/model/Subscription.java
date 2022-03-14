@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import javax.annotation.Nonnull;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,8 +21,10 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode
 @SuperBuilder
 public class Subscription {
+    @Nonnull
     @JsonProperty
     private String id;
+    @Nonnull
     @JsonProperty
     private String name;
     @JsonProperty

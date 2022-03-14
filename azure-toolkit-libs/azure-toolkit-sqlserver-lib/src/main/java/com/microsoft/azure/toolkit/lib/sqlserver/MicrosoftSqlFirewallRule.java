@@ -33,6 +33,7 @@ public class MicrosoftSqlFirewallRule extends AbstractAzResource<MicrosoftSqlFir
         this.setRemote(remote);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, MicrosoftSqlFirewallRule, ?>> getSubModules() {
         return Collections.emptyList();

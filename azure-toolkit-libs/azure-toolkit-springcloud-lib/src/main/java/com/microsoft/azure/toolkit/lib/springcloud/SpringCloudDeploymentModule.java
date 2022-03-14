@@ -10,9 +10,9 @@ import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployments;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class SpringCloudDeploymentModule extends AbstractAzResourceModule<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment> {
@@ -28,14 +28,14 @@ public class SpringCloudDeploymentModule extends AbstractAzResourceModule<Spring
         return Optional.ofNullable(this.parent.getRemote()).map(SpringApp::deployments).orElse(null);
     }
 
+    @Nonnull
     @Override
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
-    protected SpringCloudDeploymentDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
+    protected SpringCloudDeploymentDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
         return new SpringCloudDeploymentDraft(name, this);
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.draft_for_update.resource|type",
@@ -43,8 +43,6 @@ public class SpringCloudDeploymentModule extends AbstractAzResourceModule<Spring
         type = AzureOperation.Type.SERVICE
     )
     protected SpringCloudDeploymentDraft newDraftForUpdate(@Nonnull SpringCloudDeployment origin) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new SpringCloudDeploymentDraft(origin);
     }
 
@@ -53,6 +51,7 @@ public class SpringCloudDeploymentModule extends AbstractAzResourceModule<Spring
         return new SpringCloudDeployment(remote, this);
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Spring Cloud app deployment";

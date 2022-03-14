@@ -12,7 +12,6 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,6 +27,7 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
         super(NAME, parent);
     }
 
+    @Nonnull
     @Override
     protected MySqlFirewallRule newResource(@Nonnull FirewallRule rule) {
         return new MySqlFirewallRule(rule, this);
@@ -35,31 +35,41 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
 
     @Nonnull
     @Override
+    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<FirewallRule> loadResourcesFromAzure() {
-        return this.getClient().listByServer(this.getParent().getResourceGroupName(), this.getParent().getName()).stream();
+        final MySqlServer p = this.getParent();
+        return Optional.ofNullable(this.getClient()).map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).stream()).orElse(Stream.empty());
     }
 
     @Nullable
     @Override
+    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected FirewallRule loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
-        return this.getClient().get(this.getParent().getResourceGroupName(), this.getParent().getName(), name);
+        final MySqlServer p = this.getParent();
+        return Optional.ofNullable(this.getClient()).map(c -> c.get(p.getResourceGroupName(), p.getName(), name)).orElse(null);
     }
 
     @Override
+    @AzureOperation(
+        name = "resource.delete_resource.resource|type",
+        params = {"nameFromResourceId(id)", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     protected void deleteResourceFromAzure(@Nonnull String id) {
+        final MySqlServer p = this.getParent();
         final ResourceId resourceId = ResourceId.fromString(id);
         final String name = resourceId.name();
-        this.getClient().delete(this.getParent().getResourceGroupName(), this.getParent().getName(), name);
+        Optional.ofNullable(this.getClient()).ifPresent(c -> c.delete(p.getResourceGroupName(), p.getName(), name));
     }
 
+    @Nonnull
     @Override
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected MySqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new MySqlFirewallRuleDraft(name, this);
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.draft_for_update.resource|type",
@@ -67,11 +77,10 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
         type = AzureOperation.Type.SERVICE
     )
     protected MySqlFirewallRuleDraft newDraftForUpdate(@Nonnull MySqlFirewallRule origin) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new MySqlFirewallRuleDraft(origin);
     }
 
+    @Nullable
     @Override
     protected FirewallRules getClient() {
         return Optional.ofNullable(this.getParent().getParent().getRemote()).map(MySqlManager::firewallRules).orElse(null);
@@ -110,6 +119,7 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
         }
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "MySQL firewall rule";

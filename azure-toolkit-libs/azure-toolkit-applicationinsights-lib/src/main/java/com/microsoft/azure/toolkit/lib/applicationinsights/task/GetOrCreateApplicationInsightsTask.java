@@ -23,9 +23,13 @@ public class GetOrCreateApplicationInsightsTask extends AzureTask<ApplicationIns
             "for this Function App. You can visit %s/#@/resource%s/overview to view your " +
             "Application Insights component.";
 
+    @Nonnull
     private final String subscriptionId;
+    @Nonnull
     private final String resourceGroup;
+    @Nonnull
     private final String name;
+    @Nonnull
     private final Region region;
 
     public GetOrCreateApplicationInsightsTask(@Nonnull String subscriptionId, @Nonnull String resourceGroup, @Nonnull Region region, @Nonnull String name) {

@@ -26,36 +26,42 @@ import java.util.Optional;
 public class StorageResourceManager extends AbstractAzResourceManager<StorageResourceManager, StorageManager> {
     @Nonnull
     private final String subscriptionId;
+    @Nonnull
     private final StorageAccountModule storageModule;
 
-    StorageResourceManager(@Nonnull String subscriptionId, AzureStorageAccount service) {
+    StorageResourceManager(@Nonnull String subscriptionId, @Nonnull AzureStorageAccount service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.storageModule = new StorageAccountModule(this);
     }
 
-    StorageResourceManager(@Nonnull StorageManager remote, AzureStorageAccount service) {
+    StorageResourceManager(@Nonnull StorageManager remote, @Nonnull AzureStorageAccount service) {
         this(remote.subscriptionId(), service);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, StorageResourceManager, ?>> getSubModules() {
         return Collections.singletonList(storageModule);
     }
 
+    @Nonnull
     public StorageAccountModule storageAccounts() {
         return this.storageModule;
     }
 
+    @Nonnull
     public List<Region> listSupportedRegions() {
         return super.listSupportedRegions(this.storageModule.getName());
     }
 
+    @Nonnull
     @Override
     public ResourceManager getResourceManager() {
         return Objects.requireNonNull(this.getRemote()).resourceManager();
     }
 
+    @Nonnull
     @AzureOperation(name = "storage.check_name.name", params = {"name"}, type = AzureOperation.Type.SERVICE)
     public CheckNameAvailabilityResultEntity checkNameAvailability(@Nonnull String name) {
         CheckNameAvailabilityResult result = Objects.requireNonNull(this.getRemote()).storageAccounts().checkNameAvailability(name);

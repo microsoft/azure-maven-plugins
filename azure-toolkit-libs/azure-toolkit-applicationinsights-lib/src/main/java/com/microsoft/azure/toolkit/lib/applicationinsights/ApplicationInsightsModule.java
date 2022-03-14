@@ -10,7 +10,7 @@ import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsC
 import com.azure.resourcemanager.applicationinsights.models.Components;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,51 +27,61 @@ public class ApplicationInsightsModule extends AbstractAzResourceModule<Applicat
 
     @Nonnull
     @Override
+    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<ApplicationInsightsComponent> loadResourcesFromAzure() {
-        return this.getClient().list().stream();
+        return Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());
     }
 
     @Nullable
     @Override
+    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected ApplicationInsightsComponent loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
-        return this.getClient().getByResourceGroup(resourceGroup, name);
-    }
-
-    @Override
-    protected void deleteResourceFromAzure(@Nonnull String resourceId) {
-        this.getClient().deleteById(resourceId);
-    }
-
-    @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
-    protected ApplicationInsightDraft newDraftForCreate(@Nonnull String name, String resourceGroup) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
-        return new ApplicationInsightDraft(name, resourceGroup, this);
+        assert StringUtils.isNoneBlank(resourceGroup) : "resource group can not be empty";
+        return Optional.ofNullable(this.getClient()).map(c -> c.getByResourceGroup(resourceGroup, name)).orElse(null);
     }
 
     @Override
     @AzureOperation(
-            name = "resource.draft_for_update.resource|type",
-            params = {"origin.getName()", "this.getResourceTypeName()"},
-            type = AzureOperation.Type.SERVICE
+        name = "resource.delete_resource.resource|type",
+        params = {"nameFromResourceId(resourceId)", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
+    )
+    protected void deleteResourceFromAzure(@Nonnull String resourceId) {
+        Optional.ofNullable(this.getClient()).ifPresent(c -> c.deleteById(resourceId));
+    }
+
+    @Nonnull
+    @Override
+    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    protected ApplicationInsightDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
+        assert resourceGroupName != null : "'Resource group' is required.";
+        return new ApplicationInsightDraft(name, resourceGroupName, this);
+    }
+
+    @Nonnull
+    @Override
+    @AzureOperation(
+        name = "resource.draft_for_update.resource|type",
+        params = {"origin.getName()", "this.getResourceTypeName()"},
+        type = AzureOperation.Type.SERVICE
     )
     protected ApplicationInsightDraft newDraftForUpdate(@Nonnull ApplicationInsight applicationInsight) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new ApplicationInsightDraft(applicationInsight);
     }
 
+    @Nonnull
     @Override
     protected ApplicationInsight newResource(@Nonnull ApplicationInsightsComponent remote) {
         return new ApplicationInsight(remote, this);
     }
 
+    @Nullable
     @Override
     public Components getClient() {
         return Optional.ofNullable(this.parent.getRemote()).map(ApplicationInsightsManager::components).orElse(null);
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Application Insights";

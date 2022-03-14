@@ -15,7 +15,6 @@ import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -35,7 +34,7 @@ public class AzureFunction extends AbstractAzureResourceModule<FunctionApp> impl
     @Override
     @Cacheable(cacheName = "appservice/{}/functionapps", key = "$sid", condition = "!(force&&force[0])")
     @AzureOperation(name = "functionapp.list_apps.subscription", params = "sid", type = AzureOperation.Type.SERVICE)
-    public List<FunctionApp> list(@NotNull String sid, boolean... force) {
+    public List<FunctionApp> list(@Nonnull String sid, boolean... force) {
         final AppServiceManager azureResourceManager = getAppServiceManager(sid);
         return azureResourceManager
             .functionApps().list().stream().parallel()
@@ -44,11 +43,11 @@ public class AzureFunction extends AbstractAzureResourceModule<FunctionApp> impl
             .collect(Collectors.toList());
     }
 
-    @NotNull
+    @Nonnull
     @Override
     @Cacheable(cacheName = "appservice/{}/rg/{}/functionapp/{}", key = "$sid/$rg/$name")
     @AzureOperation(name = "functionapp.get_app.app|rg", params = {"name", "rg"}, type = AzureOperation.Type.SERVICE)
-    public FunctionApp get(@NotNull String sid, @NotNull String rg, @NotNull String name) {
+    public FunctionApp get(@Nonnull String sid, @Nonnull String rg, @Nonnull String name) {
         return new FunctionApp(sid, rg, name, getAppServiceManager(sid));
     }
 

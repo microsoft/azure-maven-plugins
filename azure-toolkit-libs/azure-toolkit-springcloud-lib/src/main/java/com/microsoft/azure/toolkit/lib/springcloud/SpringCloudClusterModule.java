@@ -11,6 +11,7 @@ import com.azure.resourcemanager.appplatform.models.SpringServices;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringCloudCluster, SpringCloudResourceManager, SpringService> {
@@ -21,6 +22,7 @@ public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringClo
         super(NAME, parent);
     }
 
+    @Nullable
     @Override
     public SpringServices getClient() {
         return Optional.ofNullable(this.parent.getRemote()).map(AppPlatformManager::springServices).orElse(null);
@@ -31,6 +33,7 @@ public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringClo
         return new SpringCloudCluster(r, this);
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Spring Cloud service";

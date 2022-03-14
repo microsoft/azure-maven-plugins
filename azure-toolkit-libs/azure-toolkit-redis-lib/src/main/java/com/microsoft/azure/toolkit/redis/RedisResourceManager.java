@@ -27,36 +27,42 @@ import java.util.Objects;
 public class RedisResourceManager extends AbstractAzResourceManager<RedisResourceManager, RedisManager> {
     @Nonnull
     private final String subscriptionId;
+    @Nonnull
     private final RedisCacheModule cacheModule;
 
-    RedisResourceManager(@Nonnull String subscriptionId, AzureRedis service) {
+    RedisResourceManager(@Nonnull String subscriptionId, @Nonnull AzureRedis service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.cacheModule = new RedisCacheModule(this);
     }
 
-    RedisResourceManager(@Nonnull RedisManager remote, AzureRedis service) {
+    RedisResourceManager(@Nonnull RedisManager remote, @Nonnull AzureRedis service) {
         this(remote.subscriptionId(), service);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, RedisResourceManager, ?>> getSubModules() {
         return Collections.singletonList(cacheModule);
     }
 
+    @Nonnull
     public RedisCacheModule caches() {
         return this.cacheModule;
     }
 
+    @Nonnull
     public List<Region> listSupportedRegions() {
         return super.listSupportedRegions(this.cacheModule.getName());
     }
 
+    @Nonnull
     @Override
     public ResourceManager getResourceManager() {
         return Objects.requireNonNull(this.getRemote()).resourceManager();
     }
 
+    @Nonnull
     @AzureOperation(name = "redis.check_name.redis", params = "name", type = AzureOperation.Type.SERVICE)
     public CheckNameAvailabilityResultEntity checkNameAvailability(@Nonnull String name) {
         RedisClient redis = Objects.requireNonNull(this.getRemote()).serviceClient().getRedis();

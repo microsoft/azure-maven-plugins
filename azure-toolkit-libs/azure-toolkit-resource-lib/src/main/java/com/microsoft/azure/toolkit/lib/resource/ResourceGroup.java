@@ -42,6 +42,7 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourceGro
         this.setRemote(remote);
     }
 
+    @Nonnull
     @Override
     protected com.azure.resourcemanager.resources.models.ResourceGroup refreshRemote() {
         // ResourceGroup.refresh() doesn't work:
@@ -51,6 +52,7 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourceGro
         return manager.resourceGroups().getByName(this.getName());
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, ResourceGroup, ?>> getSubModules() {
         return Collections.singletonList(deploymentModule);
@@ -66,6 +68,7 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourceGro
         return remote.provisioningState();
     }
 
+    @Nonnull
     @Override
     public String status() {
         return this.getStatus();

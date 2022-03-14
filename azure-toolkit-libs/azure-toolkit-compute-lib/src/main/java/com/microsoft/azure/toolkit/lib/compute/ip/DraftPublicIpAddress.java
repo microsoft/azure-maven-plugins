@@ -13,9 +13,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 @Getter
@@ -53,6 +53,7 @@ public class DraftPublicIpAddress extends PublicIpAddress implements AzureResour
         return Optional.ofNullable(remote).map(ignore -> super.hasAssignedNetworkInterface()).orElse(false);
     }
 
+    @Nonnull
     @Override
     public String getId() {
         return Optional.ofNullable(remote).map(HasId::id).orElseGet(() -> getResourceId(subscriptionId, resourceGroup, name));

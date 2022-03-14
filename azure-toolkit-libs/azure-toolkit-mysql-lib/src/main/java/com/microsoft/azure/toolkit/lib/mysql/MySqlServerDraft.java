@@ -18,7 +18,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 import lombok.Getter;
@@ -65,11 +64,12 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
         this.setLocalMachineAccessAllowed(config.isLocalMachineAccessAllowed());
     }
 
-    private int getTierPriority(PerformanceTierProperties tier) {
+    private int getTierPriority(@Nonnull PerformanceTierProperties tier) {
         return StringUtils.equals("Basic", tier.id()) ? 1 :
             StringUtils.equals("GeneralPurpose", tier.id()) ? 2 : StringUtils.equals("MemoryOptimized", tier.id()) ? 3 : 4;
     }
 
+    @Nullable
     private ServerVersion validateServerVersion(String version) {
         if (StringUtils.isNotBlank(version)) {
             final ServerVersion res = ServerVersion.fromString(version);
@@ -81,6 +81,7 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
         return null;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.create_resource.resource|type",
@@ -89,8 +90,6 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
     )
     public Server createResourceInAzure() {
         assert this.config != null;
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final MySqlManager manager = Objects.requireNonNull(this.getParent().getRemote());
 
         final ServerPropertiesForDefaultCreate parameters = new ServerPropertiesForDefaultCreate()
@@ -116,6 +115,7 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
         return this.updateResourceInAzure(remote);
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.update_resource.resource|type",
@@ -135,29 +135,35 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
         return origin;
     }
 
+    @Nonnull
     private synchronized Config ensureConfig() {
         this.config = Optional.ofNullable(this.config).orElseGet(Config::new);
         return this.config;
     }
 
+    @Nullable
     @Override
     public String getAdminName() {
         return Optional.ofNullable(this.config).map(Config::getAdminName).orElseGet(super::getAdminName);
     }
 
+    @Nullable
     public String getAdminPassword() {
         return Optional.ofNullable(this.config).map(Config::getAdminPassword).orElse(null);
     }
 
+    @Nullable
     public Region getRegion() {
         return Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion);
     }
 
+    @Nullable
     @Override
     public String getVersion() {
         return Optional.ofNullable(this.config).map(Config::getVersion).orElseGet(super::getVersion);
     }
 
+    @Nullable
     @Override
     public String getFullyQualifiedDomainName() {
         return Optional.ofNullable(this.config).map(Config::getFullyQualifiedDomainName).orElseGet(super::getFullyQualifiedDomainName);

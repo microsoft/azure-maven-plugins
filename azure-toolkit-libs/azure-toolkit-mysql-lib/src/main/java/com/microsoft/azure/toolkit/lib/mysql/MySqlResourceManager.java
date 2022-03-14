@@ -26,31 +26,36 @@ import java.util.stream.Collectors;
 public class MySqlResourceManager extends AbstractAzResourceManager<MySqlResourceManager, MySqlManager> {
     @Nonnull
     private final String subscriptionId;
+    @Nonnull
     private final MySqlServerModule serverModule;
 
-    MySqlResourceManager(@Nonnull String subscriptionId, AzureMySql service) {
+    MySqlResourceManager(@Nonnull String subscriptionId, @Nonnull AzureMySql service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.serverModule = new MySqlServerModule(this);
     }
 
-    MySqlResourceManager(MySqlManager manager, AzureMySql service) {
+    MySqlResourceManager(@Nonnull MySqlManager manager, @Nonnull AzureMySql service) {
         this(manager.serviceClient().getSubscriptionId(), service);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, MySqlResourceManager, ?>> getSubModules() {
         return Collections.singletonList(serverModule);
     }
 
+    @Nonnull
     public MySqlServerModule servers() {
         return this.serverModule;
     }
 
+    @Nonnull
     public List<Region> listSupportedRegions() {
         return super.listSupportedRegions(this.serverModule.getName());
     }
 
+    @Nonnull
     public CheckNameAvailabilityResultEntity checkNameAvailability(@Nonnull String name) {
         final NameAvailabilityRequest request = new NameAvailabilityRequest().withName(name).withType(this.getParent().getName());
         final NameAvailability result = Objects.requireNonNull(this.getRemote()).checkNameAvailabilities().execute(request);

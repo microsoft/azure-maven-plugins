@@ -7,26 +7,30 @@ package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
+import org.jetbrains.annotations.Contract;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
 public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R> {
+    @Nonnull
     None NONE = new None();
 
     @Nonnull
     List<T> list();
 
     @Nullable
-    T get(@Nonnull String name, String resourceGroup);
+    T get(@Nonnull String name, @Nullable String resourceGroup);
 
-    boolean exists(@Nonnull String name, String resourceGroup);
+    boolean exists(@Nonnull String name, @Nullable String resourceGroup);
 
-    void delete(@Nonnull String name, String resourceGroup);
+    void delete(@Nonnull String name, @Nullable String resourceGroup);
 
+    @Nonnull
     T create(@Nonnull AzResource.Draft<T, R> draft);
 
+    @Nonnull
     T update(@Nonnull AzResource.Draft<T, R> draft);
 
     void refresh();
@@ -34,10 +38,12 @@ public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzRes
     @Nonnull
     String getName();
 
+    @Nonnull
     default String getFullResourceType() {
         return this.getParent().getFullResourceType() + "/" + this.getName();
     }
 
+    @Nonnull
     String getResourceTypeName();
 
     @Nonnull
@@ -59,11 +65,13 @@ public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzRes
             super("NONE", AzResource.NONE);
         }
 
+        @Nonnull
         @Override
         protected AzResource.None newResource(@Nonnull Void unused) {
             return AzResource.NONE;
         }
 
+        @Nonnull
         @Override
         public String getResourceTypeName() {
             return "NONE";
@@ -81,8 +89,9 @@ public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzRes
         }
 
         @Override
+        @Contract(value = "null -> false", pure = true)
         public boolean equals(Object o) {
-            return AzResourceModule.NONE == o;
+            return o instanceof None;
         }
 
         @Override

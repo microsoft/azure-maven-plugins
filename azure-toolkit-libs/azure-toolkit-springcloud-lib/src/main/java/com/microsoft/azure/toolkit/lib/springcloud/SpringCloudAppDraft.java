@@ -15,7 +15,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.Data;
@@ -42,6 +41,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     @Getter
     @Nullable
     private final SpringCloudApp origin;
+    @Nullable
     private SpringCloudDeployment activeDeployment;
     @Nullable
     private Config config;
@@ -56,7 +56,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         this.origin = origin;
     }
 
-    public void setConfig(SpringCloudAppConfig c) {
+    public void setConfig(@Nonnull SpringCloudAppConfig c) {
         this.setName(c.getAppName());
         this.setActiveDeploymentName(c.getActiveDeploymentName());
         this.setPublicEndpointEnabled(c.getIsPublic());
@@ -66,6 +66,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         deploymentDraft.setConfig(deploymentConfig);
     }
 
+    @Nonnull
     public SpringCloudAppConfig getConfig() {
         final SpringCloudDeploymentConfig deploymentConfig = activeDeployment instanceof SpringCloudDeploymentDraft ?
             ((SpringCloudDeploymentDraft) activeDeployment).getConfig() : SpringCloudDeploymentConfig.builder().build();
@@ -90,6 +91,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         this.activeDeployment = null;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.create_resource.resource|type",
@@ -97,8 +99,6 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         type = AzureOperation.Type.SERVICE
     )
     public SpringApp createResourceInAzure() {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final String appName = this.getName();
         final SpringService service = Objects.requireNonNull(this.getParent().getRemote());
         final SpringAppImpl create = (SpringAppImpl) service.apps().define(appName);
@@ -110,6 +110,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         return app;
     }
 
+    @Nonnull
     @Override
     @AzureOperation(
         name = "resource.update_resource.resource|type",
@@ -117,8 +118,6 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         type = AzureOperation.Type.SERVICE
     )
     public SpringApp updateResourceInAzure(@Nonnull SpringApp origin) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         final SpringAppImpl update = ((SpringAppImpl) origin.update());
         if (modify(update)) {
             final IAzureMessager messager = AzureMessager.getMessager();
@@ -157,6 +156,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         return modified;
     }
 
+    @Nonnull
     private synchronized Config ensureConfig() {
         this.config = Optional.ofNullable(this.config).orElseGet(Config::new);
         return this.config;

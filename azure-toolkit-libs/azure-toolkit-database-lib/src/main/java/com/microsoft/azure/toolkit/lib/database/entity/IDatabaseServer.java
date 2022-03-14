@@ -9,6 +9,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -29,15 +30,18 @@ public interface IDatabaseServer<T extends IDatabase> extends AzResourceBase {
     @Nullable
     String getVersion();
 
-    @Nullable
+    @Nonnull
     String getStatus();
 
     @Nullable
     String getType();
 
+    @Nonnull
     String getLocalMachinePublicIp();
 
+    @Nonnull
     JdbcUrl getJdbcUrl();
 
+    @Nonnull
     List<T> listDatabases();
 }

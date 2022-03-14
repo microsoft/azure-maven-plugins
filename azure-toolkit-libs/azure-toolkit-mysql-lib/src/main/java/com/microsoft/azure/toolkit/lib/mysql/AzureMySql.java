@@ -52,15 +52,18 @@ public class AzureMySql extends AbstractAzService<MySqlResourceManager, MySqlMan
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
+    @Nonnull
     @Override
     protected MySqlResourceManager newResource(@Nonnull MySqlManager manager) {
         return new MySqlResourceManager(manager, this);
     }
 
+    @Nonnull
     public List<String> listSupportedVersions() {
         return ServerVersion.values().stream().map(ExpandableStringEnum::toString).collect(Collectors.toList());
     }
 
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Azure Database for MySQL servers";

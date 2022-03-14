@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -26,7 +27,9 @@ import java.util.List;
 public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, MicrosoftSqlResourceManager, SqlServer>
     implements Removable, IDatabaseServer<MicrosoftSqlDatabase> {
 
+    @Nonnull
     private final MicrosoftSqlDatabaseModule databaseModule;
+    @Nonnull
     private final MicrosoftSqlFirewallRuleModule firewallRuleModule;
 
     protected MicrosoftSqlServer(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull MicrosoftSqlServerModule module) {
@@ -51,15 +54,18 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
         this.setRemote(remote);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, MicrosoftSqlServer, ?>> getSubModules() {
         return Arrays.asList(this.firewallRuleModule, this.databaseModule);
     }
 
+    @Nonnull
     public MicrosoftSqlFirewallRuleModule firewallRules() {
         return this.firewallRuleModule;
     }
 
+    @Nonnull
     public MicrosoftSqlDatabaseModule databases() {
         return this.databaseModule;
     }
@@ -70,21 +76,25 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
         return remote.state();
     }
 
+    @Nonnull
     @Override
     public String status() {
         return this.getStatus();
     }
 
+    @Nullable
     @Override
     public Region getRegion() {
         return remoteOptional().map(remote -> Region.fromName(remote.regionName())).orElse(null);
     }
 
+    @Nullable
     @Override
     public String getAdminName() {
         return remoteOptional().map(SqlServer::administratorLogin).orElse(null);
     }
 
+    @Nullable
     @Override
     public String getFullyQualifiedDomainName() {
         return remoteOptional().map(SqlServer::fullyQualifiedDomainName).orElse(null);
@@ -102,16 +112,19 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
         return this.firewallRules().exists(ruleName, this.getResourceGroupName());
     }
 
+    @Nullable
     @Override
     public String getVersion() {
         return remoteOptional().map(SqlServer::version).orElse(null);
     }
 
+    @Nullable
     @Override
     public String getType() {
         return remoteOptional().map(SqlServer::type).orElse(null);
     }
 
+    @Nonnull
     @Override
     public String getLocalMachinePublicIp() {
         String ip;
@@ -135,10 +148,12 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
         return ip;
     }
 
+    @Nonnull
     public JdbcUrl getJdbcUrl() {
         return JdbcUrl.sqlserver(this.getFullyQualifiedDomainName());
     }
 
+    @Nonnull
     @Override
     public List<MicrosoftSqlDatabase> listDatabases() {
         return this.databases().list();

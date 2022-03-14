@@ -22,7 +22,6 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -71,9 +70,9 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
         return new WebAppDeploymentSlotUpdater();
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected WebAppDeploymentSlotEntity getEntityFromRemoteResource(@NotNull DeploymentSlot remote) {
+    protected WebAppDeploymentSlotEntity getEntityFromRemoteResource(@Nonnull DeploymentSlot remote) {
         return AppServiceUtils.fromWebAppDeploymentSlot(remote);
     }
 

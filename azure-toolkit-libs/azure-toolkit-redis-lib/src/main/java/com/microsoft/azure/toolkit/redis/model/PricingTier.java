@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 @Getter
@@ -47,12 +48,15 @@ public class PricingTier {
     public static final PricingTier PREMIUM_C4 = new PricingTier(PREMIUM, "P4");
     public static final PricingTier PREMIUM_C5 = new PricingTier(PREMIUM, "P5");
 
+    @Nonnull
     @EqualsAndHashCode.Include
     private final String family;
+    @Nonnull
     @EqualsAndHashCode.Include
     private final String capacity;
 
-    public static PricingTier from(Sku sku) {
+    @Nonnull
+    public static PricingTier from(@Nonnull Sku sku) {
         final String name = sku.name().toString();
         final String family = sku.family().toString();
         return new PricingTier(name, family + sku.capacity());

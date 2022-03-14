@@ -33,11 +33,13 @@ public class PostgreSqlFirewallRule extends AbstractAzResource<PostgreSqlFirewal
         this.setRemote(remote);
     }
 
+    @Nullable
     @Override
     protected FirewallRule refreshRemote() {
         return this.remoteOptional().map(FirewallRule::refresh).orElse(null);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, PostgreSqlFirewallRule, ?>> getSubModules() {
         return Collections.emptyList();

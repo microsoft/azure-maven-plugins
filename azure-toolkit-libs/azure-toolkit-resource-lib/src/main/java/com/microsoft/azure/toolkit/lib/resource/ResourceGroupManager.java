@@ -20,27 +20,31 @@ import java.util.Objects;
 public class ResourceGroupManager extends AbstractAzResourceManager<ResourceGroupManager, ResourceManager> {
     @Nonnull
     private final String subscriptionId;
+    @Nonnull
     private final ResourceGroupModule groupModule;
 
-    ResourceGroupManager(@Nonnull String subscriptionId, AzureResources service) {
+    ResourceGroupManager(@Nonnull String subscriptionId, @Nonnull AzureResources service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.groupModule = new ResourceGroupModule(this);
     }
 
-    ResourceGroupManager(@Nonnull ResourceManager remote, AzureResources service) {
+    ResourceGroupManager(@Nonnull ResourceManager remote, @Nonnull AzureResources service) {
         this(remote.subscriptionId(), service);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, ResourceGroupManager, ?>> getSubModules() {
         return Collections.singletonList(groupModule);
     }
 
+    @Nonnull
     public ResourceGroupModule resourceGroups() {
         return this.groupModule;
     }
 
+    @Nonnull
     public List<Region> listSupportedRegions() {
         return super.listSupportedRegions(this.groupModule.getName());
     }
@@ -51,6 +55,7 @@ public class ResourceGroupManager extends AbstractAzResourceManager<ResourceGrou
         return String.format("/subscriptions/%s/resourceGroups", this.subscriptionId);
     }
 
+    @Nonnull
     @Override
     public ResourceManager getResourceManager() {
         return Objects.requireNonNull(this.getRemote()).resourceManager();
