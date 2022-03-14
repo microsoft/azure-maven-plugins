@@ -8,13 +8,17 @@ package com.microsoft.azure.toolkit.lib.appservice;
 import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.appservice.AppServiceManager;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppModule;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanModule;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppModule;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
@@ -23,6 +27,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,6 +46,17 @@ public final class AzureAppService extends AbstractAzService<AppServiceResourceM
     }
 
     @Nonnull
+    public List<FunctionApp> functionApps() {
+        return this.list().stream().flatMap(m -> m.functionApps().list().stream()).collect(Collectors.toList());
+    }
+
+    @Nullable
+    public FunctionApp functionApp(String resourceId) {
+        final ResourceId id = ResourceId.fromString(resourceId);
+        return this.functionApps(id.subscriptionId()).get(id.name(), id.resourceGroupName());
+    }
+
+    @Nonnull
     public WebAppModule webApps(@Nonnull String subscriptionId) {
         final AppServiceResourceManager rm = get(subscriptionId, null);
         assert rm != null;
@@ -48,10 +64,32 @@ public final class AzureAppService extends AbstractAzService<AppServiceResourceM
     }
 
     @Nonnull
+    public List<WebApp> webApps() {
+        return this.list().stream().flatMap(m -> m.webApps().list().stream()).collect(Collectors.toList());
+    }
+
+    @Nullable
+    public WebApp webApp(String resourceId) {
+        final ResourceId id = ResourceId.fromString(resourceId);
+        return this.webApps(id.subscriptionId()).get(id.name(), id.resourceGroupName());
+    }
+
+    @Nonnull
     public AppServicePlanModule plans(@Nonnull String subscriptionId) {
         final AppServiceResourceManager rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getPlanModule();
+    }
+
+    @Nonnull
+    public List<AppServicePlan> plans() {
+        return this.list().stream().flatMap(m -> m.plans().list().stream()).collect(Collectors.toList());
+    }
+
+    @Nullable
+    public AppServicePlan plan(String resourceId) {
+        final ResourceId id = ResourceId.fromString(resourceId);
+        return this.plans(id.subscriptionId()).get(id.name(), id.resourceGroupName());
     }
 
     @Nonnull

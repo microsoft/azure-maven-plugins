@@ -83,6 +83,12 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             .sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
     }
 
+    @Nonnull
+    public synchronized List<T> listByResourceGroup(@Nonnull String resourceGroup) {
+        log.debug("[{}]:listByResourceGroupName({})", this.name, resourceGroup);
+        return this.list().stream().filter(r -> r.getResourceGroupName().equalsIgnoreCase(resourceGroup)).collect(Collectors.toList());
+    }
+
     public synchronized void clear() {
         log.debug("[{}]:clear()", this.name);
         this.syncTime.set(-1);
