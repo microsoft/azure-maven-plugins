@@ -67,7 +67,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Getter(AccessLevel.NONE)
     private final Map<String, Optional<T>> resources = new ConcurrentHashMap<>();
     @Nonnull
-    private final Debouncer fireEvents = new TailingDebouncer(this::fireResourcesChangedEvent, 300);
+    private final Debouncer fireEvents = new TailingDebouncer(this::fireChildrenChangedEvent, 300);
 
     @Nonnull
     @Override
@@ -225,7 +225,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public void refresh() {
         log.debug("[{}]:refresh()", this.name);
         this.syncTime.set(-1);
-        fireEvents.debounce();
+        AzureEventBus.emit("module.refreshed.module", this);
     }
 
     private synchronized void reload() {
@@ -256,9 +256,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         log.debug("[{}]:reload.refreshed->resource.setRemote", this.name);
         refreshed.forEach(name -> this.resources.get(name).ifPresent(r -> r.setRemote(loadedResources.get(name).getRemote())));
         log.debug("[{}]:reload.deleted->deleteResourceFromLocal", this.name);
-        deleted.forEach(name -> Optional.ofNullable(this.deleteResourceFromLocal(name)).ifPresent(t -> t.setStatus(Status.DELETED)));
+        deleted.forEach(name -> Optional.ofNullable(this.deleteResourceFromLocal(name, true)).ifPresent(t -> t.setStatus(Status.DELETED)));
         log.debug("[{}]:reload.added->addResourceToLocal", this.name);
-        added.forEach(name -> this.addResourceToLocal(name, loadedResources.get(name)));
+        added.forEach(name -> this.addResourceToLocal(name, loadedResources.get(name), true));
         this.syncTime.set(System.currentTimeMillis());
     }
 
@@ -269,33 +269,33 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nullable
-    T deleteResourceFromLocal(@Nonnull String name) {
+    T deleteResourceFromLocal(@Nonnull String name, boolean... silent) {
         log.debug("[{}]:deleteResourceFromLocal({})", this.name, name);
         log.debug("[{}]:deleteResourceFromLocal->this.resources.remove({})", this.name, name);
         final Optional<T> removed = this.resources.remove(name);
-        if (Objects.nonNull(removed) && removed.isPresent()) {
+        if (Objects.nonNull(removed) && removed.isPresent() && (silent.length == 0 || !silent[0])) {
             log.debug("[{}]:deleteResourceFromLocal->fireResourcesChangedEvent()", this.name);
             fireEvents.debounce();
         }
         return Objects.nonNull(removed) ? removed.orElse(null) : null;
     }
 
-    private synchronized void addResourceToLocal(@Nonnull String name, @Nullable T resource) {
+    private synchronized void addResourceToLocal(@Nonnull String name, @Nullable T resource, boolean... silent) {
         log.debug("[{}]:addResourceToLocal({}, {})", this.name, name, resource);
         final Optional<T> oldResource = this.resources.getOrDefault(name, Optional.empty());
         final Optional<T> newResource = Optional.ofNullable(resource);
         if (!oldResource.isPresent()) {
             log.debug("[{}]:addResourceToLocal->this.resources.put({}, {})", this.name, name, resource);
             this.resources.put(name, newResource);
-            if (newResource.isPresent()) {
+            if (newResource.isPresent() && (silent.length == 0 || !silent[0])) {
                 log.debug("[{}]:addResourceToLocal->fireResourcesChangedEvent()", this.name);
                 fireEvents.debounce();
             }
         }
     }
 
-    private void fireResourcesChangedEvent() {
-        log.debug("[{}]:fireResourcesChangedEvent()", this.name);
+    private void fireChildrenChangedEvent() {
+        log.debug("[{}]:fireChildrenChangedEvent()", this.name);
         if (this.getParent() instanceof AbstractAzResourceManager) {
             final AzResourceModule<P, ?, ?> service = this.getParent().getModule();
             AzureEventBus.emit("service.children_changed.service", service);

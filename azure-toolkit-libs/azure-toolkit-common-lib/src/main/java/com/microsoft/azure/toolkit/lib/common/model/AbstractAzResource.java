@@ -14,6 +14,8 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
+import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -57,6 +59,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nonnull
     @ToString.Include
     final AtomicReference<String> statusRef;
+    @Nonnull
+    private final Debouncer fireEvents = new TailingDebouncer(this::fireStatusChangedEvent, 300);
 
     protected AbstractAzResource(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, R> module) {
         this.name = name;
@@ -96,9 +100,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     public void refresh() {
         log.debug("[{}:{}]:refresh()", this.module.getName(), this.name);
         this.syncTimeRef.set(-1);
-        AzureEventBus.emit("resource.status_changed.resource", this);
         log.debug("[{}:{}]:refresh->subModules.refresh()", this.module.getName(), this.name);
         this.getSubModules().forEach(AzResourceModule::refresh);
+        AzureEventBus.emit("resource.refreshed.resource", this);
     }
 
     @AzureOperation(name = "resource.reload.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
@@ -195,7 +199,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         final String oldStatus = this.statusRef.get();
         if (!Objects.equals(oldStatus, status)) {
             this.statusRef.set(status);
-            AzureEventBus.emit("resource.status_changed.resource", this);
+            fireEvents.debounce();
         }
     }
 
@@ -287,6 +291,11 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     protected void doModifyAsync(@Nonnull Callable<R> body, @Nullable String status) {
         this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
         AzureTaskManager.getInstance().runOnPooledThread(() -> this.doModify(body, status));
+    }
+
+    private void fireStatusChangedEvent() {
+        log.debug("[{}]:fireStatusChangedEvent()", this.name);
+        AzureEventBus.emit("resource.status_changed.resource", this);
     }
 
     @Nonnull
