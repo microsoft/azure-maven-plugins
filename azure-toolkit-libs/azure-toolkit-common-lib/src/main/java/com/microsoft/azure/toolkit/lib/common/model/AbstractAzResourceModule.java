@@ -50,7 +50,8 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P, R>, P extends AbstractAzResource<P, ?, ?>, R> implements AzResourceModule<T, P, R> {
+public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P, R>, P extends AbstractAzResource<P, ?, ?>, R>
+        implements AzResourceModule<T, P, R> {
     @Nonnull
     @ToString.Include
     @EqualsAndHashCode.Include
@@ -123,6 +124,12 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         }
         log.debug("[{}]:get({}, {})->this.resources.get({})", this.name, name, resourceGroup, name);
         return this.resources.get(name).orElse(null);
+    }
+
+    @Nullable
+    public T get(@Nonnull String resourceId) {
+        log.debug("[{}]:get({})", this.name, resourceId);
+        return this.list().stream().filter(resource -> StringUtils.equalsIgnoreCase(resourceId, resource.getId())).findFirst().orElse(null);
     }
 
     @Override

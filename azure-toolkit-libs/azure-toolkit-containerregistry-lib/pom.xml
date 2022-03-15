@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>azure-toolkit-applicationinsights-lib</artifactId>
+    <artifactId>azure-toolkit-containerregistry-lib</artifactId>
     <build>
         <plugins>
             <plugin>
@@ -33,9 +33,6 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
-                        <configuration>
-                            <additionalparam>${javadoc.opts}</additionalparam>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -99,7 +96,7 @@
         </dependency>
         <dependency>
             <groupId>com.azure.resourcemanager</groupId>
-            <artifactId>azure-resourcemanager-applicationinsights</artifactId>
+            <artifactId>azure-resourcemanager-containerregistry</artifactId>
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
