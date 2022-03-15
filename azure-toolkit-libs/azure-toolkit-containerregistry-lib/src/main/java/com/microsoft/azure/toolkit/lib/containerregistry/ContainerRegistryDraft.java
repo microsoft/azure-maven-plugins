@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.containerregistry.model.Sku;
-import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,13 +36,13 @@ public class ContainerRegistryDraft extends ContainerRegistry implements AzResou
     @Nullable
     private Sku sku;
 
-    @Getter
     @Setter
-    private boolean isAdminUserEnabled = false;
+    @Nullable
+    private Boolean adminUserEnabled;
 
-    @Getter
     @Setter
-    private boolean isPublicAccessEnabled = true;
+    @Nullable
+    private Boolean publicAccessEnabled;
 
     @Nullable
     private final ContainerRegistry origin;
@@ -62,8 +61,8 @@ public class ContainerRegistryDraft extends ContainerRegistry implements AzResou
     public void reset() {
         this.region = null;
         this.sku = null;
-        this.isAdminUserEnabled = false;
-        this.isPublicAccessEnabled = true;
+        this.adminUserEnabled = null;
+        this.publicAccessEnabled = null;
     }
 
     @Override
@@ -79,7 +78,7 @@ public class ContainerRegistryDraft extends ContainerRegistry implements AzResou
         }
         final Registries registries = Objects.requireNonNull(this.getParent().getAzureContainerRegistryModule().getClient());
         final Registry.DefinitionStages.WithSku withSku = registries.define(this.getName())
-                .withRegion(this.getRegion().getName())
+                .withRegion(region.getName())
                 .withExistingResourceGroup(this.getResourceGroupName());
         final Registry.DefinitionStages.WithCreate withCreate;
         if (sku == Sku.Basic) {
@@ -91,10 +90,10 @@ public class ContainerRegistryDraft extends ContainerRegistry implements AzResou
         } else {
             throw new AzureToolkitRuntimeException(String.format("Invalid sku, valid values are %s", StringUtils.join(Sku.values(), ",")));
         }
-        if (isAdminUserEnabled) {
+        if (isAdminUserEnabled()) {
             withCreate.withRegistryNameAsAdminUser();
         }
-        if (!isPublicAccessEnabled) {
+        if (!isPublicAccessEnabled()) {
             withCreate.disablePublicNetworkAccess();
         }
         AzureMessager.getMessager().info(AzureString.format("Start creating Container Registry ({0})", getName()));
@@ -126,12 +125,12 @@ public class ContainerRegistryDraft extends ContainerRegistry implements AzResou
                 throw new AzureToolkitRuntimeException(String.format("Invalid sku, valid values are %s", StringUtils.join(Sku.values(), ",")));
             }
         }
-        if (isAdminUserEnabled) {
+        if (isAdminUserEnabled()) {
             update.withRegistryNameAsAdminUser();
         } else {
             update.withoutRegistryNameAsAdminUser();
         }
-        if (isPublicAccessEnabled) {
+        if (isPublicAccessEnabled()) {
             update.enablePublicNetworkAccess();
         } else {
             update.disablePublicNetworkAccess();
@@ -142,13 +141,12 @@ public class ContainerRegistryDraft extends ContainerRegistry implements AzResou
     @Override
     public boolean isModified() {
         if (origin == null) {
-            return ObjectUtils.anyNotNull(this.region, this.sku) || Objects.equals(this.isPublicAccessEnabled(), super.isPublicAccessEnabled()) ||
-                    Objects.equals(this.isAdminUserEnabled, super.isAdminUserEnabled());
+            return ObjectUtils.anyNotNull(this.region, this.sku, this.publicAccessEnabled, this.adminUserEnabled);
         }
-        return (!Objects.equals(this.getRegion(), this.origin.getRegion())) ||
-                (!Objects.equals(this.getSku(), this.origin.getSku())) ||
-                (!Objects.equals(this.isPublicAccessEnabled(), this.origin.isPublicAccessEnabled())) ||
-                (!Objects.equals(this.isAdminUserEnabled(), this.origin.isAdminUserEnabled()));
+        return !(Objects.equals(this.getRegion(), this.origin.getRegion()) &&
+                Objects.equals(this.getSku(), this.origin.getSku()) &&
+                Objects.equals(this.isPublicAccessEnabled(), this.origin.isPublicAccessEnabled()) &&
+                Objects.equals(this.isAdminUserEnabled(), this.origin.isAdminUserEnabled()));
     }
 
     @Nullable
@@ -165,5 +163,15 @@ public class ContainerRegistryDraft extends ContainerRegistry implements AzResou
     @Nullable
     public Sku getSku() {
         return Optional.ofNullable(sku).orElseGet(() -> Optional.ofNullable(origin).map(ContainerRegistry::getSku).orElse(null));
+    }
+
+    @Override
+    public boolean isAdminUserEnabled() {
+        return Optional.ofNullable(adminUserEnabled).orElseGet(super::isAdminUserEnabled);
+    }
+
+    @Override
+    public boolean isPublicAccessEnabled() {
+        return Optional.ofNullable(publicAccessEnabled).orElseGet(super::isPublicAccessEnabled);
     }
 }
