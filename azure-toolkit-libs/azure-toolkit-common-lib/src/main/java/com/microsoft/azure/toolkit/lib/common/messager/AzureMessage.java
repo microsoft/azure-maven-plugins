@@ -181,7 +181,7 @@ public class AzureMessage implements IAzureMessage {
         return ExceptionUtils.getThrowableList(throwable).stream()
             .filter(object -> object instanceof AzureOperationException)
             .map(o -> ((AzureOperationException) o).getOperation())
-            .sorted().collect(Collectors.toList());
+            .collect(Collectors.toList());
     }
 
     @Nonnull
