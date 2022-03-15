@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.containerregistry;
 
 import com.azure.resourcemanager.containerregistry.fluent.models.RegistryInner;
 import com.azure.resourcemanager.containerregistry.models.AccessKeyType;
+import com.azure.resourcemanager.containerregistry.models.ProvisioningState;
 import com.azure.resourcemanager.containerregistry.models.PublicNetworkAccess;
 import com.azure.resourcemanager.containerregistry.models.Registry;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -41,7 +42,7 @@ public class ContainerRegistry extends AbstractAzResource<ContainerRegistry, Azu
     @Nonnull
     @Override
     public String loadStatus(@Nonnull Registry remote) {
-        return Optional.ofNullable(remote.innerModel()).map(RegistryInner::status).map(s -> s.displayStatus()).orElse(Status.UNKNOWN);
+        return Optional.ofNullable(remote.innerModel()).map(RegistryInner::provisioningState).map(ProvisioningState::toString).orElse(Status.UNKNOWN);
     }
 
     public boolean isAdminUserEnabled() {
