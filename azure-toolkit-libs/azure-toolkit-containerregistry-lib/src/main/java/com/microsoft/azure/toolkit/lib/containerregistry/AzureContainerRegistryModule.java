@@ -10,8 +10,6 @@ import com.azure.resourcemanager.containerregistry.models.Registries;
 import com.azure.resourcemanager.containerregistry.models.Registry;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -52,8 +50,6 @@ public class AzureContainerRegistryModule extends AbstractAzResourceModule<Conta
     @Override
     @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected ContainerRegistryDraft newDraftForCreate(@Nonnull String name, String resourceGroup) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new ContainerRegistryDraft(name, resourceGroup, this);
     }
 
@@ -64,13 +60,7 @@ public class AzureContainerRegistryModule extends AbstractAzResourceModule<Conta
             type = AzureOperation.Type.SERVICE
     )
     protected ContainerRegistryDraft newDraftForUpdate(@Nonnull ContainerRegistry registry) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
         return new ContainerRegistryDraft(registry);
-    }
-
-    public ContainerRegistry get(@Nonnull String resourceId) {
-        return this.list().stream().filter(resource -> StringUtils.equalsIgnoreCase(resourceId, resource.getId())).findFirst().orElse(null);
     }
 
     @Override

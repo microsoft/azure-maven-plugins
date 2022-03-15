@@ -44,48 +44,48 @@ public class ContainerRegistry extends AbstractAzResource<ContainerRegistry, Azu
         return Optional.ofNullable(remote.innerModel()).map(RegistryInner::status).map(s -> s.displayStatus()).orElse(Status.UNKNOWN);
     }
 
-    public Boolean isAdminUserEnabled() {
-        return Optional.ofNullable(getRemote()).map(Registry::adminUserEnabled).orElse(Boolean.FALSE);
+    public boolean isAdminUserEnabled() {
+        return remoteOptional().map(Registry::adminUserEnabled).orElse(false);
     }
 
-    public Boolean isPublicAccessEnabled() {
-        return Optional.ofNullable(getRemote()).map(r -> r.publicNetworkAccess() == PublicNetworkAccess.ENABLED).orElse(Boolean.FALSE);
+    public boolean isPublicAccessEnabled() {
+        return remoteOptional().map(r -> r.publicNetworkAccess() == PublicNetworkAccess.ENABLED).orElse(true);
     }
 
     @Nullable
     public Sku getSku() {
-        return Optional.ofNullable(getRemote()).map(Registry::sku).map(sku -> sku.tier().toString()).map(Sku::valueOf).orElse(null);
+        return remoteOptional().map(Registry::sku).map(sku -> sku.tier().toString()).map(Sku::valueOf).orElse(null);
     }
 
     @Nullable
     public Region getRegion() {
-        return Optional.ofNullable(getRemote()).map(registry -> registry.region().name()).map(Region::fromName).orElse(null);
+        return remoteOptional().map(registry -> registry.region().name()).map(Region::fromName).orElse(null);
     }
 
     @Nullable
     public String getUserName() {
-        return Optional.ofNullable(getRemote()).map(registry -> registry.getCredentials().username()).orElse(null);
+        return remoteOptional().map(registry -> registry.getCredentials().username()).orElse(null);
     }
 
     @Nullable
     public String getPrimaryCredential() {
-        return Optional.ofNullable(getRemote()).map(registry -> registry.getCredentials().accessKeys())
+        return remoteOptional().map(registry -> registry.getCredentials().accessKeys())
                 .map(map -> map.get(AccessKeyType.PRIMARY)).orElse(null);
     }
 
     @Nullable
     public String getSecondaryCredential() {
-        return Optional.ofNullable(getRemote()).map(registry -> registry.getCredentials().accessKeys())
+        return remoteOptional().map(registry -> registry.getCredentials().accessKeys())
                 .map(map -> map.get(AccessKeyType.SECONDARY)).orElse(null);
     }
 
     @Nullable
     public String getLoginServerUrl() {
-        return Optional.ofNullable(getRemote()).map(Registry::loginServerUrl).orElse(null);
+        return remoteOptional().map(Registry::loginServerUrl).orElse(null);
     }
 
     @Nullable
     public String getType() {
-        return Optional.ofNullable(getRemote()).map(Registry::type).orElse(null);
+        return remoteOptional().map(Registry::type).orElse(null);
     }
 }

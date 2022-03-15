@@ -9,7 +9,6 @@ import com.azure.resourcemanager.containerregistry.ContainerRegistryManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -22,7 +21,7 @@ public class AzureContainerRegistryResourceManager extends AbstractAzResourceMan
     private final String subscriptionId;
     private final AzureContainerRegistryModule azureContainerRegistryModule;
 
-    protected AzureContainerRegistryResourceManager(@NotNull String subscriptionId, @NotNull AzureContainerRegistry service) {
+    protected AzureContainerRegistryResourceManager(@Nonnull String subscriptionId, @Nonnull AzureContainerRegistry service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.azureContainerRegistryModule = new AzureContainerRegistryModule(this);

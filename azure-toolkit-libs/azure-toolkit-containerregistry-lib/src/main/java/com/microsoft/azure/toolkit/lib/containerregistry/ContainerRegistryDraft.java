@@ -12,7 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.containerregistry.model.Sku;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,28 +22,30 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.Optional;
 
 
 public class ContainerRegistryDraft extends ContainerRegistry implements AzResource.Draft<ContainerRegistry, Registry> {
 
-    private static final String REGION_AND_SKU_IS_REQUIRED = "Region and sku is required to create registry in Azure";
+    private static final String REGION_AND_SKU_IS_REQUIRED = "`region` and `sku` is required to create a container registry in Azure";
 
-    @Getter
     @Setter
+    @Nullable
     private Region region;
 
-    @Getter
     @Setter
+    @Nullable
     private Sku sku;
 
     @Getter
     @Setter
-    private Boolean isAdminUserEnabled;
+    private boolean isAdminUserEnabled = false;
 
     @Getter
     @Setter
-    private Boolean isPublicAccessEnabled;
+    private boolean isPublicAccessEnabled = true;
 
+    @Nullable
     private final ContainerRegistry origin;
 
     protected ContainerRegistryDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AzureContainerRegistryModule module) {
@@ -60,15 +62,19 @@ public class ContainerRegistryDraft extends ContainerRegistry implements AzResou
     public void reset() {
         this.region = null;
         this.sku = null;
-        this.isAdminUserEnabled = null;
-        this.isPublicAccessEnabled = null;
+        this.isAdminUserEnabled = false;
+        this.isPublicAccessEnabled = true;
     }
 
     @Override
+    @Nonnull
+    @AzureOperation(
+            name = "resource.create_resource.resource|type",
+            params = {"this.getName()", "this.getResourceTypeName()"},
+            type = AzureOperation.Type.SERVICE
+    )
     public Registry createResourceInAzure() {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
-        if (ObjectUtils.allNull(region, sku)) {
+        if (ObjectUtils.anyNull(region, sku)) {
             throw new AzureToolkitRuntimeException(REGION_AND_SKU_IS_REQUIRED);
         }
         final Registries registries = Objects.requireNonNull(this.getParent().getAzureContainerRegistryModule().getClient());
@@ -98,9 +104,16 @@ public class ContainerRegistryDraft extends ContainerRegistry implements AzResou
     }
 
     @Override
+    @Nonnull
+    @AzureOperation(
+            name = "resource.update_resource.resource|type",
+            params = {"this.getName()", "this.getResourceTypeName()"},
+            type = AzureOperation.Type.SERVICE
+    )
     public Registry updateResourceInAzure(@Nonnull Registry origin) {
-        AzureTelemetry.getContext().setProperty("resourceType", this.getFullResourceType());
-        AzureTelemetry.getContext().setProperty("subscriptionId", this.getSubscriptionId());
+        if (!isModified()) {
+            return origin;
+        }
         final Registry.Update update = origin.update();
         if (this.sku != null) {
             if (sku == Sku.Basic) {
@@ -113,19 +126,15 @@ public class ContainerRegistryDraft extends ContainerRegistry implements AzResou
                 throw new AzureToolkitRuntimeException(String.format("Invalid sku, valid values are %s", StringUtils.join(Sku.values(), ",")));
             }
         }
-        if (isAdminUserEnabled != null) {
-            if (isAdminUserEnabled == Boolean.TRUE) {
-                update.withRegistryNameAsAdminUser();
-            } else {
-                update.withoutRegistryNameAsAdminUser();
-            }
+        if (isAdminUserEnabled) {
+            update.withRegistryNameAsAdminUser();
+        } else {
+            update.withoutRegistryNameAsAdminUser();
         }
-        if (isPublicAccessEnabled != null) {
-            if (isPublicAccessEnabled == Boolean.TRUE) {
-                update.enablePublicNetworkAccess();
-            } else {
-                update.disablePublicNetworkAccess();
-            }
+        if (isPublicAccessEnabled) {
+            update.enablePublicNetworkAccess();
+        } else {
+            update.disablePublicNetworkAccess();
         }
         return update.apply();
     }
@@ -133,17 +142,28 @@ public class ContainerRegistryDraft extends ContainerRegistry implements AzResou
     @Override
     public boolean isModified() {
         if (origin == null) {
-            return ObjectUtils.anyNotNull(this.region, this.sku, this.isAdminUserEnabled, this.isPublicAccessEnabled);
+            return ObjectUtils.anyNotNull(this.region, this.sku) || Objects.equals(this.isPublicAccessEnabled(), super.isPublicAccessEnabled()) ||
+                    Objects.equals(this.isAdminUserEnabled, super.isAdminUserEnabled());
         }
-        return (this.region != null && !Objects.equals(this.region, this.origin.getRegion())) ||
-                (this.sku != null && !Objects.equals(this.sku, this.origin.getSku())) ||
-                (this.isPublicAccessEnabled != null && !Objects.equals(this.isPublicAccessEnabled, this.origin.isPublicAccessEnabled())) ||
-                (this.isAdminUserEnabled != null && !Objects.equals(this.isAdminUserEnabled, this.origin.isAdminUserEnabled()));
+        return (!Objects.equals(this.getRegion(), this.origin.getRegion())) ||
+                (!Objects.equals(this.getSku(), this.origin.getSku())) ||
+                (!Objects.equals(this.isPublicAccessEnabled(), this.origin.isPublicAccessEnabled())) ||
+                (!Objects.equals(this.isAdminUserEnabled(), this.origin.isAdminUserEnabled()));
     }
 
     @Nullable
     @Override
     public ContainerRegistry getOrigin() {
         return this.origin;
+    }
+
+    @Nullable
+    public Region getRegion() {
+        return Optional.ofNullable(region).orElseGet(() -> Optional.ofNullable(origin).map(ContainerRegistry::getRegion).orElse(null));
+    }
+
+    @Nullable
+    public Sku getSku() {
+        return Optional.ofNullable(sku).orElseGet(() -> Optional.ofNullable(origin).map(ContainerRegistry::getSku).orElse(null));
     }
 }
