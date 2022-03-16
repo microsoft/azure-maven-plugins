@@ -87,25 +87,6 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
             resourceId = resourceId.parent();
         }
         for (Pair<String, String> resourceTypeName : resourceTypeNames) {
-            if (Objects.isNull(resource)) {
-                return null;
-            }
-            resource = (AbstractAzResource<?, ?, ?>) resource.getSubModule(resourceTypeName.getLeft()).get(resourceTypeName.getRight(), resourceGroup);
-        }
-        return (E) resource;
-    }
-
-    @Nonnull
-    public <E> E getOrDraftById(@Nonnull String id) { // move to upper class
-        ResourceId resourceId = ResourceId.fromString(id);
-        final String resourceGroup = resourceId.resourceGroupName();
-        AbstractAzResource<?, ?, ?> resource = Objects.requireNonNull(this.get(resourceId.subscriptionId(), resourceGroup));
-        final LinkedList<Pair<String, String>> resourceTypeNames = new LinkedList<>();
-        while (resourceId != null) {
-            resourceTypeNames.push(Pair.of(resourceId.resourceType(), resourceId.name()));
-            resourceId = resourceId.parent();
-        }
-        for (Pair<String, String> resourceTypeName : resourceTypeNames) {
             resource = (AbstractAzResource<?, ?, ?>) resource.getSubModule(resourceTypeName.getLeft()).getOrDraft(resourceTypeName.getRight(), resourceGroup);
         }
         return (E) resource;

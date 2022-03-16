@@ -9,6 +9,7 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -51,22 +52,13 @@ public class Azure {
         return ServiceManager.getServices().stream().filter(clazz::isInstance).map(clazz::cast).collect(Collectors.toList());
     }
 
+    @AzureOperation(name = "resource.get.id", params = {"id"}, type = AzureOperation.Type.SERVICE)
     public AbstractAzResource<?, ?, ?> getById(String id) {
         final ResourceId resourceId = ResourceId.fromString(id);
-        final String provider = resourceId.providerNamespace();
+        final String provider = Optional.ofNullable(resourceId.providerNamespace()).orElse("Microsoft.Resources");
         final AzService service = getService(provider);
         if (service instanceof AbstractAzService) {
             return ((AbstractAzService<?, ?>) service).getById(id);
-        }
-        throw new AzureToolkitRuntimeException("can not find a valid service provider!");
-    }
-
-    public AbstractAzResource<?, ?, ?> getOrDraftById(String id) {
-        final ResourceId resourceId = ResourceId.fromString(id);
-        final String provider = resourceId.providerNamespace();
-        final AzService service = getService(provider);
-        if (service instanceof AbstractAzService) {
-            return ((AbstractAzService<?, ?>) service).getOrDraftById(id);
         }
         throw new AzureToolkitRuntimeException("can not find a valid service provider!");
     }
