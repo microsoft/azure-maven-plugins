@@ -5,23 +5,28 @@
 
 package com.microsoft.azure.toolkit.lib.auth.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.zafarkhaja.semver.Version;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.model.AzureCliSubscription;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.utils.CommandUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static com.microsoft.azure.toolkit.lib.common.utils.Utils.distinctByKey;
 
 public class AzureCliUtils {
     private static final String MIN_VERSION = "2.11.0";
@@ -45,38 +50,16 @@ public class AzureCliUtils {
     @Nonnull
     public static List<AzureCliSubscription> listSubscriptions() {
         final String jsonString = executeAzureCli("az account list --output json");
-        final JsonArray result = JsonUtils.getGson().fromJson(jsonString, JsonArray.class);
-        final List<AzureCliSubscription> list = new ArrayList<>();
-        if (result != null) {
-            result.forEach(j -> {
-                JsonObject accountObject = j.getAsJsonObject();
-                if (!accountObject.has("id")) {
-                    return;
-                }
-                // TODO: use utility to handle the json mapping
-                String tenantId = accountObject.get("tenantId").getAsString();
-                String subscriptionId = accountObject.get("id").getAsString();
-                String subscriptionName = accountObject.get("name").getAsString();
-                String state = accountObject.get("state").getAsString();
-                String cloud = accountObject.get("cloudName").getAsString();
-                String email = accountObject.get("user").getAsJsonObject().get("name").getAsString();
-
-                if (StringUtils.equals(state, "Enabled") && StringUtils.isNoneBlank(subscriptionId, subscriptionName)) {
-                    AzureCliSubscription entity = new AzureCliSubscription();
-                    entity.setId(subscriptionId);
-                    entity.setName(subscriptionName);
-                    entity.setSelected(accountObject.get("isDefault").getAsBoolean());
-                    entity.setTenantId(tenantId);
-                    entity.setEmail(email);
-                    entity.setEnvironment(AzureEnvironmentUtils.stringToAzureEnvironment(cloud));
-                    list.add(entity);
-                }
-            });
-            return list;
+        final ObjectMapper mapper = new ObjectMapper();
+        try {
+            final AzureCliSubscription[] subscriptions = mapper.readValue(jsonString, AzureCliSubscription[].class);
+            return Arrays.stream(subscriptions)
+                .filter(s -> StringUtils.isNoneBlank(s.getId(), s.getName()) && s.getState().equalsIgnoreCase("Enabled"))
+                .filter(distinctByKey(t -> StringUtils.lowerCase(t.getId())))
+                .collect(Collectors.toList());
+        } catch (JsonProcessingException e) {
+            throw new AzureToolkitRuntimeException("failed to load subscriptions from Azure CLI");
         }
-
-        throw new AzureToolkitAuthenticationException(
-                "list subscriptions by command `az account list` failed, please make sure you have signed in Azure Cli using `az login`");
     }
 
     @Nonnull

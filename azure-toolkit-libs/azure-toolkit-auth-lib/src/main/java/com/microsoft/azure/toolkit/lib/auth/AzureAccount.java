@@ -143,7 +143,7 @@ public class AzureAccount implements IAzureAccount {
             if (ac.getEnvironment() != accountEntity.getEnvironment()) {
                 throw new AzureToolkitAuthenticationException(
                         String.format("you have changed the azure cloud to '%s' for auth type: '%s' since last time you signed in.",
-                                AzureEnvironmentUtils.getCloudNameForAzureCli(ac.getEnvironment()), accountEntity.getType()));
+                                AzureEnvironmentUtils.getCloudName(ac.getEnvironment()), accountEntity.getType()));
             }
             if (!StringUtils.equalsIgnoreCase(ac.entity.getEmail(), accountEntity.getEmail())) {
                 throw new AzureToolkitAuthenticationException(

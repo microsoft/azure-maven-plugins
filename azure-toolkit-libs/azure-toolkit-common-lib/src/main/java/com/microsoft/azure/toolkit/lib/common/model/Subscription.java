@@ -4,6 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -20,6 +21,7 @@ import javax.annotation.Nonnull;
 @AllArgsConstructor
 @EqualsAndHashCode
 @SuperBuilder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Subscription {
     @Nonnull
     @JsonProperty

@@ -17,13 +17,11 @@ import com.microsoft.azure.toolkit.lib.auth.model.AzureCliSubscription;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureCliUtils;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static com.microsoft.azure.toolkit.lib.common.utils.Utils.distinctByKey;
 
 public class AzureCliAccount extends Account {
     @Override
@@ -36,54 +34,38 @@ public class AzureCliAccount extends Account {
             AzureCliUtils.ensureMinimumCliVersion();
             AzureCliUtils.executeAzureCli("az account list-locations --output none"); // test whether az command is available
 
-            List<AzureCliSubscription> subscriptions = AzureCliUtils.listSubscriptions();
-            if (subscriptions.isEmpty()) {
+            final List<AzureCliSubscription> cliSubs = AzureCliUtils.listSubscriptions();
+            if (cliSubs.isEmpty()) {
                 throw new AzureToolkitAuthenticationException("Cannot find any subscriptions in current account.");
             }
 
-            AzureCliSubscription defaultSubscription = subscriptions.stream()
-                    .filter(AzureCliSubscription::isSelected).findFirst().orElse(subscriptions.get(0));
+            final AzureCliSubscription defaultSub = cliSubs.stream().filter(AzureCliSubscription::isSelected).findFirst().orElse(cliSubs.get(0));
 
-            AzureEnvironment configEnv = Azure.az(AzureCloud.class).get();
-
-            if (configEnv != null && defaultSubscription.getEnvironment() != configEnv) {
+            final AzureEnvironment configuredEnv = Azure.az(AzureCloud.class).get();
+            if (configuredEnv != null && defaultSub.getEnvironment() != configuredEnv) {
                 throw new AzureToolkitAuthenticationException(
-                        String.format("The azure cloud from azure cli '%s' doesn't match with your auth configuration, " +
-                                        "you can change it by executing 'az cloud set --name=%s' command to change the cloud in azure cli.",
-                                AzureEnvironmentUtils.getCloudNameForAzureCli(defaultSubscription.getEnvironment()),
-                                AzureEnvironmentUtils.getCloudNameForAzureCli(configEnv)));
+                    String.format("The azure cloud from azure cli '%s' doesn't match with your auth configuration, " +
+                            "you can change it by executing 'az cloud set --name=%s' command to change the cloud in azure cli.",
+                        AzureEnvironmentUtils.getCloudName(defaultSub.getEnvironment()),
+                        AzureEnvironmentUtils.getCloudName(configuredEnv)));
             }
 
-            this.entity.setEnvironment(defaultSubscription.getEnvironment());
-            this.entity.setEmail(defaultSubscription.getEmail());
+            final String userEmail = defaultSub.getEmail();
+            final List<Subscription> userSubs = cliSubs.stream().filter(s -> Objects.equals(userEmail, s.getEmail())).collect(Collectors.toList());
+            final List<String> userTenants = userSubs.stream().map(Subscription::getTenantId).distinct().collect(Collectors.toList());
+            final List<String> userSelectedSubs = userSubs.stream().filter(Subscription::isSelected).map(Subscription::getId).collect(Collectors.toList());
 
-            subscriptions = subscriptions.stream().filter(s -> StringUtils.equals(this.entity.getEmail(), s.getEmail()))
-                    .collect(Collectors.toList());
-
-            // use the tenant who has one or more subscriptions
-            this.entity.setTenantIds(subscriptions.stream().map(Subscription::getTenantId).distinct().collect(Collectors.toList()));
-
-            this.entity.setSubscriptions(subscriptions.stream()
-                    .filter(distinctByKey(t -> StringUtils.lowerCase(t.getId()))).map(AzureCliAccount::toSubscription).collect(Collectors.toList()));
-
-            // set initial selection of subscriptions
-            this.entity.setSelectedSubscriptionIds(subscriptions.stream().filter(Subscription::isSelected)
-                    .map(Subscription::getId).distinct().collect(Collectors.toList()));
+            this.entity.setEnvironment(defaultSub.getEnvironment());
+            this.entity.setEmail(userEmail);
+            this.entity.setTenantIds(userTenants); // use the tenant who has one or more subscriptions
+            this.entity.setSubscriptions(userSubs);
+            this.entity.setSelectedSubscriptionIds(userSelectedSubs);
             return true;
         });
     }
 
     protected Mono<TokenCredentialManager> createTokenCredentialManager() {
         return Mono.just(new AzureCliTokenCredentialManager(this.entity.getEnvironment()));
-    }
-
-    private static Subscription toSubscription(AzureCliSubscription s) {
-        Subscription subscription = new Subscription();
-        subscription.setId(s.getId());
-        subscription.setName(s.getName());
-        subscription.setSelected(s.isSelected());
-        subscription.setTenantId(s.getTenantId());
-        return subscription;
     }
 
     @Override

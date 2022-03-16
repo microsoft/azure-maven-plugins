@@ -24,7 +24,7 @@ public class AzureCloud implements AzureService {
     }
 
     public List<String> listNames() {
-        return AzureEnvironment.knownEnvironments().stream().map(AzureEnvironmentUtils::getCloudNameForAzureCli).
+        return AzureEnvironment.knownEnvironments().stream().map(AzureEnvironmentUtils::getCloudName).
                 collect(Collectors.toList());
     }
 
@@ -35,7 +35,7 @@ public class AzureCloud implements AzureService {
 
     public String getName() {
         final AzureEnvironment env = get();
-        return env == null ? null : AzureEnvironmentUtils.getCloudNameForAzureCli(env);
+        return env == null ? null : AzureEnvironmentUtils.getCloudName(env);
     }
 
     public AzureEnvironment getOrDefault() {
@@ -44,7 +44,7 @@ public class AzureCloud implements AzureService {
 
     public AzureCloud set(AzureEnvironment environment) {
         Objects.requireNonNull(environment, "Azure environment shall not be null.");
-        final String cloud = AzureEnvironmentUtils.getCloudNameForAzureCli(environment);
+        final String cloud = AzureEnvironmentUtils.getCloudName(environment);
         Azure.az().config().setCloud(cloud);
         return this;
     }
