@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Objects;
 
 public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R>
-    extends AzResourceBase, IAzureBaseResource<T, P> {
+    extends AzResourceBase, IAzureBaseResource<T, P>, Refreshable {
 
     None NONE = new None();
     String RESOURCE_GROUP_PLACEHOLDER = "${rg}";

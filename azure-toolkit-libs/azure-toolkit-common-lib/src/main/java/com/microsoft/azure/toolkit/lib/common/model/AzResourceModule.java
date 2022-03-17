@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R> {
+public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R> extends Refreshable {
     @Nonnull
     None NONE = new None();
 
