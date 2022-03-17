@@ -46,20 +46,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class AzureFunctionsResourceManager implements IFileClient {
+public class AzureFunctionsFileClient implements IFileClient {
     private static final String LINUX_ROOT = "home";
 
     private final String host;
     private final FunctionsService functionsService;
     private final FunctionAppBase<?, ?, ?> app;
 
-    private AzureFunctionsResourceManager(FunctionsService functionsService, FunctionAppBase<?, ?, ?> app) {
+    private AzureFunctionsFileClient(FunctionsService functionsService, FunctionAppBase<?, ?, ?> app) {
         this.app = app;
         this.functionsService = functionsService;
         this.host = String.format("https://%s", app.getHostName());
     }
 
-    public static AzureFunctionsResourceManager getClient(@Nonnull WebAppBase functionApp, @Nonnull FunctionAppBase<?, ?, ?> appService) {
+    public static AzureFunctionsFileClient getClient(@Nonnull WebAppBase functionApp, @Nonnull FunctionAppBase<?, ?, ?> appService) {
         // refers : https://github.com/Azure/azure-sdk-for-java/blob/master/sdk/resourcemanager/azure-resourcemanager-appservice/src/main/java/
         // com/azure/resourcemanager/appservice/implementation/KuduClient.java
         if (!(functionApp instanceof FunctionApp || functionApp instanceof FunctionDeploymentSlot)) {
@@ -75,7 +75,7 @@ public class AzureFunctionsResourceManager implements IFileClient {
                 .build();
         final FunctionsService functionsService = RestProxy.create(FunctionsService.class, httpPipeline,
                 SerializerFactory.createDefaultManagementSerializerAdapter());
-        return new AzureFunctionsResourceManager(functionsService, appService);
+        return new AzureFunctionsFileClient(functionsService, appService);
     }
 
     public Flux<ByteBuffer> getFileContent(final String path) {

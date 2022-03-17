@@ -49,18 +49,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class AppServiceKuduManager implements IFileClient, IProcessClient {
+public class AppServiceKuduClient implements IFileClient, IProcessClient {
     private final String host;
     private final KuduService kuduService;
     private final AppServiceAppBase<?, ?, ?> app;
 
-    private AppServiceKuduManager(String host, KuduService kuduService, AppServiceAppBase<?, ?, ?> app) {
+    private AppServiceKuduClient(String host, KuduService kuduService, AppServiceAppBase<?, ?, ?> app) {
         this.host = host;
         this.app = app;
         this.kuduService = kuduService;
     }
 
-    public static AppServiceKuduManager getClient(@Nonnull WebAppBase webAppBase, @Nonnull AppServiceAppBase<?, ?, ?> appService) {
+    public static AppServiceKuduClient getClient(@Nonnull WebAppBase webAppBase, @Nonnull AppServiceAppBase<?, ?, ?> appService) {
         // refers : https://github.com/Azure/azure-sdk-for-java/blob/master/sdk/resourcemanager/azure-resourcemanager-appservice/src/main/java/
         // com/azure/resourcemanager/appservice/implementation/KuduClient.java
         if (webAppBase.defaultHostname() == null) {
@@ -83,7 +83,7 @@ public class AppServiceKuduManager implements IFileClient, IProcessClient {
                 .build();
         final KuduService kuduService = RestProxy.create(KuduService.class, httpPipeline,
                 SerializerFactory.createDefaultManagementSerializerAdapter());
-        return new AppServiceKuduManager(host, kuduService, appService);
+        return new AppServiceKuduClient(host, kuduService, appService);
     }
 
     public Flux<ByteBuffer> getFileContent(final String path) {

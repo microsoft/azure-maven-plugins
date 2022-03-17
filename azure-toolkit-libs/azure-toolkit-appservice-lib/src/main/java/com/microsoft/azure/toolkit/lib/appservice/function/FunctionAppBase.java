@@ -13,7 +13,7 @@ import com.microsoft.azure.toolkit.lib.appservice.deploy.MSFunctionDeployHandler
 import com.microsoft.azure.toolkit.lib.appservice.deploy.RunFromBlobFunctionDeployHandler;
 import com.microsoft.azure.toolkit.lib.appservice.deploy.RunFromZipFunctionDeployHandler;
 import com.microsoft.azure.toolkit.lib.appservice.deploy.ZIPFunctionDeployHandler;
-import com.microsoft.azure.toolkit.lib.appservice.file.AzureFunctionsResourceManager;
+import com.microsoft.azure.toolkit.lib.appservice.file.AzureFunctionsFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.file.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
@@ -33,7 +33,7 @@ import java.util.Optional;
 public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, R>, P extends AbstractAzResource<P, ?, ?>, R extends WebAppBase>
     extends AppServiceAppBase<T, P, R> {
 
-    private AzureFunctionsResourceManager fileClient;
+    private AzureFunctionsFileClient fileClient;
 
     protected FunctionAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, R> module) {
         super(name, resourceGroupName, module);
@@ -59,7 +59,7 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, R>, P exte
     protected IFileClient getFileClient() {
         // kudu api does not applies to linux consumption, using functions admin api instead
         if (fileClient == null) {
-            fileClient = this.remoteOptional().map(r -> AzureFunctionsResourceManager.getClient(r, this)).orElse(null);
+            fileClient = this.remoteOptional().map(r -> AzureFunctionsFileClient.getClient(r, this)).orElse(null);
         }
         return fileClient;
     }

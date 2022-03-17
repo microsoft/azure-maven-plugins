@@ -13,7 +13,7 @@ import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.appservice.file.AppServiceKuduManager;
+import com.microsoft.azure.toolkit.lib.appservice.file.AppServiceKuduClient;
 import com.microsoft.azure.toolkit.lib.appservice.file.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.file.IProcessClient;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
@@ -53,7 +53,7 @@ import java.util.Optional;
 
 public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P extends AbstractAzResource<P, ?, ?>, R extends WebAppBase>
     extends AbstractAzResource<T, P, R> implements Startable, Removable {
-    protected AppServiceKuduManager kuduManager;
+    protected AppServiceKuduClient kuduManager;
 
     protected AppServiceAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, R> module) {
         super(name, resourceGroupName, module);
@@ -213,9 +213,9 @@ public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P 
     }
 
     @Nullable
-    protected AppServiceKuduManager getKuduManager() {
+    protected AppServiceKuduClient getKuduManager() {
         if (kuduManager == null) {
-            kuduManager = this.remoteOptional().map(r -> AppServiceKuduManager.getClient(r, this)).orElse(null);
+            kuduManager = this.remoteOptional().map(r -> AppServiceKuduClient.getClient(r, this)).orElse(null);
         }
         return kuduManager;
     }
