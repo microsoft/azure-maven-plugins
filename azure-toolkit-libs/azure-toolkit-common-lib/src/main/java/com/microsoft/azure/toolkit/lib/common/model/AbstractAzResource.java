@@ -92,7 +92,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         this.syncTimeRef = origin.syncTimeRef;
     }
 
-    public final boolean exists() {
+    public boolean exists() {
         return this.remoteOptional().isPresent();
     }
 

@@ -38,6 +38,9 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
@@ -54,6 +57,9 @@ import java.util.Optional;
 public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P extends AbstractAzResource<P, ?, ?>, R extends WebAppBase>
     extends AbstractAzResource<T, P, R> implements Startable, Removable {
     protected AppServiceKuduClient kuduManager;
+    @Setter(AccessLevel.PROTECTED)
+    @Getter(AccessLevel.PROTECTED)
+    private WebSiteBase basic;
 
     protected AppServiceAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, R> module) {
         super(name, resourceGroupName, module);
@@ -63,8 +69,18 @@ public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P 
         super(name, module);
     }
 
+    /**
+     * copy constructor
+     */
     protected AppServiceAppBase(@Nonnull T origin) {
         super(origin);
+        this.kuduManager = origin.kuduManager;
+    }
+
+    @Override
+    public boolean exists() {
+        final WebSiteBase remote = Optional.ofNullable(this.basic).orElseGet(this::getRemote);
+        return Objects.isNull(remote);
     }
 
     // MODIFY
@@ -102,7 +118,8 @@ public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P 
 
     @Nullable
     public String getHostName() {
-        return this.remoteOptional().map(WebSiteBase::defaultHostname).orElse(null);
+        final WebSiteBase remote = Optional.ofNullable(this.basic).orElseGet(this::getRemote);
+        return Optional.ofNullable(remote).map(WebSiteBase::defaultHostname).orElse(null);
     }
 
     @Nullable
@@ -172,13 +189,15 @@ public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P 
 
     @Nullable
     public AppServicePlan getAppServicePlan() {
+        final WebSiteBase remote = Optional.ofNullable(this.basic).orElseGet(this::getRemote);
         final AppServicePlanModule plans = Azure.az(AzureAppService.class).plans(this.getSubscriptionId());
-        return this.remoteOptional().map(WebSiteBase::appServicePlanId).map(plans::get).orElse(null);
+        return Optional.ofNullable(remote).map(WebSiteBase::appServicePlanId).map(plans::get).orElse(null);
     }
 
     @Nullable
     public Region getRegion() {
-        return this.remoteOptional().map(WebSiteBase::regionName).map(Region::fromName).orElse(null);
+        final WebSiteBase remote = Optional.ofNullable(this.basic).orElseGet(this::getRemote);
+        return Optional.ofNullable(remote).map(WebSiteBase::regionName).map(Region::fromName).orElse(null);
     }
 
     @Nullable
@@ -196,7 +215,8 @@ public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P 
     @Nonnull
     @Override
     public String loadStatus() {
-        return this.remoteOptional().map(WebSiteBase::state).orElse(Status.UNKNOWN);
+        final WebSiteBase remote = Optional.ofNullable(this.basic).orElseGet(this::getRemote);
+        return Optional.ofNullable(remote).map(WebSiteBase::state).orElse(Status.UNKNOWN);
     }
 
     @Override

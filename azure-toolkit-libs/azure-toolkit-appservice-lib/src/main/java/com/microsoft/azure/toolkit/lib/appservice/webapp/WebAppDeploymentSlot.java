@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.webapp;
 
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
+import com.azure.resourcemanager.appservice.models.WebDeploymentSlotBasic;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 
 import javax.annotation.Nonnull;
@@ -14,10 +15,6 @@ import java.util.List;
 
 public class WebAppDeploymentSlot extends WebAppBase<WebAppDeploymentSlot, WebApp, DeploymentSlot> {
 
-    protected WebAppDeploymentSlot(@Nonnull String name, @Nonnull WebAppDeploymentSlotModule module) {
-        super(name, module);
-    }
-
     /**
      * copy constructor
      */
@@ -25,9 +22,18 @@ public class WebAppDeploymentSlot extends WebAppBase<WebAppDeploymentSlot, WebAp
         super(origin);
     }
 
+    protected WebAppDeploymentSlot(@Nonnull String name, @Nonnull WebAppDeploymentSlotModule module) {
+        super(name, module);
+    }
+
     protected WebAppDeploymentSlot(@Nonnull DeploymentSlot remote, @Nonnull WebAppDeploymentSlotModule module) {
         super(remote.name(), module);
         this.setRemote(remote);
+    }
+
+    protected WebAppDeploymentSlot(@Nonnull WebDeploymentSlotBasic basic, @Nonnull WebAppDeploymentSlotModule module) {
+        super(basic.name(), module);
+        this.setBasic(basic);
     }
 
     @Nonnull

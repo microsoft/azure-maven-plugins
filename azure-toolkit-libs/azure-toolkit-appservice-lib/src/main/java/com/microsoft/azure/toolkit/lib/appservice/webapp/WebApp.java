@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.webapp;
 
+import com.azure.resourcemanager.appservice.models.WebAppBasic;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
 import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
@@ -22,11 +23,6 @@ public class WebApp extends WebAppBase<WebApp, AppServiceResourceManager, com.az
     @Nonnull
     private final WebAppDeploymentSlotModule deploymentModule;
 
-    protected WebApp(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull WebAppModule module) {
-        super(name, resourceGroupName, module);
-        this.deploymentModule = new WebAppDeploymentSlotModule(this);
-    }
-
     /**
      * copy constructor
      */
@@ -35,10 +31,21 @@ public class WebApp extends WebAppBase<WebApp, AppServiceResourceManager, com.az
         this.deploymentModule = origin.deploymentModule;
     }
 
+    protected WebApp(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull WebAppModule module) {
+        super(name, resourceGroupName, module);
+        this.deploymentModule = new WebAppDeploymentSlotModule(this);
+    }
+
     protected WebApp(@Nonnull com.azure.resourcemanager.appservice.models.WebApp remote, @Nonnull WebAppModule module) {
         super(remote.name(), remote.resourceGroupName(), module);
         this.deploymentModule = new WebAppDeploymentSlotModule(this);
         this.setRemote(remote);
+    }
+
+    protected WebApp(@Nonnull WebAppBasic basic, @Nonnull WebAppModule module) {
+        super(basic.name(), basic.resourceGroupName(), module);
+        this.deploymentModule = new WebAppDeploymentSlotModule(this);
+        this.setBasic(basic);
     }
 
     public void swap(String slotName) {

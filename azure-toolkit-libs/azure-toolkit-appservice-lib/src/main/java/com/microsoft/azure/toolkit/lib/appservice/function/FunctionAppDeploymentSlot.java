@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.appservice.function;
 
 import com.azure.resourcemanager.appservice.fluent.models.HostKeysInner;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
+import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlotBasic;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 
 import javax.annotation.Nonnull;
@@ -29,6 +30,11 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionAppDeploy
     protected FunctionAppDeploymentSlot(@Nonnull FunctionDeploymentSlot remote, @Nonnull FunctionAppDeploymentSlotModule module) {
         super(remote.name(), module);
         this.setRemote(remote);
+    }
+
+    protected FunctionAppDeploymentSlot(@Nonnull FunctionDeploymentSlotBasic basic, @Nonnull FunctionAppDeploymentSlotModule module) {
+        super(basic.name(), module);
+        this.setBasic(basic);
     }
 
     @Nonnull

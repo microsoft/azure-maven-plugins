@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.function;
 
 import com.azure.resourcemanager.appservice.AppServiceManager;
+import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
 import com.azure.resourcemanager.appservice.models.FunctionApps;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -48,6 +49,14 @@ public class FunctionAppModule extends AbstractAzResourceModule<FunctionApp, App
     @Nonnull
     protected FunctionApp newResource(@Nonnull com.azure.resourcemanager.appservice.models.FunctionApp remote) {
         return new FunctionApp(remote, this);
+    }
+
+    @Nonnull
+    protected FunctionApp newResourceInner(@Nonnull Object r) {
+        if (r instanceof FunctionAppBasic) {
+            return new FunctionApp((FunctionAppBasic) r, this);
+        }
+        return super.newResourceInner(r);
     }
 
     @Nonnull

@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.function;
 
+import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
@@ -46,6 +47,12 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceResource
         super(remote.name(), remote.resourceGroupName(), module);
         this.deploymentModule = new FunctionAppDeploymentSlotModule(this);
         this.setRemote(remote);
+    }
+
+    protected FunctionApp(@Nonnull FunctionAppBasic basic, @Nonnull FunctionAppModule module) {
+        super(basic.name(), basic.resourceGroupName(), module);
+        this.deploymentModule = new FunctionAppDeploymentSlotModule(this);
+        this.setBasic(basic);
     }
 
     @Nonnull

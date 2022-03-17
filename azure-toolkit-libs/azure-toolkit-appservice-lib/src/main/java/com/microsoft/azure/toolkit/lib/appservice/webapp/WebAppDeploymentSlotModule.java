@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.appservice.webapp;
 
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.DeploymentSlots;
+import com.azure.resourcemanager.appservice.models.WebDeploymentSlotBasic;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
@@ -48,6 +49,14 @@ public class WebAppDeploymentSlotModule extends AbstractAzResourceModule<WebAppD
     @Nonnull
     protected WebAppDeploymentSlot newResource(@Nonnull DeploymentSlot remote) {
         return new WebAppDeploymentSlot(remote, this);
+    }
+
+    @Nonnull
+    protected WebAppDeploymentSlot newResourceInner(@Nonnull Object r) {
+        if (r instanceof WebDeploymentSlotBasic) {
+            return new WebAppDeploymentSlot((WebDeploymentSlotBasic) r, this);
+        }
+        return super.newResourceInner(r);
     }
 
     @Nonnull

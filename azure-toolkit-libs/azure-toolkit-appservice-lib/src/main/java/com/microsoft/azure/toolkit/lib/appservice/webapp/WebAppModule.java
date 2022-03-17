@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.webapp;
 
 import com.azure.resourcemanager.appservice.AppServiceManager;
+import com.azure.resourcemanager.appservice.models.WebAppBasic;
 import com.azure.resourcemanager.appservice.models.WebApps;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -48,6 +49,14 @@ public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceRes
     @Nonnull
     protected WebApp newResource(@Nonnull com.azure.resourcemanager.appservice.models.WebApp remote) {
         return new WebApp(remote, this);
+    }
+
+    @Nonnull
+    protected WebApp newResourceInner(@Nonnull Object r) {
+        if (r instanceof WebAppBasic) {
+            return new WebApp((WebAppBasic) r, this);
+        }
+        return super.newResourceInner(r);
     }
 
     @Nonnull
