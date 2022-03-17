@@ -47,7 +47,7 @@ public class PostgreSqlFirewallRule extends AbstractAzResource<PostgreSqlFirewal
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull FirewallRule remote) {
+    public String loadStatus() {
         return Status.UNKNOWN;
     }
 

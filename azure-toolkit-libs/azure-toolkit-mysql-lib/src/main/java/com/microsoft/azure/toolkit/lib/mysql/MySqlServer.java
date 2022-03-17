@@ -83,8 +83,8 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull Server remote) {
-        return remote.userVisibleState().toString();
+    public String loadStatus() {
+        return this.remoteOptional().map(r -> r.userVisibleState().toString()).orElse(Status.UNKNOWN);
     }
 
     @Nonnull

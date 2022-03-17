@@ -64,8 +64,8 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourceGro
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull com.azure.resourcemanager.resources.models.ResourceGroup remote) {
-        return remote.provisioningState();
+    public String loadStatus() {
+        return this.remoteOptional().map(r -> r.provisioningState()).orElse(Status.UNKNOWN);
     }
 
     @Nonnull

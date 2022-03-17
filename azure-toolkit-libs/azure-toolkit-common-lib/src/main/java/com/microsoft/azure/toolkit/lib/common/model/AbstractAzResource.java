@@ -93,7 +93,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     public final boolean exists() {
-        return Objects.nonNull(this.getRemote());
+        return this.remoteOptional().isPresent();
     }
 
     @Override
@@ -212,7 +212,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         log.debug("[{}:{}]:reloadStatus()", this.module.getName(), this.name);
         try {
             log.debug("[{}:{}]:reloadStatus->loadStatus()", this.module.getName(), this.name);
-            this.remoteOptional().map(this::loadStatus).ifPresent(this::setStatus);
+            this.setStatus(this.loadStatus());
         } catch (Throwable t) {
             log.debug("[{}:{}]:reloadStatus->loadStatus()=EXCEPTION", this.module.getName(), this.name, t);
             this.setStatus(Status.UNKNOWN);
@@ -310,7 +310,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     public abstract List<AzResourceModule<?, T, ?>> getSubModules();
 
     @Nonnull
-    public abstract String loadStatus(@Nonnull R remote);
+    public abstract String loadStatus();
 
     @Nonnull
     protected Optional<R> remoteOptional() {
