@@ -7,10 +7,10 @@ package com.microsoft.azure.maven.function;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
+import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
@@ -160,7 +160,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     protected FunctionAppBase<?, ?, ?> createOrUpdateResource(final FunctionAppConfig config) throws Throwable {
-        FunctionApp app = Azure.az(AzureAppService.class).functionApps(config.subscriptionId()).updateOrCreate(config.appName(), config.resourceGroup());
+        FunctionApp app = Azure.az(AzureFunctions.class).functionApps(config.subscriptionId()).updateOrCreate(config.appName(), config.resourceGroup());
         final boolean newFunctionApp = !app.exists();
         AppServiceConfig defaultConfig = !newFunctionApp ? fromAppService(app, app.getAppServicePlan()) : buildDefaultConfig(config.subscriptionId(),
             config.resourceGroup(), config.appName());

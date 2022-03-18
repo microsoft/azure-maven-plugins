@@ -8,9 +8,9 @@ package com.microsoft.azure.toolkit.lib.appservice.plan;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
-import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -64,7 +64,7 @@ public class AppServicePlan extends AbstractAzResource<AppServicePlan, AppServic
     }
 
     public List<WebApp> getWebApps() {
-        return Azure.az(AzureAppService.class).webApps(this.getSubscriptionId()).list().stream()
+        return Azure.az(AzureWebApp.class).webApps(this.getSubscriptionId()).list().stream()
             .filter(webapp -> StringUtils.equals(Objects.requireNonNull(webapp.getAppServicePlan()).getId(), this.getId()))
             .collect(Collectors.toList());
     }

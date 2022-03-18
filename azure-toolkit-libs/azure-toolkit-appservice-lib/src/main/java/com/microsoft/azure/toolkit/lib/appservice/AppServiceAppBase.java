@@ -80,7 +80,7 @@ public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P 
     @Override
     public boolean exists() {
         final WebSiteBase remote = Optional.ofNullable(this.basic).orElseGet(this::getRemote);
-        return Objects.isNull(remote);
+        return Objects.nonNull(remote);
     }
 
     // MODIFY

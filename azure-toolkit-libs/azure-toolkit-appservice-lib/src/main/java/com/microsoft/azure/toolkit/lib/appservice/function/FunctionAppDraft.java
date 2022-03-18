@@ -45,7 +45,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     public static final String FUNCTIONS_EXTENSION_VERSION = "FUNCTIONS_EXTENSION_VERSION";
     public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8;
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
-    public static final String CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS = "Can not update the operation system for existing app service";
+    public static final String CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS = "Can not update the operation system of an existing app";
 
     public static final String APP_SETTING_MACHINEKEY_DECRYPTION_KEY = "MACHINEKEY_DecryptionKey";
     public static final String APP_SETTING_WEBSITES_ENABLE_APP_SERVICE_STORAGE = "WEBSITES_ENABLE_APP_SERVICE_STORAGE";
@@ -90,8 +90,8 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         AzureTelemetry.getContext().getActionParent().setProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
 
         final String name = getName();
-        final Runtime newRuntime = Objects.requireNonNull(getRuntime(), "'runtime' is required to create Azure Web App");
-        final AppServicePlan newPlan = Objects.requireNonNull(getAppServicePlan(), "'service plan' is required to create Azure Web App");
+        final Runtime newRuntime = Objects.requireNonNull(getRuntime(), "'runtime' is required to create a Azure Functions app");
+        final AppServicePlan newPlan = Objects.requireNonNull(getAppServicePlan(), "'service plan' is required to create a Azure Functions app");
         final Map<String, String> newAppSettings = getAppSettings();
         final DiagnosticConfig newDiagnosticConfig = getDiagnosticConfig();
         final String funcExtVersion = Optional.ofNullable(newAppSettings).map(map -> map.get(FUNCTIONS_EXTENSION_VERSION)).orElse(null);
@@ -110,7 +110,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
                 .withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime.getJavaVersion()))
                 .withWebContainer(null);
         } else if (newRuntime.getOperatingSystem() == OperatingSystem.DOCKER) {
-            withCreate = createDockerWebApp(blank, newPlan);
+            withCreate = createDockerApp(blank, newPlan);
         } else {
             throw new AzureToolkitRuntimeException(String.format(UNSUPPORTED_OPERATING_SYSTEM, newRuntime.getOperatingSystem()));
         }
@@ -122,15 +122,15 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, newDiagnosticConfig);
         }
         final IAzureMessager messager = AzureMessager.getMessager();
-        messager.info(AzureString.format("Start creating Web App({0})...", name));
-        com.azure.resourcemanager.appservice.models.FunctionApp webApp = Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
-        messager.success(AzureString.format("Web App({0}) is successfully created", name));
-        return webApp;
+        messager.info(AzureString.format("Start creating Azure Functions app({0})...", name));
+        com.azure.resourcemanager.appservice.models.FunctionApp functionApp = Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
+        messager.success(AzureString.format("Azure Functions app({0}) is successfully created", name));
+        return functionApp;
     }
 
-    DefinitionStages.WithCreate createDockerWebApp(@Nonnull DefinitionStages.Blank blank, @Nonnull AppServicePlan plan) {
+    DefinitionStages.WithCreate createDockerApp(@Nonnull DefinitionStages.Blank blank, @Nonnull AppServicePlan plan) {
         // check service plan, consumption is not supported
-        final String message = "Docker configuration is required to create a docker based Azure Web App";
+        final String message = "Docker configuration is required to create a docker based Azure Functions app";
         final DockerConfiguration config = Objects.requireNonNull(this.getDockerConfiguration(), message);
         if (StringUtils.equalsIgnoreCase(plan.getPricingTier().getTier(), "Dynamic")) {
             throw new AzureToolkitRuntimeException("Docker function is not supported in consumption service plan");
@@ -193,9 +193,9 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             Optional.ofNullable(newDiagnosticConfig).ifPresent(c -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, newDiagnosticConfig));
 
             final IAzureMessager messager = AzureMessager.getMessager();
-            messager.info(AzureString.format("Start updating Web App({0})...", remote.name()));
+            messager.info(AzureString.format("Start updating Azure Functions App({0})...", remote.name()));
             remote = update.apply();
-            messager.success(AzureString.format("Web App({0}) is successfully updated", remote.name()));
+            messager.success(AzureString.format("Azure Functions App({0}) is successfully updated", remote.name()));
         }
         return remote;
     }

@@ -37,7 +37,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
     implements AzResource.Draft<FunctionAppDeploymentSlot, FunctionDeploymentSlot> {
     public static final String CONFIGURATION_SOURCE_NEW = "new";
     public static final String CONFIGURATION_SOURCE_PARENT = "parent";
-    private static final String CONFIGURATION_SOURCE_DOES_NOT_EXISTS = "Target slot configuration source does not exists in current web app";
+    private static final String CONFIGURATION_SOURCE_DOES_NOT_EXISTS = "Target slot configuration source does not exists in current app";
     private static final String FAILED_TO_GET_CONFIGURATION_SOURCE = "Failed to get configuration source slot";
 
     @Getter
@@ -82,8 +82,8 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         // Using configuration from parent by default
         final String source = StringUtils.isBlank(newConfigurationSource) ? CONFIGURATION_SOURCE_PARENT : StringUtils.lowerCase(newConfigurationSource);
 
-        final FunctionApp webApp = Objects.requireNonNull(this.getParent().getRemote());
-        final FunctionDeploymentSlot.DefinitionStages.Blank blank = webApp.deploymentSlots().define(getName());
+        final FunctionApp functionApp = Objects.requireNonNull(this.getParent().getRemote());
+        final FunctionDeploymentSlot.DefinitionStages.Blank blank = functionApp.deploymentSlots().define(getName());
         final FunctionDeploymentSlot.DefinitionStages.WithCreate withCreate;
         if (CONFIGURATION_SOURCE_NEW.equals(source)) {
             withCreate = blank.withBrandNewConfiguration();
@@ -91,7 +91,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
             withCreate = blank.withConfigurationFromParent();
         } else {
             try {
-                final FunctionDeploymentSlot sourceSlot = webApp.deploymentSlots().getByName(newConfigurationSource);
+                final FunctionDeploymentSlot sourceSlot = functionApp.deploymentSlots().getByName(newConfigurationSource);
                 Objects.requireNonNull(sourceSlot, CONFIGURATION_SOURCE_DOES_NOT_EXISTS);
                 withCreate = blank.withConfigurationFromDeploymentSlot(sourceSlot);
             } catch (ManagementException e) {
@@ -106,9 +106,9 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
             AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, newDiagnosticConfig);
         }
         final IAzureMessager messager = AzureMessager.getMessager();
-        messager.info(AzureString.format("Start creating Web App deployment slot ({0})...", name));
+        messager.info(AzureString.format("Start creating Azure Functions app deployment slot ({0})...", name));
         FunctionDeploymentSlot slot = Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
-        messager.success(AzureString.format("Web App deployment slot ({0}) is successfully created", name));
+        messager.success(AzureString.format("Azure Functions app deployment slot ({0}) is successfully created", name));
         return slot;
     }
 
@@ -133,9 +133,9 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
             Optional.ofNullable(newDiagnosticConfig).ifPresent(c -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, newDiagnosticConfig));
 
             final IAzureMessager messager = AzureMessager.getMessager();
-            messager.info(AzureString.format("Start updating Web App deployment slot({0})...", remote.name()));
+            messager.info(AzureString.format("Start updating Azure Functions app deployment slot({0})...", remote.name()));
             remote = update.apply();
-            messager.success(AzureString.format("Web App deployment slot({0}) is successfully updated", remote.name()));
+            messager.success(AzureString.format("Azure Functions app deployment slot({0}) is successfully updated", remote.name()));
         }
         return remote;
     }

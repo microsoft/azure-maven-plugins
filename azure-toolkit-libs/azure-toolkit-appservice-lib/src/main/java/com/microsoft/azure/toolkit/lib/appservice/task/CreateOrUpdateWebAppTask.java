@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDraft;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -56,7 +57,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
     private List<AzureTask<?>> initTasks() {
         final List<AzureTask<?>> tasks = new ArrayList<>();
         final AzureString title = AzureString.format("Create new web app({0})", this.config.appName());
-        AzureAppService az = Azure.az(AzureAppService.class);
+        AzureAppService az = Azure.az(AzureWebApp.class);
         tasks.add(new AzureTask<>(title, () -> {
             final WebApp target = az.webApps(config.subscriptionId())
                 .getOrDraft(config.appName(), config.resourceGroup());

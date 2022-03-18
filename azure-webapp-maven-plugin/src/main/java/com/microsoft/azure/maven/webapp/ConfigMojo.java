@@ -24,6 +24,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
@@ -440,7 +441,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         if (isJarPacking) {
             result.add(WebContainer.JAVA_SE.toString());
         } else {
-            for (final Runtime runtime : Azure.az(AzureAppService.class).listWebAppRuntimes(os, javaVersion)) {
+            for (final Runtime runtime : Azure.az(AzureWebApp.class).listWebAppRuntimes(os, javaVersion)) {
                 result.add(runtime.getWebContainer().toString());
             }
             result.remove(WebContainer.JAVA_SE.toString());

@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
+import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
@@ -74,7 +75,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
     }
 
     private void initTasks() {
-        final FunctionAppDraft appDraft = Azure.az(AzureAppService.class).functionApps(functionAppConfig.subscriptionId())
+        final FunctionAppDraft appDraft = Azure.az(AzureFunctions.class).functionApps(functionAppConfig.subscriptionId())
             .updateOrCreate(functionAppConfig.appName(), functionAppConfig.resourceGroup());
         registerSubTask(getResourceGroupTask(), result -> this.resourceGroup = result);
         registerSubTask(getServicePlanTask(), result -> this.appServicePlan = result);
