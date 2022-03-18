@@ -84,6 +84,12 @@ public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P 
         return Objects.nonNull(remote);
     }
 
+    @Nullable
+    @Override
+    protected R refreshRemote(@Nonnull R remote) {
+        return super.loadRemote();
+    }
+
     // MODIFY
     @AzureOperation(name = "appservice.start.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
