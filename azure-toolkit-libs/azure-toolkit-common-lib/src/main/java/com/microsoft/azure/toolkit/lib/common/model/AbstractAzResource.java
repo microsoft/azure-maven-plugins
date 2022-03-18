@@ -212,7 +212,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         log.debug("[{}:{}]:reloadStatus()", this.module.getName(), this.name);
         try {
             log.debug("[{}:{}]:reloadStatus->loadStatus()", this.module.getName(), this.name);
-            this.setStatus(this.loadStatus());
+            this.remoteOptional().map(this::loadStatus).ifPresent(this::setStatus);
         } catch (Throwable t) {
             log.debug("[{}:{}]:reloadStatus->loadStatus()=EXCEPTION", this.module.getName(), this.name, t);
             this.setStatus(Status.UNKNOWN);
@@ -310,7 +310,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     public abstract List<AzResourceModule<?, T, ?>> getSubModules();
 
     @Nonnull
-    public abstract String loadStatus();
+    public abstract String loadStatus(@Nonnull R remote);
 
     @Nonnull
     protected Optional<R> remoteOptional() {

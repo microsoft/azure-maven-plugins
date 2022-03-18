@@ -162,7 +162,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
 
         @Nonnull
         @Override
-        public String loadStatus() {
+        public String loadStatus(@Nonnull Void remote) {
             return Status.UNKNOWN;
         }
 

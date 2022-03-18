@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
+import com.azure.resourcemanager.appplatform.models.ProvisioningState;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.TestKeys;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -45,8 +46,9 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
 
     @Nonnull
     @Override
-    public String loadStatus() {
-        return this.remoteOptional().map(r -> r.refresh().innerModel().properties().provisioningState().toString()).orElse(Status.UNKNOWN);
+    public String loadStatus(@Nonnull SpringService remote) {
+        final ProvisioningState state = remote.refresh().innerModel().properties().provisioningState();
+        return state.toString();
     }
 
     @Nonnull

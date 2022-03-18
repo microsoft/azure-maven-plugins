@@ -66,8 +66,8 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceMana
 
     @Nonnull
     @Override
-    public String loadStatus() {
-        return this.remoteOptional().map(r -> r.provisioningState().toString()).orElse(Status.UNKNOWN);
+    public String loadStatus(@Nonnull com.azure.resourcemanager.redis.models.RedisCache remote) {
+        return remote.innerModel().provisioningState().toString();
     }
 
     @Nonnull

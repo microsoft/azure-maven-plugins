@@ -57,7 +57,7 @@ public abstract class AbstractAzResourceManager<T extends AbstractAzResource<T, 
 
     @Nonnull
     @Override
-    public String loadStatus() {
+    public String loadStatus(@Nonnull R remote) {
         return Status.UNKNOWN;
     }
 

@@ -59,7 +59,7 @@ public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, A
 
     @Nonnull
     @Override
-    public String loadStatus() {
-        return this.remoteOptional().map(ApplicationInsightsComponent::provisioningState).orElse(Status.UNKNOWN);
+    public String loadStatus(@Nonnull ApplicationInsightsComponent remote) {
+        return remote.provisioningState();
     }
 }

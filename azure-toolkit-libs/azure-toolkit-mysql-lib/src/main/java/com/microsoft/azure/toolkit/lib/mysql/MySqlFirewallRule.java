@@ -47,7 +47,7 @@ public class MySqlFirewallRule extends AbstractAzResource<MySqlFirewallRule, MyS
 
     @Nonnull
     @Override
-    public String loadStatus() {
+    public String loadStatus(@Nonnull FirewallRule remote) {
         return Status.UNKNOWN;
     }
 

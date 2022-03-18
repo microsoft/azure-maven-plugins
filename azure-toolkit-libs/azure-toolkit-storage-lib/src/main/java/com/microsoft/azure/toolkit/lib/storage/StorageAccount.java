@@ -53,8 +53,8 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageRe
 
     @Nonnull
     @Override
-    public String loadStatus() {
-        return this.remoteOptional().map(r -> r.provisioningState().toString()).orElse(Status.UNKNOWN);
+    public String loadStatus(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount remote) {
+        return remote.innerModel().provisioningState().toString();
     }
 
     @Nonnull

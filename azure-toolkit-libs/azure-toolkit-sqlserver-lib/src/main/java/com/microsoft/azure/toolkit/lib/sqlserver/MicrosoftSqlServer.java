@@ -72,8 +72,8 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
 
     @Nonnull
     @Override
-    public String loadStatus() {
-        return this.remoteOptional().map(SqlServer::state).orElse(Status.UNKNOWN);
+    public String loadStatus(@Nonnull SqlServer remote) {
+        return remote.state();
     }
 
     @Nonnull
