@@ -91,4 +91,14 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
         }
         return (E) resource;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        return this == o;
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
 }

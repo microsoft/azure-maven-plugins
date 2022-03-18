@@ -36,7 +36,7 @@ public class AppServiceResourceManager extends AbstractAzResourceManager<AppServ
     @Nonnull
     private final AppServicePlanModule planModule;
 
-    AppServiceResourceManager(@Nonnull String subscriptionId, @Nonnull AzureAppService service) {
+    protected AppServiceResourceManager(@Nonnull String subscriptionId, @Nonnull AzureAppService service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.functionAppModule = new FunctionAppModule(this);
@@ -44,7 +44,7 @@ public class AppServiceResourceManager extends AbstractAzResourceManager<AppServ
         this.planModule = new AppServicePlanModule(this);
     }
 
-    AppServiceResourceManager(@Nonnull AppServiceManager remote, @Nonnull AzureAppService service) {
+    protected AppServiceResourceManager(@Nonnull AppServiceManager remote, @Nonnull AzureAppService service) {
         this(remote.subscriptionId(), service);
     }
 

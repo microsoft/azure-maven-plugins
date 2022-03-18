@@ -33,7 +33,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public final class AzureAppService extends AbstractAzService<AppServiceResourceManager, AppServiceManager> {
+public class AzureAppService extends AbstractAzService<AppServiceResourceManager, AppServiceManager> {
     public AzureAppService() {
         super("Microsoft.Web"); // for SPI
     }
