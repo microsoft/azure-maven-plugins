@@ -11,6 +11,7 @@ import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppModule;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
@@ -18,13 +19,16 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanModule;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppModule;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -127,6 +131,24 @@ public class AzureAppService extends AbstractAzService<AppServiceResourceManager
         return Runtime.FUNCTION_APP_RUNTIME.stream()
             .filter(runtime -> Objects.equals(os, runtime.getOperatingSystem()) && Objects.equals(version, runtime.getJavaVersion()))
             .collect(Collectors.toList());
+    }
+
+    @Nullable
+    @Override
+    public <E> E getById(@Nonnull String id) {
+        final ResourceId resourceId = ResourceId.fromString(id);
+        if (resourceId.resourceType().equals(AppServicePlanModule.NAME)) {
+            return super.doGetById(id);
+        } else {
+            final boolean isFunctionRelated = Optional.ofNullable(this.get(resourceId.subscriptionId(), null))
+                .map(AbstractAzResource::getRemote).map(r -> r.resourceManager().genericResources().getById(id))
+                .filter(r -> StringUtils.containsIgnoreCase(r.kind(), "function")).isPresent();
+            if (isFunctionRelated) {
+                return Azure.az(AzureFunctions.class).doGetById(id);
+            } else {
+                return Azure.az(AzureWebApp.class).doGetById(id);
+            }
+        }
     }
 
     @Nonnull

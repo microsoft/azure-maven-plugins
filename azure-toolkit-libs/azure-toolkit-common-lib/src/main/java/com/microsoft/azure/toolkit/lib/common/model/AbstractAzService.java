@@ -32,6 +32,12 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
         AzureEventBus.on("account.subscription_changed.account", (e) -> this.refresh());
     }
 
+    @Nullable
+    public T get(@Nonnull String resourceId) {
+        final ResourceId id = ResourceId.fromString(resourceId);
+        return this.get(id.subscriptionId(), id.resourceGroupName());
+    }
+
     @Nonnull
     @Override
     public String getFullResourceType() {
@@ -78,6 +84,11 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
 
     @Nullable
     public <E> E getById(@Nonnull String id) { // move to upper class
+        return this.doGetById(id);
+    }
+
+    @Nullable
+    protected <E> E doGetById(@Nonnull String id) { // move to upper class
         ResourceId resourceId = ResourceId.fromString(id);
         final String resourceGroup = resourceId.resourceGroupName();
         AbstractAzResource<?, ?, ?> resource = Objects.requireNonNull(this.get(resourceId.subscriptionId(), resourceGroup));
