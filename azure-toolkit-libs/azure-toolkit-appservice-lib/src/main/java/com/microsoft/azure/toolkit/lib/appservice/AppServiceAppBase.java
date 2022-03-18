@@ -41,6 +41,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
@@ -54,6 +55,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+@Slf4j
 public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P extends AbstractAzResource<P, ?, ?>, R extends WebAppBase>
     extends AbstractAzResource<T, P, R> implements Startable, Removable {
     protected AppServiceKuduClient kuduManager;
@@ -214,9 +216,8 @@ public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P 
 
     @Nonnull
     @Override
-    public String loadStatus() {
-        final WebSiteBase remote = Optional.ofNullable(this.basic).orElseGet(this::getRemote);
-        return Optional.ofNullable(remote).map(WebSiteBase::state).orElse(Status.UNKNOWN);
+    public String loadStatus(@Nonnull R remote) {
+        return remote.state();
     }
 
     @Override

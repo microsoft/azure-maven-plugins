@@ -54,8 +54,8 @@ public class AppServicePlan extends AbstractAzResource<AppServicePlan, AppServic
 
     @Nonnull
     @Override
-    public String loadStatus() {
-        return this.remoteOptional().map(r -> r.innerModel().provisioningState().toString()).orElse(Status.UNKNOWN);
+    public String loadStatus(@Nonnull com.azure.resourcemanager.appservice.models.AppServicePlan plan) {
+        return plan.innerModel().provisioningState().toString();
     }
 
     @Override
