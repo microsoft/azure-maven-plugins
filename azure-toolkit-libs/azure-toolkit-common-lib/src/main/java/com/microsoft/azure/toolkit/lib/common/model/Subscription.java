@@ -26,7 +26,6 @@ public class Subscription {
     @Nonnull
     @JsonProperty
     private String id;
-    @Nonnull
     @JsonProperty
     private String name;
     @JsonProperty
