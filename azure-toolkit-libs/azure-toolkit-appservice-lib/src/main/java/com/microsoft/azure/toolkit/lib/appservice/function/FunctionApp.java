@@ -9,7 +9,6 @@ import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
-import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import lombok.Getter;
@@ -68,7 +67,6 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceResource
     }
 
     @Nonnull
-    @Cacheable(cacheName = "appservice/functionapp/{}/functions", key = "${this.getName()}", condition = "!(force&&force[0])")
     public List<FunctionEntity> listFunctions(boolean... force) {
         return this.remoteOptional().map(r -> r.listFunctions().stream()
                 .map(AppServiceUtils::fromFunctionAppEnvelope)
