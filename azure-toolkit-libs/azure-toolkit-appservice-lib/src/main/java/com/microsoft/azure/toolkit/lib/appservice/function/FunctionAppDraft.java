@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.appservice.function;
 import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages;
 import com.azure.resourcemanager.appservice.models.FunctionApp.Update;
+import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
@@ -40,7 +41,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<FunctionApp, com.azure.resourcemanager.appservice.models.FunctionApp> {
+public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<FunctionApp, WebSiteBase> {
     private static final String CREATE_NEW_FUNCTION_APP = "isCreateNewFunctionApp";
     public static final String FUNCTIONS_EXTENSION_VERSION = "FUNCTIONS_EXTENSION_VERSION";
     public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8;
@@ -123,7 +124,8 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         }
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Azure Functions app({0})...", name));
-        com.azure.resourcemanager.appservice.models.FunctionApp functionApp = Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
+        com.azure.resourcemanager.appservice.models.FunctionApp functionApp = (com.azure.resourcemanager.appservice.models.FunctionApp)
+            Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
         messager.success(AzureString.format("Azure Functions app({0}) is successfully created", name));
         return functionApp;
     }
@@ -165,7 +167,8 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     @Nonnull
     @Override
     @AzureOperation(name = "resource.update_resource.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
-    public com.azure.resourcemanager.appservice.models.FunctionApp updateResourceInAzure(@Nonnull com.azure.resourcemanager.appservice.models.FunctionApp remote) {
+    public com.azure.resourcemanager.appservice.models.FunctionApp updateResourceInAzure(@Nonnull WebSiteBase base) {
+        com.azure.resourcemanager.appservice.models.FunctionApp remote = (com.azure.resourcemanager.appservice.models.FunctionApp) base;
         assert origin != null : "updating target is not specified.";
         final Map<String, String> settingsToAdd = this.getAppSettings();
         final Set<String> settingsToRemove = this.getAppSettingsToRemove();

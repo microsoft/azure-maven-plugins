@@ -9,6 +9,7 @@ import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.models.WebApp.DefinitionStages;
 import com.azure.resourcemanager.appservice.models.WebApp.Update;
 import com.azure.resourcemanager.appservice.models.WebApp.UpdateStages;
+import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
@@ -36,7 +37,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.azure.resourcemanager.appservice.models.WebApp> {
+public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebSiteBase> {
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     public static final String CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS = "Can not update the operation system for existing app service";
 
@@ -106,7 +107,8 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.
         }
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Web App({0})...", name));
-        com.azure.resourcemanager.appservice.models.WebApp webApp = Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
+        com.azure.resourcemanager.appservice.models.WebApp webApp = (com.azure.resourcemanager.appservice.models.WebApp)
+            Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
         messager.success(AzureString.format("Web App({0}) is successfully created", name));
         return webApp;
     }
@@ -131,7 +133,8 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.
     @Nonnull
     @Override
     @AzureOperation(name = "resource.update_resource.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
-    public com.azure.resourcemanager.appservice.models.WebApp updateResourceInAzure(@Nonnull com.azure.resourcemanager.appservice.models.WebApp remote) {
+    public com.azure.resourcemanager.appservice.models.WebApp updateResourceInAzure(@Nonnull WebSiteBase base) {
+        com.azure.resourcemanager.appservice.models.WebApp remote = (com.azure.resourcemanager.appservice.models.WebApp) base;
         assert origin != null : "updating target is not specified.";
         final Map<String, String> settingsToAdd = this.getAppSettings();
         final Set<String> settingsToRemove = this.getAppSettingsToRemove();

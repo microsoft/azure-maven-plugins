@@ -123,7 +123,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @AzureOperation(name = "resource.reload.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
-    private void reload() {
+    protected void reload() {
         log.debug("[{}:{}]:reload()", this.module.getName(), this.name);
         Azure.az(IAzureAccount.class).account();
         final R remote = this.remoteRef.get();

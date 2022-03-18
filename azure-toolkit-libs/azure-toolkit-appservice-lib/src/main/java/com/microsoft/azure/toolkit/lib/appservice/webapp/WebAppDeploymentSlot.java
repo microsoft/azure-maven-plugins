@@ -26,14 +26,9 @@ public class WebAppDeploymentSlot extends WebAppBase<WebAppDeploymentSlot, WebAp
         super(name, module);
     }
 
-    protected WebAppDeploymentSlot(@Nonnull DeploymentSlot remote, @Nonnull WebAppDeploymentSlotModule module) {
+    protected WebAppDeploymentSlot(@Nonnull WebDeploymentSlotBasic remote, @Nonnull WebAppDeploymentSlotModule module) {
         super(remote.name(), module);
         this.setRemote(remote);
-    }
-
-    protected WebAppDeploymentSlot(@Nonnull WebDeploymentSlotBasic basic, @Nonnull WebAppDeploymentSlotModule module) {
-        super(basic.name(), module);
-        this.setBasic(basic);
     }
 
     @Nonnull

@@ -36,20 +36,14 @@ public class WebApp extends WebAppBase<WebApp, AppServiceResourceManager, com.az
         this.deploymentModule = new WebAppDeploymentSlotModule(this);
     }
 
-    protected WebApp(@Nonnull com.azure.resourcemanager.appservice.models.WebApp remote, @Nonnull WebAppModule module) {
+    protected WebApp(@Nonnull WebAppBasic remote, @Nonnull WebAppModule module) {
         super(remote.name(), remote.resourceGroupName(), module);
         this.deploymentModule = new WebAppDeploymentSlotModule(this);
         this.setRemote(remote);
     }
 
-    protected WebApp(@Nonnull WebAppBasic basic, @Nonnull WebAppModule module) {
-        super(basic.name(), basic.resourceGroupName(), module);
-        this.deploymentModule = new WebAppDeploymentSlotModule(this);
-        this.setBasic(basic);
-    }
-
     public void swap(String slotName) {
-        this.doModify(() -> Objects.requireNonNull(this.getRemote()).swap(slotName), Status.UPDATING);
+        this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).swap(slotName), Status.UPDATING);
     }
 
     @Nonnull

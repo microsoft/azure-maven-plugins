@@ -9,6 +9,7 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
 import com.azure.resourcemanager.appservice.models.WebApp;
+import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -34,7 +35,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Slf4j
-public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements AzResource.Draft<WebAppDeploymentSlot, DeploymentSlot> {
+public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements AzResource.Draft<WebAppDeploymentSlot, WebSiteBase> {
     private static final String CREATE_NEW_DEPLOYMENT_SLOT = "createNewDeploymentSlot";
     public static final String CONFIGURATION_SOURCE_NEW = "new";
     public static final String CONFIGURATION_SOURCE_PARENT = "parent";
@@ -85,7 +86,7 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
         // Using configuration from parent by default
         final String source = StringUtils.isBlank(newConfigurationSource) ? CONFIGURATION_SOURCE_PARENT : StringUtils.lowerCase(newConfigurationSource);
 
-        final WebApp webApp = Objects.requireNonNull(this.getParent().getRemote());
+        final WebApp webApp = Objects.requireNonNull(this.getParent().getFullRemote());
         final DeploymentSlot.DefinitionStages.Blank blank = webApp.deploymentSlots().define(getName());
         final DeploymentSlot.DefinitionStages.WithCreate withCreate;
         if (CONFIGURATION_SOURCE_NEW.equals(source)) {
@@ -110,7 +111,7 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
         }
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Web App deployment slot ({0})...", name));
-        DeploymentSlot slot = Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
+        DeploymentSlot slot = (DeploymentSlot) Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
         messager.success(AzureString.format("Web App deployment slot ({0}) is successfully created", name));
         return slot;
     }
@@ -122,7 +123,8 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
         params = {"this.getName()", "this.getResourceTypeName()"},
         type = AzureOperation.Type.SERVICE
     )
-    public DeploymentSlot updateResourceInAzure(@Nonnull DeploymentSlot remote) {
+    public DeploymentSlot updateResourceInAzure(@Nonnull WebSiteBase base) {
+        DeploymentSlot remote = (DeploymentSlot) base;
         final Map<String, String> settingsToAdd = this.getAppSettings();
         final Set<String> settingsToRemove = this.getAppSettingsToRemove();
         final DiagnosticConfig newDiagnosticConfig = this.getDiagnosticConfig();

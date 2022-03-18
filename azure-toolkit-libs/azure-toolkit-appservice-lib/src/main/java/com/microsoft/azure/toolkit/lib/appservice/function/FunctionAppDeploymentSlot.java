@@ -27,14 +27,9 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionAppDeploy
         super(origin);
     }
 
-    protected FunctionAppDeploymentSlot(@Nonnull FunctionDeploymentSlot remote, @Nonnull FunctionAppDeploymentSlotModule module) {
+    protected FunctionAppDeploymentSlot(@Nonnull FunctionDeploymentSlotBasic remote, @Nonnull FunctionAppDeploymentSlotModule module) {
         super(remote.name(), module);
         this.setRemote(remote);
-    }
-
-    protected FunctionAppDeploymentSlot(@Nonnull FunctionDeploymentSlotBasic basic, @Nonnull FunctionAppDeploymentSlotModule module) {
-        super(basic.name(), module);
-        this.setBasic(basic);
     }
 
     @Nonnull
@@ -46,6 +41,6 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionAppDeploy
     @Override
     public String getMasterKey() {
         final String name = String.format("%s/slots/%s", getParent().getName(), this.getName());
-        return getRemote().manager().serviceClient().getWebApps().listHostKeysAsync(this.getResourceGroupName(), name).map(HostKeysInner::masterKey).block();
+        return getFullRemote().manager().serviceClient().getWebApps().listHostKeysAsync(this.getResourceGroupName(), name).map(HostKeysInner::masterKey).block();
     }
 }

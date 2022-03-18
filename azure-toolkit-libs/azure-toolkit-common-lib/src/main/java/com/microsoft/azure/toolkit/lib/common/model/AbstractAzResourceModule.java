@@ -105,7 +105,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         }
         Azure.az(IAzureAccount.class).account();
         if (!this.resources.containsKey(name)) {
-            Object remote = null;
+            R remote = null;
             try {
                 log.debug("[{}]:get({}, {})->loadResourceFromAzure()", this.name, name, resourceGroup);
                 remote = loadResourceFromAzure(name, resourceGroup);
@@ -123,7 +123,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 log.debug("[{}]:get({}, {})->addResourceToLocal({}, null)", this.name, name, resourceGroup, name);
                 this.addResourceToLocal(name, null);
             } else {
-                final T resource = newResourceInner(remote);
+                final T resource = newResource(remote);
                 log.debug("[{}]:get({}, {})->addResourceToLocal({}, resource)", this.name, name, resourceGroup, name);
                 this.addResourceToLocal(name, resource);
             }
@@ -246,7 +246,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             AzureMessager.getMessager().error(t);
             return;
         }
-        final Map<String, T> loadedResources = loaded.map(this::newResourceInner).collect(Collectors.toMap(AbstractAzResource::getName, r -> r));
+        final Map<String, T> loadedResources = loaded.map(this::newResource).collect(Collectors.toMap(AbstractAzResource::getName, r -> r));
         final Set<String> localResources = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
             .map(AbstractAzResource::getName).collect(Collectors.toSet());
         final Set<String> creating = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
@@ -372,11 +372,6 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nonnull
     protected AzResource.Draft<T, R> newDraftForUpdate(@Nonnull T t) {
         throw new AzureToolkitRuntimeException("not supported");
-    }
-
-    @Nonnull
-    protected T newResourceInner(@Nonnull Object r) {
-        return newResource(this.cast(r));
     }
 
     @Nonnull

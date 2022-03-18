@@ -5,9 +5,9 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.function;
 
-import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlotBasic;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlots;
+import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
@@ -15,7 +15,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class FunctionAppDeploymentSlotModule extends AbstractAzResourceModule<FunctionAppDeploymentSlot, FunctionApp, FunctionDeploymentSlot> {
+public class FunctionAppDeploymentSlotModule extends AbstractAzResourceModule<FunctionAppDeploymentSlot, FunctionApp, WebSiteBase> {
 
     public static final String NAME = "slots";
 
@@ -25,7 +25,7 @@ public class FunctionAppDeploymentSlotModule extends AbstractAzResourceModule<Fu
 
     @Override
     public FunctionDeploymentSlots getClient() {
-        return Optional.ofNullable(this.parent.getRemote()).map(com.azure.resourcemanager.appservice.models.FunctionApp::deploymentSlots).orElse(null);
+        return Optional.ofNullable(this.parent.getFullRemote()).map(com.azure.resourcemanager.appservice.models.FunctionApp::deploymentSlots).orElse(null);
     }
 
     @Nonnull
@@ -47,16 +47,9 @@ public class FunctionAppDeploymentSlotModule extends AbstractAzResourceModule<Fu
     }
 
     @Nonnull
-    protected FunctionAppDeploymentSlot newResource(@Nonnull FunctionDeploymentSlot remote) {
-        return new FunctionAppDeploymentSlot(remote, this);
-    }
-
-    @Nonnull
-    protected FunctionAppDeploymentSlot newResourceInner(@Nonnull Object r) {
-        if (r instanceof FunctionDeploymentSlotBasic) {
-            return new FunctionAppDeploymentSlot((FunctionDeploymentSlotBasic) r, this);
-        }
-        return super.newResourceInner(r);
+    @Override
+    protected FunctionAppDeploymentSlot newResource(@Nonnull WebSiteBase remote) {
+        return new FunctionAppDeploymentSlot((FunctionDeploymentSlotBasic) remote, this);
     }
 
     @Nonnull

@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.function;
 
 import com.azure.resourcemanager.appservice.models.WebAppBase;
+import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.deploy.FTPFunctionDeployHandler;
 import com.microsoft.azure.toolkit.lib.appservice.deploy.IFunctionDeployHandler;
@@ -30,16 +31,16 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
 
-public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, R>, P extends AbstractAzResource<P, ?, ?>, R extends WebAppBase>
-    extends AppServiceAppBase<T, P, R> {
+public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P extends AbstractAzResource<P, ?, ?>, F extends WebAppBase>
+    extends AppServiceAppBase<T, P, F> {
 
     private AzureFunctionsFileClient fileClient;
 
-    protected FunctionAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, R> module) {
+    protected FunctionAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, WebSiteBase> module) {
         super(name, resourceGroupName, module);
     }
 
-    protected FunctionAppBase(@Nonnull String name, @Nonnull AbstractAzResourceModule<T, P, R> module) {
+    protected FunctionAppBase(@Nonnull String name, @Nonnull AbstractAzResourceModule<T, P, WebSiteBase> module) {
         super(name, module);
     }
 
@@ -52,14 +53,14 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, R>, P exte
     }
 
     public void deploy(File targetFile, FunctionDeployType functionDeployType) {
-        getDeployHandlerByType(functionDeployType).deploy(targetFile, getRemote());
+        getDeployHandlerByType(functionDeployType).deploy(targetFile, getFullRemote());
     }
 
     @Nullable
     protected IFileClient getFileClient() {
         // kudu api does not applies to linux consumption, using functions admin api instead
         if (fileClient == null) {
-            fileClient = this.remoteOptional().map(r -> AzureFunctionsFileClient.getClient(r, this)).orElse(null);
+            fileClient = Optional.ofNullable(this.getFullRemote()).map(r -> AzureFunctionsFileClient.getClient(r, this)).orElse(null);
         }
         return fileClient;
     }

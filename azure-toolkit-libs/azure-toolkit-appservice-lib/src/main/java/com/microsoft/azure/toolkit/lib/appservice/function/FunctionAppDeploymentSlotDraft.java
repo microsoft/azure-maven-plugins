@@ -9,6 +9,7 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
 import com.azure.resourcemanager.appservice.models.FunctionApp;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
+import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -34,7 +35,7 @@ import java.util.Set;
 
 @Slf4j
 public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
-    implements AzResource.Draft<FunctionAppDeploymentSlot, FunctionDeploymentSlot> {
+    implements AzResource.Draft<FunctionAppDeploymentSlot, WebSiteBase> {
     public static final String CONFIGURATION_SOURCE_NEW = "new";
     public static final String CONFIGURATION_SOURCE_PARENT = "parent";
     private static final String CONFIGURATION_SOURCE_DOES_NOT_EXISTS = "Target slot configuration source does not exists in current app";
@@ -82,7 +83,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         // Using configuration from parent by default
         final String source = StringUtils.isBlank(newConfigurationSource) ? CONFIGURATION_SOURCE_PARENT : StringUtils.lowerCase(newConfigurationSource);
 
-        final FunctionApp functionApp = Objects.requireNonNull(this.getParent().getRemote());
+        final FunctionApp functionApp = Objects.requireNonNull(this.getParent().getFullRemote());
         final FunctionDeploymentSlot.DefinitionStages.Blank blank = functionApp.deploymentSlots().define(getName());
         final FunctionDeploymentSlot.DefinitionStages.WithCreate withCreate;
         if (CONFIGURATION_SOURCE_NEW.equals(source)) {
@@ -107,7 +108,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         }
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Azure Functions app deployment slot ({0})...", name));
-        FunctionDeploymentSlot slot = Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
+        FunctionDeploymentSlot slot = (FunctionDeploymentSlot) Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
         messager.success(AzureString.format("Azure Functions app deployment slot ({0}) is successfully created", name));
         return slot;
     }
@@ -119,7 +120,8 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         params = {"this.getName()", "this.getResourceTypeName()"},
         type = AzureOperation.Type.SERVICE
     )
-    public FunctionDeploymentSlot updateResourceInAzure(@Nonnull FunctionDeploymentSlot remote) {
+    public FunctionDeploymentSlot updateResourceInAzure(@Nonnull WebSiteBase base) {
+        FunctionDeploymentSlot remote = (FunctionDeploymentSlot) base;
         final Map<String, String> settingsToAdd = this.getAppSettings();
         final Set<String> settingsToRemove = this.getAppSettingsToRemove();
         final DiagnosticConfig newDiagnosticConfig = this.getDiagnosticConfig();

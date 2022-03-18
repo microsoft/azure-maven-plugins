@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.appservice.webapp;
 import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.models.WebAppBasic;
 import com.azure.resourcemanager.appservice.models.WebApps;
+import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -15,7 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
-public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceResourceManager, com.azure.resourcemanager.appservice.models.WebApp> {
+public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceResourceManager, WebSiteBase> {
 
     public static final String NAME = "sites";
 
@@ -47,16 +48,9 @@ public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceRes
     }
 
     @Nonnull
-    protected WebApp newResource(@Nonnull com.azure.resourcemanager.appservice.models.WebApp remote) {
-        return new WebApp(remote, this);
-    }
-
-    @Nonnull
-    protected WebApp newResourceInner(@Nonnull Object r) {
-        if (r instanceof WebAppBasic) {
-            return new WebApp((WebAppBasic) r, this);
-        }
-        return super.newResourceInner(r);
+    @Override
+    protected WebApp newResource(@Nonnull WebSiteBase remote) {
+        return new WebApp((WebAppBasic) remote, this);
     }
 
     @Nonnull

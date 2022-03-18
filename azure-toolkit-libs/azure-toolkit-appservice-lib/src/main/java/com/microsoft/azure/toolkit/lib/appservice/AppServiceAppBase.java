@@ -37,9 +37,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
@@ -55,18 +52,18 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
-public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P extends AbstractAzResource<P, ?, ?>, R extends WebAppBase>
-    extends AbstractAzResource<T, P, R> implements Startable, Removable {
+public abstract class AppServiceAppBase<
+    T extends AppServiceAppBase<T, P, F>,
+    P extends AbstractAzResource<P, ?, ?>,
+    F extends WebAppBase>
+    extends AbstractAzResource<T, P, WebSiteBase> implements Startable, Removable {
     protected AppServiceKuduClient kuduManager;
-    @Setter(AccessLevel.PROTECTED)
-    @Getter(AccessLevel.PROTECTED)
-    private WebSiteBase basic;
 
-    protected AppServiceAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, R> module) {
+    protected AppServiceAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, WebSiteBase> module) {
         super(name, resourceGroupName, module);
     }
 
-    protected AppServiceAppBase(@Nonnull String name, @Nonnull AbstractAzResourceModule<T, P, R> module) {
+    protected AppServiceAppBase(@Nonnull String name, @Nonnull AbstractAzResourceModule<T, P, WebSiteBase> module) {
         super(name, module);
     }
 
@@ -78,32 +75,37 @@ public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P 
         this.kuduManager = origin.kuduManager;
     }
 
+    @Nullable
     @Override
-    public boolean exists() {
-        final WebSiteBase remote = Optional.ofNullable(this.basic).orElseGet(this::getRemote);
-        return Objects.nonNull(remote);
+    protected WebSiteBase refreshRemote(@Nonnull WebSiteBase remote) {
+        return super.loadRemote();
     }
 
     @Nullable
-    @Override
-    protected R refreshRemote(@Nonnull R remote) {
-        return super.loadRemote();
+    public synchronized F getFullRemote() {
+        WebSiteBase remote = this.getRemote();
+        if (!(remote instanceof WebAppBase)) {
+            this.reload();
+            remote = this.getRemote();
+        }
+        //noinspection unchecked
+        return (F) remote;
     }
 
     // MODIFY
     @AzureOperation(name = "appservice.start.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
-        this.doModify(() -> Objects.requireNonNull(this.getRemote()).start(), IAzureBaseResource.Status.STARTING);
+        this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).start(), IAzureBaseResource.Status.STARTING);
     }
 
     @AzureOperation(name = "appservice.stop.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void stop() {
-        this.doModify(() -> Objects.requireNonNull(this.getRemote()).stop(), IAzureBaseResource.Status.STOPPING);
+        this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).stop(), IAzureBaseResource.Status.STOPPING);
     }
 
     @AzureOperation(name = "appservice.restart.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
-        this.doModify(() -> Objects.requireNonNull(this.getRemote()).restart(), IAzureBaseResource.Status.RESTARTING);
+        this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).restart(), IAzureBaseResource.Status.RESTARTING);
     }
 
     @Override
@@ -112,7 +114,7 @@ public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P 
     }
 
     public void deploy(@Nonnull DeployType deployType, @Nonnull File targetFile, @Nullable String targetPath) {
-        final R remote = this.getRemote();
+        final WebSiteBase remote = this.getRemote();
         if (remote instanceof SupportsOneDeploy) {
             final DeployOptions options = new DeployOptions().withPath(targetPath);
             AzureMessager.getMessager().info(AzureString.format("Deploying (%s)[%s] %s ...", targetFile.toString(),
@@ -125,28 +127,27 @@ public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P 
 
     @Nullable
     public String getHostName() {
-        final WebSiteBase remote = Optional.ofNullable(this.basic).orElseGet(this::getRemote);
-        return Optional.ofNullable(remote).map(WebSiteBase::defaultHostname).orElse(null);
+        return this.remoteOptional().map(WebSiteBase::defaultHostname).orElse(null);
     }
 
     @Nullable
     public String getLinuxFxVersion() {
-        return this.remoteOptional().map(WebAppBase::linuxFxVersion).orElse(null);
+        return Optional.ofNullable(this.getFullRemote()).map(WebAppBase::linuxFxVersion).orElse(null);
     }
 
     @Nullable
     public PublishingProfile getPublishingProfile() {
-        return this.remoteOptional().map(WebAppBase::getPublishingProfile).map(AppServiceUtils::fromPublishingProfile).orElse(null);
+        return Optional.ofNullable(this.getFullRemote()).map(WebAppBase::getPublishingProfile).map(AppServiceUtils::fromPublishingProfile).orElse(null);
     }
 
     @Nullable
     public DiagnosticConfig getDiagnosticConfig() {
-        return this.remoteOptional().map(WebAppBase::diagnosticLogsConfig).map(AppServiceUtils::fromWebAppDiagnosticLogs).orElse(null);
+        return Optional.ofNullable(this.getFullRemote()).map(WebAppBase::diagnosticLogsConfig).map(AppServiceUtils::fromWebAppDiagnosticLogs).orElse(null);
     }
 
     @Nonnull
     public Flux<String> streamAllLogsAsync() {
-        return this.remoteOptional().map(WebAppBase::streamAllLogsAsync).orElseGet(Flux::empty);
+        return Optional.ofNullable(this.getFullRemote()).map(WebAppBase::streamAllLogsAsync).orElseGet(Flux::empty);
     }
 
     public Flux<ByteBuffer> getFileContent(String path) {
@@ -186,7 +187,7 @@ public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P 
         final String resourceName = StringUtils.equals(resourceId.resourceType(), "slots") ?
             String.format("%s/slots/%s", resourceId.parent().name(), resourceId.name()) : resourceId.name();
         final CsmPublishingProfileOptions csmPublishingProfileOptions = new CsmPublishingProfileOptions().withFormat(PublishingProfileFormat.FTP);
-        return Objects.requireNonNull(getRemote()).manager().serviceClient().getWebApps()
+        return Objects.requireNonNull(getFullRemote()).manager().serviceClient().getWebApps()
             .listPublishingProfileXmlWithSecrets(resourceId.resourceGroupName(), resourceName, csmPublishingProfileOptions);
     }
 
@@ -196,30 +197,28 @@ public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P 
 
     @Nullable
     public AppServicePlan getAppServicePlan() {
-        final WebSiteBase remote = Optional.ofNullable(this.basic).orElseGet(this::getRemote);
         final AppServicePlanModule plans = Azure.az(AzureAppService.class).plans(this.getSubscriptionId());
-        return Optional.ofNullable(remote).map(WebSiteBase::appServicePlanId).map(plans::get).orElse(null);
+        return this.remoteOptional().map(WebSiteBase::appServicePlanId).map(plans::get).orElse(null);
     }
 
     @Nullable
     public Region getRegion() {
-        final WebSiteBase remote = Optional.ofNullable(this.basic).orElseGet(this::getRemote);
-        return Optional.ofNullable(remote).map(WebSiteBase::regionName).map(Region::fromName).orElse(null);
+        return this.remoteOptional().map(WebSiteBase::regionName).map(Region::fromName).orElse(null);
     }
 
     @Nullable
     public Map<String, String> getAppSettings() {
-        return this.remoteOptional().map(WebAppBase::getAppSettings).map(Utils::normalizeAppSettings).orElse(null);
+        return Optional.ofNullable(this.getFullRemote()).map(WebAppBase::getAppSettings).map(Utils::normalizeAppSettings).orElse(null);
     }
 
     @Nullable
     public Runtime getRuntime() {
-        return this.remoteOptional().map(AppServiceUtils::getRuntimeFromAppService).orElse(null);
+        return Optional.ofNullable(this.getFullRemote()).map(AppServiceUtils::getRuntimeFromAppService).orElse(null);
     }
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull R remote) {
+    public String loadStatus(@Nonnull WebSiteBase remote) {
         return remote.state();
     }
 
@@ -239,7 +238,7 @@ public abstract class AppServiceAppBase<T extends AppServiceAppBase<T, P, R>, P 
     @Nullable
     protected AppServiceKuduClient getKuduManager() {
         if (kuduManager == null) {
-            kuduManager = this.remoteOptional().map(r -> AppServiceKuduClient.getClient(r, this)).orElse(null);
+            kuduManager = Optional.ofNullable(this.getFullRemote()).map(r -> AppServiceKuduClient.getClient(r, this)).orElse(null);
         }
         return kuduManager;
     }

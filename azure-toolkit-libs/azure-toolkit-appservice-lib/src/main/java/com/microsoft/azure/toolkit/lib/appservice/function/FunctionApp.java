@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Getter
@@ -42,16 +43,10 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceResource
         this.deploymentModule = origin.deploymentModule;
     }
 
-    protected FunctionApp(@Nonnull com.azure.resourcemanager.appservice.models.FunctionApp remote, @Nonnull FunctionAppModule module) {
+    protected FunctionApp(@Nonnull FunctionAppBasic remote, @Nonnull FunctionAppModule module) {
         super(remote.name(), remote.resourceGroupName(), module);
         this.deploymentModule = new FunctionAppDeploymentSlotModule(this);
         this.setRemote(remote);
-    }
-
-    protected FunctionApp(@Nonnull FunctionAppBasic basic, @Nonnull FunctionAppModule module) {
-        super(basic.name(), basic.resourceGroupName(), module);
-        this.deploymentModule = new FunctionAppDeploymentSlotModule(this);
-        this.setBasic(basic);
     }
 
     @Nonnull
@@ -63,12 +58,12 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceResource
     @Nullable
     @Override
     public String getMasterKey() {
-        return this.remoteOptional().map(com.azure.resourcemanager.appservice.models.FunctionApp::getMasterKey).orElse(null);
+        return Optional.ofNullable(this.getFullRemote()).map(com.azure.resourcemanager.appservice.models.FunctionApp::getMasterKey).orElse(null);
     }
 
     @Nonnull
     public List<FunctionEntity> listFunctions(boolean... force) {
-        return this.remoteOptional().map(r -> r.listFunctions().stream()
+        return Optional.ofNullable(this.getFullRemote()).map(r -> r.listFunctions().stream()
                 .map(AppServiceUtils::fromFunctionAppEnvelope)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList()))
@@ -76,20 +71,20 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceResource
     }
 
     public void triggerFunction(String functionName, Object input) {
-        this.remoteOptional().ifPresent(r -> r.triggerFunction(functionName, input));
+        Optional.ofNullable(this.getFullRemote()).ifPresent(r -> r.triggerFunction(functionName, input));
     }
 
     public void swap(String slotName) {
-        this.remoteOptional().ifPresent(r -> r.swap(slotName));
+        Optional.ofNullable(this.getFullRemote()).ifPresent(r -> r.swap(slotName));
     }
 
     public void syncTriggers() {
-        this.remoteOptional().ifPresent(com.azure.resourcemanager.appservice.models.FunctionApp::syncTriggers);
+        Optional.ofNullable(this.getFullRemote()).ifPresent(com.azure.resourcemanager.appservice.models.FunctionApp::syncTriggers);
     }
 
     @Nonnull
     public Map<String, String> listFunctionKeys(String functionName) {
-        return this.remoteOptional().map(r -> r.listFunctionKeys(functionName)).orElseGet(HashMap::new);
+        return Optional.ofNullable(this.getFullRemote()).map(r -> r.listFunctionKeys(functionName)).orElseGet(HashMap::new);
     }
 
     @Nonnull
