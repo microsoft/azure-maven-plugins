@@ -105,6 +105,23 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         AzureEventBus.emit("resource.refreshed.resource", this);
     }
 
+    @Nullable
+    protected final R loadRemote() {
+        log.debug("[{}:{}]:reloadRemote()", this.module.getName(), this.name);
+        try {
+            return this.getModule().loadResourceFromAzure(this.name, this.resourceGroupName);
+        } catch (Exception e) {
+            log.debug("[{}:{}]:reload->this.refreshRemote/loadResourceFromAzure=EXCEPTION", this.module.getName(), this.name, e);
+            final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
+            if (cause instanceof ManagementException) {
+                if (HttpStatus.SC_NOT_FOUND == ((ManagementException) cause).getResponse().getStatusCode()) {
+                    return null;
+                }
+            }
+            throw e;
+        }
+    }
+
     @AzureOperation(name = "resource.reload.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     private void reload() {
         log.debug("[{}:{}]:reload()", this.module.getName(), this.name);
@@ -114,21 +131,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             return;
         }
         this.doModify(() -> {
-            try {
-                log.debug("[{}:{}]:reload->this.refreshRemote()", this.module.getName(), this.name);
-                final R refreshed = Objects.nonNull(remote) ? this.refreshRemote() : null;
-                log.debug("[{}:{}]:reload->this.loadResourceFromAzure({}, {})", this.module.getName(), this.name, this.name, this.resourceGroupName);
-                return Objects.nonNull(refreshed) ? refreshed : this.getModule().loadResourceFromAzure(this.name, this.resourceGroupName);
-            } catch (Exception e) {
-                log.debug("[{}:{}]:reload->this.refreshRemote/loadResourceFromAzure=EXCEPTION", this.module.getName(), this.name, e);
-                final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
-                if (cause instanceof ManagementException) {
-                    if (HttpStatus.SC_NOT_FOUND == ((ManagementException) cause).getResponse().getStatusCode()) {
-                        return null;
-                    }
-                }
-                throw e;
-            }
+            log.debug("[{}:{}]:reload->this.refreshRemote()", this.module.getName(), this.name);
+            final R refreshed = Objects.nonNull(remote) ? this.refreshRemote(remote) : null;
+            log.debug("[{}:{}]:reload->this.loadRemote()", this.module.getName(), this.name);
+            return Objects.nonNull(refreshed) ? refreshed : this.loadRemote();
         }, Status.LOADING);
     }
 
@@ -247,9 +253,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         try {
             body.run();
             log.debug("[{}:{}]:doModify->refreshRemote()", this.module.getName(), this.name);
-            this.refreshRemote();
+            final R refreshed = Optional.ofNullable(this.remoteRef.get()).map(this::refreshRemote).orElse(null);
             log.debug("[{}:{}]:doModify->setRemote({})", this.module.getName(), this.name, this.remoteRef.get());
-            this.setRemote(this.remoteRef.get());
+            this.setRemote(refreshed);
         } catch (Throwable t) {
             this.setStatus(Status.UNKNOWN);
             throw t;
@@ -257,15 +263,16 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @Nullable
-    protected R refreshRemote() {
+    protected R refreshRemote(@Nonnull R remote) {
         log.debug("[{}:{}]:refreshRemote()", this.module.getName(), this.name);
-        final R remote = this.remoteRef.get();
         if (remote instanceof Refreshable) {
             log.debug("[{}:{}]:refreshRemote->remote.refresh()", this.module.getName(), this.name);
             // noinspection unchecked
             return ((Refreshable<R>) remote).refresh();
+        } else {
+            log.debug("[{}:{}]:refreshRemote->reloadRemote()", this.module.getName(), this.name);
+            return this.loadRemote();
         }
-        return null;
     }
 
     protected void doModifyAsync(@Nonnull Runnable body, @Nullable String status) {

@@ -61,8 +61,8 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
 
     @Nullable
     @Override
-    protected Server refreshRemote() {
-        return this.remoteOptional().map(Server::refresh).orElse(null);
+    protected Server refreshRemote(@Nonnull Server remote) {
+        return remote.refresh();
     }
 
     @Nonnull

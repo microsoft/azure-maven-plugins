@@ -49,8 +49,8 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
 
     @Nonnull
     @Override
-    protected Deployment refreshRemote() {
-        return this.getParent().getParent().getResourceManager().deployments().getById(this.getId());
+    protected Deployment refreshRemote(@Nonnull Deployment remote) {
+        return remote.manager().deployments().getById(remote.id());
     }
 
     @Nonnull
