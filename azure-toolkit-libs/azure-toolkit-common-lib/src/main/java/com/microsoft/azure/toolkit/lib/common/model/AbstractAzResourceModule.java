@@ -121,11 +121,11 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             }
             if (Objects.isNull(remote)) {
                 log.debug("[{}]:get({}, {})->addResourceToLocal({}, null)", this.name, name, resourceGroup, name);
-                this.addResourceToLocal(name, null);
+                this.addResourceToLocal(name, null, true);
             } else {
                 final T resource = newResource(remote);
                 log.debug("[{}]:get({}, {})->addResourceToLocal({}, resource)", this.name, name, resourceGroup, name);
-                this.addResourceToLocal(name, resource);
+                this.addResourceToLocal(name, resource, true);
             }
         }
         log.debug("[{}]:get({}, {})->this.resources.get({})", this.name, name, resourceGroup, name);
