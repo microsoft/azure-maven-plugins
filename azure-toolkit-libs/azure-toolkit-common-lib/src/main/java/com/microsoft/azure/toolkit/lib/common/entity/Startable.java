@@ -5,10 +5,9 @@
 
 package com.microsoft.azure.toolkit.lib.common.entity;
 
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource.Status;
-import org.apache.commons.lang3.StringUtils;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 
-public interface Startable {
+public interface Startable extends AzResourceBase {
 
     void start();
 
@@ -17,16 +16,14 @@ public interface Startable {
     void restart();
 
     default boolean isStartable() {
-        return StringUtils.equalsIgnoreCase(this.status(), Status.STOPPED);
+        return this.getFormalStatus().isStopped();
     }
 
     default boolean isStoppable() {
-        return StringUtils.equalsAnyIgnoreCase(this.status(), Status.RUNNING);
+        return this.getFormalStatus().isRunning();
     }
 
     default boolean isRestartable() {
         return this.isStoppable();
     }
-
-    String status();
 }
