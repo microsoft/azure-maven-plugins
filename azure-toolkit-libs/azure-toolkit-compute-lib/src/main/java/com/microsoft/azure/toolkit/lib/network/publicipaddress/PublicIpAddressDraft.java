@@ -35,6 +35,8 @@ public class PublicIpAddressDraft extends PublicIpAddress implements AzResource.
     @Nullable
     @Getter(AccessLevel.NONE)
     private String leafDomainLabel;
+    @Getter(AccessLevel.NONE)
+    private String resourceGroupName;
 
     PublicIpAddressDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull PublicIpAddressModule module) {
         super(name, resourceGroupName, module);
@@ -84,6 +86,12 @@ public class PublicIpAddressDraft extends PublicIpAddress implements AzResource.
     )
     public com.azure.resourcemanager.network.models.PublicIpAddress updateResourceInAzure(@Nonnull com.azure.resourcemanager.network.models.PublicIpAddress origin) {
         throw new AzureToolkitRuntimeException("not supported");
+    }
+
+    @Nonnull
+    @Override
+    public String getResourceGroupName() {
+        return Optional.ofNullable(this.resourceGroupName).orElseGet(super::getResourceGroupName);
     }
 
     @Nullable

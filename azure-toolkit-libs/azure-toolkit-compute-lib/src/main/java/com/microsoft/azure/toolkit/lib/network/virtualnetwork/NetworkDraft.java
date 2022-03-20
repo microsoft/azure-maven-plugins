@@ -38,6 +38,8 @@ public class NetworkDraft extends Network implements AzResource.Draft<Network, c
     private String addressSpace;
     @Nullable
     private Subnet subnet;
+    @Getter(AccessLevel.NONE)
+    private String resourceGroupName;
 
     NetworkDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull NetworkModule module) {
         super(name, resourceGroupName, module);
@@ -99,6 +101,12 @@ public class NetworkDraft extends Network implements AzResource.Draft<Network, c
     )
     public com.azure.resourcemanager.network.models.Network updateResourceInAzure(@Nonnull com.azure.resourcemanager.network.models.Network origin) {
         throw new AzureToolkitRuntimeException("not supported");
+    }
+
+    @Nonnull
+    @Override
+    public String getResourceGroupName() {
+        return Optional.ofNullable(this.resourceGroupName).orElseGet(super::getResourceGroupName);
     }
 
     @Nullable
