@@ -38,6 +38,7 @@ public class RedisResourceManager extends AbstractAzResourceManager<RedisResourc
 
     RedisResourceManager(@Nonnull RedisManager remote, @Nonnull AzureRedis service) {
         this(remote.subscriptionId(), service);
+        this.setRemote(remote);
     }
 
     @Nonnull

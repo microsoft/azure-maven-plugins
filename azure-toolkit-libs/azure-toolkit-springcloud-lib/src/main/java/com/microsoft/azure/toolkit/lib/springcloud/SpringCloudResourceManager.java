@@ -32,6 +32,7 @@ public class SpringCloudResourceManager extends AbstractAzResourceManager<Spring
 
     SpringCloudResourceManager(@Nonnull AppPlatformManager remote, @Nonnull AzureSpringCloud service) {
         this(remote.subscriptionId(), service);
+        this.setRemote(remote);
     }
 
     @Nonnull

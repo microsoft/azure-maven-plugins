@@ -29,6 +29,7 @@ public class ApplicationInsightsResourceManager extends AbstractAzResourceManage
 
     protected ApplicationInsightsResourceManager(@Nonnull ApplicationInsightsManager manager, @Nonnull AzureApplicationInsights service) {
         this(manager.serviceClient().getSubscriptionId(), service);
+        this.setRemote(manager);
     }
 
     @Nonnull

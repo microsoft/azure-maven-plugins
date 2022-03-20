@@ -31,6 +31,7 @@ public class ResourceGroupManager extends AbstractAzResourceManager<ResourceGrou
 
     ResourceGroupManager(@Nonnull ResourceManager remote, @Nonnull AzureResources service) {
         this(remote.subscriptionId(), service);
+        this.setRemote(remote);
     }
 
     @Nonnull

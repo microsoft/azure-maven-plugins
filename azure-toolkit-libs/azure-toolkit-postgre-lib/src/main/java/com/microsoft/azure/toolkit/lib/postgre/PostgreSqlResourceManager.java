@@ -38,6 +38,7 @@ public class PostgreSqlResourceManager extends AbstractAzResourceManager<Postgre
 
     PostgreSqlResourceManager(@Nonnull PostgreSqlManager manager, @Nonnull AzurePostgreSql service) {
         this(manager.serviceClient().getSubscriptionId(), service);
+        this.setRemote(manager);
     }
 
     @Nonnull

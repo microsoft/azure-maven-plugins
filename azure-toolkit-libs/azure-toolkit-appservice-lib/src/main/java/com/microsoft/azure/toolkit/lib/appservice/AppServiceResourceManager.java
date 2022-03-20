@@ -46,6 +46,7 @@ public class AppServiceResourceManager extends AbstractAzResourceManager<AppServ
 
     protected AppServiceResourceManager(@Nonnull AppServiceManager remote, @Nonnull AzureAppService service) {
         this(remote.subscriptionId(), service);
+        this.setRemote(remote);
     }
 
     @Nonnull

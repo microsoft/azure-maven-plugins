@@ -37,6 +37,7 @@ public class MySqlResourceManager extends AbstractAzResourceManager<MySqlResourc
 
     MySqlResourceManager(@Nonnull MySqlManager manager, @Nonnull AzureMySql service) {
         this(manager.serviceClient().getSubscriptionId(), service);
+        this.setRemote(manager);
     }
 
     @Nonnull

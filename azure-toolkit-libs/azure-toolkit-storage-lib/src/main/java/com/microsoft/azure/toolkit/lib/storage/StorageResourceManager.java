@@ -37,6 +37,7 @@ public class StorageResourceManager extends AbstractAzResourceManager<StorageRes
 
     StorageResourceManager(@Nonnull StorageManager remote, @Nonnull AzureStorageAccount service) {
         this(remote.subscriptionId(), service);
+        this.setRemote(remote);
     }
 
     @Nonnull

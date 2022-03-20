@@ -35,6 +35,7 @@ public class MicrosoftSqlResourceManager extends AbstractAzResourceManager<Micro
 
     MicrosoftSqlResourceManager(@Nonnull SqlServerManager manager, @Nonnull AzureSqlServer service) {
         this(manager.serviceClient().getSubscriptionId(), service);
+        this.setRemote(manager);
     }
 
     @Nonnull
