@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.storage;
 
 import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.management.profile.AzureProfile;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.storage.StorageManager;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
@@ -38,6 +39,19 @@ public class AzureStorageAccount extends AbstractAzService<StorageResourceManage
         final StorageResourceManager rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getStorageModule();
+    }
+
+    @Nullable
+    public StorageAccount account(@Nonnull String resourceId) {
+        final ResourceId id = ResourceId.fromString(resourceId);
+        final StorageResourceManager rm = get(id.subscriptionId(), null);
+        assert rm != null;
+        return rm.getStorageModule().get(resourceId);
+    }
+
+    @Nullable
+    public List<StorageAccount> accounts() {
+        return this.list().stream().flatMap(m -> m.storageAccounts().list().stream()).collect(Collectors.toList());
     }
 
     @Nonnull
