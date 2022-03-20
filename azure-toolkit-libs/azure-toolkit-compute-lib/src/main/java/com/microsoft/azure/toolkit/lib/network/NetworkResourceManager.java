@@ -40,6 +40,7 @@ public class NetworkResourceManager extends AbstractAzResourceManager<NetworkRes
 
     NetworkResourceManager(@Nonnull NetworkManager remote, @Nonnull AzureNetwork service) {
         this(remote.subscriptionId(), service);
+        this.setRemote(remote);
     }
 
     @Nonnull

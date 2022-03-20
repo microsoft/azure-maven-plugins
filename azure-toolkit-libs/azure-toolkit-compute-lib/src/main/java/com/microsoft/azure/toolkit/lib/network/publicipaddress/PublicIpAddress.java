@@ -56,6 +56,10 @@ public class PublicIpAddress extends AbstractAzResource<PublicIpAddress, Network
         return remoteOptional().map(remote -> Region.fromName(remote.regionName())).orElse(null);
     }
 
+    public boolean hasAssignedNetworkInterface() {
+        return this.remoteOptional().map(com.azure.resourcemanager.network.models.PublicIpAddress::hasAssignedNetworkInterface).orElse(false);
+    }
+
     @Nullable
     public String getLeafDomainLabel() {
         return remoteOptional().map(com.azure.resourcemanager.network.models.PublicIpAddress::leafDomainLabel).orElse(null);

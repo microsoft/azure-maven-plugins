@@ -6,16 +6,22 @@
 package com.microsoft.azure.toolkit.lib.compute;
 
 import com.azure.resourcemanager.compute.ComputeManager;
+import com.azure.resourcemanager.compute.models.AvailabilitySet;
+import com.azure.resourcemanager.compute.models.ComputeResourceType;
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VirtualMachineModule;
+import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VmImagePublisher;
+import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VmSize;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Getter
 public class ComputeResourceManager extends AbstractAzResourceManager<ComputeResourceManager, ComputeManager> {
@@ -32,6 +38,7 @@ public class ComputeResourceManager extends AbstractAzResourceManager<ComputeRes
 
     ComputeResourceManager(@Nonnull ComputeManager remote, @Nonnull AzureCompute service) {
         this(remote.subscriptionId(), service);
+        this.setRemote(remote);
     }
 
     @Nonnull
@@ -44,6 +51,23 @@ public class ComputeResourceManager extends AbstractAzResourceManager<ComputeRes
     @Override
     public ResourceManager getResourceManager() {
         return Objects.requireNonNull(this.getRemote()).resourceManager();
+    }
+
+    public List<String> listAvailabilitySets() {
+        return Objects.requireNonNull(this.getRemote())
+            .availabilitySets().list().stream().map(AvailabilitySet::name).collect(Collectors.toList());
+    }
+
+    public List<VmImagePublisher> listPublishers(final Region region) {
+        return Objects.requireNonNull(this.getRemote()).virtualMachineImages()
+            .publishers().listByRegion(region.getName()).stream().map(VmImagePublisher::new).collect(Collectors.toList());
+    }
+
+    public List<VmSize> listSizes(final Region region) {
+        return Objects.requireNonNull(this.getRemote())
+            .computeSkus()
+            .listByRegionAndResourceType(com.azure.core.management.Region.fromName(region.getName()), ComputeResourceType.VIRTUALMACHINES).stream()
+            .map(VmSize::new).collect(Collectors.toList());
     }
 }
 

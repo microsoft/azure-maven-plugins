@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public class VmImagePublisher {
     private final VirtualMachinePublisher virtualMachinePublisher;
 
-    VmImagePublisher(@Nonnull VirtualMachinePublisher virtualMachinePublisher) {
+    public VmImagePublisher(@Nonnull VirtualMachinePublisher virtualMachinePublisher) {
         this.virtualMachinePublisher = virtualMachinePublisher;
     }
 
