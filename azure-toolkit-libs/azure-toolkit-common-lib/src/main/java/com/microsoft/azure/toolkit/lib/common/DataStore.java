@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.common;
 
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
@@ -13,6 +14,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.WeakHashMap;
 
 /**
@@ -34,8 +36,7 @@ public interface DataStore {
     @Deprecated
     default <D> D get(Class<D> type) {
         synchronized (Impl.STORE) {
-            final Map<Object, Object> thisStore = Impl.STORE.computeIfAbsent(this, (k) -> new HashMap<>());
-            return (D) thisStore.get(type);
+            return (D) Optional.ofNullable(Impl.STORE.get(this)).map(m -> m.get(type));
         }
     }
 
@@ -60,8 +61,7 @@ public interface DataStore {
     @SuppressWarnings("unchecked")
     default <D> D get(String key) {
         synchronized (Impl.STORE) {
-            final Map<Object, Object> thisStore = Impl.STORE.computeIfAbsent(this, (k) -> new HashMap<>());
-            return (D) thisStore.get(key);
+            return (D) Optional.ofNullable(Impl.STORE.get(this)).map(m -> m.get(key));
         }
     }
 
@@ -85,8 +85,7 @@ public interface DataStore {
     @SuppressWarnings("unchecked")
     default <D> D get(Field<D> key) {
         synchronized (Impl.STORE) {
-            final Map<Object, Object> thisStore = Impl.STORE.computeIfAbsent(this, (k) -> new HashMap<>());
-            return (D) thisStore.get(key);
+            return (D) Optional.ofNullable(Impl.STORE.get(this)).map(m -> m.get(key));
         }
     }
 
@@ -107,6 +106,7 @@ public interface DataStore {
         static final WeakHashMap<Object, Map<Object, Object>> STORE = new WeakHashMap<>();
     }
 
+    @EqualsAndHashCode
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     final class Field<T> {
         @Nonnull

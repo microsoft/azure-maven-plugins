@@ -9,7 +9,9 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.DataStore;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -17,6 +19,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R>
     extends AzResourceBase, IAzureBaseResource<T, P>, Refreshable {
@@ -177,7 +180,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         }
     }
 
-    interface Draft<T extends AzResource<T, ?, R>, R> {
+    interface Draft<T extends AzResource<T, ?, R>, R> extends DataStore {
 
         String getName();
 
@@ -186,30 +189,48 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         AzResourceModule<T, ?, R> getModule();
 
         default T commit() {
-            final boolean existing = this.getModule().exists(this.getName(), this.getResourceGroupName());
-            final T result = existing ? this.getModule().update(this) : this.getModule().create(this);
-            this.reset();
-            return result;
+            synchronized (this) {
+                if (this.isCommitted()) {
+                    throw new AzureToolkitRuntimeException("this draft has been committed.");
+                }
+                final boolean existing = this.getModule().exists(this.getName(), this.getResourceGroupName());
+                final T result = existing ? this.getModule().update(this) : this.getModule().create(this);
+                this.reset();
+                this.set("committed", true);
+                return result;
+            }
         }
 
         void reset();
 
         @Nonnull
         default T createIfNotExist() {
-            final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
-            if (Objects.isNull(origin) || !origin.exists()) {
-                return this.getModule().create(this);
+            synchronized (this) {
+                if (this.isCommitted()) {
+                    throw new AzureToolkitRuntimeException("this draft has been committed.");
+                }
+                final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
+                if (Objects.isNull(origin) || !origin.exists()) {
+                    this.set("committed", true);
+                    return this.getModule().create(this);
+                }
+                return origin;
             }
-            return origin;
         }
 
         @Nullable
         default T updateIfExist() {
-            final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
-            if (Objects.nonNull(origin) && origin.exists()) {
-                return this.getModule().update(this);
+            synchronized (this) {
+                if (this.isCommitted()) {
+                    throw new AzureToolkitRuntimeException("this draft has been committed.");
+                }
+                final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
+                if (Objects.nonNull(origin) && origin.exists()) {
+                    this.set("committed", true);
+                    return this.getModule().update(this);
+                }
+                return origin;
             }
-            return origin;
         }
 
         @Nonnull
@@ -227,5 +248,9 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
 
         @Nullable
         T getOrigin();
+
+        default boolean isCommitted() {
+            return Optional.ofNullable(this.get("committed")).isPresent();
+        }
     }
 }
