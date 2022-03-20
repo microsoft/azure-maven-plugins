@@ -21,10 +21,11 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.AccessLevel;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -119,7 +120,8 @@ public class NetworkSecurityGroupDraft extends NetworkSecurityGroup implements A
 
     @Nullable
     public Region getRegion() {
-        return Optional.ofNullable(this.region).orElseGet(super::getRegion);
+        return Optional.ofNullable(this.region)
+            .orElseGet(() -> Optional.ofNullable(origin).map(NetworkSecurityGroup::getRegion).orElse(null));
     }
 
     @Override

@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -102,7 +103,9 @@ public class NetworkDraft extends Network implements AzResource.Draft<Network, c
 
     @Nullable
     public Region getRegion() {
-        return Optional.ofNullable(this.region).orElseGet(super::getRegion);
+        // fallback to `origin.getXxx()` instead of `super.getXxx()` to get better performance.
+        return Optional.ofNullable(this.region)
+            .orElseGet(() -> Optional.ofNullable(origin).map(Network::getRegion).orElse(null));
     }
 
     public void setSubnet(@Nonnull String subnetName, @Nonnull String addressSpace) {
@@ -111,24 +114,28 @@ public class NetworkDraft extends Network implements AzResource.Draft<Network, c
 
     @Nullable
     public Subnet getSubnet() {
-        return Optional.ofNullable(this.subnet).orElseGet(super::getSubnet);
+        return Optional.ofNullable(this.subnet)
+            .orElseGet(() -> Optional.ofNullable(origin).map(Network::getSubnet).orElse(null));
     }
 
     @Nullable
     public String getAddressSpace() {
-        return Optional.ofNullable(this.addressSpace).orElseGet(super::getAddressSpace);
+        return Optional.ofNullable(this.addressSpace)
+            .orElseGet(() -> Optional.ofNullable(origin).map(Network::getAddressSpace).orElse(null));
     }
 
     @Nonnull
     @Override
     public List<Subnet> getSubnets() {
-        return Optional.ofNullable(this.subnet).map(Collections::singletonList).orElseGet(super::getSubnets);
+        return Optional.ofNullable(this.subnet).map(Collections::singletonList)
+            .orElseGet(() -> Optional.ofNullable(origin).map(Network::getSubnets).orElse(Collections.emptyList()));
     }
 
     @Nonnull
     @Override
     public List<String> getAddressSpaces() {
-        return Optional.ofNullable(this.addressSpace).map(Collections::singletonList).orElseGet(super::getAddressSpaces);
+        return Optional.ofNullable(this.addressSpace).map(Collections::singletonList)
+            .orElseGet(() -> Optional.ofNullable(origin).map(Network::getAddressSpaces).orElse(Collections.emptyList()));
     }
 
     @Override

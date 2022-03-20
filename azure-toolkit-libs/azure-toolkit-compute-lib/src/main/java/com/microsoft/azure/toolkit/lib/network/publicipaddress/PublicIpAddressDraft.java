@@ -16,7 +16,6 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.AccessLevel;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -89,12 +88,14 @@ public class PublicIpAddressDraft extends PublicIpAddress implements AzResource.
 
     @Nullable
     public Region getRegion() {
-        return Optional.ofNullable(this.region).orElseGet(super::getRegion);
+        return Optional.ofNullable(this.region)
+            .orElseGet(() -> Optional.ofNullable(origin).map(PublicIpAddress::getRegion).orElse(null));
     }
 
     @Nullable
     public String getLeafDomainLabel() {
-        return Optional.ofNullable(this.leafDomainLabel).orElseGet(super::getLeafDomainLabel);
+        return Optional.ofNullable(this.leafDomainLabel)
+            .orElseGet(() -> Optional.ofNullable(origin).map(PublicIpAddress::getLeafDomainLabel).orElse(null));
     }
 
     @Override
@@ -106,14 +107,5 @@ public class PublicIpAddressDraft extends PublicIpAddress implements AzResource.
 
     public static String generateDefaultName() {
         return String.format("public-ip-%s", Utils.getTimestamp());
-    }
-
-    /**
-     * {@code null} means not modified for properties
-     */
-    @Data
-    private static class Config {
-        private Region region;
-        private String leafDomainLabel;
     }
 }

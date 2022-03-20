@@ -28,8 +28,8 @@ import com.microsoft.azure.toolkit.lib.network.networksecuritygroup.SecurityRule
 import com.microsoft.azure.toolkit.lib.network.publicipaddress.PublicIpAddress;
 import com.microsoft.azure.toolkit.lib.network.publicipaddress.PublicIpAddressDraft;
 import com.microsoft.azure.toolkit.lib.network.virtualnetwork.Network;
-import com.microsoft.azure.toolkit.lib.network.virtualnetwork.Subnet;
 import com.microsoft.azure.toolkit.lib.network.virtualnetwork.NetworkDraft;
+import com.microsoft.azure.toolkit.lib.network.virtualnetwork.Subnet;
 import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountConfig;
 import lombok.AccessLevel;
@@ -117,9 +117,9 @@ public class VirtualMachineDraft extends VirtualMachine implements AzResource.Dr
         final String subs = this.getSubscriptionId();
         final String rg = this.getResourceGroupName();
 
-        final String networkName = String.format("network-%s", Utils.getTimestamp());
+        final String networkName = NetworkDraft.generateDefaultName();
         final NetworkDraft networkDraft = Azure.az(AzureNetwork.class).virtualNetworks(subs).create(networkName, rg);
-        final String ipAddressName = String.format("public-ip-%s", Utils.getTimestamp());
+        final String ipAddressName = PublicIpAddressDraft.generateDefaultName();
         final PublicIpAddressDraft ipAddressDraft = Azure.az(AzureNetwork.class).publicIpAddresses(subs).create(ipAddressName, rg);
         final String securityGroupName = String.format("security-group-%s", Utils.getTimestamp());
         final NetworkSecurityGroupDraft securityGroupDraft = Azure.az(AzureNetwork.class).networkSecurityGroups(subs).create(securityGroupName, rg);
@@ -239,12 +239,14 @@ public class VirtualMachineDraft extends VirtualMachine implements AzResource.Dr
 
     @Nullable
     public Region getRegion() {
-        return Optional.ofNullable(this.region).orElseGet(super::getRegion);
+        return Optional.ofNullable(this.region)
+            .orElseGet(() -> Optional.ofNullable(origin).map(VirtualMachine::getRegion).orElse(null));
     }
 
     @Nullable
     public String getAdminUserName() {
-        return Optional.ofNullable(this.adminUserName).filter(StringUtils::isNotBlank).orElseGet(super::getAdminUserName);
+        return Optional.ofNullable(this.adminUserName).filter(StringUtils::isNotBlank)
+            .orElseGet(() -> Optional.ofNullable(origin).map(VirtualMachine::getAdminUserName).orElse(null));
     }
 
     @Override
