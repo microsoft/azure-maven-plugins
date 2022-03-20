@@ -36,7 +36,7 @@ public interface DataStore {
     @Deprecated
     default <D> D get(Class<D> type) {
         synchronized (Impl.STORE) {
-            return (D) Optional.ofNullable(Impl.STORE.get(this)).map(m -> m.get(type));
+            return (D) Optional.ofNullable(Impl.STORE.get(this)).map(m -> m.get(type)).orElse(null);
         }
     }
 
@@ -61,7 +61,7 @@ public interface DataStore {
     @SuppressWarnings("unchecked")
     default <D> D get(String key) {
         synchronized (Impl.STORE) {
-            return (D) Optional.ofNullable(Impl.STORE.get(this)).map(m -> m.get(key));
+            return (D) Optional.ofNullable(Impl.STORE.get(this)).map(m -> m.get(key)).orElse(null);
         }
     }
 
@@ -85,7 +85,7 @@ public interface DataStore {
     @SuppressWarnings("unchecked")
     default <D> D get(Field<D> key) {
         synchronized (Impl.STORE) {
-            return (D) Optional.ofNullable(Impl.STORE.get(this)).map(m -> m.get(key));
+            return (D) Optional.ofNullable(Impl.STORE.get(this)).map(m -> m.get(key)).orElse(null);
         }
     }
 
