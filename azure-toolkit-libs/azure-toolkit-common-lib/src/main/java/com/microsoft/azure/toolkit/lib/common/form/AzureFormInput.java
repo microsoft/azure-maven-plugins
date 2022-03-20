@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.form;
 
 import com.microsoft.azure.toolkit.lib.common.DataStore;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.ObjectUtils;
@@ -268,11 +269,17 @@ public interface AzureFormInput<T> extends DataStore {
     }
 
     @Deprecated
-    default void setValidator(Validator validator) {
+    default void setValidator(@Nonnull Validator validator) {
+        if (Objects.isNull(validator)) {
+            throw new AzureToolkitRuntimeException("'validator' can not be null.");
+        }
         this.set(FIELD_VALIDATORS, Arrays.asList(validator));
     }
 
-    default void addValidator(Validator validator) {
+    default void addValidator(@Nonnull Validator validator) {
+        if (Objects.isNull(validator)) {
+            throw new AzureToolkitRuntimeException("'validator' can not be null.");
+        }
         final Collection<Validator> validators = this.get(FIELD_VALIDATORS, new ArrayList<>());
         validators.add(validator);
     }
