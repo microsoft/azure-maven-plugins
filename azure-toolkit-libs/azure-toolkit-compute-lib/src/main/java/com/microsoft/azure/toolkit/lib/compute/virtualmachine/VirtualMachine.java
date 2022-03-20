@@ -51,7 +51,7 @@ public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeRe
     @Nonnull
     @Override
     public String loadStatus(@Nonnull com.azure.resourcemanager.compute.models.VirtualMachine remote) {
-        return remote.innerModel().provisioningState().toString();
+        return remote.powerState().toString().substring("PowerState/".length());
     }
 
     @Nonnull
