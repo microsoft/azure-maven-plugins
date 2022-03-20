@@ -44,7 +44,7 @@ public class AzureCompute extends AbstractAzService<ComputeResourceManager, Comp
         Collections.unmodifiableList(Stream.of(linuxImages, windowsImages).flatMap(List::stream).collect(Collectors.toList()));
 
     public AzureCompute() {
-        super("Microsoft.Network");
+        super("Microsoft.Compute");
     }
 
     @Nonnull
@@ -71,7 +71,7 @@ public class AzureCompute extends AbstractAzService<ComputeResourceManager, Comp
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "Azure Network";
+        return "Virtual machines";
     }
 
     @Nonnull
