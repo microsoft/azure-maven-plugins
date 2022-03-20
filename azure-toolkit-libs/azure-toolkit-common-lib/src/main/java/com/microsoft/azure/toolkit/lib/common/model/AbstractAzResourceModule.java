@@ -178,12 +178,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public <D extends AzResource.Draft<T, R>> D create(@Nonnull String name, @Nullable String resourceGroup) {
         log.debug("[{}]:create({}, {})", this.name, name, resourceGroup);
         final T resource = this.get(name, resourceGroup);
-        if (Objects.isNull(resource)) {
-            // TODO: use generics to avoid class casting
-            log.debug("[{}]:create->newDraftForCreate({}, {})", this.name, name, resourceGroup);
-            return this.cast(this.newDraftForCreate(name, resourceGroup));
-        }
-        throw new AzureToolkitRuntimeException(String.format("resource \"%s\" is existing", name));
+        // TODO: use generics to avoid class casting
+        log.debug("[{}]:create->newDraftForCreate({}, {})", this.name, name, resourceGroup);
+        return this.cast(this.newDraftForCreate(name, resourceGroup));
     }
 
     @Nonnull
