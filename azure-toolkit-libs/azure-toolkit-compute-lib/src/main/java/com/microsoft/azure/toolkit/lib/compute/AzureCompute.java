@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VirtualMachine;
@@ -94,16 +95,19 @@ public class AzureCompute extends AbstractAzService<ComputeResourceManager, Comp
             .map(m -> m.get(id.name(), id.resourceGroupName())).orElse(null);
     }
 
+    @Cacheable(cacheName = "vm/{}/availabilitySets", key = "${subscriptionId}")
     public List<String> listAvailabilitySets(@Nonnull final String subscriptionId) {
         final ComputeResourceManager rm = get(subscriptionId, null);
         return Optional.ofNullable(rm).map(ComputeResourceManager::listAvailabilitySets).orElse(Collections.emptyList());
     }
 
+    @Cacheable(cacheName = "vm/{}/publishers", key = "${subscriptionId}/${region.getName()}")
     public List<VmImagePublisher> listPublishers(@Nonnull final String subscriptionId, @Nonnull final Region region) {
         final ComputeResourceManager rm = get(subscriptionId, null);
         return Optional.ofNullable(rm).map(m -> m.listPublishers(region)).orElse(Collections.emptyList());
     }
 
+    @Cacheable(cacheName = "vm/{}/sizes", key = "${subscriptionId}/${region.getName()}")
     public List<VmSize> listSizes(@Nonnull final String subscriptionId, @Nonnull final Region region) {
         final ComputeResourceManager rm = get(subscriptionId, null);
         return Optional.ofNullable(rm).map(m -> m.listSizes(region)).orElse(Collections.emptyList());
