@@ -100,9 +100,8 @@ public class PublicIpAddressDraft extends PublicIpAddress implements AzResource.
 
     @Override
     public boolean isModified() {
-        final boolean notModified = Objects.isNull(this.region) || Objects.equals(this.region, super.getRegion()) ||
-            Objects.isNull(this.leafDomainLabel) || Objects.equals(this.leafDomainLabel, super.getLeafDomainLabel());
-        return !notModified;
+        return Objects.nonNull(this.region) && !Objects.equals(this.region, this.getRegion()) ||
+            Objects.nonNull(this.leafDomainLabel) && !Objects.equals(this.leafDomainLabel, this.getLeafDomainLabel());
     }
 
     public static String generateDefaultName() {

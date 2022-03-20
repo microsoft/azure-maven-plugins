@@ -251,20 +251,22 @@ public class VirtualMachineDraft extends VirtualMachine implements AzResource.Dr
 
     @Override
     public boolean isModified() {
-        final boolean notModified =
-            Objects.isNull(this.region) || Objects.equals(this.region, super.getRegion()) ||
-                Objects.isNull(this.adminUserName) || Objects.equals(this.adminUserName, super.getAdminUserName()) ||
-                Objects.isNull(this.getImage()) ||
-                Objects.isNull(this.getNetwork()) ||
-                Objects.isNull(this.getIpAddress()) ||
-                Objects.isNull(this.getSecurityGroup()) ||
-                Objects.isNull(this.getAuthenticationType()) ||
-                Objects.isNull(this.getPassword()) ||
-                Objects.isNull(this.getSshKey()) ||
-                Objects.isNull(this.getSize()) ||
-                Objects.isNull(this.getAvailabilitySet()) ||
-                Objects.isNull(this.getStorageAccount()) ||
-                Objects.isNull(this.getSpotConfig());
-        return !notModified;
+        return Objects.nonNull(this.region) && !Objects.equals(this.region, this.getRegion()) ||
+            Objects.nonNull(this.adminUserName) && !Objects.equals(this.adminUserName, this.getAdminUserName()) ||
+            Objects.nonNull(this.getImage()) ||
+            Objects.nonNull(this.getNetwork()) ||
+            Objects.nonNull(this.getIpAddress()) ||
+            Objects.nonNull(this.getSecurityGroup()) ||
+            Objects.nonNull(this.getAuthenticationType()) ||
+            Objects.nonNull(this.getPassword()) ||
+            Objects.nonNull(this.getSshKey()) ||
+            Objects.nonNull(this.getSize()) ||
+            Objects.nonNull(this.getAvailabilitySet()) ||
+            Objects.nonNull(this.getStorageAccount()) ||
+            Objects.nonNull(this.getSpotConfig());
+    }
+
+    public static String generateDefaultName() {
+        return String.format("vm-%s", Utils.getTimestamp());
     }
 }

@@ -126,16 +126,11 @@ public class NetworkSecurityGroupDraft extends NetworkSecurityGroup implements A
 
     @Override
     public boolean isModified() {
-        final boolean notModified = Objects.isNull(this.region) || Objects.equals(this.region, super.getRegion());
-        return !notModified;
+        return Objects.nonNull(this.region) && !Objects.equals(this.region, this.getRegion()) ||
+            CollectionUtils.isNotEmpty(this.securityRules);
     }
 
-    /**
-     * {@code null} means not modified for properties
-     */
-    @Data
-    private static class Config {
-        private Region region;
-        private List<SecurityRule> securityRules;
+    public static String generateDefaultName() {
+        return String.format("security-group-%s", Utils.getTimestamp());
     }
 }

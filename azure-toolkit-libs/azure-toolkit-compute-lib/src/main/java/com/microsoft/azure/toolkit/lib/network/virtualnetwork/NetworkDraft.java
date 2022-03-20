@@ -140,10 +140,12 @@ public class NetworkDraft extends Network implements AzResource.Draft<Network, c
 
     @Override
     public boolean isModified() {
-        final boolean notModified =
-            Objects.isNull(this.region) || Objects.equals(this.region, super.getRegion()) ||
-                Objects.isNull(this.addressSpace) ||
-                Objects.isNull(this.subnet);
-        return !notModified;
+        return Objects.nonNull(this.region) && !Objects.equals(this.region, this.getRegion()) ||
+            Objects.nonNull(this.addressSpace) ||
+            Objects.nonNull(this.subnet);
+    }
+
+    public static String generateDefaultName() {
+        return String.format("network-%s", Utils.getTimestamp());
     }
 }
