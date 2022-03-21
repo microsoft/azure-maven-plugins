@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,6 +22,9 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class MySqlFirewallRuleDraft extends MySqlFirewallRule implements AzResource.Draft<MySqlFirewallRule, FirewallRule> {
+    @Getter
+    @Setter
+    private boolean committed;
     @Getter
     @Nullable
     private final MySqlFirewallRule origin;

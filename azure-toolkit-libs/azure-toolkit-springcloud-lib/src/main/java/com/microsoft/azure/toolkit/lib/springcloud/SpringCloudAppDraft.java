@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -38,6 +39,9 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
      * @see <a href="https://azure.microsoft.com/en-us/pricing/details/spring-cloud/">Pricing - Azure Spring Cloud</a>
      */
     public static final int STANDARD_TIER_DEFAULT_DISK_SIZE = 50;
+    @Getter
+    @Setter
+    private boolean committed;
     @Getter
     @Nullable
     private final SpringCloudApp origin;

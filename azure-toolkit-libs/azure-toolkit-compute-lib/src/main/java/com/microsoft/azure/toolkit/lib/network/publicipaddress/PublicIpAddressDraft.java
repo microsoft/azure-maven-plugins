@@ -27,6 +27,9 @@ import java.util.Optional;
 @Getter
 @Setter
 public class PublicIpAddressDraft extends PublicIpAddress implements AzResource.Draft<PublicIpAddress, com.azure.resourcemanager.network.models.PublicIpAddress> {
+    @Getter
+    @Setter
+    private boolean committed;
     @Nullable
     private final PublicIpAddress origin;
     @Nullable

@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.redis.model.PricingTier;
 import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -23,6 +24,9 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class RedisCacheDraft extends RedisCache implements AzResource.Draft<RedisCache, com.azure.resourcemanager.redis.models.RedisCache> {
+    @Getter
+    @Setter
+    private boolean committed;
     @Getter
     @Nullable
     private final RedisCache origin;

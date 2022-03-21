@@ -50,6 +50,9 @@ import static com.microsoft.azure.toolkit.lib.compute.virtualmachine.model.SpotC
 @Getter
 @Setter
 public class VirtualMachineDraft extends VirtualMachine implements AzResource.Draft<VirtualMachine, com.azure.resourcemanager.compute.models.VirtualMachine> {
+    @Getter
+    @Setter
+    private boolean committed;
     @Nullable
     private final VirtualMachine origin;
 

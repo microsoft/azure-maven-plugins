@@ -41,6 +41,9 @@ public class NetworkSecurityGroupDraft extends NetworkSecurityGroup implements A
     private static final int PRIORITY_STEP = 20;
 
     @Getter
+    @Setter
+    private boolean committed;
+    @Getter
     @Nullable
     private final NetworkSecurityGroup origin;
     @Nullable

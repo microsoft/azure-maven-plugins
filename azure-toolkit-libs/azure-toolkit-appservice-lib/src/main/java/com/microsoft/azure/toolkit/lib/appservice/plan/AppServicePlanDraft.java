@@ -23,6 +23,7 @@ import com.microsoft.azure.toolkit.lib.common.validator.SchemaValidator;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
 import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -32,6 +33,9 @@ import java.util.Optional;
 public class AppServicePlanDraft extends AppServicePlan implements AzResource.Draft<AppServicePlan, com.azure.resourcemanager.appservice.models.AppServicePlan> {
     private static final String CREATE_NEW_APP_SERVICE_PLAN = "createNewAppServicePlan";
 
+    @Getter
+    @Setter
+    private boolean committed;
     @Getter
     @Nullable
     private final AppServicePlan origin;

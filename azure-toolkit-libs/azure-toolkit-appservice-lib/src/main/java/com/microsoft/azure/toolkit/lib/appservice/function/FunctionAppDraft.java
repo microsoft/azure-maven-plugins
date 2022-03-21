@@ -25,6 +25,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -54,6 +55,9 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     public static final String APP_SETTING_FUNCTION_APP_EDIT_MODE = "FUNCTION_APP_EDIT_MODE";
     public static final String APP_SETTING_FUNCTION_APP_EDIT_MODE_READONLY = "readOnly";
 
+    @Getter
+    @Setter
+    private boolean committed;
     @Getter
     @Nullable
     private final FunctionApp origin;
