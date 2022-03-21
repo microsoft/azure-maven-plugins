@@ -28,39 +28,39 @@ import java.util.List;
 import java.util.Objects;
 
 public class CreateVirtualMachineTask extends AzureTask<VirtualMachine> {
-    private final VirtualMachineDraft draftVirtualMachine;
+    private final VirtualMachineDraft vmDraft;
     private final List<AzureTask<?>> subTasks;
     private VirtualMachine result;
 
-    public CreateVirtualMachineTask(final VirtualMachineDraft draftVirtualMachine) {
-        this.draftVirtualMachine = draftVirtualMachine;
+    public CreateVirtualMachineTask(final VirtualMachineDraft vmDraft) {
+        this.vmDraft = vmDraft;
         this.subTasks = this.initTasks();
     }
 
     private List<AzureTask<?>> initTasks() {
         final List<AzureTask<?>> tasks = new ArrayList<>();
-        tasks.add(new CreateResourceGroupTask(draftVirtualMachine.subscriptionId(), draftVirtualMachine.resourceGroup(), draftVirtualMachine.getRegion()));
+        tasks.add(new CreateResourceGroupTask(vmDraft.getSubscriptionId(), vmDraft.getResourceGroupName(), vmDraft.getRegion()));
         // Create Virtual Network
-        final Network network = draftVirtualMachine.getNetwork();
+        final Network network = vmDraft.getNetwork();
         if (Objects.nonNull(network) && network.isDraft()) {
             final AzureString title = AzureString.format("Create new Virtual network({0})", network.getName());
             tasks.add(new AzureTask<>(title, () -> ((NetworkDraft) network).createIfNotExist()));
         }
         // Create Public IP
-        final PublicIpAddress publicIpAddress = draftVirtualMachine.getIpAddress();
+        final PublicIpAddress publicIpAddress = vmDraft.getIpAddress();
         if (Objects.nonNull(publicIpAddress) && publicIpAddress.isDraft()) {
             final AzureString title = AzureString.format("Create new Public Ip address({0})", publicIpAddress.getName());
             tasks.add(new AzureTask<>(title, () -> ((PublicIpAddressDraft) publicIpAddress).createIfNotExist()));
         }
         // Create Security Group
-        final NetworkSecurityGroup securityGroup = draftVirtualMachine.getSecurityGroup();
+        final NetworkSecurityGroup securityGroup = vmDraft.getSecurityGroup();
         if (Objects.nonNull(securityGroup) && securityGroup.isDraft()) {
             final AzureString title = AzureString.format("Create Network security group ({0})", securityGroup.getName());
             tasks.add(new AzureTask<>(title, () -> ((NetworkSecurityGroupDraft) securityGroup).createIfNotExist()));
         }
         // Create Storage Account
         // todo: migrate storage account to draft style
-        final StorageAccountConfig storageConfig = draftVirtualMachine.getStorageAccount();
+        final StorageAccountConfig storageConfig = vmDraft.getStorageAccount();
         if (storageConfig != null && StringUtils.isEmpty(storageConfig.getId())) {
             final String message = "'subscription' is required to create a Storage account.";
             final String subscriptionId = Objects.requireNonNull(storageConfig.getSubscriptionId(), message);
@@ -75,9 +75,9 @@ public class CreateVirtualMachineTask extends AzureTask<VirtualMachine> {
             }));
         }
         // Create VM
-        final AzureString title = AzureString.format("Create Virtual machine ({0})", draftVirtualMachine.getName());
+        final AzureString title = AzureString.format("Create Virtual machine ({0})", vmDraft.getName());
         tasks.add(new AzureTask<>(title, () -> {
-            CreateVirtualMachineTask.this.result = draftVirtualMachine.createIfNotExist();
+            CreateVirtualMachineTask.this.result = vmDraft.createIfNotExist();
             return CreateVirtualMachineTask.this.result;
         }));
         return tasks;

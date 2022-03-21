@@ -87,12 +87,6 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
         return remote.userVisibleState().toString();
     }
 
-    @Nonnull
-    @Override
-    public String status() {
-        return this.getStatus();
-    }
-
     @AzureOperation(name = "mysql.start_server.server", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
         this.doModify(() -> Objects.requireNonNull(this.getParent().getRemote()).servers().start(this.getResourceGroupName(), this.getName()), Status.STARTING);

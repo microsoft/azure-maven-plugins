@@ -217,11 +217,6 @@ public abstract class AppServiceAppBase<
         return remote.state();
     }
 
-    @Override
-    public String status() {
-        return super.getStatus();
-    }
-
     protected IFileClient getFileClient() {
         return getKuduManager();
     }

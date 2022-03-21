@@ -47,12 +47,6 @@ public class Network extends AbstractAzResource<Network, NetworkResourceManager,
         return remote.innerModel().provisioningState().toString();
     }
 
-    @Nonnull
-    @Override
-    public String status() {
-        return this.getStatus();
-    }
-
     @Nullable
     public Region getRegion() {
         return remoteOptional().map(remote -> Region.fromName(remote.regionName())).orElse(null);

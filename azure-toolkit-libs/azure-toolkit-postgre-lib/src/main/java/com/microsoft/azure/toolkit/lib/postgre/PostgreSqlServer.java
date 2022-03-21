@@ -88,12 +88,6 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
         return remote.userVisibleState().toString();
     }
 
-    @Nonnull
-    @Override
-    public String status() {
-        return this.getStatus();
-    }
-
     @Override
     public void start() {
         throw new AzureToolkitRuntimeException("not supported");

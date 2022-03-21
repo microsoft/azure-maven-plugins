@@ -87,12 +87,6 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
         this.doModify(() -> Objects.requireNonNull(this.getActiveDeployment()).restart(), Status.RESTARTING);
     }
 
-    @Nonnull
-    @Override
-    public String status() {
-        return this.getStatus();
-    }
-
     // READ
     public boolean isPublicEndpointEnabled() {
         if (Objects.nonNull(this.getRemote())) {

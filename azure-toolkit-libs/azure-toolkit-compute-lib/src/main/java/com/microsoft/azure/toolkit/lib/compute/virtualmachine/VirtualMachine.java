@@ -54,12 +54,6 @@ public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeRe
         return remote.powerState().toString().substring("PowerState/".length());
     }
 
-    @Nonnull
-    @Override
-    public String status() {
-        return this.getStatus();
-    }
-
     @AzureOperation(name = "vm.start.vm", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).start(), Status.STARTING);

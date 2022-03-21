@@ -70,12 +70,6 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceMana
         return remote.innerModel().provisioningState().toString();
     }
 
-    @Nonnull
-    @Override
-    public String status() {
-        return this.getStatus();
-    }
-
     @Nullable
     public Region getRegion() {
         return remoteOptional().map(remote -> Region.fromName(remote.regionName())).orElse(null);

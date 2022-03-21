@@ -76,12 +76,6 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
         return remote.state();
     }
 
-    @Nonnull
-    @Override
-    public String status() {
-        return this.getStatus();
-    }
-
     @Nullable
     @Override
     public Region getRegion() {

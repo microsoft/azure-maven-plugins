@@ -101,30 +101,6 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         return this.getId();
     }
 
-    @Deprecated
-    default String status() {
-        return getStatus();
-    }
-
-    @Deprecated
-    default void refreshStatus() {
-    }
-
-    @Deprecated
-    default String subscriptionId() {
-        return getSubscriptionId();
-    }
-
-    @Deprecated
-    default String resourceGroup() {
-        return ResourceId.fromString(id()).resourceGroupName();
-    }
-
-    @Deprecated
-    default Subscription subscription() {
-        return this.getSubscription();
-    }
-
     // ***** END! TO BE REMOVED ***** //
 
     @Getter

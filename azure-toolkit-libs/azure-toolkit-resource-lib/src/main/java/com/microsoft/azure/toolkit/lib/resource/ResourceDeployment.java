@@ -143,10 +143,4 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
     public String loadStatus(@Nonnull Deployment remote) {
         return remote.provisioningState();
     }
-
-    @Nonnull
-    @Override
-    public String status() {
-        return this.getStatus();
-    }
 }

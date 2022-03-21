@@ -58,12 +58,6 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageRe
     }
 
     @Nonnull
-    @Override
-    public String status() {
-        return this.getStatus();
-    }
-
-    @Nonnull
     @AzureOperation(name = "storage.get_connection_string.account", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public String getConnectionString() {
         // see https://github.com/Azure/azure-cli/blob/ac3b190d4d/src/azure-cli/azure/cli/command_modules/storage/operations/account.py#L232
