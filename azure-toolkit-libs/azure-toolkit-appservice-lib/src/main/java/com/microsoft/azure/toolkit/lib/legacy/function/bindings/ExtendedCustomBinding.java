@@ -5,19 +5,21 @@
 
 package com.microsoft.azure.toolkit.lib.legacy.function.bindings;
 
-import com.microsoft.azure.functions.annotation.CustomBinding;
+
+import com.microsoft.azure.toolkit.lib.appservice.function.core.FunctionAnnotation;
+import com.microsoft.azure.toolkit.lib.appservice.function.impl.DefaultFunctionProject;
 
 import java.lang.annotation.Annotation;
 
 public class ExtendedCustomBinding extends Binding {
 
-    private CustomBinding customBindingAnnotation;
+    private FunctionAnnotation customBindingAnnotation;
 
     public ExtendedCustomBinding(BindingEnum bindingEnum,
-                                 CustomBinding customBindingAnnotation,
+                                 Annotation customBindingAnnotation,
                                  Annotation annotation) {
         super(bindingEnum, annotation);
-        this.customBindingAnnotation = customBindingAnnotation;
+        this.customBindingAnnotation = DefaultFunctionProject.create(customBindingAnnotation);
     }
 
     @Override
@@ -26,7 +28,7 @@ public class ExtendedCustomBinding extends Binding {
         if (name != null) {
             return name;
         }
-        return customBindingAnnotation.name();
+        return customBindingAnnotation.getStringValue("name", true);
     }
 
     @Override
@@ -34,7 +36,7 @@ public class ExtendedCustomBinding extends Binding {
         if (this.direction != null) {
             return direction.toString();
         }
-        return customBindingAnnotation.direction();
+        return customBindingAnnotation.getStringValue("direction", true);
     }
 
     @Override
@@ -42,6 +44,6 @@ public class ExtendedCustomBinding extends Binding {
         if (type != null) {
             return type;
         }
-        return customBindingAnnotation.type();
+        return customBindingAnnotation.getStringValue("type", true);
     }
 }

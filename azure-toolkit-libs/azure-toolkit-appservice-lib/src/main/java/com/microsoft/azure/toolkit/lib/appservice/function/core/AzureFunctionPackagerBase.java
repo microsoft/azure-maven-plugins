@@ -6,11 +6,6 @@
 package com.microsoft.azure.toolkit.lib.appservice.function.core;
 
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.ClassUtils;
-import com.microsoft.azure.functions.annotation.CustomBinding;
-import com.microsoft.azure.functions.annotation.ExponentialBackoffRetry;
-import com.microsoft.azure.functions.annotation.FixedDelayRetry;
-import com.microsoft.azure.functions.annotation.FunctionName;
-import com.microsoft.azure.functions.annotation.StorageAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.Binding;
@@ -29,6 +24,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+
+import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.CUSTOM_BINDING;
+import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.EXPONENTIAL_BACKOFF_RETRY;
+import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.FIXED_DELAY_RETRY;
+import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.FUNCTION_NAME;
+import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.STORAGE_ACCOUNT;
 
 @Slf4j
 abstract class AzureFunctionPackagerBase {
@@ -61,7 +62,7 @@ abstract class AzureFunctionPackagerBase {
     protected Map<String, FunctionConfiguration> generateConfigurationsInner(FunctionProject project, List<FunctionMethod> methods) {
         final Map<String, FunctionConfiguration> configMap = new HashMap<>();
         for (final FunctionMethod method : methods) {
-            final FunctionAnnotation functionAnnotation = method.getAnnotation(FunctionName.class);
+            final FunctionAnnotation functionAnnotation = method.getAnnotation(FUNCTION_NAME);
             if (functionAnnotation == null) {
                 continue;
             }
@@ -75,7 +76,7 @@ abstract class AzureFunctionPackagerBase {
 
     private void patchStorageBinding(final FunctionMethod method, final List<Binding> bindings) {
         final Optional<FunctionAnnotation> storageAccount = method.getAnnotations().stream()
-            .filter(annotation -> annotation.isAnnotationType(StorageAccount.class))
+            .filter(annotation -> annotation.isAnnotationType(STORAGE_ACCOUNT))
             .findFirst();
 
         if (storageAccount.isPresent()) {
@@ -158,14 +159,14 @@ abstract class AzureFunctionPackagerBase {
                     ClassUtils.getShortClassName(fqn)))
                 .findFirst()
                 .orElse(null);
-        FunctionAnnotation customBindingAnnotation = annotation.getAnnotationClass().getAnnotation(CustomBinding.class);
+        FunctionAnnotation customBindingAnnotation = annotation.getAnnotationClass().getAnnotation(CUSTOM_BINDING);
         if (customBindingAnnotation != null) {
             Map<String, Object> annotationProperties = customBindingAnnotation.getPropertiesWithRequiredProperties(CUSTOM_BINDING_RESERVED_PROPERTIES);
             Map<String, Object> customBindingProperties = annotation.getPropertiesWithRequiredProperties(CUSTOM_BINDING_RESERVED_PROPERTIES);
             customBindingProperties.putAll(annotationProperties);
             Map<String, Object> userDefined = annotation.getDeclaredAnnotationProperties();
             return createCustomBinding(customBindingProperties, userDefined);
-        } else if (annotation.isAnnotationType(CustomBinding.class)) {
+        } else if (annotation.isAnnotationType(CUSTOM_BINDING)) {
             Map<String, Object> customBindingProperties = annotation.getPropertiesWithRequiredProperties(CUSTOM_BINDING_RESERVED_PROPERTIES);
             return createCustomBinding(customBindingProperties, null);
         } else if (annotationEnum != null) {
@@ -198,8 +199,8 @@ abstract class AzureFunctionPackagerBase {
     }
 
     private Retry getRetryConfigurationFromMethod(FunctionMethod method) {
-        final FunctionAnnotation fixedDelayRetry = method.getAnnotation(FixedDelayRetry.class);
-        final FunctionAnnotation exponentialBackoffRetry = method.getAnnotation(ExponentialBackoffRetry.class);
+        final FunctionAnnotation fixedDelayRetry = method.getAnnotation(FIXED_DELAY_RETRY);
+        final FunctionAnnotation exponentialBackoffRetry = method.getAnnotation(EXPONENTIAL_BACKOFF_RETRY);
         if (fixedDelayRetry != null && exponentialBackoffRetry != null) {
             throw new AzureToolkitRuntimeException(MULTI_RETRY_ANNOTATION);
         }

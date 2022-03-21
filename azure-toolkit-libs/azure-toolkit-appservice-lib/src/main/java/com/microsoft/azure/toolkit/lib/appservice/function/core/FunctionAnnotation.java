@@ -58,6 +58,10 @@ public class FunctionAnnotation {
         return StringUtils.equals(getAnnotationClassName(), clz.getCanonicalName());
     }
 
+    public boolean isAnnotationType(@Nonnull final String className) {
+        return StringUtils.equals(getAnnotationClassName(), className);
+    }
+
     public Object get(String key, boolean includeDefaultValue) {
         if (includeDefaultValue) {
             return properties.getOrDefault(key, defaultProperties.get(key));
