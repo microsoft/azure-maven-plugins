@@ -5,8 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.common.operation;
 
-import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
-import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
@@ -69,11 +67,6 @@ public final class AzureOperationAspect {
         }
         AzureTelemeter.beforeEnter(operation);
         AzureOperationContext.current().pushOperation(operation);
-        if (source instanceof AzureOperationEvent.Source) {
-            final AzureOperationEvent.Source<?> target = ((AzureOperationEvent.Source<?>) source).getEventSource();
-            final AzureOperationEvent<?> event = new AzureOperationEvent(target, operation, AzureOperationEvent.Stage.BEFORE);
-            AzureEventBus.emit(operation.getName(), event);
-        }
     }
 
     public static void afterReturning(IAzureOperation<?> current, Object source) {
@@ -82,11 +75,6 @@ public final class AzureOperationAspect {
         assert Objects.nonNull(operation) && Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the exiting operation[%s]", current, operation);
         AzureTelemeter.afterExit(operation);
-        if (source instanceof AzureOperationEvent.Source) {
-            final AzureOperationEvent.Source<?> target = ((AzureOperationEvent.Source<?>) source).getEventSource();
-            final AzureOperationEvent<?> event = new AzureOperationEvent(target, operation, AzureOperationEvent.Stage.AFTER);
-            AzureEventBus.emit(operation.getName(), event);
-        }
     }
 
     public static void afterThrowing(Throwable e, IAzureOperation<?> current, Object source) throws Throwable {
@@ -95,11 +83,6 @@ public final class AzureOperationAspect {
         assert Objects.nonNull(operation) && Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the operation[%s] throwing exception", current, operation);
         AzureTelemeter.onError(operation, e);
-        if (source instanceof AzureOperationEvent.Source) {
-            final AzureOperationEvent.Source<?> target = ((AzureOperationEvent.Source<?>) source).getEventSource();
-            final AzureOperationEvent<?> event = new AzureOperationEvent(target, operation, AzureOperationEvent.Stage.ERROR);
-            AzureEventBus.emit(operation.getName(), event);
-        }
         if (e instanceof AzureOperationException || (e instanceof Exception && !(e instanceof RuntimeException))) {
             throw e; // do not wrap checked exception and AzureOperationException
         }

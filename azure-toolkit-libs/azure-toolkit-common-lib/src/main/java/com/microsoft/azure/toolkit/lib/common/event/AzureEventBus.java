@@ -18,6 +18,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -25,61 +26,33 @@ public class AzureEventBus {
     @NonNls
     private static final Map<String, EventBus> buses = new ConcurrentHashMap<>();
 
-    public static <T, E extends AzureEvent<T>> void on(@Nonnull final String type, @Nonnull EventListener<T, E> listener) {
+    public static void on(@Nonnull final String type, @Nonnull EventListener listener) {
         getBus(type).register(listener);
     }
 
-    public static <T, E extends AzureEvent<T>> void off(@Nonnull final String type, @Nonnull EventListener<T, E> listener) {
+    public static void off(@Nonnull final String type, @Nonnull EventListener listener) {
         getBus(type).unregister(listener);
     }
 
-    public static <T, E extends AzureEvent<T>> void on(@Nonnull final String type, @Nonnull Consumer<T> listener) {
-        getBus(type).register(new EventListener<T, E>((e) -> listener.accept(e.getPayload())));
-    }
-
-    public static <T, E extends AzureEvent<T>> void once(@Nonnull final String type, @Nonnull Consumer<T> listener) {
+    public static void once(@Nonnull final String type, @Nonnull BiConsumer<Object, Object> listener) {
         final EventBus bus = getBus(type);
-        final EventListener<T, E>[] listeners = new EventListener[1];
-        listeners[0] = new EventListener<>((e) -> {
-            listener.accept(e.getPayload());
+        final EventListener[] listeners = new EventListener[1];
+        listeners[0] = new EventListener((e) -> {
+            listener.accept(e.getSource(), e.getPayload());
             bus.unregister(listeners[0]);
         });
         bus.register(listeners[0]);
     }
 
-    public static <T, E extends AzureEvent<T>> void after(@Nonnull final String operation, @Nonnull Consumer<T> listener) {
-        getBus(operation).register(new EventListener<T, E>((e) -> {
-            if (e instanceof AzureOperationEvent && ((AzureOperationEvent<?>) e).getStage() == AzureOperationEvent.Stage.AFTER) {
-                listener.accept(e.getPayload());
-            }
-        }));
-    }
-
-    public static <T, E extends AzureEvent<T>> void before(@Nonnull final String operation, @Nonnull Consumer<T> listener) {
-        getBus(operation).register(new EventListener<T, E>((e) -> {
-            if (e instanceof AzureOperationEvent && ((AzureOperationEvent<?>) e).getStage() == AzureOperationEvent.Stage.BEFORE) {
-                listener.accept(e.getPayload());
-            }
-        }));
-    }
-
-    public static <T, E extends AzureEvent<T>> void error(@Nonnull final String operation, @Nonnull Consumer<T> listener) {
-        getBus(operation).register(new EventListener<T, E>((e) -> {
-            if (e instanceof AzureOperationEvent && ((AzureOperationEvent<?>) e).getStage() == AzureOperationEvent.Stage.ERROR) {
-                listener.accept(e.getPayload());
-            }
-        }));
-    }
-
     public static void emit(@Nonnull final String type) {
-        AzureEventBus.emit(type, new SimpleEvent<>(type, null));
+        AzureEventBus.emit(type, new SimpleEvent(type, null));
     }
 
     public static void emit(@Nonnull final String type, @Nullable final Object source) {
-        AzureEventBus.emit(type, new SimpleEvent<>(type, source));
+        AzureEventBus.emit(type, new SimpleEvent(type, source));
     }
 
-    public static <T> void emit(@Nonnull final String type, @Nonnull AzureEvent<T> event) {
+    public static <T> void emit(@Nonnull final String type, @Nonnull AzureEvent event) {
         getBus(type).post(event);
     }
 
@@ -88,13 +61,13 @@ public class AzureEventBus {
     }
 
     @RequiredArgsConstructor
-    public static class EventListener<T, E extends AzureEvent<T>> {
+    public static class EventListener {
 
         @Nonnull
-        private final Consumer<E> listener;
+        private final Consumer<AzureEvent> listener;
 
         @Subscribe
-        public void onEvent(@Nonnull E event) {
+        public void onEvent(@Nonnull AzureEvent event) {
             this.listener.accept(event);
         }
     }
@@ -102,12 +75,12 @@ public class AzureEventBus {
     @Getter
     @RequiredArgsConstructor
     @AllArgsConstructor
-    private static class SimpleEvent<T> implements AzureEvent<T> {
+    private static class SimpleEvent implements AzureEvent {
         @Nonnull
         private final String type;
         @Nullable
         private final Object source;
         @Nullable
-        private T payload;
+        private Object payload;
     }
 }
