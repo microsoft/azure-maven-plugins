@@ -9,24 +9,27 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
 import com.microsoft.azure.toolkit.lib.applicationinsights.task.GetOrCreateApplicationInsightsTask;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
+import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlotDraft;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDraft;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
-import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
-import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
-import com.microsoft.azure.toolkit.lib.appservice.service.impl.FunctionApp;
-import com.microsoft.azure.toolkit.lib.appservice.service.impl.FunctionAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
+import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -38,16 +41,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>> {
+public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
     public static final String APPINSIGHTS_INSTRUMENTATION_KEY = "APPINSIGHTS_INSTRUMENTATIONKEY";
     private static final String APPLICATION_INSIGHTS_CREATE_FAILED = "Unable to create the Application Insights " +
-            "for the Function App due to error %s. Please use the Azure Portal to manually create and configure the " +
-            "Application Insights if needed.";
-    private static final String CREATE_FUNCTION_APP = "Creating function app %s...";
-    private static final String CREATE_FUNCTION_APP_DONE = "Successfully created function app %s.";
-    private static final String CREATE_NEW_FUNCTION_APP = "isCreateNewFunctionApp";
-    private static final String UPDATE_FUNCTION_APP = "Updating target Function App %s...";
-    private static final String UPDATE_FUNCTION_DONE = "Successfully updated Function App %s.";
+        "for the Function App due to error %s. Please use the Azure Portal to manually create and configure the " +
+        "Application Insights if needed.";
     private static final String FUNCTIONS_WORKER_RUNTIME_NAME = "FUNCTIONS_WORKER_RUNTIME";
     private static final String FUNCTIONS_WORKER_RUNTIME_VALUE = "java";
     private static final String SET_FUNCTIONS_WORKER_RUNTIME = "Set function worker runtime to java.";
@@ -59,11 +57,6 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
             "isn't configured, setting up the default value.";
     private static final String FUNCTION_APP_NOT_EXIST_FOR_SLOT = "The Function App specified in pom.xml does not exist. " +
             "Please make sure the Web App name is correct.";
-    private static final String FUNCTION_SLOT_CREATE_START = "The specified function slot does not exist. " +
-            "Creating a new slot...";
-    private static final String FUNCTION_SLOT_CREATED = "Successfully created the function slot: %s.";
-    private static final String FUNCTION_SLOT_UPDATE = "Updating the specified function slot...";
-    private static final String FUNCTION_SLOT_UPDATE_DONE = "Successfully updated the function slot: %s.";
 
     public static final JavaVersion DEFAULT_FUNCTION_JAVA_VERSION = JavaVersion.JAVA_8;
 
@@ -73,7 +66,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     private ResourceGroup resourceGroup;
     private AppServicePlan appServicePlan;
     private String instrumentationKey;
-    private IFunctionAppBase<?> functionApp;
+    private FunctionAppBase<?, ?, ?> functionApp;
 
 
     public CreateOrUpdateFunctionAppTask(@Nonnull final FunctionAppConfig config) {
@@ -82,28 +75,27 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     }
 
     private void initTasks() {
-        final FunctionApp app = Azure.az(AzureAppService.class).subscription(functionAppConfig.subscriptionId())
-                .functionApp(functionAppConfig.resourceGroup(), functionAppConfig.appName());
+        final FunctionAppDraft appDraft = Azure.az(AzureFunctions.class).functionApps(functionAppConfig.subscriptionId())
+            .updateOrCreate(functionAppConfig.appName(), functionAppConfig.resourceGroup());
         registerSubTask(getResourceGroupTask(), result -> this.resourceGroup = result);
         registerSubTask(getServicePlanTask(), result -> this.appServicePlan = result);
         // get/create AI instances only if user didn't specify AI connection string in app settings
         if (!functionAppConfig.disableAppInsights() && !functionAppConfig.appSettings().containsKey(APPINSIGHTS_INSTRUMENTATION_KEY)) {
             if (StringUtils.isNotEmpty(functionAppConfig.appInsightsKey())) {
                 this.instrumentationKey = functionAppConfig.appInsightsKey();
-            } else if (StringUtils.isNotEmpty(functionAppConfig.appInsightsInstance()) || !app.exists()) {
+            } else if (StringUtils.isNotEmpty(functionAppConfig.appInsightsInstance()) || !appDraft.exists()) {
                 // create AI instance by default when create new function
                 registerSubTask(getApplicationInsightsTask(),
-                        result -> this.instrumentationKey = Optional.ofNullable(result).map(ApplicationInsight::getInstrumentationKey).orElse(null));
+                    result -> this.instrumentationKey = Optional.ofNullable(result).map(ApplicationInsight::getInstrumentationKey).orElse(null));
             }
         }
         if (StringUtils.isEmpty(functionAppConfig.deploymentSlotName())) {
-            final AzureTask<FunctionApp> functionTask = app.exists() ?
-                    getUpdateFunctionAppTask(app) : getCreateFunctionAppTask(app);
+            final AzureTask<FunctionApp> functionTask = appDraft.exists() ? getUpdateFunctionAppTask(appDraft) : getCreateFunctionAppTask(appDraft);
             registerSubTask(functionTask, result -> this.functionApp = result);
         } else {
-            final FunctionAppDeploymentSlot deploymentSlot = getFunctionDeploymentSlot(app);
-            final AzureTask<FunctionAppDeploymentSlot> slotTask = deploymentSlot.exists() ?
-                    getUpdateFunctionSlotTask(deploymentSlot) : getCreateFunctionSlotTask(deploymentSlot);
+            final FunctionAppDeploymentSlotDraft slotDraft = getFunctionDeploymentSlot(appDraft);
+            final AzureTask<FunctionAppDeploymentSlot> slotTask = slotDraft.exists() ?
+                getUpdateFunctionSlotTask(slotDraft) : getCreateFunctionSlotTask(slotDraft);
             registerSubTask(slotTask, result -> this.functionApp = result);
         }
     }
@@ -118,24 +110,18 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
         }
     }
 
-    private AzureTask<FunctionApp> getCreateFunctionAppTask(final FunctionApp functionApp) {
+    private AzureTask<FunctionApp> getCreateFunctionAppTask(final FunctionAppDraft draft) {
         final AzureString title = AzureString.format("Create new app({0}) on subscription({1})",
-                functionAppConfig.appName(), functionAppConfig.subscriptionId());
+            functionAppConfig.appName(), functionAppConfig.subscriptionId());
         return new AzureTask<>(title, () -> {
-            AzureTelemetry.getContext().getActionParent().setProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
-            AzureMessager.getMessager().info(String.format(CREATE_FUNCTION_APP, functionAppConfig.appName()));
             final Map<String, String> appSettings = processAppSettingsWithDefaultValue();
             Optional.ofNullable(instrumentationKey).filter(StringUtils::isNoneEmpty).ifPresent(key ->
-                    appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, key));
-            final FunctionApp result = functionApp.create().withName(functionAppConfig.appName())
-                    .withResourceGroup(resourceGroup.getName())
-                    .withPlan(appServicePlan.id())
-                    .withRuntime(getRuntime(functionAppConfig.runtime()))
-                    .withDockerConfiguration(getDockerConfiguration(functionAppConfig.runtime()))
-                    .withAppSettings(appSettings)
-                    .commit();
-            AzureMessager.getMessager().info(String.format(CREATE_FUNCTION_APP_DONE, result.name()));
-            return result;
+                appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, key));
+            draft.setAppServicePlan(appServicePlan);
+            draft.setRuntime(getRuntime(functionAppConfig.runtime()));
+            draft.setDockerConfiguration(getDockerConfiguration(functionAppConfig.runtime()));
+            draft.setAppSettings(appSettings);
+            return draft.createIfNotExist();
         });
     }
 
@@ -162,66 +148,55 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
         }
     }
 
-    private AzureTask<FunctionApp> getUpdateFunctionAppTask(final FunctionApp functionApp) {
+    private AzureTask<FunctionApp> getUpdateFunctionAppTask(final FunctionAppDraft draft) {
         final AzureString title = AzureString.format("Update function app({0})", functionAppConfig.appName());
         return new AzureTask<>(title, () -> {
-            AzureMessager.getMessager().info(String.format(UPDATE_FUNCTION_APP, functionApp.name()));
-            // update app settings
-            final IAppServiceUpdater<? extends FunctionApp> update = functionApp.update();
             final Map<String, String> appSettings = processAppSettingsWithDefaultValue();
             if (functionAppConfig.disableAppInsights()) {
-                update.withoutAppSettings(APPINSIGHTS_INSTRUMENTATION_KEY);
+                draft.removeAppSetting(APPINSIGHTS_INSTRUMENTATION_KEY);
             } else if (StringUtils.isNotEmpty(instrumentationKey)) {
                 appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, instrumentationKey);
             }
-            final FunctionApp result = update.withPlan(appServicePlan.id())
-                    .withRuntime(getRuntime(functionAppConfig.runtime()))
-                    .withDockerConfiguration(getDockerConfiguration(functionAppConfig.runtime()))
-                    .withAppSettings(appSettings)
-                    .commit();
-            AzureMessager.getMessager().info(String.format(UPDATE_FUNCTION_DONE, functionApp.name()));
-            return result;
+            draft.setAppServicePlan(appServicePlan);
+            draft.setRuntime(getRuntime(functionAppConfig.runtime()));
+            draft.setDockerConfiguration(getDockerConfiguration(functionAppConfig.runtime()));
+            draft.setAppSettings(appSettings);
+            return draft.updateIfExist();
         });
     }
 
-    private AzureTask<FunctionAppDeploymentSlot> getCreateFunctionSlotTask(FunctionAppDeploymentSlot deploymentSlot) {
+    private AzureTask<FunctionAppDeploymentSlot> getCreateFunctionSlotTask(FunctionAppDeploymentSlotDraft draft) {
         final AzureString title = AzureString.format("Create new slot({0}) on function app ({1})",
-                functionAppConfig.deploymentSlotName(), functionAppConfig.appName());
+            functionAppConfig.deploymentSlotName(), functionAppConfig.appName());
         return new AzureTask<>(title, () -> {
-            AzureMessager.getMessager().info(FUNCTION_SLOT_CREATE_START);
             final Map<String, String> appSettings = processAppSettingsWithDefaultValue();
             Optional.ofNullable(instrumentationKey).filter(StringUtils::isNoneEmpty).ifPresent(key ->
-                    appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, key));
-            final FunctionAppDeploymentSlot result = deploymentSlot.create().withAppSettings(appSettings)
-                    .withConfigurationSource(functionAppConfig.deploymentSlotConfigurationSource())
-                    .withName(functionAppConfig.deploymentSlotName()).commit();
-            AzureMessager.getMessager().info(String.format(FUNCTION_SLOT_CREATED, result.name()));
-            return result;
+                appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, key));
+            draft.setAppSettings(appSettings);
+            draft.setConfigurationSource(functionAppConfig.deploymentSlotConfigurationSource());
+            return draft.createIfNotExist();
         });
     }
 
-    private AzureTask<FunctionAppDeploymentSlot> getUpdateFunctionSlotTask(FunctionAppDeploymentSlot deploymentSlot) {
+    private AzureTask<FunctionAppDeploymentSlot> getUpdateFunctionSlotTask(FunctionAppDeploymentSlotDraft draft) {
         final AzureString title = AzureString.format("Update function deployment slot({0})", functionAppConfig.deploymentSlotName());
         return new AzureTask<>(title, () -> {
-            AzureMessager.getMessager().info(FUNCTION_SLOT_UPDATE);
             final Map<String, String> appSettings = processAppSettingsWithDefaultValue();
-            final FunctionAppDeploymentSlot.FunctionAppDeploymentSlotUpdater update = deploymentSlot.update();
             if (functionAppConfig.disableAppInsights()) {
-                update.withoutAppSettings(APPINSIGHTS_INSTRUMENTATION_KEY);
+                draft.removeAppSetting(APPINSIGHTS_INSTRUMENTATION_KEY);
             } else if (StringUtils.isNotEmpty(instrumentationKey)) {
                 appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, instrumentationKey);
             }
-            final FunctionAppDeploymentSlot result = update.withAppSettings(appSettings).commit();
-            AzureMessager.getMessager().info(String.format(FUNCTION_SLOT_UPDATE_DONE, result.name()));
-            return deploymentSlot;
+            draft.setAppSettings(appSettings);
+            return draft.updateIfExist();
         });
     }
 
-    private FunctionAppDeploymentSlot getFunctionDeploymentSlot(final FunctionApp functionApp) {
+    private FunctionAppDeploymentSlotDraft getFunctionDeploymentSlot(final FunctionApp functionApp) {
         if (!functionApp.exists()) {
             throw new AzureToolkitRuntimeException(FUNCTION_APP_NOT_EXIST_FOR_SLOT);
         }
-        return functionApp.deploymentSlot(functionAppConfig.deploymentSlotName());
+        return functionApp.slots().updateOrCreate(functionAppConfig.deploymentSlotName(), functionAppConfig.resourceGroup());
     }
 
     private AzureTask<ApplicationInsight> getApplicationInsightsTask() {
@@ -242,12 +217,18 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
         return new CreateResourceGroupTask(functionAppConfig.subscriptionId(), functionAppConfig.resourceGroup(), functionAppConfig.region());
     }
 
-    private CreateOrUpdateAppServicePlanTask getServicePlanTask() {
+    private AzureTask<AppServicePlan> getServicePlanTask() {
         if (StringUtils.isNotEmpty(functionAppConfig.deploymentSlotName())) {
             AzureMessager.getMessager().info("Skip update app service plan for deployment slot");
             return null;
         }
-        return new CreateOrUpdateAppServicePlanTask(functionAppConfig.getServicePlanConfig());
+        return new AzureTask<>(() -> {
+            final AzureAppService az = Azure.az(AzureAppService.class);
+            final AppServicePlanConfig config = functionAppConfig.getServicePlanConfig();
+            final AppServicePlanDraft draft = az.plans(config.subscriptionId())
+                .updateOrCreate(config.servicePlanName(), config.servicePlanResourceGroup());
+            return draft.commit();
+        });
     }
 
     private Runtime getRuntime(RuntimeConfig runtime) {
@@ -271,7 +252,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<IFunctionAppBase<?>
     }
 
     @Override
-    public IFunctionAppBase<?> doExecute() throws Exception {
+    public FunctionAppBase<?, ?, ?> doExecute() throws Exception {
         for (AzureTask<?> task : this.tasks) {
             task.getBody().call();
         }

@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.model;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 import org.jetbrains.annotations.Contract;
@@ -13,7 +14,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R> {
+public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R> extends Refreshable {
     @Nonnull
     None NONE = new None();
 
@@ -21,7 +22,16 @@ public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzRes
     List<T> list();
 
     @Nullable
+    default T get(@Nonnull String resourceId) {
+        final ResourceId id = ResourceId.fromString(resourceId);
+        return this.get(id.name(), id.resourceGroupName());
+    }
+
+    @Nullable
     T get(@Nonnull String name, @Nullable String resourceGroup);
+
+    @Nonnull
+    T getOrDraft(@Nonnull String name, @Nullable String resourceGroup);
 
     boolean exists(@Nonnull String name, @Nullable String resourceGroup);
 

@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.model;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
@@ -13,8 +14,11 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -24,8 +28,14 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
 
     public AbstractAzService(@Nonnull String name) {
         super(name, AzResource.NONE);
-        AzureEventBus.on("account.logout.account", (e) -> this.clear());
-        AzureEventBus.on("account.subscription_changed.account", (e) -> this.refresh());
+        AzureEventBus.on("account.logout.account", new AzureEventBus.EventListener((e) -> this.clear()));
+        AzureEventBus.on("account.subscription_changed.account", new AzureEventBus.EventListener((e) -> this.refresh()));
+    }
+
+    @Nullable
+    public T get(@Nonnull String resourceId) {
+        final ResourceId id = ResourceId.fromString(resourceId);
+        return this.get(id.subscriptionId(), id.resourceGroupName());
     }
 
     @Nonnull
@@ -70,5 +80,36 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
     public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
         final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
         return String.format("/subscriptions/%s/resourceGroups/%s/providers/%s", resourceName, rg, this.getName());
+    }
+
+    @Nullable
+    public <E> E getById(@Nonnull String id) { // move to upper class
+        return this.doGetById(id);
+    }
+
+    @Nullable
+    protected <E> E doGetById(@Nonnull String id) { // move to upper class
+        ResourceId resourceId = ResourceId.fromString(id);
+        final String resourceGroup = resourceId.resourceGroupName();
+        AbstractAzResource<?, ?, ?> resource = Objects.requireNonNull(this.get(resourceId.subscriptionId(), resourceGroup));
+        final LinkedList<Pair<String, String>> resourceTypeNames = new LinkedList<>();
+        while (resourceId != null) {
+            resourceTypeNames.push(Pair.of(resourceId.resourceType(), resourceId.name()));
+            resourceId = resourceId.parent();
+        }
+        for (Pair<String, String> resourceTypeName : resourceTypeNames) {
+            resource = (AbstractAzResource<?, ?, ?>) resource.getSubModule(resourceTypeName.getLeft()).getOrDraft(resourceTypeName.getRight(), resourceGroup);
+        }
+        return (E) resource;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return this == o;
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 }

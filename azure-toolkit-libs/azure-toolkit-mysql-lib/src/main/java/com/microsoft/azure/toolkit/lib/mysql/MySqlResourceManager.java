@@ -9,8 +9,8 @@ import com.azure.resourcemanager.mysql.MySqlManager;
 import com.azure.resourcemanager.mysql.models.NameAvailability;
 import com.azure.resourcemanager.mysql.models.NameAvailabilityRequest;
 import com.azure.resourcemanager.mysql.models.PerformanceTierProperties;
-import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
@@ -37,6 +37,7 @@ public class MySqlResourceManager extends AbstractAzResourceManager<MySqlResourc
 
     MySqlResourceManager(@Nonnull MySqlManager manager, @Nonnull AzureMySql service) {
         this(manager.serviceClient().getSubscriptionId(), service);
+        this.setRemote(manager);
     }
 
     @Nonnull
@@ -56,10 +57,10 @@ public class MySqlResourceManager extends AbstractAzResourceManager<MySqlResourc
     }
 
     @Nonnull
-    public CheckNameAvailabilityResultEntity checkNameAvailability(@Nonnull String name) {
+    public Availability checkNameAvailability(@Nonnull String name) {
         final NameAvailabilityRequest request = new NameAvailabilityRequest().withName(name).withType(this.getParent().getName());
         final NameAvailability result = Objects.requireNonNull(this.getRemote()).checkNameAvailabilities().execute(request);
-        return new CheckNameAvailabilityResultEntity(result.nameAvailable(), result.reason(), result.message());
+        return new Availability(result.nameAvailable(), result.reason(), result.message());
     }
 
     public boolean checkRegionAvailability(@Nonnull Region region) {

@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.task;
 
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class DeployWebAppTask extends AzureTask<IWebAppBase<?>> {
+public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private static final String SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE = "Skip deployment for docker webapp, " +
         "you can navigate to %s to access your docker webapp.";
     private static final String DEPLOY_START = "Trying to deploy artifact to %s...";
@@ -29,15 +29,15 @@ public class DeployWebAppTask extends AzureTask<IWebAppBase<?>> {
     private static final String STOP_APP_DONE = "Successfully stopped Web App.";
     private static final String START_APP_DONE = "Successfully started Web App.";
     private static final String RUNNING = "Running";
-    private final IWebAppBase<?> webApp;
+    private final WebAppBase<?, ?, ?> webApp;
     private final List<WebAppArtifact> artifacts;
     private final boolean isStopAppDuringDeployment;
 
-    public DeployWebAppTask(IWebAppBase<?> webApp, List<WebAppArtifact> artifacts) {
+    public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts) {
         this(webApp, artifacts, false);
     }
 
-    public DeployWebAppTask(IWebAppBase<?> webApp, List<WebAppArtifact> artifacts, boolean isStopAppDuringDeployment) {
+    public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts, boolean isStopAppDuringDeployment) {
         this.webApp = webApp;
         this.artifacts = artifacts;
         this.isStopAppDuringDeployment = isStopAppDuringDeployment;
@@ -45,9 +45,9 @@ public class DeployWebAppTask extends AzureTask<IWebAppBase<?>> {
 
     @Override
     @AzureOperation(name = "webapp.deploy_app.app", params = {"this.webApp.entity().getName()"}, type = AzureOperation.Type.SERVICE)
-    public IWebAppBase<?> doExecute() {
+    public WebAppBase<?, ?, ?> doExecute() {
         if (webApp.getRuntime().isDocker()) {
-            AzureMessager.getMessager().info(AzureString.format(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE, "https://" + webApp.hostName()));
+            AzureMessager.getMessager().info(AzureString.format(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE, "https://" + webApp.getHostName()));
             return webApp;
         }
         try {
@@ -56,7 +56,7 @@ public class DeployWebAppTask extends AzureTask<IWebAppBase<?>> {
                 stopAppService(webApp);
             }
             deployArtifacts();
-            AzureMessager.getMessager().info(String.format(DEPLOY_FINISH, webApp.hostName()));
+            AzureMessager.getMessager().info(String.format(DEPLOY_FINISH, webApp.getHostName()));
         } finally {
             startAppService(webApp);
         }
@@ -75,7 +75,7 @@ public class DeployWebAppTask extends AzureTask<IWebAppBase<?>> {
         AzureTelemetry.getContext().getActionParent().setProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
     }
 
-    private static void stopAppService(IWebAppBase<?> target) {
+    private static void stopAppService(WebAppBase<?, ?, ?> target) {
         AzureMessager.getMessager().info(STOP_APP);
         target.stop();
         // workaround for the resources release problem.
@@ -88,8 +88,8 @@ public class DeployWebAppTask extends AzureTask<IWebAppBase<?>> {
         AzureMessager.getMessager().info(STOP_APP_DONE);
     }
 
-    private static void startAppService(IWebAppBase<?> target) {
-        if (!StringUtils.equalsIgnoreCase(target.state(), RUNNING)) {
+    private static void startAppService(WebAppBase<?, ?, ?> target) {
+        if (!StringUtils.equalsIgnoreCase(target.getStatus(), RUNNING)) {
             AzureMessager.getMessager().info(START_APP);
             target.start();
             AzureMessager.getMessager().info(START_APP_DONE);

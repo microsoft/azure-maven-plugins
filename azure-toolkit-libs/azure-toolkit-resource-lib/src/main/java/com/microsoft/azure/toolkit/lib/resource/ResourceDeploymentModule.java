@@ -9,7 +9,9 @@ import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.models.Deployment;
 import com.azure.resourcemanager.resources.models.Deployments;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -57,6 +59,15 @@ public class ResourceDeploymentModule extends
     protected Stream<Deployment> loadResourcesFromAzure() {
         final ResourceManager manager = Objects.requireNonNull(this.parent.getParent().getRemote());
         return manager.deployments().listByResourceGroup(this.parent.getName()).stream();
+    }
+
+    @Nonnull
+    @Override
+    public String toResourceId(@Nonnull String resourceName, @Nullable String resourceGroup) {
+        resourceGroup = StringUtils.firstNonBlank(resourceGroup, this.getParent().getResourceGroupName(), AzResource.RESOURCE_GROUP_PLACEHOLDER);
+        return String.format("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Resources/%s/%s",
+                this.getSubscriptionId(), this.parent.getResourceGroupName(), this.getName(), resourceName)
+            .replace(AzResource.RESOURCE_GROUP_PLACEHOLDER, resourceGroup);
     }
 
     @Nonnull

@@ -8,9 +8,9 @@ package com.microsoft.azure.maven.webapp.task;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.utils.FTPUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -22,27 +22,27 @@ import java.io.IOException;
 import java.util.List;
 
 @Deprecated
-public class DeployExternalResourcesTask extends AzureTask<IWebAppBase<?>> {
+public class DeployExternalResourcesTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private static final String DEPLOY_START = "Trying to deploy external resources to %s...";
     private static final String DEPLOY_FINISH = "Successfully deployed the resources to %s";
 
-    final IWebAppBase<?> target;
+    final WebAppBase<?, ?, ?> target;
     final List<DeploymentResource> resources;
 
-    public DeployExternalResourcesTask(final IWebAppBase<?> target, final List<DeploymentResource> resources) {
+    public DeployExternalResourcesTask(final WebAppBase<?, ?, ?> target, final List<DeploymentResource> resources) {
         this.target = target;
         this.resources = resources;
     }
 
     @Override
-    public IWebAppBase<?> doExecute() {
+    public WebAppBase<?, ?, ?> doExecute() {
         AzureMessager.getMessager().info(AzureString.format(DEPLOY_START, target.name()));
         deployExternalResources(target, resources);
         AzureMessager.getMessager().info(AzureString.format(DEPLOY_FINISH, target.name()));
         return target;
     }
 
-    private void deployExternalResources(final IAppService<?> target, final List<DeploymentResource> resources) {
+    private void deployExternalResources(final AppServiceAppBase<?, ?, ?> target, final List<DeploymentResource> resources) {
         if (resources.isEmpty()) {
             return;
         }

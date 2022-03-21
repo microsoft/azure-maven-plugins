@@ -7,10 +7,10 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
-import com.microsoft.azure.toolkit.lib.common.entity.Removable;
-import com.microsoft.azure.toolkit.lib.common.entity.Startable;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.model.Startable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
 import lombok.Getter;
@@ -25,7 +25,7 @@ import java.util.Optional;
 
 @Getter
 public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringCloudCluster, SpringApp>
-    implements Startable, Removable {
+    implements Startable, Deletable {
 
     @Nonnull
     private final SpringCloudDeploymentModule deploymentModule;
@@ -85,17 +85,6 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     @AzureOperation(name = "springcloud.restart_app.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
         this.doModify(() -> Objects.requireNonNull(this.getActiveDeployment()).restart(), Status.RESTARTING);
-    }
-
-    @Override
-    public void remove() {
-        this.delete();
-    }
-
-    @Nonnull
-    @Override
-    public String status() {
-        return this.getStatus();
     }
 
     // READ

@@ -11,11 +11,11 @@ import com.azure.resourcemanager.mysql.models.Sku;
 import com.azure.resourcemanager.mysql.models.SslEnforcementEnum;
 import com.azure.resourcemanager.mysql.models.StorageProfile;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.common.entity.Removable;
-import com.microsoft.azure.toolkit.lib.common.entity.Startable;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.model.Startable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceManager, Server>
-    implements Removable, Startable, IDatabaseServer<MySqlDatabase> {
+    implements Deletable, Startable, IDatabaseServer<MySqlDatabase> {
 
     private final MySqlDatabaseModule databaseModule;
     private final MySqlFirewallRuleModule firewallRuleModule;
@@ -61,8 +61,8 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
 
     @Nullable
     @Override
-    protected Server refreshRemote() {
-        return this.remoteOptional().map(Server::refresh).orElse(null);
+    protected Server refreshRemote(@Nonnull Server remote) {
+        return remote.refresh();
     }
 
     @Nonnull
@@ -85,12 +85,6 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
     @Override
     public String loadStatus(@Nonnull Server remote) {
         return remote.userVisibleState().toString();
-    }
-
-    @Nonnull
-    @Override
-    public String status() {
-        return this.getStatus();
     }
 
     @AzureOperation(name = "mysql.start_server.server", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
@@ -196,11 +190,6 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
     @Override
     public List<MySqlDatabase> listDatabases() {
         return this.databases().list();
-    }
-
-    @Override
-    public void remove() {
-        this.delete();
     }
 
     @Override

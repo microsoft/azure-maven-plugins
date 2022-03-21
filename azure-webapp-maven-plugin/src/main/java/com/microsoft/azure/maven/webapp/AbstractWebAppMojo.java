@@ -12,9 +12,12 @@ import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.maven.webapp.parser.ConfigParser;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.validator.SchemaValidator;
 import com.microsoft.azure.toolkit.lib.common.validator.ValidationMessage;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
@@ -293,7 +296,12 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     @Override
     public String getSubscriptionId() {
-        return appServiceClient == null ? this.subscriptionId : appServiceClient.getDefaultSubscription().getId();
+        if (appServiceClient == null) {
+            return this.subscriptionId;
+        }
+        final List<Subscription> subscriptions = Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
+        final Subscription subscription = subscriptions.get(0);
+        return subscription.getId();
     }
 
     @Override

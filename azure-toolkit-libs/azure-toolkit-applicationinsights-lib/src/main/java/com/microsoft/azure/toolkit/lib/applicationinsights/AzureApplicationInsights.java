@@ -14,16 +14,14 @@ import com.azure.resourcemanager.resources.fluentcore.policy.ProviderRegistratio
 import com.azure.resourcemanager.resources.models.Providers;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
-import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
-
-import static com.microsoft.azure.toolkit.lib.AzureService.getUserAgentPolicy;
 
 public class AzureApplicationInsights extends AbstractAzService<ApplicationInsightsResourceManager, ApplicationInsightsManager> {
     public AzureApplicationInsights() {
@@ -55,15 +53,15 @@ public class AzureApplicationInsights extends AbstractAzService<ApplicationInsig
         final AzureProfile azureProfile = new AzureProfile(tenantId, subscriptionId, account.getEnvironment());
         // todo: migrate resource provider related codes to common library
         final Providers providers = ResourceManager.configure()
-            .withHttpClient(AzureService.getDefaultHttpClient())
-                .withPolicy(getUserAgentPolicy(userAgent))
+            .withHttpClient(AbstractAzResourceManager.getDefaultHttpClient())
+            .withPolicy(AbstractAzResourceManager.getUserAgentPolicy(userAgent))
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
                 .withSubscription(subscriptionId).providers();
         return ApplicationInsightsManager
-                .configure()
-                .withHttpClient(AzureService.getDefaultHttpClient())
-                .withLogOptions(logOptions)
-                .withPolicy(getUserAgentPolicy(userAgent))
+            .configure()
+            .withHttpClient(AbstractAzResourceManager.getDefaultHttpClient())
+            .withLogOptions(logOptions)
+            .withPolicy(AbstractAzResourceManager.getUserAgentPolicy(userAgent))
                 .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }

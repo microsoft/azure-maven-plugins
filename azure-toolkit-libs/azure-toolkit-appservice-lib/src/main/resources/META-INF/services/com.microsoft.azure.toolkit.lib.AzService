@@ -1,0 +1,3 @@
+com.microsoft.azure.toolkit.lib.appservice.AzureAppService
+com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
+com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp

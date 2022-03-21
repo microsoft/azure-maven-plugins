@@ -7,12 +7,13 @@ package com.microsoft.azure.toolkit.lib.storage;
 
 import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.management.profile.AzureProfile;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.storage.StorageManager;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
-import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Performance;
@@ -40,6 +41,19 @@ public class AzureStorageAccount extends AbstractAzService<StorageResourceManage
         return rm.getStorageModule();
     }
 
+    @Nullable
+    public StorageAccount account(@Nonnull String resourceId) {
+        final ResourceId id = ResourceId.fromString(resourceId);
+        final StorageResourceManager rm = get(id.subscriptionId(), null);
+        assert rm != null;
+        return rm.getStorageModule().get(resourceId);
+    }
+
+    @Nullable
+    public List<StorageAccount> accounts() {
+        return this.list().stream().flatMap(m -> m.storageAccounts().list().stream()).collect(Collectors.toList());
+    }
+
     @Nonnull
     @Override
     protected StorageManager loadResourceFromAzure(@Nonnull String subscriptionId, @Nullable String resourceGroup) {
@@ -49,9 +63,9 @@ public class AzureStorageAccount extends AbstractAzService<StorageResourceManage
         final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         return StorageManager.configure()
-            .withHttpClient(AzureService.getDefaultHttpClient())
+            .withHttpClient(AbstractAzResourceManager.getDefaultHttpClient())
             .withLogLevel(logLevel)
-            .withPolicy(AzureService.getUserAgentPolicy(userAgent)) // set user agent with policy
+            .withPolicy(AbstractAzResourceManager.getUserAgentPolicy(userAgent)) // set user agent with policy
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 

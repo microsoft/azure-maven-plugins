@@ -9,8 +9,8 @@ import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.storage.StorageManager;
 import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
 import com.azure.resourcemanager.storage.models.Reason;
-import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -37,6 +37,7 @@ public class StorageResourceManager extends AbstractAzResourceManager<StorageRes
 
     StorageResourceManager(@Nonnull StorageManager remote, @Nonnull AzureStorageAccount service) {
         this(remote.subscriptionId(), service);
+        this.setRemote(remote);
     }
 
     @Nonnull
@@ -63,9 +64,9 @@ public class StorageResourceManager extends AbstractAzResourceManager<StorageRes
 
     @Nonnull
     @AzureOperation(name = "storage.check_name.name", params = {"name"}, type = AzureOperation.Type.SERVICE)
-    public CheckNameAvailabilityResultEntity checkNameAvailability(@Nonnull String name) {
+    public Availability checkNameAvailability(@Nonnull String name) {
         CheckNameAvailabilityResult result = Objects.requireNonNull(this.getRemote()).storageAccounts().checkNameAvailability(name);
-        return new CheckNameAvailabilityResultEntity(result.isAvailable(),
+        return new Availability(result.isAvailable(),
             Optional.ofNullable(result.reason()).map(Reason::toString).orElse(null), result.message());
     }
 }

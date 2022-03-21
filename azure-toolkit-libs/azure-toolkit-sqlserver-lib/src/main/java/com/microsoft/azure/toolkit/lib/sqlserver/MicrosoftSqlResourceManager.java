@@ -9,8 +9,8 @@ import com.azure.resourcemanager.sql.SqlServerManager;
 import com.azure.resourcemanager.sql.models.CapabilityStatus;
 import com.azure.resourcemanager.sql.models.CheckNameAvailabilityResult;
 import com.azure.resourcemanager.sql.models.RegionCapabilities;
-import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
@@ -35,6 +35,7 @@ public class MicrosoftSqlResourceManager extends AbstractAzResourceManager<Micro
 
     MicrosoftSqlResourceManager(@Nonnull SqlServerManager manager, @Nonnull AzureSqlServer service) {
         this(manager.serviceClient().getSubscriptionId(), service);
+        this.setRemote(manager);
     }
 
     @Nonnull
@@ -54,9 +55,9 @@ public class MicrosoftSqlResourceManager extends AbstractAzResourceManager<Micro
     }
 
     @Nonnull
-    public CheckNameAvailabilityResultEntity checkNameAvailability(@Nonnull String name) {
+    public Availability checkNameAvailability(@Nonnull String name) {
         CheckNameAvailabilityResult result = Objects.requireNonNull(this.getRemote()).sqlServers().checkNameAvailability(name);
-        return new CheckNameAvailabilityResultEntity(result.isAvailable(), result.unavailabilityReason(), result.unavailabilityMessage());
+        return new Availability(result.isAvailable(), result.unavailabilityReason(), result.unavailabilityMessage());
     }
 
     public boolean checkRegionAvailability(@Nonnull Region region) {

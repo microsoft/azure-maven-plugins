@@ -8,12 +8,12 @@ package com.microsoft.azure.toolkit.lib.common.event;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public interface AzureEvent<T> {
+public interface AzureEvent {
     Object getSource();
 
     @Nonnull
     String getType();
 
     @Nullable
-    T getPayload();
+    Object getPayload();
 }

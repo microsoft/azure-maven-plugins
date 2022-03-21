@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,6 +29,9 @@ import java.util.Optional;
 public class ResourceDeploymentDraft extends ResourceDeployment
     implements AzResource.Draft<ResourceDeployment, com.azure.resourcemanager.resources.models.Deployment> {
 
+    @Getter
+    @Setter
+    private boolean committed;
     @Getter
     @Nullable
     private final ResourceDeployment origin;

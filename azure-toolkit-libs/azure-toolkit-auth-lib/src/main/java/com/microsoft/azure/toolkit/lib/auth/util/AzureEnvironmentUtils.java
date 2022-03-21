@@ -37,7 +37,7 @@ public class AzureEnvironmentUtils {
         throw new IllegalArgumentException("Unknown azure environment.");
     }
 
-    public static String getCloudNameForAzureCli(AzureEnvironment azureEnvironment) {
+    public static String getCloudName(AzureEnvironment azureEnvironment) {
         if (AZURE_CLOUD_ALIAS_MAP.containsKey(azureEnvironment)) {
             return AZURE_CLOUD_ALIAS_MAP.get(azureEnvironment)[0];
         }

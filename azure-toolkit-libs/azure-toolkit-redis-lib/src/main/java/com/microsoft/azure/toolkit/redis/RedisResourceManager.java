@@ -11,8 +11,8 @@ import com.azure.resourcemanager.redis.RedisManager;
 import com.azure.resourcemanager.redis.fluent.RedisClient;
 import com.azure.resourcemanager.redis.models.CheckNameAvailabilityParameters;
 import com.azure.resourcemanager.resources.ResourceManager;
-import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -38,6 +38,7 @@ public class RedisResourceManager extends AbstractAzResourceManager<RedisResourc
 
     RedisResourceManager(@Nonnull RedisManager remote, @Nonnull AzureRedis service) {
         this(remote.subscriptionId(), service);
+        this.setRemote(remote);
     }
 
     @Nonnull
@@ -64,15 +65,15 @@ public class RedisResourceManager extends AbstractAzResourceManager<RedisResourc
 
     @Nonnull
     @AzureOperation(name = "redis.check_name.redis", params = "name", type = AzureOperation.Type.SERVICE)
-    public CheckNameAvailabilityResultEntity checkNameAvailability(@Nonnull String name) {
+    public Availability checkNameAvailability(@Nonnull String name) {
         RedisClient redis = Objects.requireNonNull(this.getRemote()).serviceClient().getRedis();
         try {
             redis.checkNameAvailability(new CheckNameAvailabilityParameters().withName(name).withType("Microsoft.Cache/redis"));
-            return new CheckNameAvailabilityResultEntity(true, null);
+            return new Availability(true, null);
         } catch (ManagementException ex) {
             ManagementError value = ex.getValue();
             if (value != null && "NameNotAvailable".equals(value.getCode())) {
-                return new CheckNameAvailabilityResultEntity(false, String.format("The name '%s' for Redis Cache is not available", name), value.getMessage());
+                return new Availability(false, String.format("The name '%s' for Redis Cache is not available", name), value.getMessage());
             }
             throw ex;
         }

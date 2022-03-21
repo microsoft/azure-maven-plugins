@@ -6,10 +6,10 @@
 package com.microsoft.azure.toolkit.lib.sqlserver;
 
 import com.azure.resourcemanager.sql.models.SqlServer;
-import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
@@ -25,7 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, MicrosoftSqlResourceManager, SqlServer>
-    implements Removable, IDatabaseServer<MicrosoftSqlDatabase> {
+    implements Deletable, IDatabaseServer<MicrosoftSqlDatabase> {
 
     @Nonnull
     private final MicrosoftSqlDatabaseModule databaseModule;
@@ -74,12 +74,6 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
     @Override
     public String loadStatus(@Nonnull SqlServer remote) {
         return remote.state();
-    }
-
-    @Nonnull
-    @Override
-    public String status() {
-        return this.getStatus();
     }
 
     @Nullable
@@ -157,10 +151,5 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
     @Override
     public List<MicrosoftSqlDatabase> listDatabases() {
         return this.databases().list();
-    }
-
-    @Override
-    public void remove() {
-        this.delete();
     }
 }

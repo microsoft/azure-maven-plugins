@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.common.action;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
@@ -121,9 +121,9 @@ public class Action<D> {
     }
 
     protected void handle(D source, Object e, BiConsumer<D, Object> handler) {
-        if (source instanceof IAzureBaseResource) {
-            Optional.ofNullable(AzureTelemetry.getContext()).map(AzureTelemetry.Context::getActionParent).ifPresent(c -> {
-                c.setProperty("subscriptionId", ((IAzureBaseResource<?, ?>) source).subscriptionId());
+        if (source instanceof AzResource) {
+            Optional.of(AzureTelemetry.getContext()).map(AzureTelemetry.Context::getActionParent).ifPresent(c -> {
+                c.setProperty("subscriptionId", ((AzResource<?, ?, ?>) source).getSubscriptionId());
                 c.setProperty("resourceType", source.getClass().getSimpleName());
             });
         }

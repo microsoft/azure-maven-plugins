@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,7 +25,7 @@ public class AppServiceFile {
     private String mime;
     private String href;
     private String path;
-    private IAppService app;
+    private AppServiceAppBase<?, ?, ?> app;
 
     public String getId() {
         return String.format("<%s>/%s", this.getApp().id(), this.getPath());

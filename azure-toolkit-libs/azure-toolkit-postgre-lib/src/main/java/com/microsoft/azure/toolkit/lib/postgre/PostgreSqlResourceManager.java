@@ -9,15 +9,14 @@ import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.postgresql.models.NameAvailability;
 import com.azure.resourcemanager.postgresql.models.NameAvailabilityRequest;
 import com.azure.resourcemanager.postgresql.models.PerformanceTierProperties;
-import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +37,7 @@ public class PostgreSqlResourceManager extends AbstractAzResourceManager<Postgre
 
     PostgreSqlResourceManager(@Nonnull PostgreSqlManager manager, @Nonnull AzurePostgreSql service) {
         this(manager.serviceClient().getSubscriptionId(), service);
+        this.setRemote(manager);
     }
 
     @Nonnull
@@ -57,10 +57,10 @@ public class PostgreSqlResourceManager extends AbstractAzResourceManager<Postgre
     }
 
     @Nonnull
-    public CheckNameAvailabilityResultEntity checkNameAvailability(@Nonnull String name) {
+    public Availability checkNameAvailability(@Nonnull String name) {
         final NameAvailabilityRequest request = new NameAvailabilityRequest().withName(name).withType(this.getParent().getName());
         final NameAvailability result = Objects.requireNonNull(this.getRemote()).checkNameAvailabilities().execute(request);
-        return new CheckNameAvailabilityResultEntity(result.nameAvailable(), result.reason(), result.message());
+        return new Availability(result.nameAvailable(), result.reason(), result.message());
     }
 
     public boolean checkRegionAvailability(@Nonnull Region region) {

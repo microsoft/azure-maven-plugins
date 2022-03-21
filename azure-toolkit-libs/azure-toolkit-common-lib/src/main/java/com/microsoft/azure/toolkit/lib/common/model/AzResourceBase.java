@@ -41,7 +41,7 @@ public interface AzResourceBase {
     }
 
     enum FormalStatus {
-        RUNNING, STOPPED, FAILED, UNKNOWN, WRITING, READING;
+        RUNNING, STOPPED, FAILED, DELETED, UNKNOWN, WRITING, READING;
 
         private static final HashSet<String> runningStatus = Sets.newHashSet("running", "success", "succeeded", "ready", "ok");
         private static final HashSet<String> stoppedStatus = Sets.newHashSet("stopped");
@@ -49,6 +49,7 @@ public interface AzResourceBase {
         private static final HashSet<String> writingStatus = Sets.newHashSet("writing", "pending", "processing", "creating", "updating", "deleting",
             "starting", "stopping", "restarting", "scaling");
         private static final HashSet<String> readingStatus = Sets.newHashSet("reading", "loading", "refreshing");
+        private static final HashSet<String> deletedStatus = Sets.newHashSet("deleted", "removed");
 
         public static FormalStatus dummyFormalize(String status) {
             status = status.toLowerCase();
@@ -62,6 +63,8 @@ public interface AzResourceBase {
                 return FormalStatus.WRITING;
             } else if (readingStatus.contains(status)) {
                 return FormalStatus.READING;
+            } else if (deletedStatus.contains(status)) {
+                return FormalStatus.DELETED;
             } else {
                 return FormalStatus.UNKNOWN;
             }
@@ -77,6 +80,10 @@ public interface AzResourceBase {
 
         public boolean isFailed() {
             return this == FAILED;
+        }
+
+        public boolean isDeleted() {
+            return this == DELETED;
         }
 
         public boolean isWriting() {

@@ -9,10 +9,10 @@ import com.azure.core.management.AzureEnvironment;
 import com.azure.resourcemanager.resources.fluentcore.utils.ResourceManagerUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
-import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.model.AccessTier;
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class StorageAccount extends AbstractAzResource<StorageAccount, StorageResourceManager, com.azure.resourcemanager.storage.models.StorageAccount>
-    implements Removable {
+    implements Deletable {
 
     protected StorageAccount(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull StorageAccountModule module) {
         super(name, resourceGroupName, module);
@@ -55,12 +55,6 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageRe
     @Override
     public String loadStatus(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount remote) {
         return remote.innerModel().provisioningState().toString();
-    }
-
-    @Nonnull
-    @Override
-    public String status() {
-        return this.getStatus();
     }
 
     @Nonnull
@@ -107,10 +101,5 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageRe
     @Nullable
     public AccessTier getAccessTier() {
         return remoteOptional().map(remote -> AccessTier.valueOf(remote.accessTier().name())).orElse(null);
-    }
-
-    @Override
-    public void remove() {
-        this.delete();
     }
 }

@@ -11,12 +11,12 @@ import com.azure.resourcemanager.postgresql.models.Sku;
 import com.azure.resourcemanager.postgresql.models.SslEnforcementEnum;
 import com.azure.resourcemanager.postgresql.models.StorageProfile;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.common.entity.Removable;
-import com.microsoft.azure.toolkit.lib.common.entity.Startable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.model.Startable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, PostgreSqlResourceManager, Server>
-    implements Removable, Startable, IDatabaseServer<PostgreSqlDatabase> {
+    implements Deletable, Startable, IDatabaseServer<PostgreSqlDatabase> {
 
     private final PostgreSqlDatabaseModule databaseModule;
     private final PostgreSqlFirewallRuleModule firewallRuleModule;
@@ -62,8 +62,8 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
 
     @Nullable
     @Override
-    protected Server refreshRemote() {
-        return this.remoteOptional().map(Server::refresh).orElse(null);
+    protected Server refreshRemote(@Nonnull Server remote) {
+        return remote.refresh();
     }
 
     @Nonnull
@@ -86,12 +86,6 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
     @Override
     public String loadStatus(@Nonnull Server remote) {
         return remote.userVisibleState().toString();
-    }
-
-    @Nonnull
-    @Override
-    public String status() {
-        return this.getStatus();
     }
 
     @Override
@@ -197,11 +191,6 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
     @Override
     public List<PostgreSqlDatabase> listDatabases() {
         return this.databases().list();
-    }
-
-    @Override
-    public void remove() {
-        this.delete();
     }
 
     @Override
