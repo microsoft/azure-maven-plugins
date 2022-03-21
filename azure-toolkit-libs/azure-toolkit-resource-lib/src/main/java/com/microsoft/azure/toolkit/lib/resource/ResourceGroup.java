@@ -7,9 +7,9 @@ package com.microsoft.azure.toolkit.lib.resource;
 
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
-import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 
 import javax.annotation.Nonnull;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourceGroupManager, com.azure.resourcemanager.resources.models.ResourceGroup>
-    implements Removable {
+    implements Deletable {
 
     private final ResourceDeploymentModule deploymentModule;
 
@@ -82,11 +82,6 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourceGro
     @Nullable
     public String getType() {
         return remoteOptional().map(Resource::type).orElse(null);
-    }
-
-    @Override
-    public void remove() {
-        this.delete();
     }
 
     @Nonnull

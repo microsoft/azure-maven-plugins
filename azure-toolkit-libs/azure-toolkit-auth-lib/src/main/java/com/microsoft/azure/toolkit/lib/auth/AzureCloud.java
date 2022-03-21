@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.management.AzureEnvironment;
 import com.google.common.base.Preconditions;
+import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import org.apache.commons.lang3.ObjectUtils;
@@ -18,14 +18,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class AzureCloud implements AzureService {
+public class AzureCloud implements AzService {
     public List<AzureEnvironment> list() {
         return AzureEnvironment.knownEnvironments();
     }
 
     public List<String> listNames() {
         return AzureEnvironment.knownEnvironments().stream().map(AzureEnvironmentUtils::getCloudName).
-                collect(Collectors.toList());
+            collect(Collectors.toList());
     }
 
     public AzureEnvironment get() {
@@ -36,6 +36,11 @@ public class AzureCloud implements AzureService {
     public String getName() {
         final AzureEnvironment env = get();
         return env == null ? null : AzureEnvironmentUtils.getCloudName(env);
+    }
+
+    @Override
+    public void refresh() {
+        // do nothing
     }
 
     public AzureEnvironment getOrDefault() {

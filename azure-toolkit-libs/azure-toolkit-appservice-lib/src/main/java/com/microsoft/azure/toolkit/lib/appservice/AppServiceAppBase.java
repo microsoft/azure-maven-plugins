@@ -29,13 +29,13 @@ import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanModule;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
-import com.microsoft.azure.toolkit.lib.common.entity.Removable;
-import com.microsoft.azure.toolkit.lib.common.entity.Startable;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.model.Startable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +56,7 @@ public abstract class AppServiceAppBase<
     T extends AppServiceAppBase<T, P, F>,
     P extends AbstractAzResource<P, ?, ?>,
     F extends WebAppBase>
-    extends AbstractAzResource<T, P, WebSiteBase> implements Startable, Removable {
+    extends AbstractAzResource<T, P, WebSiteBase> implements Startable, Deletable {
     protected AppServiceKuduClient kuduManager;
 
     protected AppServiceAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, WebSiteBase> module) {
@@ -95,22 +95,17 @@ public abstract class AppServiceAppBase<
     // MODIFY
     @AzureOperation(name = "appservice.start.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
-        this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).start(), IAzureBaseResource.Status.STARTING);
+        this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).start(), AzResource.Status.STARTING);
     }
 
     @AzureOperation(name = "appservice.stop.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void stop() {
-        this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).stop(), IAzureBaseResource.Status.STOPPING);
+        this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).stop(), AzResource.Status.STOPPING);
     }
 
     @AzureOperation(name = "appservice.restart.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
-        this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).restart(), IAzureBaseResource.Status.RESTARTING);
-    }
-
-    @Override
-    public void remove() {
-        this.delete();
+        this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).restart(), AzResource.Status.RESTARTING);
     }
 
     public void deploy(@Nonnull DeployType deployType, @Nonnull File targetFile, @Nullable String targetPath) {

@@ -5,12 +5,12 @@
 
 package com.microsoft.azure.toolkit.lib.account;
 
-import com.microsoft.azure.toolkit.lib.AzureService;
+import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 
 import java.util.List;
 
-public interface IAzureAccount extends AzureService {
+public interface IAzureAccount extends AzService {
     IAccount account();
 
     List<Region> listRegions(String subscriptionId);

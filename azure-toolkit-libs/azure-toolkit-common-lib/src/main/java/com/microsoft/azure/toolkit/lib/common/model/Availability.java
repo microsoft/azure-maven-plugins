@@ -3,19 +3,19 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.common.entity;
+package com.microsoft.azure.toolkit.lib.common.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class CheckNameAvailabilityResultEntity {
+public class Availability {
     private boolean available;
     private String unavailabilityReason;
     private String unavailabilityMessage;
 
-    public CheckNameAvailabilityResultEntity(boolean available, String unavailabilityReason) {
+    public Availability(boolean available, String unavailabilityReason) {
         this.available = available;
         this.unavailabilityReason = unavailabilityReason;
     }

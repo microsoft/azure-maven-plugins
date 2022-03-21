@@ -12,9 +12,9 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
-import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 @Getter
 public class AppServicePlan extends AbstractAzResource<AppServicePlan, AppServiceResourceManager, com.azure.resourcemanager.appservice.models.AppServicePlan>
-    implements Removable {
+    implements Deletable {
 
     protected AppServicePlan(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AppServicePlanModule module) {
         super(name, resourceGroupName, module);
@@ -56,11 +56,6 @@ public class AppServicePlan extends AbstractAzResource<AppServicePlan, AppServic
     @Override
     public String loadStatus(@Nonnull com.azure.resourcemanager.appservice.models.AppServicePlan plan) {
         return plan.innerModel().provisioningState().toString();
-    }
-
-    @Override
-    public void remove() {
-        this.delete();
     }
 
     public List<WebApp> getWebApps() {

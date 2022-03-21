@@ -20,8 +20,8 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDraft;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation.Type;
@@ -65,7 +65,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
                 if (skipCreateAzureResource) {
                     throwForbidCreateResourceWarning("Web app", config.appName());
                 }
-                CheckNameAvailabilityResultEntity result = az.get(config.subscriptionId(), null).checkNameAvailability(config.appName());
+                Availability result = az.get(config.subscriptionId(), null).checkNameAvailability(config.appName());
                 if (!result.isAvailable()) {
                     throw new AzureToolkitRuntimeException(AzureString.format("Cannot create webapp {0} due to error: {1}",
                         config.appName(),

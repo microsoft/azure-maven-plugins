@@ -9,8 +9,8 @@ import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
-import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Getter
 public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceResourceManager, com.azure.resourcemanager.appservice.models.FunctionApp>
-    implements Removable {
+    implements Deletable {
 
     @Nonnull
     private final FunctionAppDeploymentSlotModule deploymentModule;

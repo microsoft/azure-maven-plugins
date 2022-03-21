@@ -72,8 +72,7 @@ public class Azure {
     }
 
     private static class ServiceManager {
-        private static final ServiceLoader<AzService> azLoader = ServiceLoader.load(AzService.class, Azure.class.getClassLoader());
-        private static final ServiceLoader<AzureService> loader = ServiceLoader.load(AzureService.class, Azure.class.getClassLoader());
+        private static final ServiceLoader<AzService> loader = ServiceLoader.load(AzService.class, Azure.class.getClassLoader());
         private static final List<AzService> services = new ArrayList<>();
 
         public static synchronized List<AzService> getServices() {
@@ -85,9 +84,7 @@ public class Azure {
 
         public static synchronized void reload() {
             ServiceManager.loader.reload();
-            ServiceManager.azLoader.reload();
             services.clear();
-            ServiceManager.azLoader.forEach(services::add);
             ServiceManager.loader.forEach(services::add);
         }
     }

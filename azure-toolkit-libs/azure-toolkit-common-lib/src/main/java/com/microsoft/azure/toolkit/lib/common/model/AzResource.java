@@ -10,19 +10,19 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.DataStore;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R>
-    extends AzResourceBase, IAzureBaseResource<T, P>, Refreshable {
+    extends AzResourceBase, Refreshable {
 
     None NONE = new None();
     String RESOURCE_GROUP_PLACEHOLDER = "${rg}";
@@ -252,5 +252,38 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         default boolean isCommitted() {
             return Optional.ofNullable(this.get("committed")).isPresent();
         }
+    }
+
+    interface Status {
+        // unstable states
+        String UNSTABLE = "UNSTABLE";
+        String PENDING = "Pending";
+
+        String CREATING = "Creating";
+        String DELETING = "Deleting";
+        String LOADING = "Loading";
+        String UPDATING = "Updating";
+        String SCALING = "Scaling";
+        String DEPLOYING = "Deploying";
+
+        String STARTING = "Starting";
+        String RESTARTING = "Restarting";
+        String STOPPING = "Stopping";
+
+        // Draft
+        String DRAFT = "Draft";
+        String NULL = "NULL";
+
+        // stable states
+        String STABLE = "STABLE";
+        String DELETED = "Deleted";
+        String ERROR = "Error";
+        String DISCONNECTED = "Disconnected"; // failed to get remote/client
+        String INACTIVE = "Inactive"; // no active deployment/...
+        String RUNNING = "Running";
+        String STOPPED = "Stopped";
+        String UNKNOWN = "Unknown";
+
+        List<String> status = Arrays.asList(UNSTABLE, PENDING, DRAFT, STABLE, LOADING, ERROR, RUNNING, STOPPED, UNKNOWN);
     }
 }

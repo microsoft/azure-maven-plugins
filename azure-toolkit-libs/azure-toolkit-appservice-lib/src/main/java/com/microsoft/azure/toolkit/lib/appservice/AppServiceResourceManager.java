@@ -13,8 +13,8 @@ import com.azure.resourcemanager.resources.ResourceManager;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppModule;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanModule;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppModule;
-import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -82,11 +82,11 @@ public class AppServiceResourceManager extends AbstractAzResourceManager<AppServ
     }
 
     @AzureOperation(name = "appservice.check_name.app", params = "name", type = AzureOperation.Type.SERVICE)
-    public CheckNameAvailabilityResultEntity checkNameAvailability(String name) {
+    public Availability checkNameAvailability(String name) {
         final ResourceNameAvailabilityInner result = Objects.requireNonNull(this.getRemote()).webApps().manager()
             .serviceClient().getResourceProviders().checkNameAvailability(new ResourceNameAvailabilityRequest()
                 .withName(name).withType(CheckNameResourceTypes.MICROSOFT_WEB_SITES));
-        return new CheckNameAvailabilityResultEntity(result.nameAvailable(), result.reason().toString(), result.message());
+        return new Availability(result.nameAvailable(), result.reason().toString(), result.message());
     }
 }
 

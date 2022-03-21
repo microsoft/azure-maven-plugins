@@ -20,10 +20,12 @@
  * SOFTWARE.
  */
 
-package com.microsoft.azure.toolkit.lib.common.entity;
+package com.microsoft.azure.toolkit.lib.common.model;
 
 public interface IAzureResourceEntity {
     String getId();
+
     String getName();
+
     String getSubscriptionId();
 }

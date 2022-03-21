@@ -12,9 +12,9 @@ import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.postgresql.models.ServerVersion;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
-import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,9 +47,9 @@ public class AzurePostgreSql extends AbstractAzService<PostgreSqlResourceManager
         final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         return PostgreSqlManager.configure()
-            .withHttpClient(AzureService.getDefaultHttpClient())
+            .withHttpClient(AbstractAzResourceManager.getDefaultHttpClient())
             .withLogOptions(new HttpLogOptions().setLogLevel(logLevel))
-            .withPolicy(AzureService.getUserAgentPolicy(userAgent))
+            .withPolicy(AbstractAzResourceManager.getUserAgentPolicy(userAgent))
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 

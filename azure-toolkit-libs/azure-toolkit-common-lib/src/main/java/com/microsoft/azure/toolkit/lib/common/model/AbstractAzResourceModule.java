@@ -15,7 +15,6 @@ import com.google.common.collect.Sets;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureBaseResource.Status;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -51,7 +50,7 @@ import java.util.stream.Stream;
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P, R>, P extends AbstractAzResource<P, ?, ?>, R>
-        implements AzResourceModule<T, P, R> {
+    implements AzResourceModule<T, P, R> {
     @Nonnull
     @ToString.Include
     @EqualsAndHashCode.Include
@@ -193,7 +192,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             log.debug("[{}]:create->addResourceToLocal({})", this.name, resource);
             this.addResourceToLocal(resource.getName(), resource);
             log.debug("[{}]:create->doModify(draft.createResourceInAzure({}))", this.name, resource);
-            resource.doModify(draft::createResourceInAzure, Status.CREATING);
+            resource.doModify(draft::createResourceInAzure, AzResource.Status.CREATING);
             return resource;
         }
         throw new AzureToolkitRuntimeException(String.format("resource \"%s\" is existing", existing.getName()));
@@ -217,7 +216,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         final T resource = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.nonNull(resource) && Objects.nonNull(resource.getRemote())) {
             log.debug("[{}]:update->doModify(draft.updateResourceInAzure({}))", this.name, resource.getRemote());
-            resource.doModify(() -> draft.updateResourceInAzure(resource.getRemote()), Status.UPDATING);
+            resource.doModify(() -> draft.updateResourceInAzure(resource.getRemote()), AzResource.Status.UPDATING);
             return resource;
         }
         throw new AzureToolkitRuntimeException(String.format("resource \"%s\" doesn't exist", draft.getName()));
@@ -246,7 +245,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         final Set<String> localResources = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
             .map(AbstractAzResource::getName).collect(Collectors.toSet());
         final Set<String> creating = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
-            .filter(r -> Status.CREATING.equals(r.getStatus())).map(AbstractAzResource::getName).collect(Collectors.toSet());
+            .filter(r -> AzResource.Status.CREATING.equals(r.getStatus())).map(AbstractAzResource::getName).collect(Collectors.toSet());
         log.debug("[{}]:reload().creating={}", this.name, creating);
         final Sets.SetView<String> refreshed = Sets.intersection(localResources, loadedResources.keySet());
         log.debug("[{}]:reload().refreshed={}", this.name, refreshed);
@@ -258,7 +257,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         log.debug("[{}]:reload.refreshed->resource.setRemote", this.name);
         refreshed.forEach(name -> this.resources.get(name).ifPresent(r -> r.setRemote(loadedResources.get(name).getRemote())));
         log.debug("[{}]:reload.deleted->deleteResourceFromLocal", this.name);
-        deleted.forEach(name -> Optional.ofNullable(this.deleteResourceFromLocal(name, true)).ifPresent(t -> t.setStatus(Status.DELETED)));
+        deleted.forEach(name -> Optional.ofNullable(this.deleteResourceFromLocal(name, true)).ifPresent(t -> t.setStatus(AzResource.Status.DELETED)));
         log.debug("[{}]:reload.added->addResourceToLocal", this.name);
         added.forEach(name -> this.addResourceToLocal(name, loadedResources.get(name), true));
         this.syncTime.set(System.currentTimeMillis());

@@ -10,9 +10,9 @@ import com.azure.resourcemanager.resources.models.DeploymentMode;
 import com.azure.resourcemanager.resources.models.DeploymentOperation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,7 +27,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, ResourceGroup, Deployment> implements Removable {
+public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, ResourceGroup, Deployment> implements Deletable {
     private static final String EMPTY_PARAMETER = "{}";
     private static final String[] VALID_PARAMETER_ATTRIBUTES = {"value", "reference", "metadata"};
 
@@ -148,10 +148,5 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
     @Override
     public String status() {
         return this.getStatus();
-    }
-
-    @Override
-    public void remove() {
-        this.delete();
     }
 }

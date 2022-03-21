@@ -6,10 +6,10 @@
 package com.microsoft.azure.toolkit.redis;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
-import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.redis.model.PricingTier;
@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceManager, com.azure.resourcemanager.redis.models.RedisCache>
-    implements Removable {
+    implements Deletable {
     private static final int JEDIS_TIMEOUT = 500;
 
     private JedisPool jedisPool;
@@ -129,10 +129,5 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceMana
             this.jedisPool = new JedisPool(new JedisPoolConfig(), hostName, port, JEDIS_TIMEOUT, password, true);
         }
         return this.jedisPool;
-    }
-
-    @Override
-    public void remove() {
-        this.delete();
     }
 }

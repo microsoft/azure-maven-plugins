@@ -8,11 +8,11 @@ package com.microsoft.azure.toolkit.lib.compute.virtualmachine;
 import com.azure.resourcemanager.compute.models.LinuxConfiguration;
 import com.azure.resourcemanager.compute.models.OSProfile;
 import com.azure.resourcemanager.network.models.PublicIpAddress;
-import com.microsoft.azure.toolkit.lib.common.entity.Removable;
-import com.microsoft.azure.toolkit.lib.common.entity.Startable;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.model.Startable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.compute.ComputeResourceManager;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.model.OperatingSystem;
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeResourceManager, com.azure.resourcemanager.compute.models.VirtualMachine>
-    implements Startable, Removable {
+    implements Startable, Deletable {
 
     protected VirtualMachine(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull VirtualMachineModule module) {
         super(name, resourceGroupName, module);
@@ -73,11 +73,6 @@ public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeRe
     @AzureOperation(name = "vm.restart.vm", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).restart(), Status.RESTARTING);
-    }
-
-    @Override
-    public void remove() {
-        this.delete();
     }
 
     @Nullable

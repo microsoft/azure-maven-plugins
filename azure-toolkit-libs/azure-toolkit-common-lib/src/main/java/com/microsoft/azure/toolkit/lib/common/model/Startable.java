@@ -3,9 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.common.entity;
-
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+package com.microsoft.azure.toolkit.lib.common.model;
 
 public interface Startable extends AzResourceBase {
 

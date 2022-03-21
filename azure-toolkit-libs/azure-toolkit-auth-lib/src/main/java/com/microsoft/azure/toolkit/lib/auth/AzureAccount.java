@@ -45,6 +45,8 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager.getResourceManager;
+
 public class AzureAccount implements IAzureAccount {
 
     private Account account;
@@ -142,16 +144,26 @@ public class AzureAccount implements IAzureAccount {
         return target.login().map(ac -> {
             if (ac.getEnvironment() != accountEntity.getEnvironment()) {
                 throw new AzureToolkitAuthenticationException(
-                        String.format("you have changed the azure cloud to '%s' for auth type: '%s' since last time you signed in.",
-                                AzureEnvironmentUtils.getCloudName(ac.getEnvironment()), accountEntity.getType()));
+                    String.format("you have changed the azure cloud to '%s' for auth type: '%s' since last time you signed in.",
+                        AzureEnvironmentUtils.getCloudName(ac.getEnvironment()), accountEntity.getType()));
             }
             if (!StringUtils.equalsIgnoreCase(ac.entity.getEmail(), accountEntity.getEmail())) {
                 throw new AzureToolkitAuthenticationException(
-                        String.format("you have changed the account from '%s' to '%s' since last time you signed in.",
-                                accountEntity.getEmail(), ac.entity.getEmail()));
+                    String.format("you have changed the account from '%s' to '%s' since last time you signed in.",
+                        accountEntity.getEmail(), ac.entity.getEmail()));
             }
             return ac;
         }).doOnSuccess(this::setAccount);
+    }
+
+    @Override
+    public String getName() {
+        return "Microsoft.Account";
+    }
+
+    @Override
+    public void refresh() {
+        // do nothing
     }
 
     static class SimpleAccount extends Account {
@@ -276,11 +288,9 @@ public class AzureAccount implements IAzureAccount {
         return map;
     }
 
-
     // todo: share codes with other library which leverage track2 mgmt sdk
     @Cacheable(cacheName = "Subscription", key = "$subscriptionId")
     private Subscription getSubscription(String subscriptionId) {
         return getResourceManager(subscriptionId).subscriptions().getById(subscriptionId);
     }
-
 }

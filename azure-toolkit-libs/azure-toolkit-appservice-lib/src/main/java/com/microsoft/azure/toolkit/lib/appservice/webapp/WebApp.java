@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.lib.appservice.webapp;
 
 import com.azure.resourcemanager.appservice.models.WebAppBasic;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
-import com.microsoft.azure.toolkit.lib.common.entity.Removable;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -18,7 +18,7 @@ import java.util.Objects;
 
 @Getter
 public class WebApp extends WebAppBase<WebApp, AppServiceResourceManager, com.azure.resourcemanager.appservice.models.WebApp>
-    implements Removable {
+    implements Deletable {
 
     @Nonnull
     private final WebAppDeploymentSlotModule deploymentModule;
