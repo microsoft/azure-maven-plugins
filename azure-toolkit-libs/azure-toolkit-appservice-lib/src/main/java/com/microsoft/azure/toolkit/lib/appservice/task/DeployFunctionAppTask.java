@@ -5,13 +5,10 @@
 package com.microsoft.azure.toolkit.lib.appservice.task;
 
 import com.azure.core.management.exception.ManagementException;
-import com.microsoft.azure.functions.annotation.AuthorizationLevel;
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
-import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
-import com.microsoft.azure.toolkit.lib.appservice.service.impl.FunctionApp;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -152,7 +149,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
             try {
                 functionApp.syncTriggers();
             } catch (ManagementException e) {
-                if (e.getResponse().getStatusCode() != 200) {// Java SDK throw exception with 200 response, swallow exception in this case
+                if (e.getResponse().getStatusCode() != 200) { // Java SDK throw exception with 200 response, swallow exception in this case
                     throw e;
                 }
             }
@@ -163,12 +160,11 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
     private List<FunctionEntity> listFunctions(final FunctionApp functionApp) {
         final int[] count = {0};
         return Mono.fromCallable(() -> {
-            final AzureString message = count[0]++ == 0 ?
-                    AzureString.fromString(LIST_TRIGGERS) : AzureString.format(LIST_TRIGGERS_WITH_RETRY, count[0], LIST_TRIGGERS_MAX_RETRY);
+            final AzureString message = count[0]++ == 0 ? AzureString.fromString(LIST_TRIGGERS) : AzureString.format(LIST_TRIGGERS_WITH_RETRY, count[0], LIST_TRIGGERS_MAX_RETRY);
             AzureMessager.getMessager().info(message);
-                return Optional.ofNullable(functionApp.listFunctions())
-                    .filter(CollectionUtils::isNotEmpty)
-                    .orElseThrow(() -> new AzureToolkitRuntimeException(NO_TRIGGERS_FOUNDED));
+            return Optional.of(functionApp.listFunctions())
+                .filter(CollectionUtils::isNotEmpty)
+                .orElseThrow(() -> new AzureToolkitRuntimeException(NO_TRIGGERS_FOUNDED));
         }).subscribeOn(Schedulers.boundedElastic())
         .retryWhen(Retry.fixedDelay(LIST_TRIGGERS_MAX_RETRY - 1, Duration.ofSeconds(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS))).block();
     }

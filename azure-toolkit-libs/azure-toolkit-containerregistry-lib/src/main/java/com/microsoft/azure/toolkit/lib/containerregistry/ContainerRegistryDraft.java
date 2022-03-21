@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.containerregistry.model.Sku;
+import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,9 +26,11 @@ import java.util.Optional;
 
 
 public class ContainerRegistryDraft extends ContainerRegistry implements AzResource.Draft<ContainerRegistry, Registry> {
-
     private static final String REGION_AND_SKU_IS_REQUIRED = "`region` and `sku` is required to create a container registry in Azure";
 
+    @Getter
+    @Setter
+    private boolean committed;
     @Setter
     @Nullable
     private Region region;
