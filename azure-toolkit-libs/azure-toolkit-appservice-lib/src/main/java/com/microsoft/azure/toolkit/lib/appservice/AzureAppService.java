@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.appservice;
 
 import com.azure.core.http.policy.HttpLogDetailLevel;
+import com.azure.core.management.exception.ManagementException;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
@@ -140,9 +141,16 @@ public class AzureAppService extends AbstractAzService<AppServiceResourceManager
         if (resourceId.resourceType().equals(AppServicePlanModule.NAME)) {
             return super.doGetById(id);
         } else {
-            final boolean isFunctionRelated = Optional.ofNullable(this.get(resourceId.subscriptionId(), null))
-                .map(AbstractAzResource::getRemote).map(r -> r.resourceManager().genericResources().getById(id))
-                .filter(r -> StringUtils.containsIgnoreCase(r.kind(), "function")).isPresent();
+            boolean isFunctionRelated = false;
+            try {
+                isFunctionRelated = Optional.ofNullable(this.get(resourceId.subscriptionId(), null))
+                    .map(AbstractAzResource::getRemote).map(r -> r.resourceManager().genericResources().getById(id))
+                    .filter(r -> StringUtils.containsIgnoreCase(r.kind(), "function")).isPresent();
+            } catch (ManagementException e) {
+                if (e.getResponse().getStatusCode() != 404) { // Java SDK throw exception with 200 response, swallow exception in this case
+                    throw e;
+                }
+            }
             if (isFunctionRelated) {
                 return Azure.az(AzureFunctions.class).doGetById(id);
             } else {
