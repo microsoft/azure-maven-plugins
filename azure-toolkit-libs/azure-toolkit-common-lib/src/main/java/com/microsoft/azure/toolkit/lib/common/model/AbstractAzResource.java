@@ -237,7 +237,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @Nonnull
-    public String getStatusSync() {
+    public synchronized String getStatusSync() {
         final String status = this.statusRef.get();
         if (this.syncTimeRef.get() < 0) {
             log.debug("[{}:{}]:getStatusSync->reloadStatus()", this.module.getName(), this.getName());
