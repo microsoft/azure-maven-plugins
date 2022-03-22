@@ -27,7 +27,6 @@ import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -52,6 +51,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -94,7 +94,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebAppPomHandler pomHandler;
 
     @Override
-    protected void doExecute() throws AzureExecutionException {
+    protected void doExecute() {
         if (!(Utils.isJarPackagingProject(this.project.getPackaging()) ||
                 Utils.isEarPackagingProject(this.project.getPackaging()) ||
                 Utils.isWarPackagingProject(this.project.getPackaging()))) {
@@ -114,7 +114,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 config(configuration);
             }
         } catch (DocumentException | MojoFailureException | IOException | IllegalAccessException e) {
-            throw new AzureExecutionException(e.getMessage(), e);
+            throw new AzureToolkitRuntimeException(e.getMessage(), e);
         } finally {
             queryer.close();
         }
@@ -140,21 +140,21 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return false;
     }
 
-    protected void config(WebAppConfiguration configuration) throws MojoFailureException, AzureExecutionException,
-            IOException, IllegalAccessException {
+    protected void config(WebAppConfiguration configuration) throws MojoFailureException, IOException, IllegalAccessException {
         WebAppConfiguration result;
         do {
             if (configuration == null || !isProjectConfigured()) {
                 try {
-                    result = chooseExistingWebappForConfiguration();
-                    if (result == null) {
+                    final String createNewConfiguration =
+                            queryer.assureInputFromUser("confirm", "Y", BOOLEAN_REGEX, "Create new run configuration (Y/N)", null);
+                    if (StringUtils.equalsIgnoreCase(createNewConfiguration, "Y")) {
                         result = initConfig();
+                    } else {
+                        result = Optional.ofNullable(chooseExistingWebappForConfiguration()).orElseGet(this::initConfig);
                     }
                 } catch (AzureAuthFailureException e) {
-                    throw new AzureExecutionException(
-                            String.format("Cannot get Web App list due to error: %s.", e.getMessage()), e);
+                    throw new AzureToolkitRuntimeException(String.format("Cannot get Web App list due to error: %s.", e.getMessage()), e);
                 }
-
             } else {
                 result = updateConfiguration(configuration.toBuilder().build());
             }
@@ -163,8 +163,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         pomHandler.updatePluginConfiguration(result, configuration, plugin);
     }
 
-    protected boolean confirmConfiguration(WebAppConfiguration configuration) throws AzureExecutionException,
-            MojoFailureException {
+    protected boolean confirmConfiguration(WebAppConfiguration configuration) {
         System.out.println("Please confirm webapp properties");
         if (StringUtils.isNotBlank(configuration.getSubscriptionId())) {
             System.out.println("Subscription Id : " + configuration.getSubscriptionId());
@@ -196,7 +195,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                     }
                     break;
                 default:
-                    throw new AzureExecutionException("The value of <os> is unknown.");
+                    throw new AzureToolkitRuntimeException("The value of <os> is unknown.");
             }
         }
         System.out.println("Deploy to slot : " + (configuration.getDeploymentSlotSetting() != null));
@@ -209,7 +208,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return result.equalsIgnoreCase("Y");
     }
 
-    protected WebAppConfiguration initConfig() throws MojoFailureException, AzureExecutionException {
+    protected WebAppConfiguration initConfig() {
         final WebAppConfiguration result = getDefaultConfiguration();
         return getRuntimeConfiguration(result, true);
     }
@@ -231,8 +230,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 .build();
     }
 
-    protected WebAppConfiguration updateConfiguration(WebAppConfiguration configuration)
-            throws MojoFailureException, AzureExecutionException {
+    protected WebAppConfiguration updateConfiguration(WebAppConfiguration configuration) {
         final String selection = queryer.assureInputFromUser("selection", configTypes[0], Arrays.asList(configTypes),
                 String.format("Please choose which part to config [%s]:", configTypes[0]));
         switch (selection) {
@@ -244,12 +242,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
             case "DeploymentSlot":
                 return getSlotConfiguration(configuration);
             default:
-                throw new AzureExecutionException("Unknown webapp setting");
+                throw new AzureToolkitRuntimeException("Unknown webapp setting");
         }
     }
 
-    private WebAppConfiguration getWebAppConfiguration(WebAppConfiguration configuration)
-            throws MojoFailureException {
+    private WebAppConfiguration getWebAppConfiguration(WebAppConfiguration configuration) {
         final WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder = configuration.toBuilder();
 
         final String defaultSubscriptionId = StringUtils.isNotBlank(configuration.subscriptionId) ? configuration.subscriptionId : null;
@@ -299,8 +296,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return runtimeStack != null && StringUtils.startsWithIgnoreCase(runtimeStack.getValue(), "JBOSSEAP");
     }
 
-    private WebAppConfiguration getSlotConfiguration(WebAppConfiguration configuration)
-            throws MojoFailureException {
+    private WebAppConfiguration getSlotConfiguration(WebAppConfiguration configuration) {
         final WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder = configuration.toBuilder();
 
         final DeploymentSlotSetting deploymentSlotSetting = configuration.getDeploymentSlotSetting();
@@ -327,8 +323,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return builder.deploymentSlotSetting(result).build();
     }
 
-    private WebAppConfiguration getRuntimeConfiguration(WebAppConfiguration configuration, boolean initial)
-            throws MojoFailureException, AzureExecutionException {
+    private WebAppConfiguration getRuntimeConfiguration(WebAppConfiguration configuration, boolean initial) {
         WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder = configuration.toBuilder();
         final OperatingSystem defaultOs = ObjectUtils.defaultIfNull(configuration.getOs(), OperatingSystem.LINUX);
 
@@ -345,7 +340,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 builder = getRuntimeConfigurationOfDocker(builder, configuration);
                 break;
             default:
-                throw new AzureExecutionException("The value of <os> is unknown.");
+                throw new AzureToolkitRuntimeException("The value of <os> is unknown.");
         }
         final boolean isJBoss = isJBossRuntime(webContainer);
         if (initial || pricingTierNotSupport(osEnu, configuration.getPricingTier(), webContainer)) {
@@ -377,7 +372,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private WebContainer getRuntimeConfigurationForWindowsOrLinux(OperatingSystem os,
                                                                   WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder,
-                                                                  WebAppConfiguration configuration) throws MojoFailureException {
+                                                                  WebAppConfiguration configuration) {
         String defaultJavaVersion = Objects.toString(configuration.getJavaVersionOrDefault());
         final List<String> validJavaVersions = getValidJavaVersions();
         if (!validJavaVersions.contains(defaultJavaVersion)) {
@@ -412,7 +407,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     }
 
     private WebAppConfiguration.WebAppConfigurationBuilder<?, ?> getRuntimeConfigurationOfDocker(
-            WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder, WebAppConfiguration configuration) throws MojoFailureException {
+            WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder, WebAppConfiguration configuration) {
         final String image = queryer.assureInputFromUser("image", configuration.image, NOT_EMPTY_REGEX, null, null);
         final String serverId = queryer.assureInputFromUser("serverId", configuration.serverId, null, null, null);
         final String registryUrl = queryer.assureInputFromUser("registryUrl", configuration.registryUrl, null, null,
@@ -471,19 +466,19 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebAppConfiguration chooseExistingWebappForConfiguration()
             throws AzureAuthFailureException {
         try {
-            final List<Subscription> subscriptions = Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
-            final Subscription defaultSubs = subscriptions.get(0);
             final AzureAppService az = getOrCreateAzureAppServiceClient();
             if (Objects.isNull(az)) {
                 return null;
             }
+            final List<Subscription> subscriptions = Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
+            final Subscription defaultSubs = subscriptions.get(0);
             // get user selected sub id to persistent it in pom.xml
             this.subscriptionId = defaultSubs.getId();
             // load configuration to detecting java or docker
             Log.info(LONG_LOADING_HINT);
             final List<WebAppOption> webAppOptionList = az.list().stream().flatMap(m -> m.webApps().list().stream())
-                .map(WebAppOption::new)
-                .collect(Collectors.toList());
+                    .map(WebAppOption::new)
+                    .collect(Collectors.toList());
 
             // check empty: first time
             if (webAppOptionList.isEmpty()) {
@@ -492,12 +487,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
             }
             final boolean isContainer = !Utils.isJarPackagingProject(this.project.getPackaging());
             final boolean isDockerOnly = Utils.isPomPackagingProject(this.project.getPackaging());
-            final List<WebAppOption> javaOrDockerWebapps = webAppOptionList.stream().filter(app -> app.isJavaWebApp() || app.isDockerWebapp())
-                .filter(app -> checkWebAppVisible(isContainer, isDockerOnly, app.isJavaSE(), app.isDockerWebapp())).sorted()
-                .collect(Collectors.toList());
-            final WebAppOption selectedApp = selectAzureWebApp(javaOrDockerWebapps,
-                getWebAppTypeByPackaging(this.project.getPackaging()), defaultSubs);
-            if (selectedApp == null || selectedApp.isCreateNew()) {
+            final List<WebAppOption> javaOrDockerWebapps = webAppOptionList.stream().parallel().filter(app -> app.isJavaWebApp() || app.isDockerWebapp())
+                    .filter(app -> checkWebAppVisible(isContainer, isDockerOnly, app.isJavaSE(), app.isDockerWebapp())).sorted()
+                    .collect(Collectors.toList());
+            final WebAppOption selectedApp = selectAzureWebApp(javaOrDockerWebapps, getWebAppTypeByPackaging(this.project.getPackaging()), defaultSubs);
+            if (selectedApp == null) {
                 return null;
             }
 
@@ -517,7 +511,6 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private static WebAppOption selectAzureWebApp(List<WebAppOption> javaOrDockerWebapps, String webAppType, Subscription targetSubscription) {
         final List<WebAppOption> options = new ArrayList<>();
-        options.add(WebAppOption.CREATE_NEW);
         // check empty: second time
         if (javaOrDockerWebapps.isEmpty()) {
             Log.warn(NO_JAVA_WEB_APPS);
@@ -525,8 +518,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
         }
         options.addAll(javaOrDockerWebapps);
         return new CustomTextIoStringListReader<WebAppOption>(TextIOUtils::getTextTerminal, null)
-                .withCustomPrompt(String.format("Please choose a %s Web App%s: ", webAppType, highlightDefaultValue(WebAppOption.CREATE_NEW.toString())))
-                .withNumberedPossibleValues(options).withDefaultValue(WebAppOption.CREATE_NEW)
+                .withCustomPrompt(String.format("Please choose a %s Web App: ", webAppType))
+                .withNumberedPossibleValues(options)
                 .read(String.format("%s Web Apps in subscription %s:", webAppType, TextUtils.blue(targetSubscription.getName())));
     }
 
@@ -535,9 +528,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final AppServiceConfig appServiceConfig = fromAppService(webapp, webapp.getAppServicePlan());
         // common configuration
         builder.appName(appServiceConfig.appName())
-            .resourceGroup(appServiceConfig.resourceGroup())
-            .subscriptionId(appServiceConfig.subscriptionId())
-            .region(appServiceConfig.region());
+                .resourceGroup(appServiceConfig.resourceGroup())
+                .subscriptionId(appServiceConfig.subscriptionId())
+                .region(appServiceConfig.region());
         builder.os(appServiceConfig.runtime().os());
         if (AppServiceUtils.isDockerAppService(webapp)) {
             final Map<String, String> settings = webapp.getAppSettings();

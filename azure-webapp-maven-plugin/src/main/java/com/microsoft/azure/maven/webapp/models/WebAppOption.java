@@ -18,8 +18,6 @@ import javax.annotation.Nonnull;
 import java.util.Objects;
 
 public class WebAppOption implements Comparable<WebAppOption> {
-    public static final WebAppOption CREATE_NEW = new WebAppOption();
-    private static final String CREATE_NEW_STRING = "<create>";
     @Getter
     private WebApp webappInner;
     private boolean createNewPlaceHolder = false;
@@ -34,9 +32,6 @@ public class WebAppOption implements Comparable<WebAppOption> {
 
     @Override
     public String toString() {
-        if (this.isCreateNew()) {
-            return CREATE_NEW_STRING;
-        }
         return webappInner != null ? String.format("%s (%s)", webappInner.name(), getDescription()) : null;
     }
 
