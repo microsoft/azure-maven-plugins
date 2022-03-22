@@ -84,6 +84,6 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "SQL server firewall rule";
+        return "SQL server";
     }
 }
