@@ -81,13 +81,13 @@ public abstract class Account implements IAccount {
 
     public TokenCredential getTokenCredential(String subscriptionId) {
         requireAuthenticated();
-        Subscription subscription = getSelectedSubscriptionById(subscriptionId);
+        Subscription subscription = getSubscription(subscriptionId);
         return getTokenCredentialForTenant(subscription.getTenantId());
     }
 
     public AzureTokenCredentials getTokenCredentialV1(String subscriptionId) {
         requireAuthenticated();
-        Subscription subscription = getSelectedSubscriptionById(subscriptionId);
+        Subscription subscription = getSubscription(subscriptionId);
         return getTokenCredentialForTenantV1(subscription.getTenantId());
     }
 
@@ -247,7 +247,7 @@ public abstract class Account implements IAccount {
         return getSelectedSubscriptions().stream()
                 .filter(s -> StringUtils.equalsIgnoreCase(subscriptionId, s.getId()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(String.format("Cannot find subscription with id '%s'", subscriptionId)));
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Cannot find a selected subscription with id '%s'", subscriptionId)));
     }
 
     @Override
