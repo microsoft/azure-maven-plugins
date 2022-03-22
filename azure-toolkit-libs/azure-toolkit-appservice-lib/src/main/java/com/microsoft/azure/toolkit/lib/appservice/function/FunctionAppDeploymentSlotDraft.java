@@ -162,7 +162,8 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
     @Nullable
     @Override
     public Map<String, String> getAppSettings() {
-        return Optional.ofNullable(config).map(Config::getAppSettings).orElseGet(super::getAppSettings);
+        return Optional.ofNullable(config).map(Config::getAppSettings)
+            .orElseGet(() -> Optional.ofNullable(origin).map(FunctionAppDeploymentSlot::getAppSettings).orElse(null));
     }
 
     public void removeAppSetting(String key) {

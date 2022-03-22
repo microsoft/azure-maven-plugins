@@ -147,7 +147,8 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
     @Nullable
     @Override
     public String getAdminName() {
-        return Optional.ofNullable(this.config).map(Config::getAdminName).orElseGet(super::getAdminName);
+        return Optional.ofNullable(this.config).map(Config::getAdminName)
+            .orElseGet(() -> Optional.ofNullable(origin).map(PostgreSqlServer::getAdminName).orElse(null));
     }
 
     @Nullable
@@ -158,29 +159,34 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
     @Nullable
     @Override
     public Region getRegion() {
-        return Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion);
+        return Optional.ofNullable(config).map(Config::getRegion)
+            .orElseGet(() -> Optional.ofNullable(origin).map(PostgreSqlServer::getRegion).orElse(null));
     }
 
     @Nullable
     @Override
     public String getVersion() {
-        return Optional.ofNullable(this.config).map(Config::getVersion).orElseGet(super::getVersion);
+        return Optional.ofNullable(this.config).map(Config::getVersion)
+            .orElseGet(() -> Optional.ofNullable(origin).map(PostgreSqlServer::getVersion).orElse(null));
     }
 
     @Nullable
     @Override
     public String getFullyQualifiedDomainName() {
-        return Optional.ofNullable(this.config).map(Config::getFullyQualifiedDomainName).orElseGet(super::getFullyQualifiedDomainName);
+        return Optional.ofNullable(this.config).map(Config::getFullyQualifiedDomainName)
+            .orElseGet(() -> Optional.ofNullable(origin).map(PostgreSqlServer::getFullyQualifiedDomainName).orElse(null));
     }
 
     @Override
     public boolean isLocalMachineAccessAllowed() {
-        return Optional.ofNullable(this.config).map(Config::isLocalMachineAccessAllowed).orElseGet(super::isLocalMachineAccessAllowed);
+        return Optional.ofNullable(this.config).map(Config::isLocalMachineAccessAllowed)
+            .orElseGet(() -> Optional.ofNullable(origin).map(PostgreSqlServer::isLocalMachineAccessAllowed).orElse(false));
     }
 
     @Override
     public boolean isAzureServiceAccessAllowed() {
-        return Optional.ofNullable(this.config).map(Config::isAzureServiceAccessAllowed).orElseGet(super::isAzureServiceAccessAllowed);
+        return Optional.ofNullable(this.config).map(Config::isAzureServiceAccessAllowed)
+            .orElseGet(() -> Optional.ofNullable(origin).map(PostgreSqlServer::isAzureServiceAccessAllowed).orElse(false));
     }
 
     public void setAdminName(String name) {

@@ -21,7 +21,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.common.validator.SchemaValidator;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,17 +29,21 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
+@Setter
 public class AppServicePlanDraft extends AppServicePlan implements AzResource.Draft<AppServicePlan, com.azure.resourcemanager.appservice.models.AppServicePlan> {
     private static final String CREATE_NEW_APP_SERVICE_PLAN = "createNewAppServicePlan";
 
     @Getter
-    @Setter
     private boolean committed;
     @Getter
     @Nullable
     private final AppServicePlan origin;
     @Nullable
-    private Config config;
+    private Region region;
+    @Nullable
+    private PricingTier pricingTier;
+    @Nullable
+    private OperatingSystem operatingSystem;
 
     AppServicePlanDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AppServicePlanModule module) {
         super(name, resourceGroupName, module);
@@ -54,13 +57,9 @@ public class AppServicePlanDraft extends AppServicePlan implements AzResource.Dr
 
     @Override
     public void reset() {
-        this.config = null;
-    }
-
-    @Nonnull
-    private synchronized Config ensureConfig() {
-        this.config = Optional.ofNullable(this.config).orElseGet(Config::new);
-        return this.config;
+        this.region = null;
+        this.pricingTier = null;
+        this.operatingSystem = null;
     }
 
     public void setPlanConfig(@Nonnull AppServicePlanConfig config) {
@@ -146,49 +145,28 @@ public class AppServicePlanDraft extends AppServicePlan implements AzResource.Dr
     @Nullable
     @Override
     public Region getRegion() {
-        return Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion);
-    }
-
-    public void setRegion(Region region) {
-        this.ensureConfig().setRegion(region);
+        return Optional.ofNullable(this.region)
+            .orElseGet(() -> Optional.ofNullable(origin).map(AppServicePlan::getRegion).orElse(null));
     }
 
     @Nullable
     @Override
     public PricingTier getPricingTier() {
-        return Optional.ofNullable(config).map(Config::getPricingTier).orElseGet(super::getPricingTier);
-    }
-
-    public void setPricingTier(PricingTier tier) {
-        this.ensureConfig().setPricingTier(tier);
+        return Optional.ofNullable(this.pricingTier)
+            .orElseGet(() -> Optional.ofNullable(origin).map(AppServicePlan::getPricingTier).orElse(null));
     }
 
     @Nullable
     @Override
     public OperatingSystem getOperatingSystem() {
-        return Optional.ofNullable(config).map(Config::getOperatingSystem).orElseGet(super::getOperatingSystem);
-    }
-
-    public void setOperatingSystem(OperatingSystem os) {
-        this.ensureConfig().setOperatingSystem(os);
+        return Optional.ofNullable(this.operatingSystem)
+            .orElseGet(() -> Optional.ofNullable(origin).map(AppServicePlan::getOperatingSystem).orElse(null));
     }
 
     @Override
     public boolean isModified() {
-        final boolean notModified = Objects.isNull(this.config) ||
-            Objects.isNull(this.config.getRegion()) || Objects.equals(this.config.getRegion(), super.getRegion()) ||
-            Objects.isNull(this.config.getPricingTier()) || Objects.equals(this.config.getPricingTier(), super.getPricingTier()) ||
-            Objects.isNull(this.config.getOperatingSystem()) || Objects.equals(this.config.getOperatingSystem(), super.getOperatingSystem());
-        return !notModified;
-    }
-
-    /**
-     * {@code null} means not modified for properties
-     */
-    @Data
-    private static class Config {
-        private Region region;
-        private PricingTier pricingTier;
-        private OperatingSystem operatingSystem;
+        return Objects.nonNull(this.region) && !Objects.equals(this.region, this.origin.getRegion()) ||
+            Objects.nonNull(this.pricingTier) && !Objects.equals(this.pricingTier, this.origin.getPricingTier()) ||
+            Objects.nonNull(this.operatingSystem) && !Objects.equals(this.operatingSystem, this.origin.getOperatingSystem());
     }
 }

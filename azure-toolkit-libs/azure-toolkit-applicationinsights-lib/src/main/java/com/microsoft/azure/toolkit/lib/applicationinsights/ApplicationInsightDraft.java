@@ -92,7 +92,8 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
     @Nullable
     @Override
     public Region getRegion() {
-        return Optional.ofNullable(this.region).orElseGet(super::getRegion);
+        return Optional.ofNullable(this.region)
+            .orElseGet(() -> Optional.ofNullable(origin).map(ApplicationInsight::getRegion).orElse(null));
     }
 
     @Override

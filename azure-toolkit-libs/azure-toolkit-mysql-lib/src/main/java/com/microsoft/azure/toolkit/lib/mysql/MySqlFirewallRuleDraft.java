@@ -101,7 +101,8 @@ public class MySqlFirewallRuleDraft extends MySqlFirewallRule implements AzResou
     @Nullable
     @Override
     public String getStartIpAddress() {
-        return Optional.ofNullable(this.config).map(Config::getStartIpAddress).orElseGet(super::getStartIpAddress);
+        return Optional.ofNullable(this.config).map(Config::getStartIpAddress)
+            .orElseGet(() -> Optional.ofNullable(origin).map(MySqlFirewallRule::getStartIpAddress).orElse(null));
     }
 
     public void setStartIpAddress(String startIpAddress) {
@@ -111,7 +112,8 @@ public class MySqlFirewallRuleDraft extends MySqlFirewallRule implements AzResou
     @Nullable
     @Override
     public String getEndIpAddress() {
-        return Optional.ofNullable(this.config).map(Config::getEndIpAddress).orElseGet(super::getEndIpAddress);
+        return Optional.ofNullable(this.config).map(Config::getEndIpAddress)
+            .orElseGet(() -> Optional.ofNullable(origin).map(MySqlFirewallRule::getEndIpAddress).orElse(null));
     }
 
     public void setEndIpAddress(String endIpAddress) {
