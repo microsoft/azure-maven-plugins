@@ -199,13 +199,18 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return this.remoteRef.get();
     }
 
-    protected synchronized void setStatus(@Nonnull String status) {
-        log.debug("[{}:{}]:setStatus({})", this.module.getName(), this.getName(), status);
-        // TODO: state engine to manage status, e.g. DRAFT -> CREATING
-        final String oldStatus = this.statusRef.get();
-        if (!Objects.equals(oldStatus, status)) {
-            this.statusRef.set(status);
-            fireEvents.debounce();
+    protected void setStatus(@Nonnull String status) {
+        synchronized (this.statusRef) {
+            log.debug("[{}:{}]:setStatus({})", this.module.getName(), this.getName(), status);
+            // TODO: state engine to manage status, e.g. DRAFT -> CREATING
+            final String oldStatus = this.statusRef.get();
+            if (!Objects.equals(oldStatus, status)) {
+                this.statusRef.set(status);
+                if (!StringUtils.equalsIgnoreCase(status, Status.LOADING)) {
+                    this.statusRef.notifyAll();
+                }
+                fireEvents.debounce();
+            }
         }
     }
 
@@ -237,14 +242,24 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @Nonnull
-    public synchronized String getStatusSync() {
-        final String status = this.statusRef.get();
-        if (this.syncTimeRef.get() < 0) {
-            log.debug("[{}:{}]:getStatusSync->reloadStatus()", this.module.getName(), this.getName());
-            this.reloadStatus();
-            return this.statusRef.get();
+    public String getStatusSync() {
+        synchronized (this.statusRef) {
+            String status = this.statusRef.get();
+            while (StringUtils.equalsIgnoreCase(status, Status.LOADING)) {
+                try {
+                    this.statusRef.wait();
+                    status = this.statusRef.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (this.syncTimeRef.get() < 0) {
+                log.debug("[{}:{}]:getStatusSync->reloadStatus()", this.module.getName(), this.getName());
+                this.reloadStatus();
+                return this.statusRef.get();
+            }
+            return status;
         }
-        return status;
     }
 
     protected void doModify(@Nonnull Runnable body, @Nullable String status) {
