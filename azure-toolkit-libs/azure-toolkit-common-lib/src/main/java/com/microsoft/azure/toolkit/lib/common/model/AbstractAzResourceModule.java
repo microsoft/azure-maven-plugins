@@ -201,7 +201,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nonnull
     <D extends AzResource.Draft<T, R>> D update(@Nonnull T resource) {
         log.debug("[{}]:update(resource:{})", this.name, resource);
-        if (resource instanceof AzResource.Draft) {
+        if (resource.isDraftForCreating()) {
+            log.warn("[{}]:updating(resource:{}) from a draftForCreating", this.name, resource);
+        }
+        if (resource.isDraft()) {
             return this.cast(resource);
         }
         log.debug("[{}]:update->newDraftForUpdate({})", this.name, resource);

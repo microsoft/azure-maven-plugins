@@ -337,6 +337,14 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     public boolean isDraft() {
-        return this instanceof Draft && !((Draft<?, ?>) this).isCommitted();
+        return this.isDraftForCreating() || this.isDraftForUpdating();
+    }
+
+    public boolean isDraftForCreating() {
+        return this instanceof Draft && Objects.isNull(((Draft<?, ?>) this).getOrigin()) && Objects.isNull(this.remoteRef.get());
+    }
+
+    public boolean isDraftForUpdating() {
+        return this instanceof Draft && Objects.nonNull(((Draft<?, ?>) this).getOrigin()) && !((Draft<?, ?>) this).isCommitted();
     }
 }

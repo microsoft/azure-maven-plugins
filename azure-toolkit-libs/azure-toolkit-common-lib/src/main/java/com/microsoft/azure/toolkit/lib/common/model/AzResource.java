@@ -164,13 +164,10 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
 
         default T commit() {
             synchronized (this) {
-                if (this.isCommitted()) {
-                    throw new AzureToolkitRuntimeException("this draft has been committed.");
-                }
                 final boolean existing = this.getModule().exists(this.getName(), this.getResourceGroupName());
                 final T result = existing ? this.getModule().update(this) : this.getModule().create(this);
-                this.reset();
                 this.setCommitted(true);
+                this.reset();
                 return result;
             }
         }
@@ -180,13 +177,10 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         @Nonnull
         default T createIfNotExist() {
             synchronized (this) {
-                if (this.isCommitted()) {
-                    throw new AzureToolkitRuntimeException("this draft has been committed.");
-                }
-                final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
+                T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
                 if (Objects.isNull(origin) || !origin.exists()) {
+                    origin = this.getModule().create(this);
                     this.setCommitted(true);
-                    return this.getModule().create(this);
                 }
                 return origin;
             }
@@ -195,13 +189,10 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         @Nullable
         default T updateIfExist() {
             synchronized (this) {
-                if (this.isCommitted()) {
-                    throw new AzureToolkitRuntimeException("this draft has been committed.");
-                }
-                final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
+                T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
                 if (Objects.nonNull(origin) && origin.exists()) {
+                    origin = this.getModule().update(this);
                     this.setCommitted(true);
-                    return this.getModule().update(this);
                 }
                 return origin;
             }
