@@ -149,7 +149,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Override
     public void delete() {
         log.debug("[{}:{}]:delete()", this.module.getName(), this.getName());
-        assert this.exists();
+        if (!this.exists()) {
+            return;
+        }
         this.doModify(() -> {
             log.debug("[{}:{}]:delete->module.deleteResourceFromAzure({})", this.module.getName(), this.getName(), this.getId());
             this.getModule().deleteResourceFromAzure(this.getId());
