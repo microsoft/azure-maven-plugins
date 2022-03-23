@@ -371,7 +371,7 @@ public class AppServiceUtils {
         }
     }
 
-    public static FunctionEntity fromFunctionAppEnvelope(@Nonnull FunctionEnvelope functionEnvelope, @Nonnull FunctionApp functionApp) {
+    public static FunctionEntity fromFunctionAppEnvelope(@Nonnull FunctionEnvelope functionEnvelope, @Nonnull String functionId) {
         final Object config = functionEnvelope.config();
         if (!(config instanceof Map)) {
             return null;
@@ -391,7 +391,7 @@ public class AppServiceUtils {
                 .entryPoint(entryPoint)
                 .scriptFile(scriptFile)
                 .bindingList(bindingEntities)
-                .functionAppId(functionApp.id())
+                .functionAppId(functionId)
                 .triggerId(functionEnvelope.innerModel().id())
                 .triggerUrl(functionEnvelope.innerModel().invokeUrlTemplate())
                 .build();
