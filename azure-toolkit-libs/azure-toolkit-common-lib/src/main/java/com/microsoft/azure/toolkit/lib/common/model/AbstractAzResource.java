@@ -125,11 +125,11 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @AzureOperation(name = "resource.reload.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected void reload() {
         log.debug("[{}:{}]:reload()", this.module.getName(), this.getName());
-        Azure.az(IAzureAccount.class).account();
-        final R remote = this.remoteRef.get();
-        if (Objects.isNull(remote) && StringUtils.equals(this.statusRef.get(), Status.CREATING)) {
+        if (this.isDraftForCreating()) {
             return;
         }
+        Azure.az(IAzureAccount.class).account();
+        final R remote = this.remoteRef.get();
         this.doModify(() -> {
             log.debug("[{}:{}]:reload->this.refreshRemote()", this.module.getName(), this.getName());
             final R refreshed = Objects.nonNull(remote) ? this.refreshRemote(remote) : null;
