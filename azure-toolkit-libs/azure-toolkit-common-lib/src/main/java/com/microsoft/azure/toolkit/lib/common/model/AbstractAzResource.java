@@ -163,24 +163,15 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }, Status.DELETING);
     }
 
-    protected synchronized void setRemote(@Nullable R newRemote) {
-        log.debug("[{}:{}]:setRemote({})", this.module.getName(), this.getName(), newRemote);
-        final R oldRemote = this.remoteRef.get();
-        if (Objects.equals(oldRemote, newRemote) && Objects.isNull(newRemote)) {
-            log.debug("[{}:{}]:setRemote->setStatus(UNKNOWN)", this.module.getName(), this.getName());
-            this.setStatus(Status.DISCONNECTED);
-            return;
-        }
-        if (this.syncTimeRef.get() > 0 && Objects.equals(oldRemote, newRemote)) {
-            log.debug("[{}:{}]:setRemote->setStatus(LOADING)", this.module.getName(), this.getName());
-            this.setStatus(Status.LOADING);
-            log.debug("[{}:{}]:setRemote->reloadStatus", this.module.getName(), this.getName());
-            AzureTaskManager.getInstance().runOnPooledThread(this::reloadStatus);
-        } else {
+    protected void setRemote(@Nullable R newRemote) {
+        synchronized (this.syncTimeRef) {
+            log.debug("[{}:{}]:setRemote({})", this.module.getName(), this.getName(), newRemote);
             log.debug("[{}:{}]:setRemote->this.remoteRef.set({})", this.module.getName(), this.getName(), newRemote);
-            this.syncTimeRef.set(System.currentTimeMillis());
             this.remoteRef.set(newRemote);
+            this.syncTimeRef.set(System.currentTimeMillis());
+            this.syncTimeRef.notifyAll();
             if (Objects.nonNull(newRemote)) {
+                log.debug("[{}:{}]:setRemote->setStatus(LOADING)", this.module.getName(), this.getName());
                 this.setStatus(Status.LOADING);
                 log.debug("[{}:{}]:setRemote->this.reloadStatus", this.module.getName(), this.getName());
                 AzureTaskManager.getInstance().runOnPooledThread(this::reloadStatus);
@@ -199,6 +190,20 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             this.reload();
         }
         return this.remoteRef.get();
+    }
+
+    @Nullable
+    public final R getRemoteSync() {
+        synchronized (this.syncTimeRef) {
+            while (this.syncTimeRef.get() == 0) {
+                try {
+                    this.syncTimeRef.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            return this.getRemote();
+        }
     }
 
     protected void setStatus(@Nonnull String status) {
