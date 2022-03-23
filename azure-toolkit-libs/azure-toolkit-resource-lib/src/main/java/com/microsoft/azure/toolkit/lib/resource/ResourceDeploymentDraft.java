@@ -140,15 +140,17 @@ public class ResourceDeploymentDraft extends ResourceDeployment
     @Nullable
     @Override
     public String getTemplateAsJson() {
-        return Optional.ofNullable(config).map(Config::getTemplateAsJson)
-            .orElseGet(() -> Optional.ofNullable(origin).map(ResourceDeployment::getTemplateAsJson).orElse(null));
+        return Optional.ofNullable(config)
+            .map(ResourceDeploymentDraft.Config::getTemplateAsJson)
+            .orElseGet(super::getTemplateAsJson);
     }
 
     @Nullable
     @Override
     public String getParametersAsJson() {
-        return Optional.ofNullable(config).map(Config::getParametersAsJson)
-            .orElseGet(() -> Optional.ofNullable(origin).map(ResourceDeployment::getParametersAsJson).orElse(null));
+        return Optional.ofNullable(config)
+            .map(ResourceDeploymentDraft.Config::getParametersAsJson)
+            .orElseGet(super::getParametersAsJson);
     }
 
     @Override

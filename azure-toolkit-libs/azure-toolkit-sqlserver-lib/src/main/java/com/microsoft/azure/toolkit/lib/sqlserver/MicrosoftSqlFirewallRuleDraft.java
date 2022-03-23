@@ -99,8 +99,7 @@ public class MicrosoftSqlFirewallRuleDraft extends MicrosoftSqlFirewallRule impl
     @Nullable
     @Override
     public String getStartIpAddress() {
-        return Optional.ofNullable(this.config).map(Config::getStartIpAddress)
-            .orElseGet(() -> Optional.ofNullable(origin).map(MicrosoftSqlFirewallRule::getStartIpAddress).orElse(null));
+        return Optional.ofNullable(this.config).map(Config::getStartIpAddress).orElseGet(super::getStartIpAddress);
     }
 
     public void setStartIpAddress(@Nullable String startIpAddress) {
@@ -110,8 +109,7 @@ public class MicrosoftSqlFirewallRuleDraft extends MicrosoftSqlFirewallRule impl
     @Nullable
     @Override
     public String getEndIpAddress() {
-        return Optional.ofNullable(this.config).map(Config::getEndIpAddress)
-            .orElseGet(() -> Optional.ofNullable(origin).map(MicrosoftSqlFirewallRule::getEndIpAddress).orElse(null));
+        return Optional.ofNullable(this.config).map(Config::getEndIpAddress).orElseGet(super::getEndIpAddress);
     }
 
     public void setEndIpAddress(@Nullable String endIpAddress) {

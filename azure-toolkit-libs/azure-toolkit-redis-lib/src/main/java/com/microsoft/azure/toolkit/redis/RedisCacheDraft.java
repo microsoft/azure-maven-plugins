@@ -104,8 +104,7 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
 
     @Nullable
     public PricingTier getPricingTier() {
-        return Optional.ofNullable(config).map(Config::getPricingTier)
-            .orElseGet(() -> Optional.ofNullable(origin).map(RedisCache::getPricingTier).orElse(null));
+        return Optional.ofNullable(config).map(Config::getPricingTier).orElseGet(super::getPricingTier);
     }
 
     public void setRegion(@Nonnull Region region) {
@@ -114,14 +113,12 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
 
     @Nullable
     public Region getRegion() {
-        return Objects.requireNonNull(Optional.ofNullable(config).map(Config::getRegion)
-            .orElseGet(() -> Optional.ofNullable(origin).map(RedisCache::getRegion).orElse(null)));
+        return Objects.requireNonNull(Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion));
     }
 
     @Override
     public boolean isNonSslPortEnabled() {
-        return Optional.ofNullable(config).map(Config::isNonSslPortEnabled)
-            .orElseGet(() -> Optional.ofNullable(origin).map(RedisCache::isNonSslPortEnabled).orElse(false));
+        return Optional.ofNullable(config).map(Config::isNonSslPortEnabled).orElseGet(super::isNonSslPortEnabled);
     }
 
     public void setNonSslPortEnabled(boolean enabled) {

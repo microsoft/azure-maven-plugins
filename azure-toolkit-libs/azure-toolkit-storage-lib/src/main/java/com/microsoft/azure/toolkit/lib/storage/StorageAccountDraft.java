@@ -120,15 +120,13 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
 
     @Nullable
     public Region getRegion() {
-        return Objects.requireNonNull(Optional.ofNullable(config).map(Config::getRegion)
-            .orElseGet(() -> Optional.ofNullable(origin).map(StorageAccount::getRegion).orElse(null)));
+        return Objects.requireNonNull(Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion));
     }
 
     @Nullable
     @Override
     public Performance getPerformance() {
-        return Optional.ofNullable(config).map(Config::getPerformance)
-            .orElseGet(() -> Optional.ofNullable(origin).map(StorageAccount::getPerformance).orElse(null));
+        return Optional.ofNullable(config).map(Config::getPerformance).orElseGet(super::getPerformance);
     }
 
     public void setPerformance(@Nonnull Performance performance) {
@@ -138,8 +136,7 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
     @Nullable
     @Override
     public Kind getKind() {
-        return Optional.ofNullable(config).map(Config::getKind)
-            .orElseGet(() -> Optional.ofNullable(origin).map(StorageAccount::getKind).orElse(null));
+        return Optional.ofNullable(config).map(Config::getKind).orElseGet(super::getKind);
     }
 
     public void setKind(@Nonnull Kind kind) {
@@ -149,8 +146,7 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
     @Nullable
     @Override
     public Redundancy getRedundancy() {
-        return Optional.ofNullable(config).map(Config::getRedundancy)
-            .orElseGet(() -> Optional.ofNullable(origin).map(StorageAccount::getRedundancy).orElse(null));
+        return Optional.ofNullable(config).map(Config::getRedundancy).orElseGet(super::getRedundancy);
     }
 
     public void setRedundancy(@Nonnull Redundancy redundancy) {
@@ -160,8 +156,7 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
     @Nullable
     @Override
     public AccessTier getAccessTier() {
-        return Optional.ofNullable(config).map(Config::getAccessTier)
-            .orElseGet(() -> Optional.ofNullable(origin).map(StorageAccount::getAccessTier).orElse(null));
+        return Optional.ofNullable(config).map(Config::getAccessTier).orElseGet(super::getAccessTier);
     }
 
     public void setAccessTier(@Nonnull AccessTier tier) {

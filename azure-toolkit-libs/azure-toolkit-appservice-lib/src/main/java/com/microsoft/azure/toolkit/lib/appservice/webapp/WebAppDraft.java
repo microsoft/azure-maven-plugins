@@ -213,8 +213,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebS
     @Nullable
     @Override
     public Runtime getRuntime() {
-        return Optional.ofNullable(config).map(Config::getRuntime)
-            .orElseGet(() -> Optional.ofNullable(origin).map(WebApp::getRuntime).orElse(null));
+        return Optional.ofNullable(config).map(Config::getRuntime).orElseGet(super::getRuntime);
     }
 
     public void setAppServicePlan(AppServicePlan plan) {
@@ -224,8 +223,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebS
     @Nullable
     @Override
     public AppServicePlan getAppServicePlan() {
-        return Optional.ofNullable(config).map(Config::getPlan)
-            .orElseGet(() -> Optional.ofNullable(origin).map(WebApp::getAppServicePlan).orElse(null));
+        return Optional.ofNullable(config).map(Config::getPlan).orElseGet(super::getAppServicePlan);
     }
 
     public void setDiagnosticConfig(DiagnosticConfig config) {
@@ -244,8 +242,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebS
     @Nullable
     @Override
     public Map<String, String> getAppSettings() {
-        return Optional.ofNullable(config).map(Config::getAppSettings)
-            .orElseGet(() -> Optional.ofNullable(origin).map(WebApp::getAppSettings).orElse(null));
+        return Optional.ofNullable(config).map(Config::getAppSettings).orElseGet(super::getAppSettings);
     }
 
     public void removeAppSetting(String key) {

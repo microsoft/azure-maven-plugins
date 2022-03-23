@@ -184,8 +184,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     }
 
     public boolean isPublicEndpointEnabled() {
-        return Optional.ofNullable(config).map(Config::getPublicEndpointEnabled)
-            .orElseGet(() -> Optional.ofNullable(origin).map(SpringCloudApp::isPublicEndpointEnabled).orElse(false));
+        return Optional.ofNullable(config).map(Config::getPublicEndpointEnabled).orElseGet(super::isPublicEndpointEnabled);
     }
 
     public void setPersistentDiskEnabled(Boolean enabled) {
@@ -193,8 +192,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     }
 
     public boolean isPersistentDiskEnabled() {
-        return Optional.ofNullable(config).map(Config::getPersistentDiskEnabled)
-            .orElseGet(() -> Optional.ofNullable(origin).map(SpringCloudApp::isPersistentDiskEnabled).orElse(false));
+        return Optional.ofNullable(config).map(Config::getPersistentDiskEnabled).orElseGet(super::isPersistentDiskEnabled);
     }
 
     public void setActiveDeploymentName(String name) {
@@ -204,15 +202,13 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     @Nullable
     @Override
     public String getActiveDeploymentName() {
-        return Optional.ofNullable(config).map(Config::getActiveDeploymentName)
-            .orElseGet(() -> Optional.ofNullable(origin).map(SpringCloudApp::getActiveDeploymentName).orElse(null));
+        return Optional.ofNullable(config).map(Config::getActiveDeploymentName).orElseGet(super::getActiveDeploymentName);
     }
 
     @Nullable
     @Override
     public SpringCloudDeployment getActiveDeployment() {
-        return Optional.ofNullable(activeDeployment)
-            .orElseGet(() -> Optional.ofNullable(origin).map(SpringCloudApp::getActiveDeployment).orElse(null));
+        return Optional.ofNullable(activeDeployment).orElseGet(super::getActiveDeployment);
     }
 
     @Nonnull

@@ -252,8 +252,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     @Nullable
     @Override
     public Runtime getRuntime() {
-        return Optional.ofNullable(config).map(Config::getRuntime)
-            .orElseGet(() -> Optional.ofNullable(origin).map(FunctionApp::getRuntime).orElse(null));
+        return Optional.ofNullable(config).map(Config::getRuntime).orElseGet(super::getRuntime);
     }
 
     public void setAppServicePlan(AppServicePlan plan) {
@@ -263,8 +262,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     @Nullable
     @Override
     public AppServicePlan getAppServicePlan() {
-        return Optional.ofNullable(config).map(Config::getPlan)
-            .orElseGet(() -> Optional.ofNullable(origin).map(FunctionApp::getAppServicePlan).orElse(null));
+        return Optional.ofNullable(config).map(Config::getPlan).orElseGet(super::getAppServicePlan);
     }
 
     public void setDiagnosticConfig(DiagnosticConfig config) {
@@ -287,8 +285,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     @Nullable
     @Override
     public Map<String, String> getAppSettings() {
-        return Optional.ofNullable(config).map(Config::getAppSettings)
-            .orElseGet(() -> Optional.ofNullable(origin).map(FunctionApp::getAppSettings).orElse(null));
+        return Optional.ofNullable(config).map(Config::getAppSettings).orElseGet(super::getAppSettings);
     }
 
     public void removeAppSetting(String key) {

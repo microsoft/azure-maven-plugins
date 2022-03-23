@@ -170,13 +170,11 @@ public class ContainerRegistryDraft extends ContainerRegistry implements AzResou
 
     @Override
     public boolean isAdminUserEnabled() {
-        return Optional.ofNullable(adminUserEnabled)
-            .orElseGet(() -> Optional.ofNullable(origin).map(ContainerRegistry::isAdminUserEnabled).orElse(false));
+        return Optional.ofNullable(adminUserEnabled).orElseGet(super::isAdminUserEnabled);
     }
 
     @Override
     public boolean isPublicAccessEnabled() {
-        return Optional.ofNullable(publicAccessEnabled)
-            .orElseGet(() -> Optional.ofNullable(origin).map(ContainerRegistry::isPublicAccessEnabled).orElse(false));
+        return Optional.ofNullable(publicAccessEnabled).orElseGet(super::isPublicAccessEnabled);
     }
 }

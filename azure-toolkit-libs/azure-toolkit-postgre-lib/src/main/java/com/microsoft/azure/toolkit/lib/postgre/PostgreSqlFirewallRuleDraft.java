@@ -101,8 +101,7 @@ public class PostgreSqlFirewallRuleDraft extends PostgreSqlFirewallRule implemen
     @Nullable
     @Override
     public String getStartIpAddress() {
-        return Optional.ofNullable(this.config).map(Config::getStartIpAddress)
-            .orElseGet(() -> Optional.ofNullable(origin).map(PostgreSqlFirewallRule::getStartIpAddress).orElse(null));
+        return Optional.ofNullable(this.config).map(Config::getStartIpAddress).orElseGet(super::getStartIpAddress);
     }
 
     public void setStartIpAddress(String startIpAddress) {
@@ -112,8 +111,7 @@ public class PostgreSqlFirewallRuleDraft extends PostgreSqlFirewallRule implemen
     @Nullable
     @Override
     public String getEndIpAddress() {
-        return Optional.ofNullable(this.config).map(Config::getEndIpAddress)
-            .orElseGet(() -> Optional.ofNullable(origin).map(PostgreSqlFirewallRule::getEndIpAddress).orElse(null));
+        return Optional.ofNullable(this.config).map(Config::getEndIpAddress).orElseGet(super::getEndIpAddress);
     }
 
     public void setEndIpAddress(String endIpAddress) {
