@@ -56,7 +56,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
     private static final String SET_FUNCTIONS_EXTENSION_VERSION = "Functions extension version " +
             "isn't configured, setting up the default value.";
     private static final String FUNCTION_APP_NOT_EXIST_FOR_SLOT = "The Function App specified in pom.xml does not exist. " +
-            "Please make sure the Web App name is correct.";
+            "Please make sure the Function App name is correct.";
 
     public static final JavaVersion DEFAULT_FUNCTION_JAVA_VERSION = JavaVersion.JAVA_8;
 
