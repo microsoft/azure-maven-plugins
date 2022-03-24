@@ -66,7 +66,7 @@ public interface IAzureMessage {
             result = ((CustomDecoratable) text).decorate(this);
         }
         if (Objects.isNull(result)) {
-            final Object[] params = Arrays.stream(text.getParams())
+            final Object[] params = Arrays.stream(text.getParams() != null ? text.getParams() : new Object[0])
                     .map((p) -> this.decorateValue(p, p::toString))
                     .toArray();
             result = text.getString(params);
