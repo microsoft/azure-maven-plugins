@@ -13,7 +13,6 @@ import com.microsoft.azure.toolkit.lib.common.DataStore;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -78,8 +77,9 @@ public class AzureMessage implements IAzureMessage {
 
     public String getDetails() {
         final List<IAzureOperation<?>> operations = this.getOperations();
-        return operations.size() < 2 ? "" : operations.stream()
+        return getPayload() instanceof Throwable && operations.size() < 2 ? "" : operations.stream()
             .map(this::getDetailItem)
+            .filter(StringUtils::isNoneBlank)
             .collect(Collectors.joining("", "", ""));
     }
 
@@ -149,7 +149,6 @@ public class AzureMessage implements IAzureMessage {
     }
 
     @Nonnull
-    @Cacheable(cacheName = "message/operations", key = "${this.hashCode()}")
     protected List<IAzureOperation<?>> getOperations() {
         final List<IAzureOperation<?>> exceptionOperations = Optional.ofNullable(this.getPayload())
             .filter(p -> p instanceof Throwable)
@@ -159,7 +158,9 @@ public class AzureMessage implements IAzureMessage {
         final List<IAzureOperation<?>> contextOperations = getAncestorOperationsUtilAction(current);
         final Set<Object> seen = ConcurrentHashMap.newKeySet();
         final List<IAzureOperation<?>> operations = Streams.concat(contextOperations.stream(), exceptionOperations.stream())
-            .filter(t -> seen.add(t.getName())).collect(Collectors.toList());
+            .filter(t -> seen.add(t.getName()))
+            .filter(o -> Objects.nonNull(o.getTitle()))
+            .collect(Collectors.toList());
         return Lists.reverse(operations);
     }
 

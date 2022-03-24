@@ -169,8 +169,8 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
                 }
                 final boolean existing = this.getModule().exists(this.getName(), this.getResourceGroupName());
                 final T result = existing ? this.getModule().update(this) : this.getModule().create(this);
-                this.reset();
                 this.setCommitted(true);
+                this.reset();
                 return result;
             }
         }
@@ -183,10 +183,10 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
                 if (this.isCommitted()) {
                     throw new AzureToolkitRuntimeException("this draft has been committed.");
                 }
-                final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
+                T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
                 if (Objects.isNull(origin) || !origin.exists()) {
+                    origin = this.getModule().create(this);
                     this.setCommitted(true);
-                    return this.getModule().create(this);
                 }
                 return origin;
             }
@@ -198,10 +198,10 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
                 if (this.isCommitted()) {
                     throw new AzureToolkitRuntimeException("this draft has been committed.");
                 }
-                final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
+                T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
                 if (Objects.nonNull(origin) && origin.exists()) {
+                    origin = this.getModule().update(this);
                     this.setCommitted(true);
-                    return this.getModule().update(this);
                 }
                 return origin;
             }
@@ -252,7 +252,6 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         String STABLE = "STABLE";
         String DELETED = "Deleted";
         String ERROR = "Error";
-        String DISCONNECTED = "Disconnected"; // failed to get remote/client
         String INACTIVE = "Inactive"; // no active deployment/...
         String RUNNING = "Running";
         String STOPPED = "Stopped";

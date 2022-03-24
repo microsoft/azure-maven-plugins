@@ -281,7 +281,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebS
     @Data
     @Nullable
     private static class Config {
-        private Runtime runtime = DEFAULT_RUNTIME;
+        private Runtime runtime;
         private AppServicePlan plan = null;
         private DiagnosticConfig diagnosticConfig = null;
         private Set<String> appSettingsToRemove = new HashSet<>();

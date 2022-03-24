@@ -46,6 +46,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -145,36 +146,41 @@ public abstract class AppServiceAppBase<
         return Optional.ofNullable(this.getFullRemote()).map(WebAppBase::streamAllLogsAsync).orElseGet(Flux::empty);
     }
 
+    @Nonnull
     public Flux<ByteBuffer> getFileContent(String path) {
-        return getFileClient().getFileContent(path);
+        return Optional.ofNullable(getFileClient()).map(c -> c.getFileContent(path)).orElseGet(Flux::empty);
     }
 
+    @Nonnull
     public List<? extends AppServiceFile> getFilesInDirectory(String dir) {
-        return getFileClient().getFilesInDirectory(dir);
+        return Optional.ofNullable(getFileClient()).map(c -> c.getFilesInDirectory(dir)).orElseGet(Collections::emptyList);
     }
 
+    @Nullable
     public AppServiceFile getFileByPath(String path) {
-        return getFileClient().getFileByPath(path);
+        return Optional.ofNullable(getFileClient()).map(c -> c.getFileByPath(path)).orElse(null);
     }
 
     public void uploadFileToPath(String content, String path) {
-        getFileClient().uploadFileToPath(content, path);
+        Optional.ofNullable(getFileClient()).ifPresent(c -> c.uploadFileToPath(content, path));
     }
 
     public void createDirectory(String path) {
-        getFileClient().createDirectory(path);
+        Optional.ofNullable(getFileClient()).ifPresent(c -> c.createDirectory(path));
     }
 
     public void deleteFile(String path) {
-        getFileClient().deleteFile(path);
+        Optional.ofNullable(getFileClient()).ifPresent(c -> c.deleteFile(path));
     }
 
+    @Nonnull
     public List<ProcessInfo> listProcess() {
-        return getProcessClient().listProcess();
+        return Optional.ofNullable(getProcessClient()).map(IProcessClient::listProcess).orElseGet(Collections::emptyList);
     }
 
+    @Nullable
     public CommandOutput execute(String command, String dir) {
-        return getProcessClient().execute(command, dir);
+        return Optional.ofNullable(getProcessClient()).map(c -> c.execute(command, dir)).orElse(null);
     }
 
     public InputStream listPublishingProfileXmlWithSecrets() {
@@ -186,8 +192,9 @@ public abstract class AppServiceAppBase<
             .listPublishingProfileXmlWithSecrets(resourceId.resourceGroupName(), resourceName, csmPublishingProfileOptions);
     }
 
+    @Nullable
     public TunnelStatus getAppServiceTunnelStatus() {
-        return getProcessClient().getAppServiceTunnelStatus();
+        return Optional.ofNullable(getProcessClient()).map(IProcessClient::getAppServiceTunnelStatus).orElse(null);
     }
 
     @Nullable
@@ -217,10 +224,12 @@ public abstract class AppServiceAppBase<
         return remote.state();
     }
 
+    @Nullable
     protected IFileClient getFileClient() {
         return getKuduManager();
     }
 
+    @Nullable
     protected IProcessClient getProcessClient() {
         return getKuduManager();
     }

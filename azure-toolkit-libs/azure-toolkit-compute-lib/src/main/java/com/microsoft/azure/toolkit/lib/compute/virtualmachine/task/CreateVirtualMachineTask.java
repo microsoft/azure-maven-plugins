@@ -42,19 +42,19 @@ public class CreateVirtualMachineTask extends AzureTask<VirtualMachine> {
         tasks.add(new CreateResourceGroupTask(vmDraft.getSubscriptionId(), vmDraft.getResourceGroupName(), vmDraft.getRegion()));
         // Create Virtual Network
         final Network network = vmDraft.getNetwork();
-        if (Objects.nonNull(network) && network.isDraft()) {
+        if (Objects.nonNull(network) && network.isDraftForCreating()) {
             final AzureString title = AzureString.format("Create new Virtual network({0})", network.getName());
             tasks.add(new AzureTask<>(title, () -> ((NetworkDraft) network).createIfNotExist()));
         }
         // Create Public IP
         final PublicIpAddress publicIpAddress = vmDraft.getIpAddress();
-        if (Objects.nonNull(publicIpAddress) && publicIpAddress.isDraft()) {
+        if (Objects.nonNull(publicIpAddress) && publicIpAddress.isDraftForCreating()) {
             final AzureString title = AzureString.format("Create new Public Ip address({0})", publicIpAddress.getName());
             tasks.add(new AzureTask<>(title, () -> ((PublicIpAddressDraft) publicIpAddress).createIfNotExist()));
         }
         // Create Security Group
         final NetworkSecurityGroup securityGroup = vmDraft.getSecurityGroup();
-        if (Objects.nonNull(securityGroup) && securityGroup.isDraft()) {
+        if (Objects.nonNull(securityGroup) && securityGroup.isDraftForCreating()) {
             final AzureString title = AzureString.format("Create Network security group ({0})", securityGroup.getName());
             tasks.add(new AzureTask<>(title, () -> ((NetworkSecurityGroupDraft) securityGroup).createIfNotExist()));
         }

@@ -78,7 +78,11 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         app.setConfig(config);
         tasks.add(new AzureTask<Void>(CREATE_APP_TITLE, app::createIfNotExist));
         tasks.add(new AzureTask<Void>(MODIFY_DEPLOYMENT_TITLE, () -> deployment.commit()));
-        tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, app::updateIfExist));
+        tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, () -> {
+            final SpringCloudAppDraft draft = (SpringCloudAppDraft) app.update();
+            draft.setConfig(config);
+            draft.updateIfExist();
+        }));
         tasks.add(new AzureTask<Void>(() -> {
             app.reset();
             deployment.reset();

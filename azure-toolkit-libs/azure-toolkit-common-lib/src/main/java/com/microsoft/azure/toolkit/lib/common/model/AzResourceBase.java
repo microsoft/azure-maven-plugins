@@ -49,7 +49,7 @@ public interface AzResourceBase {
         private static final HashSet<String> writingStatus = Sets.newHashSet("writing", "pending", "processing", "creating", "updating", "deleting",
             "starting", "stopping", "restarting", "scaling");
         private static final HashSet<String> readingStatus = Sets.newHashSet("reading", "loading", "refreshing");
-        private static final HashSet<String> deletedStatus = Sets.newHashSet("deleted", "removed");
+        private static final HashSet<String> deletedStatus = Sets.newHashSet("deleted", "removed", "disconnected");
 
         public static FormalStatus dummyFormalize(String status) {
             status = status.toLowerCase();
@@ -100,6 +100,14 @@ public interface AzResourceBase {
 
         public boolean isUnknown() {
             return this == UNKNOWN;
+        }
+
+        public boolean isWritable() {
+            return !(this.isFailed() || this.isDeleted() || this.isUnknown() || this.isWriting());
+        }
+
+        public boolean isConnected() {
+            return !(this.isDeleted() || this.isUnknown());
         }
     }
 }
