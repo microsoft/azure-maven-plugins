@@ -177,7 +177,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
                 AzureTaskManager.getInstance().runOnPooledThread(this::reloadStatus);
             } else {
                 log.debug("[{}:{}]:setRemote->this.setStatus(DISCONNECTED)", this.module.getName(), this.getName());
-                this.setStatus(Status.DISCONNECTED);
+                this.setStatus(Status.DELETED);
             }
         }
     }
@@ -280,6 +280,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             this.setRemote(refreshed);
         } catch (Throwable t) {
             this.setStatus(Status.UNKNOWN);
+            this.syncTimeRef.set(-1);
             throw t;
         }
     }
@@ -313,6 +314,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             return remote;
         } catch (Throwable t) {
             this.setStatus(Status.UNKNOWN);
+            this.syncTimeRef.set(-1);
             throw new AzureToolkitRuntimeException(t);
         }
     }

@@ -164,6 +164,9 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
 
         default T commit() {
             synchronized (this) {
+                if (this.isCommitted()) {
+                    throw new AzureToolkitRuntimeException("this draft has been committed.");
+                }
                 final boolean existing = this.getModule().exists(this.getName(), this.getResourceGroupName());
                 final T result = existing ? this.getModule().update(this) : this.getModule().create(this);
                 this.setCommitted(true);
@@ -177,6 +180,9 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         @Nonnull
         default T createIfNotExist() {
             synchronized (this) {
+                if (this.isCommitted()) {
+                    throw new AzureToolkitRuntimeException("this draft has been committed.");
+                }
                 T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
                 if (Objects.isNull(origin) || !origin.exists()) {
                     origin = this.getModule().create(this);
@@ -189,6 +195,9 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         @Nullable
         default T updateIfExist() {
             synchronized (this) {
+                if (this.isCommitted()) {
+                    throw new AzureToolkitRuntimeException("this draft has been committed.");
+                }
                 T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
                 if (Objects.nonNull(origin) && origin.exists()) {
                     origin = this.getModule().update(this);
@@ -243,7 +252,6 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         String STABLE = "STABLE";
         String DELETED = "Deleted";
         String ERROR = "Error";
-        String DISCONNECTED = "Disconnected"; // failed to get remote/client
         String INACTIVE = "Inactive"; // no active deployment/...
         String RUNNING = "Running";
         String STOPPED = "Stopped";
