@@ -349,7 +349,8 @@ public class AppServiceUtils {
         }
     }
 
-    public static <T extends WebAppBase> void updateDiagnosticConfigurationForWebAppBase(final WebAppBase.Update<T> update, final DiagnosticConfig diagnosticConfig) {
+    public static <T extends WebAppBase> void updateDiagnosticConfigurationForWebAppBase(final WebAppBase.Update<T> update,
+                                                                                         final DiagnosticConfig diagnosticConfig) {
         final WebAppDiagnosticLogs.UpdateStages.Blank<WebAppBase.Update<T>> blank = update.updateDiagnosticLogsConfiguration();
         if (diagnosticConfig.isEnableApplicationLog()) {
             blank.withApplicationLogging()
@@ -370,7 +371,7 @@ public class AppServiceUtils {
         }
     }
 
-    public static FunctionEntity fromFunctionAppEnvelope(@Nonnull FunctionEnvelope functionEnvelope) {
+    public static FunctionEntity fromFunctionAppEnvelope(@Nonnull FunctionEnvelope functionEnvelope, @Nonnull String functionId) {
         final Object config = functionEnvelope.config();
         if (!(config instanceof Map)) {
             return null;
@@ -390,7 +391,7 @@ public class AppServiceUtils {
                 .entryPoint(entryPoint)
                 .scriptFile(scriptFile)
                 .bindingList(bindingEntities)
-                .functionAppId(functionEnvelope.functionAppId())
+                .functionAppId(functionId)
                 .triggerId(functionEnvelope.innerModel().id())
                 .triggerUrl(functionEnvelope.innerModel().invokeUrlTemplate())
                 .build();

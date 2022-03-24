@@ -64,10 +64,10 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceResource
     @Nonnull
     public List<FunctionEntity> listFunctions(boolean... force) {
         return Optional.ofNullable(this.getFullRemote()).map(r -> r.listFunctions().stream()
-                .map(AppServiceUtils::fromFunctionAppEnvelope)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList()))
-            .orElse(Collections.emptyList());
+                        .map(envelope -> AppServiceUtils.fromFunctionAppEnvelope(envelope, this.getId()))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
     }
 
     public void triggerFunction(String functionName, Object input) {
