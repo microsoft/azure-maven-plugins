@@ -21,7 +21,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -34,9 +33,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResource.Draft<PostgreSqlServer, Server> {
-    @Getter
-    @Setter
-    private boolean committed;
     @Getter
     @Nullable
     private final PostgreSqlServer origin;

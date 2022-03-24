@@ -24,7 +24,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Data;
 import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -43,9 +42,6 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebS
     public static final String CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS = "Can not update the operation system for existing app service";
     public static final Runtime DEFAULT_RUNTIME = Runtime.LINUX_JAVA8;
 
-    @Getter
-    @Setter
-    private boolean committed;
     @Getter
     @Nullable
     private final WebApp origin;

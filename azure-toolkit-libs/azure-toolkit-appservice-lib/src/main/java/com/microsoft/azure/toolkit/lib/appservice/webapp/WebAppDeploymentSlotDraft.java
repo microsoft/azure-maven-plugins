@@ -21,7 +21,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.Data;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -43,9 +42,6 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
     private static final String CONFIGURATION_SOURCE_DOES_NOT_EXISTS = "Target slot configuration source does not exists in current web app";
     private static final String FAILED_TO_GET_CONFIGURATION_SOURCE = "Failed to get configuration source slot";
 
-    @Getter
-    @Setter
-    private boolean committed;
     @Getter
     @Nullable
     private final WebAppDeploymentSlot origin;

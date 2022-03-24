@@ -9,7 +9,6 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -164,12 +163,8 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
 
         default T commit() {
             synchronized (this) {
-                if (this.isCommitted()) {
-                    throw new AzureToolkitRuntimeException("this draft has been committed.");
-                }
                 final boolean existing = this.getModule().exists(this.getName(), this.getResourceGroupName());
                 final T result = existing ? this.getModule().update(this) : this.getModule().create(this);
-                this.setCommitted(true);
                 this.reset();
                 return result;
             }
@@ -180,13 +175,9 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         @Nonnull
         default T createIfNotExist() {
             synchronized (this) {
-                if (this.isCommitted()) {
-                    throw new AzureToolkitRuntimeException("this draft has been committed.");
-                }
-                T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
+                final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
                 if (Objects.isNull(origin) || !origin.exists()) {
-                    origin = this.getModule().create(this);
-                    this.setCommitted(true);
+                    return this.getModule().create(this);
                 }
                 return origin;
             }
@@ -195,13 +186,9 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         @Nullable
         default T updateIfExist() {
             synchronized (this) {
-                if (this.isCommitted()) {
-                    throw new AzureToolkitRuntimeException("this draft has been committed.");
-                }
-                T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
+                final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
                 if (Objects.nonNull(origin) && origin.exists()) {
-                    origin = this.getModule().update(this);
-                    this.setCommitted(true);
+                    return this.getModule().update(this);
                 }
                 return origin;
             }
@@ -222,15 +209,10 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
 
         @Nullable
         T getOrigin();
-
-        void setCommitted(boolean committed);
-
-        boolean isCommitted();
     }
 
     interface Status {
         // unstable states
-        String UNSTABLE = "UNSTABLE";
         String PENDING = "Pending";
 
         String CREATING = "Creating";
@@ -244,19 +226,12 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         String RESTARTING = "Restarting";
         String STOPPING = "Stopping";
 
-        // Draft
-        String DRAFT = "Draft";
-        String NULL = "NULL";
-
         // stable states
-        String STABLE = "STABLE";
         String DELETED = "Deleted";
         String ERROR = "Error";
         String INACTIVE = "Inactive"; // no active deployment/...
         String RUNNING = "Running";
         String STOPPED = "Stopped";
         String UNKNOWN = "Unknown";
-
-        List<String> status = Arrays.asList(UNSTABLE, PENDING, DRAFT, STABLE, LOADING, ERROR, RUNNING, STOPPED, UNKNOWN);
     }
 }

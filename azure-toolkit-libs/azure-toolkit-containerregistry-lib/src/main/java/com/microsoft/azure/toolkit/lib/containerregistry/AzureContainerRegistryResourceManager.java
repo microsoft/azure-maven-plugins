@@ -35,6 +35,7 @@ public class AzureContainerRegistryResourceManager extends AbstractAzResourceMan
         return this.azureContainerRegistryModule;
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, AzureContainerRegistryResourceManager, ?>> getSubModules() {
         return Collections.singletonList(azureContainerRegistryModule);

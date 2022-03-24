@@ -34,6 +34,7 @@ public class ContainerRegistry extends AbstractAzResource<ContainerRegistry, Azu
         super(registry.name(), registry.resourceGroupName(), module);
     }
 
+    @Nonnull
     @Override
     public List<AzResourceModule<?, ContainerRegistry, ?>> getSubModules() {
         return Collections.emptyList();

@@ -29,9 +29,6 @@ import java.util.Optional;
 @Setter
 public class NetworkDraft extends Network implements AzResource.Draft<Network, com.azure.resourcemanager.network.models.Network> {
     @Getter
-    @Setter
-    private boolean committed;
-    @Getter
     @Nullable
     private final Network origin;
     @Nullable

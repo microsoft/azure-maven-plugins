@@ -30,9 +30,6 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
     private static final String APPLICATION_INSIGHTS_CREATED = "Application Insight ({0}) is successfully created. " +
             "You can visit {1} to view your Application Insights component.";
 
-    @Getter
-    @Setter
-    private boolean committed;
     @Setter
     @Nullable
     private Region region;

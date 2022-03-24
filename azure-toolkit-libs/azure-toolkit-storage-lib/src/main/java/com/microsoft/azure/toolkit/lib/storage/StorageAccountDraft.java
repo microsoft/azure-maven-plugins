@@ -22,7 +22,6 @@ import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountConfig;
 import lombok.Data;
 import lombok.Getter;
-import lombok.Setter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,9 +29,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class StorageAccountDraft extends StorageAccount implements AzResource.Draft<StorageAccount, com.azure.resourcemanager.storage.models.StorageAccount> {
-    @Getter
-    @Setter
-    private boolean committed;
     @Getter
     @Nullable
     private final StorageAccount origin;
