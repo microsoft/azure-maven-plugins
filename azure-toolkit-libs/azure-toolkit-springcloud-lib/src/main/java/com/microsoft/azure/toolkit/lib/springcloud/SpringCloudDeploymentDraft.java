@@ -20,7 +20,6 @@ import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentC
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import lombok.Data;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -52,9 +51,6 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     private static final String DEFAULT_RUNTIME_VERSION = SpringCloudJavaVersion.JAVA_8;
     private static final String RUNTIME_VERSION_PATTERN = "[Jj]ava((\\s)?|_)(8|11)$";
 
-    @Getter
-    @Setter
-    private boolean committed;
     @Nonnull
     @Delegate
     private final IConfig configProxy;

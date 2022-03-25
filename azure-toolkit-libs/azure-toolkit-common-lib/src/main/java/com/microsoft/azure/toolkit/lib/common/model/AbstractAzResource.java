@@ -369,6 +369,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     public boolean isDraftForUpdating() {
-        return this instanceof Draft && Objects.nonNull(((Draft<?, ?>) this).getOrigin()) && !((Draft<?, ?>) this).isCommitted();
+        return this instanceof Draft && Objects.nonNull(((Draft<?, ?>) this).getOrigin());
     }
 }

@@ -16,7 +16,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.Data;
 import lombok.Getter;
-import lombok.Setter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -26,9 +25,6 @@ import java.util.Optional;
 public class ResourceGroupDraft extends ResourceGroup implements AzResource.Draft<ResourceGroup, com.azure.resourcemanager.resources.models.ResourceGroup> {
     private static final String CREATE_NEW_RESOURCE_GROUP_KEY = "createNewResourceGroup";
 
-    @Getter
-    @Setter
-    private boolean committed;
     @Getter
     @Nullable
     private final ResourceGroup origin;

@@ -5,6 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.plan;
 
+import com.azure.resourcemanager.appservice.fluent.models.AppServicePlanInner;
+import com.azure.resourcemanager.appservice.models.ProvisioningState;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
@@ -24,6 +26,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Getter
@@ -55,7 +58,7 @@ public class AppServicePlan extends AbstractAzResource<AppServicePlan, AppServic
     @Nonnull
     @Override
     public String loadStatus(@Nonnull com.azure.resourcemanager.appservice.models.AppServicePlan plan) {
-        return plan.innerModel().provisioningState().toString();
+        return Optional.ofNullable(plan.innerModel()).map(AppServicePlanInner::provisioningState).map(ProvisioningState::toString).orElse(Status.UNKNOWN);
     }
 
     public List<WebApp> getWebApps() {

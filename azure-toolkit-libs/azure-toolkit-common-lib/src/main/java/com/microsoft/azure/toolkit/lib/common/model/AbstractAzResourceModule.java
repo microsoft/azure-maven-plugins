@@ -201,8 +201,11 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nonnull
     <D extends AzResource.Draft<T, R>> D update(@Nonnull T resource) {
         log.debug("[{}]:update(resource:{})", this.name, resource);
-        if (resource.isDraft()) {
-            throw new AzureToolkitRuntimeException("updating a draft is not allowed.");
+        if (resource.isDraftForCreating()) {
+            log.warn("[{}]:updating(resource:{}) from a draftForCreating", this.name, resource);
+        }
+        if (resource.isDraftForUpdating()) {
+            return this.cast(resource);
         }
         log.debug("[{}]:update->newDraftForUpdate({})", this.name, resource);
         final T draft = this.cast(this.newDraftForUpdate(resource));
