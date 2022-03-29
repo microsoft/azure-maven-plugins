@@ -226,7 +226,10 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             final AzureAppService az = Azure.az(AzureAppService.class);
             final AppServicePlanConfig config = functionAppConfig.getServicePlanConfig();
             final AppServicePlanDraft draft = az.plans(config.subscriptionId())
-                .updateOrCreate(config.servicePlanName(), config.servicePlanResourceGroup());
+                    .updateOrCreate(config.servicePlanName(), config.servicePlanResourceGroup());
+            draft.setOperatingSystem(config.os());
+            draft.setRegion(config.region());
+            draft.setPricingTier(config.pricingTier());
             return draft.commit();
         });
     }
