@@ -29,7 +29,8 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
-public class AppServicePlanDraft extends AppServicePlan implements AzResource.Draft<AppServicePlan, com.azure.resourcemanager.appservice.models.AppServicePlan> {
+public class AppServicePlanDraft extends AppServicePlan implements
+        AzResource.Draft<AppServicePlan, com.azure.resourcemanager.appservice.models.AppServicePlan> {
     private static final String CREATE_NEW_APP_SERVICE_PLAN = "createNewAppServicePlan";
 
     @Getter
@@ -67,14 +68,14 @@ public class AppServicePlanDraft extends AppServicePlan implements AzResource.Dr
 
     @Nonnull
     public AppServicePlanConfig getPlanConfig() {
-        final AppServicePlanConfig config = new AppServicePlanConfig();
-        config.subscriptionId(this.getSubscriptionId());
-        config.servicePlanName(this.getName());
-        config.servicePlanResourceGroup(this.getResourceGroupName());
-        config.pricingTier(this.getPricingTier());
-        config.os(this.getOperatingSystem());
-        config.region(this.getRegion());
-        return config;
+        final AppServicePlanConfig servicePlanConfig = new AppServicePlanConfig();
+        servicePlanConfig.subscriptionId(this.getSubscriptionId());
+        servicePlanConfig.servicePlanName(this.getName());
+        servicePlanConfig.servicePlanResourceGroup(this.getResourceGroupName());
+        servicePlanConfig.pricingTier(this.getPricingTier());
+        servicePlanConfig.os(this.getOperatingSystem());
+        servicePlanConfig.region(this.getRegion());
+        return servicePlanConfig;
     }
 
     @Nonnull
@@ -122,21 +123,27 @@ public class AppServicePlanDraft extends AppServicePlan implements AzResource.Dr
         params = {"this.getName()", "this.getResourceTypeName()"},
         type = AzureOperation.Type.SERVICE
     )
-    public com.azure.resourcemanager.appservice.models.AppServicePlan updateResourceInAzure(@Nonnull com.azure.resourcemanager.appservice.models.AppServicePlan remote) {
+    public com.azure.resourcemanager.appservice.models.AppServicePlan updateResourceInAzure(
+            @Nonnull com.azure.resourcemanager.appservice.models.AppServicePlan remote) {
         assert origin != null : "updating target is not specified.";
         final PricingTier newTier = this.getPricingTier();
         final PricingTier oldTier = origin.getPricingTier();
 
         final boolean modified = Objects.nonNull(newTier) && !Objects.equals(newTier, oldTier);
         Update update = remote.update();
+        if (!Objects.equals(this.getRegion(), origin.getRegion())) {
+            AzureMessager.getMessager().warning(
+                    AzureString.format("Skip region update for existing service plan ({0}) since it is not allowed.", remote.name()));
+        }
+        com.azure.resourcemanager.appservice.models.AppServicePlan result = remote;
         if (modified) {
             update = update.withPricingTier(AppServiceUtils.toPricingTier(newTier));
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating App Service plan ({0})...", remote.name()));
-            remote = update.apply();
+            result = update.apply();
             messager.success(AzureString.format("App Service plan ({0}) is successfully updated", remote.name()));
         }
-        return remote;
+        return result;
     }
 
     @Nullable
