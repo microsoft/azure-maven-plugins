@@ -228,7 +228,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebS
 
     @Nullable
     public DiagnosticConfig getDiagnosticConfig() {
-        return Optional.ofNullable(config).map(Config::getDiagnosticConfig).orElse(null);
+        return Optional.ofNullable(config).map(Config::getDiagnosticConfig).orElseGet(super::getDiagnosticConfig);
     }
 
     public void setAppSettings(Map<String, String> appSettings) {
