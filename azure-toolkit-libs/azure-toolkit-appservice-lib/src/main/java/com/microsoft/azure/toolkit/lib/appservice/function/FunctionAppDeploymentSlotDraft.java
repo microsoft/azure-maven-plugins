@@ -176,7 +176,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
 
     @Nullable
     public DiagnosticConfig getDiagnosticConfig() {
-        return Optional.ofNullable(config).map(Config::getDiagnosticConfig).orElse(null);
+        return Optional.ofNullable(config).map(Config::getDiagnosticConfig).orElseGet(super::getDiagnosticConfig);
     }
 
     @Override
