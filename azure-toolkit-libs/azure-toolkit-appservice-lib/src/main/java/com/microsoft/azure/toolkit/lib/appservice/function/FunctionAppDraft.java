@@ -224,6 +224,8 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
                 ObjectUtils.notEqual(newRuntime.getJavaVersion(), oldRuntime.getJavaVersion())) {
                 update.withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime.getJavaVersion())).withWebContainer(null);
             }
+        } else if (newRuntime.getOperatingSystem() == OperatingSystem.DOCKER) {
+            return; // skip for docker, as docker configuration will be handled in `updateDockerConfiguration`
         } else {
             throw new AzureToolkitRuntimeException(String.format(UNSUPPORTED_OPERATING_SYSTEM, newRuntime.getOperatingSystem()));
         }
