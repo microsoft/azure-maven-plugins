@@ -270,8 +270,7 @@ public class AzureMessage implements IAzureMessage {
         @Nonnull
         public IAzureMessager getMessager() {
             if (Objects.isNull(this.messager)) {
-                this.messager = Optional.ofNullable(this.operation).map(IAzureOperation::getParent)
-                    .map(o -> o.get(MESSAGE_CONTEXT))
+                this.messager = Optional.ofNullable(this.getParent())
                     .map(Context::getMessager)
                     .orElse(AzureMessager.getDefaultMessager());
             }
@@ -282,6 +281,12 @@ public class AzureMessage implements IAzureMessage {
             return Optional.ofNullable(this.operation).map(IAzureOperation::getActionParent)
                 .map(o -> o.get(MESSAGE_CONTEXT, new Context(o)))
                 .orElse(new Context(this.operation)); // TODO: @wangmi should return null when action parent is null
+        }
+
+        public Context getParent() {
+            return Optional.ofNullable(this.operation).map(IAzureOperation::getParent)
+                .map(o -> o.get(MESSAGE_CONTEXT, new Context(o)))
+                .orElse(null);
         }
     }
 }

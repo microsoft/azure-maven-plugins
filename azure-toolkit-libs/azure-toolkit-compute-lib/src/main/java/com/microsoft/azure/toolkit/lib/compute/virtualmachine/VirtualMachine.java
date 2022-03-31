@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.model.Startable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.compute.ComputeResourceManager;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.model.OperatingSystem;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -51,7 +52,7 @@ public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeRe
     @Nonnull
     @Override
     public String loadStatus(@Nonnull com.azure.resourcemanager.compute.models.VirtualMachine remote) {
-        return remote.powerState().toString().substring("PowerState/".length());
+        return StringUtils.capitalize(remote.powerState().toString().substring("PowerState/".length()));
     }
 
     @AzureOperation(name = "vm.start.vm", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
