@@ -24,7 +24,7 @@ import java.util.Optional;
 public class AzureSqlServer extends AbstractAzService<MicrosoftSqlResourceManager, SqlServerManager> {
 
     public AzureSqlServer() {
-        super("Microsoft.SQL");
+        super("Microsoft.Sql");
     }
 
     @Nonnull

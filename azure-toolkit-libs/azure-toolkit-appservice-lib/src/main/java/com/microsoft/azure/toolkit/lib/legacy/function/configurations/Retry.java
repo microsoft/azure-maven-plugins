@@ -24,7 +24,7 @@ public class Retry {
     public static Retry createFixedDelayRetryFromAnnotation(final FunctionAnnotation annotation) {
         return Retry.builder()
                 .strategy(annotation.getStringValue("strategy", true))
-                .maxRetryCount(Integer.valueOf(annotation.getStringValue("strategy", true)))
+                .maxRetryCount((Integer) annotation.get("maxRetryCount", true))
                 .delayInterval(annotation.getStringValue("delayInterval", true)).build();
     }
 
@@ -35,7 +35,7 @@ public class Retry {
     public static Retry createExponentialBackoffRetryFromAnnotation(final FunctionAnnotation annotation) {
         return Retry.builder()
                 .strategy(annotation.getStringValue("strategy", true))
-                .maxRetryCount(Integer.valueOf(annotation.getStringValue("strategy", true)))
+                .maxRetryCount((Integer) annotation.get("maxRetryCount", true))
                 .minimumInterval(annotation.getStringValue("minimumInterval", true))
                 .maximumInterval(annotation.getStringValue("maximumInterval", true)).build();
     }
