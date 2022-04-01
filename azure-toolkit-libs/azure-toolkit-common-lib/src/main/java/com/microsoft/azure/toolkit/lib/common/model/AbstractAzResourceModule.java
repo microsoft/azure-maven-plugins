@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.azure.core.management.exception.ManagementException;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingById;
 import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingByName;
 import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingByResourceGroup;
@@ -133,8 +134,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nullable
     public T get(@Nonnull String resourceId) {
+        final ResourceId id = ResourceId.fromString(resourceId);
         log.debug("[{}]:get({})", this.name, resourceId);
-        return this.list().stream().filter(resource -> StringUtils.equalsIgnoreCase(resourceId, resource.getId())).findFirst().orElse(null);
+        return this.get(id.name(), id.resourceGroupName());
     }
 
     @Override
