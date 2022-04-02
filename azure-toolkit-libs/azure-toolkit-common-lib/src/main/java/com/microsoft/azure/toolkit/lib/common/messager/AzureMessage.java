@@ -17,7 +17,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationThreadContext;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationException;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationException;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -126,7 +126,7 @@ public class AzureMessage implements IAzureMessage {
         final List<Throwable> throwables = ExceptionUtils.getThrowableList(throwable);
         for (int i = throwables.size() - 1; i >= 0; i--) {
             final Throwable t = throwables.get(i);
-            if (t instanceof AzureOperationException) {
+            if (t instanceof OperationException) {
                 continue;
             }
             final String rootClassName = t.getClass().getName();
@@ -180,8 +180,8 @@ public class AzureMessage implements IAzureMessage {
     @Nonnull
     private static List<Operation<?>> getExceptionOperations(@Nonnull Throwable throwable) {
         return ExceptionUtils.getThrowableList(throwable).stream()
-            .filter(object -> object instanceof AzureOperationException)
-            .map(o -> ((AzureOperationException) o).getOperation())
+            .filter(object -> object instanceof OperationException)
+            .map(o -> ((OperationException) o).getOperation())
             .collect(Collectors.toList());
     }
 

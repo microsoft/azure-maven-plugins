@@ -11,10 +11,10 @@ import lombok.Getter;
 import java.util.Optional;
 
 @Getter
-public class AzureOperationException extends AzureToolkitRuntimeException {
+public class OperationException extends AzureToolkitRuntimeException {
     private final Operation<?> operation;
 
-    public AzureOperationException(final Operation<?> operation, final Throwable cause) {
+    public OperationException(final Operation<?> operation, final Throwable cause) {
         super(cause);
         this.operation = operation;
     }

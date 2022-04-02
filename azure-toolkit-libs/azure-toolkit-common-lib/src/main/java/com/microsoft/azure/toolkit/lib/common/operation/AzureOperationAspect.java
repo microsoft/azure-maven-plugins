@@ -83,10 +83,10 @@ public final class AzureOperationAspect {
         assert Objects.nonNull(operation) && Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the operation[%s] throwing exception", current, operation);
         AzureTelemeter.onError(operation, e);
-        if (e instanceof AzureOperationException || (e instanceof Exception && !(e instanceof RuntimeException))) {
+        if (e instanceof OperationException || (e instanceof Exception && !(e instanceof RuntimeException))) {
             throw e; // do not wrap checked exception and AzureOperationException
         }
-        throw new AzureOperationException(operation, e);
+        throw new OperationException(operation, e);
     }
 
     public static <T> T execute(Operation<T> operation, Object source) throws Throwable {
