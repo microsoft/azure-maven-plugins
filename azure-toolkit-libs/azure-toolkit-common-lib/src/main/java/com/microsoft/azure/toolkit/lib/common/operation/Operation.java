@@ -17,9 +17,7 @@ public interface Operation<T> {
     String UNKNOWN_NAME = "<unknown>.<unknown>";
 
     @Nonnull
-    default String getExecutionId() {
-        return Utils.getId(this);
-    }
+    String getExecutionId();
 
     @Nonnull
     default String getName() {

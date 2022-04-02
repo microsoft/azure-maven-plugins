@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.task;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBase;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +21,7 @@ import java.util.concurrent.Callable;
 
 @Getter
 @Setter
-public class AzureTask<T> implements Operation<T> {
+public class AzureTask<T> extends OperationBase<T> {
     @Nonnull
     private final Modality modality;
     @Getter(AccessLevel.NONE)
@@ -135,7 +136,7 @@ public class AzureTask<T> implements Operation<T> {
 
     @Nonnull
     public String getExecutionId() {
-        return "&" + Operation.super.getExecutionId();
+        return "&" + super.getExecutionId();
     }
 
     @Override
