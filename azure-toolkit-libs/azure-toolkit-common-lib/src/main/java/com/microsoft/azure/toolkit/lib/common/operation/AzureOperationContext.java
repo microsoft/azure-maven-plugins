@@ -55,7 +55,7 @@ public class AzureOperationContext {
         return this.operation;
     }
 
-    public synchronized void pushOperation(final IAzureOperation<?> operation) {
+    synchronized void pushOperation(final IAzureOperation<?> operation) {
         if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {
             log.fine(String.format("orphan context[%s] is setup", this));
         }
@@ -64,7 +64,7 @@ public class AzureOperationContext {
     }
 
     @Nullable
-    public synchronized IAzureOperation<?> popOperation() {
+    synchronized IAzureOperation<?> popOperation() {
         final IAzureOperation<?> popped = this.operation;
         assert popped != null : "popped operation is null";
         this.operation = popped.getParent();
