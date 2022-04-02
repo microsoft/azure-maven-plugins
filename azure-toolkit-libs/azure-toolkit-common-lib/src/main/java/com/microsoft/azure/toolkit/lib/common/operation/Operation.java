@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.common.operation;
 
-import com.microsoft.azure.toolkit.lib.common.DataStore;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 
@@ -14,7 +13,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-public interface Operation<T> extends DataStore {
+public interface Operation<T> {
     String UNKNOWN_NAME = "<unknown>.<unknown>";
 
     @Nonnull
@@ -39,6 +38,8 @@ public interface Operation<T> extends DataStore {
 
     @Nullable
     Operation<?> getParent();
+
+    OperationContext getContext();
 
     default Operation<?> getEffectiveParent() {
         final Operation<?> parent = this.getParent();

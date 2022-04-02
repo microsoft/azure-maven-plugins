@@ -9,16 +9,15 @@ import com.azure.core.exception.HttpResponseException;
 import com.azure.core.management.exception.ManagementException;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
-import com.microsoft.azure.toolkit.lib.common.DataStore;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationThreadContext;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationException;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationException;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationThreadContext;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -31,10 +30,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -48,7 +45,6 @@ import java.util.stream.Collectors;
 @Setter
 public class AzureMessage implements IAzureMessage {
     static final String DEFAULT_MESSAGE_TITLE = "Azure";
-    static final DataStore.Field<Context> MESSAGE_CONTEXT = DataStore.Field.of("messageContext");
     @Nonnull
     protected final Type type;
     @Nonnull
@@ -235,58 +231,6 @@ public class AzureMessage implements IAzureMessage {
             return (Action<?>) action;
         } catch (Throwable t) {
             return null;
-        }
-    }
-
-    @Nonnull
-    public static AzureMessage.Context getActionContext() {
-        return AzureMessage.getContext().getActionParent();
-    }
-
-    @Nonnull
-    public static AzureMessage.Context getContext() {
-        return Optional.ofNullable(Operation.current()).map(o -> o.get(MESSAGE_CONTEXT, new Context(o))).orElse(new Context(null));
-    }
-
-    @RequiredArgsConstructor
-    public static class Context {
-        @Nullable
-        private final Operation<?> operation;
-        private IAzureMessager messager = null;
-        private final Map<String, Object> properties = new HashMap<>();
-
-        public void setProperty(@Nonnull String key, Object val) {
-            this.properties.put(key, val);
-        }
-
-        public Object getProperty(@Nonnull String key) {
-            return this.properties.get(key);
-        }
-
-        public void setMessager(@Nonnull IAzureMessager messager) {
-            this.messager = messager;
-        }
-
-        @Nonnull
-        public IAzureMessager getMessager() {
-            if (Objects.isNull(this.messager)) {
-                this.messager = Optional.ofNullable(this.getParent())
-                    .map(Context::getMessager)
-                    .orElse(AzureMessager.getDefaultMessager());
-            }
-            return this.messager;
-        }
-
-        public Context getActionParent() {
-            return Optional.ofNullable(this.operation).map(Operation::getActionParent)
-                .map(o -> o.get(MESSAGE_CONTEXT, new Context(o)))
-                .orElse(new Context(this.operation)); // TODO: @wangmi should return null when action parent is null
-        }
-
-        public Context getParent() {
-            return Optional.ofNullable(this.operation).map(Operation::getParent)
-                .map(o -> o.get(MESSAGE_CONTEXT, new Context(o)))
-                .orElse(null);
         }
     }
 }

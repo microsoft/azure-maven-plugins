@@ -19,8 +19,8 @@ import java.util.concurrent.Callable;
 
 @Getter
 @RequiredArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class MethodOperation implements Operation<Object> {
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+public class MethodOperation extends OperationBase<Object> {
 
     @Setter
     private Operation<?> parent;
