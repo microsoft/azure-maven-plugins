@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.telemetry;
 
-import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.Operation;
 import com.microsoft.azure.toolkit.lib.common.operation.MethodOperation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Properties;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Property;
@@ -56,23 +56,23 @@ public class AzureTelemeter {
         Optional.ofNullable(client).ifPresent(client -> client.setDefaultProperties(commonProperties));
     }
 
-    public static void afterCreate(@Nonnull final IAzureOperation<?> op) {
+    public static void afterCreate(@Nonnull final Operation<?> op) {
         final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
         context.setCreateAt(Instant.now());
     }
 
-    public static void beforeEnter(@Nonnull final IAzureOperation<?> op) {
+    public static void beforeEnter(@Nonnull final Operation<?> op) {
         final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
         context.setEnterAt(Instant.now());
     }
 
-    public static void afterExit(@Nonnull final IAzureOperation<?> op) {
+    public static void afterExit(@Nonnull final Operation<?> op) {
         final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
         context.setExitAt(Instant.now());
         AzureTelemeter.log(AzureTelemetry.Type.INFO, serialize(op));
     }
 
-    public static void onError(@Nonnull final IAzureOperation<?> op, Throwable error) {
+    public static void onError(@Nonnull final Operation<?> op, Throwable error) {
         final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
         context.setExitAt(Instant.now());
         AzureTelemeter.log(AzureTelemetry.Type.ERROR, serialize(op), error);
@@ -94,10 +94,10 @@ public class AzureTelemeter {
     }
 
     @Nonnull
-    private static Map<String, String> serialize(@Nonnull final IAzureOperation<?> op) {
+    private static Map<String, String> serialize(@Nonnull final Operation<?> op) {
         final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
         final Map<String, String> actionProperties = getActionProperties(context.getOperation());
-        final Optional<IAzureOperation<?>> parent = Optional.ofNullable(op.getParent());
+        final Optional<Operation<?>> parent = Optional.ofNullable(op.getParent());
         final Map<String, String> properties = new HashMap<>();
         final String name = op.getName().replaceAll("\\(.+\\)", "(***)"); // e.g. `appservice.list_file.dir`
         final String[] parts = name.split("\\."); // ["appservice|file", "list", "dir"]
@@ -109,7 +109,7 @@ public class AzureTelemeter {
             properties.put(OPERATION_NAME, operationName);
         }
         properties.put(OP_ID, op.getExecutionId());
-        properties.put(OP_PARENT_ID, parent.map(IAzureOperation::getExecutionId).orElse("/"));
+        properties.put(OP_PARENT_ID, parent.map(Operation::getExecutionId).orElse("/"));
         properties.put(OP_NAME, name);
         properties.put(OP_TYPE, op.getType());
         properties.putAll(actionProperties);
@@ -140,9 +140,9 @@ public class AzureTelemeter {
     }
 
     @Nonnull
-    private static Map<String, String> getActionProperties(IAzureOperation<?> operation) {
+    private static Map<String, String> getActionProperties(Operation<?> operation) {
         return Optional.ofNullable(operation)
-                .map(IAzureOperation::getActionParent)
+                .map(Operation::getActionParent)
                 .map(o -> o.get(AzureTelemetry.Context.class, new AzureTelemetry.Context(o)))
                 .map(AzureTelemetry.Context::getProperties)
                 .orElse(new HashMap<>());

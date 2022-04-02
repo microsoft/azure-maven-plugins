@@ -14,7 +14,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-public interface IAzureOperation<T> extends DataStore {
+public interface Operation<T> extends DataStore {
     String UNKNOWN_NAME = "<unknown>.<unknown>";
 
     @Nonnull
@@ -35,13 +35,13 @@ public interface IAzureOperation<T> extends DataStore {
     @Nullable
     AzureString getTitle();
 
-    void setParent(IAzureOperation<?> operation);
+    void setParent(Operation<?> operation);
 
     @Nullable
-    IAzureOperation<?> getParent();
+    Operation<?> getParent();
 
-    default IAzureOperation<?> getEffectiveParent() {
-        final IAzureOperation<?> parent = this.getParent();
+    default Operation<?> getEffectiveParent() {
+        final Operation<?> parent = this.getParent();
         if (parent == null) {
             return null;
         } else if (!parent.getName().equals(UNKNOWN_NAME)) {
@@ -52,15 +52,15 @@ public interface IAzureOperation<T> extends DataStore {
     }
 
     @Nullable
-    default IAzureOperation<?> getActionParent() {
+    default Operation<?> getActionParent() {
         if (this.getType().equals(AzureOperation.Type.ACTION.name())) {
             return this;
         }
-        return Optional.ofNullable(this.getParent()).map(IAzureOperation::getActionParent).orElse(null);
+        return Optional.ofNullable(this.getParent()).map(Operation::getActionParent).orElse(null);
     }
 
     @Nullable
-    static IAzureOperation<?> current() {
+    static Operation<?> current() {
         return AzureOperationContext.current().currentOperation();
     }
 }

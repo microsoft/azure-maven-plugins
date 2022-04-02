@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.action;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.Operation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
@@ -104,7 +104,7 @@ public class Action<D> {
             final BiConsumer<D, Object> handler = this.getHandler(source, e);
             if (Objects.nonNull(handler)) {
                 final AzureString title = Optional.ofNullable(this.view).map(b -> b.title).map(t -> t.apply(source))
-                    .orElse(AzureString.fromString(IAzureOperation.UNKNOWN_NAME));
+                    .orElse(AzureString.fromString(Operation.UNKNOWN_NAME));
                 final AzureTask<Void> task = new AzureTask<>(title, () -> handle(source, e, handler));
                 task.setType(AzureOperation.Type.ACTION.name());
                 AzureTaskManager.getInstance().runInBackground(task);

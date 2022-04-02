@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.telemetry;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.toolkit.lib.common.DataStore;
-import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.Operation;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -85,11 +85,11 @@ public class AzureTelemetry {
 
     @Nonnull
     public static Context getContext() {
-        return Optional.ofNullable(IAzureOperation.current()).map(o -> o.get(TELEMETRY_CONTEXT, new Context(o))).orElse(new Context(null));
+        return Optional.ofNullable(Operation.current()).map(o -> o.get(TELEMETRY_CONTEXT, new Context(o))).orElse(new Context(null));
     }
 
     @Nonnull
-    public static Context getContext(IAzureOperation<?> op) {
+    public static Context getContext(Operation<?> op) {
         return Optional.ofNullable(op).map(o -> o.get(TELEMETRY_CONTEXT, new Context(o))).orElse(new Context(null));
     }
 
@@ -98,7 +98,7 @@ public class AzureTelemetry {
     public static class Context {
         private final Map<String, String> properties = new ConcurrentHashMap<>();
         @Nullable
-        private final IAzureOperation<?> operation;
+        private final Operation<?> operation;
 
         public void setCreateAt(Instant createAt) {
             this.properties.put(OP_CREATE_AT, createAt.toString());
@@ -125,7 +125,7 @@ public class AzureTelemetry {
         }
 
         public Context getActionParent() {
-            return Optional.ofNullable(this.operation).map(IAzureOperation::getActionParent)
+            return Optional.ofNullable(this.operation).map(Operation::getActionParent)
                 .map(o -> o.get(TELEMETRY_CONTEXT, new Context(o)))
                 .orElse(new Context(this.operation)); // TODO: @wangmi should return null when action parent is null
         }

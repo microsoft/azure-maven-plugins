@@ -23,7 +23,7 @@ public class AzureOperationContext {
 
     protected long threadId;
     @Nullable
-    protected IAzureOperation<?> operation;
+    protected Operation<?> operation;
     @Getter
     @Nullable
     protected AzureOperationContext parent;
@@ -51,11 +51,11 @@ public class AzureOperationContext {
     }
 
     @Nullable
-    public IAzureOperation<?> currentOperation() {
+    public Operation<?> currentOperation() {
         return this.operation;
     }
 
-    synchronized void pushOperation(final IAzureOperation<?> operation) {
+    synchronized void pushOperation(final Operation<?> operation) {
         if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {
             log.fine(String.format("orphan context[%s] is setup", this));
         }
@@ -64,8 +64,8 @@ public class AzureOperationContext {
     }
 
     @Nullable
-    synchronized IAzureOperation<?> popOperation() {
-        final IAzureOperation<?> popped = this.operation;
+    synchronized Operation<?> popOperation() {
+        final Operation<?> popped = this.operation;
         assert popped != null : "popped operation is null";
         this.operation = popped.getParent();
         if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {

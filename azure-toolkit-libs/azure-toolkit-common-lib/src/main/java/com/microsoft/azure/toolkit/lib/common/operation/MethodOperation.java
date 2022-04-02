@@ -20,10 +20,10 @@ import java.util.concurrent.Callable;
 @Getter
 @RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class MethodOperation implements IAzureOperation<Object> {
+public class MethodOperation implements Operation<Object> {
 
     @Setter
-    private IAzureOperation<?> parent;
+    private Operation<?> parent;
     @EqualsAndHashCode.Include
     private final MethodInvocation invocation;
 

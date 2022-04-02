@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.common.task;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.Operation;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +20,7 @@ import java.util.concurrent.Callable;
 
 @Getter
 @Setter
-public class AzureTask<T> implements IAzureOperation<T> {
+public class AzureTask<T> implements Operation<T> {
     @Nonnull
     private final Modality modality;
     @Getter(AccessLevel.NONE)
@@ -31,7 +31,7 @@ public class AzureTask<T> implements IAzureOperation<T> {
     private final boolean cancellable;
     @Nullable
     private final AzureString title;
-    private IAzureOperation<?> parent;
+    private Operation<?> parent;
     @Builder.Default
     private boolean backgroundable = true;
     @Nullable
@@ -135,7 +135,7 @@ public class AzureTask<T> implements IAzureOperation<T> {
 
     @Nonnull
     public String getExecutionId() {
-        return "&" + IAzureOperation.super.getExecutionId();
+        return "&" + Operation.super.getExecutionId();
     }
 
     @Override
