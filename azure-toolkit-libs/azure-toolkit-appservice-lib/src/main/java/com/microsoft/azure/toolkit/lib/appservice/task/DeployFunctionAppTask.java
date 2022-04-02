@@ -12,8 +12,8 @@ import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.zeroturnaround.zip.ZipUtil;
@@ -48,9 +48,9 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
     private static final String HTTP_TRIGGER_URLS = "HTTP Trigger Urls:";
     private static final String NO_ANONYMOUS_HTTP_TRIGGER = "No anonymous HTTP Triggers found in deployed function app, skip list triggers.";
     private static final String NO_TRIGGERS_FOUNDED = "No triggers found in deployed function app, " +
-            "please try recompile the project by `mvn clean package` and deploy again.";
+        "please try recompile the project by `mvn clean package` and deploy again.";
     private static final String UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS = "Some http trigger urls cannot be displayed " +
-            "because they are non-anonymous. To access the non-anonymous triggers, please refer to https://aka.ms/azure-functions-key.";
+        "because they are non-anonymous. To access the non-anonymous triggers, please refer to https://aka.ms/azure-functions-key.";
     private static final String SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE = "Skip deployment for docker app service";
     private static final String FAILED_TO_LIST_TRIGGERS = "Deployment succeeded, but failed to list http trigger urls.";
     private static final String SYNC_TRIGGERS = "Syncing triggers and fetching function information";
@@ -69,7 +69,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
 
     @Override
     public AzureString getTitle() {
-        return AzureString.format("Deploy artifact to function app %s", target.name());
+        return AzureString.format("Deploy artifact to function app %s", target.getName());
     }
 
     @Override
@@ -95,7 +95,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
         } else {
             target.deploy(file, deployType);
         }
-        AzureTelemetry.getContext().getActionParent().setProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
+        OperationContext.action().setTelemetryProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
         if (!StringUtils.equalsIgnoreCase(target.getStatus(), RUNNING)) {
             target.start();
         }
@@ -118,13 +118,13 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
             syncTriggers(target);
             final List<FunctionEntity> triggers = listFunctions(target);
             final List<FunctionEntity> httpFunction = triggers.stream()
-                    .filter(function -> function.getTrigger() != null &&
-                            StringUtils.equalsIgnoreCase(function.getTrigger().getType(), HTTP_TRIGGER))
-                    .collect(Collectors.toList());
+                .filter(function -> function.getTrigger() != null &&
+                    StringUtils.equalsIgnoreCase(function.getTrigger().getType(), HTTP_TRIGGER))
+                .collect(Collectors.toList());
             final List<FunctionEntity> anonymousTriggers = httpFunction.stream()
-                    .filter(bindingResource -> bindingResource.getTrigger() != null &&
-                            StringUtils.equalsIgnoreCase(bindingResource.getTrigger().getProperty(AUTH_LEVEL), ANONYMOUS))
-                    .collect(Collectors.toList());
+                .filter(bindingResource -> bindingResource.getTrigger() != null &&
+                    StringUtils.equalsIgnoreCase(bindingResource.getTrigger().getProperty(AUTH_LEVEL), ANONYMOUS))
+                .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(httpFunction) || CollectionUtils.isEmpty(anonymousTriggers)) {
                 AzureMessager.getMessager().info(NO_ANONYMOUS_HTTP_TRIGGER);
                 return;
@@ -146,26 +146,26 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
         AzureMessager.getMessager().info(SYNC_TRIGGERS);
         Thread.sleep(5 * 1000);
         Mono.fromRunnable(() -> {
-            try {
-                functionApp.syncTriggers();
-            } catch (ManagementException e) {
-                if (e.getResponse().getStatusCode() != 200) { // Java SDK throw exception with 200 response, swallow exception in this case
-                    throw e;
+                try {
+                    functionApp.syncTriggers();
+                } catch (ManagementException e) {
+                    if (e.getResponse().getStatusCode() != 200) { // Java SDK throw exception with 200 response, swallow exception in this case
+                        throw e;
+                    }
                 }
-            }
-        }).subscribeOn(Schedulers.boundedElastic())
-        .retryWhen(Retry.fixedDelay(SYNC_FUNCTION_MAX_ATTEMPTS - 1, Duration.ofSeconds(SYNC_FUNCTION_DELAY))).block();
+            }).subscribeOn(Schedulers.boundedElastic())
+            .retryWhen(Retry.fixedDelay(SYNC_FUNCTION_MAX_ATTEMPTS - 1, Duration.ofSeconds(SYNC_FUNCTION_DELAY))).block();
     }
 
     private List<FunctionEntity> listFunctions(final FunctionApp functionApp) {
         final int[] count = {0};
         return Mono.fromCallable(() -> {
-            final AzureString message = count[0]++ == 0 ? AzureString.fromString(LIST_TRIGGERS) : AzureString.format(LIST_TRIGGERS_WITH_RETRY, count[0], LIST_TRIGGERS_MAX_RETRY);
-            AzureMessager.getMessager().info(message);
-            return Optional.of(functionApp.listFunctions())
-                .filter(CollectionUtils::isNotEmpty)
-                .orElseThrow(() -> new AzureToolkitRuntimeException(NO_TRIGGERS_FOUNDED));
-        }).subscribeOn(Schedulers.boundedElastic())
-        .retryWhen(Retry.fixedDelay(LIST_TRIGGERS_MAX_RETRY - 1, Duration.ofSeconds(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS))).block();
+                final AzureString message = count[0]++ == 0 ? AzureString.fromString(LIST_TRIGGERS) : AzureString.format(LIST_TRIGGERS_WITH_RETRY, count[0], LIST_TRIGGERS_MAX_RETRY);
+                AzureMessager.getMessager().info(message);
+                return Optional.of(functionApp.listFunctions())
+                    .filter(CollectionUtils::isNotEmpty)
+                    .orElseThrow(() -> new AzureToolkitRuntimeException(NO_TRIGGERS_FOUNDED));
+            }).subscribeOn(Schedulers.boundedElastic())
+            .retryWhen(Retry.fixedDelay(LIST_TRIGGERS_MAX_RETRY - 1, Duration.ofSeconds(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS))).block();
     }
 }

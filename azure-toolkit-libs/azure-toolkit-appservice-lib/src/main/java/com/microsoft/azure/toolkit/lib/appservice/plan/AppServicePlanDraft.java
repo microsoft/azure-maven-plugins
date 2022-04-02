@@ -18,7 +18,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.validator.SchemaValidator;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
 import lombok.Data;
@@ -30,7 +30,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class AppServicePlanDraft extends AppServicePlan implements
-        AzResource.Draft<AppServicePlan, com.azure.resourcemanager.appservice.models.AppServicePlan> {
+    AzResource.Draft<AppServicePlan, com.azure.resourcemanager.appservice.models.AppServicePlan> {
     private static final String CREATE_NEW_APP_SERVICE_PLAN = "createNewAppServicePlan";
 
     @Getter
@@ -87,7 +87,7 @@ public class AppServicePlanDraft extends AppServicePlan implements
     )
     public com.azure.resourcemanager.appservice.models.AppServicePlan createResourceInAzure() {
         SchemaValidator.getInstance().validateAndThrow("appservice/CreateAppServicePlan", this.getPlanConfig());
-        AzureTelemetry.getContext().getActionParent().setProperty(CREATE_NEW_APP_SERVICE_PLAN, String.valueOf(true));
+        OperationContext.action().setTelemetryProperty(CREATE_NEW_APP_SERVICE_PLAN, String.valueOf(true));
 
         final String name = this.getName();
         final OperatingSystem newOs = Objects.requireNonNull(this.getOperatingSystem(), "'operating system' is required to create App Service plan.");
@@ -124,7 +124,7 @@ public class AppServicePlanDraft extends AppServicePlan implements
         type = AzureOperation.Type.SERVICE
     )
     public com.azure.resourcemanager.appservice.models.AppServicePlan updateResourceInAzure(
-            @Nonnull com.azure.resourcemanager.appservice.models.AppServicePlan remote) {
+        @Nonnull com.azure.resourcemanager.appservice.models.AppServicePlan remote) {
         assert origin != null : "updating target is not specified.";
         final PricingTier newTier = this.getPricingTier();
         final PricingTier oldTier = origin.getPricingTier();
@@ -133,7 +133,7 @@ public class AppServicePlanDraft extends AppServicePlan implements
         Update update = remote.update();
         if (!Objects.equals(this.getRegion(), origin.getRegion())) {
             AzureMessager.getMessager().warning(
-                    AzureString.format("Skip region update for existing service plan ({0}) since it is not allowed.", remote.name()));
+                AzureString.format("Skip region update for existing service plan ({0}) since it is not allowed.", remote.name()));
         }
         com.azure.resourcemanager.appservice.models.AppServicePlan result = remote;
         if (modified) {

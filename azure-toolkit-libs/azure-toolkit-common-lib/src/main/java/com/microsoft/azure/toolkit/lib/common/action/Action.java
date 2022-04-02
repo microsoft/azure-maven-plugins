@@ -9,9 +9,9 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.Getter;
 import lombok.Setter;
@@ -122,10 +122,10 @@ public class Action<D> {
 
     protected void handle(D source, Object e, BiConsumer<D, Object> handler) {
         if (source instanceof AzResource) {
-            Optional.of(AzureTelemetry.getActionContext()).ifPresent(c -> {
-                c.setProperty("subscriptionId", ((AzResource<?, ?, ?>) source).getSubscriptionId());
-                c.setProperty("resourceType", ((AzResource<?, ?, ?>) source).getFullResourceType());
-            });
+            final AzResource<?, ?, ?> resource = (AzResource<?, ?, ?>) source;
+            final OperationContext context = OperationContext.action();
+            context.setTelemetryProperty("subscriptionId", resource.getSubscriptionId());
+            context.setTelemetryProperty("resourceType", resource.getFullResourceType());
         }
         handler.accept(source, e);
     }

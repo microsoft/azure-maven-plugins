@@ -18,7 +18,7 @@ import com.microsoft.applicationinsights.core.dependencies.apachecommons.io.inpu
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.Binding;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingEnum;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionConfiguration;
@@ -31,7 +31,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Scanner;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class AzureFunctionPackager extends AzureFunctionPackagerBase {
@@ -64,15 +71,15 @@ public class AzureFunctionPackager extends AzureFunctionPackagerBase {
     protected static final String BUILD_SUCCESS = "Successfully built Azure Functions.";
 
     private static final String DEFAULT_LOCAL_SETTINGS_JSON = "{ \"IsEncrypted\": false, \"Values\": " +
-            "{ \"FUNCTIONS_WORKER_RUNTIME\": \"java\" } }";
+        "{ \"FUNCTIONS_WORKER_RUNTIME\": \"java\" } }";
     private static final String DEFAULT_HOST_JSON = "{\"version\":\"2.0\",\"extensionBundle\":" +
-            "{\"id\":\"Microsoft.Azure.Functions.ExtensionBundle\",\"version\":\"[1.*, 2.0.0)\"}}\n";
+        "{\"id\":\"Microsoft.Azure.Functions.ExtensionBundle\",\"version\":\"[1.*, 2.0.0)\"}}\n";
 
     private static final String SKIP_INSTALL_EXTENSIONS_FLAG = "skipInstallExtensions flag is set, skip install extension";
     private static final String SKIP_INSTALL_EXTENSIONS_BUNDLE = "Extension bundle specified, skip install extension";
     private static final String EXTENSION_BUNDLE_ID = "Microsoft.Azure.Functions.ExtensionBundle";
     private static final String EXTENSION_BUNDLE_PREVIEW_ID = "Microsoft.Azure.Functions.ExtensionBundle.Preview";
-    private static final BindingEnum[] FUNCTION_WITHOUT_FUNCTION_EXTENSION = { BindingEnum.HttpOutput, BindingEnum.HttpTrigger };
+    private static final BindingEnum[] FUNCTION_WITHOUT_FUNCTION_EXTENSION = {BindingEnum.HttpOutput, BindingEnum.HttpTrigger};
 
     private static class AzureFunctionPackagerHolder {
         static final AzureFunctionPackager instance = new AzureFunctionPackager();
@@ -83,8 +90,8 @@ public class AzureFunctionPackager extends AzureFunctionPackagerBase {
     }
 
     @AzureOperation(
-            name = "function.prepare_staging_folder",
-            type = AzureOperation.Type.TASK
+        name = "function.prepare_staging_folder",
+        type = AzureOperation.Type.TASK
     )
     public void packageProject(FunctionProject project, boolean installExtension, String funcPath) {
         final List<FunctionMethod> methods = findAnnotatedMethodsInner(project);
@@ -119,9 +126,9 @@ public class AzureFunctionPackager extends AzureFunctionPackagerBase {
     }
 
     @AzureOperation(
-            name = "function.list_function_methods",
-            params = {"project.getName()"},
-            type = AzureOperation.Type.TASK
+        name = "function.list_function_methods",
+        params = {"project.getName()"},
+        type = AzureOperation.Type.TASK
     )
     private List<FunctionMethod> findAnnotatedMethodsInner(FunctionProject project) {
         AzureMessager.getMessager().info(LINE_FEED + SEARCH_FUNCTIONS);
@@ -179,7 +186,7 @@ public class AzureFunctionPackager extends AzureFunctionPackagerBase {
                                        final FunctionConfiguration config) throws IOException {
         AzureMessager.getMessager().info(SAVE_FUNCTION_JSON + functionName);
         final File functionJsonFile = Paths.get(project.getStagingFolder().getAbsolutePath(),
-                functionName, FUNCTION_JSON).toFile();
+            functionName, FUNCTION_JSON).toFile();
         writeObjectToFile(objectWriter, config, functionJsonFile);
         AzureMessager.getMessager().info(SAVE_SUCCESS + functionJsonFile.getAbsolutePath());
     }
@@ -201,7 +208,7 @@ public class AzureFunctionPackager extends AzureFunctionPackagerBase {
     }
 
     private static void copyFilesWithDefaultContent(File source, File dest, String defaultContent)
-            throws IOException {
+        throws IOException {
         if (source != null && source.exists()) {
             FileUtils.copyFile(source, dest);
         } else {
@@ -210,7 +217,7 @@ public class AzureFunctionPackager extends AzureFunctionPackagerBase {
     }
 
     private void writeObjectToFile(final ObjectWriter objectWriter, final Object object, final File targetFile)
-            throws IOException {
+        throws IOException {
         targetFile.getParentFile().mkdirs();
         targetFile.createNewFile();
         objectWriter.writeValue(targetFile, object);
@@ -220,9 +227,9 @@ public class AzureFunctionPackager extends AzureFunctionPackagerBase {
         final DefaultPrettyPrinter.Indenter indenter = DefaultIndenter.SYSTEM_LINEFEED_INSTANCE.withLinefeed(StringUtils.LF);
         final PrettyPrinter prettyPrinter = new DefaultPrettyPrinter().withObjectIndenter(indenter);
         return new ObjectMapper()
-                .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-                .writer(prettyPrinter);
+            .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+            .writer(prettyPrinter);
     }
 
     private void copyJarsToStageDirectory(FunctionProject project) throws IOException {
@@ -240,21 +247,21 @@ public class AzureFunctionPackager extends AzureFunctionPackagerBase {
     }
 
     private void trackFunctionProperties(Map<String, FunctionConfiguration> configMap) {
-        AzureTelemetry.getContext().getActionParent().setProperty(TRIGGER_TYPE, StringUtils.join(getFunctionBindingList(configMap), ","));
+        OperationContext.action().setTelemetryProperty(TRIGGER_TYPE, StringUtils.join(getFunctionBindingList(configMap), ","));
     }
 
     private List<String> getFunctionBindingList(Map<String, FunctionConfiguration> configMap) {
         return configMap.values().stream().flatMap(configuration -> configuration.getBindings().stream())
-                .map(Binding::getType)
-                .sorted()
-                .distinct()
-                .collect(Collectors.toList());
+            .map(Binding::getType)
+            .sorted()
+            .distinct()
+            .collect(Collectors.toList());
     }
 
     private Set<BindingEnum> getFunctionBindingEnums(Map<String, FunctionConfiguration> configMap) {
         final Set<BindingEnum> result = new HashSet<>();
         configMap.values().forEach(configuration -> configuration.getBindings().
-                forEach(binding -> result.add(binding.getBindingEnum())));
+            forEach(binding -> result.add(binding.getBindingEnum())));
         return result;
     }
 
@@ -265,15 +272,15 @@ public class AzureFunctionPackager extends AzureFunctionPackagerBase {
         }
         final JsonObject hostJson = readHostJson(project);
         final String extensionBundleId = Optional.ofNullable(hostJson)
-                .map(host -> host.getAsJsonObject(EXTENSION_BUNDLE))
-                .map(extensionBundle -> extensionBundle.get("id"))
-                .map(JsonElement::getAsString).orElse(null);
+            .map(host -> host.getAsJsonObject(EXTENSION_BUNDLE))
+            .map(extensionBundle -> extensionBundle.get("id"))
+            .map(JsonElement::getAsString).orElse(null);
         if (StringUtils.equalsAnyIgnoreCase(extensionBundleId, EXTENSION_BUNDLE_ID, EXTENSION_BUNDLE_PREVIEW_ID)) {
             AzureMessager.getMessager().info(SKIP_INSTALL_EXTENSIONS_BUNDLE);
             return false;
         }
         final boolean isNonHttpTriggersExist = bindingTypes.stream().anyMatch(binding ->
-                !Arrays.asList(FUNCTION_WITHOUT_FUNCTION_EXTENSION).contains(binding));
+            !Arrays.asList(FUNCTION_WITHOUT_FUNCTION_EXTENSION).contains(binding));
         if (!isNonHttpTriggersExist) {
             AzureMessager.getMessager().info(SKIP_INSTALL_EXTENSIONS_HTTP);
             return false;

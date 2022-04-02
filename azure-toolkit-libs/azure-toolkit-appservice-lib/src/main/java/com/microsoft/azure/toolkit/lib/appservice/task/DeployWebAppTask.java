@@ -11,8 +11,8 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -72,7 +72,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
             .filter(artifact -> artifact.getDeployType() != null)
             .collect(Collectors.toList());
         artifactsOneDeploy.forEach(resource -> webApp.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
-        AzureTelemetry.getContext().getActionParent().setProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
+        OperationContext.action().setTelemetryProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
     }
 
     private static void stopAppService(WebAppBase<?, ?, ?> target) {

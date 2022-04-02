@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.common.operation;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.common.utils.aspect.MethodInvocation;
 import lombok.extern.java.Log;
 import org.aspectj.lang.JoinPoint;
@@ -59,11 +58,11 @@ public final class AzureOperationAspect {
 
     public static void beforeEnter(Operation<?> operation, Object source) {
         if (source instanceof AzResourceModule) {
-            AzureTelemetry.getContext().setProperty("resourceType", ((AzResourceModule<?, ?, ?>) source).getFullResourceType());
-            AzureTelemetry.getContext().setProperty("subscriptionId", ((AzResourceModule<?, ?, ?>) source).getSubscriptionId());
+            OperationContext.current().setTelemetryProperty("resourceType", ((AzResourceModule<?, ?, ?>) source).getFullResourceType());
+            OperationContext.current().setTelemetryProperty("subscriptionId", ((AzResourceModule<?, ?, ?>) source).getSubscriptionId());
         } else if (source instanceof AzResource) {
-            AzureTelemetry.getContext().setProperty("resourceType", ((AzResource<?, ?, ?>) source).getFullResourceType());
-            AzureTelemetry.getContext().setProperty("subscriptionId", ((AzResource<?, ?, ?>) source).getSubscriptionId());
+            OperationContext.current().setTelemetryProperty("resourceType", ((AzResource<?, ?, ?>) source).getFullResourceType());
+            OperationContext.current().setTelemetryProperty("subscriptionId", ((AzResource<?, ?, ?>) source).getSubscriptionId());
         }
         AzureTelemeter.beforeEnter(operation);
         OperationThreadContext.current().pushOperation(operation);
