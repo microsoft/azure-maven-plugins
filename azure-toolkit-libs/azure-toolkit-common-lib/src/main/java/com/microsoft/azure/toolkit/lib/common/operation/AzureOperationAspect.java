@@ -66,11 +66,11 @@ public final class AzureOperationAspect {
             AzureTelemetry.getContext().setProperty("subscriptionId", ((AzResource<?, ?, ?>) source).getSubscriptionId());
         }
         AzureTelemeter.beforeEnter(operation);
-        AzureOperationContext.current().pushOperation(operation);
+        OperationThreadContext.current().pushOperation(operation);
     }
 
     public static void afterReturning(Operation<?> current, Object source) {
-        final Operation<?> operation = AzureOperationContext.current().popOperation();
+        final Operation<?> operation = OperationThreadContext.current().popOperation();
         // TODO: this cannot ensure same operation actually, considering recursive call
         assert Objects.nonNull(operation) && Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the exiting operation[%s]", current, operation);
@@ -78,7 +78,7 @@ public final class AzureOperationAspect {
     }
 
     public static void afterThrowing(Throwable e, Operation<?> current, Object source) throws Throwable {
-        final Operation<?> operation = AzureOperationContext.current().popOperation();
+        final Operation<?> operation = OperationThreadContext.current().popOperation();
         // TODO: this cannot ensure same operation actually, considering recursive call
         assert Objects.nonNull(operation) && Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the operation[%s] throwing exception", current, operation);

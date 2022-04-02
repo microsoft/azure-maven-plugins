@@ -61,6 +61,6 @@ public interface Operation<T> extends DataStore {
 
     @Nullable
     static Operation<?> current() {
-        return AzureOperationContext.current().currentOperation();
+        return OperationThreadContext.current().currentOperation();
     }
 }

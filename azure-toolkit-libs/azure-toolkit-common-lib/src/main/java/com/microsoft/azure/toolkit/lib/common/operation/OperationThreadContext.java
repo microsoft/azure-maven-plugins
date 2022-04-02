@@ -18,22 +18,22 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Log
-public class AzureOperationContext {
-    private static final ThreadLocal<AzureOperationContext> context = new ThreadLocal<>();
+public class OperationThreadContext {
+    private static final ThreadLocal<OperationThreadContext> context = new ThreadLocal<>();
 
     protected long threadId;
     @Nullable
     protected Operation<?> operation;
     @Getter
     @Nullable
-    protected AzureOperationContext parent;
+    protected OperationThreadContext parent;
 
-    private AzureOperationContext(@Nullable final AzureOperationContext parent) {
+    private OperationThreadContext(@Nullable final OperationThreadContext parent) {
         this.threadId = -1;
         this.setParent(parent);
     }
 
-    private synchronized void setParent(@Nullable AzureOperationContext parent) {
+    private synchronized void setParent(@Nullable OperationThreadContext parent) {
         if (!Objects.equals(this.parent, parent)) {
             this.parent = parent;
             this.operation = Optional.ofNullable(parent).map(p -> p.operation).orElse(null);
@@ -41,11 +41,11 @@ public class AzureOperationContext {
     }
 
     @Nonnull
-    public static AzureOperationContext current() {
-        AzureOperationContext ctxNode = AzureOperationContext.context.get();
+    public static OperationThreadContext current() {
+        OperationThreadContext ctxNode = OperationThreadContext.context.get();
         if (Objects.isNull(ctxNode)) {
-            ctxNode = new AzureOperationContext(null);
-            AzureOperationContext.context.set(ctxNode);
+            ctxNode = new OperationThreadContext(null);
+            OperationThreadContext.context.set(ctxNode);
         }
         return ctxNode;
     }
@@ -69,7 +69,7 @@ public class AzureOperationContext {
         assert popped != null : "popped operation is null";
         this.operation = popped.getParent();
         if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {
-            AzureOperationContext.context.remove();
+            OperationThreadContext.context.remove();
             log.fine(String.format("orphan context[%s] is disposed", this));
         }
         return popped;
@@ -91,33 +91,33 @@ public class AzureOperationContext {
     }
 
     @Nonnull
-    public AzureOperationContext derive() {
+    public OperationThreadContext derive() {
         final long threadId = Thread.currentThread().getId();
-        final AzureOperationContext current = AzureOperationContext.current();
+        final OperationThreadContext current = OperationThreadContext.current();
         assert this == current : String.format("[threadId:%s] deriving context from context[%s] in context[%s].", threadId, this, current);
         this.threadId = this.threadId > 0 ? this.threadId : threadId;
-        return new AzureOperationContext(this);
+        return new OperationThreadContext(this);
     }
 
     private synchronized void setup() {
-        final AzureOperationContext current = AzureOperationContext.current();
+        final OperationThreadContext current = OperationThreadContext.current();
         final long threadId = Thread.currentThread().getId();
         assert current.threadId == -1 || current.threadId == threadId : String.format("[threadId:%s] illegal thread context[%s]", threadId, current);
         this.threadId = threadId; // we can not decide in which thread this task will run until here.
         if (current.threadId != -1) {
             this.setParent(current);
         }
-        AzureOperationContext.context.set(this);
+        OperationThreadContext.context.set(this);
     }
 
     private synchronized void dispose() {
-        final AzureOperationContext current = AzureOperationContext.current();
+        final OperationThreadContext current = OperationThreadContext.current();
         final long threadId = Thread.currentThread().getId();
         assert this == current && this.threadId == threadId : String.format("[threadId:%s] disposing context[%s] in context[%s].", threadId, this, current);
         if (this.parent == null || this.threadId != this.parent.threadId) { // this is the root task of current thread.
-            AzureOperationContext.context.remove();
+            OperationThreadContext.context.remove();
         } else { // this is not the root task of current thread.
-            AzureOperationContext.context.set(this.parent);
+            OperationThreadContext.context.set(this.parent);
         }
     }
 
@@ -127,7 +127,7 @@ public class AzureOperationContext {
 
     public String toString() {
         final String id = getId();
-        final String prId = Optional.ofNullable(this.parent).map(AzureOperationContext::getId).orElse("/");
+        final String prId = Optional.ofNullable(this.parent).map(OperationThreadContext::getId).orElse("/");
         return String.format("{id: %s, threadId:%s, parent:%s}", id, this.threadId, prId);
     }
 }

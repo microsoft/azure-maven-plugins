@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.task;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationAspect;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationContext;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationThreadContext;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import lombok.extern.java.Log;
 import rx.Emitter;
@@ -377,7 +377,7 @@ public abstract class AzureTaskManager {
 
     private <T> Observable<T> runInObservable(final BiConsumer<? super Runnable, ? super AzureTask<T>> consumer, final AzureTask<T> task) {
         return Observable.create((Emitter<T> emitter) -> {
-            final AzureOperationContext context = AzureOperationContext.current().derive();
+            final OperationThreadContext context = OperationThreadContext.current().derive();
             AzureTelemeter.afterCreate(task);
             final Runnable t = () -> context.run(() -> {
                 try {
