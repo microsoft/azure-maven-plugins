@@ -19,7 +19,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -45,15 +44,18 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
     }
 
     @Preload
-    @AzureOperation(name = "resource.preload", type = AzureOperation.Type.ACTION)
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static void preload() {
-        OperationContext.action().setTelemetryProperty("preloading", String.valueOf(true));
-        final List<AbstractAzService> services = Azure.getServices(AbstractAzService.class);
-        services.stream().parallel()
-            .flatMap(s -> s.list().stream())
+        Azure.getServices(AbstractAzService.class).stream()
+            .flatMap(s -> s.list().parallelStream())
             .flatMap(m -> ((AbstractAzResourceManager) m).getSubModules().stream())
-            .forEach(m -> ((AzResourceModule) m).list());
+            .forEach(m -> preload((AzResourceModule) m));
+    }
+
+    @AzureOperation(name = "resource.preload", type = AzureOperation.Type.ACTION)
+    private static void preload(AzResourceModule<?, ?, ?> m) {
+        OperationContext.action().setTelemetryProperty("preloading", String.valueOf(true));
+        m.list();
     }
 
     @Nonnull
