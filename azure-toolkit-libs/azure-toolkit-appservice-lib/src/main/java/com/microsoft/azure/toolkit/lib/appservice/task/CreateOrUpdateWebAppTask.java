@@ -57,7 +57,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
     private List<AzureTask<?>> initTasks() {
         final List<AzureTask<?>> tasks = new ArrayList<>();
         final AzureString title = AzureString.format("Create new web app({0})", this.config.appName());
-        AzureAppService az = Azure.az(AzureWebApp.class);
+        AzureWebApp az = Azure.az(AzureWebApp.class);
         tasks.add(new AzureTask<>(title, () -> {
             final WebApp target = az.webApps(config.subscriptionId())
                 .getOrDraft(config.appName(), config.resourceGroup());
@@ -85,13 +85,12 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
         final AppServicePlanConfig planConfig = config.getServicePlanConfig();
 
         new CreateResourceGroupTask(this.config.subscriptionId(), this.config.resourceGroup(), region).doExecute();
-        final AzureAppService az = Azure.az(AzureAppService.class);
 
-        final AppServicePlanDraft planDraft = az.plans(planConfig.subscriptionId())
+        final AppServicePlanDraft planDraft = Azure.az(AzureAppService.class).plans(planConfig.subscriptionId())
             .updateOrCreate(planConfig.servicePlanName(), planConfig.servicePlanResourceGroup());
         planDraft.setPlanConfig(planConfig);
 
-        final WebAppDraft appDraft = az.webApps(config.subscriptionId()).create(config.appName(), config.resourceGroup());
+        final WebAppDraft appDraft = Azure.az(AzureWebApp.class).webApps(config.subscriptionId()).create(config.appName(), config.resourceGroup());
         appDraft.setAppServicePlan(planDraft.commit());
         appDraft.setRuntime(getRuntime(config.runtime()));
         appDraft.setDockerConfiguration(getDockerConfiguration(config.runtime()));

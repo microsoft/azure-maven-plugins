@@ -21,7 +21,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -52,7 +52,7 @@ public class AppServiceResourceManager extends AbstractAzResourceManager<AppServ
     @Nonnull
     @Override
     public List<AzResourceModule<?, AppServiceResourceManager, ?>> getSubModules() {
-        return Arrays.asList(webAppModule, functionAppModule, planModule);
+        return Collections.singletonList(planModule);
     }
 
     @Nonnull
