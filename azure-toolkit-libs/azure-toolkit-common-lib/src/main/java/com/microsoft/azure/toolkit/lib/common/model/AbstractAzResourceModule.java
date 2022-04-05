@@ -228,6 +228,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Override
+    @AzureOperation(name = "resource.refresh.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     public void refresh() {
         log.debug("[{}]:refresh()", this.name);
         this.syncTime.set(-1);

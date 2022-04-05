@@ -28,7 +28,7 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
     public AbstractAzService(@Nonnull String name) {
         super(name, AzResource.NONE);
         AzureEventBus.on("account.logout.account", new AzureEventBus.EventListener((e) -> this.clear()));
-        AzureEventBus.on("account.subscription_changed.account", new AzureEventBus.EventListener((e) -> this.refresh()));
+        AzureEventBus.on("account.subscription_changed.account", new AzureEventBus.EventListener((e) -> refreshOnSubscriptionChanged()));
     }
 
     @Nullable
@@ -52,10 +52,15 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
             .forEach(m -> preload((AzResourceModule) m));
     }
 
-    @AzureOperation(name = "resource.preload", type = AzureOperation.Type.ACTION)
-    private static void preload(AzResourceModule<?, ?, ?> m) {
+    @AzureOperation(name = "resource.refresh_on_subscription_changed.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.ACTION)
+    private void refreshOnSubscriptionChanged() {
+        this.refresh();
+    }
+
+    @AzureOperation(name = "resource.preload.type", params = {"module.getResourceTypeName()"}, type = AzureOperation.Type.ACTION)
+    private static void preload(AzResourceModule<?, ?, ?> module) {
         OperationContext.action().setTelemetryProperty("preloading", String.valueOf(true));
-        m.list();
+        module.list();
     }
 
     @Nonnull
