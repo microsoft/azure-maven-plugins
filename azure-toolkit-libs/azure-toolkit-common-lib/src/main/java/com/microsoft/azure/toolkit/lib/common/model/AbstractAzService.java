@@ -47,7 +47,7 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static void preload() {
         Azure.getServices(AbstractAzService.class).stream()
-            .flatMap(s -> s.list().parallelStream())
+            .flatMap(s -> s.list().stream())
             .flatMap(m -> ((AbstractAzResourceManager) m).getSubModules().stream())
             .forEach(m -> preload((AzResourceModule) m));
     }

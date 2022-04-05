@@ -33,7 +33,7 @@ public class Preloader {
         log.fine(String.format("Found %d @Preload annotated methods.", methods.size()));
         log.fine("End Scanning for @Preload");
         log.fine("Start Preloading");
-        methods.parallelStream().forEach((m) -> {
+        methods.forEach((m) -> {
             Object instance = null;
             // TODO: maybe support predefined variables, e.g. selected subscriptions
             if ((m.getParameterCount() == 0 || m.isVarArgs()) && (Modifier.isStatic(m.getModifiers()) || Objects.nonNull(instance = getSingleton(m)))) {
