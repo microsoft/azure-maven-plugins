@@ -47,8 +47,15 @@ public class WebAppDeploymentSlotModule extends AbstractAzResourceModule<WebAppD
     }
 
     @Nonnull
+    @Override
     protected WebAppDeploymentSlot newResource(@Nonnull WebSiteBase remote) {
         return new WebAppDeploymentSlot((WebDeploymentSlotBasic) remote, this);
+    }
+
+    @Nonnull
+    @Override
+    protected WebAppDeploymentSlot newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new WebAppDeploymentSlot(name, this);
     }
 
     @Nonnull

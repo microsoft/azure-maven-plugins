@@ -29,6 +29,7 @@ public class AzureContainerRegistry extends AbstractAzService<AzureContainerRegi
         super("Microsoft.ContainerRegistry");
     }
 
+    @Nonnull
     @Override
     protected AzureContainerRegistryResourceManager newResource(@Nonnull ContainerRegistryManager containerRegistryManager) {
         return new AzureContainerRegistryResourceManager(containerRegistryManager, this);

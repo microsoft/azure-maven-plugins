@@ -83,6 +83,12 @@ public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzRes
 
         @Nonnull
         @Override
+        protected AzResource.None newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+            return AzResource.NONE;
+        }
+
+        @Nonnull
+        @Override
         public String getResourceTypeName() {
             return "NONE";
         }

@@ -14,6 +14,8 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 
 public class FunctionAppModule extends AbstractAzResourceModule<FunctionApp, AppServiceResourceManager, WebSiteBase> {
@@ -50,6 +52,11 @@ public class FunctionAppModule extends AbstractAzResourceModule<FunctionApp, App
     @Nonnull
     protected FunctionApp newResource(@Nonnull WebSiteBase remote) {
         return new FunctionApp((FunctionAppBasic) remote, this);
+    }
+
+    @Nonnull
+    protected FunctionApp newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new FunctionApp(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nonnull

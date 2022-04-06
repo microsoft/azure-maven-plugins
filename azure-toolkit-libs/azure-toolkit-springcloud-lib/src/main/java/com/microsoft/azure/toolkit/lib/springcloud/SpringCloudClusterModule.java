@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 
 public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringCloudCluster, SpringCloudResourceManager, SpringService> {
@@ -31,6 +32,11 @@ public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringClo
     @Nonnull
     protected SpringCloudCluster newResource(@Nonnull SpringService r) {
         return new SpringCloudCluster(r, this);
+    }
+
+    @Nonnull
+    protected SpringCloudCluster newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new SpringCloudCluster(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nonnull

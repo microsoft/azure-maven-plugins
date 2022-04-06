@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -79,6 +80,11 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
     @Nonnull
     protected MicrosoftSqlServer newResource(@Nonnull SqlServer r) {
         return new MicrosoftSqlServer(r, this);
+    }
+
+    @Nonnull
+    protected MicrosoftSqlServer newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new MicrosoftSqlServer(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nonnull

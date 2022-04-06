@@ -166,6 +166,19 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
+    public T getOrInit(@Nonnull String name, @Nullable String resourceGroup) {
+        log.debug("[{}]:getOrDraft({}, {})", this.name, name, resourceGroup);
+        synchronized (this.resources) {
+            return this.resources.get(name).orElseGet(() -> {
+                final T resource = this.newResource(name, resourceGroup);
+                log.debug("[{}]:get({}, {})->addResourceToLocal({}, resource)", this.name, name, resourceGroup, name);
+                this.addResourceToLocal(name, resource, true);
+                return resource;
+            });
+        }
+    }
+
+    @Nonnull
     public <D extends AzResource.Draft<T, R>> D updateOrCreate(@Nonnull String name, @Nullable String resourceGroup) {
         log.debug("[{}]:updateOrCreate({}, {})", this.name, name, resourceGroup);
         final T resource = this.get(name, resourceGroup);
@@ -279,24 +292,28 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     T deleteResourceFromLocal(@Nonnull String name, boolean... silent) {
         log.debug("[{}]:deleteResourceFromLocal({})", this.name, name);
         log.debug("[{}]:deleteResourceFromLocal->this.resources.remove({})", this.name, name);
-        final Optional<T> removed = this.resources.remove(name);
-        if (Objects.nonNull(removed) && removed.isPresent() && (silent.length == 0 || !silent[0])) {
-            log.debug("[{}]:deleteResourceFromLocal->fireResourcesChangedEvent()", this.name);
-            fireEvents.debounce();
+        synchronized (this.resources) {
+            final Optional<T> removed = this.resources.remove(name);
+            if (Objects.nonNull(removed) && removed.isPresent() && (silent.length == 0 || !silent[0])) {
+                log.debug("[{}]:deleteResourceFromLocal->fireResourcesChangedEvent()", this.name);
+                fireEvents.debounce();
+            }
+            return Objects.nonNull(removed) ? removed.orElse(null) : null;
         }
-        return Objects.nonNull(removed) ? removed.orElse(null) : null;
     }
 
-    private synchronized void addResourceToLocal(@Nonnull String name, @Nullable T resource, boolean... silent) {
+    private void addResourceToLocal(@Nonnull String name, @Nullable T resource, boolean... silent) {
         log.debug("[{}]:addResourceToLocal({}, {})", this.name, name, resource);
-        final Optional<T> oldResource = this.resources.getOrDefault(name, Optional.empty());
-        final Optional<T> newResource = Optional.ofNullable(resource);
-        if (!oldResource.isPresent()) {
-            log.debug("[{}]:addResourceToLocal->this.resources.put({}, {})", this.name, name, resource);
-            this.resources.put(name, newResource);
-            if (newResource.isPresent() && (silent.length == 0 || !silent[0])) {
-                log.debug("[{}]:addResourceToLocal->fireResourcesChangedEvent()", this.name);
-                fireEvents.debounce();
+        synchronized (this.resources) {
+            final Optional<T> oldResource = this.resources.getOrDefault(name, Optional.empty());
+            final Optional<T> newResource = Optional.ofNullable(resource);
+            if (!oldResource.isPresent()) {
+                log.debug("[{}]:addResourceToLocal->this.resources.put({}, {})", this.name, name, resource);
+                this.resources.put(name, newResource);
+                if (newResource.isPresent() && (silent.length == 0 || !silent[0])) {
+                    log.debug("[{}]:addResourceToLocal->fireResourcesChangedEvent()", this.name);
+                    fireEvents.debounce();
+                }
             }
         }
     }
@@ -377,6 +394,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     protected abstract T newResource(@Nonnull R r);
+
+    @Nonnull
+    protected abstract T newResource(@Nonnull String name, @Nullable String resourceGroupName);
 
     /**
      * get track2 client, which is used to implement {@link #loadResourcesFromAzure}, {@link #loadResourceFromAzure} and {@link #deleteResourceFromAzure}

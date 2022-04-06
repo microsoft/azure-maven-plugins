@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 
 public class RedisCacheModule extends AbstractAzResourceModule<RedisCache, RedisResourceManager, com.azure.resourcemanager.redis.models.RedisCache> {
@@ -49,6 +50,11 @@ public class RedisCacheModule extends AbstractAzResourceModule<RedisCache, Redis
     @Nonnull
     protected RedisCache newResource(@Nonnull com.azure.resourcemanager.redis.models.RedisCache r) {
         return new RedisCache(r, this);
+    }
+
+    @Nonnull
+    protected RedisCache newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new RedisCache(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nonnull

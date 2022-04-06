@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.network.NetworkResourceManager;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 
 public class PublicIpAddressModule extends AbstractAzResourceModule<PublicIpAddress, NetworkResourceManager, com.azure.resourcemanager.network.models.PublicIpAddress> {
@@ -50,6 +51,11 @@ public class PublicIpAddressModule extends AbstractAzResourceModule<PublicIpAddr
     @Nonnull
     protected PublicIpAddress newResource(@Nonnull com.azure.resourcemanager.network.models.PublicIpAddress r) {
         return new PublicIpAddress(r, this);
+    }
+
+    @Nonnull
+    protected PublicIpAddress newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new PublicIpAddress(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nonnull

@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -118,5 +119,12 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
     @Override
     public int hashCode() {
         return super.hashCode();
+    }
+
+    @NotNull
+    @Override
+    protected T newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        final R r = this.loadResourceFromAzure(name, resourceGroupName);
+        return this.newResource(Objects.requireNonNull(r));
     }
 }

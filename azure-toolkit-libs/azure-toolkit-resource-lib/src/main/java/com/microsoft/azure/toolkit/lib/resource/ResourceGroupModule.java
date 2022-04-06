@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 
 public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup, ResourceGroupManager, com.azure.resourcemanager.resources.models.ResourceGroup> {
@@ -74,6 +75,11 @@ public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup,
     @Nonnull
     protected ResourceGroup newResource(@Nonnull com.azure.resourcemanager.resources.models.ResourceGroup r) {
         return new ResourceGroup(r, this);
+    }
+
+    @Nonnull
+    protected ResourceGroup newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new ResourceGroup(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nonnull

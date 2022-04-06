@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -81,6 +82,11 @@ public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MyS
     @Nonnull
     protected MySqlServer newResource(@Nonnull Server r) {
         return new MySqlServer(r, this);
+    }
+
+    @Nonnull
+    protected MySqlServer newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new MySqlServer(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nonnull

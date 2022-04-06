@@ -35,6 +35,12 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
 
     @Nonnull
     @Override
+    protected PostgreSqlFirewallRule newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new PostgreSqlFirewallRule(name, this);
+    }
+
+    @Nonnull
+    @Override
     @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<FirewallRule> loadResourcesFromAzure() {
         final PostgreSqlServer p = this.getParent();

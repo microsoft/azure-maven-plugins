@@ -32,6 +32,12 @@ public class PostgreSqlDatabaseModule extends AbstractAzResourceModule<PostgreSq
 
     @Nonnull
     @Override
+    protected PostgreSqlDatabase newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new PostgreSqlDatabase(name, this);
+    }
+
+    @Nonnull
+    @Override
     @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<Database> loadResourcesFromAzure() {
         // https://docs.microsoft.com/en-us/azure/postgresql/concepts-servers

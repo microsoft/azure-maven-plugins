@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 
 public class StorageAccountModule extends AbstractAzResourceModule<StorageAccount, StorageResourceManager, com.azure.resourcemanager.storage.models.StorageAccount> {
@@ -50,6 +51,11 @@ public class StorageAccountModule extends AbstractAzResourceModule<StorageAccoun
     @Nonnull
     protected StorageAccount newResource(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount r) {
         return new StorageAccount(r, this);
+    }
+
+    @Nonnull
+    protected StorageAccount newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new StorageAccount(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nonnull

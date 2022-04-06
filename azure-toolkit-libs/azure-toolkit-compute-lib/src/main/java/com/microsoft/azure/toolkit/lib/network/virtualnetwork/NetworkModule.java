@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.network.NetworkResourceManager;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 
 public class NetworkModule extends AbstractAzResourceModule<Network, NetworkResourceManager, com.azure.resourcemanager.network.models.Network> {
@@ -50,6 +51,11 @@ public class NetworkModule extends AbstractAzResourceModule<Network, NetworkReso
     @Nonnull
     protected Network newResource(@Nonnull com.azure.resourcemanager.network.models.Network r) {
         return new Network(r, this);
+    }
+
+    @Nonnull
+    protected Network newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new Network(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nonnull

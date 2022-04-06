@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.network.NetworkResourceManager;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 
 public class NetworkSecurityGroupModule extends AbstractAzResourceModule<NetworkSecurityGroup, NetworkResourceManager, com.azure.resourcemanager.network.models.NetworkSecurityGroup> {
@@ -50,6 +51,11 @@ public class NetworkSecurityGroupModule extends AbstractAzResourceModule<Network
     @Nonnull
     protected NetworkSecurityGroup newResource(@Nonnull com.azure.resourcemanager.network.models.NetworkSecurityGroup r) {
         return new NetworkSecurityGroup(r, this);
+    }
+
+    @Nonnull
+    protected NetworkSecurityGroup newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new NetworkSecurityGroup(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nonnull

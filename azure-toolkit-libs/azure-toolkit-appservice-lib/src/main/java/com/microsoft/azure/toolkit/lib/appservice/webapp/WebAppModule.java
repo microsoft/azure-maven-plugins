@@ -14,6 +14,8 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 
 public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceResourceManager, WebSiteBase> {
@@ -51,6 +53,12 @@ public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceRes
     @Override
     protected WebApp newResource(@Nonnull WebSiteBase remote) {
         return new WebApp((WebAppBasic) remote, this);
+    }
+
+    @Nonnull
+    @Override
+    protected WebApp newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new WebApp(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nonnull

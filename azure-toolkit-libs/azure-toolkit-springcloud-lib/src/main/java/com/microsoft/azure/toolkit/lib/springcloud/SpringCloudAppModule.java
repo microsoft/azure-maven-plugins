@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class SpringCloudAppModule extends AbstractAzResourceModule<SpringCloudApp, SpringCloudCluster, SpringApp> {
@@ -48,6 +49,11 @@ public class SpringCloudAppModule extends AbstractAzResourceModule<SpringCloudAp
     @Nonnull
     protected SpringCloudApp newResource(@Nonnull SpringApp remote) {
         return new SpringCloudApp(remote, this);
+    }
+
+    @Nonnull
+    protected SpringCloudApp newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new SpringCloudApp(name, this);
     }
 
     @Nonnull
