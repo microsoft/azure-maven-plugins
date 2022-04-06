@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.postgre;
 
 import com.azure.resourcemanager.postgresql.models.Database;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
 
@@ -35,7 +35,7 @@ public class PostgreSqlDatabase extends AbstractAzResource<PostgreSqlDatabase, P
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, PostgreSqlDatabase, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, PostgreSqlDatabase, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

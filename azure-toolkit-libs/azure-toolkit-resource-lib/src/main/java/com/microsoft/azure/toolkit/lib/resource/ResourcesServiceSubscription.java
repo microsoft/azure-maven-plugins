@@ -6,8 +6,8 @@
 package com.microsoft.azure.toolkit.lib.resource;
 
 import com.azure.resourcemanager.resources.ResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
 
@@ -36,7 +36,7 @@ public class ResourcesServiceSubscription extends AbstractAzServiceSubscription<
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, ResourcesServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ResourcesServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(groupModule);
     }
 

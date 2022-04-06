@@ -11,7 +11,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -47,7 +47,7 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageSe
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, StorageAccount, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, StorageAccount, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

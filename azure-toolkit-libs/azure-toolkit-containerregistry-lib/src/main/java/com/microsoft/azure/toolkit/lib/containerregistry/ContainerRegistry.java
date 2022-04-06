@@ -11,7 +11,7 @@ import com.azure.resourcemanager.containerregistry.models.ProvisioningState;
 import com.azure.resourcemanager.containerregistry.models.PublicNetworkAccess;
 import com.azure.resourcemanager.containerregistry.models.Registry;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.containerregistry.model.Sku;
 
@@ -36,7 +36,7 @@ public class ContainerRegistry extends AbstractAzResource<ContainerRegistry, Azu
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, ContainerRegistry, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ContainerRegistry, ?>> getSubModules() {
         return Collections.emptyList();
     }
 
@@ -72,13 +72,13 @@ public class ContainerRegistry extends AbstractAzResource<ContainerRegistry, Azu
     @Nullable
     public String getPrimaryCredential() {
         return remoteOptional().map(registry -> registry.getCredentials().accessKeys())
-                .map(map -> map.get(AccessKeyType.PRIMARY)).orElse(null);
+            .map(map -> map.get(AccessKeyType.PRIMARY)).orElse(null);
     }
 
     @Nullable
     public String getSecondaryCredential() {
         return remoteOptional().map(registry -> registry.getCredentials().accessKeys())
-                .map(map -> map.get(AccessKeyType.SECONDARY)).orElse(null);
+            .map(map -> map.get(AccessKeyType.SECONDARY)).orElse(null);
     }
 
     @Nullable

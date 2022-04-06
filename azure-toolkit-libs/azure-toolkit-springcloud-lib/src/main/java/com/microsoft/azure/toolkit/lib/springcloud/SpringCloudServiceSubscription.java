@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.azure.resourcemanager.resources.ResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
 
@@ -37,7 +37,7 @@ public class SpringCloudServiceSubscription extends AbstractAzServiceSubscriptio
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, SpringCloudServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, SpringCloudServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(clusterModule);
     }
 

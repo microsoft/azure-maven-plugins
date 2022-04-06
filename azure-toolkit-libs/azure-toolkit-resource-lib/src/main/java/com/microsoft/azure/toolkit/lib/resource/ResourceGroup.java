@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.resource;
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 
@@ -54,7 +54,7 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesSe
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, ResourceGroup, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ResourceGroup, ?>> getSubModules() {
         return Collections.singletonList(deploymentModule);
     }
 

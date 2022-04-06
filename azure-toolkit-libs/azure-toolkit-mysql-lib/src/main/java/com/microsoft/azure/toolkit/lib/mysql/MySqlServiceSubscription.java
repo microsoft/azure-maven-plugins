@@ -9,9 +9,9 @@ import com.azure.resourcemanager.mysql.MySqlManager;
 import com.azure.resourcemanager.mysql.models.NameAvailability;
 import com.azure.resourcemanager.mysql.models.NameAvailabilityRequest;
 import com.azure.resourcemanager.mysql.models.PerformanceTierProperties;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Availability;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
@@ -42,7 +42,7 @@ public class MySqlServiceSubscription extends AbstractAzServiceSubscription<MySq
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, MySqlServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, MySqlServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(serverModule);
     }
 

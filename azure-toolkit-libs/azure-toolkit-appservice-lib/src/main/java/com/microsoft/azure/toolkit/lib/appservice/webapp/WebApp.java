@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.appservice.webapp;
 
 import com.azure.resourcemanager.appservice.models.WebAppBasic;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import lombok.Getter;
 
@@ -48,7 +48,7 @@ public class WebApp extends WebAppBase<WebApp, AppServiceServiceSubscription, co
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, WebApp, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, WebApp, ?>> getSubModules() {
         return Collections.singletonList(deploymentModule);
     }
 

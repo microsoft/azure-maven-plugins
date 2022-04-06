@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.network.publicipaddress;
 
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.network.NetworkServiceSubscription;
 
@@ -35,7 +35,7 @@ public class PublicIpAddress extends AbstractAzResource<PublicIpAddress, Network
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, PublicIpAddress, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, PublicIpAddress, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

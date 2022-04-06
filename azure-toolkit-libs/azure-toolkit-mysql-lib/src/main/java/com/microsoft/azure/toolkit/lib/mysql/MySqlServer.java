@@ -12,7 +12,7 @@ import com.azure.resourcemanager.mysql.models.SslEnforcementEnum;
 import com.azure.resourcemanager.mysql.models.StorageProfile;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Startable;
@@ -67,7 +67,7 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSub
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, MySqlServer, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, MySqlServer, ?>> getSubModules() {
         return Arrays.asList(this.firewallRuleModule, this.databaseModule);
     }
 

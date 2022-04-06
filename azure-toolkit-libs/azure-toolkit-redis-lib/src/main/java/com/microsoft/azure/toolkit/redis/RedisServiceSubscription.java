@@ -11,9 +11,9 @@ import com.azure.resourcemanager.redis.RedisManager;
 import com.azure.resourcemanager.redis.fluent.RedisClient;
 import com.azure.resourcemanager.redis.models.CheckNameAvailabilityParameters;
 import com.azure.resourcemanager.resources.ResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Availability;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
@@ -43,7 +43,7 @@ public class RedisServiceSubscription extends AbstractAzServiceSubscription<Redi
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, RedisServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, RedisServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(cacheModule);
     }
 

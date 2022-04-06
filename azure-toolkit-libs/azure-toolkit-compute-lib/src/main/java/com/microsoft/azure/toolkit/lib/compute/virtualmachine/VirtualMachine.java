@@ -9,7 +9,7 @@ import com.azure.resourcemanager.compute.models.LinuxConfiguration;
 import com.azure.resourcemanager.compute.models.OSProfile;
 import com.azure.resourcemanager.network.models.PublicIpAddress;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Startable;
@@ -45,7 +45,7 @@ public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeSe
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, VirtualMachine, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, VirtualMachine, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

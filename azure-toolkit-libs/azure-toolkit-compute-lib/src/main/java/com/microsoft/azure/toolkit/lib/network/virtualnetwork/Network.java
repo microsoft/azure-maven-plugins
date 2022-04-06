@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.network.virtualnetwork;
 
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.network.NetworkServiceSubscription;
 
@@ -37,7 +37,7 @@ public class Network extends AbstractAzResource<Network, NetworkServiceSubscript
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, Network, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, Network, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.lib.network;
 
 import com.azure.resourcemanager.network.NetworkManager;
 import com.azure.resourcemanager.resources.ResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.network.networksecuritygroup.NetworkSecurityGroupModule;
 import com.microsoft.azure.toolkit.lib.network.publicipaddress.PublicIpAddressModule;
 import com.microsoft.azure.toolkit.lib.network.virtualnetwork.NetworkModule;
@@ -45,7 +45,7 @@ public class NetworkServiceSubscription extends AbstractAzServiceSubscription<Ne
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, NetworkServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, NetworkServiceSubscription, ?>> getSubModules() {
         return Arrays.asList(networkSecurityGroupModule, publicIpAddressModule, networkModule);
     }
 

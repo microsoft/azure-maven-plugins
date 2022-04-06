@@ -96,7 +96,7 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
     }
 
     @Nullable
-    protected <E> E doGetById(@Nonnull String id) { // move to upper class
+    protected <E> E doGetById(@Nonnull String id) {
         ResourceId resourceId = ResourceId.fromString(id);
         final String resourceGroup = resourceId.resourceGroupName();
         AbstractAzResource<?, ?, ?> resource = Objects.requireNonNull(this.get(resourceId.subscriptionId(), resourceGroup));
@@ -106,7 +106,7 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
             resourceId = resourceId.parent();
         }
         for (Pair<String, String> resourceTypeName : resourceTypeNames) {
-            resource = (AbstractAzResource<?, ?, ?>) resource.getSubModule(resourceTypeName.getLeft()).getOrDraft(resourceTypeName.getRight(), resourceGroup);
+            resource = resource.getSubModule(resourceTypeName.getLeft()).getOrDraft(resourceTypeName.getRight(), resourceGroup);
         }
         return (E) resource;
     }

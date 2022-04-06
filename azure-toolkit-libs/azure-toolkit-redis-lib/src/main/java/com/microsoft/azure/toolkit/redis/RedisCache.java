@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.redis;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -60,7 +60,7 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisServiceSubsc
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, RedisCache, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, RedisCache, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

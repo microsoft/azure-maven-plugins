@@ -9,9 +9,9 @@ import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.storage.StorageManager;
 import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
 import com.azure.resourcemanager.storage.models.Reason;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Availability;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
@@ -42,7 +42,7 @@ public class StorageServiceSubscription extends AbstractAzServiceSubscription<St
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, StorageServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, StorageServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(storageModule);
     }
 

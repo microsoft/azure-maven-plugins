@@ -6,8 +6,8 @@
 package com.microsoft.azure.toolkit.lib.containerregistry;
 
 import com.azure.resourcemanager.containerregistry.ContainerRegistryManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -37,7 +37,7 @@ public class AzureContainerRegistryServiceSubscription extends AbstractAzService
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, AzureContainerRegistryServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, AzureContainerRegistryServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(azureContainerRegistryModule);
     }
 }

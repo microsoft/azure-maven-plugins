@@ -9,9 +9,9 @@ import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.postgresql.models.NameAvailability;
 import com.azure.resourcemanager.postgresql.models.NameAvailabilityRequest;
 import com.azure.resourcemanager.postgresql.models.PerformanceTierProperties;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Availability;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
@@ -42,7 +42,7 @@ public class PostgreSqlServiceSubscription extends AbstractAzServiceSubscription
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, PostgreSqlServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, PostgreSqlServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(serverModule);
     }
 

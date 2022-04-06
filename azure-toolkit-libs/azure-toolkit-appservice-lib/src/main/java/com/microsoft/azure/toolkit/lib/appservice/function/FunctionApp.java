@@ -9,7 +9,7 @@ import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import lombok.Getter;
 
@@ -51,7 +51,7 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, FunctionApp, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, FunctionApp, ?>> getSubModules() {
         return Collections.singletonList(deploymentModule);
     }
 
@@ -64,10 +64,10 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     @Nonnull
     public List<FunctionEntity> listFunctions(boolean... force) {
         return Optional.ofNullable(this.getFullRemote()).map(r -> r.listFunctions().stream()
-                        .map(envelope -> AppServiceUtils.fromFunctionAppEnvelope(envelope, this.getId()))
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList()))
-                .orElse(Collections.emptyList());
+                .map(envelope -> AppServiceUtils.fromFunctionAppEnvelope(envelope, this.getId()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()))
+            .orElse(Collections.emptyList());
     }
 
     public void triggerFunction(String functionName, Object input) {

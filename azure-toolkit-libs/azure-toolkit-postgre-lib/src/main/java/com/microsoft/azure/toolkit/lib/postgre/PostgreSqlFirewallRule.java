@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.postgre;
 
 import com.azure.resourcemanager.postgresql.models.FirewallRule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
 
 import javax.annotation.Nonnull;
@@ -41,7 +41,7 @@ public class PostgreSqlFirewallRule extends AbstractAzResource<PostgreSqlFirewal
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, PostgreSqlFirewallRule, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, PostgreSqlFirewallRule, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

@@ -13,7 +13,7 @@ import com.azure.resourcemanager.postgresql.models.StorageProfile;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Startable;
@@ -68,7 +68,7 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, PostgreSqlServer, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, PostgreSqlServer, ?>> getSubModules() {
         return Arrays.asList(this.firewallRuleModule, this.databaseModule);
     }
 

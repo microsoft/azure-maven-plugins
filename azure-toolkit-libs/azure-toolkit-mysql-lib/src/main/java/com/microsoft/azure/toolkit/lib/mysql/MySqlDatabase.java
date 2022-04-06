@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.mysql;
 
 import com.azure.resourcemanager.mysql.models.Database;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
 
@@ -35,7 +35,7 @@ public class MySqlDatabase extends AbstractAzResource<MySqlDatabase, MySqlServer
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, MySqlDatabase, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, MySqlDatabase, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

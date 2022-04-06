@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.appservice.webapp;
 import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -26,7 +26,7 @@ public class WebAppServiceSubscription extends AppServiceServiceSubscription {
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, AppServiceServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, AppServiceServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(this.getWebAppModule());
     }
 }

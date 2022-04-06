@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Startable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -51,7 +51,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, SpringCloudApp, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, SpringCloudApp, ?>> getSubModules() {
         return Collections.singletonList(deploymentModule);
     }
 

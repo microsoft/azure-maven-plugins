@@ -338,7 +338,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @Nonnull
-    public abstract List<AzResourceModule<?, T, ?>> getSubModules();
+    public abstract List<AbstractAzResourceModule<?, T, ?>> getSubModules();
 
     @Nonnull
     public abstract String loadStatus(@Nonnull R remote);
@@ -355,7 +355,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @Nonnull
-    public AzResourceModule<?, T, ?> getSubModule(String moduleName) {
+    public AbstractAzResourceModule<?, T, ?> getSubModule(String moduleName) {
         return this.getSubModules().stream().filter(m -> m.getName().equals(moduleName)).findAny()
             .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("invalid module \"%s\"", moduleName)));
     }

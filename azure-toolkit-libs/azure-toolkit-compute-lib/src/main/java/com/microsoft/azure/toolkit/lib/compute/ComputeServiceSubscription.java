@@ -9,8 +9,8 @@ import com.azure.resourcemanager.compute.ComputeManager;
 import com.azure.resourcemanager.compute.models.AvailabilitySet;
 import com.azure.resourcemanager.compute.models.ComputeResourceType;
 import com.azure.resourcemanager.resources.ResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VirtualMachineModule;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VmImagePublisher;
@@ -43,7 +43,7 @@ public class ComputeServiceSubscription extends AbstractAzServiceSubscription<Co
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, ComputeServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ComputeServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(virtualMachineModule);
     }
 

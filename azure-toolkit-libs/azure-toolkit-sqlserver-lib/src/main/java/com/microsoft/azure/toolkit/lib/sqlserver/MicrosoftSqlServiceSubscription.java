@@ -9,9 +9,9 @@ import com.azure.resourcemanager.sql.SqlServerManager;
 import com.azure.resourcemanager.sql.models.CapabilityStatus;
 import com.azure.resourcemanager.sql.models.CheckNameAvailabilityResult;
 import com.azure.resourcemanager.sql.models.RegionCapabilities;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Availability;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
 
@@ -40,7 +40,7 @@ public class MicrosoftSqlServiceSubscription extends AbstractAzServiceSubscripti
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, MicrosoftSqlServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, MicrosoftSqlServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(serverModule);
     }
 

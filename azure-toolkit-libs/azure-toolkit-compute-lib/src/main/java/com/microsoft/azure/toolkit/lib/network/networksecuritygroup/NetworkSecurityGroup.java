@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.network.networksecuritygroup;
 
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.network.NetworkServiceSubscription;
 
@@ -35,7 +35,7 @@ public class NetworkSecurityGroup extends AbstractAzResource<NetworkSecurityGrou
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, NetworkSecurityGroup, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, NetworkSecurityGroup, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

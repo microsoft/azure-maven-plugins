@@ -15,7 +15,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
@@ -51,7 +51,7 @@ public class AppServicePlan extends AbstractAzResource<AppServicePlan, AppServic
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, AppServicePlan, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, AppServicePlan, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

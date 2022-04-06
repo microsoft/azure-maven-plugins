@@ -13,9 +13,9 @@ import com.azure.resourcemanager.resources.ResourceManager;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppModule;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanModule;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Availability;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
@@ -51,7 +51,7 @@ public class AppServiceServiceSubscription extends AbstractAzServiceSubscription
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, AppServiceServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, AppServiceServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(planModule);
     }
 
