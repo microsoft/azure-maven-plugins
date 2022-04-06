@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class ContainerRegistry extends AbstractAzResource<ContainerRegistry, AzureContainerRegistryResourceManager, Registry> {
+public class ContainerRegistry extends AbstractAzResource<ContainerRegistry, AzureContainerRegistryServiceSubscription, Registry> {
     protected ContainerRegistry(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AzureContainerRegistryModule module) {
         super(name, resourceGroupName, module);
     }

@@ -16,14 +16,14 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class AzureContainerRegistry extends AbstractAzService<AzureContainerRegistryResourceManager, ContainerRegistryManager> {
+public class AzureContainerRegistry extends AbstractAzService<AzureContainerRegistryServiceSubscription, ContainerRegistryManager> {
 
     public AzureContainerRegistry() {
         super("Microsoft.ContainerRegistry");
@@ -31,12 +31,12 @@ public class AzureContainerRegistry extends AbstractAzService<AzureContainerRegi
 
     @Nonnull
     @Override
-    protected AzureContainerRegistryResourceManager newResource(@Nonnull ContainerRegistryManager containerRegistryManager) {
-        return new AzureContainerRegistryResourceManager(containerRegistryManager, this);
+    protected AzureContainerRegistryServiceSubscription newResource(@Nonnull ContainerRegistryManager containerRegistryManager) {
+        return new AzureContainerRegistryServiceSubscription(containerRegistryManager, this);
     }
 
     public AzureContainerRegistryModule registry(@Nonnull String subscriptionId) {
-        final AzureContainerRegistryResourceManager rm = get(subscriptionId, null);
+        final AzureContainerRegistryServiceSubscription rm = get(subscriptionId, null);
         assert rm != null;
         return rm.registry();
     }
@@ -53,15 +53,15 @@ public class AzureContainerRegistry extends AbstractAzService<AzureContainerRegi
         final AzureProfile azureProfile = new AzureProfile(tenantId, subscriptionId, account.getEnvironment());
         // todo: migrate resource provider related codes to common library
         final Providers providers = ResourceManager.configure()
-            .withHttpClient(AbstractAzResourceManager.getDefaultHttpClient())
-            .withPolicy(AbstractAzResourceManager.getUserAgentPolicy(userAgent))
+            .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
+            .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent))
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
                 .withSubscription(subscriptionId).providers();
         return ContainerRegistryManager
             .configure()
-            .withHttpClient(AbstractAzResourceManager.getDefaultHttpClient())
+            .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
             .withLogOptions(logOptions)
-            .withPolicy(AbstractAzResourceManager.getUserAgentPolicy(userAgent))
+            .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent))
                 .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }

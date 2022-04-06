@@ -9,7 +9,7 @@ import com.azure.resourcemanager.appservice.fluent.models.AppServicePlanInner;
 import com.azure.resourcemanager.appservice.models.ProvisioningState;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
@@ -30,7 +30,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Getter
-public class AppServicePlan extends AbstractAzResource<AppServicePlan, AppServiceResourceManager, com.azure.resourcemanager.appservice.models.AppServicePlan>
+public class AppServicePlan extends AbstractAzResource<AppServicePlan, AppServiceServiceSubscription, com.azure.resourcemanager.appservice.models.AppServicePlan>
     implements Deletable {
 
     protected AppServicePlan(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AppServicePlanModule module) {

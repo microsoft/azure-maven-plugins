@@ -9,7 +9,7 @@ import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.postgresql.models.NameAvailability;
 import com.azure.resourcemanager.postgresql.models.NameAvailabilityRequest;
 import com.azure.resourcemanager.postgresql.models.PerformanceTierProperties;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -23,26 +23,26 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Getter
-public class PostgreSqlResourceManager extends AbstractAzResourceManager<PostgreSqlResourceManager, PostgreSqlManager> {
+public class PostgreSqlServiceSubscription extends AbstractAzServiceSubscription<PostgreSqlServiceSubscription, PostgreSqlManager> {
     @Nonnull
     private final String subscriptionId;
     @Nonnull
     private final PostgreSqlServerModule serverModule;
 
-    PostgreSqlResourceManager(@Nonnull String subscriptionId, @Nonnull AzurePostgreSql service) {
+    PostgreSqlServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzurePostgreSql service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.serverModule = new PostgreSqlServerModule(this);
     }
 
-    PostgreSqlResourceManager(@Nonnull PostgreSqlManager manager, @Nonnull AzurePostgreSql service) {
+    PostgreSqlServiceSubscription(@Nonnull PostgreSqlManager manager, @Nonnull AzurePostgreSql service) {
         this(manager.serviceClient().getSubscriptionId(), service);
         this.setRemote(manager);
     }
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, PostgreSqlResourceManager, ?>> getSubModules() {
+    public List<AzResourceModule<?, PostgreSqlServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(serverModule);
     }
 

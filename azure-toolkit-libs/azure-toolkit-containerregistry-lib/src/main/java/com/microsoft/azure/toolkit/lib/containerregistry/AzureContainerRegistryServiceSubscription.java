@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.containerregistry;
 
 import com.azure.resourcemanager.containerregistry.ContainerRegistryManager;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import lombok.Getter;
 
@@ -15,19 +15,19 @@ import java.util.Collections;
 import java.util.List;
 
 @Getter
-public class AzureContainerRegistryResourceManager extends AbstractAzResourceManager<AzureContainerRegistryResourceManager, ContainerRegistryManager> {
+public class AzureContainerRegistryServiceSubscription extends AbstractAzServiceSubscription<AzureContainerRegistryServiceSubscription, ContainerRegistryManager> {
 
     @Nonnull
     private final String subscriptionId;
     private final AzureContainerRegistryModule azureContainerRegistryModule;
 
-    protected AzureContainerRegistryResourceManager(@Nonnull String subscriptionId, @Nonnull AzureContainerRegistry service) {
+    protected AzureContainerRegistryServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzureContainerRegistry service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.azureContainerRegistryModule = new AzureContainerRegistryModule(this);
     }
 
-    protected AzureContainerRegistryResourceManager(@Nonnull ContainerRegistryManager manager, AzureContainerRegistry service) {
+    protected AzureContainerRegistryServiceSubscription(@Nonnull ContainerRegistryManager manager, AzureContainerRegistry service) {
         this(manager.serviceClient().getSubscriptionId(), service);
     }
 
@@ -37,7 +37,7 @@ public class AzureContainerRegistryResourceManager extends AbstractAzResourceMan
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, AzureContainerRegistryResourceManager, ?>> getSubModules() {
+    public List<AzResourceModule<?, AzureContainerRegistryServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(azureContainerRegistryModule);
     }
 }

@@ -15,11 +15,11 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
-public class StorageAccountModule extends AbstractAzResourceModule<StorageAccount, StorageResourceManager, com.azure.resourcemanager.storage.models.StorageAccount> {
+public class StorageAccountModule extends AbstractAzResourceModule<StorageAccount, StorageServiceSubscription, com.azure.resourcemanager.storage.models.StorageAccount> {
 
     public static final String NAME = "storageAccounts";
 
-    public StorageAccountModule(@Nonnull StorageResourceManager parent) {
+    public StorageAccountModule(@Nonnull StorageServiceSubscription parent) {
         super(NAME, parent);
     }
 

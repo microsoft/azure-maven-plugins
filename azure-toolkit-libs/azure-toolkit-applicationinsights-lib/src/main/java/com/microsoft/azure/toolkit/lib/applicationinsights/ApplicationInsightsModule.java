@@ -18,11 +18,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class ApplicationInsightsModule extends AbstractAzResourceModule<ApplicationInsight, ApplicationInsightsResourceManager, ApplicationInsightsComponent> {
+public class ApplicationInsightsModule extends AbstractAzResourceModule<ApplicationInsight, ApplicationInsightsServiceSubscription, ApplicationInsightsComponent> {
 
     public static final String NAME = "components";
 
-    public ApplicationInsightsModule(@Nonnull ApplicationInsightsResourceManager parent) {
+    public ApplicationInsightsModule(@Nonnull ApplicationInsightsServiceSubscription parent) {
         super(NAME, parent);
     }
 

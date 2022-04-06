@@ -320,7 +320,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     private void fireChildrenChangedEvent() {
         log.debug("[{}]:fireChildrenChangedEvent()", this.name);
-        if (this.getParent() instanceof AbstractAzResourceManager) {
+        if (this.getParent() instanceof AbstractAzServiceSubscription) {
             final AzResourceModule<P, ?, ?> service = this.getParent().getModule();
             AzureEventBus.emit("service.children_changed.service", service);
         }

@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.function;
 
 import com.azure.resourcemanager.appservice.AppServiceManager;
-import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 
@@ -14,19 +14,19 @@ import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 
-public class FunctionsResourceManager extends AppServiceResourceManager {
+public class FunctionsServiceSubscription extends AppServiceServiceSubscription {
 
-    protected FunctionsResourceManager(@Nonnull String subscriptionId, @Nonnull AzureAppService service) {
+    protected FunctionsServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzureAppService service) {
         super(subscriptionId, service);
     }
 
-    protected FunctionsResourceManager(@Nonnull AppServiceManager remote, @Nonnull AzureAppService service) {
+    protected FunctionsServiceSubscription(@Nonnull AppServiceManager remote, @Nonnull AzureAppService service) {
         super(remote, service);
     }
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, AppServiceResourceManager, ?>> getSubModules() {
+    public List<AzResourceModule<?, AppServiceServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(this.getFunctionAppModule());
     }
 }

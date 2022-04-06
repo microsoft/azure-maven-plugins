@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourceGroupManager, com.azure.resourcemanager.resources.models.ResourceGroup>
+public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesServiceSubscription, com.azure.resourcemanager.resources.models.ResourceGroup>
     implements Deletable {
 
     private final ResourceDeploymentModule deploymentModule;

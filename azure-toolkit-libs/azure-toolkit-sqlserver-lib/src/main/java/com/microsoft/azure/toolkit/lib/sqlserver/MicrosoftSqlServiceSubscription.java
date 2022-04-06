@@ -9,7 +9,7 @@ import com.azure.resourcemanager.sql.SqlServerManager;
 import com.azure.resourcemanager.sql.models.CapabilityStatus;
 import com.azure.resourcemanager.sql.models.CheckNameAvailabilityResult;
 import com.azure.resourcemanager.sql.models.RegionCapabilities;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -21,26 +21,26 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-public class MicrosoftSqlResourceManager extends AbstractAzResourceManager<MicrosoftSqlResourceManager, SqlServerManager> {
+public class MicrosoftSqlServiceSubscription extends AbstractAzServiceSubscription<MicrosoftSqlServiceSubscription, SqlServerManager> {
     @Nonnull
     private final String subscriptionId;
     @Nonnull
     private final MicrosoftSqlServerModule serverModule;
 
-    MicrosoftSqlResourceManager(@Nonnull String subscriptionId, @Nonnull AzureSqlServer service) {
+    MicrosoftSqlServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzureSqlServer service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.serverModule = new MicrosoftSqlServerModule(this);
     }
 
-    MicrosoftSqlResourceManager(@Nonnull SqlServerManager manager, @Nonnull AzureSqlServer service) {
+    MicrosoftSqlServiceSubscription(@Nonnull SqlServerManager manager, @Nonnull AzureSqlServer service) {
         this(manager.serviceClient().getSubscriptionId(), service);
         this.setRemote(manager);
     }
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, MicrosoftSqlResourceManager, ?>> getSubModules() {
+    public List<AzResourceModule<?, MicrosoftSqlServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(serverModule);
     }
 

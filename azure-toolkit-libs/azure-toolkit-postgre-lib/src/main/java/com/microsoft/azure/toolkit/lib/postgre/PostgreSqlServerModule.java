@@ -18,11 +18,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlServer, PostgreSqlResourceManager, Server> {
+public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlServer, PostgreSqlServiceSubscription, Server> {
 
     public static final String NAME = "servers";
 
-    public PostgreSqlServerModule(@Nonnull PostgreSqlResourceManager parent) {
+    public PostgreSqlServerModule(@Nonnull PostgreSqlServiceSubscription parent) {
         super(NAME, parent);
     }
 

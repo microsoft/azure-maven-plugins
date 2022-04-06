@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class StorageAccount extends AbstractAzResource<StorageAccount, StorageResourceManager, com.azure.resourcemanager.storage.models.StorageAccount>
+public class StorageAccount extends AbstractAzResource<StorageAccount, StorageServiceSubscription, com.azure.resourcemanager.storage.models.StorageAccount>
     implements Deletable {
 
     protected StorageAccount(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull StorageAccountModule module) {

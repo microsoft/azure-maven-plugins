@@ -31,7 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceManager, Server>
+public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSubscription, Server>
     implements Deletable, Startable, IDatabaseServer<MySqlDatabase> {
 
     private final MySqlDatabaseModule databaseModule;

@@ -20,11 +20,11 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 @Slf4j
-public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MySqlResourceManager, Server> {
+public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MySqlServiceSubscription, Server> {
 
     public static final String NAME = "servers";
 
-    public MySqlServerModule(@Nonnull MySqlResourceManager parent) {
+    public MySqlServerModule(@Nonnull MySqlServiceSubscription parent) {
         super(NAME, parent);
     }
 

@@ -18,11 +18,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class AzureContainerRegistryModule extends AbstractAzResourceModule<ContainerRegistry, AzureContainerRegistryResourceManager, Registry> {
+public class AzureContainerRegistryModule extends AbstractAzResourceModule<ContainerRegistry, AzureContainerRegistryServiceSubscription, Registry> {
 
     public static final String NAME = "registries";
 
-    public AzureContainerRegistryModule(@NotNull AzureContainerRegistryResourceManager parent) {
+    public AzureContainerRegistryModule(@NotNull AzureContainerRegistryServiceSubscription parent) {
         super(NAME, parent);
     }
 

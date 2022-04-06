@@ -11,7 +11,7 @@ import com.azure.resourcemanager.redis.RedisManager;
 import com.azure.resourcemanager.redis.fluent.RedisClient;
 import com.azure.resourcemanager.redis.models.CheckNameAvailabilityParameters;
 import com.azure.resourcemanager.resources.ResourceManager;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -24,26 +24,26 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-public class RedisResourceManager extends AbstractAzResourceManager<RedisResourceManager, RedisManager> {
+public class RedisServiceSubscription extends AbstractAzServiceSubscription<RedisServiceSubscription, RedisManager> {
     @Nonnull
     private final String subscriptionId;
     @Nonnull
     private final RedisCacheModule cacheModule;
 
-    RedisResourceManager(@Nonnull String subscriptionId, @Nonnull AzureRedis service) {
+    RedisServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzureRedis service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.cacheModule = new RedisCacheModule(this);
     }
 
-    RedisResourceManager(@Nonnull RedisManager remote, @Nonnull AzureRedis service) {
+    RedisServiceSubscription(@Nonnull RedisManager remote, @Nonnull AzureRedis service) {
         this(remote.subscriptionId(), service);
         this.setRemote(remote);
     }
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, RedisResourceManager, ?>> getSubModules() {
+    public List<AzResourceModule<?, RedisServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(cacheModule);
     }
 

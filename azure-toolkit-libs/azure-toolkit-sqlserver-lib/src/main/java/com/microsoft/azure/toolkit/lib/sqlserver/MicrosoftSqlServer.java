@@ -24,7 +24,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
-public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, MicrosoftSqlResourceManager, SqlServer>
+public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, MicrosoftSqlServiceSubscription, SqlServer>
     implements Deletable, IDatabaseServer<MicrosoftSqlDatabase> {
 
     @Nonnull

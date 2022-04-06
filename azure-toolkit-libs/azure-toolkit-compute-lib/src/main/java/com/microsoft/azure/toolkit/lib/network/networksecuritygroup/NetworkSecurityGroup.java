@@ -8,14 +8,14 @@ package com.microsoft.azure.toolkit.lib.network.networksecuritygroup;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
-import com.microsoft.azure.toolkit.lib.network.NetworkResourceManager;
+import com.microsoft.azure.toolkit.lib.network.NetworkServiceSubscription;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-public class NetworkSecurityGroup extends AbstractAzResource<NetworkSecurityGroup, NetworkResourceManager, com.azure.resourcemanager.network.models.NetworkSecurityGroup> {
+public class NetworkSecurityGroup extends AbstractAzResource<NetworkSecurityGroup, NetworkServiceSubscription, com.azure.resourcemanager.network.models.NetworkSecurityGroup> {
 
     protected NetworkSecurityGroup(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull NetworkSecurityGroupModule module) {
         super(name, resourceGroupName, module);

@@ -15,11 +15,11 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
-public class RedisCacheModule extends AbstractAzResourceModule<RedisCache, RedisResourceManager, com.azure.resourcemanager.redis.models.RedisCache> {
+public class RedisCacheModule extends AbstractAzResourceModule<RedisCache, RedisServiceSubscription, com.azure.resourcemanager.redis.models.RedisCache> {
 
     public static final String NAME = "Redis";
 
-    public RedisCacheModule(@Nonnull RedisResourceManager parent) {
+    public RedisCacheModule(@Nonnull RedisServiceSubscription parent) {
         super(NAME, parent);
     }
 

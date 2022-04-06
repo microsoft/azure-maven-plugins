@@ -19,7 +19,7 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import org.apache.commons.lang3.StringUtils;
 
@@ -29,14 +29,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class AzureAppService extends AbstractAzService<AppServiceResourceManager, AppServiceManager> {
+public class AzureAppService extends AbstractAzService<AppServiceServiceSubscription, AppServiceManager> {
     public AzureAppService() {
         super("Microsoft.Web"); // for SPI
     }
 
     @Nonnull
     public AppServicePlanModule plans(@Nonnull String subscriptionId) {
-        final AppServiceResourceManager rm = get(subscriptionId, null);
+        final AppServiceServiceSubscription rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getPlanModule();
     }
@@ -61,16 +61,16 @@ public class AzureAppService extends AbstractAzService<AppServiceResourceManager
         final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         return AppServiceManager.configure()
-            .withHttpClient(AbstractAzResourceManager.getDefaultHttpClient())
+            .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
             .withLogLevel(logLevel)
-            .withPolicy(AbstractAzResourceManager.getUserAgentPolicy(userAgent)) // set user agent with policy
+            .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent)) // set user agent with policy
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
     @Nonnull
     @Override
-    protected AppServiceResourceManager newResource(@Nonnull AppServiceManager remote) {
-        return new AppServiceResourceManager(remote, this);
+    protected AppServiceServiceSubscription newResource(@Nonnull AppServiceManager remote) {
+        return new AppServiceServiceSubscription(remote, this);
     }
 
     @Nullable

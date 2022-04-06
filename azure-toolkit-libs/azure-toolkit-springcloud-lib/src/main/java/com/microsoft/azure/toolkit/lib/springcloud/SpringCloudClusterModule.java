@@ -15,11 +15,11 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
-public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringCloudCluster, SpringCloudResourceManager, SpringService> {
+public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringCloudCluster, SpringCloudServiceSubscription, SpringService> {
 
     public static final String NAME = "Spring";
 
-    public SpringCloudClusterModule(@Nonnull SpringCloudResourceManager parent) {
+    public SpringCloudClusterModule(@Nonnull SpringCloudServiceSubscription parent) {
         super(NAME, parent);
     }
 

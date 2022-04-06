@@ -17,7 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, ApplicationInsightsResourceManager, ApplicationInsightsComponent> {
+public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, ApplicationInsightsServiceSubscription, ApplicationInsightsComponent> {
     protected ApplicationInsight(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull ApplicationInsightsModule module) {
         super(name, resourceGroupName, module);
     }

@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.network.virtualnetwork;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
-import com.microsoft.azure.toolkit.lib.network.NetworkResourceManager;
+import com.microsoft.azure.toolkit.lib.network.NetworkServiceSubscription;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Network extends AbstractAzResource<Network, NetworkResourceManager, com.azure.resourcemanager.network.models.Network> {
+public class Network extends AbstractAzResource<Network, NetworkServiceSubscription, com.azure.resourcemanager.network.models.Network> {
 
     protected Network(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull NetworkModule module) {
         super(name, resourceGroupName, module);

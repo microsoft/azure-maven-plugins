@@ -9,7 +9,7 @@ import com.azure.resourcemanager.compute.ComputeManager;
 import com.azure.resourcemanager.compute.models.AvailabilitySet;
 import com.azure.resourcemanager.compute.models.ComputeResourceType;
 import com.azure.resourcemanager.resources.ResourceManager;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VirtualMachineModule;
@@ -24,26 +24,26 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Getter
-public class ComputeResourceManager extends AbstractAzResourceManager<ComputeResourceManager, ComputeManager> {
+public class ComputeServiceSubscription extends AbstractAzServiceSubscription<ComputeServiceSubscription, ComputeManager> {
     @Nonnull
     private final String subscriptionId;
     @Nonnull
     private final VirtualMachineModule virtualMachineModule;
 
-    ComputeResourceManager(@Nonnull String subscriptionId, @Nonnull AzureCompute service) {
+    ComputeServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzureCompute service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.virtualMachineModule = new VirtualMachineModule(this);
     }
 
-    ComputeResourceManager(@Nonnull ComputeManager remote, @Nonnull AzureCompute service) {
+    ComputeServiceSubscription(@Nonnull ComputeManager remote, @Nonnull AzureCompute service) {
         this(remote.subscriptionId(), service);
         this.setRemote(remote);
     }
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, ComputeResourceManager, ?>> getSubModules() {
+    public List<AzResourceModule<?, ComputeServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(virtualMachineModule);
     }
 

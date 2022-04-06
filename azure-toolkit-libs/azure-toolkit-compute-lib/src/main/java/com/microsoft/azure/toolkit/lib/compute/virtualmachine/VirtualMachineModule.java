@@ -9,18 +9,18 @@ import com.azure.resourcemanager.compute.ComputeManager;
 import com.azure.resourcemanager.compute.models.VirtualMachines;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.compute.ComputeResourceManager;
+import com.microsoft.azure.toolkit.lib.compute.ComputeServiceSubscription;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
-public class VirtualMachineModule extends AbstractAzResourceModule<VirtualMachine, ComputeResourceManager, com.azure.resourcemanager.compute.models.VirtualMachine> {
+public class VirtualMachineModule extends AbstractAzResourceModule<VirtualMachine, ComputeServiceSubscription, com.azure.resourcemanager.compute.models.VirtualMachine> {
 
     public static final String NAME = "virtualMachines";
 
-    public VirtualMachineModule(@Nonnull ComputeResourceManager parent) {
+    public VirtualMachineModule(@Nonnull ComputeServiceSubscription parent) {
         super(NAME, parent);
     }
 

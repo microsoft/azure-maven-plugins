@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, PostgreSqlResourceManager, Server>
+public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, PostgreSqlServiceSubscription, Server>
     implements Deletable, Startable, IDatabaseServer<PostgreSqlDatabase> {
 
     private final PostgreSqlDatabaseModule databaseModule;

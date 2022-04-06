@@ -9,7 +9,7 @@ import com.azure.resourcemanager.mysql.MySqlManager;
 import com.azure.resourcemanager.mysql.models.NameAvailability;
 import com.azure.resourcemanager.mysql.models.NameAvailabilityRequest;
 import com.azure.resourcemanager.mysql.models.PerformanceTierProperties;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -23,26 +23,26 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Getter
-public class MySqlResourceManager extends AbstractAzResourceManager<MySqlResourceManager, MySqlManager> {
+public class MySqlServiceSubscription extends AbstractAzServiceSubscription<MySqlServiceSubscription, MySqlManager> {
     @Nonnull
     private final String subscriptionId;
     @Nonnull
     private final MySqlServerModule serverModule;
 
-    MySqlResourceManager(@Nonnull String subscriptionId, @Nonnull AzureMySql service) {
+    MySqlServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzureMySql service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.serverModule = new MySqlServerModule(this);
     }
 
-    MySqlResourceManager(@Nonnull MySqlManager manager, @Nonnull AzureMySql service) {
+    MySqlServiceSubscription(@Nonnull MySqlManager manager, @Nonnull AzureMySql service) {
         this(manager.serviceClient().getSubscriptionId(), service);
         this.setRemote(manager);
     }
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, MySqlResourceManager, ?>> getSubModules() {
+    public List<AzResourceModule<?, MySqlServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(serverModule);
     }
 

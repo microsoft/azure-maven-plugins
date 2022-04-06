@@ -17,11 +17,11 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
-public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup, ResourceGroupManager, com.azure.resourcemanager.resources.models.ResourceGroup> {
+public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup, ResourcesServiceSubscription, com.azure.resourcemanager.resources.models.ResourceGroup> {
 
     public static final String NAME = "resourceGroups";
 
-    public ResourceGroupModule(@Nonnull ResourceGroupManager parent) {
+    public ResourceGroupModule(@Nonnull ResourcesServiceSubscription parent) {
         super(NAME, parent);
     }
 

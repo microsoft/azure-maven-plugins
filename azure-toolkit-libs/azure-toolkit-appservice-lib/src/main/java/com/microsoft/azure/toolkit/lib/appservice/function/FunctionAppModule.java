@@ -9,7 +9,7 @@ import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
 import com.azure.resourcemanager.appservice.models.FunctionApps;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
-import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
@@ -18,11 +18,11 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
-public class FunctionAppModule extends AbstractAzResourceModule<FunctionApp, AppServiceResourceManager, WebSiteBase> {
+public class FunctionAppModule extends AbstractAzResourceModule<FunctionApp, AppServiceServiceSubscription, WebSiteBase> {
 
     public static final String NAME = "sites";
 
-    public FunctionAppModule(@Nonnull AppServiceResourceManager parent) {
+    public FunctionAppModule(@Nonnull AppServiceServiceSubscription parent) {
         super(NAME, parent);
     }
 

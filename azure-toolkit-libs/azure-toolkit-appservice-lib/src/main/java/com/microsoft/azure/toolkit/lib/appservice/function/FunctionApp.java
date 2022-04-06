@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.function;
 
 import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
-import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
@@ -24,7 +24,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Getter
-public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceResourceManager, com.azure.resourcemanager.appservice.models.FunctionApp>
+public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceSubscription, com.azure.resourcemanager.appservice.models.FunctionApp>
     implements Deletable {
 
     @Nonnull

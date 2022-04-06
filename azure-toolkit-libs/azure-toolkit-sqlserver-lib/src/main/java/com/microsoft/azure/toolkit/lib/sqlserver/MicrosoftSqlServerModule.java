@@ -20,11 +20,11 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 @Slf4j
-public class MicrosoftSqlServerModule extends AbstractAzResourceModule<MicrosoftSqlServer, MicrosoftSqlResourceManager, SqlServer> {
+public class MicrosoftSqlServerModule extends AbstractAzResourceModule<MicrosoftSqlServer, MicrosoftSqlServiceSubscription, SqlServer> {
 
     public static final String NAME = "servers";
 
-    public MicrosoftSqlServerModule(@Nonnull MicrosoftSqlResourceManager parent) {
+    public MicrosoftSqlServerModule(@Nonnull MicrosoftSqlServiceSubscription parent) {
         super(NAME, parent);
     }
 

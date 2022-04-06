@@ -23,7 +23,7 @@ import java.util.LinkedList;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R>, R> extends AbstractAzResourceModule<T, AzResource.None, R>
+public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<T, R>, R> extends AbstractAzResourceModule<T, AzResource.None, R>
     implements AzService {
 
     public AbstractAzService(@Nonnull String name) {
@@ -49,7 +49,7 @@ public abstract class AbstractAzService<T extends AbstractAzResourceManager<T, R
     private static void preload() {
         Azure.getServices(AbstractAzService.class).stream()
             .flatMap(s -> s.list().stream())
-            .flatMap(m -> ((AbstractAzResourceManager) m).getSubModules().stream())
+            .flatMap(m -> ((AbstractAzServiceSubscription) m).getSubModules().stream())
             .forEach(m -> preload((AzResourceModule) m));
     }
 

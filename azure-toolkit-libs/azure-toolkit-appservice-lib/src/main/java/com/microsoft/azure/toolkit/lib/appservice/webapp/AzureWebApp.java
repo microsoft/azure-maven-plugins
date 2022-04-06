@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.appservice.webapp;
 
 import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
@@ -24,7 +24,7 @@ public class AzureWebApp extends AzureAppService {
 
     @Nonnull
     public WebAppModule webApps(@Nonnull String subscriptionId) {
-        final AppServiceResourceManager rm = get(subscriptionId, null);
+        final AppServiceServiceSubscription rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getWebAppModule();
     }
@@ -50,7 +50,7 @@ public class AzureWebApp extends AzureAppService {
 
     @Nonnull
     @Override
-    protected AppServiceResourceManager newResource(@Nonnull AppServiceManager remote) {
-        return new WebAppResourceManager(remote, this);
+    protected AppServiceServiceSubscription newResource(@Nonnull AppServiceManager remote) {
+        return new WebAppServiceSubscription(remote, this);
     }
 }

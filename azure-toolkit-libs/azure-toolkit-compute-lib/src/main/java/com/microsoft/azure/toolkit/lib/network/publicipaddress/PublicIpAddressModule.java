@@ -9,18 +9,18 @@ import com.azure.resourcemanager.network.NetworkManager;
 import com.azure.resourcemanager.network.models.PublicIpAddresses;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.network.NetworkResourceManager;
+import com.microsoft.azure.toolkit.lib.network.NetworkServiceSubscription;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
-public class PublicIpAddressModule extends AbstractAzResourceModule<PublicIpAddress, NetworkResourceManager, com.azure.resourcemanager.network.models.PublicIpAddress> {
+public class PublicIpAddressModule extends AbstractAzResourceModule<PublicIpAddress, NetworkServiceSubscription, com.azure.resourcemanager.network.models.PublicIpAddress> {
 
     public static final String NAME = "publicIPAddresses";
 
-    public PublicIpAddressModule(@Nonnull NetworkResourceManager parent) {
+    public PublicIpAddressModule(@Nonnull NetworkServiceSubscription parent) {
         super(NAME, parent);
     }
 

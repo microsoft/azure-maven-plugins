@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Getter
-public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, SpringCloudResourceManager, SpringService> {
+public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, SpringCloudServiceSubscription, SpringService> {
 
     @Nonnull
     private final SpringCloudAppModule appModule;

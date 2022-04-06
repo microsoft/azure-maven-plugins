@@ -12,7 +12,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 @Slf4j
-public class AzureSqlServer extends AbstractAzService<MicrosoftSqlResourceManager, SqlServerManager> {
+public class AzureSqlServer extends AbstractAzService<MicrosoftSqlServiceSubscription, SqlServerManager> {
 
     public AzureSqlServer() {
         super("Microsoft.Sql");
@@ -29,7 +29,7 @@ public class AzureSqlServer extends AbstractAzService<MicrosoftSqlResourceManage
 
     @Nonnull
     public MicrosoftSqlServerModule servers(@Nonnull String subscriptionId) {
-        final MicrosoftSqlResourceManager rm = get(subscriptionId, null);
+        final MicrosoftSqlServiceSubscription rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getServerModule();
     }
@@ -43,16 +43,16 @@ public class AzureSqlServer extends AbstractAzService<MicrosoftSqlResourceManage
         final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         return SqlServerManager.configure()
-            .withHttpClient(AbstractAzResourceManager.getDefaultHttpClient())
+            .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
             .withLogOptions(new HttpLogOptions().setLogLevel(logLevel))
-            .withPolicy(AbstractAzResourceManager.getUserAgentPolicy(userAgent))
+            .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent))
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
     @Nonnull
     @Override
-    protected MicrosoftSqlResourceManager newResource(@Nonnull SqlServerManager manager) {
-        return new MicrosoftSqlResourceManager(manager, this);
+    protected MicrosoftSqlServiceSubscription newResource(@Nonnull SqlServerManager manager) {
+        return new MicrosoftSqlServiceSubscription(manager, this);
     }
 
     @Nonnull

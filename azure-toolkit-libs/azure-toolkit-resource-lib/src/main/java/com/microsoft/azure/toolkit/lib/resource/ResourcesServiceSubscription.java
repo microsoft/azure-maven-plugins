@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.resource;
 
 import com.azure.resourcemanager.resources.ResourceManager;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
@@ -17,26 +17,26 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-public class ResourceGroupManager extends AbstractAzResourceManager<ResourceGroupManager, ResourceManager> {
+public class ResourcesServiceSubscription extends AbstractAzServiceSubscription<ResourcesServiceSubscription, ResourceManager> {
     @Nonnull
     private final String subscriptionId;
     @Nonnull
     private final ResourceGroupModule groupModule;
 
-    ResourceGroupManager(@Nonnull String subscriptionId, @Nonnull AzureResources service) {
+    ResourcesServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzureResources service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.groupModule = new ResourceGroupModule(this);
     }
 
-    ResourceGroupManager(@Nonnull ResourceManager remote, @Nonnull AzureResources service) {
+    ResourcesServiceSubscription(@Nonnull ResourceManager remote, @Nonnull AzureResources service) {
         this(remote.subscriptionId(), service);
         this.setRemote(remote);
     }
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, ResourceGroupManager, ?>> getSubModules() {
+    public List<AzResourceModule<?, ResourcesServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(groupModule);
     }
 

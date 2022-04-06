@@ -9,18 +9,18 @@ import com.azure.resourcemanager.network.NetworkManager;
 import com.azure.resourcemanager.network.models.NetworkSecurityGroups;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.network.NetworkResourceManager;
+import com.microsoft.azure.toolkit.lib.network.NetworkServiceSubscription;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
-public class NetworkSecurityGroupModule extends AbstractAzResourceModule<NetworkSecurityGroup, NetworkResourceManager, com.azure.resourcemanager.network.models.NetworkSecurityGroup> {
+public class NetworkSecurityGroupModule extends AbstractAzResourceModule<NetworkSecurityGroup, NetworkServiceSubscription, com.azure.resourcemanager.network.models.NetworkSecurityGroup> {
 
     public static final String NAME = "networkSecurityGroups";
 
-    public NetworkSecurityGroupModule(@Nonnull NetworkResourceManager parent) {
+    public NetworkSecurityGroupModule(@Nonnull NetworkServiceSubscription parent) {
         super(NAME, parent);
     }
 
