@@ -344,7 +344,7 @@
         {
           "name": "password",
           "value": "string",
-          "defaultValue": "%Password%",
+          "defaultValue": "%KafkaPassword%",
           "resource": "AppSetting",
           "required": false,
           "label": "$kafka_password_label",
