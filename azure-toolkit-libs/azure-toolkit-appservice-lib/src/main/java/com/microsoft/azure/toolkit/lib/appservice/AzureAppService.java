@@ -18,9 +18,10 @@ import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanModule;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
+import com.microsoft.azure.toolkit.lib.resource.AzureResources;
+import com.microsoft.azure.toolkit.lib.resource.GenericResource;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -82,9 +83,9 @@ public class AzureAppService extends AbstractAzService<AppServiceServiceSubscrip
         } else {
             boolean isFunctionRelated = false;
             try {
-                isFunctionRelated = Optional.ofNullable(this.get(resourceId.subscriptionId(), null))
-                    .map(AbstractAzResource::getRemote).map(r -> r.resourceManager().genericResources().getById(id))
-                    .filter(r -> StringUtils.containsIgnoreCase(r.kind(), "function")).isPresent();
+                final GenericResource resource = Azure.az(AzureResources.class).getGenericResource(id);
+                isFunctionRelated = Optional.ofNullable(resource)
+                    .filter(r -> StringUtils.containsIgnoreCase(r.getKind(), "function")).isPresent();
             } catch (ManagementException e) {
                 if (e.getResponse().getStatusCode() != 404) { // Java SDK throw exception with 200 response, swallow exception in this case
                     throw e;
