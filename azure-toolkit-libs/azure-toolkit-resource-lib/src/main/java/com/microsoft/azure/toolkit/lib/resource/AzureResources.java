@@ -7,13 +7,14 @@ package com.microsoft.azure.toolkit.lib.resource;
 
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 public class AzureResources extends AbstractAzService<ResourcesServiceSubscription, ResourceManager> {
@@ -26,6 +27,15 @@ public class AzureResources extends AbstractAzService<ResourcesServiceSubscripti
         final ResourcesServiceSubscription rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getGroupModule();
+    }
+
+    @Nullable
+    public GenericResource getGenericResource(@Nonnull String resourceId) {
+        final ResourceId id = ResourceId.fromString(resourceId);
+        final String rgName = id.resourceGroupName();
+        final ResourceGroup rg = this.groups(id.subscriptionId()).get(rgName, rgName);
+        return Optional.ofNullable(rg).map(ResourceGroup::genericResources)
+            .map(r -> r.get(resourceId, rgName)).orElse(null);
     }
 
     @Nonnull
