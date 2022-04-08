@@ -169,7 +169,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public T getOrInit(@Nonnull String name, @Nullable String resourceGroup) {
         log.debug("[{}]:getOrDraft({}, {})", this.name, name, resourceGroup);
         synchronized (this.resources) {
-            return this.resources.get(name).orElseGet(() -> {
+            return this.resources.getOrDefault(name, Optional.empty()).orElseGet(() -> {
                 final T resource = this.newResource(name, resourceGroup);
                 log.debug("[{}]:get({}, {})->addResourceToLocal({}, resource)", this.name, name, resourceGroup, name);
                 this.addResourceToLocal(name, resource, true);
