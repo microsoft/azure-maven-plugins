@@ -354,10 +354,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return (D) origin;
     }
 
-    @Nonnull
+    @Nullable
     public AbstractAzResourceModule<?, T, ?> getSubModule(String moduleName) {
-        return this.getSubModules().stream().filter(m -> m.getName().equals(moduleName)).findAny()
-            .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("invalid module \"%s\"", moduleName)));
+        return this.getSubModules().stream().filter(m -> m.getName().equals(moduleName)).findAny().orElse(null);
     }
 
     public boolean isDraft() {

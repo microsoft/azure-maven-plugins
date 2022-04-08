@@ -99,6 +99,31 @@ public class AzureAppService extends AbstractAzService<AppServiceServiceSubscrip
         }
     }
 
+    @Nullable
+    @Override
+    public <E> E getOrInitById(@Nonnull String id) {
+        final ResourceId resourceId = ResourceId.fromString(id);
+        if (resourceId.resourceType().equals(AppServicePlanModule.NAME)) {
+            return super.doGetOrInitById(id);
+        } else {
+            boolean isFunctionRelated = false;
+            try {
+                final GenericResource resource = Azure.az(AzureResources.class).getGenericResource(id);
+                isFunctionRelated = Optional.ofNullable(resource)
+                    .filter(r -> StringUtils.containsIgnoreCase(r.getKind(), "function")).isPresent();
+            } catch (ManagementException e) {
+                if (e.getResponse().getStatusCode() != 404) { // Java SDK throw exception with 200 response, swallow exception in this case
+                    throw e;
+                }
+            }
+            if (isFunctionRelated) {
+                return Azure.az(AzureFunctions.class).doGetOrInitById(id);
+            } else {
+                return Azure.az(AzureWebApp.class).doGetOrInitById(id);
+            }
+        }
+    }
+
     @Nonnull
     @Override
     public String getResourceTypeName() {

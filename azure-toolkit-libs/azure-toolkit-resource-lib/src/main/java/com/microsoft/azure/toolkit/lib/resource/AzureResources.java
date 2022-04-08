@@ -62,6 +62,18 @@ public class AzureResources extends AbstractAzService<ResourcesServiceSubscripti
         return super.getById(id);
     }
 
+    @Nullable
+    public <E> E getOrInitById(@Nonnull String id) {
+        ResourceId resourceId = ResourceId.fromString(id);
+        final String resourceGroup = resourceId.resourceGroupName();
+        if (resourceId.resourceType().equals(ResourceDeploymentModule.NAME)) {
+            final ResourcesServiceSubscription manager = Objects.requireNonNull(this.getOrInit(resourceId.subscriptionId(), resourceGroup));
+            final ResourceGroup group = manager.resourceGroups().getOrInit(resourceGroup, resourceGroup);
+            return (E) group.deployments().get(resourceId.name(), resourceGroup);
+        }
+        return super.getById(id);
+    }
+
     @Nonnull
     @Override
     public String getResourceTypeName() {
