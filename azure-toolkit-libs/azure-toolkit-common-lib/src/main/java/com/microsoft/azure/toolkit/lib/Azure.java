@@ -63,7 +63,7 @@ public class Azure {
         if (service instanceof AbstractAzService) {
             return ((AbstractAzService<?, ?>) service).getById(id);
         }
-        log.warn("can not find a valid service provider!", new Throwable(id));
+        log.warn(String.format("fallback to generic resource because non valid service provider for '%s' is found.", id));
         return null;
     }
 
@@ -76,7 +76,7 @@ public class Azure {
         if (service instanceof AbstractAzService) {
             return ((AbstractAzService<?, ?>) service).getOrInitById(id);
         }
-        log.warn("can not find a valid service provider!", new Throwable(id));
+        log.warn("can not find a valid service provider for: " + id);
         return null;
     }
 
