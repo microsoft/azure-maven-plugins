@@ -54,24 +54,32 @@ public class AzureResources extends AbstractAzService<ResourcesServiceSubscripti
     public <E> E getById(@Nonnull String id) {
         ResourceId resourceId = ResourceId.fromString(id);
         final String resourceGroup = resourceId.resourceGroupName();
-        if (resourceId.resourceType().equals(ResourceDeploymentModule.NAME)) {
-            final ResourcesServiceSubscription manager = Objects.requireNonNull(this.getOrDraft(resourceId.subscriptionId(), resourceGroup));
-            final ResourceGroup group = manager.resourceGroups().getOrDraft(resourceGroup, resourceGroup);
-            return (E) group.deployments().get(resourceId.name(), resourceGroup);
+        final ResourcesServiceSubscription manager = Objects.requireNonNull(this.getOrDraft(resourceId.subscriptionId(), resourceGroup));
+        final ResourceGroup group = manager.resourceGroups().getOrDraft(resourceGroup, resourceGroup);
+        final String type = resourceId.resourceType();
+        if (type.equals(ResourceGroupModule.NAME)) {
+            return (E) group;
+        } else if (type.equals(ResourceDeploymentModule.NAME)) {
+            return (E) group.deployments().getOrDraft(resourceId.name(), resourceGroup);
+        } else {
+            return (E) group.genericResources().getOrDraft(id, resourceGroup);
         }
-        return super.getById(id);
     }
 
     @Nullable
     public <E> E getOrInitById(@Nonnull String id) {
         ResourceId resourceId = ResourceId.fromString(id);
         final String resourceGroup = resourceId.resourceGroupName();
-        if (resourceId.resourceType().equals(ResourceDeploymentModule.NAME)) {
-            final ResourcesServiceSubscription manager = Objects.requireNonNull(this.getOrInit(resourceId.subscriptionId(), resourceGroup));
-            final ResourceGroup group = manager.resourceGroups().getOrInit(resourceGroup, resourceGroup);
-            return (E) group.deployments().get(resourceId.name(), resourceGroup);
+        final ResourcesServiceSubscription manager = Objects.requireNonNull(this.getOrInit(resourceId.subscriptionId(), resourceGroup));
+        final ResourceGroup group = manager.resourceGroups().getOrInit(resourceGroup, resourceGroup);
+        final String type = resourceId.resourceType();
+        if (type.equals(ResourceGroupModule.NAME)) {
+            return (E) group;
+        } else if (type.equals(ResourceDeploymentModule.NAME)) {
+            return (E) group.deployments().getOrInit(resourceId.name(), resourceGroup);
+        } else {
+            return (E) group.genericResources().getOrInit(id, resourceGroup);
         }
-        return super.getById(id);
     }
 
     @Nonnull
