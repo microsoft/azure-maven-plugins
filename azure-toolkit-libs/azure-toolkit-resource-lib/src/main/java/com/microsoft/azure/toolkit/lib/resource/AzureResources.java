@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.resource;
 
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,10 @@ import java.util.Optional;
 public class AzureResources extends AbstractAzService<ResourcesServiceSubscription, ResourceManager> {
     public AzureResources() {
         super("Microsoft.Resources");
+        AzureEventBus.on("account.logout.account", new AzureEventBus.EventListener((e) -> {
+            this.clear();
+            this.refresh();
+        }));
     }
 
     @Nonnull
