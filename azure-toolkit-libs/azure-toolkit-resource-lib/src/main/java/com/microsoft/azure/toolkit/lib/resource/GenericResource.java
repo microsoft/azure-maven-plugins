@@ -74,4 +74,10 @@ public class GenericResource extends AbstractAzResource<GenericResource, Resourc
     public String getFullResourceType() {
         return this.resourceId.fullResourceType();
     }
+
+    @Nonnull
+    @Override
+    public String getResourceTypeName() {
+        return this.getFullResourceType();
+    }
 }
