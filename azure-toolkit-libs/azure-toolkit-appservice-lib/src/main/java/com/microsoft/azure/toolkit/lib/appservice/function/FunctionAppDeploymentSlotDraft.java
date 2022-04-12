@@ -254,11 +254,12 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
 
     @Override
     public boolean isModified() {
-        final boolean notModified = Objects.isNull(this.config) ||
-            StringUtils.isBlank(this.config.getConfigurationSource()) ||
-            Objects.isNull(this.config.getDiagnosticConfig()) ||
-            CollectionUtils.isEmpty(this.config.getAppSettingsToRemove()) ||
-            Objects.isNull(this.config.getAppSettings()) || Objects.equals(this.config.getAppSettings(), super.getAppSettings());
+        final boolean notModified = Objects.isNull(this.config) || (StringUtils.isBlank(this.config.getConfigurationSource()) &&
+                CollectionUtils.isEmpty(this.config.getAppSettingsToRemove()) &&
+                Objects.isNull(this.getDockerConfiguration()) &&
+                Objects.equals(this.getDiagnosticConfig(), super.getDiagnosticConfig()) &&
+                Objects.equals(this.getAppSettings(), super.getAppSettings()) &&
+                Objects.equals(this.getRuntime(), super.getRuntime()));
         return !notModified;
     }
 
