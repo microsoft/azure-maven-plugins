@@ -21,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.Data;
 import lombok.Getter;
@@ -85,7 +86,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         type = AzureOperation.Type.SERVICE
     )
     public FunctionDeploymentSlot createResourceInAzure() {
-        AzureTelemetry.getActionContext().setProperty(CREATE_NEW_DEPLOYMENT_SLOT, String.valueOf(true));
+        OperationContext.action().setTelemetryProperty(CREATE_NEW_DEPLOYMENT_SLOT, String.valueOf(true));
         final String name = getName();
         final Map<String, String> newAppSettings = this.getAppSettings();
         final DiagnosticConfig newDiagnosticConfig = this.getDiagnosticConfig();
@@ -254,11 +255,12 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
 
     @Override
     public boolean isModified() {
-        final boolean notModified = Objects.isNull(this.config) ||
-            StringUtils.isBlank(this.config.getConfigurationSource()) ||
-            Objects.isNull(this.config.getDiagnosticConfig()) ||
-            CollectionUtils.isEmpty(this.config.getAppSettingsToRemove()) ||
-            Objects.isNull(this.config.getAppSettings()) || Objects.equals(this.config.getAppSettings(), super.getAppSettings());
+        final boolean notModified = Objects.isNull(this.config) || (StringUtils.isBlank(this.config.getConfigurationSource()) &&
+                CollectionUtils.isEmpty(this.config.getAppSettingsToRemove()) &&
+                Objects.isNull(this.getDockerConfiguration()) &&
+                Objects.equals(this.getDiagnosticConfig(), super.getDiagnosticConfig()) &&
+                Objects.equals(this.getAppSettings(), super.getAppSettings()) &&
+                Objects.equals(this.getRuntime(), super.getRuntime()));
         return !notModified;
     }
 
