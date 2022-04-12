@@ -140,6 +140,8 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
 
     @AzureOperation(name = "webapp.create_slot.slot|app", params = {"this.config.deploymentSlotName()", "this.config.appName()"}, type = Type.SERVICE)
     private WebAppDeploymentSlot createDeploymentSlot(final WebAppDeploymentSlotDraft draft) {
+        draft.setRuntime(getRuntime(config.runtime()));
+        draft.setDockerConfiguration(getDockerConfiguration(config.runtime()));
         draft.setAppSettings(config.appSettings());
         draft.setConfigurationSource(config.deploymentSlotConfigurationSource());
         return draft.commit();
@@ -147,6 +149,8 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
 
     @AzureOperation(name = "webapp.update_slot.slot|app", params = {"this.config.deploymentSlotName()", "this.config.appName()"}, type = Type.SERVICE)
     private WebAppDeploymentSlot updateDeploymentSlot(final WebAppDeploymentSlotDraft draft) {
+        draft.setRuntime(getRuntime(config.runtime()));
+        draft.setDockerConfiguration(getDockerConfiguration(config.runtime()));
         draft.setAppSettings(config.appSettings());
         return draft.commit();
     }
