@@ -305,7 +305,7 @@
         {
           "name": "name",
           "value": "string",
-          "defaultValue": "kafkaOutput",
+          "defaultValue": "kafkaTrigger",
           "required": true,
           "label": "$kafka_name_label",
           "help": "$kafka_name_help",

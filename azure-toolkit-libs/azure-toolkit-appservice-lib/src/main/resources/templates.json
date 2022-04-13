@@ -307,7 +307,7 @@
         "disabled": false,
         "bindings": [
           {
-            "name": "kafkaOutput",
+            "name": "kafkaTrigger",
             "type": "kafkaTrigger",
             "direction": "in",
             "brokerList": "BrokerList",
