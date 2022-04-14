@@ -22,6 +22,8 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
+import com.microsoft.azure.toolkit.lib.resource.AzureResources;
+import com.microsoft.azure.toolkit.lib.resource.GenericResourceModule;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -172,7 +174,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             return this.resources.getOrDefault(name, Optional.empty()).orElseGet(() -> {
                 final T resource = this.newResource(name, resourceGroup);
                 log.debug("[{}]:get({}, {})->addResourceToLocal({}, resource)", this.name, name, resourceGroup, name);
-                this.addResourceToLocal(name, resource, true);
+                this.addResourceToLocal(name, resource);
                 return resource;
             });
         }
@@ -206,6 +208,13 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             // this will notify azure explorer to show a draft resource first
             log.debug("[{}]:create->addResourceToLocal({})", this.name, resource);
             this.addResourceToLocal(resource.getName(), resource);
+            final ResourceId id = ResourceId.fromString(resource.getId());
+            if (Objects.isNull(id.parent())) {
+                final String rg = id.resourceGroupName();
+                final String subId = id.subscriptionId();
+                final GenericResourceModule genericResourceModule = Azure.az(AzureResources.class).groups(subId).getOrInit(rg, rg).genericResources();
+                ((AbstractAzResourceModule) genericResourceModule).addResourceToLocal(resource.getId(), genericResourceModule.newResource(resource));
+            }
             log.debug("[{}]:create->doModify(draft.createResourceInAzure({}))", this.name, resource);
             resource.doModify(draft::createResourceInAzure, AzResource.Status.CREATING);
             return resource;
