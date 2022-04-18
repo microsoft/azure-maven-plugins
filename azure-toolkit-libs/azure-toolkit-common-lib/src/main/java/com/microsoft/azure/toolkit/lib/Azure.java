@@ -10,7 +10,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.resource.IAzureResources;
+import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -65,7 +65,7 @@ public class Azure {
             return service.getById(id);
         }
         log.warn(String.format("fallback to AzureResources because no valid service provider for '%s' is found.", id));
-        return Azure.az(IAzureResources.class).getById(id);
+        return Azure.az(AzureResources.class).getById(id);
     }
 
     @Nullable
@@ -78,7 +78,7 @@ public class Azure {
             return service.getOrInitById(id);
         }
         log.warn(String.format("fallback to AzureResources because no valid service provider for '%s' is found.", id));
-        return Azure.az(IAzureResources.class).getOrInitById(id);
+        return Azure.az(AzureResources.class).getOrInitById(id);
     }
 
     public static Azure az() {

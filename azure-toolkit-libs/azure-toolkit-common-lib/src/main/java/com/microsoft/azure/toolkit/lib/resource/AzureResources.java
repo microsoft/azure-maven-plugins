@@ -18,8 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
-public class AzureResources extends AbstractAzService<ResourcesServiceSubscription, ResourceManager>
-    implements IAzureResources {
+public class AzureResources extends AbstractAzService<ResourcesServiceSubscription, ResourceManager> {
 
     public AzureResources() {
         super("Microsoft.Resources");
