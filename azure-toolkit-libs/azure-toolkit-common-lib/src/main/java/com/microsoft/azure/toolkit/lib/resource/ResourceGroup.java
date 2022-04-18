@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesServiceSubscription, com.azure.resourcemanager.resources.models.ResourceGroup>
     implements Deletable {
@@ -54,6 +55,20 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesSe
         // "{"error":{"code":"ResourceGroupNotFound","message":"Resource group '${UUID}' could not be found."}}": Resource group '${UUID}' could not be found.
         final ResourceManager manager = Objects.requireNonNull(this.getParent().getRemote());
         return manager.resourceGroups().getByName(this.getName());
+    }
+
+    @Override
+    public void delete() {
+        final List<? extends AbstractAzResource<?, ?, ?>> childrenResources = this.genericResources().list().stream()
+            .map(GenericResource::toConcreteResource)
+            .filter(r -> !(r instanceof GenericResource)).collect(Collectors.toList());
+        childrenResources.forEach(r -> r.setStatus(Status.DELETING));
+        try {
+            super.delete();
+        } catch (Exception e) {
+            childrenResources.forEach(r -> r.setStatus(Status.UNKNOWN));
+        }
+        childrenResources.parallelStream().forEach(AbstractAzResource::deleteFromLocal);
     }
 
     @Nonnull

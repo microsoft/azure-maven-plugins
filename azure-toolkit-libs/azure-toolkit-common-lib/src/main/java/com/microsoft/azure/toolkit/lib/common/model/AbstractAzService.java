@@ -21,6 +21,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.LinkedList;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<T, R>, R> extends AbstractAzResourceModule<T, AzResource.None, R>
@@ -106,7 +107,32 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
             resourceId = resourceId.parent();
         }
         for (Pair<String, String> resourceTypeName : resourceTypeNames) {
-            resource = resource.getSubModule(resourceTypeName.getLeft()).getOrDraft(resourceTypeName.getRight(), resourceGroup);
+            resource = Optional.ofNullable(resource)
+                .map(r -> r.getSubModule(resourceTypeName.getLeft()))
+                .map(m -> m.getOrDraft(resourceTypeName.getRight(), resourceGroup)).orElse(null);
+        }
+        return (E) resource;
+    }
+
+    @Nullable
+    public <E> E getOrInitById(@Nonnull String id) { // move to upper class
+        return this.doGetOrInitById(id);
+    }
+
+    @Nullable
+    protected <E> E doGetOrInitById(@Nonnull String id) {
+        ResourceId resourceId = ResourceId.fromString(id);
+        final String resourceGroup = resourceId.resourceGroupName();
+        AbstractAzResource<?, ?, ?> resource = Objects.requireNonNull(this.get(resourceId.subscriptionId(), resourceGroup));
+        final LinkedList<Pair<String, String>> resourceTypeNames = new LinkedList<>();
+        while (resourceId != null) {
+            resourceTypeNames.push(Pair.of(resourceId.resourceType(), resourceId.name()));
+            resourceId = resourceId.parent();
+        }
+        for (Pair<String, String> resourceTypeName : resourceTypeNames) {
+            resource = Optional.ofNullable(resource)
+                .map(r -> r.getSubModule(resourceTypeName.getLeft()))
+                .map(m -> m.getOrInit(resourceTypeName.getRight(), resourceGroup)).orElse(null);
         }
         return (E) resource;
     }

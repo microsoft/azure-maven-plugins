@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.resource;
 
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
 import com.azure.resourcemanager.resources.models.GenericResources;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -18,7 +19,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class GenericResourceModule extends
-    AbstractAzResourceModule<GenericResource, ResourceGroup, com.azure.resourcemanager.resources.models.GenericResource> {
+    AbstractAzResourceModule<GenericResource, ResourceGroup, HasId> {
 
     public static final String NAME = "genericResources";
 
@@ -35,10 +36,10 @@ public class GenericResourceModule extends
     @Nonnull
     @Override
     @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
-    protected Stream<com.azure.resourcemanager.resources.models.GenericResource> loadResourcesFromAzure() {
+    protected Stream<HasId> loadResourcesFromAzure() {
         final GenericResources resources = Objects.requireNonNull(this.getClient());
         return resources.listByResourceGroup(this.parent.getName()).stream()
-            .filter(r -> Objects.isNull(ResourceId.fromString(r.id()).parent())); // only keep top resources.
+            .filter(r -> Objects.isNull(ResourceId.fromString(r.id()).parent())).map(r -> r); // only keep top resources.
     }
 
     @Nonnull
@@ -48,7 +49,7 @@ public class GenericResourceModule extends
     }
 
     @Nonnull
-    protected GenericResource newResource(@Nonnull com.azure.resourcemanager.resources.models.GenericResource r) {
+    protected GenericResource newResource(@Nonnull HasId r) {
         return new GenericResource(r, this);
     }
 

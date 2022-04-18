@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.resource;
 
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +19,13 @@ import java.util.Optional;
 
 @Slf4j
 public class AzureResources extends AbstractAzService<ResourcesServiceSubscription, ResourceManager> {
+
     public AzureResources() {
         super("Microsoft.Resources");
+        AzureEventBus.on("account.logout.account", new AzureEventBus.EventListener((e) -> {
+            this.clear();
+            this.refresh();
+        }));
     }
 
     @Nonnull
@@ -54,12 +60,38 @@ public class AzureResources extends AbstractAzService<ResourcesServiceSubscripti
     public <E> E getById(@Nonnull String id) {
         ResourceId resourceId = ResourceId.fromString(id);
         final String resourceGroup = resourceId.resourceGroupName();
-        if (resourceId.resourceType().equals(ResourceDeploymentModule.NAME)) {
-            final ResourcesServiceSubscription manager = Objects.requireNonNull(this.getOrDraft(resourceId.subscriptionId(), resourceGroup));
-            final ResourceGroup group = manager.resourceGroups().getOrDraft(resourceGroup, resourceGroup);
-            return (E) group.deployments().get(resourceId.name(), resourceGroup);
+        final String type = resourceId.resourceType();
+        final ResourcesServiceSubscription subscription = Objects.requireNonNull(this.getOrDraft(resourceId.subscriptionId(), resourceGroup));
+        if (type.equals("subscriptions")) {
+            return (E) subscription;
         }
-        return super.getById(id);
+        final ResourceGroup group = subscription.resourceGroups().getOrDraft(resourceGroup, resourceGroup);
+        if (type.equals(ResourceGroupModule.NAME)) {
+            return (E) group;
+        } else if (type.equals(ResourceDeploymentModule.NAME)) {
+            return (E) group.deployments().getOrDraft(resourceId.name(), resourceGroup);
+        } else {
+            return (E) group.genericResources().getOrDraft(id, resourceGroup);
+        }
+    }
+
+    @Nullable
+    public <E> E getOrInitById(@Nonnull String id) {
+        ResourceId resourceId = ResourceId.fromString(id);
+        final String resourceGroup = resourceId.resourceGroupName();
+        final String type = resourceId.resourceType();
+        final ResourcesServiceSubscription subscription = Objects.requireNonNull(this.getOrInit(resourceId.subscriptionId(), resourceGroup));
+        if (type.equals("subscriptions")) {
+            return (E) subscription;
+        }
+        final ResourceGroup group = subscription.resourceGroups().getOrInit(resourceGroup, resourceGroup);
+        if (type.equals(ResourceGroupModule.NAME)) {
+            return (E) group;
+        } else if (type.equals(ResourceDeploymentModule.NAME)) {
+            return (E) group.deployments().getOrInit(resourceId.name(), resourceGroup);
+        } else {
+            return (E) group.genericResources().getOrInit(id, resourceGroup);
+        }
     }
 
     @Nonnull
