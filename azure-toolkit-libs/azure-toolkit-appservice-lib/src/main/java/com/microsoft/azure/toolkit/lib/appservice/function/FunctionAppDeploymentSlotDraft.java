@@ -21,7 +21,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -85,7 +85,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         type = AzureOperation.Type.SERVICE
     )
     public FunctionDeploymentSlot createResourceInAzure() {
-        AzureTelemetry.getActionContext().setProperty(CREATE_NEW_DEPLOYMENT_SLOT, String.valueOf(true));
+        OperationContext.action().setTelemetryProperty(CREATE_NEW_DEPLOYMENT_SLOT, String.valueOf(true));
         final String name = getName();
         final Map<String, String> newAppSettings = this.getAppSettings();
         final DiagnosticConfig newDiagnosticConfig = this.getDiagnosticConfig();
