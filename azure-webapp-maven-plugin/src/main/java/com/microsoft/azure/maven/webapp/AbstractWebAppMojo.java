@@ -45,6 +45,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public static final String JAVA_WEB_CONTAINER_KEY = "javaWebContainer";
     public static final String DOCKER_IMAGE_TYPE_KEY = "dockerImageType";
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
+    public static final String PRICING_TIER_KEY = "pricingTier";
+    public static final String REGION_KEY = "region";
     public static final String OS_KEY = "os";
     public static final String SCHEMA_VERSION_KEY = "schemaVersion";
     public static final String DEPLOY_TO_SLOT_KEY = "isDeployToSlot";
@@ -275,6 +277,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         } else {
             map.put(DOCKER_IMAGE_TYPE_KEY, DockerImageType.NONE.toString());
         }
+        map.put(PRICING_TIER_KEY, pricingTier);
+        map.put(REGION_KEY, region);
         map.put(JAVA_VERSION_KEY, Optional.ofNullable(runtimeConfig).map(MavenRuntimeConfig::getJavaVersion).orElse(StringUtils.EMPTY));
         map.put(JAVA_WEB_CONTAINER_KEY, Optional.ofNullable(runtimeConfig).map(MavenRuntimeConfig::getWebContainer).orElse(StringUtils.EMPTY));
         final boolean isDeployToSlot = Optional.ofNullable(getDeploymentSlotSetting()).map(DeploymentSlotSetting::getName)

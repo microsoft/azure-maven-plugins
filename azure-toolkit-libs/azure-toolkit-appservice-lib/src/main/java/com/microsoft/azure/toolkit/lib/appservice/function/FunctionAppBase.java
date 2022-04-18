@@ -24,6 +24,7 @@ import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -33,6 +34,7 @@ import java.util.Optional;
 
 public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P extends AbstractAzResource<P, ?, ?>, F extends WebAppBase>
     extends AppServiceAppBase<T, P, F> {
+    private static final String FUNCTION_DEPLOY_TYPE = "functionDeployType";
 
     private AzureFunctionsFileClient fileClient;
 
@@ -53,6 +55,7 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
     }
 
     public void deploy(File targetFile, FunctionDeployType functionDeployType) {
+        AzureTelemetry.getContext().getActionParent().setProperty(FUNCTION_DEPLOY_TYPE, functionDeployType.name());
         getDeployHandlerByType(functionDeployType).deploy(targetFile, getFullRemote());
     }
 
