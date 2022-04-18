@@ -9,12 +9,12 @@ import com.azure.resourcemanager.compute.models.LinuxConfiguration;
 import com.azure.resourcemanager.compute.models.OSProfile;
 import com.azure.resourcemanager.network.models.PublicIpAddress;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Startable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.compute.ComputeResourceManager;
+import com.microsoft.azure.toolkit.lib.compute.ComputeServiceSubscription;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.model.OperatingSystem;
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeResourceManager, com.azure.resourcemanager.compute.models.VirtualMachine>
+public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeServiceSubscription, com.azure.resourcemanager.compute.models.VirtualMachine>
     implements Startable, Deletable {
 
     protected VirtualMachine(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull VirtualMachineModule module) {
@@ -45,7 +45,7 @@ public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeRe
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, VirtualMachine, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, VirtualMachine, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

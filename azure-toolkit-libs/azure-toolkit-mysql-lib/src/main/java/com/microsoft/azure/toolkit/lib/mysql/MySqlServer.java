@@ -12,7 +12,7 @@ import com.azure.resourcemanager.mysql.models.SslEnforcementEnum;
 import com.azure.resourcemanager.mysql.models.StorageProfile;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Startable;
@@ -31,7 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceManager, Server>
+public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSubscription, Server>
     implements Deletable, Startable, IDatabaseServer<MySqlDatabase> {
 
     private final MySqlDatabaseModule databaseModule;
@@ -67,7 +67,7 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlResourceMa
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, MySqlServer, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, MySqlServer, ?>> getSubModules() {
         return Arrays.asList(this.firewallRuleModule, this.databaseModule);
     }
 

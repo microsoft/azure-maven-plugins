@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.lib.network;
 
 import com.azure.resourcemanager.network.NetworkManager;
 import com.azure.resourcemanager.resources.ResourceManager;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.network.networksecuritygroup.NetworkSecurityGroupModule;
 import com.microsoft.azure.toolkit.lib.network.publicipaddress.PublicIpAddressModule;
 import com.microsoft.azure.toolkit.lib.network.virtualnetwork.NetworkModule;
@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-public class NetworkResourceManager extends AbstractAzResourceManager<NetworkResourceManager, NetworkManager> {
+public class NetworkServiceSubscription extends AbstractAzServiceSubscription<NetworkServiceSubscription, NetworkManager> {
     @Nonnull
     private final String subscriptionId;
     @Nonnull
@@ -30,7 +30,7 @@ public class NetworkResourceManager extends AbstractAzResourceManager<NetworkRes
     @Nonnull
     private final NetworkModule networkModule;
 
-    NetworkResourceManager(@Nonnull String subscriptionId, @Nonnull AzureNetwork service) {
+    NetworkServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzureNetwork service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.networkSecurityGroupModule = new NetworkSecurityGroupModule(this);
@@ -38,14 +38,14 @@ public class NetworkResourceManager extends AbstractAzResourceManager<NetworkRes
         this.networkModule = new NetworkModule(this);
     }
 
-    NetworkResourceManager(@Nonnull NetworkManager remote, @Nonnull AzureNetwork service) {
+    NetworkServiceSubscription(@Nonnull NetworkManager remote, @Nonnull AzureNetwork service) {
         this(remote.subscriptionId(), service);
         this.setRemote(remote);
     }
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, NetworkResourceManager, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, NetworkServiceSubscription, ?>> getSubModules() {
         return Arrays.asList(networkSecurityGroupModule, publicIpAddressModule, networkModule);
     }
 

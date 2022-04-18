@@ -14,7 +14,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,7 +24,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class AzureMySql extends AbstractAzService<MySqlResourceManager, MySqlManager> {
+public class AzureMySql extends AbstractAzService<MySqlServiceSubscription, MySqlManager> {
 
     public AzureMySql() {
         super("Microsoft.DBforMySQL");
@@ -32,7 +32,7 @@ public class AzureMySql extends AbstractAzService<MySqlResourceManager, MySqlMan
 
     @Nonnull
     public MySqlServerModule servers(@Nonnull String subscriptionId) {
-        final MySqlResourceManager rm = get(subscriptionId, null);
+        final MySqlServiceSubscription rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getServerModule();
     }
@@ -46,16 +46,16 @@ public class AzureMySql extends AbstractAzService<MySqlResourceManager, MySqlMan
         final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         return MySqlManager.configure()
-            .withHttpClient(AbstractAzResourceManager.getDefaultHttpClient())
+            .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
             .withLogOptions(new HttpLogOptions().setLogLevel(logLevel))
-            .withPolicy(AbstractAzResourceManager.getUserAgentPolicy(userAgent))
+            .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent))
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
     @Nonnull
     @Override
-    protected MySqlResourceManager newResource(@Nonnull MySqlManager manager) {
-        return new MySqlResourceManager(manager, this);
+    protected MySqlServiceSubscription newResource(@Nonnull MySqlManager manager) {
+        return new MySqlServiceSubscription(manager, this);
     }
 
     @Nonnull

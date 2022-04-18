@@ -9,17 +9,18 @@ import com.azure.resourcemanager.network.NetworkManager;
 import com.azure.resourcemanager.network.models.Networks;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.network.NetworkResourceManager;
+import com.microsoft.azure.toolkit.lib.network.NetworkServiceSubscription;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 
-public class NetworkModule extends AbstractAzResourceModule<Network, NetworkResourceManager, com.azure.resourcemanager.network.models.Network> {
+public class NetworkModule extends AbstractAzResourceModule<Network, NetworkServiceSubscription, com.azure.resourcemanager.network.models.Network> {
 
     public static final String NAME = "virtualNetworks";
 
-    public NetworkModule(@Nonnull NetworkResourceManager parent) {
+    public NetworkModule(@Nonnull NetworkServiceSubscription parent) {
         super(NAME, parent);
     }
 
@@ -50,6 +51,11 @@ public class NetworkModule extends AbstractAzResourceModule<Network, NetworkReso
     @Nonnull
     protected Network newResource(@Nonnull com.azure.resourcemanager.network.models.Network r) {
         return new Network(r, this);
+    }
+
+    @Nonnull
+    protected Network newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new Network(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nonnull

@@ -37,6 +37,12 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
 
     @Nonnull
     @Override
+    protected MicrosoftSqlFirewallRule newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new MicrosoftSqlFirewallRule(name, this);
+    }
+
+    @Nonnull
+    @Override
     @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<SqlFirewallRule> loadResourcesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());

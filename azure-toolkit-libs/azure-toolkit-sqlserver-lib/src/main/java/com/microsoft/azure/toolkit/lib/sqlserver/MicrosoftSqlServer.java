@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.sqlserver;
 import com.azure.resourcemanager.sql.models.SqlServer;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
@@ -24,7 +24,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
-public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, MicrosoftSqlResourceManager, SqlServer>
+public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, MicrosoftSqlServiceSubscription, SqlServer>
     implements Deletable, IDatabaseServer<MicrosoftSqlDatabase> {
 
     @Nonnull
@@ -56,7 +56,7 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, MicrosoftSqlServer, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, MicrosoftSqlServer, ?>> getSubModules() {
         return Arrays.asList(this.firewallRuleModule, this.databaseModule);
     }
 

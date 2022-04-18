@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.azure.resourcemanager.resources.ResourceManager;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
 
@@ -18,26 +18,26 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-public class SpringCloudResourceManager extends AbstractAzResourceManager<SpringCloudResourceManager, AppPlatformManager> {
+public class SpringCloudServiceSubscription extends AbstractAzServiceSubscription<SpringCloudServiceSubscription, AppPlatformManager> {
     @Nonnull
     private final String subscriptionId;
     @Nonnull
     private final SpringCloudClusterModule clusterModule;
 
-    SpringCloudResourceManager(@Nonnull String subscriptionId, @Nonnull AzureSpringCloud service) {
+    SpringCloudServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzureSpringCloud service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.clusterModule = new SpringCloudClusterModule(this);
     }
 
-    SpringCloudResourceManager(@Nonnull AppPlatformManager remote, @Nonnull AzureSpringCloud service) {
+    SpringCloudServiceSubscription(@Nonnull AppPlatformManager remote, @Nonnull AzureSpringCloud service) {
         this(remote.subscriptionId(), service);
         this.setRemote(remote);
     }
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, SpringCloudResourceManager, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, SpringCloudServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(clusterModule);
     }
 

@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.applicationinsights;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsComponent;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 
 import javax.annotation.Nonnull;
@@ -17,7 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, ApplicationInsightsResourceManager, ApplicationInsightsComponent> {
+public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, ApplicationInsightsServiceSubscription, ApplicationInsightsComponent> {
     protected ApplicationInsight(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull ApplicationInsightsModule module) {
         super(name, resourceGroupName, module);
     }
@@ -53,7 +53,7 @@ public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, A
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, ApplicationInsight, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ApplicationInsight, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

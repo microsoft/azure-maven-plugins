@@ -9,9 +9,9 @@ import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.storage.StorageManager;
 import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
 import com.azure.resourcemanager.storage.models.Reason;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Availability;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
@@ -23,26 +23,26 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Getter
-public class StorageResourceManager extends AbstractAzResourceManager<StorageResourceManager, StorageManager> {
+public class StorageServiceSubscription extends AbstractAzServiceSubscription<StorageServiceSubscription, StorageManager> {
     @Nonnull
     private final String subscriptionId;
     @Nonnull
     private final StorageAccountModule storageModule;
 
-    StorageResourceManager(@Nonnull String subscriptionId, @Nonnull AzureStorageAccount service) {
+    StorageServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzureStorageAccount service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.storageModule = new StorageAccountModule(this);
     }
 
-    StorageResourceManager(@Nonnull StorageManager remote, @Nonnull AzureStorageAccount service) {
+    StorageServiceSubscription(@Nonnull StorageManager remote, @Nonnull AzureStorageAccount service) {
         this(remote.subscriptionId(), service);
         this.setRemote(remote);
     }
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, StorageResourceManager, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, StorageServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(storageModule);
     }
 

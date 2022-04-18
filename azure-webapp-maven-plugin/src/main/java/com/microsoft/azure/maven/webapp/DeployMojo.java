@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.webapp;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotConfig;
 import com.microsoft.azure.maven.webapp.task.DeployExternalResourcesTask;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
@@ -16,6 +17,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateWebAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
@@ -61,7 +63,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         final boolean skipCreate = skipAzureResourceCreate || skipCreateAzureResource;
         if (!isDeployToDeploymentSlot()) {
             final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
-            WebApp app = az.webApps(appServiceConfig.subscriptionId()).getOrDraft(appServiceConfig.appName(), appServiceConfig.resourceGroup());
+            WebApp app = Azure.az(AzureWebApp.class).webApps(appServiceConfig.subscriptionId()).getOrDraft(appServiceConfig.appName(), appServiceConfig.resourceGroup());
             AppServiceConfig defaultConfig = app.exists() ? fromAppService(app, app.getAppServicePlan()) : buildDefaultConfig(appServiceConfig.subscriptionId(),
                 appServiceConfig.resourceGroup(), appServiceConfig.appName());
             mergeAppServiceConfig(appServiceConfig, defaultConfig);
@@ -103,7 +105,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private WebAppDeploymentSlotDraft getDeploymentSlot(final DeploymentSlotConfig config) throws AzureExecutionException {
-        final WebApp webApp = az.webApps(config.getSubscriptionId()).getOrDraft(config.getAppName(), config.getResourceGroup());
+        final WebApp webApp = Azure.az(AzureWebApp.class).webApps(config.getSubscriptionId()).getOrDraft(config.getAppName(), config.getResourceGroup());
         if (!webApp.exists()) {
             throw new AzureExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
         }

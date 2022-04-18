@@ -13,20 +13,20 @@ import com.azure.resourcemanager.resources.ResourceManager;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppModule;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanModule;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppModule;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Availability;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 @Getter
-public class AppServiceResourceManager extends AbstractAzResourceManager<AppServiceResourceManager, AppServiceManager> {
+public class AppServiceServiceSubscription extends AbstractAzServiceSubscription<AppServiceServiceSubscription, AppServiceManager> {
     @Nonnull
     private final String subscriptionId;
     @Nonnull
@@ -36,7 +36,7 @@ public class AppServiceResourceManager extends AbstractAzResourceManager<AppServ
     @Nonnull
     private final AppServicePlanModule planModule;
 
-    protected AppServiceResourceManager(@Nonnull String subscriptionId, @Nonnull AzureAppService service) {
+    protected AppServiceServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzureAppService service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.functionAppModule = new FunctionAppModule(this);
@@ -44,15 +44,15 @@ public class AppServiceResourceManager extends AbstractAzResourceManager<AppServ
         this.planModule = new AppServicePlanModule(this);
     }
 
-    protected AppServiceResourceManager(@Nonnull AppServiceManager remote, @Nonnull AzureAppService service) {
+    protected AppServiceServiceSubscription(@Nonnull AppServiceManager remote, @Nonnull AzureAppService service) {
         this(remote.subscriptionId(), service);
         this.setRemote(remote);
     }
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, AppServiceResourceManager, ?>> getSubModules() {
-        return Arrays.asList(webAppModule, functionAppModule, planModule);
+    public List<AbstractAzResourceModule<?, AppServiceServiceSubscription, ?>> getSubModules() {
+        return Collections.singletonList(planModule);
     }
 
     @Nonnull

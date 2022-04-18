@@ -11,7 +11,7 @@ import com.azure.resourcemanager.resources.models.DeploymentOperation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 
 import javax.annotation.Nonnull;
@@ -55,7 +55,7 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, ResourceDeployment, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ResourceDeployment, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

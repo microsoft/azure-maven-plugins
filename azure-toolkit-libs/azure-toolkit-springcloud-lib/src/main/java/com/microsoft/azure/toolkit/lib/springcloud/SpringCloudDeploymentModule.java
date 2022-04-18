@@ -52,6 +52,11 @@ public class SpringCloudDeploymentModule extends AbstractAzResourceModule<Spring
     }
 
     @Nonnull
+    protected SpringCloudDeployment newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new SpringCloudDeployment(name, this);
+    }
+
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Spring Cloud app deployment";

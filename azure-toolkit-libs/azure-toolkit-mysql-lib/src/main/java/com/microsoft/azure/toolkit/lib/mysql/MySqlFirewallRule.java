@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.mysql;
 
 import com.azure.resourcemanager.mysql.models.FirewallRule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
 
 import javax.annotation.Nonnull;
@@ -41,7 +41,7 @@ public class MySqlFirewallRule extends AbstractAzResource<MySqlFirewallRule, MyS
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, MySqlFirewallRule, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, MySqlFirewallRule, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

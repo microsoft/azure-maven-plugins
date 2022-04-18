@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.common.action;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -16,8 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Getter
-@Accessors(chain = true)
-public class ActionGroup {
+public class ActionGroup implements IActionGroup {
     @Nullable
     private IView.Label view;
     private final List<Object> actions;
@@ -35,5 +33,9 @@ public class ActionGroup {
     public ActionGroup(@Nonnull List<Object> actions, @Nullable IView.Label view) {
         this.view = view;
         this.actions = actions;
+    }
+
+    public void addAction(Object action) {
+        this.actions.add(action);
     }
 }

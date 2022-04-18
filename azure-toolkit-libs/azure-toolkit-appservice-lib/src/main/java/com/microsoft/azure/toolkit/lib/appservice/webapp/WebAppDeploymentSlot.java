@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.appservice.webapp;
 
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.WebDeploymentSlotBasic;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -33,7 +33,7 @@ public class WebAppDeploymentSlot extends WebAppBase<WebAppDeploymentSlot, WebAp
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, WebAppDeploymentSlot, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, WebAppDeploymentSlot, ?>> getSubModules() {
         return Collections.emptyList();
     }
 }

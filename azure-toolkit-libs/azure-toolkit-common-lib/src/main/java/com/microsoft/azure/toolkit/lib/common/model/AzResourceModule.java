@@ -54,7 +54,9 @@ public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzRes
     }
 
     @Nonnull
-    String getResourceTypeName();
+    default String getResourceTypeName() {
+        return this.getFullResourceType();
+    }
 
     @Nonnull
     P getParent();
@@ -78,6 +80,12 @@ public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzRes
         @Nonnull
         @Override
         protected AzResource.None newResource(@Nonnull Void unused) {
+            return AzResource.NONE;
+        }
+
+        @Nonnull
+        @Override
+        protected AzResource.None newResource(@Nonnull String name, @Nullable String resourceGroupName) {
             return AzResource.NONE;
         }
 

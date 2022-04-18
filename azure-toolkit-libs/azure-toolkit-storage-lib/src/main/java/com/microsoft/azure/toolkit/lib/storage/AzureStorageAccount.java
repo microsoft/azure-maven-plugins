@@ -13,7 +13,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Performance;
@@ -28,7 +28,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class AzureStorageAccount extends AbstractAzService<StorageResourceManager, StorageManager> {
+public class AzureStorageAccount extends AbstractAzService<StorageServiceSubscription, StorageManager> {
 
     public AzureStorageAccount() {
         super("Microsoft.Storage");
@@ -36,7 +36,7 @@ public class AzureStorageAccount extends AbstractAzService<StorageResourceManage
 
     @Nonnull
     public StorageAccountModule accounts(@Nonnull String subscriptionId) {
-        final StorageResourceManager rm = get(subscriptionId, null);
+        final StorageServiceSubscription rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getStorageModule();
     }
@@ -44,7 +44,7 @@ public class AzureStorageAccount extends AbstractAzService<StorageResourceManage
     @Nullable
     public StorageAccount account(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
-        final StorageResourceManager rm = get(id.subscriptionId(), null);
+        final StorageServiceSubscription rm = get(id.subscriptionId(), null);
         assert rm != null;
         return rm.getStorageModule().get(resourceId);
     }
@@ -63,16 +63,16 @@ public class AzureStorageAccount extends AbstractAzService<StorageResourceManage
         final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         return StorageManager.configure()
-            .withHttpClient(AbstractAzResourceManager.getDefaultHttpClient())
+            .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
             .withLogLevel(logLevel)
-            .withPolicy(AbstractAzResourceManager.getUserAgentPolicy(userAgent)) // set user agent with policy
+            .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent)) // set user agent with policy
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
     @Nonnull
     @Override
-    protected StorageResourceManager newResource(@Nonnull StorageManager remote) {
-        return new StorageResourceManager(remote, this);
+    protected StorageServiceSubscription newResource(@Nonnull StorageManager remote) {
+        return new StorageServiceSubscription(remote, this);
     }
 
     @Nonnull

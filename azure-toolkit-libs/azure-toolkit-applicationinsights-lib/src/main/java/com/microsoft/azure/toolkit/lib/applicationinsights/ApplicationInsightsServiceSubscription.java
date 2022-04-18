@@ -6,8 +6,8 @@
 package com.microsoft.azure.toolkit.lib.applicationinsights;
 
 import com.azure.resourcemanager.applicationinsights.ApplicationInsightsManager;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -15,19 +15,19 @@ import java.util.Collections;
 import java.util.List;
 
 @Getter
-public class ApplicationInsightsResourceManager extends AbstractAzResourceManager<ApplicationInsightsResourceManager, ApplicationInsightsManager> {
+public class ApplicationInsightsServiceSubscription extends AbstractAzServiceSubscription<ApplicationInsightsServiceSubscription, ApplicationInsightsManager> {
     @Nonnull
     private final String subscriptionId;
     @Nonnull
     private final ApplicationInsightsModule applicationInsightsModule;
 
-    protected ApplicationInsightsResourceManager(@Nonnull String subscriptionId, @Nonnull AzureApplicationInsights service) {
+    protected ApplicationInsightsServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzureApplicationInsights service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.applicationInsightsModule = new ApplicationInsightsModule(this);
     }
 
-    protected ApplicationInsightsResourceManager(@Nonnull ApplicationInsightsManager manager, @Nonnull AzureApplicationInsights service) {
+    protected ApplicationInsightsServiceSubscription(@Nonnull ApplicationInsightsManager manager, @Nonnull AzureApplicationInsights service) {
         this(manager.serviceClient().getSubscriptionId(), service);
         this.setRemote(manager);
     }
@@ -39,7 +39,7 @@ public class ApplicationInsightsResourceManager extends AbstractAzResourceManage
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, ApplicationInsightsResourceManager, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ApplicationInsightsServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(applicationInsightsModule);
     }
 }

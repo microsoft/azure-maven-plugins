@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.sqlserver;
 
 import com.azure.resourcemanager.sql.models.SqlDatabase;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
 
@@ -30,7 +30,7 @@ public class MicrosoftSqlDatabase extends AbstractAzResource<MicrosoftSqlDatabas
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, MicrosoftSqlDatabase, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, MicrosoftSqlDatabase, ?>> getSubModules() {
         return Collections.emptyList();
     }
 
