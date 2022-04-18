@@ -13,7 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import lombok.Data;
 import lombok.Getter;
 
@@ -54,7 +54,7 @@ public class ResourceGroupDraft extends ResourceGroup implements AzResource.Draf
         type = AzureOperation.Type.SERVICE
     )
     public com.azure.resourcemanager.resources.models.ResourceGroup createResourceInAzure() {
-        AzureTelemetry.getActionContext().setProperty(CREATE_NEW_RESOURCE_GROUP_KEY, String.valueOf(true));
+        OperationContext.action().setTelemetryProperty(CREATE_NEW_RESOURCE_GROUP_KEY, String.valueOf(true));
         final String name = this.getName();
         final Region region = this.getRegion();
         if (Objects.isNull(region)) {

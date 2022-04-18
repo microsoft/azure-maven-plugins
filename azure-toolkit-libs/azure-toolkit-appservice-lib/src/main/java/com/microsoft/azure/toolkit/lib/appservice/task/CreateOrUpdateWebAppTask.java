@@ -25,8 +25,8 @@ import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation.Type;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -80,7 +80,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebApp> {
 
     @AzureOperation(name = "webapp.create_app.app", params = {"this.config.appName()"}, type = Type.SERVICE)
     private WebApp create() {
-        AzureTelemetry.getContext().getActionParent().setProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
+        OperationContext.action().setTelemetryProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
         final Region region = this.config.region();
         final AppServicePlanConfig planConfig = config.getServicePlanConfig();
 
