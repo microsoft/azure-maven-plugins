@@ -54,7 +54,9 @@ public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzRes
     }
 
     @Nonnull
-    String getResourceTypeName();
+    default String getResourceTypeName() {
+        return this.getFullResourceType();
+    }
 
     @Nonnull
     P getParent();
