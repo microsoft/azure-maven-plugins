@@ -61,11 +61,15 @@ public class Azure {
         final ResourceId resourceId = ResourceId.fromString(id);
         final String provider = Optional.ofNullable(resourceId.providerNamespace()).orElse("Microsoft.Resources");
         final AzService service = getService(provider);
+        AbstractAzResource<?, ?, ?> result = null;
         if (service instanceof AbstractAzService) {
-            return service.getById(id);
+            result = service.getById(id);
         }
-        log.warn(String.format("fallback to AzureResources because no valid service provider for '%s' is found.", id));
-        return Azure.az(AzureResources.class).getById(id);
+        if (result == null) {
+            log.warn(String.format("fallback to AzureResources because no valid service provider for '%s' is found.", id));
+            return Azure.az(AzureResources.class).getById(id);
+        }
+        return result;
     }
 
     @Nullable
@@ -74,11 +78,15 @@ public class Azure {
         final ResourceId resourceId = ResourceId.fromString(id);
         final String provider = Optional.ofNullable(resourceId.providerNamespace()).orElse("Microsoft.Resources");
         final AzService service = getService(provider);
+        AbstractAzResource<?, ?, ?> result = null;
         if (service instanceof AbstractAzService) {
-            return service.getOrInitById(id);
+            result = service.getOrInitById(id);
         }
-        log.warn(String.format("fallback to AzureResources because no valid service provider for '%s' is found.", id));
-        return Azure.az(AzureResources.class).getOrInitById(id);
+        if (result == null) {
+            log.warn(String.format("fallback to AzureResources because no valid service provider for '%s' is found.", id));
+            return Azure.az(AzureResources.class).getOrInitById(id);
+        }
+        return result;
     }
 
     public static Azure az() {

@@ -66,7 +66,7 @@ public class AzureResources extends AbstractAzService<ResourcesServiceSubscripti
         } else if (type.equals(ResourceDeploymentModule.NAME)) {
             return (E) group.deployments().getOrDraft(resourceId.name(), resourceGroup);
         } else {
-            return (E) group.genericResources().getOrDraft(id, resourceGroup);
+            return (E) group.genericResources().get(id, resourceGroup);
         }
     }
 
