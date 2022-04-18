@@ -10,7 +10,6 @@ import com.azure.resourcemanager.containerregistry.models.Registries;
 import com.azure.resourcemanager.containerregistry.models.Registry;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -22,7 +21,7 @@ public class AzureContainerRegistryModule extends AbstractAzResourceModule<Conta
 
     public static final String NAME = "registries";
 
-    public AzureContainerRegistryModule(@NotNull AzureContainerRegistryServiceSubscription parent) {
+    public AzureContainerRegistryModule(@Nonnull AzureContainerRegistryServiceSubscription parent) {
         super(NAME, parent);
     }
 
