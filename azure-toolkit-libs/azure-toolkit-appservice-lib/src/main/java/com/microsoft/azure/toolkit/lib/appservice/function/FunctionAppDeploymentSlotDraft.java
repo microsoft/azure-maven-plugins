@@ -177,6 +177,8 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         } else if (operatingSystem == OperatingSystem.WINDOWS) {
             update.withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime.getJavaVersion()))
                     .withWebContainer(AppServiceUtils.toWebContainer(newRuntime));
+        } else if (operatingSystem == OperatingSystem.DOCKER) {
+            return; // skip for docker, as docker configuration will be handled in `updateDockerConfiguration`
         } else {
             throw new AzureToolkitRuntimeException(String.format(UNSUPPORTED_OPERATING_SYSTEM, newRuntime.getOperatingSystem()));
         }
