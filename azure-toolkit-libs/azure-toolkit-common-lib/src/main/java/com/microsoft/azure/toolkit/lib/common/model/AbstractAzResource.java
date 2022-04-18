@@ -113,10 +113,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         } catch (Exception e) {
             log.debug("[{}:{}]:reload->this.refreshRemote/loadResourceFromAzure=EXCEPTION", this.module.getName(), this.getName(), e);
             final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
-            if (cause instanceof ManagementException) {
-                if (HttpStatus.SC_NOT_FOUND == ((ManagementException) cause).getResponse().getStatusCode()) {
-                    return null;
-                }
+            if (cause instanceof ManagementException && HttpStatus.SC_NOT_FOUND == ((ManagementException) cause).getResponse().getStatusCode()) {
+                return null;
             }
             throw e;
         }
@@ -152,15 +150,31 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         if (!this.exists()) {
             return;
         }
+        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(Status.DELETING));
         this.doModify(() -> {
             log.debug("[{}:{}]:delete->module.deleteResourceFromAzure({})", this.module.getName(), this.getName(), this.getId());
-            this.getModule().deleteResourceFromAzure(this.getId());
-            log.debug("[{}:{}]:delete->this.setStatus(DELETED)", this.module.getName(), this.getName());
-            this.setStatus(Status.DELETED);
-            log.debug("[{}:{}]:delete->module.deleteResourceFromLocal({})", this.module.getName(), this.getName(), this.getName());
-            this.getModule().deleteResourceFromLocal(this.getName());
+            try {
+                this.getModule().deleteResourceFromAzure(this.getId());
+            } catch (Exception e) {
+                final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
+                if (cause instanceof ManagementException && HttpStatus.SC_NOT_FOUND != ((ManagementException) cause).getResponse().getStatusCode()) {
+                    log.debug("[{}]:delete()->deleteResourceFromAzure()=SC_NOT_FOUND", this.name, e);
+                } else {
+                    this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(Status.UNKNOWN));
+                    throw e;
+                }
+            }
+            this.deleteFromLocal();
+            this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(AbstractAzResource::deleteFromLocal);
             return null;
         }, Status.DELETING);
+    }
+
+    public void deleteFromLocal() {
+        log.debug("[{}:{}]:delete->this.setStatus(DELETED)", this.module.getName(), this.getName());
+        this.setStatus(Status.DELETED);
+        log.debug("[{}:{}]:delete->module.deleteResourceFromLocal({})", this.module.getName(), this.getName(), this.getName());
+        this.getModule().deleteResourceFromLocal(this.getName());
     }
 
     protected void setRemote(@Nullable R newRemote) {
@@ -206,7 +220,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
-    protected void setStatus(@Nonnull String status) {
+    public void setStatus(@Nonnull String status) {
         synchronized (this.statusRef) {
             log.debug("[{}:{}]:setStatus({})", this.module.getName(), this.getName(), status);
             // TODO: state engine to manage status, e.g. DRAFT -> CREATING
@@ -354,10 +368,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return (D) origin;
     }
 
-    @Nonnull
+    @Nullable
     public AbstractAzResourceModule<?, T, ?> getSubModule(String moduleName) {
-        return this.getSubModules().stream().filter(m -> m.getName().equals(moduleName)).findAny()
-            .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("invalid module \"%s\"", moduleName)));
+        return this.getSubModules().stream().filter(m -> m.getName().equals(moduleName)).findAny().orElse(null);
     }
 
     public boolean isDraft() {

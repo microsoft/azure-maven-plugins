@@ -18,9 +18,10 @@ import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanModule;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
+import com.microsoft.azure.toolkit.lib.resource.AzureResources;
+import com.microsoft.azure.toolkit.lib.resource.GenericResource;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -82,9 +83,9 @@ public class AzureAppService extends AbstractAzService<AppServiceServiceSubscrip
         } else {
             boolean isFunctionRelated = false;
             try {
-                isFunctionRelated = Optional.ofNullable(this.get(resourceId.subscriptionId(), null))
-                    .map(AbstractAzResource::getRemote).map(r -> r.resourceManager().genericResources().getById(id))
-                    .filter(r -> StringUtils.containsIgnoreCase(r.kind(), "function")).isPresent();
+                final GenericResource resource = Azure.az(AzureResources.class).getGenericResource(id);
+                isFunctionRelated = Optional.ofNullable(resource)
+                    .filter(r -> StringUtils.containsIgnoreCase(r.getKind(), "function")).isPresent();
             } catch (ManagementException e) {
                 if (e.getResponse().getStatusCode() != 404) { // Java SDK throw exception with 200 response, swallow exception in this case
                     throw e;
@@ -94,6 +95,31 @@ public class AzureAppService extends AbstractAzService<AppServiceServiceSubscrip
                 return Azure.az(AzureFunctions.class).doGetById(id);
             } else {
                 return Azure.az(AzureWebApp.class).doGetById(id);
+            }
+        }
+    }
+
+    @Nullable
+    @Override
+    public <E> E getOrInitById(@Nonnull String id) {
+        final ResourceId resourceId = ResourceId.fromString(id);
+        if (resourceId.resourceType().equals(AppServicePlanModule.NAME)) {
+            return super.doGetOrInitById(id);
+        } else {
+            boolean isFunctionRelated = false;
+            try {
+                final GenericResource resource = Azure.az(AzureResources.class).getGenericResource(id);
+                isFunctionRelated = Optional.ofNullable(resource)
+                    .filter(r -> StringUtils.containsIgnoreCase(r.getKind(), "function")).isPresent();
+            } catch (ManagementException e) {
+                if (e.getResponse().getStatusCode() != 404) { // Java SDK throw exception with 200 response, swallow exception in this case
+                    throw e;
+                }
+            }
+            if (isFunctionRelated) {
+                return Azure.az(AzureFunctions.class).doGetOrInitById(id);
+            } else {
+                return Azure.az(AzureWebApp.class).doGetOrInitById(id);
             }
         }
     }

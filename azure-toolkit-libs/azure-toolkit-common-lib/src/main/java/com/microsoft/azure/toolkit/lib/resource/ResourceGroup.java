@@ -14,18 +14,21 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesServiceSubscription, com.azure.resourcemanager.resources.models.ResourceGroup>
     implements Deletable {
 
     private final ResourceDeploymentModule deploymentModule;
+    private final GenericResourceModule resourceModule;
 
     protected ResourceGroup(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull ResourceGroupModule module) {
         super(name, resourceGroupName, module);
         this.deploymentModule = new ResourceDeploymentModule(this);
+        this.resourceModule = new GenericResourceModule(this);
     }
 
     /**
@@ -34,11 +37,13 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesSe
     protected ResourceGroup(@Nonnull ResourceGroup origin) {
         super(origin);
         this.deploymentModule = origin.deploymentModule;
+        this.resourceModule = origin.resourceModule;
     }
 
     protected ResourceGroup(@Nonnull com.azure.resourcemanager.resources.models.ResourceGroup remote, @Nonnull ResourceGroupModule module) {
         super(remote.name(), remote.name(), module);
         this.deploymentModule = new ResourceDeploymentModule(this);
+        this.resourceModule = new GenericResourceModule(this);
         this.setRemote(remote);
     }
 
@@ -52,14 +57,32 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesSe
         return manager.resourceGroups().getByName(this.getName());
     }
 
+    @Override
+    public void delete() {
+        final List<? extends AbstractAzResource<?, ?, ?>> childrenResources = this.genericResources().list().stream()
+            .map(GenericResource::toConcreteResource)
+            .filter(r -> !(r instanceof GenericResource)).collect(Collectors.toList());
+        childrenResources.forEach(r -> r.setStatus(Status.DELETING));
+        try {
+            super.delete();
+        } catch (Exception e) {
+            childrenResources.forEach(r -> r.setStatus(Status.UNKNOWN));
+        }
+        childrenResources.parallelStream().forEach(AbstractAzResource::deleteFromLocal);
+    }
+
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ResourceGroup, ?>> getSubModules() {
-        return Collections.singletonList(deploymentModule);
+        return Arrays.asList(deploymentModule, resourceModule);
     }
 
     public ResourceDeploymentModule deployments() {
         return this.deploymentModule;
+    }
+
+    public GenericResourceModule genericResources() {
+        return this.resourceModule;
     }
 
     @Nonnull

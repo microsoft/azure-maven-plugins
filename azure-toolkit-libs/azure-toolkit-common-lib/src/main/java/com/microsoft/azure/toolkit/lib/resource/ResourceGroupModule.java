@@ -66,13 +66,6 @@ public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup,
     }
 
     @Nonnull
-    @Override
-    public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
-        assert StringUtils.equalsAny(resourceGroup, resourceName, null);
-        return String.format("/subscriptions/%s/resourceGroups/%s", this.getSubscriptionId(), resourceName);
-    }
-
-    @Nonnull
     protected ResourceGroup newResource(@Nonnull com.azure.resourcemanager.resources.models.ResourceGroup r) {
         return new ResourceGroup(r, this);
     }
