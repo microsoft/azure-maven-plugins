@@ -32,11 +32,11 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetryClient;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
@@ -716,7 +716,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     }
 
     protected void updateTelemetryProperties() {
-        Optional.ofNullable(AzureTelemetry.getContext().getActionParent().getProperties()).ifPresent(properties ->
+        Optional.ofNullable(OperationContext.action().getTelemetryProperties()).ifPresent(properties ->
                 properties.forEach((key, value) -> telemetryProxy.addDefaultProperty(key, value)));
     }
 }
