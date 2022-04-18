@@ -13,7 +13,6 @@ import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -114,7 +113,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
 
         @Nonnull
         @Override
-        public List<AzResourceModule<?, None, ?>> getSubModules() {
+        public List<AbstractAzResourceModule<?, None, ?>> getSubModules() {
             return Collections.emptyList();
         }
 

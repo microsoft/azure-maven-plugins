@@ -15,15 +15,16 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 @Slf4j
-public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MySqlResourceManager, Server> {
+public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MySqlServiceSubscription, Server> {
 
     public static final String NAME = "servers";
 
-    public MySqlServerModule(@Nonnull MySqlResourceManager parent) {
+    public MySqlServerModule(@Nonnull MySqlServiceSubscription parent) {
         super(NAME, parent);
     }
 
@@ -81,6 +82,11 @@ public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MyS
     @Nonnull
     protected MySqlServer newResource(@Nonnull Server r) {
         return new MySqlServer(r, this);
+    }
+
+    @Nonnull
+    protected MySqlServer newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new MySqlServer(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nonnull

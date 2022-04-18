@@ -12,7 +12,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,14 +20,14 @@ import javax.annotation.Nonnull;
 import java.util.Optional;
 
 @Slf4j
-public class AzureRedis extends AbstractAzService<RedisResourceManager, RedisManager> {
+public class AzureRedis extends AbstractAzService<RedisServiceSubscription, RedisManager> {
     public AzureRedis() {
         super("Microsoft.Cache");
     }
 
     @Nonnull
     public RedisCacheModule caches(@Nonnull String subscriptionId) {
-        final RedisResourceManager rm = get(subscriptionId, null);
+        final RedisServiceSubscription rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getCacheModule();
     }
@@ -41,16 +41,16 @@ public class AzureRedis extends AbstractAzService<RedisResourceManager, RedisMan
         final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         return RedisManager.configure()
-            .withHttpClient(AbstractAzResourceManager.getDefaultHttpClient())
+            .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
             .withLogLevel(logLevel)
-            .withPolicy(AbstractAzResourceManager.getUserAgentPolicy(userAgent)) // set user agent with policy
+            .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent)) // set user agent with policy
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
     @Nonnull
     @Override
-    protected RedisResourceManager newResource(@Nonnull RedisManager remote) {
-        return new RedisResourceManager(remote, this);
+    protected RedisServiceSubscription newResource(@Nonnull RedisManager remote) {
+        return new RedisServiceSubscription(remote, this);
     }
 
     @Nonnull

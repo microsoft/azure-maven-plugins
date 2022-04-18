@@ -9,18 +9,20 @@ import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
 import com.azure.resourcemanager.appservice.models.FunctionApps;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
-import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 
-public class FunctionAppModule extends AbstractAzResourceModule<FunctionApp, AppServiceResourceManager, WebSiteBase> {
+public class FunctionAppModule extends AbstractAzResourceModule<FunctionApp, AppServiceServiceSubscription, WebSiteBase> {
 
     public static final String NAME = "sites";
 
-    public FunctionAppModule(@Nonnull AppServiceResourceManager parent) {
+    public FunctionAppModule(@Nonnull AppServiceServiceSubscription parent) {
         super(NAME, parent);
     }
 
@@ -50,6 +52,11 @@ public class FunctionAppModule extends AbstractAzResourceModule<FunctionApp, App
     @Nonnull
     protected FunctionApp newResource(@Nonnull WebSiteBase remote) {
         return new FunctionApp((FunctionAppBasic) remote, this);
+    }
+
+    @Nonnull
+    protected FunctionApp newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new FunctionApp(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nonnull

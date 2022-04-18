@@ -3,15 +3,15 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.mysql;
+package com.microsoft.azure.toolkit.lib.postgre;
 
-import com.azure.resourcemanager.mysql.MySqlManager;
-import com.azure.resourcemanager.mysql.models.NameAvailability;
-import com.azure.resourcemanager.mysql.models.NameAvailabilityRequest;
-import com.azure.resourcemanager.mysql.models.PerformanceTierProperties;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.azure.resourcemanager.postgresql.PostgreSqlManager;
+import com.azure.resourcemanager.postgresql.models.NameAvailability;
+import com.azure.resourcemanager.postgresql.models.NameAvailabilityRequest;
+import com.azure.resourcemanager.postgresql.models.PerformanceTierProperties;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Availability;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
@@ -23,31 +23,31 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Getter
-public class MySqlResourceManager extends AbstractAzResourceManager<MySqlResourceManager, MySqlManager> {
+public class PostgreSqlServiceSubscription extends AbstractAzServiceSubscription<PostgreSqlServiceSubscription, PostgreSqlManager> {
     @Nonnull
     private final String subscriptionId;
     @Nonnull
-    private final MySqlServerModule serverModule;
+    private final PostgreSqlServerModule serverModule;
 
-    MySqlResourceManager(@Nonnull String subscriptionId, @Nonnull AzureMySql service) {
+    PostgreSqlServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzurePostgreSql service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
-        this.serverModule = new MySqlServerModule(this);
+        this.serverModule = new PostgreSqlServerModule(this);
     }
 
-    MySqlResourceManager(@Nonnull MySqlManager manager, @Nonnull AzureMySql service) {
+    PostgreSqlServiceSubscription(@Nonnull PostgreSqlManager manager, @Nonnull AzurePostgreSql service) {
         this(manager.serviceClient().getSubscriptionId(), service);
         this.setRemote(manager);
     }
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, MySqlResourceManager, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, PostgreSqlServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(serverModule);
     }
 
     @Nonnull
-    public MySqlServerModule servers() {
+    public PostgreSqlServerModule servers() {
         return this.serverModule;
     }
 

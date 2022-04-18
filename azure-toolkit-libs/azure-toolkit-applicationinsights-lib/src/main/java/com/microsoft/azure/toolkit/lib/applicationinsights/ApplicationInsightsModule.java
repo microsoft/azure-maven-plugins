@@ -14,14 +14,15 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class ApplicationInsightsModule extends AbstractAzResourceModule<ApplicationInsight, ApplicationInsightsResourceManager, ApplicationInsightsComponent> {
+public class ApplicationInsightsModule extends AbstractAzResourceModule<ApplicationInsight, ApplicationInsightsServiceSubscription, ApplicationInsightsComponent> {
 
     public static final String NAME = "components";
 
-    public ApplicationInsightsModule(@Nonnull ApplicationInsightsResourceManager parent) {
+    public ApplicationInsightsModule(@Nonnull ApplicationInsightsServiceSubscription parent) {
         super(NAME, parent);
     }
 
@@ -73,6 +74,12 @@ public class ApplicationInsightsModule extends AbstractAzResourceModule<Applicat
     @Override
     protected ApplicationInsight newResource(@Nonnull ApplicationInsightsComponent remote) {
         return new ApplicationInsight(remote, this);
+    }
+
+    @Nonnull
+    @Override
+    protected ApplicationInsight newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new ApplicationInsight(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nullable

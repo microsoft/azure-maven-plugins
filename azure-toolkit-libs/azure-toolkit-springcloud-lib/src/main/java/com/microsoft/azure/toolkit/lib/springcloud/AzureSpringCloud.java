@@ -12,20 +12,20 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
-public final class AzureSpringCloud extends AbstractAzService<SpringCloudResourceManager, AppPlatformManager> {
+public final class AzureSpringCloud extends AbstractAzService<SpringCloudServiceSubscription, AppPlatformManager> {
     public AzureSpringCloud() {
         super("Microsoft.AppPlatform"); // for SPI
     }
 
     @Nonnull
     public SpringCloudClusterModule clusters(@Nonnull String subscriptionId) {
-        final SpringCloudResourceManager rm = get(subscriptionId, null);
+        final SpringCloudServiceSubscription rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getClusterModule();
     }
@@ -39,16 +39,16 @@ public final class AzureSpringCloud extends AbstractAzService<SpringCloudResourc
         final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         return AppPlatformManager.configure()
-            .withHttpClient(AbstractAzResourceManager.getDefaultHttpClient())
+            .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
             .withLogLevel(logLevel)
-            .withPolicy(AbstractAzResourceManager.getUserAgentPolicy(userAgent)) // set user agent with policy
+            .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent)) // set user agent with policy
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
     @Nonnull
     @Override
-    protected SpringCloudResourceManager newResource(@Nonnull AppPlatformManager remote) {
-        return new SpringCloudResourceManager(remote, this);
+    protected SpringCloudServiceSubscription newResource(@Nonnull AppPlatformManager remote) {
+        return new SpringCloudServiceSubscription(remote, this);
     }
 
     @Nonnull

@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.redis;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceManager, com.azure.resourcemanager.redis.models.RedisCache>
+public class RedisCache extends AbstractAzResource<RedisCache, RedisServiceSubscription, com.azure.resourcemanager.redis.models.RedisCache>
     implements Deletable {
     private static final int JEDIS_TIMEOUT = 500;
 
@@ -60,7 +60,7 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisResourceMana
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, RedisCache, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, RedisCache, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.appservice.function;
 import com.azure.resourcemanager.appservice.fluent.models.HostKeysInner;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlotBasic;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -34,7 +34,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionAppDeploy
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, FunctionAppDeploymentSlot, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, FunctionAppDeploymentSlot, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

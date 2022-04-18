@@ -35,6 +35,12 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
 
     @Nonnull
     @Override
+    protected MySqlFirewallRule newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new MySqlFirewallRule(name, this);
+    }
+
+    @Nonnull
+    @Override
     @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<FirewallRule> loadResourcesFromAzure() {
         final MySqlServer p = this.getParent();
