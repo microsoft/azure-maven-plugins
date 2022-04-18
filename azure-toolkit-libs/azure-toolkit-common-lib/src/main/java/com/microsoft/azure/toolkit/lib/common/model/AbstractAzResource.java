@@ -151,9 +151,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Override
     public void delete() {
         log.debug("[{}:{}]:delete()", this.module.getName(), this.getName());
-        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(Status.DELETING));
         if (this.exists()) {
             this.doModify(() -> {
+                this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(Status.DELETING));
+                // TODO: set status should also cover its child
                 log.debug("[{}:{}]:delete->module.deleteResourceFromAzure({})", this.module.getName(), this.getName(), this.getId());
                 try {
                     this.getModule().deleteResourceFromAzure(this.getId());
@@ -166,11 +167,13 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
                         throw e;
                     }
                 }
+                this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setRemote(null));
                 return null;
             }, Status.DELETING);
         }
         this.deleteFromLocal();
-        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(AbstractAzResource::deleteFromLocal);
+        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(AbstractAzResource::delete);
+        // TODO: delete from local should also cover its child
     }
 
     public void deleteFromLocal() {
