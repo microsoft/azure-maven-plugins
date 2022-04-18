@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import com.microsoft.azure.toolkit.lib.resource.GenericResourceModule;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -183,8 +184,11 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             !StringUtils.equalsAnyIgnoreCase(id.resourceGroupName(), NONE.getName(), RESOURCE_GROUP_PLACEHOLDER)) { // resource group manages top resources only
             final String rg = id.resourceGroupName();
             final String subId = id.subscriptionId();
-            final GenericResourceModule genericResourceModule = Azure.az(AzureResources.class).groups(subId).getOrInit(rg, rg).genericResources();
-            ((AbstractAzResourceModule) genericResourceModule).deleteResourceFromLocal(this.getId());
+            final ResourceGroup resourceGroup = Azure.az(AzureResources.class).groups(subId).get(rg, rg);
+            if (Objects.nonNull(resourceGroup)) {
+                final GenericResourceModule genericResourceModule = resourceGroup.genericResources();
+                ((AbstractAzResourceModule) genericResourceModule).deleteResourceFromLocal(this.getId());
+            }
         }
     }
 
