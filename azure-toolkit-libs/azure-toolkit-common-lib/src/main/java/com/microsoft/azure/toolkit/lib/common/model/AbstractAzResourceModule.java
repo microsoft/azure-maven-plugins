@@ -30,6 +30,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpStatus;
@@ -42,7 +43,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -69,7 +69,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private final AtomicLong syncTime = new AtomicLong(-1);
     @Nonnull
     @Getter(AccessLevel.NONE)
-    private final Map<String, Optional<T>> resources = new ConcurrentHashMap<>();
+    private final Map<String, Optional<T>> resources = new CaseInsensitiveMap<>();
     @Nonnull
     private final Debouncer fireEvents = new TailingDebouncer(this::fireChildrenChangedEvent, 300);
 
