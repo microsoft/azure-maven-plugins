@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -47,7 +48,7 @@ public class MavenArtifactUtils {
         try (final FileInputStream fileInputStream = new FileInputStream(file);
              final JarInputStream jarInputStream = new JarInputStream(fileInputStream)) {
             final Manifest manifest = jarInputStream.getManifest();
-            return manifest.getMainAttributes().getValue("Main-Class") != null;
+            return Optional.ofNullable(manifest).map(Manifest::getMainAttributes).map(a -> a.getValue("Main-Class")).isPresent();
         } catch (IOException e) {
             return false;
         }
