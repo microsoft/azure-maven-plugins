@@ -50,6 +50,11 @@ import java.util.stream.Collectors;
 
 /**
  * Generate configuration for spring cloud maven plugin or init the configuration from existing Azure Spring Cloud app instance.
+ * <p>
+ *     NOTE: This plugin <code>azure-spring-cloud-maven-plugin</code> has been deprecated.
+ *     Please use <code>com.microsoft.azure:azure-spring-apps-maven-plugin</code> instead.
+ * </p>
+ * @deprecated use `com.microsoft.azure:azure-spring-apps-maven-plugin:config` instead
  */
 @Mojo(name = "config", requiresDirectInvocation = true, aggregator = true)
 public class ConfigMojo extends AbstractMojoBase {

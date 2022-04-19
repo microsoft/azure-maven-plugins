@@ -32,6 +32,11 @@ import java.util.Objects;
 
 /**
  * Deploy your project to target Azure Spring Cloud app. If target app doesn't exist, it will be created.
+ * <p>
+ *     NOTE: This plugin <code>azure-spring-cloud-maven-plugin</code> has been deprecated.
+ *     Please use <code>com.microsoft.azure:azure-spring-apps-maven-plugin</code> instead.
+ * </p>
+ * @deprecated use `com.microsoft.azure:azure-spring-apps-maven-plugin:deploy` instead
  */
 @Mojo(name = "deploy")
 @Slf4j

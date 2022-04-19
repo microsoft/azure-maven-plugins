@@ -9,9 +9,11 @@ import com.microsoft.azure.maven.AbstractAzureMojo;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentMavenConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationParser;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.settings.Settings;
 
@@ -95,6 +97,12 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     @Parameter(defaultValue = "${settings}", readonly = true)
     protected Settings settings;
 
+    @Override
+    public void execute() throws MojoExecutionException {
+        this.showDeprecationWarning();
+        super.execute();
+    }
+
     protected void initTelemetryProxy() {
         super.initTelemetryProxy();
         final SpringCloudAppConfig configuration = this.getConfiguration();
@@ -122,5 +130,14 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     public SpringCloudAppConfig getConfiguration() {
         final ConfigurationParser parser = ConfigurationParser.getInstance();
         return parser.parse(this);
+    }
+
+    public void showDeprecationWarning() {
+        getLog().warn("##########################################################################");
+        getLog().warn("#                                                                        #");
+        getLog().warn(String.format("# This plugin %s has been %s.       #", TextUtils.cyan("azure-spring-cloud-maven-plugin"), TextUtils.red("deprecated")));
+        getLog().warn(String.format("# Please use %s instead. #", TextUtils.cyan("com.microsoft.azure:azure-spring-apps-maven-plugin")));
+        getLog().warn("#                                                                        #");
+        getLog().warn("##########################################################################");
     }
 }
