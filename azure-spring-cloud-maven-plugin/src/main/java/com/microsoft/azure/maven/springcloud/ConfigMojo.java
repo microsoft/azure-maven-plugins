@@ -49,7 +49,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Generate configuration for spring cloud maven plugin or init the configuration from existing Azure Spring Cloud app instance.
+ * Generate configuration for spring apps maven plugin or init the configuration from existing Azure Spring app instance.
  */
 @Mojo(name = "config", requiresDirectInvocation = true, aggregator = true)
 public class ConfigMojo extends AbstractMojoBase {
@@ -109,7 +109,7 @@ public class ConfigMojo extends AbstractMojoBase {
 
         if (!MavenConfigUtils.isPomPackaging(this.project) && !MavenConfigUtils.isJarPackaging(this.project)) {
             throw new UnsupportedOperationException(
-                    String.format("The project (%s) with packaging %s is not supported for azure spring cloud service.", this.project.getName(),
+                    String.format("The project (%s) with packaging %s is not supported for Azure Spring Apps.", this.project.getName(),
                             this.project.getPackaging()));
         }
         if (isProjectConfigured(this.project)) {
@@ -133,7 +133,7 @@ public class ConfigMojo extends AbstractMojoBase {
                 // no need to proceed when there are no projects need to be configured
                 return;
             }
-            // select subscription in spring cloud -> config is different from other goals since it is prompted after select project.
+            // select subscription in spring apps -> config is different from other goals since it is prompted after select project.
             // set up account and select subscription here
             getAzureAccount();
             promptAndSelectSubscription();
@@ -319,7 +319,7 @@ public class ConfigMojo extends AbstractMojoBase {
                 this.appSettings.setClusterName(cluster.getName());
                 return;
             }
-            getLog().warn(String.format("Cannot find Azure Spring Cloud Service with name: %s.", TextUtils.yellow(this.clusterName)));
+            getLog().warn(String.format("Cannot find Azure Apps with name: %s.", TextUtils.yellow(this.clusterName)));
         }
         final List<SpringCloudCluster> clusters = az.list();
         this.wrapper.putCommonVariable("clusters", clusters);

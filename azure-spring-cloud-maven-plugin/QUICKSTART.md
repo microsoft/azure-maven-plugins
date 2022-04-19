@@ -1,6 +1,6 @@
-# Azure Spring Cloud Maven Plugin Quick Start
+# Azure Spring Apps Maven Plugin Quick Start
 
-Azure Spring Cloud Maven Plugin is intended to help you easily create and update Azure Spring Cloud Services.
+Azure Spring Apps Maven Plugin is intended to help you easily create and update Azure Spring Apps.
  With this tooling, you could run the deploy jobs automatically with pre defined configuration.
 
 > NOTE:
@@ -9,7 +9,7 @@ Azure Spring Cloud Maven Plugin is intended to help you easily create and update
 
 ### Prerequisite
 
-- Azure Subscription, which has been whitelisted to access Azure Managed Service for Spring Cloud
+- Azure Subscription, which has been whitelisted to access Azure Managed Service for Spring Apps
 - JDK 8 installed on your local machine
 - Maven 3.0 and above installed on your local machine
 
@@ -49,13 +49,13 @@ Please refer this [document](https://github.com/Azure/azure-managed-service-for-
     
 1. Generate configuration by running the below command.
     ```
-    mvn com.microsoft.azure:azure-spring-cloud-maven-plugin:1.4.0:config
+    mvn com.microsoft.azure:azure-spring-apps-maven-plugin:1.10.0:config
     ```
     1. Select module `gateway`,`auth-service` and `account-service`
 
         ![](./img/SelectChildModules.png)
 
-    1. Select your subscription and spring cloud service cluster
+    1. Select your subscription and Spring Apps
 
     1. Expose public access to gateway
 
@@ -66,7 +66,7 @@ Please refer this [document](https://github.com/Azure/azure-managed-service-for-
 1. Deploy the above apps with the following command
 
     ``` 
-    mvn azure-spring-cloud:deploy
+    mvn azure-spring-apps:deploy
     ```
     
 1. You may access Piggy Metrics with the url printed in above command

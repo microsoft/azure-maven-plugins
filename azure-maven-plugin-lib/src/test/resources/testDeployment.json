@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Deployment",
-  "description": "A deployment in Azure Spring Cloud service",
+  "description": "A deployment in an Azure Spring App",
   "type": "object",
   "properties": {
     "deploymentName": {
