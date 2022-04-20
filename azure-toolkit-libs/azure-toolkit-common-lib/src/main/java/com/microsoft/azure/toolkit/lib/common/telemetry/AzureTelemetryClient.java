@@ -21,6 +21,9 @@ import static com.microsoft.azure.toolkit.lib.common.action.Action.RESOURCE_TYPE
 
 @Getter
 public class AzureTelemetryClient {
+    public static final String ARCH_KEY = "arch";
+    public static final String JDK_KEY = "jdk";
+
     private static final String[] SYSTEM_PROPERTIES = new String[]{RESOURCE_TYPE};
     // refers https://github.com/microsoft/vscode-extension-telemetry/blob/main/src/telemetryReporter.ts
     private static final String FILE_PATH_REGEX =
@@ -45,7 +48,9 @@ public class AzureTelemetryClient {
 
     public AzureTelemetryClient(@Nonnull final Map<String, String> defaultProperties) {
         this.client = new TelemetryClient();
-        this.defaultProperties = new HashMap<>(defaultProperties);
+        this.defaultProperties = new HashMap<>();
+        initDefaultProperties();
+        this.defaultProperties.putAll(defaultProperties);
     }
 
     public void addDefaultProperty(@Nonnull String key, @Nonnull String value) {
@@ -103,6 +108,11 @@ public class AzureTelemetryClient {
             merged.putAll(defaultProperties);
         }
         return merged;
+    }
+
+    private void initDefaultProperties() {
+        this.addDefaultProperty(ARCH_KEY, System.getProperty("os.arch"));
+        this.addDefaultProperty(JDK_KEY, System.getProperty("java.version"));
     }
 
     private void anonymizePersonallyIdentifiableInformation(final Map<String, String> properties) {

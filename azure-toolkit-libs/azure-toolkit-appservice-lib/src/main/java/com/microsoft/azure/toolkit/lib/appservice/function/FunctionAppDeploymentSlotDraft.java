@@ -22,7 +22,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -178,6 +177,8 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         } else if (operatingSystem == OperatingSystem.WINDOWS) {
             update.withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime.getJavaVersion()))
                     .withWebContainer(AppServiceUtils.toWebContainer(newRuntime));
+        } else if (operatingSystem == OperatingSystem.DOCKER) {
+            return; // skip for docker, as docker configuration will be handled in `updateDockerConfiguration`
         } else {
             throw new AzureToolkitRuntimeException(String.format(UNSUPPORTED_OPERATING_SYSTEM, newRuntime.getOperatingSystem()));
         }
