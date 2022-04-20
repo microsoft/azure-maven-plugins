@@ -38,7 +38,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebSiteBase> {
-    private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
+    public static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     public static final String CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS = "Can not update the operation system for existing app service";
     public static final Runtime DEFAULT_RUNTIME = Runtime.LINUX_JAVA8;
 

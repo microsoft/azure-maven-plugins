@@ -329,7 +329,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @Nullable
-    protected R doModify(@Nonnull Callable<R> body, @Nullable String status) {
+    public R doModify(@Nonnull Callable<R> body, @Nullable String status) {
         // TODO: lock so that can not modify if modifying.
         this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
         try {
