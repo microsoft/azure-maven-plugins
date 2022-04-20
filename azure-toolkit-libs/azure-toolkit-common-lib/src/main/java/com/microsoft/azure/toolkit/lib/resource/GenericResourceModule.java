@@ -9,6 +9,7 @@ import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
 import com.azure.resourcemanager.resources.models.GenericResources;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
@@ -56,6 +57,11 @@ public class GenericResourceModule extends
     @Nonnull
     protected GenericResource newResource(@Nonnull String resourceId, @Nullable String resourceGroupName) {
         return new GenericResource(resourceId, this);
+    }
+
+    @Nonnull
+    public GenericResource newResource(@Nonnull AbstractAzResource<?, ?, ?> concrete) {
+        return new GenericResource(concrete, this);
     }
 
     @Nonnull

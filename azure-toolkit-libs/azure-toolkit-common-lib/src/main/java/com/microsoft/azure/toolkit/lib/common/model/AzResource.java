@@ -101,7 +101,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
 
     @Getter
     final class None extends AbstractAzResource<None, None, Void> {
-        private static final String NONE = "$NONE$";
+        public static final String NONE = "$NONE$";
         private final String id = NONE;
         private final String name = NONE;
         private final String status = NONE;
