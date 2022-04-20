@@ -185,9 +185,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         if (Objects.isNull(id.parent()) &&
             !StringUtils.equalsIgnoreCase(id.subscriptionId(), NONE.getName()) &&
             !StringUtils.equalsAnyIgnoreCase(id.resourceGroupName(), NONE.getName(), RESOURCE_GROUP_PLACEHOLDER)) { // resource group manages top resources only
-            final String rg = id.resourceGroupName();
-            final String subId = id.subscriptionId();
-            final ResourceGroup resourceGroup = Azure.az(AzureResources.class).groups(subId).get(rg, rg);
+            final ResourceGroup resourceGroup = this.getResourceGroup();
             if (Objects.nonNull(resourceGroup)) {
                 final GenericResourceModule genericResourceModule = resourceGroup.genericResources();
                 ((AbstractAzResourceModule) genericResourceModule).deleteResourceFromLocal(this.getId());
@@ -389,6 +387,12 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nullable
     public AbstractAzResourceModule<?, T, ?> getSubModule(String moduleName) {
         return this.getSubModules().stream().filter(m -> m.getName().equals(moduleName)).findAny().orElse(null);
+    }
+
+    @Nullable
+    public ResourceGroup getResourceGroup() {
+        final String rgName = this.getResourceGroupName();
+        return Azure.az(AzureResources.class).groups(this.getSubscriptionId()).get(rgName, rgName);
     }
 
     public boolean isDraft() {
