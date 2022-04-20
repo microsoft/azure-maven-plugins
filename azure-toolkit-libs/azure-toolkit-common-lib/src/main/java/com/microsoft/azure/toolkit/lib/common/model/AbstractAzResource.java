@@ -178,7 +178,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         log.debug("[{}:{}]:delete->module.deleteResourceFromLocal({})", this.module.getName(), this.getName(), this.getName());
         this.getModule().deleteResourceFromLocal(this.getName());
         final ResourceId id = ResourceId.fromString(this.getId());
-        if (Objects.isNull(id.parent())) { // resource group manages top resources only
+        if (Objects.isNull(id.parent()) &&
+            !StringUtils.equalsIgnoreCase(id.subscriptionId(), NONE.getName()) &&
+            !StringUtils.equalsAnyIgnoreCase(id.resourceGroupName(), NONE.getName(), RESOURCE_GROUP_PLACEHOLDER)) { // resource group manages top resources only
             final String rg = id.resourceGroupName();
             final String subId = id.subscriptionId();
             final GenericResourceModule genericResourceModule = Azure.az(AzureResources.class).groups(subId).getOrInit(rg, rg).genericResources();
