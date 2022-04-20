@@ -32,6 +32,12 @@ public class MySqlDatabaseModule extends AbstractAzResourceModule<MySqlDatabase,
 
     @Nonnull
     @Override
+    protected MySqlDatabase newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new MySqlDatabase(name, this);
+    }
+
+    @Nonnull
+    @Override
     @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected Stream<Database> loadResourcesFromAzure() {
         final MySqlServer p = this.getParent();

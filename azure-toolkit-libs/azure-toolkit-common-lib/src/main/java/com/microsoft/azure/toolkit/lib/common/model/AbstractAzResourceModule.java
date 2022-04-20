@@ -22,6 +22,8 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
+import com.microsoft.azure.toolkit.lib.resource.AzureResources;
+import com.microsoft.azure.toolkit.lib.resource.GenericResourceModule;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -44,6 +46,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.microsoft.azure.toolkit.lib.common.model.AzResource.RESOURCE_GROUP_PLACEHOLDER;
 
 @Slf4j
 @Getter
@@ -166,6 +170,19 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
+    public T getOrInit(@Nonnull String name, @Nullable String resourceGroup) {
+        log.debug("[{}]:getOrDraft({}, {})", this.name, name, resourceGroup);
+        synchronized (this.resources) {
+            return this.resources.getOrDefault(name, Optional.empty()).orElseGet(() -> {
+                final T resource = this.newResource(name, resourceGroup);
+                log.debug("[{}]:get({}, {})->addResourceToLocal({}, resource)", this.name, name, resourceGroup, name);
+                this.addResourceToLocal(name, resource);
+                return resource;
+            });
+        }
+    }
+
+    @Nonnull
     public <D extends AzResource.Draft<T, R>> D updateOrCreate(@Nonnull String name, @Nullable String resourceGroup) {
         log.debug("[{}]:updateOrCreate({}, {})", this.name, name, resourceGroup);
         final T resource = this.get(name, resourceGroup);
@@ -193,6 +210,15 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             // this will notify azure explorer to show a draft resource first
             log.debug("[{}]:create->addResourceToLocal({})", this.name, resource);
             this.addResourceToLocal(resource.getName(), resource);
+            final ResourceId id = ResourceId.fromString(resource.getId());
+            if (Objects.isNull(id.parent()) &&
+                !StringUtils.equalsIgnoreCase(id.subscriptionId(), NONE.getName()) &&
+                !StringUtils.equalsAnyIgnoreCase(id.resourceGroupName(), NONE.getName(), RESOURCE_GROUP_PLACEHOLDER)) {
+                final String rg = id.resourceGroupName();
+                final String subId = id.subscriptionId();
+                final GenericResourceModule genericResourceModule = Azure.az(AzureResources.class).groups(subId).getOrInit(rg, rg).genericResources();
+                ((AbstractAzResourceModule) genericResourceModule).addResourceToLocal(resource.getId(), genericResourceModule.newResource(resource));
+            }
             log.debug("[{}]:create->doModify(draft.createResourceInAzure({}))", this.name, resource);
             resource.doModify(draft::createResourceInAzure, AzResource.Status.CREATING);
             return resource;
@@ -228,6 +254,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Override
+    @AzureOperation(name = "resource.refresh.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     public void refresh() {
         log.debug("[{}]:refresh()", this.name);
         this.syncTime.set(-1);
@@ -270,39 +297,43 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     public String toResourceId(@Nonnull String resourceName, @Nullable String resourceGroup) {
-        resourceGroup = StringUtils.firstNonBlank(resourceGroup, this.getParent().getResourceGroupName(), AzResource.RESOURCE_GROUP_PLACEHOLDER);
-        return String.format("%s/%s/%s", this.parent.getId(), this.getName(), resourceName).replace(AzResource.RESOURCE_GROUP_PLACEHOLDER, resourceGroup);
+        resourceGroup = StringUtils.firstNonBlank(resourceGroup, this.getParent().getResourceGroupName(), RESOURCE_GROUP_PLACEHOLDER);
+        return String.format("%s/%s/%s", this.parent.getId(), this.getName(), resourceName).replace(RESOURCE_GROUP_PLACEHOLDER, resourceGroup);
     }
 
     @Nullable
     T deleteResourceFromLocal(@Nonnull String name, boolean... silent) {
         log.debug("[{}]:deleteResourceFromLocal({})", this.name, name);
         log.debug("[{}]:deleteResourceFromLocal->this.resources.remove({})", this.name, name);
-        final Optional<T> removed = this.resources.remove(name);
-        if (Objects.nonNull(removed) && removed.isPresent() && (silent.length == 0 || !silent[0])) {
-            log.debug("[{}]:deleteResourceFromLocal->fireResourcesChangedEvent()", this.name);
-            fireEvents.debounce();
+        synchronized (this.resources) {
+            final Optional<T> removed = this.resources.remove(name);
+            if (Objects.nonNull(removed) && removed.isPresent() && (silent.length == 0 || !silent[0])) {
+                log.debug("[{}]:deleteResourceFromLocal->fireResourcesChangedEvent()", this.name);
+                fireEvents.debounce();
+            }
+            return Objects.nonNull(removed) ? removed.orElse(null) : null;
         }
-        return Objects.nonNull(removed) ? removed.orElse(null) : null;
     }
 
-    private synchronized void addResourceToLocal(@Nonnull String name, @Nullable T resource, boolean... silent) {
+    private void addResourceToLocal(@Nonnull String name, @Nullable T resource, boolean... silent) {
         log.debug("[{}]:addResourceToLocal({}, {})", this.name, name, resource);
-        final Optional<T> oldResource = this.resources.getOrDefault(name, Optional.empty());
-        final Optional<T> newResource = Optional.ofNullable(resource);
-        if (!oldResource.isPresent()) {
-            log.debug("[{}]:addResourceToLocal->this.resources.put({}, {})", this.name, name, resource);
-            this.resources.put(name, newResource);
-            if (newResource.isPresent() && (silent.length == 0 || !silent[0])) {
-                log.debug("[{}]:addResourceToLocal->fireResourcesChangedEvent()", this.name);
-                fireEvents.debounce();
+        synchronized (this.resources) {
+            final Optional<T> oldResource = this.resources.getOrDefault(name, Optional.empty());
+            final Optional<T> newResource = Optional.ofNullable(resource);
+            if (!oldResource.isPresent()) {
+                log.debug("[{}]:addResourceToLocal->this.resources.put({}, {})", this.name, name, resource);
+                this.resources.put(name, newResource);
+                if (newResource.isPresent() && (silent.length == 0 || !silent[0])) {
+                    log.debug("[{}]:addResourceToLocal->fireResourcesChangedEvent()", this.name);
+                    fireEvents.debounce();
+                }
             }
         }
     }
 
     private void fireChildrenChangedEvent() {
         log.debug("[{}]:fireChildrenChangedEvent()", this.name);
-        if (this.getParent() instanceof AbstractAzResourceManager) {
+        if (this.getParent() instanceof AbstractAzServiceSubscription) {
             final AzResourceModule<P, ?, ?> service = this.getParent().getModule();
             AzureEventBus.emit("service.children_changed.service", service);
         }
@@ -334,7 +365,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         log.debug("[{}]:loadResourceFromAzure({}, {})", this.getName(), name, resourceGroup);
         final Object client = this.getClient();
         resourceGroup = StringUtils.firstNonBlank(resourceGroup, this.getParent().getResourceGroupName());
-        resourceGroup = StringUtils.equals(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER) ? null : resourceGroup;
+        resourceGroup = StringUtils.equals(resourceGroup, RESOURCE_GROUP_PLACEHOLDER) ? null : resourceGroup;
         if (client instanceof SupportsGettingById && StringUtils.isNotEmpty(resourceGroup)) {
             log.debug("[{}]:loadResourceFromAzure->client.getById({}, {})", this.name, resourceGroup, name);
             return this.<SupportsGettingById<R>>cast(client).getById(toResourceId(name, resourceGroup));
@@ -376,6 +407,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     protected abstract T newResource(@Nonnull R r);
+
+    @Nonnull
+    protected abstract T newResource(@Nonnull String name, @Nullable String resourceGroupName);
 
     /**
      * get track2 client, which is used to implement {@link #loadResourcesFromAzure}, {@link #loadResourceFromAzure} and {@link #deleteResourceFromAzure}

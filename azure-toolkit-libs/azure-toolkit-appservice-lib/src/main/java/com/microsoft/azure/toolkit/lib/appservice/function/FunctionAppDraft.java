@@ -22,7 +22,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import lombok.Data;
 import lombok.Getter;
 import org.apache.commons.codec.binary.Hex;
@@ -45,7 +45,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     private static final String CREATE_NEW_FUNCTION_APP = "isCreateNewFunctionApp";
     public static final String FUNCTIONS_EXTENSION_VERSION = "FUNCTIONS_EXTENSION_VERSION";
     public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8;
-    private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
+    public static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     public static final String CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS = "Can not update the operation system of an existing app";
 
     public static final String APP_SETTING_MACHINEKEY_DECRYPTION_KEY = "MACHINEKEY_DecryptionKey";
@@ -88,7 +88,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         params = {"this.getName()", "this.getResourceTypeName()"},
         type = AzureOperation.Type.SERVICE)
     public com.azure.resourcemanager.appservice.models.FunctionApp createResourceInAzure() {
-        AzureTelemetry.getContext().getActionParent().setProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
+        OperationContext.action().setTelemetryProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
 
         final String name = getName();
         final Runtime newRuntime = Objects.requireNonNull(getRuntime(), "'runtime' is required to create a Azure Functions app");

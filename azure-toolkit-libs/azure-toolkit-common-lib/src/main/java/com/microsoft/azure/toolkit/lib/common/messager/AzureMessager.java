@@ -5,10 +5,10 @@
 
 package com.microsoft.azure.toolkit.lib.common.messager;
 
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public abstract class AzureMessager implements IAzureMessager {
@@ -30,12 +30,8 @@ public abstract class AzureMessager implements IAzureMessager {
 
     @Nonnull
     public static IAzureMessager getMessager() {
-        return getContext().getMessager();
-    }
-
-    @Nullable
-    public static AzureMessage.Context getContext() {
-        return AzureMessage.getContext();
+        return Optional.ofNullable(OperationContext.current()).map(OperationContext::getMessager)
+            .orElseGet(AzureMessager::getDefaultMessager);
     }
 
     @Slf4j

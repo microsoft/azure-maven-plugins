@@ -5,8 +5,9 @@
 
 package com.microsoft.azure.toolkit.lib.common.telemetry;
 
-import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.MethodOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.Operation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Properties;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Property;
 import lombok.Getter;
@@ -56,25 +57,21 @@ public class AzureTelemeter {
         Optional.ofNullable(client).ifPresent(client -> client.setDefaultProperties(commonProperties));
     }
 
-    public static void afterCreate(@Nonnull final IAzureOperation<?> op) {
-        final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
-        context.setCreateAt(Instant.now());
+    public static void afterCreate(@Nonnull final Operation<?> op) {
+        op.getContext().setTelemetryProperty(AzureTelemetry.OP_CREATE_AT, Instant.now().toString());
     }
 
-    public static void beforeEnter(@Nonnull final IAzureOperation<?> op) {
-        final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
-        context.setEnterAt(Instant.now());
+    public static void beforeEnter(@Nonnull final Operation<?> op) {
+        op.getContext().setTelemetryProperty(AzureTelemetry.OP_ENTER_AT, Instant.now().toString());
     }
 
-    public static void afterExit(@Nonnull final IAzureOperation<?> op) {
-        final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
-        context.setExitAt(Instant.now());
+    public static void afterExit(@Nonnull final Operation<?> op) {
+        op.getContext().setTelemetryProperty(AzureTelemetry.OP_EXIT_AT, Instant.now().toString());
         AzureTelemeter.log(AzureTelemetry.Type.INFO, serialize(op));
     }
 
-    public static void onError(@Nonnull final IAzureOperation<?> op, Throwable error) {
-        final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
-        context.setExitAt(Instant.now());
+    public static void onError(@Nonnull final Operation<?> op, Throwable error) {
+        op.getContext().setTelemetryProperty(AzureTelemetry.OP_EXIT_AT, Instant.now().toString());
         AzureTelemeter.log(AzureTelemetry.Type.ERROR, serialize(op), error);
     }
 
@@ -94,10 +91,10 @@ public class AzureTelemeter {
     }
 
     @Nonnull
-    private static Map<String, String> serialize(@Nonnull final IAzureOperation<?> op) {
-        final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
-        final Map<String, String> actionProperties = getActionProperties(context.getOperation());
-        final Optional<IAzureOperation<?>> parent = Optional.ofNullable(op.getParent());
+    private static Map<String, String> serialize(@Nonnull final Operation<?> op) {
+        final OperationContext context = op.getContext();
+        final Map<String, String> actionProperties = getActionProperties(op);
+        final Optional<Operation<?>> parent = Optional.ofNullable(op.getParent());
         final Map<String, String> properties = new HashMap<>();
         final String name = op.getName().replaceAll("\\(.+\\)", "(***)"); // e.g. `appservice.list_file.dir`
         final String[] parts = name.split("\\."); // ["appservice|file", "list", "dir"]
@@ -109,14 +106,14 @@ public class AzureTelemeter {
             properties.put(OPERATION_NAME, operationName);
         }
         properties.put(OP_ID, op.getExecutionId());
-        properties.put(OP_PARENT_ID, parent.map(IAzureOperation::getExecutionId).orElse("/"));
+        properties.put(OP_PARENT_ID, parent.map(Operation::getExecutionId).orElse("/"));
         properties.put(OP_NAME, name);
         properties.put(OP_TYPE, op.getType());
         properties.putAll(actionProperties);
         if (op instanceof MethodOperation) {
             properties.putAll(getParameterProperties((MethodOperation) op));
         }
-        properties.putAll(context.getProperties());
+        properties.putAll(context.getTelemetryProperties());
         return properties;
     }
 
@@ -127,25 +124,24 @@ public class AzureTelemeter {
             final Parameter param = arg.getMiddle();
             final Object value = arg.getRight();
             Optional.ofNullable(param.getAnnotation(Property.class))
-                    .map(Property::value)
-                    .map(n -> Property.PARAM_NAME.equals(n) ? param.getName() : n)
-                    .ifPresent((name) -> properties.put(name, Optional.ofNullable(value).map(Object::toString).orElse("")));
+                .map(Property::value)
+                .map(n -> Property.PARAM_NAME.equals(n) ? param.getName() : n)
+                .ifPresent((name) -> properties.put(name, Optional.ofNullable(value).map(Object::toString).orElse("")));
             Optional.ofNullable(param.getAnnotation(Properties.class))
-                    .map(Properties::value)
-                    .map(AzureTelemeter::instantiate)
-                    .map(converter -> converter.convert(value))
-                    .ifPresent(properties::putAll);
+                .map(Properties::value)
+                .map(AzureTelemeter::instantiate)
+                .map(converter -> converter.convert(value))
+                .ifPresent(properties::putAll);
         }
         return properties;
     }
 
     @Nonnull
-    private static Map<String, String> getActionProperties(IAzureOperation<?> operation) {
-        return Optional.ofNullable(operation)
-                .map(IAzureOperation::getActionParent)
-                .map(o -> o.get(AzureTelemetry.Context.class, new AzureTelemetry.Context(o)))
-                .map(AzureTelemetry.Context::getProperties)
-                .orElse(new HashMap<>());
+    private static Map<String, String> getActionProperties(@Nonnull Operation<?> operation) {
+        return Optional.ofNullable(operation.getActionParent())
+            .map(Operation::getContext)
+            .map(OperationContext::getTelemetryProperties)
+            .orElse(new HashMap<>());
     }
 
     @SneakyThrows

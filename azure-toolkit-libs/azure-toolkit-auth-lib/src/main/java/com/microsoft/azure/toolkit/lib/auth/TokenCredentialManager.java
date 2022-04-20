@@ -15,7 +15,7 @@ import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.models.Tenant;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Getter;
@@ -102,7 +102,7 @@ public class TokenCredentialManager implements TenantProvider, SubscriptionProvi
     private static ResourceManager.Configurable configureAzure() {
         // disable retry for getting tenant and subscriptions
         return ResourceManager.configure()
-            .withHttpClient(AbstractAzResourceManager.getDefaultHttpClient())
+            .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
                 .withPolicy(createUserAgentPolicy())
                 .withRetryPolicy(new RetryPolicy(new FixedDelay(0, Duration.ofSeconds(0))));
     }

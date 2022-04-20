@@ -45,7 +45,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceManager.getResourceManager;
+import static com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription.getResourceManager;
 
 public class AzureAccount implements IAzureAccount {
 

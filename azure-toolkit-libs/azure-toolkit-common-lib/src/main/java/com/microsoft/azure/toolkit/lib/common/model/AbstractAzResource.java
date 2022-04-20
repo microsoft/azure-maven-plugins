@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.azure.core.management.exception.ManagementException;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
 import com.azure.resourcemanager.resources.fluentcore.model.Refreshable;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -16,6 +17,8 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
+import com.microsoft.azure.toolkit.lib.resource.AzureResources;
+import com.microsoft.azure.toolkit.lib.resource.GenericResourceModule;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -113,10 +116,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         } catch (Exception e) {
             log.debug("[{}:{}]:reload->this.refreshRemote/loadResourceFromAzure=EXCEPTION", this.module.getName(), this.getName(), e);
             final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
-            if (cause instanceof ManagementException) {
-                if (HttpStatus.SC_NOT_FOUND == ((ManagementException) cause).getResponse().getStatusCode()) {
-                    return null;
-                }
+            if (cause instanceof ManagementException && HttpStatus.SC_NOT_FOUND == ((ManagementException) cause).getResponse().getStatusCode()) {
+                return null;
             }
             throw e;
         }
@@ -149,18 +150,42 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Override
     public void delete() {
         log.debug("[{}:{}]:delete()", this.module.getName(), this.getName());
-        if (!this.exists()) {
-            return;
+        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(Status.DELETING));
+        if (this.exists()) {
+            this.doModify(() -> {
+                log.debug("[{}:{}]:delete->module.deleteResourceFromAzure({})", this.module.getName(), this.getName(), this.getId());
+                try {
+                    this.getModule().deleteResourceFromAzure(this.getId());
+                } catch (Exception e) {
+                    final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
+                    if (cause instanceof ManagementException && HttpStatus.SC_NOT_FOUND != ((ManagementException) cause).getResponse().getStatusCode()) {
+                        log.debug("[{}]:delete()->deleteResourceFromAzure()=SC_NOT_FOUND", this.name, e);
+                    } else {
+                        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(Status.UNKNOWN));
+                        throw e;
+                    }
+                }
+                return null;
+            }, Status.DELETING);
         }
-        this.doModify(() -> {
-            log.debug("[{}:{}]:delete->module.deleteResourceFromAzure({})", this.module.getName(), this.getName(), this.getId());
-            this.getModule().deleteResourceFromAzure(this.getId());
-            log.debug("[{}:{}]:delete->this.setStatus(DELETED)", this.module.getName(), this.getName());
-            this.setStatus(Status.DELETED);
-            log.debug("[{}:{}]:delete->module.deleteResourceFromLocal({})", this.module.getName(), this.getName(), this.getName());
-            this.getModule().deleteResourceFromLocal(this.getName());
-            return null;
-        }, Status.DELETING);
+        this.deleteFromLocal();
+        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(AbstractAzResource::deleteFromLocal);
+    }
+
+    public void deleteFromLocal() {
+        log.debug("[{}:{}]:delete->this.setStatus(DELETED)", this.module.getName(), this.getName());
+        this.setStatus(Status.DELETED);
+        log.debug("[{}:{}]:delete->module.deleteResourceFromLocal({})", this.module.getName(), this.getName(), this.getName());
+        this.getModule().deleteResourceFromLocal(this.getName());
+        final ResourceId id = ResourceId.fromString(this.getId());
+        if (Objects.isNull(id.parent()) &&
+            !StringUtils.equalsIgnoreCase(id.subscriptionId(), NONE.getName()) &&
+            !StringUtils.equalsAnyIgnoreCase(id.resourceGroupName(), NONE.getName(), RESOURCE_GROUP_PLACEHOLDER)) { // resource group manages top resources only
+            final String rg = id.resourceGroupName();
+            final String subId = id.subscriptionId();
+            final GenericResourceModule genericResourceModule = Azure.az(AzureResources.class).groups(subId).getOrInit(rg, rg).genericResources();
+            ((AbstractAzResourceModule) genericResourceModule).deleteResourceFromLocal(this.getId());
+        }
     }
 
     protected void setRemote(@Nullable R newRemote) {
@@ -206,7 +231,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
-    protected void setStatus(@Nonnull String status) {
+    public void setStatus(@Nonnull String status) {
         synchronized (this.statusRef) {
             log.debug("[{}:{}]:setStatus({})", this.module.getName(), this.getName(), status);
             // TODO: state engine to manage status, e.g. DRAFT -> CREATING
@@ -304,7 +329,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @Nullable
-    protected R doModify(@Nonnull Callable<R> body, @Nullable String status) {
+    public R doModify(@Nonnull Callable<R> body, @Nullable String status) {
         // TODO: lock so that can not modify if modifying.
         this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
         try {
@@ -338,7 +363,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @Nonnull
-    public abstract List<AzResourceModule<?, T, ?>> getSubModules();
+    public abstract List<AbstractAzResourceModule<?, T, ?>> getSubModules();
 
     @Nonnull
     public abstract String loadStatus(@Nonnull R remote);
@@ -354,10 +379,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return (D) origin;
     }
 
-    @Nonnull
-    public AzResourceModule<?, T, ?> getSubModule(String moduleName) {
-        return this.getSubModules().stream().filter(m -> m.getName().equals(moduleName)).findAny()
-            .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("invalid module \"%s\"", moduleName)));
+    @Nullable
+    public AbstractAzResourceModule<?, T, ?> getSubModule(String moduleName) {
+        return this.getSubModules().stream().filter(m -> m.getName().equals(moduleName)).findAny().orElse(null);
     }
 
     public boolean isDraft() {

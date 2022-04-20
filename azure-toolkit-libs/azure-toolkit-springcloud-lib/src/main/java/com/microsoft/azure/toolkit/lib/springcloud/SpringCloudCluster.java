@@ -9,7 +9,7 @@ import com.azure.resourcemanager.appplatform.models.ProvisioningState;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.TestKeys;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudSku;
 import lombok.Getter;
 
@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Getter
-public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, SpringCloudResourceManager, SpringService> {
+public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, SpringCloudServiceSubscription, SpringService> {
 
     @Nonnull
     private final SpringCloudAppModule appModule;
@@ -53,7 +53,7 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, SpringCloudCluster, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, SpringCloudCluster, ?>> getSubModules() {
         return Collections.singletonList(appModule);
     }
 

@@ -10,6 +10,8 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.resource.AzureResources;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -20,6 +22,7 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class Azure {
     private final AzureConfiguration configuration;
     private static final Azure defaultInstance = new Azure();
@@ -52,15 +55,30 @@ public class Azure {
         return ServiceManager.getServices().stream().filter(clazz::isInstance).map(clazz::cast).collect(Collectors.toList());
     }
 
+    @Nullable
     @AzureOperation(name = "resource.get.id", params = {"id"}, type = AzureOperation.Type.SERVICE)
     public AbstractAzResource<?, ?, ?> getById(String id) {
         final ResourceId resourceId = ResourceId.fromString(id);
         final String provider = Optional.ofNullable(resourceId.providerNamespace()).orElse("Microsoft.Resources");
         final AzService service = getService(provider);
         if (service instanceof AbstractAzService) {
-            return ((AbstractAzService<?, ?>) service).getById(id);
+            return service.getById(id);
         }
-        throw new AzureToolkitRuntimeException("can not find a valid service provider!");
+        log.warn(String.format("fallback to AzureResources because no valid service provider for '%s' is found.", id));
+        return Azure.az(AzureResources.class).getById(id);
+    }
+
+    @Nullable
+    @AzureOperation(name = "resource.get.id", params = {"id"}, type = AzureOperation.Type.SERVICE)
+    public AbstractAzResource<?, ?, ?> getOrInitById(String id) {
+        final ResourceId resourceId = ResourceId.fromString(id);
+        final String provider = Optional.ofNullable(resourceId.providerNamespace()).orElse("Microsoft.Resources");
+        final AzService service = getService(provider);
+        if (service instanceof AbstractAzService) {
+            return service.getOrInitById(id);
+        }
+        log.warn(String.format("fallback to AzureResources because no valid service provider for '%s' is found.", id));
+        return Azure.az(AzureResources.class).getOrInitById(id);
     }
 
     public static Azure az() {

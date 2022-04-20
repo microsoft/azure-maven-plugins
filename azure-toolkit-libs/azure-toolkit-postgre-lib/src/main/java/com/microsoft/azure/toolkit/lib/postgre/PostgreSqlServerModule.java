@@ -14,14 +14,15 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlServer, PostgreSqlResourceManager, Server> {
+public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlServer, PostgreSqlServiceSubscription, Server> {
 
     public static final String NAME = "servers";
 
-    public PostgreSqlServerModule(@Nonnull PostgreSqlResourceManager parent) {
+    public PostgreSqlServerModule(@Nonnull PostgreSqlServiceSubscription parent) {
         super(NAME, parent);
     }
 
@@ -79,6 +80,12 @@ public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlS
     @Override
     protected PostgreSqlServer newResource(@Nonnull Server r) {
         return new PostgreSqlServer(r, this);
+    }
+
+    @Nonnull
+    @Override
+    protected PostgreSqlServer newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new PostgreSqlServer(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nonnull

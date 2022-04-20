@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.sqlserver;
 
 import com.azure.resourcemanager.sql.models.SqlFirewallRule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
 
 import javax.annotation.Nonnull;
@@ -35,7 +35,7 @@ public class MicrosoftSqlFirewallRule extends AbstractAzResource<MicrosoftSqlFir
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, MicrosoftSqlFirewallRule, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, MicrosoftSqlFirewallRule, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

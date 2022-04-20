@@ -173,6 +173,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             Optional.ofNullable(instrumentationKey).filter(StringUtils::isNoneEmpty).ifPresent(key ->
                 appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, key));
             draft.setAppSettings(appSettings);
+            draft.setRuntime(getRuntime(functionAppConfig.runtime()));
+            draft.setDockerConfiguration(getDockerConfiguration(functionAppConfig.runtime()));
             draft.setConfigurationSource(functionAppConfig.deploymentSlotConfigurationSource());
             return draft.createIfNotExist();
         });
@@ -187,6 +189,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             } else if (StringUtils.isNotEmpty(instrumentationKey)) {
                 appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, instrumentationKey);
             }
+            draft.setRuntime(getRuntime(functionAppConfig.runtime()));
+            draft.setDockerConfiguration(getDockerConfiguration(functionAppConfig.runtime()));
             draft.setAppSettings(appSettings);
             return draft.updateIfExist();
         });

@@ -37,16 +37,26 @@ public abstract class AzureActionManager {
 
     public abstract void registerGroup(String id, ActionGroup group);
 
-    public abstract ActionGroup getGroup(String id);
+    public abstract IActionGroup getGroup(String id);
 
     public <D> void registerHandler(@Nonnull Action.Id<D> id, @Nonnull Predicate<D> condition, @Nonnull Consumer<D> handler) {
         final Action<D> action = this.getAction(id);
         action.registerHandler(condition, handler);
     }
 
+    public <D> void registerHandler(@Nonnull Action.Id<D> id, @Nonnull Consumer<D> handler) {
+        final Action<D> action = this.getAction(id);
+        action.registerHandler(o -> true, handler);
+    }
+
     public <D, E> void registerHandler(@Nonnull Action.Id<D> id, @Nonnull BiPredicate<D, E> condition, @Nonnull BiConsumer<D, E> handler) {
         final Action<D> action = this.getAction(id);
         action.registerHandler(condition, handler);
+    }
+
+    public <D, E> void registerHandler(@Nonnull Action.Id<D> id, @Nonnull BiConsumer<D, E> handler) {
+        final Action<D> action = this.getAction(id);
+        action.registerHandler((r, e) -> true, handler);
     }
 
     @Nonnull

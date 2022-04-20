@@ -9,18 +9,25 @@ import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.models.WebAppBasic;
 import com.azure.resourcemanager.appservice.models.WebApps;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
-import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 
-public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceResourceManager, WebSiteBase> {
+@Slf4j
+public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceServiceSubscription, WebSiteBase> {
 
     public static final String NAME = "sites";
 
-    public WebAppModule(@Nonnull AppServiceResourceManager parent) {
+    public WebAppModule(@Nonnull AppServiceServiceSubscription parent) {
         super(NAME, parent);
     }
 
@@ -55,7 +62,26 @@ public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceRes
 
     @Nonnull
     @Override
+    protected WebApp newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new WebApp(name, Objects.requireNonNull(resourceGroupName), this);
+    }
+
+    @Nonnull
+    @Override
     public String getResourceTypeName() {
         return "Web app";
+    }
+
+    @NotNull
+    @Override
+    public WebApp update(@NotNull AzResource.Draft<WebApp, WebSiteBase> draft) {
+        log.debug("[{}]:update(draft:{})", this.getName(), draft);
+        final WebApp resource = this.get(draft.getName(), draft.getResourceGroupName());
+        if (Objects.nonNull(resource) && Objects.nonNull(resource.getRemote())) {
+            log.debug("[{}]:update->doModify(draft.updateResourceInAzure({}))", this.getName(), resource.getRemote());
+            resource.doModify(() -> draft.updateResourceInAzure(Objects.requireNonNull(resource.getFullRemote())), AzResource.Status.UPDATING);
+            return resource;
+        }
+        throw new AzureToolkitRuntimeException(String.format("resource \"%s\" doesn't exist", draft.getName()));
     }
 }

@@ -6,8 +6,8 @@
 package com.microsoft.azure.toolkit.lib.appservice.webapp;
 
 import com.azure.resourcemanager.appservice.models.WebAppBasic;
-import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import lombok.Getter;
 
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-public class WebApp extends WebAppBase<WebApp, AppServiceResourceManager, com.azure.resourcemanager.appservice.models.WebApp>
+public class WebApp extends WebAppBase<WebApp, AppServiceServiceSubscription, com.azure.resourcemanager.appservice.models.WebApp>
     implements Deletable {
 
     @Nonnull
@@ -48,7 +48,7 @@ public class WebApp extends WebAppBase<WebApp, AppServiceResourceManager, com.az
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, WebApp, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, WebApp, ?>> getSubModules() {
         return Collections.singletonList(deploymentModule);
     }
 

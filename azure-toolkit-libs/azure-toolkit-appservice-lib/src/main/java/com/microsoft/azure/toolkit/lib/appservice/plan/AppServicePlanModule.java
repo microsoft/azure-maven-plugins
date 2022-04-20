@@ -7,18 +7,20 @@ package com.microsoft.azure.toolkit.lib.appservice.plan;
 
 import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.models.AppServicePlans;
-import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceManager;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 
-public class AppServicePlanModule extends AbstractAzResourceModule<AppServicePlan, AppServiceResourceManager, com.azure.resourcemanager.appservice.models.AppServicePlan> {
+public class AppServicePlanModule extends AbstractAzResourceModule<AppServicePlan, AppServiceServiceSubscription, com.azure.resourcemanager.appservice.models.AppServicePlan> {
 
     public static final String NAME = "serverfarms";
 
-    public AppServicePlanModule(@Nonnull AppServiceResourceManager parent) {
+    public AppServicePlanModule(@Nonnull AppServiceServiceSubscription parent) {
         super(NAME, parent);
     }
 
@@ -48,6 +50,11 @@ public class AppServicePlanModule extends AbstractAzResourceModule<AppServicePla
     @Nonnull
     protected AppServicePlan newResource(@Nonnull com.azure.resourcemanager.appservice.models.AppServicePlan remote) {
         return new AppServicePlan(remote, this);
+    }
+
+    @Nonnull
+    protected AppServicePlan newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new AppServicePlan(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nonnull

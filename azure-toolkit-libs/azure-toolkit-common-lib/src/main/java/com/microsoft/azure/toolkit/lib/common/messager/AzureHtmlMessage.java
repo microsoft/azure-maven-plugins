@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.common.messager;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.Operation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -51,7 +51,7 @@ public class AzureHtmlMessage extends AzureMessage {
     }
 
     @Override
-    protected String getDetailItem(IAzureOperation<?> o) {
+    protected String getDetailItem(Operation<?> o) {
         return String.format("<li>%s</li>", super.getDetailItem(o));
     }
 

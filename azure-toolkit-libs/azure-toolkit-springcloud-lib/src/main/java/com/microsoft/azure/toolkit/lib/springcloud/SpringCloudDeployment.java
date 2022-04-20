@@ -12,7 +12,7 @@ import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.google.common.base.Charsets;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import io.netty.handler.codec.http.HttpHeaders;
 import lombok.SneakyThrows;
@@ -78,7 +78,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
 
     @Nonnull
     @Override
-    public List<AzResourceModule<?, SpringCloudDeployment, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, SpringCloudDeployment, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

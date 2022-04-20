@@ -11,6 +11,9 @@ import com.azure.resourcemanager.appservice.models.FunctionApp;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
+import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -18,11 +21,13 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -33,9 +38,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDraft.CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS;
+import static com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDraft.UNSUPPORTED_OPERATING_SYSTEM;
+
 @Slf4j
 public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
     implements AzResource.Draft<FunctionAppDeploymentSlot, WebSiteBase> {
+    private static final String CREATE_NEW_DEPLOYMENT_SLOT = "createNewDeploymentSlot";
     public static final String CONFIGURATION_SOURCE_NEW = "new";
     public static final String CONFIGURATION_SOURCE_PARENT = "parent";
     private static final String CONFIGURATION_SOURCE_DOES_NOT_EXISTS = "Target slot configuration source does not exists in current app";
@@ -76,6 +85,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         type = AzureOperation.Type.SERVICE
     )
     public FunctionDeploymentSlot createResourceInAzure() {
+        OperationContext.action().setTelemetryProperty(CREATE_NEW_DEPLOYMENT_SLOT, String.valueOf(true));
         final String name = getName();
         final Map<String, String> newAppSettings = this.getAppSettings();
         final DiagnosticConfig newDiagnosticConfig = this.getDiagnosticConfig();
@@ -108,7 +118,13 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         }
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Azure Functions app deployment slot ({0})...", name));
+        // As we can not update runtime for deployment slot during creation, so call update resource here
         FunctionDeploymentSlot slot = (FunctionDeploymentSlot) Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
+        final boolean isRuntimeModified = Objects.nonNull(this.getRuntime()) || Objects.nonNull(this.getDockerConfiguration());
+        if (isRuntimeModified) {
+            final FunctionDeploymentSlot slotToUpdate = slot;
+            slot = (FunctionDeploymentSlot) Objects.requireNonNull(this.doModify(() -> updateResourceInAzure(slotToUpdate), Status.CREATING));
+        }
         messager.success(AzureString.format("Azure Functions app deployment slot ({0}) is successfully created", name));
         return slot;
     }
@@ -126,20 +142,60 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         final Set<String> settingsToRemove = this.getAppSettingsToRemove();
         final DiagnosticConfig newDiagnosticConfig = this.getDiagnosticConfig();
 
-        boolean modified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove) || Objects.nonNull(newDiagnosticConfig);
+        boolean isRuntimeModified = !Objects.equals(this.getRuntime(), super.getRuntime());
+        boolean isDockerConfigurationModified = Objects.requireNonNull(super.getRuntime()).isDocker() && Objects.nonNull(getDockerConfiguration());
+        boolean isAppSettingsModified = settingsToAdd != null && (MapUtils.isEmpty(super.getAppSettings()) ||
+                !CollectionUtils.containsAll(super.getAppSettings().entrySet(), settingsToAdd.entrySet()));
+        boolean modified = CollectionUtils.isNotEmpty(settingsToRemove) || Objects.nonNull(newDiagnosticConfig) || isAppSettingsModified ||
+                isRuntimeModified || isDockerConfigurationModified;
 
         if (modified) {
             final DeploymentSlotBase.Update<FunctionDeploymentSlot> update = remote.update();
             Optional.ofNullable(settingsToAdd).ifPresent(update::withAppSettings);
             Optional.ofNullable(settingsToRemove).ifPresent(s -> s.forEach(update::withoutAppSetting));
             Optional.ofNullable(newDiagnosticConfig).ifPresent(c -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, newDiagnosticConfig));
-
+            Optional.ofNullable(config).map(FunctionAppDeploymentSlotDraft.Config::getRuntime).ifPresent(newRuntime -> updateRuntime(update, newRuntime));
+            Optional.ofNullable(config).map(FunctionAppDeploymentSlotDraft.Config::getDockerConfiguration)
+                    .ifPresent(dockerConfiguration -> updateDockerConfiguration(update, dockerConfiguration));
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating Azure Functions app deployment slot({0})...", remote.name()));
             remote = update.apply();
             messager.success(AzureString.format("Azure Functions app deployment slot({0}) is successfully updated", remote.name()));
         }
         return remote;
+    }
+
+    private void updateRuntime(@Nonnull FunctionDeploymentSlot.Update<?> update, @Nonnull Runtime newRuntime) {
+        final Runtime oldRuntime = Objects.requireNonNull(super.getRuntime());
+        if (newRuntime.getOperatingSystem() != null && Objects.requireNonNull(oldRuntime).getOperatingSystem() != newRuntime.getOperatingSystem()) {
+            throw new AzureToolkitRuntimeException(CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS);
+        }
+        final OperatingSystem operatingSystem =
+                ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), Objects.requireNonNull(oldRuntime).getOperatingSystem());
+        if (operatingSystem == OperatingSystem.LINUX) {
+            AzureMessager.getMessager().warning("Update runtime is not supported for Linux app service");
+        } else if (operatingSystem == OperatingSystem.WINDOWS) {
+            update.withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime.getJavaVersion()))
+                    .withWebContainer(AppServiceUtils.toWebContainer(newRuntime));
+        } else if (operatingSystem == OperatingSystem.DOCKER) {
+            return; // skip for docker, as docker configuration will be handled in `updateDockerConfiguration`
+        } else {
+            throw new AzureToolkitRuntimeException(String.format(UNSUPPORTED_OPERATING_SYSTEM, newRuntime.getOperatingSystem()));
+        }
+    }
+
+    private void updateDockerConfiguration(@Nonnull FunctionDeploymentSlot.Update<?> update, @Nonnull DockerConfiguration newConfig) {
+        final DeploymentSlotBase.UpdateStages.WithStartUpCommand<?> draft;
+        if (StringUtils.isAllEmpty(newConfig.getUserName(), newConfig.getPassword())) {
+            draft = update.withPublicDockerHubImage(newConfig.getImage());
+        } else if (StringUtils.isEmpty(newConfig.getRegistryUrl())) {
+            draft = update.withPrivateDockerHubImage(newConfig.getImage())
+                    .withCredentials(newConfig.getUserName(), newConfig.getPassword());
+        } else {
+            draft = update.withPrivateRegistryImage(newConfig.getImage(), newConfig.getRegistryUrl())
+                    .withCredentials(newConfig.getUserName(), newConfig.getPassword());
+        }
+        draft.withStartUpCommand(newConfig.getStartUpCommand());
     }
 
     public void setConfigurationSource(String source) {
@@ -179,19 +235,41 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         return Optional.ofNullable(config).map(Config::getDiagnosticConfig).orElseGet(super::getDiagnosticConfig);
     }
 
+    @Nullable
+    @Override
+    public Runtime getRuntime() {
+        return Optional.ofNullable(config).map(FunctionAppDeploymentSlotDraft.Config::getRuntime).orElseGet(super::getRuntime);
+    }
+
+    public void setRuntime(final Runtime runtime) {
+        this.ensureConfig().setRuntime(runtime);
+    }
+
+    public void setDockerConfiguration(DockerConfiguration dockerConfiguration) {
+        this.ensureConfig().setDockerConfiguration(dockerConfiguration);
+    }
+
+    @Nullable
+    public DockerConfiguration getDockerConfiguration() {
+        return Optional.ofNullable(config).map(FunctionAppDeploymentSlotDraft.Config::getDockerConfiguration).orElse(null);
+    }
+
     @Override
     public boolean isModified() {
-        final boolean notModified = Objects.isNull(this.config) ||
-            StringUtils.isBlank(this.config.getConfigurationSource()) ||
-            Objects.isNull(this.config.getDiagnosticConfig()) ||
-            CollectionUtils.isEmpty(this.config.getAppSettingsToRemove()) ||
-            Objects.isNull(this.config.getAppSettings()) || Objects.equals(this.config.getAppSettings(), super.getAppSettings());
+        final boolean notModified = Objects.isNull(this.config) || (StringUtils.isBlank(this.config.getConfigurationSource()) &&
+                CollectionUtils.isEmpty(this.config.getAppSettingsToRemove()) &&
+                Objects.isNull(this.getDockerConfiguration()) &&
+                Objects.equals(this.getDiagnosticConfig(), super.getDiagnosticConfig()) &&
+                Objects.equals(this.getAppSettings(), super.getAppSettings()) &&
+                Objects.equals(this.getRuntime(), super.getRuntime()));
         return !notModified;
     }
 
     @Data
     @Nullable
     private static class Config {
+        private Runtime runtime;
+        private DockerConfiguration dockerConfiguration;
         private String configurationSource;
         private DiagnosticConfig diagnosticConfig = null;
         private Set<String> appSettingsToRemove = new HashSet<>();

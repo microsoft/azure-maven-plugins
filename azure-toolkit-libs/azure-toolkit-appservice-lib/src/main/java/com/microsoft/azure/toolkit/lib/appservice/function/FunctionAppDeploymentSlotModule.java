@@ -54,6 +54,12 @@ public class FunctionAppDeploymentSlotModule extends AbstractAzResourceModule<Fu
 
     @Nonnull
     @Override
+    protected FunctionAppDeploymentSlot newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new FunctionAppDeploymentSlot(name, this);
+    }
+
+    @Nonnull
+    @Override
     public String getResourceTypeName() {
         return "Deployment slot";
     }
