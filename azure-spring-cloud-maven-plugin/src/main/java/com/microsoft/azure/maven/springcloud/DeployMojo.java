@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Deploy your project to target Azure Spring Cloud app. If target app doesn't exist, it will be created.
+ * Deploy your project to target Azure Spring app. If target app doesn't exist, it will be created.
  */
 @Mojo(name = "deploy")
 @Slf4j
@@ -41,11 +41,11 @@ public class DeployMojo extends AbstractMojoBase {
     private static final int GET_STATUS_TIMEOUT = 180;
     private static final String PROJECT_SKIP = "Packaging type is pom, taking no actions.";
     private static final String PROJECT_NO_CONFIGURATION = "Configuration does not exist, taking no actions.";
-    private static final String PROJECT_NOT_SUPPORT = "`azure-spring-cloud:deploy` does not support maven project with " +
+    private static final String PROJECT_NOT_SUPPORT = "`azure-spring-apps:deploy` does not support maven project with " +
         "packaging %s, only jar is supported";
     private static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
         "you can check the app status from Azure Portal.";
-    private static final String CONFIRM_PROMPT_START = "`azure-spring-cloud:deploy` will perform the following tasks";
+    private static final String CONFIRM_PROMPT_START = "`azure-spring-apps:deploy` will perform the following tasks";
     private static final String CONFIRM_PROMPT_CONFIRM = "Perform the above tasks? (Y/n):";
 
     /**

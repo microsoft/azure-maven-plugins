@@ -36,12 +36,12 @@ default_index:    0
 ---
 id:               select-ASC
 promote:
-    header:       "Available Azure Spring Cloud Services:"
-    many:         "Select Azure Spring Cloud for deployment:"
+    header:       "Available Azure Spring Apps:"
+    many:         "Select Azure Spring Apps for deployment:"
 message:
-  empty_options:  "There are no Azure Spring Cloud Service in current subscription, please create it in Azure Portal."
-  auto_select:    "There is only one Azure Spring Cloud Service (***{{ clusters[0].name() }}***) in current subscription, will use it automatically."
-  select_none:    "You have not selected any Azure Spring Cloud, 'config' will terminate."
+  empty_options:  "There are no Azure Spring Apps in current subscription, please create it in Azure Portal."
+  auto_select:    "There is only one Azure Spring Apps (***{{ clusters[0].name() }}***) in current subscription, will use it automatically."
+  select_none:    "You have not selected any Azure Spring Apps, 'config' will terminate."
 required:         true
 auto_select:      true
 default_index:    0

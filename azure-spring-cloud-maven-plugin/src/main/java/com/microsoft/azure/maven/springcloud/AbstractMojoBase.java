@@ -46,28 +46,28 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     protected Boolean isPublic;
 
     /**
-     * Name of the spring cloud service
+     * Name of the spring apps
      */
     @Getter
     @Parameter(property = "clusterName")
     protected String clusterName;
 
     /**
-     * Name of the spring cloud app. It will be created if not exist
+     * Name of the Spring app. It will be created if not exist
      */
     @Getter
     @Parameter(property = "appName")
     protected String appName;
 
     /**
-     * Runtime version of the spring cloud app, supported values are `Java 8` and `Java 11`
+     * Runtime version of the Spring app, supported values are `Java 8` and `Java 11`
      */
     @Getter
     @Parameter(property = "runtimeVersion")
     protected String runtimeVersion;
 
     /**
-     * Configuration for spring cloud deployment
+     * Configuration for spring app deployment
      *
      * Parameters for deployment
      * <ul>
@@ -76,7 +76,7 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
      *     <li>instanceCount: Instance count for deployment. </li>
      *     <li>deploymentName: Name for deployment. </li>
      *     <li>jvmOptions: JVM options for the deployed app. </li>
-     *     <li>runtimeVersion: The runtime version for spring cloud app,  supported values are `Java 8` and `Java 11`. </li>
+     *     <li>runtimeVersion: The runtime version for Spring app,  supported values are `Java 8` and `Java 11`. </li>
      *     <li>enablePersistentStorage: Boolean flag to control whether or not to mount a persistent storage to /persistent folder(volume quota of 50 GB). </li>
      *     <li>environment: Environment variables for deployment. </li>
      *     <li>resources: Configuration to specify the artifacts to deploy

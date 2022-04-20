@@ -42,6 +42,6 @@ public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringClo
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "Spring Cloud service";
+        return "Spring Apps";
     }
 }

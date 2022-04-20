@@ -54,6 +54,6 @@ public final class AzureSpringCloud extends AbstractAzService<SpringCloudService
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "Azure Spring Cloud";
+        return "Azure Spring Apps";
     }
 }
