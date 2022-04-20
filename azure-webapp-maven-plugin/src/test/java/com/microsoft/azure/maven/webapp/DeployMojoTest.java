@@ -26,6 +26,8 @@ import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.DOCKER_IMAGE_T
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_VERSION_KEY;
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_WEB_CONTAINER_KEY;
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.OS_KEY;
+import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.PRICING_TIER_KEY;
+import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.REGION_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -90,12 +92,14 @@ public class DeployMojoTest {
         ReflectionUtils.setVariableValueInObject(spyMojo, "plugin", plugin);
         doReturn("azure-webapp-maven-plugin").when(plugin).getArtifactId();
         final Map map = spyMojo.getTelemetryProperties();
-        assertEquals(12, map.size());
+        assertEquals(14, map.size());
         assertTrue(map.containsKey(JAVA_VERSION_KEY));
         assertTrue(map.containsKey(JAVA_WEB_CONTAINER_KEY));
         assertTrue(map.containsKey(DOCKER_IMAGE_TYPE_KEY));
         assertTrue(map.containsKey(OS_KEY));
         assertTrue(map.containsKey(DEPLOY_TO_SLOT_KEY));
+        assertTrue(map.containsKey(REGION_KEY));
+        assertTrue(map.containsKey(PRICING_TIER_KEY));
     }
 
     /**
