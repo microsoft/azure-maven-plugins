@@ -66,7 +66,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nonnull
     @ToString.Include
     @Getter(AccessLevel.NONE)
-    private final AtomicLong syncTime = new AtomicLong(-1);
+    private final AtomicLong syncTimeRef = new AtomicLong(-1);
     @Nonnull
     @Getter(AccessLevel.NONE)
     private final Map<String, Optional<T>> resources = new CaseInsensitiveMap<>();
@@ -78,7 +78,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public synchronized List<T> list() {
         log.debug("[{}]:list()", this.name);
         Azure.az(IAzureAccount.class).account();
-        if (this.syncTime.compareAndSet(-1, 0)) {
+        if (this.syncTimeRef.compareAndSet(-1, 0)) {
             log.debug("[{}]:list->this.reload()", this.name);
             this.reload();
         }
@@ -95,7 +95,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     public synchronized void clear() {
         log.debug("[{}]:clear()", this.name);
-        this.syncTime.set(-1);
+        this.syncTimeRef.set(-1);
         this.resources.clear();
     }
 
@@ -257,7 +257,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @AzureOperation(name = "resource.refresh.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     public void refresh() {
         log.debug("[{}]:refresh()", this.name);
-        this.syncTime.set(-1);
+        this.syncTimeRef.set(-1);
         AzureEventBus.emit("module.refreshed.module", this);
     }
 
@@ -269,7 +269,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             loaded = this.loadResourcesFromAzure();
         } catch (Throwable t) {
             log.debug("[{}]:reload->loadResourcesFromAzure()=EXCEPTION", this.name, t);
-            this.syncTime.set(-2);
+            this.syncTimeRef.set(-2);
             AzureMessager.getMessager().error(t);
             return;
         }
@@ -292,7 +292,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         deleted.forEach(name -> Optional.ofNullable(this.deleteResourceFromLocal(name, true)).ifPresent(t -> t.setStatus(AzResource.Status.DELETED)));
         log.debug("[{}]:reload.added->addResourceToLocal", this.name);
         added.forEach(name -> this.addResourceToLocal(name, loadedResources.get(name), true));
-        this.syncTime.set(System.currentTimeMillis());
+        this.syncTimeRef.set(System.currentTimeMillis());
     }
 
     @Nonnull
