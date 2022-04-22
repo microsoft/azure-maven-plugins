@@ -52,6 +52,11 @@ public class AppServiceServiceSubscription extends AbstractAzServiceSubscription
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, AppServiceServiceSubscription, ?>> getSubModules() {
+        // it will cause unnecessary preloading/refreshing if webAppModule and functionAppModule
+        // are not removed from here, as webAppModule and functionAppModule has already added as
+        // sub modules of AzureWebApp and AzureFunction respectively.
+
+        // TODO: remove AzureWebApp and AzureFunction
         return Collections.singletonList(planModule);
     }
 

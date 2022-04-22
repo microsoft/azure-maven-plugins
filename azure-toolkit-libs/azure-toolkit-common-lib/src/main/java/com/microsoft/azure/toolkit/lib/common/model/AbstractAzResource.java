@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import com.microsoft.azure.toolkit.lib.resource.GenericResourceModule;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -108,6 +109,42 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         AzureEventBus.emit("resource.refreshed.resource", this);
     }
 
+    @Override
+    @Nullable
+    public final R getRemote() {
+        synchronized (this.syncTimeRef) {
+            while (this.syncTimeRef.get() == 0) {
+                try {
+                    this.syncTimeRef.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    this.syncTimeRef.set(-1);
+                }
+            }
+            if (this.syncTimeRef.compareAndSet(-1, 0)) {
+                log.debug("[{}:{}]:getRemote->reload()", this.module.getName(), this.getName());
+                this.reloadRemote();
+            }
+            return this.remoteRef.get();
+        }
+    }
+
+    @AzureOperation(name = "resource.reload.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    private void reloadRemote() {
+        log.debug("[{}:{}]:reload()", this.module.getName(), this.getName());
+        if (this.isDraftForCreating()) {
+            return;
+        }
+        Azure.az(IAzureAccount.class).account();
+        final R remote = this.remoteRef.get();
+        this.doModify(() -> {
+            log.debug("[{}:{}]:reload->this.refreshRemote()", this.module.getName(), this.getName());
+            final R refreshed = Objects.nonNull(remote) ? this.refreshRemote(remote) : null;
+            log.debug("[{}:{}]:reload->this.loadRemote()", this.module.getName(), this.getName());
+            return Objects.nonNull(refreshed) ? refreshed : this.loadRemote();
+        }, Status.LOADING);
+    }
+
     @Nullable
     protected final R loadRemote() {
         log.debug("[{}:{}]:reloadRemote()", this.module.getName(), this.getName());
@@ -123,20 +160,36 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
-    @AzureOperation(name = "resource.reload.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
-    protected void reload() {
-        log.debug("[{}:{}]:reload()", this.module.getName(), this.getName());
-        if (this.isDraftForCreating()) {
-            return;
+    @Nullable
+    protected R refreshRemote(@Nonnull R remote) {
+        log.debug("[{}:{}]:refreshRemote()", this.module.getName(), this.getName());
+        if (remote instanceof Refreshable) {
+            log.debug("[{}:{}]:refreshRemote->remote.refresh()", this.module.getName(), this.getName());
+            // noinspection unchecked
+            return ((Refreshable<R>) remote).refresh();
+        } else {
+            log.debug("[{}:{}]:refreshRemote->reloadRemote()", this.module.getName(), this.getName());
+            return this.loadRemote();
         }
-        Azure.az(IAzureAccount.class).account();
-        final R remote = this.remoteRef.get();
-        this.doModify(() -> {
-            log.debug("[{}:{}]:reload->this.refreshRemote()", this.module.getName(), this.getName());
-            final R refreshed = Objects.nonNull(remote) ? this.refreshRemote(remote) : null;
-            log.debug("[{}:{}]:reload->this.loadRemote()", this.module.getName(), this.getName());
-            return Objects.nonNull(refreshed) ? refreshed : this.loadRemote();
-        }, Status.LOADING);
+    }
+
+    protected void setRemote(@Nullable R newRemote) {
+        synchronized (this.syncTimeRef) {
+            log.debug("[{}:{}]:setRemote({})", this.module.getName(), this.getName(), newRemote);
+            log.debug("[{}:{}]:setRemote->this.remoteRef.set({})", this.module.getName(), this.getName(), newRemote);
+            this.remoteRef.set(newRemote);
+            this.syncTimeRef.set(System.currentTimeMillis());
+            this.syncTimeRef.notifyAll();
+        }
+        if (Objects.nonNull(newRemote)) {
+            log.debug("[{}:{}]:setRemote->setStatus(LOADING)", this.module.getName(), this.getName());
+            this.setStatus(Status.LOADING);
+            log.debug("[{}:{}]:setRemote->this.reloadStatus", this.module.getName(), this.getName());
+            AzureTaskManager.getInstance().runOnPooledThread(this::reloadStatus);
+        } else {
+            log.debug("[{}:{}]:setRemote->this.setStatus(DISCONNECTED)", this.module.getName(), this.getName());
+            this.setStatus(Status.DELETED);
+        }
     }
 
     @Nonnull
@@ -150,9 +203,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Override
     public void delete() {
         log.debug("[{}:{}]:delete()", this.module.getName(), this.getName());
-        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(Status.DELETING));
         if (this.exists()) {
             this.doModify(() -> {
+                this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(Status.DELETING));
+                // TODO: set status should also cover its child
                 log.debug("[{}:{}]:delete->module.deleteResourceFromAzure({})", this.module.getName(), this.getName(), this.getId());
                 try {
                     this.getModule().deleteResourceFromAzure(this.getId());
@@ -165,11 +219,13 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
                         throw e;
                     }
                 }
+                this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setRemote(null));
                 return null;
             }, Status.DELETING);
         }
         this.deleteFromLocal();
-        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(AbstractAzResource::deleteFromLocal);
+        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(AbstractAzResource::delete);
+        // TODO: delete from local should also cover its child
     }
 
     public void deleteFromLocal() {
@@ -181,53 +237,11 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         if (Objects.isNull(id.parent()) &&
             !StringUtils.equalsIgnoreCase(id.subscriptionId(), NONE.getName()) &&
             !StringUtils.equalsAnyIgnoreCase(id.resourceGroupName(), NONE.getName(), RESOURCE_GROUP_PLACEHOLDER)) { // resource group manages top resources only
-            final String rg = id.resourceGroupName();
-            final String subId = id.subscriptionId();
-            final GenericResourceModule genericResourceModule = Azure.az(AzureResources.class).groups(subId).getOrInit(rg, rg).genericResources();
-            ((AbstractAzResourceModule) genericResourceModule).deleteResourceFromLocal(this.getId());
-        }
-    }
-
-    protected void setRemote(@Nullable R newRemote) {
-        synchronized (this.syncTimeRef) {
-            log.debug("[{}:{}]:setRemote({})", this.module.getName(), this.getName(), newRemote);
-            log.debug("[{}:{}]:setRemote->this.remoteRef.set({})", this.module.getName(), this.getName(), newRemote);
-            this.remoteRef.set(newRemote);
-            this.syncTimeRef.set(System.currentTimeMillis());
-            this.syncTimeRef.notifyAll();
-            if (Objects.nonNull(newRemote)) {
-                log.debug("[{}:{}]:setRemote->setStatus(LOADING)", this.module.getName(), this.getName());
-                this.setStatus(Status.LOADING);
-                log.debug("[{}:{}]:setRemote->this.reloadStatus", this.module.getName(), this.getName());
-                AzureTaskManager.getInstance().runOnPooledThread(this::reloadStatus);
-            } else {
-                log.debug("[{}:{}]:setRemote->this.setStatus(DISCONNECTED)", this.module.getName(), this.getName());
-                this.setStatus(Status.DELETED);
+            final ResourceGroup resourceGroup = this.getResourceGroup();
+            if (Objects.nonNull(resourceGroup)) {
+                final GenericResourceModule genericResourceModule = resourceGroup.genericResources();
+                ((AbstractAzResourceModule) genericResourceModule).deleteResourceFromLocal(this.getId());
             }
-        }
-    }
-
-    @Override
-    @Nullable
-    public final R getRemote() {
-        if (this.syncTimeRef.compareAndSet(-1, 0)) {
-            log.debug("[{}:{}]:getRemote->reload()", this.module.getName(), this.getName());
-            this.reload();
-        }
-        return this.remoteRef.get();
-    }
-
-    @Nullable
-    public final R getRemoteSync() {
-        synchronized (this.syncTimeRef) {
-            while (this.syncTimeRef.get() == 0) {
-                try {
-                    this.syncTimeRef.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            return this.getRemote();
         }
     }
 
@@ -310,19 +324,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
-    @Nullable
-    protected R refreshRemote(@Nonnull R remote) {
-        log.debug("[{}:{}]:refreshRemote()", this.module.getName(), this.getName());
-        if (remote instanceof Refreshable) {
-            log.debug("[{}:{}]:refreshRemote->remote.refresh()", this.module.getName(), this.getName());
-            // noinspection unchecked
-            return ((Refreshable<R>) remote).refresh();
-        } else {
-            log.debug("[{}:{}]:refreshRemote->reloadRemote()", this.module.getName(), this.getName());
-            return this.loadRemote();
-        }
-    }
-
     protected void doModifyAsync(@Nonnull Runnable body, @Nullable String status) {
         this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
         AzureTaskManager.getInstance().runOnPooledThread(() -> this.doModify(body, status));
@@ -382,6 +383,12 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nullable
     public AbstractAzResourceModule<?, T, ?> getSubModule(String moduleName) {
         return this.getSubModules().stream().filter(m -> m.getName().equals(moduleName)).findAny().orElse(null);
+    }
+
+    @Nullable
+    public ResourceGroup getResourceGroup() {
+        final String rgName = this.getResourceGroupName();
+        return Azure.az(AzureResources.class).groups(this.getSubscriptionId()).get(rgName, rgName);
     }
 
     public boolean isDraft() {

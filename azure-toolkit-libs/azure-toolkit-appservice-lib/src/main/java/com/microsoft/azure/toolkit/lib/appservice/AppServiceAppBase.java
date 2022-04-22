@@ -86,7 +86,7 @@ public abstract class AppServiceAppBase<
     public synchronized F getFullRemote() {
         WebSiteBase remote = this.getRemote();
         if (!(remote instanceof WebAppBase)) {
-            this.reload();
+            this.refresh();
             remote = this.getRemote();
         }
         //noinspection unchecked
