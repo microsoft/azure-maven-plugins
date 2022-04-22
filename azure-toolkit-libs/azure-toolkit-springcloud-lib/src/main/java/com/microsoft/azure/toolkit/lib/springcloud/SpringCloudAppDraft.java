@@ -31,11 +31,11 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     public static final String DEFAULT_DISK_MOUNT_PATH = "/persistent";
     public static final String DEFAULT_DEPLOYMENT_NAME = "default";
     /**
-     * @see <a href="https://azure.microsoft.com/en-us/pricing/details/spring-cloud/">Pricing - Azure Spring Apps</a>
+     * @see <a href="https://azure.microsoft.com/en-us/pricing/details/spring-cloud/">Pricing - Azure Spring Cloud</a>
      */
     public static final int BASIC_TIER_DEFAULT_DISK_SIZE = 1;
     /**
-     * @see <a href="https://azure.microsoft.com/en-us/pricing/details/spring-cloud/">Pricing - Azure Spring Apps</a>
+     * @see <a href="https://azure.microsoft.com/en-us/pricing/details/spring-cloud/">Pricing - Azure Spring Cloud</a>
      */
     public static final int STANDARD_TIER_DEFAULT_DISK_SIZE = 50;
     @Getter

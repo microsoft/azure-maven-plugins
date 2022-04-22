@@ -59,6 +59,6 @@ public class SpringCloudDeploymentModule extends AbstractAzResourceModule<Spring
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "Spring App deployment";
+        return "Spring Cloud app deployment";
     }
 }

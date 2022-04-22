@@ -18,7 +18,7 @@ Maven Plugin | Maven Central Version | Build Status
 ---|---|---
 [Maven Plugin for Azure Web Apps](./azure-webapp-maven-plugin/README.md) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-webapp-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-webapp-maven-plugin%22) | [![AppVeyor Webapp Plugin](https://ci.appveyor.com/api/projects/status/0vr4svfgl9u3rcaw/branch/develop?svg=true)](https://ci.appveyor.com/project/xscript/azure-maven-plugins-xt3xm)
 [Maven Plugin for Azure Functions](https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Functions) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-functions-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-functions-maven-plugin%22) | [![AppVeyor Function Plugin](https://ci.appveyor.com/api/projects/status/5jti4qwh0j4ekh72/branch/develop?svg=true)](https://ci.appveyor.com/project/xscript/azure-maven-plugins-vvy0i)
-[Maven Plugin for Azure Spring Apps](https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Spring-Cloud) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-spring-apps-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-spring-apps-maven-plugin%22) | 
+[Maven Plugin for Azure Spring Cloud](https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Spring-Cloud) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-spring-cloud-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-spring-cloud-maven-plugin%22) | 
 
 
 ## Authentication
@@ -51,7 +51,7 @@ You can specify which authentication method to use with <authType> in Maven conf
 See the [Authentication](https://github.com/microsoft/azure-maven-plugins/wiki/Authentication) section in our wiki for more information.
 
 ## Common Configurations
-The three Maven Plugins for Azure Web App/Functions/Spring Apps support below configuration properties.
+The three Maven Plugins for Azure Web App/Functions/Spring Cloud support below configuration properties.
 
 | Property | Required | Description | Version |
 | --- | --- | --- | --- | 

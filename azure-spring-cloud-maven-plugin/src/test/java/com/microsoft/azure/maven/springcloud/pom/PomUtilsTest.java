@@ -28,7 +28,7 @@ public class PomUtilsTest {
     @Test
     public void testSaveXml() throws Exception {
         final File pomFile = new File(this.getClass().getClassLoader().getResource("pom-4.xml").getFile());
-        final File tempFile = Files.createTempFile("azure-spring-apps-plugin-test", ".xml").toFile();
+        final File tempFile = Files.createTempFile("azure-spring-cloud-plugin-test", ".xml").toFile();
         FileUtils.copyFile(pomFile, tempFile);
         final Model model = TestHelper.readMavenModel(tempFile);
         final MavenProject project = mock(MavenProject.class);
@@ -87,7 +87,7 @@ public class PomUtilsTest {
     @Test
     public void testSaveXmlNoBuild() throws Exception {
         final File pomFile = new File(this.getClass().getClassLoader().getResource("pom-5.xml").getFile());
-        final File tempFile = Files.createTempFile("azure-spring-apps-plugin-test", ".xml").toFile();
+        final File tempFile = Files.createTempFile("azure-spring-cloud-plugin-test", ".xml").toFile();
         FileUtils.copyFile(pomFile, tempFile);
         final Model model = TestHelper.readMavenModel(tempFile);
         final MavenProject project = mock(MavenProject.class);
@@ -108,7 +108,7 @@ public class PomUtilsTest {
 
         final PluginDescriptor pd = mock(PluginDescriptor.class);
         when(pd.getGroupId()).thenReturn("com.microsoft.azure");
-        when(pd.getArtifactId()).thenReturn("azure-spring-apps-maven-plugin");
+        when(pd.getArtifactId()).thenReturn("azure-spring-cloud-maven-plugin");
         when(pd.getVersion()).thenReturn("0.1.0.SNAPSHOT");
         app.setDeployment(deploy);
         ConfigurationUpdater.updateAppConfigToPom(app, project, pd);
