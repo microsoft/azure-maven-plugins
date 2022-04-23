@@ -68,7 +68,7 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesSe
         } catch (Exception e) {
             childrenResources.forEach(r -> r.setStatus(Status.UNKNOWN));
         }
-        childrenResources.parallelStream().forEach(AbstractAzResource::deleteFromLocal);
+        childrenResources.parallelStream().forEach(AbstractAzResource::delete);
     }
 
     @Nonnull
