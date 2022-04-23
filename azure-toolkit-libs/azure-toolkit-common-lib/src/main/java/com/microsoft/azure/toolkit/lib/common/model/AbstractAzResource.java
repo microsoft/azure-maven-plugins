@@ -319,7 +319,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             this.setRemote(refreshed);
         } catch (Throwable t) {
             this.setStatus(Status.UNKNOWN);
-            this.syncTimeRef.compareAndSet(0, -1);
+            synchronized (this.syncTimeRef) {
+                this.syncTimeRef.compareAndSet(0, -1);
+                this.syncTimeRef.notifyAll();
+            }
             throw t;
         }
     }
@@ -340,7 +343,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             return remote;
         } catch (Throwable t) {
             this.setStatus(Status.UNKNOWN);
-            this.syncTimeRef.compareAndSet(0, -1);
+            synchronized (this.syncTimeRef) {
+                this.syncTimeRef.compareAndSet(0, -1);
+                this.syncTimeRef.notifyAll();
+            }
             throw new AzureToolkitRuntimeException(t);
         }
     }

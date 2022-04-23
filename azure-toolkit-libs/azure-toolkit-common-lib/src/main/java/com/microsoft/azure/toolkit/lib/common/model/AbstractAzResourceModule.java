@@ -113,7 +113,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             loaded = this.loadResourcesFromAzure();
         } catch (Throwable t) {
             log.debug("[{}]:reload->loadResourcesFromAzure()=EXCEPTION", this.name, t);
-            this.syncTimeRef.set(-2);
+            synchronized (this.syncTimeRef) {
+                this.syncTimeRef.compareAndSet(0, -1);
+                this.syncTimeRef.notifyAll();
+            }
             AzureMessager.getMessager().error(t);
             return;
         }
@@ -157,6 +160,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         synchronized (this.syncTimeRef) {
             this.resources.clear();
             this.syncTimeRef.set(-1);
+            this.syncTimeRef.notifyAll();
         }
     }
 
