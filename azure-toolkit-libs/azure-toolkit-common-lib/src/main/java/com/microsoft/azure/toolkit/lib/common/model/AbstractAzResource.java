@@ -141,6 +141,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     private void reloadRemote() {
         log.debug("[{}:{}]:reload()", this.module.getName(), this.getName());
         if (this.isDraftForCreating()) {
+            synchronized (this.syncTimeRef) {
+                this.syncTimeRef.compareAndSet(0, -1);
+                this.syncTimeRef.notifyAll();
+            }
             return;
         }
         Azure.az(IAzureAccount.class).account();
