@@ -97,7 +97,15 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     public boolean exists() {
-        return this.remoteOptional().isPresent();
+        final P parent = this.getParent();
+        if (StringUtils.equals(this.statusRef.get(), Status.DELETED)) {
+            return false;
+        } else if (parent == AzResource.NONE || this instanceof AbstractAzServiceSubscription || this instanceof ResourceGroup) {
+            return this.remoteOptional().isPresent();
+        } else {
+            final ResourceGroup rg = this.getResourceGroup();
+            return Objects.nonNull(rg) && rg.exists() && parent.exists() && this.remoteOptional().isPresent();
+        }
     }
 
     @Override
@@ -203,29 +211,29 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Override
     public void delete() {
         log.debug("[{}:{}]:delete()", this.module.getName(), this.getName());
+        this.setStatus(Status.DELETING);
         if (this.exists()) {
-            this.doModify(() -> {
-                this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(Status.DELETING));
-                // TODO: set status should also cover its child
-                log.debug("[{}:{}]:delete->module.deleteResourceFromAzure({})", this.module.getName(), this.getName(), this.getId());
-                try {
-                    this.getModule().deleteResourceFromAzure(this.getId());
-                } catch (Exception e) {
-                    final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
-                    if (cause instanceof ManagementException && HttpStatus.SC_NOT_FOUND != ((ManagementException) cause).getResponse().getStatusCode()) {
-                        log.debug("[{}]:delete()->deleteResourceFromAzure()=SC_NOT_FOUND", this.name, e);
-                    } else {
-                        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(Status.UNKNOWN));
-                        throw e;
-                    }
-                }
-                this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setRemote(null));
-                return null;
-            }, Status.DELETING);
+            this.deleteFromAzure();
         }
+        this.setRemote(null);
         this.deleteFromLocal();
         this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(AbstractAzResource::delete);
-        // TODO: delete from local should also cover its child
+    }
+
+    private void deleteFromAzure() {
+        // TODO: set status should also cover its child
+        log.debug("[{}:{}]:delete->module.deleteResourceFromAzure({})", this.module.getName(), this.getName(), this.getId());
+        try {
+            this.getModule().deleteResourceFromAzure(this.getId());
+        } catch (Exception e) {
+            final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
+            if (cause instanceof ManagementException && HttpStatus.SC_NOT_FOUND != ((ManagementException) cause).getResponse().getStatusCode()) {
+                log.debug("[{}]:delete()->deleteResourceFromAzure()=SC_NOT_FOUND", this.name, e);
+            } else {
+                this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(Status.UNKNOWN));
+                throw e;
+            }
+        }
     }
 
     public void deleteFromLocal() {
@@ -252,6 +260,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             final String oldStatus = this.statusRef.get();
             if (!Objects.equals(oldStatus, status)) {
                 this.statusRef.set(status);
+                if (StringUtils.equalsAny(status, Status.DELETING, Status.DELETED)) {
+                    this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(status));
+                }
                 if (!StringUtils.equalsIgnoreCase(status, Status.LOADING)) {
                     this.statusRef.notifyAll();
                 }
@@ -319,7 +330,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             this.setRemote(refreshed);
         } catch (Throwable t) {
             this.setStatus(Status.UNKNOWN);
-            this.syncTimeRef.compareAndSet(0, -1);
+            synchronized (this.syncTimeRef) {
+                this.syncTimeRef.compareAndSet(0, -1);
+                this.syncTimeRef.notifyAll();
+            }
             throw t;
         }
     }
@@ -340,7 +354,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             return remote;
         } catch (Throwable t) {
             this.setStatus(Status.UNKNOWN);
-            this.syncTimeRef.compareAndSet(0, -1);
+            synchronized (this.syncTimeRef) {
+                this.syncTimeRef.compareAndSet(0, -1);
+                this.syncTimeRef.notifyAll();
+            }
             throw new AzureToolkitRuntimeException(t);
         }
     }
@@ -388,6 +405,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nullable
     public ResourceGroup getResourceGroup() {
         final String rgName = this.getResourceGroupName();
+        if (StringUtils.equalsAnyIgnoreCase(rgName, None.NONE, AzResource.RESOURCE_GROUP_PLACEHOLDER)) {
+            return null;
+        }
         return Azure.az(AzureResources.class).groups(this.getSubscriptionId()).get(rgName, rgName);
     }
 
