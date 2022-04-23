@@ -4,7 +4,7 @@
  */
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.azure.maven.MavenDockerCredentialProvider;
+import com.microsoft.azure.maven.appservice.MavenDockerCredentialProvider;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;

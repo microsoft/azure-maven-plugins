@@ -169,7 +169,10 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-maven-plugin-lib</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-appservice-maven-plugin-lib</artifactId>
+        </dependency>
         <!-- TEST -->
         <dependency>
             <groupId>org.apache.maven.plugin-testing</groupId>

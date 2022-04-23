@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
-import com.microsoft.azure.maven.MavenDockerCredentialProvider;
+import com.microsoft.azure.maven.appservice.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
