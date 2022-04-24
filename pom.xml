@@ -51,7 +51,7 @@
         <module>azure-webapp-maven-plugin</module>
         <module>azure-functions-maven-plugin</module>
         <module>azure-sfmesh-maven-plugin</module>
-        <module>azure-spring-cloud-maven-plugin</module>
+        <module>azure-spring-apps-maven-plugin</module>
         <module>azure-appservice-maven-plugin-lib</module>
     </modules>
 
