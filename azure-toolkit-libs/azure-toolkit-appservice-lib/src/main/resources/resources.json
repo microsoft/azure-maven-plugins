@@ -64,6 +64,25 @@
     "rabbitMqIn_connectionStringSetting_label" : "Connection string setting name",
     "rabbitMqIn_connectionStringSetting_help" : "The name of the app setting containing your RabbitMQ connection.",
     "rabbitMqIn_queueName_label" : "Queue name",
-    "rabbitMqIn_queueName_help" : "This is the queue name."
+    "rabbitMqIn_queueName_help" : "This is the queue name.",
+    "KafkaTrigger_description": "A function that will be run whenever a message is added to a specified Kafka",
+    "kafka_trigger_displayName": "Kafka",
+    "kafka_name_label": "Message parameter name",
+    "kafka_name_help": "Name used to identify trigger in code",
+    "kafka_name_errorText": "The kafka name must start with a letter, and it can contain only letters and numbers. The name must be 1 to 127 characters.",
+    "kafka_brokerlist_label": "List of Brokers",
+    "kafka_brokerlist_help": "The name of the app setting containing your brokers list",
+    "kafka_topic_label": "Kafka topic name",
+    "kafka_topic_help": "Name of the topic to receive kafka messages from",
+    "kafka_username_label": "SASL username",
+    "kafka_username_help": "SASL username for use with the PLAIN and SASL_SCRAM",
+    "kafka_password_label": "SASL password for use with the PLAIN and SASL_SCRAM",
+    "kafka_password_help": "The name of the app setting containing your SASL password",
+    "kafka_protocol_label": "Security Protocol",
+    "kafka_protocol_help": "Security protocol used to communicate with brokers",
+    "kafka_authenticationmode_label": "SASL mechanism",
+    "kafka_authenticationmode_help": "SASL mechanism to use for authentication",
+    "kafka_consumergroup_label": "Consumer Group",
+    "kafka_consumergroup_help": "Consumer Group"
   }
 }

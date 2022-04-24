@@ -407,7 +407,7 @@ public class AddMojo extends AbstractFunctionMojo {
     //endregion
 
     //region Helper methods
-
+    // todo: Support default values for list variables input
     protected void assureInputFromUser(final String prompt, final String initValue, final List<String> options,
                                        final Consumer<String> setter) {
         final String option = findElementInOptions(options, initValue);
@@ -492,6 +492,7 @@ public class AddMojo extends AbstractFunctionMojo {
                 .orElse(null);
     }
 
+    // todo: get options list from templates
     @Nullable
     private List<String> getOptionsForUserPrompt(final String promptName) {
         // HTTP Trigger
@@ -501,6 +502,12 @@ public class AddMojo extends AbstractFunctionMojo {
         // Cosmos DB Trigger
         if ("createLeaseCollectionIfNotExists".equalsIgnoreCase(promptName.trim())) {
             return Arrays.asList("true", "false");
+        }
+        if ("protocol".equalsIgnoreCase(promptName.trim())) {
+            return Arrays.asList("NOTSET", "PLAINTEXT", "SSL", "SASLPLAINTEXT", "SASLSSL");
+        }
+        if ("authenticationMode".equalsIgnoreCase(promptName.trim())) {
+            return Arrays.asList("NOTSET", "GSSAPI", "PLAIN", "SCRAMSHA256", "SCRAMSHA512");
         }
         return null;
     }
