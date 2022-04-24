@@ -93,7 +93,7 @@
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-libs</artifactId>
-                <version>0.20.0</version>
+                <version>0.21.0-SNAPSHOT</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
