@@ -103,7 +103,7 @@ public class ConfigMojo extends AbstractMojoBase {
     private boolean advancedOptions;
 
     @Override
-    @AzureOperation(name = "springcloud.config", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "springcloud.config_mojo", type = AzureOperation.Type.ACTION)
     protected void doExecute() throws AzureExecutionException {
         if (!settings.isInteractiveMode()) {
             throw new UnsupportedOperationException("The goal 'config' must be run at interactive mode.");
@@ -227,7 +227,7 @@ public class ConfigMojo extends AbstractMojoBase {
     private void confirmAndSave() throws IOException {
         final Map<String, String> changesToConfirm = new LinkedHashMap<>();
         changesToConfirm.put("Subscription id", this.subscriptionId);
-        changesToConfirm.put("Service name", this.appSettings.getClusterName());
+        changesToConfirm.put("Azure Spring Apps name", this.appSettings.getClusterName());
 
         if (this.parentMode) {
             if (this.publicProjects != null && this.publicProjects.size() > 0) {
@@ -328,7 +328,7 @@ public class ConfigMojo extends AbstractMojoBase {
         final SpringCloudCluster targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, AbstractAzResource::getName);
         if (targetAppCluster != null) {
             this.appSettings.setClusterName(targetAppCluster.name());
-            getLog().info(String.format("Using service: %s", TextUtils.blue(targetAppCluster.name())));
+            getLog().info(String.format("Using Azure Spring Apps: %s", TextUtils.blue(targetAppCluster.name())));
         }
     }
 

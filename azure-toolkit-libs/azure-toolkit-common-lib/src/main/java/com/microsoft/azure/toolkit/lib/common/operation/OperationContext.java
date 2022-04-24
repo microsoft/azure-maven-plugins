@@ -90,8 +90,8 @@ public class OperationContext {
 
     @Nonnull
     private static OperationContext getNull(@Nullable Operation<?> operation) {
-        final Throwable error = new Throwable(Optional.ofNullable(operation).map(Operation::getName).orElse(null));
-        log.warn("default to NULL OperationContext, because operation or its action operation is null", error);
+        final String op = Optional.ofNullable(operation).map(Operation::getName).orElse(null);
+        log.warn("default to NULL OperationContext, because operation or its action operation is null:{}", op);
         return NULL;
     }
 }
