@@ -30,6 +30,7 @@ import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -131,7 +132,7 @@ public class AzureAccount implements IAzureAccount {
                     // default tenant id in azure identity is organizations
                     // see https://github.com/Azure/azure-sdk-for-java/blob/026664ea871586e681ab674e0332b6cc2352c655
                     // /sdk/identity/azure-identity/src/main/java/com/azure/identity/implementation/IdentityClient.java#L139
-                    .username(accountEntity.getEmail()).tenantId(accountEntity.getTenantIds() == null ? "organizations" :
+                    .username(accountEntity.getEmail()).tenantId(CollectionUtils.isEmpty(accountEntity.getTenantIds()) ? "organizations" :
                             accountEntity.getTenantIds().get(0)).clientId(accountEntity.getClientId())
                     .build();
 
