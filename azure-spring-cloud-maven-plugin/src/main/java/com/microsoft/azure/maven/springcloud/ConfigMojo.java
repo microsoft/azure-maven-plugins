@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
@@ -102,6 +103,7 @@ public class ConfigMojo extends AbstractMojoBase {
     private boolean advancedOptions;
 
     @Override
+    @AzureOperation(name = "springcloud.config", type = AzureOperation.Type.ACTION)
     protected void doExecute() throws AzureExecutionException {
         if (!settings.isInteractiveMode()) {
             throw new UnsupportedOperationException("The goal 'config' must be run at interactive mode.");

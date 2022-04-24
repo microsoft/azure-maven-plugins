@@ -6,6 +6,7 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.CommandHandler;
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.CommandHandlerImpl;
 import com.microsoft.azure.toolkit.lib.legacy.function.utils.CommandUtils;
@@ -65,6 +66,7 @@ public class RunMojo extends AbstractFunctionMojo {
     //region Entry Point
 
     @Override
+    @AzureOperation(name = "functionapp.run", type = AzureOperation.Type.ACTION)
     protected void doExecute() throws AzureExecutionException {
         validateAppName();
 
