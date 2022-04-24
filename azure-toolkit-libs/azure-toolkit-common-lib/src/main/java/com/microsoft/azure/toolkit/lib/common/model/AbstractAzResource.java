@@ -201,6 +201,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         } else {
             log.debug("[{}:{}]:setRemote->this.setStatus(DISCONNECTED)", this.module.getName(), this.getName());
             this.setStatus(Status.DELETED);
+            this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setRemote(null));
         }
     }
 
@@ -215,13 +216,13 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Override
     public void delete() {
         log.debug("[{}:{}]:delete()", this.module.getName(), this.getName());
-        this.setStatus(Status.DELETING);
-        if (this.exists()) {
-            this.deleteFromAzure();
-        }
-        this.setRemote(null);
+        this.doModify(() -> {
+            if (this.exists()) {
+                this.deleteFromAzure();
+            }
+            return null;
+        }, Status.DELETING);
         this.deleteFromLocal();
-        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(AbstractAzResource::delete);
     }
 
     private void deleteFromAzure() {
@@ -255,6 +256,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
                 ((AbstractAzResourceModule) genericResourceModule).deleteResourceFromLocal(this.getId());
             }
         }
+        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(AbstractAzResource::deleteFromLocal);
     }
 
     public void setStatus(@Nonnull String status) {
@@ -264,13 +266,13 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             final String oldStatus = this.statusRef.get();
             if (!Objects.equals(oldStatus, status)) {
                 this.statusRef.set(status);
-                if (StringUtils.equalsAny(status, Status.DELETING, Status.DELETED)) {
-                    this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(status));
-                }
                 if (!StringUtils.equalsIgnoreCase(status, Status.LOADING)) {
                     this.statusRef.notifyAll();
                 }
                 fireEvents.debounce();
+                if (StringUtils.equalsAny(status, Status.DELETING, Status.DELETED)) {
+                    this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(status));
+                }
             }
         }
     }
