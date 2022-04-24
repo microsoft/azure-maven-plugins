@@ -3,20 +3,18 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.maven;
+package com.microsoft.azure.maven.appservice;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractAppServiceMojoTest {
@@ -31,13 +29,13 @@ public class AbstractAppServiceMojoTest {
 
     @Test
     public void getDeploymentStagingDirectory() {
-        final AbstractAppServiceMojo mojoSpy = spy(mojo);
+        final AbstractAppServiceMojo mojoSpy = Mockito.spy(mojo);
         final String pluginName = "azure-functions-maven-plugin";
         final String buildDirectoryAbsolutePath = "target";
         final String appName = "app";
-        doReturn(pluginName).when(mojoSpy).getPluginName();
-        doReturn(buildDirectoryAbsolutePath).when(mojoSpy).getBuildDirectoryAbsolutePath();
-        doReturn(appName).when(mojoSpy).getAppName();
+        Mockito.doReturn(pluginName).when(mojoSpy).getPluginName();
+        Mockito.doReturn(buildDirectoryAbsolutePath).when(mojoSpy).getBuildDirectoryAbsolutePath();
+        Mockito.doReturn(appName).when(mojoSpy).getAppName();
 
         assertEquals(
             mojoSpy.getDeploymentStagingDirectoryPath(),

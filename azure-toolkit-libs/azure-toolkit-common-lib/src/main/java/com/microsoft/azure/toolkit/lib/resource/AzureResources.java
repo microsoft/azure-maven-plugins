@@ -66,7 +66,7 @@ public class AzureResources extends AbstractAzService<ResourcesServiceSubscripti
         } else if (type.equals(ResourceDeploymentModule.NAME)) {
             return (E) group.deployments().getOrDraft(resourceId.name(), resourceGroup);
         } else {
-            return (E) group.genericResources().getOrDraft(id, resourceGroup);
+            return (E) group.genericResources().get(id, resourceGroup);
         }
     }
 
@@ -75,11 +75,11 @@ public class AzureResources extends AbstractAzService<ResourcesServiceSubscripti
         ResourceId resourceId = ResourceId.fromString(id);
         final String resourceGroup = resourceId.resourceGroupName();
         final String type = resourceId.resourceType();
-        final ResourcesServiceSubscription subscription = Objects.requireNonNull(this.getOrInit(resourceId.subscriptionId(), resourceGroup));
+        final ResourcesServiceSubscription subscription = Objects.requireNonNull(this.get(resourceId.subscriptionId(), resourceGroup));
         if (type.equals("subscriptions")) {
             return (E) subscription;
         }
-        final ResourceGroup group = subscription.resourceGroups().getOrInit(resourceGroup, resourceGroup);
+        final ResourceGroup group = subscription.resourceGroups().get(resourceGroup, resourceGroup);
         if (type.equals(ResourceGroupModule.NAME)) {
             return (E) group;
         } else if (type.equals(ResourceDeploymentModule.NAME)) {

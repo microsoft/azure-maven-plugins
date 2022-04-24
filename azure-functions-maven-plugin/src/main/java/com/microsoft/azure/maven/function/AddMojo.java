@@ -6,6 +6,7 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.BindingTemplate;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.FunctionSettingTemplate;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.FunctionTemplate;
@@ -140,6 +141,7 @@ public class AddMojo extends AbstractFunctionMojo {
     //region Entry Point
 
     @Override
+    @AzureOperation(name = "functionapp.add", type = AzureOperation.Type.ACTION)
     protected void doExecute() throws AzureExecutionException {
         try {
             final List<FunctionTemplate> templates = loadAllFunctionTemplates();

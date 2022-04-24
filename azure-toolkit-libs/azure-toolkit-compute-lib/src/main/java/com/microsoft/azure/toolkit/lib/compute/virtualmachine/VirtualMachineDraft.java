@@ -30,6 +30,7 @@ import com.microsoft.azure.toolkit.lib.network.publicipaddress.PublicIpAddressDr
 import com.microsoft.azure.toolkit.lib.network.virtualnetwork.Network;
 import com.microsoft.azure.toolkit.lib.network.virtualnetwork.NetworkDraft;
 import com.microsoft.azure.toolkit.lib.network.virtualnetwork.Subnet;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountConfig;
 import lombok.AccessLevel;
@@ -111,11 +112,11 @@ public class VirtualMachineDraft extends VirtualMachine implements AzResource.Dr
     }
 
     public VirtualMachineDraft withDefaultConfig() {
-        this.setRegion(Region.US_CENTRAL);
         this.setImage(VmImage.UBUNTU_SERVER_18_04_LTS);
         this.setSize(VmSize.Standard_D2s_v3);
         final String subs = this.getSubscriptionId();
         final String rg = this.getResourceGroupName();
+        this.setRegion(Optional.ofNullable(this.getResourceGroup()).map(ResourceGroup::getRegion).orElse(Region.US_CENTRAL));
 
         final String networkName = NetworkDraft.generateDefaultName();
         final NetworkDraft networkDraft = Azure.az(AzureNetwork.class).virtualNetworks(subs).create(networkName, rg);

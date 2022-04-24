@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.function;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -35,6 +36,7 @@ public class ListMojo extends AbstractFunctionMojo {
     protected static final String RESOURCES_FILE = "/resources.json";
 
     @Override
+    @AzureOperation(name = "functionapp.list", type = AzureOperation.Type.ACTION)
     protected void doExecute() throws AzureExecutionException {
         try {
             Log.info(TEMPLATES_START);

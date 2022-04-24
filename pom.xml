@@ -51,7 +51,8 @@
         <module>azure-webapp-maven-plugin</module>
         <module>azure-functions-maven-plugin</module>
         <module>azure-sfmesh-maven-plugin</module>
-        <module>azure-spring-cloud-maven-plugin</module>
+        <module>azure-spring-apps-maven-plugin</module>
+        <module>azure-appservice-maven-plugin-lib</module>
     </modules>
 
     <properties>
@@ -100,6 +101,11 @@
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-maven-plugin-lib</artifactId>
+                <version>${azure.maven-plugin-lib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-appservice-maven-plugin-lib</artifactId>
                 <version>${azure.maven-plugin-lib.version}</version>
             </dependency>
             <dependency>

@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import com.microsoft.azure.toolkit.lib.resource.GenericResourceModule;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -96,7 +97,15 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     public boolean exists() {
-        return this.remoteOptional().isPresent();
+        final P parent = this.getParent();
+        if (StringUtils.equals(this.statusRef.get(), Status.DELETED)) {
+            return false;
+        } else if (parent == AzResource.NONE || this instanceof AbstractAzServiceSubscription || this instanceof ResourceGroup) {
+            return this.remoteOptional().isPresent();
+        } else {
+            final ResourceGroup rg = this.getResourceGroup();
+            return Objects.nonNull(rg) && rg.exists() && parent.exists() && this.remoteOptional().isPresent();
+        }
     }
 
     @Override
@@ -106,6 +115,46 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         log.debug("[{}:{}]:refresh->subModules.refresh()", this.module.getName(), this.getName());
         this.getSubModules().forEach(AzResourceModule::refresh);
         AzureEventBus.emit("resource.refreshed.resource", this);
+    }
+
+    @Override
+    @Nullable
+    public final R getRemote() {
+        synchronized (this.syncTimeRef) {
+            while (this.syncTimeRef.get() == 0) {
+                try {
+                    this.syncTimeRef.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    this.syncTimeRef.set(-1);
+                }
+            }
+            if (this.syncTimeRef.compareAndSet(-1, 0)) {
+                log.debug("[{}:{}]:getRemote->reload()", this.module.getName(), this.getName());
+                this.reloadRemote();
+            }
+            return this.remoteRef.get();
+        }
+    }
+
+    @AzureOperation(name = "resource.reload.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    private void reloadRemote() {
+        log.debug("[{}:{}]:reload()", this.module.getName(), this.getName());
+        if (this.isDraftForCreating()) {
+            synchronized (this.syncTimeRef) {
+                this.syncTimeRef.compareAndSet(0, -1);
+                this.syncTimeRef.notifyAll();
+            }
+            return;
+        }
+        Azure.az(IAzureAccount.class).account();
+        final R remote = this.remoteRef.get();
+        this.doModify(() -> {
+            log.debug("[{}:{}]:reload->this.refreshRemote()", this.module.getName(), this.getName());
+            final R refreshed = Objects.nonNull(remote) ? this.refreshRemote(remote) : null;
+            log.debug("[{}:{}]:reload->this.loadRemote()", this.module.getName(), this.getName());
+            return Objects.nonNull(refreshed) ? refreshed : this.loadRemote();
+        }, Status.LOADING);
     }
 
     @Nullable
@@ -123,20 +172,37 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
-    @AzureOperation(name = "resource.reload.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
-    protected void reload() {
-        log.debug("[{}:{}]:reload()", this.module.getName(), this.getName());
-        if (this.isDraftForCreating()) {
-            return;
+    @Nullable
+    protected R refreshRemote(@Nonnull R remote) {
+        log.debug("[{}:{}]:refreshRemote()", this.module.getName(), this.getName());
+        if (remote instanceof Refreshable) {
+            log.debug("[{}:{}]:refreshRemote->remote.refresh()", this.module.getName(), this.getName());
+            // noinspection unchecked
+            return ((Refreshable<R>) remote).refresh();
+        } else {
+            log.debug("[{}:{}]:refreshRemote->reloadRemote()", this.module.getName(), this.getName());
+            return this.loadRemote();
         }
-        Azure.az(IAzureAccount.class).account();
-        final R remote = this.remoteRef.get();
-        this.doModify(() -> {
-            log.debug("[{}:{}]:reload->this.refreshRemote()", this.module.getName(), this.getName());
-            final R refreshed = Objects.nonNull(remote) ? this.refreshRemote(remote) : null;
-            log.debug("[{}:{}]:reload->this.loadRemote()", this.module.getName(), this.getName());
-            return Objects.nonNull(refreshed) ? refreshed : this.loadRemote();
-        }, Status.LOADING);
+    }
+
+    protected void setRemote(@Nullable R newRemote) {
+        synchronized (this.syncTimeRef) {
+            log.debug("[{}:{}]:setRemote({})", this.module.getName(), this.getName(), newRemote);
+            log.debug("[{}:{}]:setRemote->this.remoteRef.set({})", this.module.getName(), this.getName(), newRemote);
+            this.remoteRef.set(newRemote);
+            this.syncTimeRef.set(System.currentTimeMillis());
+            this.syncTimeRef.notifyAll();
+        }
+        if (Objects.nonNull(newRemote)) {
+            log.debug("[{}:{}]:setRemote->setStatus(LOADING)", this.module.getName(), this.getName());
+            this.setStatus(Status.LOADING);
+            log.debug("[{}:{}]:setRemote->this.reloadStatus", this.module.getName(), this.getName());
+            AzureTaskManager.getInstance().runOnPooledThread(this::reloadStatus);
+        } else {
+            log.debug("[{}:{}]:setRemote->this.setStatus(DISCONNECTED)", this.module.getName(), this.getName());
+            this.setStatus(Status.DELETED);
+            this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setRemote(null));
+        }
     }
 
     @Nonnull
@@ -150,26 +216,29 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Override
     public void delete() {
         log.debug("[{}:{}]:delete()", this.module.getName(), this.getName());
-        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(Status.DELETING));
-        if (this.exists()) {
-            this.doModify(() -> {
-                log.debug("[{}:{}]:delete->module.deleteResourceFromAzure({})", this.module.getName(), this.getName(), this.getId());
-                try {
-                    this.getModule().deleteResourceFromAzure(this.getId());
-                } catch (Exception e) {
-                    final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
-                    if (cause instanceof ManagementException && HttpStatus.SC_NOT_FOUND != ((ManagementException) cause).getResponse().getStatusCode()) {
-                        log.debug("[{}]:delete()->deleteResourceFromAzure()=SC_NOT_FOUND", this.name, e);
-                    } else {
-                        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(Status.UNKNOWN));
-                        throw e;
-                    }
-                }
-                return null;
-            }, Status.DELETING);
-        }
+        this.doModify(() -> {
+            if (this.exists()) {
+                this.deleteFromAzure();
+            }
+            return null;
+        }, Status.DELETING);
         this.deleteFromLocal();
-        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(AbstractAzResource::deleteFromLocal);
+    }
+
+    private void deleteFromAzure() {
+        // TODO: set status should also cover its child
+        log.debug("[{}:{}]:delete->module.deleteResourceFromAzure({})", this.module.getName(), this.getName(), this.getId());
+        try {
+            this.getModule().deleteResourceFromAzure(this.getId());
+        } catch (Exception e) {
+            final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
+            if (cause instanceof ManagementException && HttpStatus.SC_NOT_FOUND != ((ManagementException) cause).getResponse().getStatusCode()) {
+                log.debug("[{}]:delete()->deleteResourceFromAzure()=SC_NOT_FOUND", this.name, e);
+            } else {
+                this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(Status.UNKNOWN));
+                throw e;
+            }
+        }
     }
 
     public void deleteFromLocal() {
@@ -181,54 +250,13 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         if (Objects.isNull(id.parent()) &&
             !StringUtils.equalsIgnoreCase(id.subscriptionId(), NONE.getName()) &&
             !StringUtils.equalsAnyIgnoreCase(id.resourceGroupName(), NONE.getName(), RESOURCE_GROUP_PLACEHOLDER)) { // resource group manages top resources only
-            final String rg = id.resourceGroupName();
-            final String subId = id.subscriptionId();
-            final GenericResourceModule genericResourceModule = Azure.az(AzureResources.class).groups(subId).getOrInit(rg, rg).genericResources();
-            ((AbstractAzResourceModule) genericResourceModule).deleteResourceFromLocal(this.getId());
-        }
-    }
-
-    protected void setRemote(@Nullable R newRemote) {
-        synchronized (this.syncTimeRef) {
-            log.debug("[{}:{}]:setRemote({})", this.module.getName(), this.getName(), newRemote);
-            log.debug("[{}:{}]:setRemote->this.remoteRef.set({})", this.module.getName(), this.getName(), newRemote);
-            this.remoteRef.set(newRemote);
-            this.syncTimeRef.set(System.currentTimeMillis());
-            this.syncTimeRef.notifyAll();
-            if (Objects.nonNull(newRemote)) {
-                log.debug("[{}:{}]:setRemote->setStatus(LOADING)", this.module.getName(), this.getName());
-                this.setStatus(Status.LOADING);
-                log.debug("[{}:{}]:setRemote->this.reloadStatus", this.module.getName(), this.getName());
-                AzureTaskManager.getInstance().runOnPooledThread(this::reloadStatus);
-            } else {
-                log.debug("[{}:{}]:setRemote->this.setStatus(DISCONNECTED)", this.module.getName(), this.getName());
-                this.setStatus(Status.DELETED);
+            final ResourceGroup resourceGroup = this.getResourceGroup();
+            if (Objects.nonNull(resourceGroup)) {
+                final GenericResourceModule genericResourceModule = resourceGroup.genericResources();
+                ((AbstractAzResourceModule) genericResourceModule).deleteResourceFromLocal(this.getId());
             }
         }
-    }
-
-    @Override
-    @Nullable
-    public final R getRemote() {
-        if (this.syncTimeRef.compareAndSet(-1, 0)) {
-            log.debug("[{}:{}]:getRemote->reload()", this.module.getName(), this.getName());
-            this.reload();
-        }
-        return this.remoteRef.get();
-    }
-
-    @Nullable
-    public final R getRemoteSync() {
-        synchronized (this.syncTimeRef) {
-            while (this.syncTimeRef.get() == 0) {
-                try {
-                    this.syncTimeRef.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            return this.getRemote();
-        }
+        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(AbstractAzResource::deleteFromLocal);
     }
 
     public void setStatus(@Nonnull String status) {
@@ -242,6 +270,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
                     this.statusRef.notifyAll();
                 }
                 fireEvents.debounce();
+                if (StringUtils.equalsAny(status, Status.DELETING, Status.DELETED)) {
+                    this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(status));
+                }
             }
         }
     }
@@ -305,21 +336,11 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             this.setRemote(refreshed);
         } catch (Throwable t) {
             this.setStatus(Status.UNKNOWN);
-            this.syncTimeRef.compareAndSet(0, -1);
+            synchronized (this.syncTimeRef) {
+                this.syncTimeRef.compareAndSet(0, -1);
+                this.syncTimeRef.notifyAll();
+            }
             throw t;
-        }
-    }
-
-    @Nullable
-    protected R refreshRemote(@Nonnull R remote) {
-        log.debug("[{}:{}]:refreshRemote()", this.module.getName(), this.getName());
-        if (remote instanceof Refreshable) {
-            log.debug("[{}:{}]:refreshRemote->remote.refresh()", this.module.getName(), this.getName());
-            // noinspection unchecked
-            return ((Refreshable<R>) remote).refresh();
-        } else {
-            log.debug("[{}:{}]:refreshRemote->reloadRemote()", this.module.getName(), this.getName());
-            return this.loadRemote();
         }
     }
 
@@ -339,7 +360,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             return remote;
         } catch (Throwable t) {
             this.setStatus(Status.UNKNOWN);
-            this.syncTimeRef.compareAndSet(0, -1);
+            synchronized (this.syncTimeRef) {
+                this.syncTimeRef.compareAndSet(0, -1);
+                this.syncTimeRef.notifyAll();
+            }
             throw new AzureToolkitRuntimeException(t);
         }
     }
@@ -382,6 +406,15 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nullable
     public AbstractAzResourceModule<?, T, ?> getSubModule(String moduleName) {
         return this.getSubModules().stream().filter(m -> m.getName().equals(moduleName)).findAny().orElse(null);
+    }
+
+    @Nullable
+    public ResourceGroup getResourceGroup() {
+        final String rgName = this.getResourceGroupName();
+        if (StringUtils.equalsAnyIgnoreCase(rgName, None.NONE, AzResource.RESOURCE_GROUP_PLACEHOLDER)) {
+            return null;
+        }
+        return Azure.az(AzureResources.class).groups(this.getSubscriptionId()).get(rgName, rgName);
     }
 
     public boolean isDraft() {

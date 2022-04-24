@@ -32,6 +32,7 @@ import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
@@ -94,6 +95,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebAppPomHandler pomHandler;
 
     @Override
+    @AzureOperation(name = "webapp.config", type = AzureOperation.Type.ACTION)
     protected void doExecute() {
         if (!(Utils.isJarPackagingProject(this.project.getPackaging()) ||
                 Utils.isEarPackagingProject(this.project.getPackaging()) ||

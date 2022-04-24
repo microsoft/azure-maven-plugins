@@ -3,11 +3,12 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.maven;
+package com.microsoft.azure.maven.appservice;
 
 import com.azure.core.management.AzureEnvironment;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.microsoft.azure.maven.AbstractAzureMojo;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
@@ -171,7 +172,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
                 final Account account = getAzureAccount();
                 final List<Subscription> subscriptions = account.getSubscriptions();
                 final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
-                checkSubscription(subscriptions, targetSubscriptionId);
+                AbstractAzureMojo.checkSubscription(subscriptions, targetSubscriptionId);
                 com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account().selectSubscription(Collections.singletonList(targetSubscriptionId));
                 appServiceClient = Azure.az(AzureAppService.class);
                 printCurrentSubscription(appServiceClient);
@@ -191,7 +192,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         final List<Subscription> subscriptions = Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
         final Subscription subscription = subscriptions.get(0);
         if (subscription != null) {
-            Log.info(String.format(SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.getName()), TextUtils.cyan(subscription.getId())));
+            Log.info(String.format(AbstractAzureMojo.SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.getName()), TextUtils.cyan(subscription.getId())));
         }
     }
 }

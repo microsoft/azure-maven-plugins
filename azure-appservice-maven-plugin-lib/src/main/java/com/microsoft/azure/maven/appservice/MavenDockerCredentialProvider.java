@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.maven;
+package com.microsoft.azure.maven.appservice;
 
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.legacy.docker.IDockerCredentialProvider;
