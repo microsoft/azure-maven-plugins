@@ -16,6 +16,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.microsoft.azure.maven.model.DeploymentResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.Binding;
@@ -113,6 +114,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     protected boolean skipInstallExtensions;
 
     @Override
+    @AzureOperation(name = "functionapp.package", type = AzureOperation.Type.ACTION)
     protected void doExecute() throws AzureExecutionException {
         validateAppName();
 
