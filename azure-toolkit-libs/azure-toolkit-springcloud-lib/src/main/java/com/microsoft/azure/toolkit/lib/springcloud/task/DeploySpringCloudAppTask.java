@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.springcloud.task;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
@@ -47,6 +48,8 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final String clusterName = config.getClusterName();
         final String appName = config.getAppName();
         final String resourceGroup = config.getResourceGroup();
+        Optional.ofNullable(deploymentConfig.getArtifact()).map(IArtifact::getFile)
+            .orElseThrow(() -> new AzureToolkitRuntimeException("No artifact is specified to deploy."));
         final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(config.getSubscriptionId()).get(clusterName, resourceGroup);
         Optional.ofNullable(cluster).orElseThrow(() -> new AzureToolkitRuntimeException(
             String.format("Azure Spring Apps(%s) is not found in subscription(%s).", clusterName, config.getSubscriptionId())));
@@ -76,7 +79,9 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final List<AzureTask<?>> tasks = new ArrayList<>();
         deployment.setConfig(config.getDeployment());
         app.setConfig(config);
-        tasks.add(new AzureTask<Void>(CREATE_APP_TITLE, app::createIfNotExist));
+        if (toCreateApp) {
+            tasks.add(new AzureTask<Void>(CREATE_APP_TITLE, app::createIfNotExist));
+        }
         tasks.add(new AzureTask<Void>(MODIFY_DEPLOYMENT_TITLE, () -> deployment.commit()));
         tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, () -> {
             final SpringCloudAppDraft draft = (SpringCloudAppDraft) app.update();

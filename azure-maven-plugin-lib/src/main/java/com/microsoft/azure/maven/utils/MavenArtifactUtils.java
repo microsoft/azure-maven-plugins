@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.maven.utils;
 
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Resource;
@@ -71,7 +72,14 @@ public class MavenArtifactUtils {
         final String[] exclude = resource.getExcludes() == null ? new String[0] :
                 resource.getExcludes().toArray(new String[0]);
         directoryScanner.setExcludes(exclude);
-        directoryScanner.scan();
+        try {
+            directoryScanner.scan();
+        } catch (IllegalStateException e) {
+            AzureMessager.getMessager().warning(String.format("'%s' doesn't exist or isn't a directory", resource.getDirectory()));
+            // Throws IllegalStateException – if the base directory was set incorrectly
+            // (i.e. if it is null, doesn't exist, or isn't a directory).
+            return Collections.emptyList();
+        }
         return Arrays.stream(directoryScanner.getIncludedFiles())
                 .map(path -> new File(resource.getDirectory(), path))
                 .collect(Collectors.toList());
