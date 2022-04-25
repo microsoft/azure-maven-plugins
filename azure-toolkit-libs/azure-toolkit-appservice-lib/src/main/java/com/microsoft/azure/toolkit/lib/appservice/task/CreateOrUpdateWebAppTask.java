@@ -47,8 +47,7 @@ import static com.microsoft.azure.toolkit.lib.appservice.utils.Utils.throwForbid
 @Slf4j
 public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private static final String CREATE_NEW_WEB_APP = "createNewWebApp";
-    private static final String WEBAPP_NOT_EXIST_FOR_SLOT = "The Web App specified in pom.xml does not exist. " +
-            "Please make sure the Web App name is correct.";
+    private static final String WEBAPP_NOT_EXIST_FOR_SLOT = "Target Web App does not exist. Please make sure the Web App name is correct.";
 
     private final AppServiceConfig config;
     private final List<AzureTask<?>> subTasks;
@@ -191,9 +190,8 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
             try {
                 return t.getBody().call();
             } catch (Throwable e) {
-                log.warn(e.getMessage(), e);
+                throw new AzureToolkitRuntimeException(e);
             }
-            return null;
         })).last().block();
     }
 }
