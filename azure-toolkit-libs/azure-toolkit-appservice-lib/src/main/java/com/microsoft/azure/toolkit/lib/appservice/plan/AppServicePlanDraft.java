@@ -98,7 +98,7 @@ public class AppServicePlanDraft extends AppServicePlan implements
         final PricingTier newTier = Objects.requireNonNull(this.getPricingTier(), "'pricing tier' is required to create App Service plan.");
         final Region newRegion = Objects.requireNonNull(this.getRegion(), "'region' is required to create App Service plan.");
 
-        Optional.ofNullable(this.getResourceGroup()).filter(AbstractAzResource::exists).ifPresent(rg -> ((ResourceGroupDraft) rg).createIfNotExist());
+        Optional.ofNullable(this.getResourceGroup()).filter(AbstractAzResource::isDraftForCreating).ifPresent(rg -> ((ResourceGroupDraft) rg).createIfNotExist());
         final AppServiceManager manager = Objects.requireNonNull(this.getParent().getRemote());
         final DefinitionStages.WithCreate withCreate = manager.appServicePlans().define(name)
             .withRegion(newRegion.getName())
