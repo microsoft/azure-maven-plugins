@@ -186,12 +186,14 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     @Override
     @AzureOperation(name = "webapp.create_update_app.app", params = {"this.config.appName()"}, type = Type.SERVICE)
     public WebAppBase<?, ?, ?> doExecute() {
-        return (WebAppBase<?, ?, ?>) Flux.fromStream(this.subTasks.stream().map(t -> {
+        Object result = null;
+        for (final AzureTask<?> task : subTasks) {
             try {
-                return t.getBody().call();
+                result = task.getBody().call();
             } catch (Throwable e) {
                 throw new AzureToolkitRuntimeException(e);
             }
-        })).last().block();
+        }
+        return (WebAppBase<?, ?, ?>) result;
     }
 }
