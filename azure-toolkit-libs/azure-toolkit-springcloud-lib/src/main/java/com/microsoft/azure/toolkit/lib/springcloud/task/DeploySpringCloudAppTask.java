@@ -49,7 +49,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final String resourceGroup = config.getResourceGroup();
         final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(config.getSubscriptionId()).get(clusterName, resourceGroup);
         Optional.ofNullable(cluster).orElseThrow(() -> new AzureToolkitRuntimeException(
-            String.format("Azure Spring Apps(%s) is not found in subscription(%s).", clusterName, config.getSubscriptionId())));
+            String.format("Azure Spring Cloud service(%s) is not found in subscription(%s).", clusterName, config.getSubscriptionId())));
         final SpringCloudAppDraft app = cluster.apps().updateOrCreate(appName, resourceGroup);
         final String deploymentName = StringUtils.firstNonBlank(
             deploymentConfig.getDeploymentName(),
@@ -67,8 +67,8 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         OperationContext.current().setTelemetryProperty("isCreateDeployment", String.valueOf(toCreateDeployment));
         OperationContext.current().setTelemetryProperty("isDeploymentNameGiven", String.valueOf(StringUtils.isNotEmpty(deploymentConfig.getDeploymentName())));
 
-        final AzureString CREATE_APP_TITLE = AzureString.format("Create new app({0}) in Azure Spring Apps({1})", appName, clusterName);
-        final AzureString UPDATE_APP_TITLE = AzureString.format("Update app({0}) of Azure Spring Apps({1})", appName, clusterName);
+        final AzureString CREATE_APP_TITLE = AzureString.format("Create new app({0}) in Azure Spring Cloud service({1})", appName, clusterName);
+        final AzureString UPDATE_APP_TITLE = AzureString.format("Update app({0}) of Azure Spring Cloud service({1})", appName, clusterName);
         final AzureString CREATE_DEPLOYMENT_TITLE = AzureString.format("Create new deployment({0}) in app({1})", deploymentName, appName);
         final AzureString UPDATE_DEPLOYMENT_TITLE = AzureString.format("Update deployment({0}) of app({1})", deploymentName, appName);
         final AzureString MODIFY_DEPLOYMENT_TITLE = toCreateDeployment ? CREATE_DEPLOYMENT_TITLE : UPDATE_DEPLOYMENT_TITLE;

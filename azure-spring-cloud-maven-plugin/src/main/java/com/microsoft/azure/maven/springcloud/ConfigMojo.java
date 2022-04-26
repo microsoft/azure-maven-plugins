@@ -232,7 +232,7 @@ public class ConfigMojo extends AbstractMojoBase {
     private void confirmAndSave() throws IOException {
         final Map<String, String> changesToConfirm = new LinkedHashMap<>();
         changesToConfirm.put("Subscription id", this.subscriptionId);
-        changesToConfirm.put("Azure Spring Apps name", this.appSettings.getClusterName());
+        changesToConfirm.put("Azure Spring Cloud service name", this.appSettings.getClusterName());
 
         if (this.parentMode) {
             if (this.publicProjects != null && this.publicProjects.size() > 0) {
@@ -333,7 +333,7 @@ public class ConfigMojo extends AbstractMojoBase {
         final SpringCloudCluster targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, AbstractAzResource::getName);
         if (targetAppCluster != null) {
             this.appSettings.setClusterName(targetAppCluster.name());
-            getLog().info(String.format("Using Azure Spring Apps: %s", TextUtils.blue(targetAppCluster.name())));
+            getLog().info(String.format("Using Azure Spring Cloud service: %s", TextUtils.blue(targetAppCluster.name())));
         }
     }
 
