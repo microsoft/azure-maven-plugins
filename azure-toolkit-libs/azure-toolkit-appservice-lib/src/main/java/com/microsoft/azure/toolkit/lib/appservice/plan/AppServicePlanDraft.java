@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.appservice.plan;
 import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.models.AppServicePlan.DefinitionStages;
 import com.azure.resourcemanager.appservice.models.AppServicePlan.Update;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
@@ -15,12 +16,15 @@ import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.validator.SchemaValidator;
-import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
+import com.microsoft.azure.toolkit.lib.resource.AzureResources;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroupDraft;
 import lombok.Data;
 import lombok.Getter;
 
@@ -94,8 +98,7 @@ public class AppServicePlanDraft extends AppServicePlan implements
         final PricingTier newTier = Objects.requireNonNull(this.getPricingTier(), "'pricing tier' is required to create App Service plan.");
         final Region newRegion = Objects.requireNonNull(this.getRegion(), "'region' is required to create App Service plan.");
 
-        new CreateResourceGroupTask(this.getSubscriptionId(), this.getResourceGroupName(), newRegion).doExecute();
-
+        Optional.ofNullable(this.getResourceGroup()).filter(AbstractAzResource::isDraftForCreating).ifPresent(rg -> ((ResourceGroupDraft) rg).createIfNotExist());
         final AppServiceManager manager = Objects.requireNonNull(this.getParent().getRemote());
         final DefinitionStages.WithCreate withCreate = manager.appServicePlans().define(name)
             .withRegion(newRegion.getName())
@@ -174,6 +177,17 @@ public class AppServicePlanDraft extends AppServicePlan implements
 
     public void setOperatingSystem(OperatingSystem os) {
         this.ensureConfig().setOperatingSystem(os);
+    }
+
+    @Override
+    public ResourceGroup getResourceGroup() {
+        final ResourceGroup rg = Azure.az(AzureResources.class).groups(this.getSubscriptionId())
+            .getOrDraft(this.getResourceGroupName(), this.getResourceGroupName());
+        if (rg.isDraftForCreating()) {
+            final Region region = Objects.requireNonNull(this.getRegion(), "'region' is required to create a resource group.");
+            ((ResourceGroupDraft) rg).setRegion(region);
+        }
+        return rg;
     }
 
     @Override

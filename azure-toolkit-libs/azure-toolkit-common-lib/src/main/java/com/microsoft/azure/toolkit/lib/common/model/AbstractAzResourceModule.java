@@ -22,8 +22,8 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
-import com.microsoft.azure.toolkit.lib.resource.AzureResources;
-import com.microsoft.azure.toolkit.lib.resource.GenericResourceModule;
+import com.microsoft.azure.toolkit.lib.resource.GenericResource;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -279,10 +279,11 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             if (Objects.isNull(id.parent()) &&
                 !StringUtils.equalsIgnoreCase(id.subscriptionId(), NONE.getName()) &&
                 !StringUtils.equalsAnyIgnoreCase(id.resourceGroupName(), NONE.getName(), RESOURCE_GROUP_PLACEHOLDER)) {
-                final String rg = id.resourceGroupName();
-                final String subId = id.subscriptionId();
-                final GenericResourceModule genericResourceModule = Azure.az(AzureResources.class).groups(subId).getOrInit(rg, rg).genericResources();
-                ((AbstractAzResourceModule) genericResourceModule).addResourceToLocal(resource.getId(), genericResourceModule.newResource(resource));
+                Optional.ofNullable(resource.getResourceGroup()).map(ResourceGroup::genericResources).ifPresent(m -> {
+                    final GenericResource genericResource = m.newResource(resource);
+                    //noinspection unchecked,rawtypes
+                    ((AbstractAzResourceModule) m).addResourceToLocal(resource.getId(), genericResource);
+                });
             }
             log.debug("[{}]:create->doModify(draft.createResourceInAzure({}))", this.name, resource);
             resource.doModify(draft::createResourceInAzure, AzResource.Status.CREATING);
