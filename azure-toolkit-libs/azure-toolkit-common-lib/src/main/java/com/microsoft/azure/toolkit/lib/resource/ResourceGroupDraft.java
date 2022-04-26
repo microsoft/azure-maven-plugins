@@ -92,7 +92,7 @@ public class ResourceGroupDraft extends ResourceGroup implements AzResource.Draf
 
     @Nullable
     public Region getRegion() {
-        return Objects.requireNonNull(Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion));
+        return Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion);
     }
 
     @Override
