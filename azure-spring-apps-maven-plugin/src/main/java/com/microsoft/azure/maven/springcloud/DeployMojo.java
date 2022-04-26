@@ -8,6 +8,8 @@ package com.microsoft.azure.maven.springcloud;
 import com.microsoft.azure.maven.prompt.DefaultPrompter;
 import com.microsoft.azure.maven.prompt.IPrompter;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
@@ -15,6 +17,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import com.microsoft.azure.toolkit.lib.springcloud.Utils;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.task.DeploySpringCloudAppTask;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +32,7 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Deploy your project to target Azure Spring app. If target app doesn't exist, it will be created.
@@ -69,6 +73,8 @@ public class DeployMojo extends AbstractMojoBase {
 
         // Init spring clients, and prompt users to confirm
         final SpringCloudAppConfig appConfig = this.getConfiguration();
+        Optional.ofNullable(appConfig.getDeployment()).map(SpringCloudDeploymentConfig::getArtifact).map(IArtifact::getFile)
+            .orElseThrow(() -> new AzureToolkitRuntimeException("No artifact is specified to deploy."));
         final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig);
 
         final List<AzureTask<?>> tasks = task.getSubTasks();
