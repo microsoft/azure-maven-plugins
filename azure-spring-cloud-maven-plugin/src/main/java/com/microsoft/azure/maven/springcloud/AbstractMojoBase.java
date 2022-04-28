@@ -135,7 +135,8 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     public void showDeprecationWarning() {
         getLog().warn("##########################################################################");
         getLog().warn("#                                                                        #");
-        getLog().warn(String.format("# This plugin %s has been %s.       #", TextUtils.cyan("azure-spring-cloud-maven-plugin"), TextUtils.red("deprecated")));
+        getLog().warn(String.format("# This plugin %s is %s and has been #", TextUtils.cyan("azure-spring-cloud-maven-plugin"), TextUtils.red("deprecated")));
+        getLog().warn(String.format("# renamed to %s.                             #", TextUtils.cyan("azure-spring-apps-maven-plugin")));
         getLog().warn(String.format("# Please use %s instead. #", TextUtils.cyan("com.microsoft.azure:azure-spring-apps-maven-plugin")));
         getLog().warn("#                                                                        #");
         getLog().warn("##########################################################################");

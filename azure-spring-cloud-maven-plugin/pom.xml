@@ -15,7 +15,7 @@
     <name>Azure Spring Cloud Maven Plugin</name>
     <description>
         This Maven plugin helps developer configure and deploy microservices applications to Azure Spring Cloud.
-        This plugin has been deprecated. A replacement package com.microsoft.azure:azure-spring-apps-maven-plugin is available.
+        This plugin is deprecated and has been renamed to "com.microsoft.azure:azure-spring-apps-maven-plugin".
         We strongly encourage you to upgrade to continue receiving updates.
     </description>
 
