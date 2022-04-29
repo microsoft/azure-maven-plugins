@@ -411,7 +411,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nullable
     public ResourceGroup getResourceGroup() {
         final String rgName = this.getResourceGroupName();
-        if (StringUtils.equalsAnyIgnoreCase(rgName, None.NONE, AzResource.RESOURCE_GROUP_PLACEHOLDER)) {
+        if (StringUtils.equalsAnyIgnoreCase(rgName, "<none>", None.NONE, AzResource.RESOURCE_GROUP_PLACEHOLDER)) {
             return null;
         }
         return Azure.az(AzureResources.class).groups(this.getSubscriptionId()).get(rgName, rgName);
