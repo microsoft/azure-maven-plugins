@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.common.operation;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -20,7 +19,7 @@ public interface Operation<T> {
     String getExecutionId();
 
     @Nonnull
-    default String getName() {
+    default String getId() {
         return Optional.ofNullable(this.getTitle()).map(AzureString::getName).orElse(UNKNOWN_NAME);
     }
 
@@ -43,7 +42,7 @@ public interface Operation<T> {
         final Operation<?> parent = this.getParent();
         if (parent == null) {
             return null;
-        } else if (!parent.getName().equals(UNKNOWN_NAME)) {
+        } else if (!parent.getId().equals(UNKNOWN_NAME)) {
             return parent;
         } else {
             return parent.getEffectiveParent();

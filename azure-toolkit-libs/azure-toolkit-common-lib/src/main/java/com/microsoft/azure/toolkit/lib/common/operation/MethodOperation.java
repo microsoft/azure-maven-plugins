@@ -34,7 +34,7 @@ public class MethodOperation extends OperationBase<Object> {
     }
 
     @Nonnull
-    public String getName() {
+    public String getId() {
         final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
         return annotation.name();
     }

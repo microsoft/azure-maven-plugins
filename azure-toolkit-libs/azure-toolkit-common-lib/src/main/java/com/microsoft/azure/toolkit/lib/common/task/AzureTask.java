@@ -141,7 +141,7 @@ public class AzureTask<T> extends OperationBase<T> {
 
     @Override
     public String toString() {
-        return String.format("{name:'%s'}", this.getName());
+        return String.format("{name:'%s'}", this.getId());
     }
 
     @Nonnull

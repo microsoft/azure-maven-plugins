@@ -154,7 +154,7 @@ public class AzureMessage implements IAzureMessage {
         final List<Operation<?>> contextOperations = getAncestorOperationsUtilAction(current);
         final Set<Object> seen = ConcurrentHashMap.newKeySet();
         final List<Operation<?>> operations = Streams.concat(contextOperations.stream(), exceptionOperations.stream())
-            .filter(t -> seen.add(t.getName()))
+            .filter(t -> seen.add(t.getId()))
             .filter(o -> Objects.nonNull(o.getTitle()))
             .collect(Collectors.toList());
         return Lists.reverse(operations);

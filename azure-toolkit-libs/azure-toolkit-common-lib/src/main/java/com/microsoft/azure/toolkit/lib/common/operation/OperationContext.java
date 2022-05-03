@@ -90,7 +90,7 @@ public class OperationContext {
 
     @Nonnull
     private static OperationContext getNull(@Nullable Operation<?> operation) {
-        final String op = Optional.ofNullable(operation).map(Operation::getName).orElse(null);
+        final String op = Optional.ofNullable(operation).map(Operation::getId).orElse(null);
         log.warn("default to NULL OperationContext, because operation or its action operation is null:{}", op);
         return NULL;
     }
