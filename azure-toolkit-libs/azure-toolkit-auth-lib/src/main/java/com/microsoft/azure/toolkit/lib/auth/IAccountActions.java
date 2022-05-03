@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.auth;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 
 public interface IAccountActions {
-    Action.Id<Object> TRY_AZURE = Action.Id.of("action.account.try_azure");
-    Action.Id<Object> SELECT_SUBS = Action.Id.of("action.account.select_subs");
+    Action.Id<Object> TRY_AZURE = Action.Id.of("account.try_azure");
+    Action.Id<Object> SELECT_SUBS = Action.Id.of("account.select_subs");
     Action.Id<Object> AUTHENTICATE = Action.AUTHENTICATE;
 }

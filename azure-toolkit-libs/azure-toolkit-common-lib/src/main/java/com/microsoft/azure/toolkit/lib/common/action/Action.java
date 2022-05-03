@@ -34,10 +34,10 @@ import java.util.function.Predicate;
 public class Action<D> {
     public static final String SOURCE = "ACTION_SOURCE";
     public static final String RESOURCE_TYPE = "resourceType";
-    public static final Id<Runnable> REQUIRE_AUTH = Id.of("action.common.requireAuth");
-    public static final Id<Object> AUTHENTICATE = Id.of("action.account.authenticate");
+    public static final Id<Runnable> REQUIRE_AUTH = Id.of("common.requireAuth");
+    public static final Id<Object> AUTHENTICATE = Id.of("account.authenticate");
     @Nonnull
-    private List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
+    private final List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
     @Getter
     @Nonnull
     private final Id<D> id;
@@ -83,12 +83,6 @@ public class Action<D> {
         this.id = id;
         this.viewBuilder = viewBuilder;
         this.registerHandler((d, e) -> true, handler);
-    }
-
-    private Action(@Nonnull final Id<D> id, @Nonnull List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers, @Nullable ActionView.Builder viewBuilder) {
-        this.id = id;
-        this.viewBuilder = viewBuilder;
-        this.handlers = handlers;
     }
 
     @Nullable
@@ -172,7 +166,7 @@ public class Action<D> {
     }
 
     public static Action<Void> retryFromFailure(@Nonnull Runnable handler) {
-        return new Action<>(Id.of("action.retry"), (v) -> handler.run(), new ActionView.Builder("Retry"));
+        return new Action<>(Id.of("common.retry"), (v) -> handler.run(), new ActionView.Builder("Retry"));
     }
 }
 
