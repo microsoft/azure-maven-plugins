@@ -38,9 +38,13 @@ public class Action<D> {
     public static final Id<Object> AUTHENTICATE = Id.of("action.account.authenticate");
     @Nonnull
     private List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
+    @Getter
+    @Nonnull
+    private final Id<D> id;
+
     @Nullable
     @Getter
-    private ActionView.Builder view;
+    private ActionView.Builder viewBuilder;
     @Setter
     @Getter
     private boolean authRequired = true;
@@ -54,36 +58,42 @@ public class Action<D> {
     @Getter
     private Object shortcuts;
 
-    public Action(@Nullable ActionView.Builder view) {
-        this.view = view;
+    public Action(@Nonnull final Id<D> id, @Nullable ActionView.Builder viewBuilder) {
+        this.id = id;
+        this.viewBuilder = viewBuilder;
     }
 
-    public Action(@Nonnull Consumer<D> handler) {
+    public Action(@Nonnull final Id<D> id, @Nonnull Consumer<D> handler) {
+        this.id = id;
         this.registerHandler((d, e) -> true, (d, e) -> handler.accept(d));
     }
 
-    public <E> Action(@Nonnull BiConsumer<D, E> handler) {
+    public <E> Action(@Nonnull final Id<D> id, @Nonnull BiConsumer<D, E> handler) {
+        this.id = id;
         this.registerHandler((d, e) -> true, handler);
     }
 
-    public Action(@Nonnull Consumer<D> handler, @Nullable ActionView.Builder view) {
-        this.view = view;
+    public Action(@Nonnull final Id<D> id, @Nonnull Consumer<D> handler, @Nullable ActionView.Builder viewBuilder) {
+        this.id = id;
+        this.viewBuilder = viewBuilder;
         this.registerHandler((d, e) -> true, (d, e) -> handler.accept(d));
     }
 
-    public <E> Action(@Nonnull BiConsumer<D, E> handler, @Nullable ActionView.Builder view) {
-        this.view = view;
+    public <E> Action(@Nonnull final Id<D> id, @Nonnull BiConsumer<D, E> handler, @Nullable ActionView.Builder viewBuilder) {
+        this.id = id;
+        this.viewBuilder = viewBuilder;
         this.registerHandler((d, e) -> true, handler);
     }
 
-    private Action(@Nonnull List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers, @Nullable ActionView.Builder view) {
-        this.view = view;
+    private Action(@Nonnull final Id<D> id, @Nonnull List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers, @Nullable ActionView.Builder viewBuilder) {
+        this.id = id;
+        this.viewBuilder = viewBuilder;
         this.handlers = handlers;
     }
 
     @Nullable
     public IView.Label getView(D source) {
-        return Objects.nonNull(this.view) ? this.view.toActionView(source) : null;
+        return Objects.nonNull(this.viewBuilder) ? this.viewBuilder.toActionView(source) : null;
     }
 
     @SuppressWarnings("unchecked")
@@ -103,7 +113,7 @@ public class Action<D> {
         final Runnable runnable = () -> {
             final BiConsumer<D, Object> handler = this.getHandler(source, e);
             if (Objects.nonNull(handler)) {
-                final AzureString title = Optional.ofNullable(this.view).map(b -> b.title).map(t -> t.apply(source))
+                final AzureString title = Optional.ofNullable(this.viewBuilder).map(b -> b.title).map(t -> t.apply(source))
                     .orElse(AzureString.fromString(Operation.UNKNOWN_NAME));
                 final AzureTask<Void> task = new AzureTask<>(title, () -> handle(source, e, handler));
                 task.setType(AzureOperation.Type.ACTION.name());
@@ -162,7 +172,7 @@ public class Action<D> {
     }
 
     public static Action<Void> retryFromFailure(@Nonnull Runnable handler) {
-        return new Action<>((v) -> handler.run(), new ActionView.Builder("Retry"));
+        return new Action<>(Id.of("action.retry"), (v) -> handler.run(), new ActionView.Builder("Retry"));
     }
 }
 

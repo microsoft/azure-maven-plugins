@@ -30,7 +30,7 @@ public abstract class AzureActionManager {
     public abstract <D> void registerAction(Action.Id<D> id, Action<D> action);
 
     public <D> void registerAction(Action.Id<D> id, Consumer<D> action) {
-        this.registerAction(id, new Action<>(action));
+        this.registerAction(id, new Action<>(id, action));
     }
 
     public abstract <D> Action<D> getAction(Action.Id<D> id);
