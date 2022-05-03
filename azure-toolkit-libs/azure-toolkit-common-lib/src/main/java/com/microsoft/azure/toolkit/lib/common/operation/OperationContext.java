@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class OperationContext {
     private static final OperationContext NULL = new OperationContext(null);
     @Nullable
-    private final Operation<?> operation;
+    private final Operation operation;
     @Setter
     private IAzureMessager messager = null;
     @Getter
@@ -30,7 +30,7 @@ public class OperationContext {
     @Getter
     private final Map<String, String> telemetryProperties = new ConcurrentHashMap<>();
 
-    public OperationContext(@Nonnull Operation<?> operation) {
+    public OperationContext(@Nonnull Operation operation) {
         this.operation = operation;
     }
 
@@ -78,18 +78,18 @@ public class OperationContext {
 
     @Nonnull
     public static OperationContext current() {
-        final Operation<?> current = Operation.current();
+        final Operation current = Operation.current();
         return Optional.ofNullable(current).map(Operation::getContext).orElseGet(() -> OperationContext.getNull(current));
     }
 
     @Nonnull
     public static OperationContext action() {
-        final Operation<?> current = Operation.current();
+        final Operation current = Operation.current();
         return Optional.of(OperationContext.current()).map(OperationContext::getAction).orElseGet(() -> OperationContext.getNull(current));
     }
 
     @Nonnull
-    private static OperationContext getNull(@Nullable Operation<?> operation) {
+    private static OperationContext getNull(@Nullable Operation operation) {
         final String op = Optional.ofNullable(operation).map(Operation::getId).orElse(null);
         log.warn("default to NULL OperationContext, because operation or its action operation is null:{}", op);
         return NULL;

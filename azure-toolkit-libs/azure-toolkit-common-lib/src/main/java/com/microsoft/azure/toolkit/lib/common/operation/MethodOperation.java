@@ -11,7 +11,6 @@ import com.microsoft.azure.toolkit.lib.common.utils.aspect.MethodInvocation;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -20,10 +19,8 @@ import java.util.concurrent.Callable;
 @Getter
 @RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class MethodOperation extends OperationBase<Object> {
+public class MethodOperation extends OperationBase {
 
-    @Setter
-    private Operation<?> parent;
     @EqualsAndHashCode.Include
     private final MethodInvocation invocation;
 

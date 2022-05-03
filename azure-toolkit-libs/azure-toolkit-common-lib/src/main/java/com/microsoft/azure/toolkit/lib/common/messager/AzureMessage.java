@@ -63,7 +63,7 @@ public class AzureMessage implements IAzureMessage {
             return ObjectUtils.firstNonNull(this.decorateText(this.message, null), this.message.getString());
         }
         final Throwable throwable = (Throwable) getPayload();
-        final List<Operation<?>> operations = this.getOperations();
+        final List<Operation> operations = this.getOperations();
         final String failure = operations.stream().findFirst().map(Operation::getTitle)
             .map(azureString -> "Failed to " + this.decorateText(azureString, azureString::getString)).orElse("Failed to proceed");
         final String cause = Optional.ofNullable(this.getCause(throwable)).map(c -> ", " + c).orElse("");
@@ -72,14 +72,14 @@ public class AzureMessage implements IAzureMessage {
     }
 
     public String getDetails() {
-        final List<Operation<?>> operations = this.getOperations();
+        final List<Operation> operations = this.getOperations();
         return getPayload() instanceof Throwable && operations.size() < 2 ? "" : operations.stream()
             .map(this::getDetailItem)
             .filter(StringUtils::isNoneBlank)
             .collect(Collectors.joining("", "", ""));
     }
 
-    protected String getDetailItem(Operation<?> o) {
+    protected String getDetailItem(Operation o) {
         return Optional.ofNullable(o.getTitle())
             .map(t -> decorateText(t, t::getString))
             .map(StringUtils::capitalize)
@@ -145,15 +145,15 @@ public class AzureMessage implements IAzureMessage {
     }
 
     @Nonnull
-    protected List<Operation<?>> getOperations() {
-        final List<Operation<?>> exceptionOperations = Optional.ofNullable(this.getPayload())
+    protected List<Operation> getOperations() {
+        final List<Operation> exceptionOperations = Optional.ofNullable(this.getPayload())
             .filter(p -> p instanceof Throwable)
             .map(p -> getExceptionOperations((Throwable) p))
             .orElse(new ArrayList<>());
-        final Operation<?> current = exceptionOperations.isEmpty() ? OperationThreadContext.current().currentOperation() : exceptionOperations.get(0);
-        final List<Operation<?>> contextOperations = getAncestorOperationsUtilAction(current);
+        final Operation current = exceptionOperations.isEmpty() ? OperationThreadContext.current().currentOperation() : exceptionOperations.get(0);
+        final List<Operation> contextOperations = getAncestorOperationsUtilAction(current);
         final Set<Object> seen = ConcurrentHashMap.newKeySet();
-        final List<Operation<?>> operations = Streams.concat(contextOperations.stream(), exceptionOperations.stream())
+        final List<Operation> operations = Streams.concat(contextOperations.stream(), exceptionOperations.stream())
             .filter(t -> seen.add(t.getId()))
             .filter(o -> Objects.nonNull(o.getTitle()))
             .collect(Collectors.toList());
@@ -161,8 +161,8 @@ public class AzureMessage implements IAzureMessage {
     }
 
     @Nonnull
-    private static List<Operation<?>> getAncestorOperationsUtilAction(Operation<?> current) {
-        final LinkedList<Operation<?>> result = new LinkedList<>();
+    private static List<Operation> getAncestorOperationsUtilAction(Operation current) {
+        final LinkedList<Operation> result = new LinkedList<>();
         while (Objects.nonNull(current)) {
             result.addFirst(current);
             if (AzureOperation.Type.ACTION.name().equals(current.getType())) {
@@ -174,7 +174,7 @@ public class AzureMessage implements IAzureMessage {
     }
 
     @Nonnull
-    private static List<Operation<?>> getExceptionOperations(@Nonnull Throwable throwable) {
+    private static List<Operation> getExceptionOperations(@Nonnull Throwable throwable) {
         return ExceptionUtils.getThrowableList(throwable).stream()
             .filter(object -> object instanceof OperationException)
             .map(o -> ((OperationException) o).getOperation())
