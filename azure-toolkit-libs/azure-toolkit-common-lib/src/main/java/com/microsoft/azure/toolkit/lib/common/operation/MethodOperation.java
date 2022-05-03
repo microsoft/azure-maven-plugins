@@ -51,6 +51,6 @@ public class MethodOperation extends OperationBase {
         final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
         final String name = annotation.name();
         final String[] params = Arrays.stream(annotation.params()).map(e -> ExpressionUtils.interpret(e, this.invocation)).toArray(String[]::new);
-        return AzureOperationBundle.title(name, (Object[]) params);
+        return OperationBundle.title(name, (Object[]) params);
     }
 }

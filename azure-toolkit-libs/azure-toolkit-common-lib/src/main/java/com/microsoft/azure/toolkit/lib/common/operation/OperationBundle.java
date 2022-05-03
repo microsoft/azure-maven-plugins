@@ -11,7 +11,7 @@ import org.jetbrains.annotations.PropertyKey;
 
 import javax.annotation.Nonnull;
 
-public class AzureOperationBundle {
+public class OperationBundle {
     private static final String BUNDLE = "bundles.com.microsoft.azure.toolkit.operation";
 
     private static final AzureBundle bundle = new AzureBundle(BUNDLE);
