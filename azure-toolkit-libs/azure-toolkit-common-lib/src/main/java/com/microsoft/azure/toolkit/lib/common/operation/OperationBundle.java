@@ -16,7 +16,7 @@ public class OperationBundle {
 
     private static final AzureBundle bundle = new AzureBundle(BUNDLE);
 
-    public static AzureString title(@Nonnull @PropertyKey(resourceBundle = BUNDLE) String name, @Nonnull Object... params) {
+    public static AzureString description(@Nonnull @PropertyKey(resourceBundle = BUNDLE) String name, @Nonnull Object... params) {
         return AzureString.format(bundle, name, params);
     }
 }
