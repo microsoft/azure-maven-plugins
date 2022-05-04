@@ -98,7 +98,7 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
         throw new AzureToolkitRuntimeException("not supported");
     }
 
-    @AzureOperation(name = "postgre.restart_server.server", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.restart_resource.resource", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).restart(), Status.RESTARTING);
     }
