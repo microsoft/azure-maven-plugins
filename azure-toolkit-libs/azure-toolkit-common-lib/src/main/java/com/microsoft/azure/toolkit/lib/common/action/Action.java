@@ -6,9 +6,12 @@
 package com.microsoft.azure.toolkit.lib.common.action;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBase;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -17,6 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.PropertyKey;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -25,20 +29,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 @Accessors(chain = true)
-public class Action<D> {
+public class Action<D> extends OperationBase {
     public static final String SOURCE = "ACTION_SOURCE";
     public static final String RESOURCE_TYPE = "resourceType";
     public static final Id<Runnable> REQUIRE_AUTH = Id.of("common.requireAuth");
     public static final Id<Object> AUTHENTICATE = Id.of("account.authenticate");
     @Nonnull
     private final List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
-    @Getter
     @Nonnull
     private final Id<D> id;
 
@@ -146,6 +150,23 @@ public class Action<D> {
         this.handlers.add(new AbstractMap.SimpleEntry<>(condition, handler));
     }
 
+    @Override
+    public Callable<?> getBody() {
+        throw new AzureToolkitRuntimeException("'action.getBody()' is not supported");
+    }
+
+    @Nonnull
+    @Override
+    public String getType() {
+        return AzureOperation.Type.ACTION.name();
+    }
+
+    @Nullable
+    @Override
+    public AzureString getTitle() {
+        return OperationBundle.title(this.id.id);
+    }
+
     public static class Id<D> {
         @Nonnull
         private final String id;
@@ -154,7 +175,7 @@ public class Action<D> {
             this.id = id;
         }
 
-        public static <D> Id<D> of(@Nonnull String id) {
+        public static <D> Id<D> of(@PropertyKey(resourceBundle = OperationBundle.BUNDLE) @Nonnull String id) {
             assert StringUtils.isNotBlank(id) : "action id can not be blank";
             return new Id<>(id);
         }
