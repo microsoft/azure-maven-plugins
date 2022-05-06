@@ -83,7 +83,7 @@
         <maven.checkstyle-plugin.version>3.1.2</maven.checkstyle-plugin.version>
         <maven.aspectj-plugin.version>1.12.6</maven.aspectj-plugin.version>
         <azure.maven-plugin-lib.version>1.21.0-SNAPSHOT</azure.maven-plugin-lib.version>
-        <jacoco.version>0.8.7</jacoco.version>
+        <jacoco.version>0.8.8</jacoco.version>
 
         <json.schema-validator.version>1.0.56</json.schema-validator.version>
     </properties>

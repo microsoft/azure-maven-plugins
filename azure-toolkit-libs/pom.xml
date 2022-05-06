@@ -65,31 +65,22 @@
         <maven.javadoc-plugin.version>2.9.1</maven.javadoc-plugin.version>
         <maven.aspectj-plugin.version>1.12.6</maven.aspectj-plugin.version>
 
-        <azure.core.version>1.25.0</azure.core.version>
+        <azure.core.version>1.27.0</azure.core.version>
         <azure.aad.version>1.6.7</azure.aad.version>
         <azure.applicationinsights.version>2.6.4</azure.applicationinsights.version>
         <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
-        <azure.resourcemanager.version>2.11.0</azure.resourcemanager.version>
-        <azure.resourcemanager-applicationinsights.version>1.0.0-beta.1</azure.resourcemanager-applicationinsights.version>
+        <azure.resourcemanager.version>2.14.0</azure.resourcemanager.version>
+        <azure.resourcemanager-applicationinsights.version>1.0.0-beta.4</azure.resourcemanager-applicationinsights.version>
         <azure-resourcemanager-mysql.version>1.0.2</azure-resourcemanager-mysql.version>
         <azure-resourcemanager-postgre.version>1.0.2</azure-resourcemanager-postgre.version>
-        <azure.client.version>1.7.12</azure.client.version>
-        <azure.identity.version>1.4.4</azure.identity.version>
+        <azure-core-management.version>1.5.4</azure-core-management.version>
+        <azure.client.version>1.7.14</azure.client.version>
+        <azure.identity.version>1.5.0</azure.identity.version>
         <azure.storage.version>8.6.6</azure.storage.version>
-        <azure.version>1.41.1</azure.version>
-        <azure.eventhubs.version>3.2.2</azure.eventhubs.version>
         <azure.storage-file-share.version>12.9.1</azure.storage-file-share.version>
         <azure.function.version>1.4.2</azure.function.version>
-        <azure.security.keyvault.keys.version>4.2.8</azure.security.keyvault.keys.version>
-        <azure.security.keyvault.secrets.version>4.2.8</azure.security.keyvault.secrets.version>
-        <azure.security.keyvault.certificates.version>4.1.8</azure.security.keyvault.certificates.version>
-        <azure.storage.file.share.version>12.9.1</azure.storage.file.share.version>
-        <azure.storage.queue.version>12.9.1</azure.storage.queue.version>
-        <azure.storage.blob.version>12.11.1</azure.storage.blob.version>
-        <azure.storage.blob.batch.version>12.9.1</azure.storage.blob.batch.version>
-        <azure.storage.file.datalake.version>12.5.1</azure.storage.file.datalake.version>
-        <azure.core.http.netty.version>1.11.7</azure.core.http.netty.version>
-        <aspectj.version>1.9.8</aspectj.version>
+        <azure.core.http.netty.version>1.11.9</azure.core.http.netty.version>
+        <aspectj.version>1.9.9.1</aspectj.version>
         <codehaus.plexus-utils.version>3.4.1</codehaus.plexus-utils.version>
         <commons.codec.version>1.15</commons.codec.version>
         <commons.collections4.version>4.4</commons.collections4.version>
@@ -102,21 +93,21 @@
         <commons.configuration2.version>2.7</commons.configuration2.version>
         <dom4j.version>2.1.3</dom4j.version>
         <gson.version>2.9.0</gson.version>
-        <guava.version>31.0.1-jre</guava.version>
+        <guava.version>31.1-jre</guava.version>
         <httpclient.version>4.5.13</httpclient.version>
         <jackson.version>2.13.2</jackson.version>
         <jackson-databind.version>2.13.2.1</jackson-databind.version>
         <jansi.version>2.4.0</jansi.version>
         <jetbrains.annotations.version>22.0.0</jetbrains.annotations.version>
         <json.schema.validator.version>2.2.14</json.schema.validator.version>
-        <groovy.version>3.0.9</groovy.version>
+        <groovy.version>3.0.10</groovy.version>
         <junit.version>4.13.2</junit.version>
-        <lombok.version>1.18.22</lombok.version>
+        <lombok.version>1.18.24</lombok.version>
         <mockito.version>3.10.0</mockito.version>
         <rx.version>1.3.8</rx.version>
-        <snakeyaml.version>1.29</snakeyaml.version>
+        <snakeyaml.version>1.30</snakeyaml.version>
         <slf4j-api.version>1.7.36</slf4j-api.version>
-        <spring-test.version>5.3.15</spring-test.version>
+        <spring-test.version>5.3.19</spring-test.version>
         <google.jsr305.version>3.0.2</google.jsr305.version>
         <free.port.finder.version>1.1.1</free.port.finder.version>
         <jjwt.version>0.9.1</jjwt.version>
@@ -134,11 +125,12 @@
         <jtwig.core.version>5.87.0.RELEASE</jtwig.core.version>
         <semver.version>0.9.0</semver.version>
         <text-io.version>3.4.1</text-io.version>
-        <zt.zip.version>1.14</zt.zip.version>
+        <zt.zip.version>1.15</zt.zip.version>
         <plexus-interpolation.version>1.26</plexus-interpolation.version>
         <powermock.version>2.0.9</powermock.version>
-        <networknt.json-schema-validator.version>1.0.65</networknt.json-schema-validator.version>
+        <networknt.json-schema-validator.version>1.0.69</networknt.json-schema-validator.version>
         <jedis.version>3.6.3</jedis.version>
+        <asm.version>9.1</asm.version>
     </properties>
 
     <dependencyManagement>
@@ -232,9 +224,9 @@
             </dependency>
             <!-- azure libs -->
             <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-annotations</artifactId>
-                <version>1.10.0</version>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-core-management</artifactId>
+                <version>${azure-core-management.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
@@ -267,46 +259,6 @@
                 <version>${azure.client.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-storage-queue</artifactId>
-                <version>${azure.storage.queue.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-storage-blob</artifactId>
-                <version>${azure.storage.blob.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-storage-blob-batch</artifactId>
-                <version>${azure.storage.blob.batch.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-storage-file-share</artifactId>
-                <version>${azure.storage.file.share.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-storage-file-datalake</artifactId>
-                <version>${azure.storage.file.datalake.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-security-keyvault-secrets</artifactId>
-                <version>${azure.security.keyvault.secrets.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-security-keyvault-keys</artifactId>
-                <version>${azure.security.keyvault.keys.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-security-keyvault-certificates</artifactId>
-                <version>${azure.security.keyvault.certificates.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.nimbusds</groupId>
                 <artifactId>oauth2-oidc-sdk</artifactId>
                 <version>${nimbusds.oauth2.oidc.sdk.version}</version>
@@ -320,12 +272,6 @@
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-applicationinsights</artifactId>
                 <version>${azure.resourcemanager-applicationinsights.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.azure</groupId>
-                        <artifactId>azure-core-management</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.yaml</groupId>
@@ -350,6 +296,11 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-yaml</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-csv</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
@@ -725,23 +676,16 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>${asm.version}</version>
+            </dependency>
             <!-- TEST -->
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-test</artifactId>
                 <version>${spring-test.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-eventhubs-eph</artifactId>
-                <version>${azure.eventhubs.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                        <artifactId>jackson-core</artifactId>
-                    </exclusion>
-                </exclusions>
                 <scope>test</scope>
             </dependency>
             <dependency>
