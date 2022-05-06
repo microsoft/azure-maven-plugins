@@ -6,25 +6,24 @@
 package com.microsoft.azure.toolkit.lib.common.operation;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-public interface Operation<T> {
+public interface Operation {
     String UNKNOWN_NAME = "<unknown>.<unknown>";
 
     @Nonnull
     String getExecutionId();
 
     @Nonnull
-    default String getName() {
+    default String getId() {
         return Optional.ofNullable(this.getTitle()).map(AzureString::getName).orElse(UNKNOWN_NAME);
     }
 
-    Callable<T> getBody();
+    Callable<?> getBody();
 
     @Nonnull
     String getType();
@@ -32,18 +31,18 @@ public interface Operation<T> {
     @Nullable
     AzureString getTitle();
 
-    void setParent(Operation<?> operation);
+    void setParent(Operation operation);
 
     @Nullable
-    Operation<?> getParent();
+    Operation getParent();
 
     OperationContext getContext();
 
-    default Operation<?> getEffectiveParent() {
-        final Operation<?> parent = this.getParent();
+    default Operation getEffectiveParent() {
+        final Operation parent = this.getParent();
         if (parent == null) {
             return null;
-        } else if (!parent.getName().equals(UNKNOWN_NAME)) {
+        } else if (!parent.getId().equals(UNKNOWN_NAME)) {
             return parent;
         } else {
             return parent.getEffectiveParent();
@@ -51,7 +50,7 @@ public interface Operation<T> {
     }
 
     @Nullable
-    default Operation<?> getActionParent() {
+    default Operation getActionParent() {
         if (this.getType().equals(AzureOperation.Type.ACTION.name())) {
             return this;
         }
@@ -59,7 +58,7 @@ public interface Operation<T> {
     }
 
     @Nullable
-    static Operation<?> current() {
+    static Operation current() {
         return OperationThreadContext.current().currentOperation();
     }
 }

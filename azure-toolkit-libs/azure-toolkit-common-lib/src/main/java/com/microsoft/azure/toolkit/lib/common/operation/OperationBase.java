@@ -6,11 +6,17 @@
 package com.microsoft.azure.toolkit.lib.common.operation;
 
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public abstract class OperationBase<T> implements Operation<T> {
+public abstract class OperationBase implements Operation {
+
+    @Getter
+    @Setter
+    private Operation parent;
 
     private OperationContext context;
 

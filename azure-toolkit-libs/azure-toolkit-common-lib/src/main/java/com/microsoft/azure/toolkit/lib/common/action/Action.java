@@ -6,9 +6,12 @@
 package com.microsoft.azure.toolkit.lib.common.action;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBase;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -17,6 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.PropertyKey;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -25,22 +29,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 @Accessors(chain = true)
-public class Action<D> {
+public class Action<D> extends OperationBase {
     public static final String SOURCE = "ACTION_SOURCE";
     public static final String RESOURCE_TYPE = "resourceType";
-    public static final Id<Runnable> REQUIRE_AUTH = Id.of("action.common.requireAuth");
-    public static final Id<Object> AUTHENTICATE = Id.of("action.account.authenticate");
+    public static final Id<Runnable> REQUIRE_AUTH = Id.of("common.requireAuth");
+    public static final Id<Object> AUTHENTICATE = Id.of("account.authenticate");
     @Nonnull
-    private List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
+    private final List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
+    @Nonnull
+    private final Id<D> id;
+
     @Nullable
     @Getter
-    private ActionView.Builder view;
+    private ActionView.Builder viewBuilder;
     @Setter
     @Getter
     private boolean authRequired = true;
@@ -54,36 +62,36 @@ public class Action<D> {
     @Getter
     private Object shortcuts;
 
-    public Action(@Nullable ActionView.Builder view) {
-        this.view = view;
+    public Action(@Nonnull final Id<D> id, @Nullable ActionView.Builder viewBuilder) {
+        this.id = id;
+        this.viewBuilder = viewBuilder;
     }
 
-    public Action(@Nonnull Consumer<D> handler) {
+    public Action(@Nonnull final Id<D> id, @Nonnull Consumer<D> handler) {
+        this.id = id;
         this.registerHandler((d, e) -> true, (d, e) -> handler.accept(d));
     }
 
-    public <E> Action(@Nonnull BiConsumer<D, E> handler) {
+    public <E> Action(@Nonnull final Id<D> id, @Nonnull BiConsumer<D, E> handler) {
+        this.id = id;
         this.registerHandler((d, e) -> true, handler);
     }
 
-    public Action(@Nonnull Consumer<D> handler, @Nullable ActionView.Builder view) {
-        this.view = view;
+    public Action(@Nonnull final Id<D> id, @Nonnull Consumer<D> handler, @Nullable ActionView.Builder viewBuilder) {
+        this.id = id;
+        this.viewBuilder = viewBuilder;
         this.registerHandler((d, e) -> true, (d, e) -> handler.accept(d));
     }
 
-    public <E> Action(@Nonnull BiConsumer<D, E> handler, @Nullable ActionView.Builder view) {
-        this.view = view;
+    public <E> Action(@Nonnull final Id<D> id, @Nonnull BiConsumer<D, E> handler, @Nullable ActionView.Builder viewBuilder) {
+        this.id = id;
+        this.viewBuilder = viewBuilder;
         this.registerHandler((d, e) -> true, handler);
-    }
-
-    private Action(@Nonnull List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers, @Nullable ActionView.Builder view) {
-        this.view = view;
-        this.handlers = handlers;
     }
 
     @Nullable
     public IView.Label getView(D source) {
-        return Objects.nonNull(this.view) ? this.view.toActionView(source) : null;
+        return Objects.nonNull(this.viewBuilder) ? this.viewBuilder.toActionView(source) : null;
     }
 
     @SuppressWarnings("unchecked")
@@ -103,7 +111,7 @@ public class Action<D> {
         final Runnable runnable = () -> {
             final BiConsumer<D, Object> handler = this.getHandler(source, e);
             if (Objects.nonNull(handler)) {
-                final AzureString title = Optional.ofNullable(this.view).map(b -> b.title).map(t -> t.apply(source))
+                final AzureString title = Optional.ofNullable(this.viewBuilder).map(b -> b.title).map(t -> t.apply(source))
                     .orElse(AzureString.fromString(Operation.UNKNOWN_NAME));
                 final AzureTask<Void> task = new AzureTask<>(title, () -> handle(source, e, handler));
                 task.setType(AzureOperation.Type.ACTION.name());
@@ -142,6 +150,23 @@ public class Action<D> {
         this.handlers.add(new AbstractMap.SimpleEntry<>(condition, handler));
     }
 
+    @Override
+    public Callable<?> getBody() {
+        throw new AzureToolkitRuntimeException("'action.getBody()' is not supported");
+    }
+
+    @Nonnull
+    @Override
+    public String getType() {
+        return AzureOperation.Type.ACTION.name();
+    }
+
+    @Nullable
+    @Override
+    public AzureString getTitle() {
+        return OperationBundle.description(this.id.id);
+    }
+
     public static class Id<D> {
         @Nonnull
         private final String id;
@@ -150,7 +175,7 @@ public class Action<D> {
             this.id = id;
         }
 
-        public static <D> Id<D> of(@Nonnull String id) {
+        public static <D> Id<D> of(@PropertyKey(resourceBundle = OperationBundle.BUNDLE) @Nonnull String id) {
             assert StringUtils.isNotBlank(id) : "action id can not be blank";
             return new Id<>(id);
         }
@@ -162,7 +187,7 @@ public class Action<D> {
     }
 
     public static Action<Void> retryFromFailure(@Nonnull Runnable handler) {
-        return new Action<>((v) -> handler.run(), new ActionView.Builder("Retry"));
+        return new Action<>(Id.of("common.retry"), (v) -> handler.run(), new ActionView.Builder("Retry"));
     }
 }
 

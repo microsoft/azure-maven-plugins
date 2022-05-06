@@ -87,17 +87,17 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSub
         return remote.userVisibleState().toString();
     }
 
-    @AzureOperation(name = "mysql.start_server.server", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.start_resource.resource", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
         this.doModify(() -> Objects.requireNonNull(this.getParent().getRemote()).servers().start(this.getResourceGroupName(), this.getName()), Status.STARTING);
     }
 
-    @AzureOperation(name = "mysql.stop_server.server", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.stop_resource.resource", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public void stop() {
         this.doModify(() -> Objects.requireNonNull(this.getParent().getRemote()).servers().stop(this.getResourceGroupName(), this.getName()), Status.STOPPING);
     }
 
-    @AzureOperation(name = "mysql.restart_server.server", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.restart_resource.resource", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
         this.doModify(() -> Objects.requireNonNull(this.getParent().getRemote()).servers().restart(this.getResourceGroupName(), this.getName()), Status.RESTARTING);
     }

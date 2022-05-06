@@ -86,7 +86,7 @@ public class AppServiceServiceSubscription extends AbstractAzServiceSubscription
         return super.listSupportedRegions(this.webAppModule.getName());
     }
 
-    @AzureOperation(name = "appservice.check_name.app", params = "name", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.check_name.name", params = "name", type = AzureOperation.Type.SERVICE)
     public Availability checkNameAvailability(String name) {
         final ResourceNameAvailabilityInner result = Objects.requireNonNull(this.getRemote()).webApps().manager()
             .serviceClient().getResourceProviders().checkNameAvailability(new ResourceNameAvailabilityRequest()
