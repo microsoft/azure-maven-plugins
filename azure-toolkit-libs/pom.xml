@@ -69,7 +69,7 @@
         <azure.aad.version>1.6.7</azure.aad.version>
         <azure.applicationinsights.version>2.6.4</azure.applicationinsights.version>
         <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
-        <azure.resourcemanager.version>2.14.0</azure.resourcemanager.version>
+        <azure.resourcemanager.version>2.15.0-alpha.20220504.2</azure.resourcemanager.version>
         <azure.resourcemanager-applicationinsights.version>1.0.0-beta.4</azure.resourcemanager-applicationinsights.version>
         <azure-resourcemanager-mysql.version>1.0.2</azure-resourcemanager-mysql.version>
         <azure-resourcemanager-postgre.version>1.0.2</azure-resourcemanager-postgre.version>
@@ -133,6 +133,24 @@
         <asm.version>9.1</asm.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>azure-sdk-for-java</id>
+            <url>https://pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-java/maven/v1</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    <distributionManagement>
+        <repository>
+            <id>azure-sdk-for-java</id>
+            <url>https://pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-java/maven/v1</url>
+        </repository>
+    </distributionManagement>
     <dependencyManagement>
         <dependencies>
             <dependency>

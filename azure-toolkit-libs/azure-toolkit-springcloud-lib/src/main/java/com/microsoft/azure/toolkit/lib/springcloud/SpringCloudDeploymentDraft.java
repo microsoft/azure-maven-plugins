@@ -181,8 +181,8 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     }
 
     private boolean scale(@Nonnull SpringAppDeployment deployment, @Nonnull SpringAppDeployment.Update update) {
-        final Integer newCpu = this.getCpu();
-        final Integer newMemoryInGB = this.getMemoryInGB();
+        final Double newCpu = this.getCpu();
+        final Double newMemoryInGB = this.getMemoryInGB();
         final Integer newInstanceNum = this.getInstanceNum();
         final boolean scaled = (!Objects.equals(super.getCpu(), newCpu) && Objects.nonNull(newCpu)) ||
             (!Objects.equals(super.getMemoryInGB(), newMemoryInGB) && Objects.nonNull(newMemoryInGB)) ||
@@ -259,9 +259,9 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         @Nullable
         IArtifact artifact;
         @Nullable
-        Integer cpu;
+        Double cpu;
         @Nullable
-        Integer memoryInGB;
+        Double memoryInGB;
         @Nullable
         Integer instanceNum;
     }
@@ -276,9 +276,9 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
 
         void setArtifact(IArtifact artifact);
 
-        void setCpu(Integer cpu);
+        void setCpu(Double cpu);
 
-        void setMemoryInGB(Integer memoryInGB);
+        void setMemoryInGB(Double memoryInGB);
 
         void setInstanceNum(Integer instanceNum);
 
@@ -295,10 +295,10 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         IArtifact getArtifact();
 
         @Nullable
-        Integer getCpu();
+        Double getCpu();
 
         @Nullable
-        Integer getMemoryInGB();
+        Double getMemoryInGB();
 
         @Nullable
         Integer getInstanceNum();

@@ -5,8 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
+import com.azure.core.util.ExpandableStringEnum;
 import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
-import com.azure.resourcemanager.appplatform.models.DeploymentResourceStatus;
 import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.google.common.base.Charsets;
@@ -73,7 +73,8 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     public String loadStatus(@Nonnull SpringAppDeployment remote) {
         return Optional.of(remote)
             .map(SpringAppDeployment::status)
-            .orElse(DeploymentResourceStatus.UNKNOWN).toString();
+            .map(ExpandableStringEnum::toString)
+            .orElse(Status.UNKNOWN);
     }
 
     @Nonnull
@@ -129,34 +130,31 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     }
 
     @Nullable
-    public Integer getCpu() {
+    public Double getCpu() {
         return Optional.ofNullable(this.getRemote())
-            .map(SpringAppDeployment::settings)
-            .map(DeploymentSettings::cpu)
+            .map(SpringAppDeployment::memoryInGB)
             .orElse(null);
     }
 
     @Nullable
-    public Integer getMemoryInGB() {
+    public Double getMemoryInGB() {
         return Optional.ofNullable(this.getRemote())
-            .map(SpringAppDeployment::settings)
-            .map(DeploymentSettings::memoryInGB)
+            .map(SpringAppDeployment::cpu)
             .orElse(null);
     }
 
     @Nullable
     public String getRuntimeVersion() {
         return Optional.ofNullable(this.getRemote())
-            .map(SpringAppDeployment::settings)
-            .map(s -> s.runtimeVersion().toString())
+            .map(SpringAppDeployment::runtimeVersion)
+            .map(ExpandableStringEnum::toString)
             .orElse(null);
     }
 
     @Nullable
     public String getJvmOptions() {
         return Optional.ofNullable(this.getRemote())
-            .map(SpringAppDeployment::settings)
-            .map(DeploymentSettings::jvmOptions)
+            .map(SpringAppDeployment::jvmOptions)
             .orElse(null);
     }
 
