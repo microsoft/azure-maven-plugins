@@ -15,8 +15,8 @@ import org.apache.commons.lang3.ObjectUtils;
 @EqualsAndHashCode
 @Deprecated
 public class ScaleSettings {
-    private final Integer cpu;
-    private final Integer memoryInGB;
+    private final Double cpu;
+    private final Double memoryInGB;
     private final Integer capacity;
 
     public boolean isEmpty() {

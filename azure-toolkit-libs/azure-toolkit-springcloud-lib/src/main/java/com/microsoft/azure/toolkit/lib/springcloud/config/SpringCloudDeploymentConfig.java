@@ -50,10 +50,10 @@ public class SpringCloudDeploymentConfig {
 
     @Nullable
     @Builder.Default
-    private Integer cpu = 1;
+    private Double cpu = 1.0;
     @Nullable
     @Builder.Default
-    private Integer memoryInGB = 1;
+    private Double memoryInGB = 1.0;
     private Integer instanceCount;
     private String deploymentName;
     @Nullable
