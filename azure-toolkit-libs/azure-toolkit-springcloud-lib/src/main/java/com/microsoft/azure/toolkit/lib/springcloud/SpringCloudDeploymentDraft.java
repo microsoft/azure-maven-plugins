@@ -17,7 +17,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Delegate;
@@ -48,8 +47,8 @@ import java.util.regex.Pattern;
 public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     implements AzResource.Draft<SpringCloudDeployment, SpringAppDeployment>, InvocationHandler {
 
-    private static final String DEFAULT_RUNTIME_VERSION = SpringCloudJavaVersion.JAVA_8;
-    private static final String RUNTIME_VERSION_PATTERN = "[Jj]ava((\\s)?|_)(8|11)$";
+    public static final RuntimeVersion DEFAULT_RUNTIME_VERSION = RuntimeVersion.JAVA_8;
+    private static final String RUNTIME_VERSION_PATTERN = "[Jj]ava((\\s)?|_)(8|11|17)$";
 
     @Nonnull
     @Delegate
@@ -174,7 +173,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
                 Optional.of(newEnv).ifPresent((e) -> e.forEach(deployment::withEnvironment));
             }
             Optional.ofNullable(newJvmOptions).ifPresent(deployment::withJvmOptions);
-            Optional.ofNullable(newVersion).ifPresent(v -> deployment.withRuntime(RuntimeVersion.fromString(formalizeRuntimeVersion(v))));
+            Optional.ofNullable(newVersion).ifPresent(v -> deployment.withRuntime(formalizeRuntimeVersion(v)));
             Optional.ofNullable(newArtifact).ifPresent(deployment::withJarFile);
         }
         return modified;
@@ -196,14 +195,16 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     }
 
     @Nonnull
-    private static String formalizeRuntimeVersion(String runtimeVersion) {
+    public static RuntimeVersion formalizeRuntimeVersion(String runtimeVersion) {
         if (StringUtils.isEmpty(runtimeVersion)) {
             return DEFAULT_RUNTIME_VERSION;
         }
         final String fixedRuntimeVersion = StringUtils.trim(runtimeVersion);
         final Matcher matcher = Pattern.compile(RUNTIME_VERSION_PATTERN).matcher(fixedRuntimeVersion);
         if (matcher.matches()) {
-            return Objects.equals(matcher.group(3), "8") ? SpringCloudJavaVersion.JAVA_8 : SpringCloudJavaVersion.JAVA_11;
+            final String v = matcher.group(3);
+            return Objects.equals(v, "17") ? RuntimeVersion.JAVA_17 :
+                Objects.equals(v, "11") ? RuntimeVersion.JAVA_11 : RuntimeVersion.JAVA_8;
         } else {
             log.warn("{} is not a valid runtime version, supported values are Java 8 and Java 11, using Java 8 in this deployment.", fixedRuntimeVersion);
             return DEFAULT_RUNTIME_VERSION;
