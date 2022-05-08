@@ -73,7 +73,8 @@ public class DeployMojo extends AbstractMojoBase {
 
         // Init spring clients, and prompt users to confirm
         final SpringCloudAppConfig appConfig = this.getConfiguration();
-        Optional.ofNullable(appConfig.getDeployment()).map(SpringCloudDeploymentConfig::getArtifact).map(IArtifact::getFile)
+        final SpringCloudDeploymentConfig deploymentConfig = appConfig.getDeployment();
+        Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getArtifact).map(IArtifact::getFile)
             .orElseThrow(() -> new AzureToolkitRuntimeException("No artifact is specified to deploy."));
         final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig);
 
@@ -84,7 +85,7 @@ public class DeployMojo extends AbstractMojoBase {
             return;
         }
         final SpringCloudDeployment deployment = task.doExecute();
-        if (!noWait) {
+        if (!noWait && Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getArtifact).map(IArtifact::getFile).isPresent()) {
             if (!deployment.waitUntilReady(GET_STATUS_TIMEOUT)) {
                 log.warn(GET_DEPLOYMENT_STATUS_TIMEOUT);
             }
