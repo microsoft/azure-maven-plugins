@@ -9,7 +9,6 @@ import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
-import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -65,15 +64,6 @@ public class SpringCloudDeploymentConfig {
     @Nonnull
     public Boolean isEnablePersistentStorage() {
         return BooleanUtils.isTrue(enablePersistentStorage);
-    }
-
-    @Nonnull
-    public ScaleSettings getScaleSettings() {
-        return ScaleSettings.builder()
-            .capacity(instanceCount)
-            .cpu(cpu)
-            .memoryInGB(memoryInGB)
-            .build();
     }
 
     @Nullable
