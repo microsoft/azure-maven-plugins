@@ -187,8 +187,8 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             (!Objects.equals(super.getMemoryInGB(), newMemoryInGB) && Objects.nonNull(newMemoryInGB)) ||
             (!Objects.equals(deployment.instances().size(), newInstanceNum) && Objects.nonNull(newInstanceNum));
         if (scaled) {
-            Optional.ofNullable(newCpu).ifPresent(update::withCpu);
-            Optional.ofNullable(newMemoryInGB).ifPresent(update::withMemory);
+            Optional.ofNullable(newCpu).map(c -> c < 1 ? 0.5 : c.intValue()).ifPresent(update::withCpu);
+            Optional.ofNullable(newMemoryInGB).map(c -> c < 1 ? 0.5 : c.intValue()).ifPresent(update::withMemory);
             Optional.ofNullable(newInstanceNum).ifPresent(update::withInstance);
         }
         return scaled;

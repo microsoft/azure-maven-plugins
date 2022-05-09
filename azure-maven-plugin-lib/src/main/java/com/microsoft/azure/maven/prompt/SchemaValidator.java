@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -17,7 +18,6 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.jsonschema.main.JsonValidator;
 import com.google.common.base.Preconditions;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -87,6 +87,13 @@ public class SchemaValidator {
                 return IntNode.valueOf(Integer.parseInt(value));
             } catch (NumberFormatException ex) {
                 throw new IllegalArgumentException(String.format("%s cannot be converted to an integer", value));
+            }
+        }
+        if ("number".equals(type)) {
+            try {
+                return DoubleNode.valueOf(Double.parseDouble(value));
+            } catch (NumberFormatException ex) {
+                throw new IllegalArgumentException(String.format("%s cannot be converted to an number", value));
             }
         }
         if ("boolean".equals(type)) {
