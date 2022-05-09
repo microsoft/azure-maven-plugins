@@ -11,16 +11,16 @@
     },
     "cpu": {
       "description": "cpu cores",
-      "type": "integer",
+      "type": "number",
       "default": 1,
-      "minimum": 1,
+      "minimum": 0.5,
       "maximum": 4
     },
     "memoryInGB": {
       "description": "memory in GB",
-      "type": "integer",
+      "type": "number",
       "default": 1,
-      "minimum": 1,
+      "minimum": 0.5,
       "maximum": 8
     },
     "instanceCount": {
