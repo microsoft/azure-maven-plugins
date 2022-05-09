@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import io.netty.handler.codec.http.HttpHeaders;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -28,6 +29,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -163,7 +165,15 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
         return Optional.ofNullable(this.getRemote())
             .map(SpringAppDeployment::settings)
             .map(DeploymentSettings::environmentVariables)
-            .orElse(null);
+            .map(v -> {
+                final HashMap<String, String> variables = new HashMap<>(v);
+                if (this.getParent().getParent().isEnterpriseTier() && StringUtils.isBlank(variables.get("JAVA_OPTS"))) {
+                    // jvmOptions are part of environment variables in enterprise tier.
+                    // refer to `com.azure.resourcemanager.appplatform.implementation.SpringAppDeploymentImpl.jvmOptions`
+                    variables.remove("JAVA_OPTS");
+                }
+                return variables;
+            }).orElse(null);
     }
 
     @Nonnull
