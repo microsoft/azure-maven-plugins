@@ -146,7 +146,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
             modified = true;
             app = newPublicEndpointEnabled ? app.withDefaultPublicEndpoint() : app.withoutDefaultPublicEndpoint();
         }
-        if (!Objects.equals(super.isPersistentDiskEnabled(), newPersistentDiskEnabled)) {
+        if (!this.getParent().isEnterpriseTier() && !Objects.equals(super.isPersistentDiskEnabled(), newPersistentDiskEnabled)) {
             modified = true;
             app = newPersistentDiskEnabled ? (app.parent().sku().tier().toLowerCase().startsWith("s") ?
                 app.withPersistentDisk(STANDARD_TIER_DEFAULT_DISK_SIZE, DEFAULT_DISK_MOUNT_PATH) :
