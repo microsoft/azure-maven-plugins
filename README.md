@@ -1,4 +1,6 @@
 # Maven Plugins for Azure Services
+[![Build Status](https://dev.azure.com/mseng/VSJava/_apis/build/status/Azure-Maven-Plugins/Azure-Maven-Plugins-CI?branchName=develop)](https://dev.azure.com/mseng/VSJava/_build/latest?definitionId=9232&branchName=develop)
+[![Gitter](https://badges.gitter.im/Microsoft/azure-tools-for-java.svg)](https://gitter.im/Microsoft/azure-tools-for-java?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 This repository contains all Maven plugins for Microsoft Azure services. 
 
