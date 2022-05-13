@@ -9,6 +9,7 @@ import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsC
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 
 import javax.annotation.Nonnull;
@@ -17,7 +18,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, ApplicationInsightsServiceSubscription, ApplicationInsightsComponent> {
+public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, ApplicationInsightsServiceSubscription, ApplicationInsightsComponent>
+        implements Deletable {
     protected ApplicationInsight(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull ApplicationInsightsModule module) {
         super(name, resourceGroupName, module);
     }
