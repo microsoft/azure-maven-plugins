@@ -18,6 +18,7 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class AppServicePlanConfig {
+    private String id;
     private String subscriptionId;
 
     private String servicePlanResourceGroup;

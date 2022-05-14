@@ -4,10 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.utils;
 
-import com.azure.core.management.exception.ManagementException;
-import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.fluent.models.SiteLogsConfigInner;
-import com.azure.resourcemanager.appservice.models.AppServicePlan;
 import com.azure.resourcemanager.appservice.models.ApplicationLogsConfig;
 import com.azure.resourcemanager.appservice.models.FileSystemApplicationLogsConfig;
 import com.azure.resourcemanager.appservice.models.FileSystemHttpLogsConfig;
@@ -19,7 +16,6 @@ import com.azure.resourcemanager.appservice.models.SkuDescription;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.azure.resourcemanager.appservice.models.WebAppDiagnosticLogs;
 import com.azure.resourcemanager.resources.fluentcore.model.HasInnerModel;
-import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
@@ -185,29 +181,6 @@ public class AppServiceUtils {
         // remove the java/jre prefix for user input
         final String value = javaVersion.getValue().replaceFirst("(?i)java|jre", "");
         return com.azure.resourcemanager.appservice.models.JavaVersion.fromString(value);
-    }
-
-    static AppServicePlanEntity fromAppServicePlan(com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan) {
-        return AppServicePlanEntity.builder()
-            .id(appServicePlan.id())
-            .subscriptionId(Utils.getSubscriptionId(appServicePlan.id()))
-            .name(appServicePlan.name())
-            .region(appServicePlan.regionName())
-            .resourceGroup(appServicePlan.resourceGroupName())
-            .pricingTier(fromPricingTier(appServicePlan.pricingTier()))
-            .operatingSystem(fromOperatingSystem(appServicePlan.operatingSystem()))
-            .build();
-    }
-
-    public static AppServicePlan getAppServicePlan(AppServicePlanEntity entity, AppServiceManager azureClient) {
-        try {
-            return StringUtils.isNotEmpty(entity.getId()) ?
-                azureClient.appServicePlans().getById(entity.getId()) :
-                azureClient.appServicePlans().getByResourceGroup(entity.getResourceGroup(), entity.getName());
-        } catch (ManagementException e) {
-            // SDK will throw exception when resource not founded
-            return null;
-        }
     }
 
     public static DiagnosticConfig fromWebAppDiagnosticLogs(WebAppDiagnosticLogs webAppDiagnosticLogs) {

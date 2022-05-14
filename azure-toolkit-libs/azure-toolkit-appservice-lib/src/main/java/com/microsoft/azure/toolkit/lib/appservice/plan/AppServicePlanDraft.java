@@ -155,8 +155,9 @@ public class AppServicePlanDraft extends AppServicePlan implements
         return Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion);
     }
 
-    public void setRegion(Region region) {
+    public AppServicePlanDraft setRegion(Region region) {
         this.ensureConfig().setRegion(region);
+        return this;
     }
 
     @Nullable
@@ -165,8 +166,9 @@ public class AppServicePlanDraft extends AppServicePlan implements
         return Optional.ofNullable(config).map(Config::getPricingTier).orElseGet(super::getPricingTier);
     }
 
-    public void setPricingTier(PricingTier tier) {
+    public AppServicePlanDraft setPricingTier(PricingTier tier) {
         this.ensureConfig().setPricingTier(tier);
+        return this;
     }
 
     @Nullable
@@ -175,8 +177,9 @@ public class AppServicePlanDraft extends AppServicePlan implements
         return Optional.ofNullable(config).map(Config::getOperatingSystem).orElseGet(super::getOperatingSystem);
     }
 
-    public void setOperatingSystem(OperatingSystem os) {
+    public AppServicePlanDraft setOperatingSystem(OperatingSystem os) {
         this.ensureConfig().setOperatingSystem(os);
+        return this;
     }
 
     @Override
