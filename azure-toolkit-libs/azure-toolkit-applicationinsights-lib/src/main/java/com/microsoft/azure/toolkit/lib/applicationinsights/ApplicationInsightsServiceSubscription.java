@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.applicationinsights;
 import com.azure.resourcemanager.applicationinsights.ApplicationInsightsManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -41,5 +42,10 @@ public class ApplicationInsightsServiceSubscription extends AbstractAzServiceSub
     @Override
     public List<AbstractAzResourceModule<?, ApplicationInsightsServiceSubscription, ?>> getSubModules() {
         return Collections.singletonList(applicationInsightsModule);
+    }
+
+    @Nonnull
+    public List<Region> listSupportedRegions() {
+        return super.listSupportedRegions(this.applicationInsightsModule.getName());
     }
 }
