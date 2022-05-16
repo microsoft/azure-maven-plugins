@@ -100,14 +100,4 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesSe
     public String getType() {
         return remoteOptional().map(Resource::type).orElse(null);
     }
-
-    @Nonnull
-    public com.microsoft.azure.toolkit.lib.common.model.ResourceGroup toPojo() {
-        return com.microsoft.azure.toolkit.lib.common.model.ResourceGroup.builder()
-            .subscriptionId(this.getSubscriptionId())
-            .id(this.getId())
-            .name(this.getName())
-            .region(Objects.requireNonNull(this.getRegion()).getName())
-            .build();
-    }
 }

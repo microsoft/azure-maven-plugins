@@ -4,32 +4,19 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.utils;
 
-import com.azure.core.management.exception.ManagementException;
-import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.fluent.models.SiteLogsConfigInner;
-import com.azure.resourcemanager.appservice.models.AppServicePlan;
 import com.azure.resourcemanager.appservice.models.ApplicationLogsConfig;
-import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.FileSystemApplicationLogsConfig;
 import com.azure.resourcemanager.appservice.models.FileSystemHttpLogsConfig;
-import com.azure.resourcemanager.appservice.models.FunctionApp;
-import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
-import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.azure.resourcemanager.appservice.models.FunctionEnvelope;
 import com.azure.resourcemanager.appservice.models.FunctionRuntimeStack;
 import com.azure.resourcemanager.appservice.models.HttpLogsConfig;
 import com.azure.resourcemanager.appservice.models.RuntimeStack;
 import com.azure.resourcemanager.appservice.models.SkuDescription;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
-import com.azure.resourcemanager.appservice.models.WebAppBasic;
 import com.azure.resourcemanager.appservice.models.WebAppDiagnosticLogs;
 import com.azure.resourcemanager.resources.fluentcore.model.HasInnerModel;
-import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
-import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppDeploymentSlotEntity;
-import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
-import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
-import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.LogLevel;
@@ -39,7 +26,6 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -195,113 +181,6 @@ public class AppServiceUtils {
         // remove the java/jre prefix for user input
         final String value = javaVersion.getValue().replaceFirst("(?i)java|jre", "");
         return com.azure.resourcemanager.appservice.models.JavaVersion.fromString(value);
-    }
-
-    static FunctionAppEntity fromFunctionApp(FunctionApp functionApp) {
-        return FunctionAppEntity.builder().name(functionApp.name())
-                .id(functionApp.id())
-                .region(Region.fromName(functionApp.regionName()))
-                .resourceGroup(functionApp.resourceGroupName())
-                .subscriptionId(Utils.getSubscriptionId(functionApp.id()))
-                .runtime(getRuntimeFromAppService(functionApp))
-                .appServicePlanId(functionApp.appServicePlanId())
-                .defaultHostName(functionApp.defaultHostname())
-                .appSettings(Utils.normalizeAppSettings(functionApp.getAppSettings()))
-                .build();
-    }
-
-    static FunctionAppEntity fromFunctionAppBasic(FunctionAppBasic functionApp) {
-        return FunctionAppEntity.builder().name(functionApp.name())
-                .id(functionApp.id())
-                .region(Region.fromName(functionApp.regionName()))
-                .resourceGroup(functionApp.resourceGroupName())
-                .subscriptionId(Utils.getSubscriptionId(functionApp.id()))
-                .runtime(null)
-                .appServicePlanId(functionApp.appServicePlanId())
-                .defaultHostName(functionApp.defaultHostname())
-                .build();
-    }
-
-    static WebAppEntity fromWebApp(WebAppBase webAppBase) {
-        final WebAppEntity.WebAppEntityBuilder<?, ?> builder = WebAppEntity.builder().name(webAppBase.name())
-            .id(webAppBase.id())
-            .region(Region.fromName(webAppBase.regionName()))
-            .resourceGroup(webAppBase.resourceGroupName())
-            .subscriptionId(Utils.getSubscriptionId(webAppBase.id()))
-            .runtime(getRuntimeFromAppService(webAppBase))
-            .appServicePlanId(webAppBase.appServicePlanId())
-            .defaultHostName(webAppBase.defaultHostname())
-            .appSettings(Utils.normalizeAppSettings(webAppBase.getAppSettings()));
-
-        final String linuxFxVersion = webAppBase.linuxFxVersion();
-        if (StringUtils.startsWithIgnoreCase(linuxFxVersion, "docker")) {
-            builder.dockerImageName(Utils.getDockerImageNameFromLinuxFxVersion(linuxFxVersion));
-        }
-        return builder.build();
-    }
-
-    static WebAppEntity fromWebAppBasic(WebAppBasic webAppBasic) {
-        return WebAppEntity.builder().name(webAppBasic.name())
-            .id(webAppBasic.id())
-            .region(Region.fromName(webAppBasic.regionName()))
-            .resourceGroup(webAppBasic.resourceGroupName())
-            .subscriptionId(Utils.getSubscriptionId(webAppBasic.id()))
-            .appServicePlanId(webAppBasic.appServicePlanId())
-            .defaultHostName(webAppBasic.defaultHostname())
-            .build();
-    }
-
-    static FunctionAppDeploymentSlotEntity fromFunctionAppDeploymentSlot(FunctionDeploymentSlot deploymentSlot) {
-        return FunctionAppDeploymentSlotEntity.builder()
-                .name(deploymentSlot.name())
-                .functionAppName(deploymentSlot.parent().name())
-                .id(deploymentSlot.id())
-                .resourceGroup(deploymentSlot.resourceGroupName())
-                .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
-                .region(Region.fromName(deploymentSlot.regionName()))
-                .runtime(getRuntimeFromAppService(deploymentSlot))
-                .appServicePlanId(deploymentSlot.appServicePlanId())
-                .defaultHostName(deploymentSlot.defaultHostname())
-                .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))
-                .build();
-    }
-
-    static WebAppDeploymentSlotEntity fromWebAppDeploymentSlot(DeploymentSlot deploymentSlot) {
-        return WebAppDeploymentSlotEntity.builder()
-                .name(deploymentSlot.name())
-                .webappName(deploymentSlot.parent().name())
-                .id(deploymentSlot.id())
-                .resourceGroup(deploymentSlot.resourceGroupName())
-                .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
-                .region(Region.fromName(deploymentSlot.regionName()))
-                .runtime(getRuntimeFromAppService(deploymentSlot))
-                .appServicePlanId(deploymentSlot.appServicePlanId())
-                .defaultHostName(deploymentSlot.defaultHostname())
-                .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))
-                .build();
-    }
-
-    static AppServicePlanEntity fromAppServicePlan(com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan) {
-        return AppServicePlanEntity.builder()
-            .id(appServicePlan.id())
-            .subscriptionId(Utils.getSubscriptionId(appServicePlan.id()))
-            .name(appServicePlan.name())
-            .region(appServicePlan.regionName())
-            .resourceGroup(appServicePlan.resourceGroupName())
-            .pricingTier(fromPricingTier(appServicePlan.pricingTier()))
-            .operatingSystem(fromOperatingSystem(appServicePlan.operatingSystem()))
-            .build();
-    }
-
-    public static AppServicePlan getAppServicePlan(AppServicePlanEntity entity, AppServiceManager azureClient) {
-        try {
-            return StringUtils.isNotEmpty(entity.getId()) ?
-                azureClient.appServicePlans().getById(entity.getId()) :
-                azureClient.appServicePlans().getByResourceGroup(entity.getResourceGroup(), entity.getName());
-        } catch (ManagementException e) {
-            // SDK will throw exception when resource not founded
-            return null;
-        }
     }
 
     public static DiagnosticConfig fromWebAppDiagnosticLogs(WebAppDiagnosticLogs webAppDiagnosticLogs) {

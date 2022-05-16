@@ -10,7 +10,6 @@ import com.azure.resourcemanager.resources.models.ResourceGroups;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,13 +26,13 @@ public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup,
 
     @Nonnull
     @AzureOperation(name = "group.create.rg", params = {"name"}, type = AzureOperation.Type.SERVICE)
-    public com.microsoft.azure.toolkit.lib.common.model.ResourceGroup createResourceGroupIfNotExist(@Nonnull String name, @Nonnull Region region) {
+    public ResourceGroup createResourceGroupIfNotExist(@Nonnull String name, @Nonnull Region region) {
         final com.microsoft.azure.toolkit.lib.resource.ResourceGroup group = this.getOrDraft(name, name);
         if (group instanceof ResourceGroupDraft && !group.exists()) {
             ((ResourceGroupDraft) group).setRegion(region);
-            return ((ResourceGroupDraft) group).createIfNotExist().toPojo();
+            return ((ResourceGroupDraft) group).createIfNotExist();
         } else {
-            return group.toPojo();
+            return group;
         }
     }
 

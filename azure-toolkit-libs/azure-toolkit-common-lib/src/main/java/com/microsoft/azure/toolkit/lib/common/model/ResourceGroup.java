@@ -17,7 +17,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @EqualsAndHashCode
 @SuperBuilder(toBuilder = true)
-public class ResourceGroup implements IAzureResourceEntity {
+public class ResourceGroup {
     private String id;
     private String name;
     private String subscriptionId;

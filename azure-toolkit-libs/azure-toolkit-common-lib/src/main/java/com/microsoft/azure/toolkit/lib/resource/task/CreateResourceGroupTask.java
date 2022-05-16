@@ -7,10 +7,11 @@ package com.microsoft.azure.toolkit.lib.resource.task;
 
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
-import com.microsoft.azure.toolkit.lib.common.model.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroupDraft;
 
 /**
  * Create the resource group if the specified resource group name doesn't exist:
@@ -30,7 +31,12 @@ public class CreateResourceGroupTask extends AzureTask<ResourceGroup> {
     @Override
     @AzureOperation(name = "group.create.rg", params = {"this.resourceGroupName"}, type = AzureOperation.Type.SERVICE)
     public ResourceGroup doExecute() {
-        return Azure.az(AzureResources.class).groups(subscriptionId)
-            .createResourceGroupIfNotExist(this.resourceGroupName, this.region);
+        final ResourceGroup rg = Azure.az(AzureResources.class).groups(subscriptionId).getOrDraft(this.resourceGroupName, this.resourceGroupName);
+        if (rg.isDraftForCreating()) {
+            final ResourceGroupDraft draft = (ResourceGroupDraft) rg;
+            draft.setRegion(this.region);
+            draft.createIfNotExist();
+        }
+        return rg;
     }
 }
