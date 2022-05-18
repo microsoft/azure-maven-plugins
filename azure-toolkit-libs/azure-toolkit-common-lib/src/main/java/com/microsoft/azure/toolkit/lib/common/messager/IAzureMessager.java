@@ -12,7 +12,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 public interface IAzureMessager {
-    String DEFAULT_TITLE = "Azure";
+    String DEFAULT_TITLE = AzureMessage.DEFAULT_TITLE;
 
     /**
      * @param actions array of action id or
@@ -113,55 +113,55 @@ public interface IAzureMessager {
     }
 
     default boolean confirm(@Nonnull String message) {
-        return this.confirm(message, DEFAULT_TITLE);
+        return this.confirm(message, null);
     }
 
     default boolean confirm(@Nonnull AzureString message) {
-        return this.confirm(message, DEFAULT_TITLE);
+        return this.confirm(message, null);
     }
 
     default void alert(@Nonnull String message) {
-        this.alert(message, DEFAULT_TITLE);
+        this.alert(message, null);
     }
 
     default void alert(@Nonnull AzureString message) {
-        this.alert(message, DEFAULT_TITLE);
+        this.alert(message, null);
     }
 
     default void success(@Nonnull String message) {
-        this.success(message, DEFAULT_TITLE);
+        this.success(message, null);
     }
 
     default void success(@Nonnull AzureString message) {
-        this.success(message, DEFAULT_TITLE);
+        this.success(message, null);
     }
 
     default void info(@Nonnull String message) {
-        this.info(message, DEFAULT_TITLE);
+        this.info(message, null);
     }
 
     default void info(@Nonnull AzureString message) {
-        this.info(message, DEFAULT_TITLE);
+        this.info(message, null);
     }
 
     default void warning(@Nonnull String message) {
-        this.warning(message, DEFAULT_TITLE);
+        this.warning(message, null);
     }
 
     default void warning(@Nonnull AzureString message) {
-        this.warning(message, DEFAULT_TITLE);
+        this.warning(message, null);
     }
 
     default void error(@Nonnull String message) {
-        this.error(message, DEFAULT_TITLE);
+        this.error(message, null);
     }
 
     default void error(@Nonnull AzureString message) {
-        this.error(message, DEFAULT_TITLE);
+        this.error(message, null);
     }
 
     default void error(@Nonnull Throwable throwable) {
-        this.error(throwable, DEFAULT_TITLE);
+        this.error(throwable, null);
     }
 
     default IAzureMessage buildMessage(@Nonnull IAzureMessage.Type type, @Nonnull AzureString content,
