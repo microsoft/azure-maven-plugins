@@ -65,20 +65,20 @@ public class AppServicePlanDraft extends AppServicePlan implements
     }
 
     public void setPlanConfig(@Nonnull AppServicePlanConfig config) {
-        this.setPricingTier(config.pricingTier());
-        this.setOperatingSystem(config.os());
-        this.setRegion(config.region());
+        this.setPricingTier(config.getPricingTier());
+        this.setOperatingSystem(config.getOs());
+        this.setRegion(config.getRegion());
     }
 
     @Nonnull
     public AppServicePlanConfig getPlanConfig() {
         final AppServicePlanConfig servicePlanConfig = new AppServicePlanConfig();
-        servicePlanConfig.subscriptionId(this.getSubscriptionId());
-        servicePlanConfig.servicePlanName(this.getName());
-        servicePlanConfig.servicePlanResourceGroup(this.getResourceGroupName());
-        servicePlanConfig.pricingTier(this.getPricingTier());
-        servicePlanConfig.os(this.getOperatingSystem());
-        servicePlanConfig.region(this.getRegion());
+        servicePlanConfig.setSubscriptionId(this.getSubscriptionId());
+        servicePlanConfig.setName(this.getName());
+        servicePlanConfig.setResourceGroupName(this.getResourceGroupName());
+        servicePlanConfig.setPricingTier(this.getPricingTier());
+        servicePlanConfig.setOs(this.getOperatingSystem());
+        servicePlanConfig.setRegion(this.getRegion());
         return servicePlanConfig;
     }
 

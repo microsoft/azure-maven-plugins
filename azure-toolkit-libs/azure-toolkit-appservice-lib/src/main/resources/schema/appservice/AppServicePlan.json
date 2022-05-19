@@ -6,10 +6,10 @@
     "subscriptionId": {
       "$ref": "classpath:///schema/common/UUID.json"
     },
-    "servicePlanResourceGroup": {
+    "resourceGroupName": {
       "$ref": "classpath:///schema/common/ResourceGroupName.json"
     },
-    "servicePlanName": {
+    "name": {
       "$ref": "classpath:///schema/appservice/AppServicePlanName.json"
     },
     "os": {
@@ -24,7 +24,7 @@
   },
   "required": [
     "subscriptionId",
-    "servicePlanName",
-    "servicePlanResourceGroup"
+    "name",
+    "resourceGroupName"
   ]
 }
