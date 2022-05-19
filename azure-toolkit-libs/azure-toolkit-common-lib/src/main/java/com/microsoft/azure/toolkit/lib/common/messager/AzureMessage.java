@@ -44,7 +44,6 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 public class AzureMessage implements IAzureMessage {
-    static final String DEFAULT_MESSAGE_TITLE = "Azure";
     @Nonnull
     protected final Type type;
     @Nonnull
@@ -195,7 +194,7 @@ public class AzureMessage implements IAzureMessage {
     @Nonnull
     @Override
     public String getTitle() {
-        return StringUtils.firstNonBlank(this.title, DEFAULT_MESSAGE_TITLE);
+        return ObjectUtils.firstNonNull(this.title, "");
     }
 
     @Nonnull
