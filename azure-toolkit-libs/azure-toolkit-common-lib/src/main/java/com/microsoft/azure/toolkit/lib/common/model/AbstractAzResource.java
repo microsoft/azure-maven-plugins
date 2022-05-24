@@ -247,14 +247,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         log.debug("[{}:{}]:delete->module.deleteResourceFromLocal({})", this.module.getName(), this.getName(), this.getName());
         this.getModule().deleteResourceFromLocal(this.getName());
         final ResourceId id = ResourceId.fromString(this.getId());
-        if (Objects.isNull(id.parent()) &&
-            !StringUtils.equalsIgnoreCase(id.subscriptionId(), NONE.getName()) &&
-            !StringUtils.equalsAnyIgnoreCase(id.resourceGroupName(), NONE.getName(), RESOURCE_GROUP_PLACEHOLDER)) { // resource group manages top resources only
-            final ResourceGroup resourceGroup = this.getResourceGroup();
-            if (Objects.nonNull(resourceGroup)) {
-                final GenericResourceModule genericResourceModule = resourceGroup.genericResources();
-                ((AbstractAzResourceModule) genericResourceModule).deleteResourceFromLocal(this.getId());
-            }
+        final ResourceGroup resourceGroup = this.getResourceGroup();
+        if (Objects.isNull(id.parent()) && Objects.nonNull(resourceGroup)) { // resource group manages top resources only
+            final GenericResourceModule genericResourceModule = resourceGroup.genericResources();
+            ((AbstractAzResourceModule) genericResourceModule).deleteResourceFromLocal(this.getId());
         }
         this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(AbstractAzResource::deleteFromLocal);
     }
@@ -411,7 +407,12 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nullable
     public ResourceGroup getResourceGroup() {
         final String rgName = this.getResourceGroupName();
-        if (StringUtils.equalsAnyIgnoreCase(rgName, "<none>", None.NONE, AzResource.RESOURCE_GROUP_PLACEHOLDER)) {
+        final String sid = this.getSubscriptionId();
+        final boolean isSubscriptionSet = StringUtils.isNotBlank(sid) &&
+            !StringUtils.equalsAnyIgnoreCase(sid, "<none>", NONE.getName());
+        final boolean isResourceGroupSet = StringUtils.isNotBlank(rgName) &&
+            !StringUtils.equalsAnyIgnoreCase(rgName, "<none>", NONE.getName(), RESOURCE_GROUP_PLACEHOLDER);
+        if (!isResourceGroupSet || !isSubscriptionSet) {
             return null;
         }
         return Azure.az(AzureResources.class).groups(this.getSubscriptionId()).get(rgName, rgName);
