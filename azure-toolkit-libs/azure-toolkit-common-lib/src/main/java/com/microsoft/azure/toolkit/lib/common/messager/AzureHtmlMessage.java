@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.messager;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -38,6 +39,9 @@ public class AzureHtmlMessage extends AzureMessage {
     @Nonnull
     @Override
     public String getContent() {
+        if (StringUtils.isBlank(this.getTitle())) {
+            return "<b>Azure: </b>" + transformURLIntoLinks(super.getContent());
+        }
         return transformURLIntoLinks(super.getContent());
     }
 
@@ -51,7 +55,7 @@ public class AzureHtmlMessage extends AzureMessage {
     }
 
     @Override
-    protected String getDetailItem(Operation<?> o) {
+    protected String getDetailItem(Operation o) {
         return String.format("<li>%s</li>", super.getDetailItem(o));
     }
 

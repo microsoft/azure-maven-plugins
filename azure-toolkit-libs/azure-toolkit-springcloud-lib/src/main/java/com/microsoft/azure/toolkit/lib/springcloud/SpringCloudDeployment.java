@@ -5,8 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
+import com.azure.core.util.ExpandableStringEnum;
 import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
-import com.azure.resourcemanager.appplatform.models.DeploymentResourceStatus;
 import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.google.common.base.Charsets;
@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import io.netty.handler.codec.http.HttpHeaders;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -28,6 +29,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,17 +55,17 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     }
 
     // MODIFY
-    @AzureOperation(name = "springcloud.start_deployment.deployment", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.start_resource.resource", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void start() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).start(), Status.STARTING);
     }
 
-    @AzureOperation(name = "springcloud.stop_deployment.deployment", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.stop_resource.resource", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void stop() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).stop(), Status.STOPPING);
     }
 
-    @AzureOperation(name = "springcloud.restart_deployment.deployment", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.restart_resource.resource", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public void restart() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).restart(), Status.RESTARTING);
     }
@@ -73,7 +75,8 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     public String loadStatus(@Nonnull SpringAppDeployment remote) {
         return Optional.of(remote)
             .map(SpringAppDeployment::status)
-            .orElse(DeploymentResourceStatus.UNKNOWN).toString();
+            .map(ExpandableStringEnum::toString)
+            .orElse(Status.UNKNOWN);
     }
 
     @Nonnull
@@ -129,34 +132,31 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     }
 
     @Nullable
-    public Integer getCpu() {
+    public Double getCpu() {
         return Optional.ofNullable(this.getRemote())
-            .map(SpringAppDeployment::settings)
-            .map(DeploymentSettings::cpu)
+            .map(SpringAppDeployment::memoryInGB)
             .orElse(null);
     }
 
     @Nullable
-    public Integer getMemoryInGB() {
+    public Double getMemoryInGB() {
         return Optional.ofNullable(this.getRemote())
-            .map(SpringAppDeployment::settings)
-            .map(DeploymentSettings::memoryInGB)
+            .map(SpringAppDeployment::cpu)
             .orElse(null);
     }
 
     @Nullable
     public String getRuntimeVersion() {
         return Optional.ofNullable(this.getRemote())
-            .map(SpringAppDeployment::settings)
-            .map(s -> s.runtimeVersion().toString())
+            .map(SpringAppDeployment::runtimeVersion)
+            .map(ExpandableStringEnum::toString)
             .orElse(null);
     }
 
     @Nullable
     public String getJvmOptions() {
         return Optional.ofNullable(this.getRemote())
-            .map(SpringAppDeployment::settings)
-            .map(DeploymentSettings::jvmOptions)
+            .map(SpringAppDeployment::jvmOptions)
             .orElse(null);
     }
 
@@ -165,7 +165,15 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
         return Optional.ofNullable(this.getRemote())
             .map(SpringAppDeployment::settings)
             .map(DeploymentSettings::environmentVariables)
-            .orElse(null);
+            .map(v -> {
+                final HashMap<String, String> variables = new HashMap<>(v);
+                if (this.getParent().getParent().isEnterpriseTier() && StringUtils.isBlank(variables.get("JAVA_OPTS"))) {
+                    // jvmOptions are part of environment variables in enterprise tier.
+                    // refer to `com.azure.resourcemanager.appplatform.implementation.SpringAppDeploymentImpl.jvmOptions`
+                    variables.remove("JAVA_OPTS");
+                }
+                return variables;
+            }).orElse(null);
     }
 
     @Nonnull

@@ -69,13 +69,13 @@ property:         instanceCount
 
 ---
 id:               configure-cpu
-promote:          "Input cpu count per instance [***{{schema.minimum}}***-***{{schema.maximum}}***] (***{{schema.default}}***):"
+promote:          "Input cpu count per instance [***0.5***, ***{{1}}***-***{{schema.maximum}}***] (***{{schema.default}}***):"
 resource:         Deployment
 property:         cpu
 
 ---
 id:               configure-memory
-promote:          "Input the memory size(GB) [***{{schema.minimum}}***-***{{schema.maximum}}***] (***{{schema.default}}***):"
+promote:          "Input the memory size(GB) [***0.5***, ***{{1}}***-***{{schema.maximum}}***] (***{{schema.default}}***):"
 resource:         Deployment
 property:         memoryInGB
 

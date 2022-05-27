@@ -11,7 +11,6 @@ import com.microsoft.azure.toolkit.lib.common.utils.aspect.MethodInvocation;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -20,10 +19,8 @@ import java.util.concurrent.Callable;
 @Getter
 @RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class MethodOperation extends OperationBase<Object> {
+public class MethodOperation extends OperationBase {
 
-    @Setter
-    private Operation<?> parent;
     @EqualsAndHashCode.Include
     private final MethodInvocation invocation;
 
@@ -34,7 +31,7 @@ public class MethodOperation extends OperationBase<Object> {
     }
 
     @Nonnull
-    public String getName() {
+    public String getId() {
         final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
         return annotation.name();
     }
@@ -54,6 +51,6 @@ public class MethodOperation extends OperationBase<Object> {
         final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
         final String name = annotation.name();
         final String[] params = Arrays.stream(annotation.params()).map(e -> ExpressionUtils.interpret(e, this.invocation)).toArray(String[]::new);
-        return AzureOperationBundle.title(name, (Object[]) params);
+        return OperationBundle.description(name, (Object[]) params);
     }
 }

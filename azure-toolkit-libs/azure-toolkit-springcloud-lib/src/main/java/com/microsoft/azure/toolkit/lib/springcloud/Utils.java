@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
-import com.azure.resourcemanager.appplatform.models.DeploymentResourceStatus;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -15,7 +14,6 @@ import rx.schedulers.Schedulers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -24,15 +22,11 @@ import java.util.function.Predicate;
 public class Utils {
     private static final int POLLING_INTERVAL = 1;
 
-    protected static final List<String> DEPLOYMENT_PROCESSING_STATUS =
-            Arrays.asList(DeploymentResourceStatus.COMPILING.toString(), DeploymentResourceStatus.ALLOCATING.toString(), DeploymentResourceStatus.UPGRADING.toString());
+//    protected static final List<String> DEPLOYMENT_PROCESSING_STATUS =
+//            Arrays.asList(DeploymentResourceStatus.COMPILING.toString(), DeploymentResourceStatus.ALLOCATING.toString(), DeploymentResourceStatus.UPGRADING.toString());
 
     public static boolean isDeploymentDone(@Nullable SpringCloudDeployment deployment) {
         if (deployment == null) {
-            return false;
-        }
-        final String deploymentResourceStatus = deployment.getStatus();
-        if (DEPLOYMENT_PROCESSING_STATUS.contains(deploymentResourceStatus)) {
             return false;
         }
         final String finalDiscoverStatus = BooleanUtils.isTrue(deployment.isActive()) ? "UP" : "OUT_OF_SERVICE";

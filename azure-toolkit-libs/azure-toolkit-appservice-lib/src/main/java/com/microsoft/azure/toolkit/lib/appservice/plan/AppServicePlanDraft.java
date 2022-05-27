@@ -65,20 +65,20 @@ public class AppServicePlanDraft extends AppServicePlan implements
     }
 
     public void setPlanConfig(@Nonnull AppServicePlanConfig config) {
-        this.setPricingTier(config.pricingTier());
-        this.setOperatingSystem(config.os());
-        this.setRegion(config.region());
+        this.setPricingTier(config.getPricingTier());
+        this.setOperatingSystem(config.getOs());
+        this.setRegion(config.getRegion());
     }
 
     @Nonnull
     public AppServicePlanConfig getPlanConfig() {
         final AppServicePlanConfig servicePlanConfig = new AppServicePlanConfig();
-        servicePlanConfig.subscriptionId(this.getSubscriptionId());
-        servicePlanConfig.servicePlanName(this.getName());
-        servicePlanConfig.servicePlanResourceGroup(this.getResourceGroupName());
-        servicePlanConfig.pricingTier(this.getPricingTier());
-        servicePlanConfig.os(this.getOperatingSystem());
-        servicePlanConfig.region(this.getRegion());
+        servicePlanConfig.setSubscriptionId(this.getSubscriptionId());
+        servicePlanConfig.setName(this.getName());
+        servicePlanConfig.setResourceGroupName(this.getResourceGroupName());
+        servicePlanConfig.setPricingTier(this.getPricingTier());
+        servicePlanConfig.setOs(this.getOperatingSystem());
+        servicePlanConfig.setRegion(this.getRegion());
         return servicePlanConfig;
     }
 
@@ -155,8 +155,9 @@ public class AppServicePlanDraft extends AppServicePlan implements
         return Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion);
     }
 
-    public void setRegion(Region region) {
+    public AppServicePlanDraft setRegion(Region region) {
         this.ensureConfig().setRegion(region);
+        return this;
     }
 
     @Nullable
@@ -165,8 +166,9 @@ public class AppServicePlanDraft extends AppServicePlan implements
         return Optional.ofNullable(config).map(Config::getPricingTier).orElseGet(super::getPricingTier);
     }
 
-    public void setPricingTier(PricingTier tier) {
+    public AppServicePlanDraft setPricingTier(PricingTier tier) {
         this.ensureConfig().setPricingTier(tier);
+        return this;
     }
 
     @Nullable
@@ -175,8 +177,9 @@ public class AppServicePlanDraft extends AppServicePlan implements
         return Optional.ofNullable(config).map(Config::getOperatingSystem).orElseGet(super::getOperatingSystem);
     }
 
-    public void setOperatingSystem(OperatingSystem os) {
+    public AppServicePlanDraft setOperatingSystem(OperatingSystem os) {
         this.ensureConfig().setOperatingSystem(os);
+        return this;
     }
 
     @Override
@@ -184,8 +187,7 @@ public class AppServicePlanDraft extends AppServicePlan implements
         final ResourceGroup rg = Azure.az(AzureResources.class).groups(this.getSubscriptionId())
             .getOrDraft(this.getResourceGroupName(), this.getResourceGroupName());
         if (rg.isDraftForCreating()) {
-            final Region region = Objects.requireNonNull(this.getRegion(), "'region' is required to create a resource group.");
-            ((ResourceGroupDraft) rg).setRegion(region);
+            Optional.ofNullable(this.getRegion()).ifPresent(r -> ((ResourceGroupDraft) rg).setRegion(r));
         }
         return rg;
     }

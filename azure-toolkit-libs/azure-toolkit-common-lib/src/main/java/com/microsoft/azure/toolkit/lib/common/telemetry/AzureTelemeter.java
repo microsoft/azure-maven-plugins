@@ -57,20 +57,20 @@ public class AzureTelemeter {
         Optional.ofNullable(client).ifPresent(client -> client.setDefaultProperties(commonProperties));
     }
 
-    public static void afterCreate(@Nonnull final Operation<?> op) {
+    public static void afterCreate(@Nonnull final Operation op) {
         op.getContext().setTelemetryProperty(AzureTelemetry.OP_CREATE_AT, Instant.now().toString());
     }
 
-    public static void beforeEnter(@Nonnull final Operation<?> op) {
+    public static void beforeEnter(@Nonnull final Operation op) {
         op.getContext().setTelemetryProperty(AzureTelemetry.OP_ENTER_AT, Instant.now().toString());
     }
 
-    public static void afterExit(@Nonnull final Operation<?> op) {
+    public static void afterExit(@Nonnull final Operation op) {
         op.getContext().setTelemetryProperty(AzureTelemetry.OP_EXIT_AT, Instant.now().toString());
         AzureTelemeter.log(AzureTelemetry.Type.INFO, serialize(op));
     }
 
-    public static void onError(@Nonnull final Operation<?> op, Throwable error) {
+    public static void onError(@Nonnull final Operation op, Throwable error) {
         op.getContext().setTelemetryProperty(AzureTelemetry.OP_EXIT_AT, Instant.now().toString());
         AzureTelemeter.log(AzureTelemetry.Type.ERROR, serialize(op), error);
     }
@@ -91,12 +91,12 @@ public class AzureTelemeter {
     }
 
     @Nonnull
-    private static Map<String, String> serialize(@Nonnull final Operation<?> op) {
+    private static Map<String, String> serialize(@Nonnull final Operation op) {
         final OperationContext context = op.getContext();
         final Map<String, String> actionProperties = getActionProperties(op);
-        final Optional<Operation<?>> parent = Optional.ofNullable(op.getParent());
+        final Optional<Operation> parent = Optional.ofNullable(op.getParent());
         final Map<String, String> properties = new HashMap<>();
-        final String name = op.getName().replaceAll("\\(.+\\)", "(***)"); // e.g. `appservice.list_file.dir`
+        final String name = op.getId().replaceAll("\\(.+\\)", "(***)"); // e.g. `appservice.list_file.dir`
         final String[] parts = name.split("\\."); // ["appservice|file", "list", "dir"]
         if (parts.length > 1) {
             final String[] compositeServiceName = parts[0].split("\\|"); // ["appservice", "file"]
@@ -137,7 +137,7 @@ public class AzureTelemeter {
     }
 
     @Nonnull
-    private static Map<String, String> getActionProperties(@Nonnull Operation<?> operation) {
+    private static Map<String, String> getActionProperties(@Nonnull Operation operation) {
         return Optional.ofNullable(operation.getActionParent())
             .map(Operation::getContext)
             .map(OperationContext::getTelemetryProperties)

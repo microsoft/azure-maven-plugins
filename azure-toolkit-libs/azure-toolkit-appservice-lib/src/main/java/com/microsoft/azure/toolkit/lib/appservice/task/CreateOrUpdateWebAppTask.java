@@ -35,7 +35,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -105,8 +104,8 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
 
         new CreateResourceGroupTask(this.config.subscriptionId(), this.config.resourceGroup(), region).doExecute();
 
-        final AppServicePlanDraft planDraft = Azure.az(AzureAppService.class).plans(planConfig.subscriptionId())
-            .updateOrCreate(planConfig.servicePlanName(), planConfig.servicePlanResourceGroup());
+        final AppServicePlanDraft planDraft = Azure.az(AzureAppService.class).plans(planConfig.getSubscriptionId())
+            .updateOrCreate(planConfig.getName(), planConfig.getResourceGroupName());
         planDraft.setPlanConfig(planConfig);
 
         final WebAppDraft appDraft = Azure.az(AzureWebApp.class).webApps(config.subscriptionId()).create(config.appName(), config.resourceGroup());
@@ -123,10 +122,10 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         final AppServicePlanConfig servicePlanConfig = config.getServicePlanConfig();
         final Runtime runtime = getRuntime(config.runtime());
 
-        AppServicePlanDraft planDraft = Azure.az(AzureAppService.class).plans(servicePlanConfig.subscriptionId())
-                .updateOrCreate(servicePlanConfig.servicePlanName(), servicePlanConfig.servicePlanResourceGroup());
+        AppServicePlanDraft planDraft = Azure.az(AzureAppService.class).plans(servicePlanConfig.getSubscriptionId())
+            .updateOrCreate(servicePlanConfig.getName(), servicePlanConfig.getResourceGroupName());
         if (skipCreateAzureResource && !planDraft.exists()) {
-            throwForbidCreateResourceWarning("Service plan", servicePlanConfig.servicePlanResourceGroup() + "/" + servicePlanConfig.servicePlanName());
+            throwForbidCreateResourceWarning("Service plan", servicePlanConfig.getResourceGroupName() + "/" + servicePlanConfig.getName());
         }
         planDraft.setPlanConfig(servicePlanConfig);
 

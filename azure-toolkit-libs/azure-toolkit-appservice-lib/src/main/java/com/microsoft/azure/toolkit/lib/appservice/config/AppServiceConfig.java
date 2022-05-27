@@ -46,13 +46,14 @@ public class AppServiceConfig {
     private String deploymentSlotConfigurationSource;
 
     public AppServicePlanConfig getServicePlanConfig() {
-        return new AppServicePlanConfig()
+        return AppServicePlanConfig.builder()
             .subscriptionId(subscriptionId())
-            .servicePlanResourceGroup(servicePlanResourceGroup())
-            .servicePlanName(servicePlanName())
+            .resourceGroupName(servicePlanResourceGroup())
+            .name(servicePlanName())
             .region(region())
             .os(runtime().os())
-            .pricingTier(pricingTier());
+            .pricingTier(pricingTier())
+            .build();
     }
 
     public static AppServiceConfig buildDefaultWebAppConfig(String resourceGroup, String appName, String packaging, JavaVersion javaVersion) {

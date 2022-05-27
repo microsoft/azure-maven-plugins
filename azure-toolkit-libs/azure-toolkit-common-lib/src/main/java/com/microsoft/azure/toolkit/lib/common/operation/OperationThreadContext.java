@@ -23,7 +23,7 @@ public class OperationThreadContext {
 
     protected long threadId;
     @Nullable
-    protected Operation<?> operation;
+    protected Operation operation;
     @Getter
     @Nullable
     protected OperationThreadContext parent;
@@ -51,11 +51,11 @@ public class OperationThreadContext {
     }
 
     @Nullable
-    public Operation<?> currentOperation() {
+    public Operation currentOperation() {
         return this.operation;
     }
 
-    synchronized void pushOperation(final Operation<?> operation) {
+    synchronized void pushOperation(final Operation operation) {
         if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {
             log.fine(String.format("orphan context[%s] is setup", this));
         }
@@ -64,8 +64,8 @@ public class OperationThreadContext {
     }
 
     @Nullable
-    synchronized Operation<?> popOperation() {
-        final Operation<?> popped = this.operation;
+    synchronized Operation popOperation() {
+        final Operation popped = this.operation;
         assert popped != null : "popped operation is null";
         this.operation = popped.getParent();
         if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {

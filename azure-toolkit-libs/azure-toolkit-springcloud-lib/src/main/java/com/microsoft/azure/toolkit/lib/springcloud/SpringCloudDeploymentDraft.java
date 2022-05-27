@@ -17,7 +17,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Delegate;
@@ -48,8 +47,8 @@ import java.util.regex.Pattern;
 public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     implements AzResource.Draft<SpringCloudDeployment, SpringAppDeployment>, InvocationHandler {
 
-    private static final String DEFAULT_RUNTIME_VERSION = SpringCloudJavaVersion.JAVA_8;
-    private static final String RUNTIME_VERSION_PATTERN = "[Jj]ava((\\s)?|_)(8|11)$";
+    public static final RuntimeVersion DEFAULT_RUNTIME_VERSION = RuntimeVersion.JAVA_8;
+    private static final String RUNTIME_VERSION_PATTERN = "[Jj]ava((\\s)?|_)(8|11|17)$";
 
     @Nonnull
     @Delegate
@@ -174,36 +173,38 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
                 Optional.of(newEnv).ifPresent((e) -> e.forEach(deployment::withEnvironment));
             }
             Optional.ofNullable(newJvmOptions).ifPresent(deployment::withJvmOptions);
-            Optional.ofNullable(newVersion).ifPresent(v -> deployment.withRuntime(RuntimeVersion.fromString(formalizeRuntimeVersion(v))));
+            Optional.ofNullable(newVersion).ifPresent(v -> deployment.withRuntime(formalizeRuntimeVersion(v)));
             Optional.ofNullable(newArtifact).ifPresent(deployment::withJarFile);
         }
         return modified;
     }
 
     private boolean scale(@Nonnull SpringAppDeployment deployment, @Nonnull SpringAppDeployment.Update update) {
-        final Integer newCpu = this.getCpu();
-        final Integer newMemoryInGB = this.getMemoryInGB();
+        final Double newCpu = this.getCpu();
+        final Double newMemoryInGB = this.getMemoryInGB();
         final Integer newInstanceNum = this.getInstanceNum();
         final boolean scaled = (!Objects.equals(super.getCpu(), newCpu) && Objects.nonNull(newCpu)) ||
             (!Objects.equals(super.getMemoryInGB(), newMemoryInGB) && Objects.nonNull(newMemoryInGB)) ||
             (!Objects.equals(deployment.instances().size(), newInstanceNum) && Objects.nonNull(newInstanceNum));
         if (scaled) {
-            Optional.ofNullable(newCpu).ifPresent(update::withCpu);
-            Optional.ofNullable(newMemoryInGB).ifPresent(update::withMemory);
+            Optional.ofNullable(newCpu).map(c -> c < 1 ? 0.5 : c.intValue()).ifPresent(update::withCpu);
+            Optional.ofNullable(newMemoryInGB).map(c -> c < 1 ? 0.5 : c.intValue()).ifPresent(update::withMemory);
             Optional.ofNullable(newInstanceNum).ifPresent(update::withInstance);
         }
         return scaled;
     }
 
     @Nonnull
-    private static String formalizeRuntimeVersion(String runtimeVersion) {
+    public static RuntimeVersion formalizeRuntimeVersion(String runtimeVersion) {
         if (StringUtils.isEmpty(runtimeVersion)) {
             return DEFAULT_RUNTIME_VERSION;
         }
         final String fixedRuntimeVersion = StringUtils.trim(runtimeVersion);
         final Matcher matcher = Pattern.compile(RUNTIME_VERSION_PATTERN).matcher(fixedRuntimeVersion);
         if (matcher.matches()) {
-            return Objects.equals(matcher.group(3), "8") ? SpringCloudJavaVersion.JAVA_8 : SpringCloudJavaVersion.JAVA_11;
+            final String v = matcher.group(3);
+            return Objects.equals(v, "17") ? RuntimeVersion.JAVA_17 :
+                Objects.equals(v, "11") ? RuntimeVersion.JAVA_11 : RuntimeVersion.JAVA_8;
         } else {
             log.warn("{} is not a valid runtime version, supported values are Java 8 and Java 11, using Java 8 in this deployment.", fixedRuntimeVersion);
             return DEFAULT_RUNTIME_VERSION;
@@ -259,9 +260,9 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         @Nullable
         IArtifact artifact;
         @Nullable
-        Integer cpu;
+        Double cpu;
         @Nullable
-        Integer memoryInGB;
+        Double memoryInGB;
         @Nullable
         Integer instanceNum;
     }
@@ -276,9 +277,9 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
 
         void setArtifact(IArtifact artifact);
 
-        void setCpu(Integer cpu);
+        void setCpu(Double cpu);
 
-        void setMemoryInGB(Integer memoryInGB);
+        void setMemoryInGB(Double memoryInGB);
 
         void setInstanceNum(Integer instanceNum);
 
@@ -295,10 +296,10 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         IArtifact getArtifact();
 
         @Nullable
-        Integer getCpu();
+        Double getCpu();
 
         @Nullable
-        Integer getMemoryInGB();
+        Double getMemoryInGB();
 
         @Nullable
         Integer getInstanceNum();
