@@ -6,11 +6,12 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.models.ProvisioningState;
+import com.azure.resourcemanager.appplatform.models.Sku;
+import com.azure.resourcemanager.appplatform.models.SkuName;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.TestKeys;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudSku;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -73,16 +74,11 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
     }
 
     @Nonnull
-    public SpringCloudSku getSku() {
-        final SpringCloudSku dft = SpringCloudSku.builder()
-            .capacity(25)
-            .name("Basic")
-            .tier("B0")
-            .build();
-        return Optional.ofNullable(this.getRemote()).map(SpringService::sku).map(s -> SpringCloudSku.builder()
-            .capacity(s.capacity())
-            .name(s.name())
-            .tier(s.tier())
-            .build()).orElse(dft);
+    public String getSku() {
+        return Optional.ofNullable(this.getRemote()).map(SpringService::sku).map(Sku::name).orElse(SkuName.B0.toString());
+    }
+
+    public boolean isEnterpriseTier() {
+        return this.remoteOptional().map(SpringService::sku).filter(s -> s.name().equalsIgnoreCase(SkuName.E0.toString())).isPresent();
     }
 }

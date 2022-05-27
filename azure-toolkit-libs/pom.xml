@@ -133,6 +133,24 @@
         <asm.version>9.1</asm.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>azure-sdk-for-java</id>
+            <url>https://pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-java/maven/v1</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    <distributionManagement>
+        <repository>
+            <id>azure-sdk-for-java</id>
+            <url>https://pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-java/maven/v1</url>
+        </repository>
+    </distributionManagement>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -474,7 +492,7 @@
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-appplatform</artifactId>
-                <version>${azure.resourcemanager.version}</version>
+                <version>2.15.0</version>
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>

@@ -228,6 +228,10 @@ public class ConfigMojo extends AbstractMojoBase {
         final Map<String, String> changesToConfirm = new LinkedHashMap<>();
         changesToConfirm.put("Subscription id", this.subscriptionId);
         changesToConfirm.put("Azure Spring Apps name", this.appSettings.getClusterName());
+        final double rawCpu = Double.parseDouble(this.deploymentSettings.getCpu());
+        final double rawMem = Double.parseDouble(this.deploymentSettings.getMemoryInGB());
+        this.deploymentSettings.setCpu(rawCpu <= 0.5 ? "0.5" : rawCpu <= 1 ? "1" : (int) rawCpu + "");
+        this.deploymentSettings.setMemoryInGB(rawMem <= 0.5 ? "0.5" : rawMem <= 1 ? "1" : (int) rawMem + "");
 
         if (this.parentMode) {
             if (this.publicProjects != null && this.publicProjects.size() > 0) {
