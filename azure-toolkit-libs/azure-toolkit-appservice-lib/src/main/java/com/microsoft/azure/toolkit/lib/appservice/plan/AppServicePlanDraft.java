@@ -187,8 +187,7 @@ public class AppServicePlanDraft extends AppServicePlan implements
         final ResourceGroup rg = Azure.az(AzureResources.class).groups(this.getSubscriptionId())
             .getOrDraft(this.getResourceGroupName(), this.getResourceGroupName());
         if (rg.isDraftForCreating()) {
-            final Region region = Objects.requireNonNull(this.getRegion(), "'region' is required to create a resource group.");
-            ((ResourceGroupDraft) rg).setRegion(region);
+            Optional.ofNullable(this.getRegion()).ifPresent(r -> ((ResourceGroupDraft) rg).setRegion(r));
         }
         return rg;
     }

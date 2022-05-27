@@ -65,9 +65,12 @@ public class ActionView implements IView.Label {
         public ActionView toActionView(Object s) {
             try {
                 final Boolean e = Optional.ofNullable(this.enabled).map(p -> p.apply(s)).orElse(true);
-                final String i = Optional.ofNullable(this.iconPath).map(p -> p.apply(s)).orElse(null);
-                final AzureString t = Optional.ofNullable(this.title).map(p -> p.apply(s)).orElse(null);
-                return new ActionView(this.label.apply(s), i, t, e);
+                if (e) {
+                    final String i = Optional.ofNullable(this.iconPath).map(p -> p.apply(s)).orElse(null);
+                    final AzureString t = Optional.ofNullable(this.title).map(p -> p.apply(s)).orElse(null);
+                    return new ActionView(this.label.apply(s), i, t, e);
+                }
+                return new ActionView("", "", false);
             } catch (final Exception e) {
                 e.printStackTrace();
                 return new ActionView("", "", false);
