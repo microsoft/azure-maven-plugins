@@ -206,7 +206,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             return Objects.equals(v, "17") ? RuntimeVersion.JAVA_17 :
                 Objects.equals(v, "11") ? RuntimeVersion.JAVA_11 : RuntimeVersion.JAVA_8;
         } else {
-            log.warn("{} is not a valid runtime version, supported values are Java 8 and Java 11, using Java 8 in this deployment.", fixedRuntimeVersion);
+            log.warn("{} is not a valid runtime version, supported values are 'Java 8', 'Java 11' and 'Java 17', using Java 8 in this deployment.", fixedRuntimeVersion);
             return DEFAULT_RUNTIME_VERSION;
         }
     }
