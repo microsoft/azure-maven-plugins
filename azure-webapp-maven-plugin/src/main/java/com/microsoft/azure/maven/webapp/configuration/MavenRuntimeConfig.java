@@ -32,6 +32,7 @@ public class MavenRuntimeConfig {
      * <ul>
      * <li>Java 8</li>
      * <li>Java 11</li>
+     * <li>Java 17</li>
      * </ul>
      */
     protected String javaVersion;
@@ -44,6 +45,7 @@ public class MavenRuntimeConfig {
      * <li>Tomcat 7.0</li>
      * <li>Tomcat 8.5</li>
      * <li>Tomcat 9.0</li>
+     * <li>Tomcat 10.0</li>
      * <li>JBoss EAP 7.2</li>
      * </ul>
      */
