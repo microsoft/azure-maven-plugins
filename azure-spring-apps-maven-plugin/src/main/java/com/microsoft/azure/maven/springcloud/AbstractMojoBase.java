@@ -60,7 +60,7 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     protected String appName;
 
     /**
-     * Runtime version of the Spring app, supported values are `Java 8` and `Java 11`
+     * Runtime version of the Spring app, supported values are `Java 8`, `Java 11` and `Java 17`
      */
     @Getter
     @Parameter(property = "runtimeVersion")
@@ -76,7 +76,7 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
      *     <li>instanceCount: Instance count for deployment. </li>
      *     <li>deploymentName: Name for deployment. </li>
      *     <li>jvmOptions: JVM options for the deployed app. </li>
-     *     <li>runtimeVersion: The runtime version for Spring app,  supported values are `Java 8` and `Java 11`. </li>
+     *     <li>runtimeVersion: The runtime version for Spring app,  supported values are `Java 8`, `Java 11` and `Java 17`. </li>
      *     <li>enablePersistentStorage: Boolean flag to control whether or not to mount a persistent storage to /persistent folder(volume quota of 50 GB). </li>
      *     <li>environment: Environment variables for deployment. </li>
      *     <li>resources: Configuration to specify the artifacts to deploy

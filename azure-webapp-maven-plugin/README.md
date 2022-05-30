@@ -75,8 +75,8 @@ Property | Required | Description
 `<pricingTier>`| false | The pricing tier for your Web App. The default value is **P1V2**(**P1v3** for JBoss).|
 `<region>`| false | Specifies the region where your Web App will be hosted; the default value is **centralus**(or the first region if centralus is not available in your subscription). All valid regions at [Supported Regions](#region) section. |
  `<os>`| false | Specifies the os, supported values are *Linux*, *Windows* and *Docker*. The default value is **linux**|
-`<webContainer>`| false | Specifies the runtime stack, values for Linux are: *Tomcat 8.5*, *Tomcat 9.0*, *Java SE*, *JBossEAP 7*, The default value would be  **Tomcat 8.5** or **Java SE** or **JBossEAP 7** according to your project type |
-`<javaVersion>`| false | Specifies the java version, values are: *Java 8* or *Java 11*. The default value is your project compiler level|
+`<webContainer>`| false | Specifies the runtime stack, values for Linux are: *Tomcat 8.5*, *Tomcat 9.0*, *Tomcat 10.0*, *Java SE*, *JBossEAP 7*, The default value would be  **Tomcat 8.5** or **Java SE** or **JBossEAP 7** according to your project type |
+`<javaVersion>`| false | Specifies the java version, values are: *Java 8*, *Java 11* or *Java 17*. The default value is your project compiler level |
 `<deployment>`| false | Specifies the target file to be deployed. If it is not specified, a default webapp is created without any deployments. |
 
 ## Feedback and Questions

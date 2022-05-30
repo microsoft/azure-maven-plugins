@@ -119,8 +119,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      * Properties for Windows/Linux web app
      * <ul>
      *     <li> os: Operating system for the web app, default to be Windows. </li>
-     *     <li> javaVersion: Java runtime version for the web app, supported values are `Java 8` and `Java 11`. </li>
-     *     <li> webContainer: Java web container for the web app, supported values are `Tomcat 8.5`, `Tomcat 9.0`, `Java SE`, `Jbosseap 7`(Linux only). </li>
+     *     <li> javaVersion: Java runtime version for the web app, supported values are `Java 8`, `Java 11` and `Java 17`. </li>
+     *     <li> webContainer: Java web container for the web app, supported values are `Tomcat 8.5`, `Tomcat 9.0`, `Tomcat 10.0`, `Java SE`, `Jbosseap 7`(Linux only). </li>
      * </ul>
      * <pre>
      * {@code
