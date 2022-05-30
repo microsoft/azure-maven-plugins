@@ -184,7 +184,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             switch (configuration.getOs()) {
                 case WINDOWS:
                 case LINUX:
-                    System.out.println("Java : " + configuration.getJavaVersion());
+                    System.out.println("Java Version: " + configuration.getJavaVersion());
                     System.out.println("Web server stack: " + configuration.getWebContainer());
                     break;
                 case DOCKER:
