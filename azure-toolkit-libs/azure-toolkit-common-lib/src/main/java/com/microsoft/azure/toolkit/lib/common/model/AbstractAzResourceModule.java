@@ -291,7 +291,11 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 ((AbstractAzResourceModule) genericResourceModule).addResourceToLocal(resource.getId(), genericResource);
             }
             log.debug("[{}]:create->doModify(draft.createResourceInAzure({}))", this.name, resource);
-            resource.doModify(draft::createResourceInAzure, AzResource.Status.CREATING);
+            try {
+                resource.doModify(draft::createResourceInAzure, AzResource.Status.CREATING);
+            } catch (Throwable e) {
+                resource.delete();
+            }
             return resource;
         }
         throw new AzureToolkitRuntimeException(String.format("resource \"%s\" is existing", existing.getName()));
