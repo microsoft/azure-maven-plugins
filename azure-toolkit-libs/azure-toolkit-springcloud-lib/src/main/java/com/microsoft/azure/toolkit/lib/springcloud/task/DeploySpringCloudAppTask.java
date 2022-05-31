@@ -33,7 +33,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     private final SpringCloudAppConfig config;
     @Nonnull
     private final List<AzureTask<?>> subTasks;
-    private SpringCloudDeploymentDraft deployment;
+    private SpringCloudDeployment deployment;
 
     public DeploySpringCloudAppTask(SpringCloudAppConfig appConfig) {
         this.config = appConfig;
@@ -57,9 +57,8 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
             app.getActiveDeploymentName(),
             DEFAULT_DEPLOYMENT_NAME
         );
-        this.deployment = app.deployments().updateOrCreate(deploymentName, resourceGroup);
         final boolean toCreateApp = !app.exists();
-        final boolean toCreateDeployment = !deployment.exists() && !(toCreateApp && DEFAULT_DEPLOYMENT_NAME.equals(deployment.getName()));
+        final boolean toCreateDeployment = toCreateApp && !app.deployments().exists(deploymentName, resourceGroup);
         config.setActiveDeploymentName(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateDeployment ? deploymentName : null));
 
         OperationContext.action().setTelemetryProperty("subscriptionId", config.getSubscriptionId());
@@ -74,21 +73,21 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final AzureString MODIFY_DEPLOYMENT_TITLE = toCreateDeployment ? CREATE_DEPLOYMENT_TITLE : UPDATE_DEPLOYMENT_TITLE;
 
         final List<AzureTask<?>> tasks = new ArrayList<>();
-        deployment.setConfig(config.getDeployment());
         app.setConfig(config);
         if (toCreateApp) {
             tasks.add(new AzureTask<Void>(CREATE_APP_TITLE, app::createIfNotExist));
         }
-        tasks.add(new AzureTask<Void>(MODIFY_DEPLOYMENT_TITLE, () -> deployment.commit()));
+        tasks.add(new AzureTask<Void>(MODIFY_DEPLOYMENT_TITLE, () -> {
+            final SpringCloudDeploymentDraft draft = app.deployments().updateOrCreate(deploymentName, resourceGroup);
+            draft.setConfig(config.getDeployment());
+            this.deployment = draft.commit();
+        }));
         tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, () -> {
             final SpringCloudAppDraft draft = (SpringCloudAppDraft) app.update();
             draft.setConfig(config);
             draft.updateIfExist();
         }));
-        tasks.add(new AzureTask<Void>(() -> {
-            app.reset();
-            deployment.reset();
-        }));
+        tasks.add(new AzureTask<Void>(app::reset));
         return tasks;
     }
 
