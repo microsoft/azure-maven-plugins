@@ -38,6 +38,7 @@ import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +73,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Getter(AccessLevel.NONE)
     private final Map<String, Optional<T>> resources = new CaseInsensitiveMap<>();
     @Nonnull
+    @Getter(AccessLevel.NONE)
     private final Debouncer fireEvents = new TailingDebouncer(this::fireChildrenChangedEvent, 300);
 
     @Override
@@ -86,6 +88,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Override
     public List<T> list() { // getResources
         log.debug("[{}]:list()", this.name);
+        if (this.parent.isDraftForCreating()) {
+            log.debug("[{}]:list->parent.isDraftForCreating()=true", this.name);
+            return Collections.emptyList();
+        }
         Azure.az(IAzureAccount.class).account();
         synchronized (this.syncTimeRef) {
             while (this.syncTimeRef.get() == 0) {
@@ -169,8 +175,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Override
     public T get(@Nullable String name, @Nullable String resourceGroup) {
         log.debug("[{}]:get({}, {})", this.name, name, resourceGroup);
-        if (StringUtils.isBlank(name)) {
-            log.debug("[{}]:get->isBlank(name)=true", this.name);
+        if (StringUtils.isBlank(name) || this.parent.isDraftForCreating()) {
+            log.debug("[{}]:get->parent.isDraftForCreating()=true||isBlank(name)=true", this.name);
             return null;
         }
         Azure.az(IAzureAccount.class).account();
