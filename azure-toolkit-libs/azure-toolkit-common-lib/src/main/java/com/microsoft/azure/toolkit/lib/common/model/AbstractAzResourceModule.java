@@ -293,8 +293,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             log.debug("[{}]:create->doModify(draft.createResourceInAzure({}))", this.name, resource);
             try {
                 resource.doModify(draft::createResourceInAzure, AzResource.Status.CREATING);
-            } catch (Throwable e) {
+            } catch (RuntimeException e) {
                 resource.delete();
+                throw e;
             }
             return resource;
         }
