@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
+import com.azure.resourcemanager.appplatform.implementation.SpringAppImpl;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.UserSourceType;
@@ -101,14 +102,15 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         final String appName = this.getName();
         final SpringService service = Objects.requireNonNull(this.getParent().getRemote());
         SpringApp.DefinitionStages.Blank blank = service.apps().define(appName);
-        final String newActiveDeploymentName = this.getActiveDeploymentName();
+        final String newActiveDeploymentName = StringUtils.firstNonBlank(this.getActiveDeploymentName(), DEFAULT_DEPLOYMENT_NAME);
         final boolean newPublicEndpointEnabled = this.isPublicEndpointEnabled();
         final boolean newPersistentDiskEnabled = this.isPersistentDiskEnabled();
 
         // refer https://github.com/Azure/azure-sdk-for-java/blob/main/sdk/resourcemanager/azure-resourcemanager-samples/src/main/java/com/azure/
         // resourcemanager/appplatform/samples/ManageSpringCloud.java#L122-L129
-        SpringApp.DefinitionStages.WithCreate create = StringUtils.isNotBlank(newActiveDeploymentName) ?
-            blank.defineActiveDeployment(newActiveDeploymentName).withExistingSource(UserSourceType.JAR, "<default>").attach() :
+        SpringApp.DefinitionStages.WithCreate create = !Objects.equals(newActiveDeploymentName, DEFAULT_DEPLOYMENT_NAME) ?
+            (((SpringAppImpl) blank).withActiveDeployment(newActiveDeploymentName))
+                .defineActiveDeployment(newActiveDeploymentName).withExistingSource(UserSourceType.JAR, "<default>").attach() :
             blank.withDefaultActiveDeployment();
 
         if (!Objects.equals(super.isPublicEndpointEnabled(), newPublicEndpointEnabled) && newPublicEndpointEnabled) {
