@@ -134,7 +134,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating deployment({0})...", deployment.name()));
             deployment = update.apply();
-            messager.success(AzureString.format("Deployment({0}) is successfully updated", deployment.name()));
+            messager.success(AzureString.format("Deployment({0}) is successfully updated.", deployment.name()));
         }
         deployment = this.scaleDeploymentInAzure(deployment);
         return deployment;
@@ -183,8 +183,8 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         final Double newCpu = this.getCpu();
         final Double newMemoryInGB = this.getMemoryInGB();
         final Integer newInstanceNum = this.getInstanceNum();
-        final boolean scaled = (!Objects.equals(super.getCpu(), newCpu) && Objects.nonNull(newCpu)) ||
-            (!Objects.equals(super.getMemoryInGB(), newMemoryInGB) && Objects.nonNull(newMemoryInGB)) ||
+        final boolean scaled = (!Objects.equals(deployment.cpu(), newCpu) && Objects.nonNull(newCpu)) ||
+            (!Objects.equals(deployment.cpu(), newMemoryInGB) && Objects.nonNull(newMemoryInGB)) ||
             (!Objects.equals(deployment.instances().size(), newInstanceNum) && Objects.nonNull(newInstanceNum));
         if (scaled) {
             Optional.ofNullable(newCpu).map(c -> c < 1 ? 0.5 : c.intValue()).ifPresent(update::withCpu);
