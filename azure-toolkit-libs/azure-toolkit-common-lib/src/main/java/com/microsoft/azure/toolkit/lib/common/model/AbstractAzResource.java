@@ -186,6 +186,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     protected void setRemote(@Nullable R newRemote) {
+        if (this.remoteRef.get() == null || newRemote == null) {
+            this.getSubModules().forEach(AbstractAzResourceModule::clear);
+        }
         synchronized (this.syncTimeRef) {
             log.debug("[{}:{}]:setRemote({})", this.module.getName(), this.getName(), newRemote);
             log.debug("[{}:{}]:setRemote->this.remoteRef.set({})", this.module.getName(), this.getName(), newRemote);
