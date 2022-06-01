@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.resource;
 
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -59,16 +60,17 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesSe
 
     @Override
     public void delete() {
-        final List<? extends AbstractAzResource<?, ?, ?>> childrenResources = this.genericResources().list().stream()
+        final List<? extends AbstractAzResource<?, ?, ?>> localResources = this.genericResources().listLocalResources().stream()
             .map(GenericResource::toConcreteResource)
             .filter(r -> !(r instanceof GenericResource)).collect(Collectors.toList());
-        childrenResources.forEach(r -> r.setStatus(Status.DELETING));
+        localResources.forEach(r -> r.setStatus(Status.DELETING));
         try {
             super.delete();
-        } catch (Exception e) {
-            childrenResources.forEach(r -> r.setStatus(Status.UNKNOWN));
+        } catch (Throwable e) {
+            localResources.forEach(r -> r.setStatus(Status.UNKNOWN));
+            throw new AzureToolkitRuntimeException(e);
         }
-        childrenResources.parallelStream().forEach(AbstractAzResource::delete);
+        localResources.parallelStream().forEach(AbstractAzResource::delete);
     }
 
     @Nonnull

@@ -112,6 +112,12 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         }
     }
 
+    @Nonnull
+    public List<T> listLocalResources() { // getResources
+        return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
+            .sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
+    }
+
     private void reloadResources() {
         log.debug("[{}]:reload()", this.name);
         Stream<R> loaded;
