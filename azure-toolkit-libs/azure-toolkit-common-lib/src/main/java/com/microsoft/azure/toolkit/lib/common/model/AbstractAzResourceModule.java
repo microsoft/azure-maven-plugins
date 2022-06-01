@@ -112,6 +112,12 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         }
     }
 
+    @Nonnull
+    public List<T> listLocalResources() { // getResources
+        return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
+            .sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
+    }
+
     private void reloadResources() {
         log.debug("[{}]:reload()", this.name);
         Stream<R> loaded;
@@ -148,7 +154,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             log.debug("[{}]:reload.refreshed->resource.setRemote", this.name);
             refreshed.forEach(name -> this.resources.get(name).ifPresent(r -> r.setRemote(loadedResources.get(name).getRemote())));
             log.debug("[{}]:reload.deleted->deleteResourceFromLocal", this.name);
-            deleted.forEach(name -> Optional.ofNullable(this.deleteResourceFromLocal(name, true)).ifPresent(t -> t.setStatus(AzResource.Status.DELETED)));
+            deleted.forEach(name -> this.resources.get(name).ifPresent(r -> {
+                r.setRemote(null);
+                r.deleteFromLocal();
+            }));
             log.debug("[{}]:reload.added->addResourceToLocal", this.name);
             added.forEach(name -> this.addResourceToLocal(name, loadedResources.get(name), true));
             this.syncTimeRef.set(System.currentTimeMillis());
@@ -383,7 +392,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     protected Stream<R> loadResourcesFromAzure() {
         log.debug("[{}]:loadResourcesFromAzure()", this.getName());
         final Object client = this.getClient();
-        if (client instanceof SupportsListing) {
+        if (!this.parent.exists()) {
+            return Stream.empty();
+        } else if (client instanceof SupportsListing) {
             log.debug("[{}]:loadResourcesFromAzure->client.list()", this.name);
             return this.<SupportsListing<R>>cast(client).list().stream();
         } else if (client != null) {
