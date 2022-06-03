@@ -38,6 +38,7 @@ import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +73,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Getter(AccessLevel.NONE)
     private final Map<String, Optional<T>> resources = new CaseInsensitiveMap<>();
     @Nonnull
+    @Getter(AccessLevel.NONE)
     private final Debouncer fireEvents = new TailingDebouncer(this::fireChildrenChangedEvent, 300);
 
     @Override
@@ -86,6 +88,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Override
     public List<T> list() { // getResources
         log.debug("[{}]:list()", this.name);
+        if (this.parent.isDraftForCreating()) {
+            log.debug("[{}]:list->parent.isDraftForCreating()=true", this.name);
+            return Collections.emptyList();
+        }
         Azure.az(IAzureAccount.class).account();
         synchronized (this.syncTimeRef) {
             while (this.syncTimeRef.get() == 0) {
@@ -104,6 +110,12 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
                 .sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
         }
+    }
+
+    @Nonnull
+    public List<T> listLocalResources() { // getResources
+        return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
+            .sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
     }
 
     private void reloadResources() {
@@ -142,7 +154,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             log.debug("[{}]:reload.refreshed->resource.setRemote", this.name);
             refreshed.forEach(name -> this.resources.get(name).ifPresent(r -> r.setRemote(loadedResources.get(name).getRemote())));
             log.debug("[{}]:reload.deleted->deleteResourceFromLocal", this.name);
-            deleted.forEach(name -> Optional.ofNullable(this.deleteResourceFromLocal(name, true)).ifPresent(t -> t.setStatus(AzResource.Status.DELETED)));
+            deleted.forEach(name -> this.resources.get(name).ifPresent(r -> {
+                r.setRemote(null);
+                r.deleteFromLocal();
+            }));
             log.debug("[{}]:reload.added->addResourceToLocal", this.name);
             added.forEach(name -> this.addResourceToLocal(name, loadedResources.get(name), true));
             this.syncTimeRef.set(System.currentTimeMillis());
@@ -169,8 +184,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Override
     public T get(@Nullable String name, @Nullable String resourceGroup) {
         log.debug("[{}]:get({}, {})", this.name, name, resourceGroup);
-        if (StringUtils.isBlank(name)) {
-            log.debug("[{}]:get->isBlank(name)=true", this.name);
+        if (StringUtils.isBlank(name) || this.parent.isDraftForCreating()) {
+            log.debug("[{}]:get->parent.isDraftForCreating()=true||isBlank(name)=true", this.name);
             return null;
         }
         Azure.az(IAzureAccount.class).account();
@@ -285,7 +300,12 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 ((AbstractAzResourceModule) genericResourceModule).addResourceToLocal(resource.getId(), genericResource);
             }
             log.debug("[{}]:create->doModify(draft.createResourceInAzure({}))", this.name, resource);
-            resource.doModify(draft::createResourceInAzure, AzResource.Status.CREATING);
+            try {
+                resource.doModify(draft::createResourceInAzure, AzResource.Status.CREATING);
+            } catch (RuntimeException e) {
+                resource.delete();
+                throw e;
+            }
             return resource;
         }
         throw new AzureToolkitRuntimeException(String.format("resource \"%s\" is existing", existing.getName()));
@@ -372,7 +392,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     protected Stream<R> loadResourcesFromAzure() {
         log.debug("[{}]:loadResourcesFromAzure()", this.getName());
         final Object client = this.getClient();
-        if (client instanceof SupportsListing) {
+        if (!this.parent.exists()) {
+            return Stream.empty();
+        } else if (client instanceof SupportsListing) {
             log.debug("[{}]:loadResourcesFromAzure->client.list()", this.name);
             return this.<SupportsListing<R>>cast(client).list().stream();
         } else if (client != null) {

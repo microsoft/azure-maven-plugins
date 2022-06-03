@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeServiceSubscription, com.azure.resourcemanager.compute.models.VirtualMachine>
     implements Startable, Deletable {
@@ -52,7 +53,12 @@ public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeSe
     @Nonnull
     @Override
     public String loadStatus(@Nonnull com.azure.resourcemanager.compute.models.VirtualMachine remote) {
-        return StringUtils.capitalize(remote.powerState().toString().substring("PowerState/".length()));
+        final String provisioningState = remote.provisioningState();
+        return Optional.ofNullable(provisioningState).filter(s -> s.equalsIgnoreCase("succeeded"))
+            .map(i -> remote.powerState())
+            .map(s -> s.toString().substring("PowerState/".length()))
+            .map(StringUtils::capitalize)
+            .orElse(StringUtils.firstNonBlank(provisioningState, Status.UNKNOWN));
     }
 
     @AzureOperation(name = "vm.start.vm", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)

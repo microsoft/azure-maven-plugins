@@ -163,14 +163,22 @@ public class ConfigMojo extends AbstractMojoBase {
         configureInstanceCount();
         configureCpu();
         configureMemory();
-        configureJavaVersion();
+        if (this.notEnterpriseTier()) {
+            configureJavaVersion();
+        }
         configureJvmOptions();
+    }
+
+    private boolean notEnterpriseTier() {
+        final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(this.subscriptionId)
+            .get(this.appSettings.getClusterName(), null);
+        return !(Objects.nonNull(cluster) && cluster.isEnterpriseTier());
     }
 
     private void selectProjects() throws IOException, InvalidConfigurationException {
         if (this.parentMode) {
             final List<MavenProject> allProjects = session.getAllProjects().stream().filter(MavenConfigUtils::isJarPackaging)
-                    .collect(Collectors.toList());
+                .collect(Collectors.toList());
             final List<MavenProject> configuredProjects = new ArrayList<>();
             for (final MavenProject proj : allProjects) {
                 if (isProjectConfigured(proj)) {
@@ -228,11 +236,6 @@ public class ConfigMojo extends AbstractMojoBase {
         final Map<String, String> changesToConfirm = new LinkedHashMap<>();
         changesToConfirm.put("Subscription id", this.subscriptionId);
         changesToConfirm.put("Azure Spring Apps name", this.appSettings.getClusterName());
-        final double rawCpu = Double.parseDouble(this.deploymentSettings.getCpu());
-        final double rawMem = Double.parseDouble(this.deploymentSettings.getMemoryInGB());
-        this.deploymentSettings.setCpu(rawCpu <= 0.5 ? "0.5" : rawCpu <= 1 ? "1" : (int) rawCpu + "");
-        this.deploymentSettings.setMemoryInGB(rawMem <= 0.5 ? "0.5" : rawMem <= 1 ? "1" : (int) rawMem + "");
-
         if (this.parentMode) {
             if (this.publicProjects != null && this.publicProjects.size() > 0) {
                 changesToConfirm.put("Public " + English.plural("app", this.publicProjects.size()),
@@ -250,7 +253,9 @@ public class ConfigMojo extends AbstractMojoBase {
             changesToConfirm.put("CPU count", this.deploymentSettings.getCpu());
             changesToConfirm.put("Memory size(GB)", this.deploymentSettings.getMemoryInGB());
             changesToConfirm.put("JVM options", this.deploymentSettings.getJvmOptions());
-            changesToConfirm.put("Runtime Java version", this.deploymentSettings.getRuntimeVersion());
+            if (this.notEnterpriseTier()) {
+                changesToConfirm.put("Runtime Java version", this.deploymentSettings.getRuntimeVersion());
+            }
             this.wrapper.confirmChanges(changesToConfirm, this::saveConfigurationToPom);
         }
     }

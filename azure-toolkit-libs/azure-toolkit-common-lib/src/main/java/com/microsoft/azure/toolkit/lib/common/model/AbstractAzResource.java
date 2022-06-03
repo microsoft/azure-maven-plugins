@@ -186,6 +186,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     protected void setRemote(@Nullable R newRemote) {
+        final R oldRemote = this.remoteRef.get();
         synchronized (this.syncTimeRef) {
             log.debug("[{}:{}]:setRemote({})", this.module.getName(), this.getName(), newRemote);
             log.debug("[{}:{}]:setRemote->this.remoteRef.set({})", this.module.getName(), this.getName(), newRemote);
@@ -201,7 +202,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         } else {
             log.debug("[{}:{}]:setRemote->this.setStatus(DISCONNECTED)", this.module.getName(), this.getName());
             this.setStatus(Status.DELETED);
-            this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setRemote(null));
+            this.getSubModules().stream().flatMap(m -> m.listLocalResources().stream()).forEach(r -> r.setRemote(null));
+        }
+        if (oldRemote == null || newRemote == null) {
+            this.getSubModules().forEach(AbstractAzResourceModule::clear);
         }
     }
 
@@ -235,7 +239,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             if (cause instanceof ManagementException && HttpStatus.SC_NOT_FOUND != ((ManagementException) cause).getResponse().getStatusCode()) {
                 log.debug("[{}]:delete()->deleteResourceFromAzure()=SC_NOT_FOUND", this.name, e);
             } else {
-                this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(Status.UNKNOWN));
+                this.getSubModules().stream().flatMap(m -> m.listLocalResources().stream()).forEach(r -> r.setStatus(Status.UNKNOWN));
                 throw e;
             }
         }
@@ -252,7 +256,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             final GenericResourceModule genericResourceModule = resourceGroup.genericResources();
             ((AbstractAzResourceModule) genericResourceModule).deleteResourceFromLocal(this.getId());
         }
-        this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(AbstractAzResource::deleteFromLocal);
+        this.getSubModules().stream().flatMap(m -> m.listLocalResources().stream()).forEach(AbstractAzResource::deleteFromLocal);
     }
 
     public void setStatus(@Nonnull String status) {
@@ -267,7 +271,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
                 }
                 fireEvents.debounce();
                 if (StringUtils.equalsAny(status, Status.DELETING, Status.DELETED)) {
-                    this.getSubModules().stream().flatMap(m -> m.list().stream()).forEach(r -> r.setStatus(status));
+                    this.getSubModules().stream().flatMap(m -> m.listLocalResources().stream()).forEach(r -> r.setStatus(status));
                 }
             }
         }
