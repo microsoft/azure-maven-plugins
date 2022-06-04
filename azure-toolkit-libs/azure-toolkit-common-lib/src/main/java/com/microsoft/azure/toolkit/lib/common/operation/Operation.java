@@ -19,9 +19,7 @@ public interface Operation {
     String getExecutionId();
 
     @Nonnull
-    default String getId() {
-        return Optional.ofNullable(this.getDescription()).map(AzureString::getName).orElse(UNKNOWN_NAME);
-    }
+    String getId();
 
     Callable<?> getBody();
 

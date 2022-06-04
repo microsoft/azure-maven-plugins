@@ -89,6 +89,12 @@ public class Action<D> extends OperationBase {
         this.registerHandler((d, e) -> true, handler);
     }
 
+    @Nonnull
+    @Override
+    public String getId() {
+        return this.id.id;
+    }
+
     @Nullable
     public IView.Label getView(D source) {
         return Objects.nonNull(this.viewBuilder) ? this.viewBuilder.toActionView(source) : null;

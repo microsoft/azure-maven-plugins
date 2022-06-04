@@ -133,6 +133,12 @@ public class AzureTask<T> extends OperationBase {
     }
 
     @Nonnull
+    @Override
+    public String getId() {
+        return Optional.ofNullable(this.getDescription()).map(AzureString::getName).orElse(UNKNOWN_NAME);
+    }
+
+    @Nonnull
     public String getExecutionId() {
         return "&" + super.getExecutionId();
     }
