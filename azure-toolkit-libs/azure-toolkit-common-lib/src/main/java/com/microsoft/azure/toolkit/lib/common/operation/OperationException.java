@@ -21,6 +21,6 @@ public class OperationException extends AzureToolkitRuntimeException {
 
     @Override
     public String getMessage() {
-        return Optional.ofNullable(operation.getTitle()).map(Object::toString).orElse(null);
+        return Optional.ofNullable(operation.getDescription()).map(Object::toString).orElse(null);
     }
 }

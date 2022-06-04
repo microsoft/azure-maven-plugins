@@ -163,7 +163,7 @@ public class Action<D> extends OperationBase {
 
     @Nullable
     @Override
-    public AzureString getTitle() {
+    public AzureString getDescription() {
         return OperationBundle.description(this.id.id);
     }
 

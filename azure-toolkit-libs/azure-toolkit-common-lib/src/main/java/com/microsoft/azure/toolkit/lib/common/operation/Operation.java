@@ -20,7 +20,7 @@ public interface Operation {
 
     @Nonnull
     default String getId() {
-        return Optional.ofNullable(this.getTitle()).map(AzureString::getName).orElse(UNKNOWN_NAME);
+        return Optional.ofNullable(this.getDescription()).map(AzureString::getName).orElse(UNKNOWN_NAME);
     }
 
     Callable<?> getBody();
@@ -29,7 +29,7 @@ public interface Operation {
     String getType();
 
     @Nullable
-    AzureString getTitle();
+    AzureString getDescription();
 
     void setParent(Operation operation);
 

@@ -98,8 +98,8 @@ public class DeployMojo extends AbstractMojoBase {
         try {
             final IPrompter prompter = new DefaultPrompter();
             System.out.println(CONFIRM_PROMPT_START);
-            tasks.stream().filter(t -> Objects.nonNull(t.getTitle()) && StringUtils.isNotBlank(t.getTitle().toString()))
-                .forEach((t) -> System.out.printf("\t- %s%n", t.getTitle()));
+            tasks.stream().map(AzureTask::getDescription).filter(t -> Objects.nonNull(t) && StringUtils.isNotBlank(t.toString()))
+                .forEach((t) -> System.out.printf("\t- %s%n", t));
             return prompter.promoteYesNo(CONFIRM_PROMPT_CONFIRM, true, true);
         } catch (IOException e) {
             throw new MojoFailureException(e.getMessage(), e);
