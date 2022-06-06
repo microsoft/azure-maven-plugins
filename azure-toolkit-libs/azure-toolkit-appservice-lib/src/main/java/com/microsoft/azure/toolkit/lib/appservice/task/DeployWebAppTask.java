@@ -44,7 +44,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     }
 
     @Override
-    @AzureOperation(name = "webapp.deploy_app.app", params = {"this.webApp.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "webapp.deploy_app.app", params = {"this.webApp.getName()"}, type = AzureOperation.Type.SERVICE)
     public WebAppBase<?, ?, ?> doExecute() {
         if (webApp.getRuntime().isDocker()) {
             AzureMessager.getMessager().info(AzureString.format(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE, "https://" + webApp.getHostName()));
