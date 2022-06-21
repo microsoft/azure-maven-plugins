@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.containerregistry;
 
+import com.azure.core.http.rest.PagedIterable;
 import com.azure.resourcemanager.containerregistry.ContainerRegistryManager;
 import com.azure.resourcemanager.containerregistry.models.Registries;
 import com.azure.resourcemanager.containerregistry.models.Registry;
@@ -28,18 +29,18 @@ public class AzureContainerRegistryModule extends AbstractAzResourceModule<Conta
     @Nonnull
     @Override
     protected Stream<Registry> loadResourcesFromAzure() {
-        return this.getClient().list().stream();
+        return Optional.ofNullable(this.getClient()).map(Registries::list).map(PagedIterable::stream).orElse(Stream.empty());
     }
 
     @Nullable
     @Override
     protected Registry loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
-        return this.getClient().getByResourceGroup(resourceGroup, name);
+        return Optional.ofNullable(this.getClient()).map(client -> client.getByResourceGroup(resourceGroup, name)).orElse(null);
     }
 
     @Override
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
-        this.getClient().deleteById(resourceId);
+        Optional.ofNullable(this.getClient()).ifPresent(client -> client.deleteById(resourceId));
     }
 
     @Nonnull
