@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDraft.CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS;
 import static com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDraft.UNSUPPORTED_OPERATING_SYSTEM;
@@ -138,25 +139,31 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
     )
     public FunctionDeploymentSlot updateResourceInAzure(@Nonnull WebSiteBase base) {
         FunctionDeploymentSlot remote = (FunctionDeploymentSlot) base;
-        final Map<String, String> settingsToAdd = this.getAppSettings();
-        final Set<String> settingsToRemove = this.getAppSettingsToRemove();
-        final DiagnosticConfig newDiagnosticConfig = this.getDiagnosticConfig();
+        final Map<String, String> oldAppSettings = origin.getAppSettings();
+        final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();
+        settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
+        final Set<String> settingsToRemove = this.ensureConfig().getAppSettingsToRemove().stream()
+                .filter(key -> oldAppSettings.containsValue(key)).collect(Collectors.toSet());
+        final Runtime newRuntime = this.ensureConfig().getRuntime();
+        final DockerConfiguration newDockerConfig = this.ensureConfig().getDockerConfiguration();
+        final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
 
-        boolean isRuntimeModified = !Objects.equals(this.getRuntime(), super.getRuntime());
-        boolean isDockerConfigurationModified = Objects.requireNonNull(super.getRuntime()).isDocker() && Objects.nonNull(getDockerConfiguration());
-        boolean isAppSettingsModified = settingsToAdd != null && (MapUtils.isEmpty(super.getAppSettings()) ||
-                !CollectionUtils.containsAll(super.getAppSettings().entrySet(), settingsToAdd.entrySet()));
-        boolean modified = CollectionUtils.isNotEmpty(settingsToRemove) || Objects.nonNull(newDiagnosticConfig) || isAppSettingsModified ||
+        final Runtime oldRuntime = Objects.requireNonNull(origin.getRuntime());
+        boolean isRuntimeModified =  !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
+        boolean isDockerConfigurationModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
+        boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
+        boolean modified = Objects.nonNull(newDiagnosticConfig) || isAppSettingsModified ||
                 isRuntimeModified || isDockerConfigurationModified;
 
         if (modified) {
             final DeploymentSlotBase.Update<FunctionDeploymentSlot> update = remote.update();
             Optional.ofNullable(settingsToAdd).ifPresent(update::withAppSettings);
             Optional.ofNullable(settingsToRemove).ifPresent(s -> s.forEach(update::withoutAppSetting));
-            Optional.ofNullable(newDiagnosticConfig).ifPresent(c -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, newDiagnosticConfig));
-            Optional.ofNullable(config).map(FunctionAppDeploymentSlotDraft.Config::getRuntime).ifPresent(newRuntime -> updateRuntime(update, newRuntime));
-            Optional.ofNullable(config).map(FunctionAppDeploymentSlotDraft.Config::getDockerConfiguration)
+            Optional.ofNullable(newRuntime).ifPresent(r -> updateRuntime(update, r));
+            Optional.ofNullable(newDockerConfig)
                     .ifPresent(dockerConfiguration -> updateDockerConfiguration(update, dockerConfiguration));
+            Optional.ofNullable(newDiagnosticConfig)
+                    .ifPresent(diagnosticConfig -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, diagnosticConfig));
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating Azure Functions app deployment slot({0})...", remote.name()));
             remote = update.apply();

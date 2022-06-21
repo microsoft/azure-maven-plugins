@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebSiteBase> {
     public static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
@@ -135,12 +136,15 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebS
     public com.azure.resourcemanager.appservice.models.WebApp updateResourceInAzure(@Nonnull WebSiteBase base) {
         com.azure.resourcemanager.appservice.models.WebApp remote = (com.azure.resourcemanager.appservice.models.WebApp) base;
         assert origin != null : "updating target is not specified.";
-        final Map<String, String> settingsToAdd = this.getAppSettings();
-        final Set<String> settingsToRemove = this.getAppSettingsToRemove();
-        final DiagnosticConfig newDiagnosticConfig = this.getDiagnosticConfig();
-        final Runtime newRuntime = this.getRuntime();
-        final AppServicePlan newPlan = this.getAppServicePlan();
-        final DockerConfiguration newDockerConfig = getDockerConfiguration();
+        final Map<String, String> oldAppSettings = origin.getAppSettings();
+        final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();
+        settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
+        final Set<String> settingsToRemove = this.ensureConfig().getAppSettingsToRemove().stream()
+                .filter(key -> oldAppSettings.containsValue(key)).collect(Collectors.toSet());
+        final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
+        final Runtime newRuntime = this.ensureConfig().getRuntime();
+        final AppServicePlan newPlan = this.ensureConfig().getPlan();
+        final DockerConfiguration newDockerConfig = this.ensureConfig().getDockerConfiguration();
         final Runtime oldRuntime = origin.getRuntime();
         final AppServicePlan oldPlan = origin.getAppServicePlan();
 

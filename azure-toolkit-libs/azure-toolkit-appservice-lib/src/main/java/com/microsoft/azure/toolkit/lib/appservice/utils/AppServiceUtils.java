@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -221,8 +222,8 @@ public class AppServiceUtils {
         if (diagnosticConfig.isEnableWebServerLogging()) {
             withCreate.defineDiagnosticLogsConfiguration().withWebServerLogging()
                     .withWebServerLogsStoredOnFileSystem()
-                    .withWebServerFileSystemQuotaInMB(diagnosticConfig.getWebServerLogQuota())
-                    .withLogRetentionDays(diagnosticConfig.getWebServerRetentionPeriod())
+                    .withWebServerFileSystemQuotaInMB(ObjectUtils.firstNonNull(diagnosticConfig.getWebServerLogQuota(), 0))
+                    .withLogRetentionDays(ObjectUtils.firstNonNull(diagnosticConfig.getWebServerRetentionPeriod(), 0))
                     .withDetailedErrorMessages(diagnosticConfig.isEnableDetailedErrorMessage())
                     .withFailedRequestTracing(diagnosticConfig.isEnableFailedRequestTracing()).attach();
         }
@@ -241,8 +242,8 @@ public class AppServiceUtils {
         if (diagnosticConfig.isEnableWebServerLogging()) {
             blank.withWebServerLogging()
                     .withWebServerLogsStoredOnFileSystem()
-                    .withWebServerFileSystemQuotaInMB(diagnosticConfig.getWebServerLogQuota())
-                    .withLogRetentionDays(diagnosticConfig.getWebServerRetentionPeriod())
+                    .withWebServerFileSystemQuotaInMB(ObjectUtils.firstNonNull(diagnosticConfig.getWebServerLogQuota(), 0))
+                    .withLogRetentionDays(ObjectUtils.firstNonNull(diagnosticConfig.getWebServerRetentionPeriod(), 0))
                     .withDetailedErrorMessages(diagnosticConfig.isEnableDetailedErrorMessage())
                     .withFailedRequestTracing(diagnosticConfig.isEnableFailedRequestTracing()).parent();
         } else {
