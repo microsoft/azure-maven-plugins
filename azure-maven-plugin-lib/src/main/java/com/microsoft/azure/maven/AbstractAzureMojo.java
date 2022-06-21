@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.auth.core.devicecode.DeviceCodeAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
+import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
@@ -377,7 +378,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         if (auth.getType() == null || auth.getType() == AuthType.AUTO) {
             if (StringUtils.isAllBlank(auth.getCertificate(), auth.getCertificatePassword(), auth.getKey())) {
                 // not service principal configuration, will list accounts and try them one by one
-                final Account account = findFirstAvailableAccount().block();
+                final Account account = findFirstAvailableAccount(auth).block();
                 // prompt if oauth or device code
                 promptForOAuthOrDeviceCodeLogin(account.getAuthType());
                 return handleDeviceCodeAccount(Azure.az(AzureAccount.class).loginAsync(account, false).block());
@@ -414,8 +415,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         }
     }
 
-    private static Mono<Account> findFirstAvailableAccount() {
-        final List<Account> accounts = Azure.az(AzureAccount.class).accounts();
+    private static Mono<Account> findFirstAvailableAccount(AuthConfiguration auth) {
+        final List<Account> accounts = Azure.az(AzureAccount.class).initAccounts(auth);
         if (accounts.isEmpty()) {
             return Mono.error(new AzureToolkitAuthenticationException("there are no subscriptions available."));
         }
