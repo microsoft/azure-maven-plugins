@@ -171,7 +171,7 @@ public class ConfigMojo extends AbstractMojoBase {
 
     private boolean notEnterpriseTier() {
         final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(this.subscriptionId)
-            .get(this.appSettings.getClusterName(), null);
+            .get(this.appSettings.getClusterName(), this.appSettings.getResourceGroup());
         return !(Objects.nonNull(cluster) && cluster.isEnterpriseTier());
     }
 
@@ -235,6 +235,7 @@ public class ConfigMojo extends AbstractMojoBase {
     private void confirmAndSave() throws IOException {
         final Map<String, String> changesToConfirm = new LinkedHashMap<>();
         changesToConfirm.put("Subscription id", this.subscriptionId);
+        changesToConfirm.put("Resource group name", this.appSettings.getResourceGroup());
         changesToConfirm.put("Azure Spring Apps name", this.appSettings.getClusterName());
         if (this.parentMode) {
             if (this.publicProjects != null && this.publicProjects.size() > 0) {
@@ -325,18 +326,21 @@ public class ConfigMojo extends AbstractMojoBase {
     private void selectAppCluster() throws IOException, InvalidConfigurationException {
         final SpringCloudClusterModule az = Azure.az(AzureSpringCloud.class).clusters(subscriptionId);
         if (StringUtils.isNotBlank(clusterName)) {
-            final SpringCloudCluster cluster = az.get(this.clusterName, null);
+            final SpringCloudCluster cluster = az.get(this.clusterName, this.resourceGroup);
             if (Objects.nonNull(cluster) && cluster.exists()) {
+                this.appSettings.setResourceGroup(cluster.getResourceGroupName());
                 this.appSettings.setClusterName(cluster.getName());
                 return;
             }
-            getLog().warn(String.format("Cannot find Azure Apps with name: %s.", TextUtils.yellow(this.clusterName)));
+            getLog().warn(String.format("Cannot find Azure Spring Apps with name: %s in resource group: %s.",
+                TextUtils.yellow(this.clusterName), TextUtils.yellow(this.resourceGroup)));
         }
         final List<SpringCloudCluster> clusters = az.list();
         this.wrapper.putCommonVariable("clusters", clusters);
         final SpringCloudCluster targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, AbstractAzResource::getName);
         if (targetAppCluster != null) {
-            this.appSettings.setClusterName(targetAppCluster.name());
+            this.appSettings.setResourceGroup(targetAppCluster.getResourceGroupName());
+            this.appSettings.setClusterName(targetAppCluster.getName());
             getLog().info(String.format("Using Azure Spring Apps: %s", TextUtils.blue(targetAppCluster.name())));
         }
     }

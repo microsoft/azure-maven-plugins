@@ -10,6 +10,7 @@ import lombok.Data;
 @Data
 public class AppRawConfig {
     private String subscriptionId;
+    private String resourceGroup; // optional
     private String clusterName;
     private String appName;
     private String isPublic;

@@ -46,9 +46,9 @@ public class DeployMojo extends AbstractMojoBase {
     private static final String PROJECT_SKIP = "Packaging type is pom, taking no actions.";
     private static final String PROJECT_NO_CONFIGURATION = "Configuration does not exist, taking no actions.";
     private static final String PROJECT_NOT_SUPPORT = "`azure-spring-apps:deploy` does not support maven project with " +
-        "packaging %s, only jar is supported";
+            "packaging %s, only jar is supported";
     private static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
-        "you can check the app status from Azure Portal.";
+            "you can check the app status from Azure Portal.";
     private static final String CONFIRM_PROMPT_START = "`azure-spring-apps:deploy` will perform the following tasks";
     private static final String CONFIRM_PROMPT_CONFIRM = "Perform the above tasks? (Y/n):";
 
@@ -75,7 +75,7 @@ public class DeployMojo extends AbstractMojoBase {
         final SpringCloudAppConfig appConfig = this.getConfiguration();
         final SpringCloudDeploymentConfig deploymentConfig = appConfig.getDeployment();
         Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getArtifact).map(IArtifact::getFile)
-            .orElseThrow(() -> new AzureToolkitRuntimeException("No artifact is specified to deploy."));
+                .orElseThrow(() -> new AzureToolkitRuntimeException("No artifact is specified to deploy."));
         final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig);
 
         final List<AzureTask<?>> tasks = task.getSubTasks();
@@ -85,7 +85,7 @@ public class DeployMojo extends AbstractMojoBase {
             return;
         }
         final SpringCloudDeployment deployment = task.doExecute();
-        if (!noWait && Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getArtifact).map(IArtifact::getFile).isPresent()) {
+        if (!noWait && Optional.of(deploymentConfig).map(SpringCloudDeploymentConfig::getArtifact).map(IArtifact::getFile).isPresent()) {
             if (!deployment.waitUntilReady(GET_STATUS_TIMEOUT)) {
                 log.warn(GET_DEPLOYMENT_STATUS_TIMEOUT);
             }
@@ -95,8 +95,7 @@ public class DeployMojo extends AbstractMojoBase {
     }
 
     protected boolean confirm(List<AzureTask<?>> tasks) throws MojoFailureException {
-        try {
-            final IPrompter prompter = new DefaultPrompter();
+        try (final IPrompter prompter = new DefaultPrompter()) {
             System.out.println(CONFIRM_PROMPT_START);
             tasks.stream().map(AzureTask::getDescription).filter(t -> Objects.nonNull(t) && StringUtils.isNotBlank(t.toString()))
                 .forEach((t) -> System.out.printf("\t- %s%n", t));
@@ -128,8 +127,8 @@ public class DeployMojo extends AbstractMojoBase {
     protected void printStatus(SpringCloudDeployment deployment) {
         log.info("Deployment Status: {}", color(deployment.getStatus()));
         deployment.getInstances().forEach(instance ->
-            log.info(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s",
-                instance.name(), color(instance.status()), instance.reason(), instance.discoveryStatus())));
+                log.info(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s",
+                        instance.name(), color(instance.status()), instance.reason(), instance.discoveryStatus())));
     }
 
     private static String color(String status) {
