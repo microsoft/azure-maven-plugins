@@ -130,7 +130,7 @@ public abstract class Account implements IAccount {
         }
     }
 
-    private Mono<TokenCredentialManager> initializeTokenCredentialManager() {
+    protected Mono<TokenCredentialManager> initializeTokenCredentialManager() {
         return createTokenCredentialManager().doOnSuccess(tokenCredentialManager -> this.credentialManager = tokenCredentialManager);
     }
 
