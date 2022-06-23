@@ -46,6 +46,13 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     protected Boolean isPublic;
 
     /**
+     * Name of the resource group
+     */
+    @Getter
+    @Parameter(property = "resourceGroup")
+    protected String resourceGroup; // optional
+
+    /**
      * Name of the spring apps
      */
     @Getter

@@ -22,6 +22,7 @@ public class ConfigurationParser {
         final SpringCloudDeploymentConfig config = ConfigurationParser.toDeploymentConfig(rawConfig, springMojo);
         return SpringCloudAppConfig.builder()
             .appName(springMojo.getAppName())
+            .resourceGroup(springMojo.getResourceGroup())
             .clusterName(springMojo.getClusterName())
             .deployment(config)
             .runtimeVersion(config.getRuntimeVersion())
