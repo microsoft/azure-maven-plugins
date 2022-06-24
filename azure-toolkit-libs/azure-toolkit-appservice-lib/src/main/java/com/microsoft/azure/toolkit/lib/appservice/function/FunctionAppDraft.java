@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<FunctionApp, WebSiteBase> {
     private static final String CREATE_NEW_FUNCTION_APP = "isCreateNewFunctionApp";
@@ -170,21 +171,25 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     public com.azure.resourcemanager.appservice.models.FunctionApp updateResourceInAzure(@Nonnull WebSiteBase base) {
         com.azure.resourcemanager.appservice.models.FunctionApp remote = (com.azure.resourcemanager.appservice.models.FunctionApp) base;
         assert origin != null : "updating target is not specified.";
-        final Map<String, String> settingsToAdd = this.getAppSettings();
-        final Set<String> settingsToRemove = this.getAppSettingsToRemove();
-        final DiagnosticConfig newDiagnosticConfig = this.getDiagnosticConfig();
-        final Runtime newRuntime = this.getRuntime();
-        final AppServicePlan newPlan = this.getAppServicePlan();
-        final DockerConfiguration newDockerConfig = getDockerConfiguration();
+        final Map<String, String> oldAppSettings = origin.getAppSettings();
+        final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();
+        settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
+        final Set<String> settingsToRemove = this.ensureConfig().getAppSettingsToRemove().stream()
+                .filter(key -> oldAppSettings.containsValue(key)).collect(Collectors.toSet());
+        final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
+        final Runtime newRuntime = this.ensureConfig().getRuntime();
+        final AppServicePlan newPlan = this.ensureConfig().getPlan();
+        final DockerConfiguration newDockerConfig = this.ensureConfig().getDockerConfiguration();
         final Runtime oldRuntime = Objects.requireNonNull(origin.getRuntime());
         final AppServicePlan oldPlan = origin.getAppServicePlan();
 
         final boolean planModified = Objects.nonNull(newPlan) && !Objects.equals(newPlan, oldPlan);
         final boolean runtimeModified = !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
         final boolean dockerModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
-        boolean modified = planModified || runtimeModified || dockerModified ||
+        final boolean modified = planModified || runtimeModified || dockerModified ||
             MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove) || Objects.nonNull(newDiagnosticConfig);
-        final String funcExtVersion = Optional.ofNullable(settingsToAdd).map(map -> map.get(FUNCTIONS_EXTENSION_VERSION)).orElse(null);
+        final String funcExtVersion = Optional.ofNullable(settingsToAdd).map(map -> map.get(FUNCTIONS_EXTENSION_VERSION))
+                .orElseGet(() -> oldAppSettings.get(FUNCTIONS_EXTENSION_VERSION));
 
         if (modified) {
             final Update update = remote.update();
@@ -193,7 +198,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             Optional.ofNullable(settingsToAdd).ifPresent(update::withAppSettings);
             Optional.ofNullable(settingsToRemove).ifPresent(s -> s.forEach(update::withoutAppSetting));
             Optional.ofNullable(newDockerConfig).ifPresent(p -> updateDockerConfiguration(update, p));
-            Optional.ofNullable(newDiagnosticConfig).ifPresent(c -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, newDiagnosticConfig));
+            Optional.ofNullable(newDiagnosticConfig).ifPresent(c -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, c));
 
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating Azure Functions App({0})...", remote.name()));

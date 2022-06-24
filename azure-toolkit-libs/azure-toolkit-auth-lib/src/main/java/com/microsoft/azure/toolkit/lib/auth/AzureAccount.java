@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.azurecli.AzureCliAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.devicecode.DeviceCodeAccount;
+import com.microsoft.azure.toolkit.lib.auth.core.managedidentity.ManagedIdentityAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.oauth.OAuthAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.serviceprincipal.ServicePrincipalAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
@@ -36,13 +37,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -66,7 +61,11 @@ public class AzureAccount implements IAzureAccount {
     }
 
     public List<Account> accounts() {
-        return Flux.fromIterable(buildAccountMap().values()).map(Supplier::get).collectList().block();
+        return Flux.fromIterable(buildAccountMap(null).values()).map(Supplier::get).collectList().block();
+    }
+
+    public List<Account> initAccounts(AuthConfiguration config) {
+        return Flux.fromIterable(buildAccountMap(config).values()).map(Supplier::get).collectList().block();
     }
 
     public boolean isSignedIn() {
@@ -138,20 +137,20 @@ public class AzureAccount implements IAzureAccount {
 
             target = new SimpleAccount(accountEntity, credential);
         } else if (Arrays.asList(AuthType.VSCODE, AuthType.AZURE_CLI).contains(accountEntity.getType())) {
-            target = buildAccountMap().get(accountEntity.getType()).get();
+            target = buildAccountMap(null).get(accountEntity.getType()).get();
         } else {
             return Mono.error(new AzureToolkitAuthenticationException(String.format("login for auth type '%s' cannot be restored.", accountEntity.getType())));
         }
         return target.login().map(ac -> {
             if (ac.getEnvironment() != accountEntity.getEnvironment()) {
                 throw new AzureToolkitAuthenticationException(
-                    String.format("you have changed the azure cloud to '%s' for auth type: '%s' since last time you signed in.",
-                        AzureEnvironmentUtils.getCloudName(ac.getEnvironment()), accountEntity.getType()));
+                        String.format("you have changed the azure cloud to '%s' for auth type: '%s' since last time you signed in.",
+                                AzureEnvironmentUtils.getCloudName(ac.getEnvironment()), accountEntity.getType()));
             }
             if (!StringUtils.equalsIgnoreCase(ac.entity.getEmail(), accountEntity.getEmail())) {
                 throw new AzureToolkitAuthenticationException(
-                    String.format("you have changed the account from '%s' to '%s' since last time you signed in.",
-                        accountEntity.getEmail(), ac.entity.getEmail()));
+                        String.format("you have changed the account from '%s' to '%s' since last time you signed in.",
+                                accountEntity.getEmail(), ac.entity.getEmail()));
             }
             return ac;
         }).doOnSuccess(this::setAccount);
@@ -182,6 +181,7 @@ public class AzureAccount implements IAzureAccount {
             this.entity.setSubscriptions(accountEntity.getSubscriptions());
             this.credential = credential;
         }
+
         protected Mono<TokenCredentialManager> createTokenCredentialManager() {
             AzureEnvironment env = this.entity.getEnvironment();
             return RefreshTokenTokenCredentialManager.createTokenCredentialManager(env, getClientId(), createCredential());
@@ -226,7 +226,7 @@ public class AzureAccount implements IAzureAccount {
         if (auth.getType() == AuthType.SERVICE_PRINCIPAL) {
             targetAccount = new ServicePrincipalAccount(auth);
         } else {
-            Map<AuthType, Supplier<Account>> accountByType = buildAccountMap();
+            Map<AuthType, Supplier<Account>> accountByType = buildAccountMap(auth);
             if (!accountByType.containsKey(type)) {
                 return Mono.error(new LoginFailureException(String.format("Unsupported auth type '%s', supported values are: %s.",
                         type, accountByType.keySet().stream().map(Object::toString).map(StringUtils::lowerCase).collect(Collectors.joining(", ")))));
@@ -262,9 +262,9 @@ public class AzureAccount implements IAzureAccount {
                 .map(this::listRegions)
                 .sequential().collectList()
                 .map(regionSet -> regionSet.stream()
-                .flatMap(Collection::stream)
-                .filter(Utils.distinctByKey(region -> StringUtils.lowerCase(region.getLabel()))) // cannot distinct since Region doesn't impl equals
-                .collect(Collectors.toList())).block();
+                        .flatMap(Collection::stream)
+                        .filter(Utils.distinctByKey(region -> StringUtils.lowerCase(region.getLabel()))) // cannot distinct since Region doesn't impl equals
+                        .collect(Collectors.toList())).block();
     }
 
     private static Region toRegion(com.azure.core.management.Region region) {
@@ -280,9 +280,12 @@ public class AzureAccount implements IAzureAccount {
         }
     }
 
-    private static Map<AuthType, Supplier<Account>> buildAccountMap() {
+    private static Map<AuthType, Supplier<Account>> buildAccountMap(AuthConfiguration config) {
         Map<AuthType, Supplier<Account>> map = new LinkedHashMap<>();
         // SP is not there since it requires special constructor argument, and it is special(it requires complex auth configuration)
+        if (Objects.isNull(config) || config.getType() == AuthType.AUTO || config.getType() == AuthType.MANAGED_IDENTITY || Objects.isNull(config.getType())) {
+            map.put(AuthType.MANAGED_IDENTITY, () -> new ManagedIdentityAccount(config));
+        }
         map.put(AuthType.AZURE_CLI, AzureCliAccount::new);
         map.put(AuthType.OAUTH2, OAuthAccount::new);
         map.put(AuthType.DEVICE_CODE, DeviceCodeAccount::new);

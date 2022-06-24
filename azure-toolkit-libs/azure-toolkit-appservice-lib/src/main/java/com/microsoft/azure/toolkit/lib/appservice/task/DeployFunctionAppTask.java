@@ -68,7 +68,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
     }
 
     @Override
-    public AzureString getTitle() {
+    public AzureString getDescription() {
         return AzureString.format("Deploy artifact to function app %s", target.getName());
     }
 

@@ -30,7 +30,7 @@ public class AzureTask<T> extends OperationBase {
     private final Object project;
     private final boolean cancellable;
     @Nullable
-    private final AzureString title;
+    private final AzureString description;
     @Builder.Default
     private boolean backgroundable = true;
     @Nullable
@@ -125,11 +125,17 @@ public class AzureTask<T> extends OperationBase {
 
     public AzureTask(@Nullable Object project, @Nullable AzureString title, boolean cancellable, @Nullable Callable<T> body, @Nonnull Modality modality) {
         this.project = project;
-        this.title = title;
+        this.description = title;
         this.cancellable = cancellable;
         this.monitor = new DefaultMonitor();
         this.body = body;
         this.modality = modality;
+    }
+
+    @Nonnull
+    @Override
+    public String getId() {
+        return Optional.ofNullable(this.getDescription()).map(AzureString::getName).orElse(UNKNOWN_NAME);
     }
 
     @Nonnull

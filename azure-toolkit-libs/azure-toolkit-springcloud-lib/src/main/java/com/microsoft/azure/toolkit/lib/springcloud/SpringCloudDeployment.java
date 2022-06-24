@@ -119,7 +119,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
 
     @AzureOperation(
         name = "springcloud.wait_until_deployment_ready.deployment|app",
-        params = {"this.entity().getName()", "this.app.name()"},
+        params = {"this.getName()", "this.getParent().getName()"},
         type = AzureOperation.Type.SERVICE
     )
     public boolean waitUntilReady(int timeoutInSeconds) {

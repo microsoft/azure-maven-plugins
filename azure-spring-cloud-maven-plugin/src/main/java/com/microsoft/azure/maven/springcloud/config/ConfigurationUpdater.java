@@ -53,6 +53,7 @@ public class ConfigurationUpdater {
     public static Map<String, Object> toMap(AppRawConfig app) {
         return MapUtils.putAll(new LinkedHashMap<>(), new Map.Entry[]{
             new DefaultMapEntry<>("subscriptionId", app.getSubscriptionId()),
+            new DefaultMapEntry<>("resourceGroup", app.getResourceGroup()),
             new DefaultMapEntry<>("clusterName", app.getClusterName()),
             new DefaultMapEntry<>("appName", app.getAppName()),
             new DefaultMapEntry<>("isPublic", app.getIsPublic())

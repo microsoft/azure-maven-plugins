@@ -63,7 +63,7 @@ public class AzureMessage implements IAzureMessage {
         }
         final Throwable throwable = (Throwable) getPayload();
         final List<Operation> operations = this.getOperations();
-        final String failure = operations.stream().findFirst().map(Operation::getTitle)
+        final String failure = operations.stream().findFirst().map(Operation::getDescription)
             .map(azureString -> "Failed to " + this.decorateText(azureString, azureString::getString)).orElse("Failed to proceed");
         final String cause = Optional.ofNullable(this.getCause(throwable)).map(c -> ", " + c).orElse("");
         final String tips = Optional.ofNullable(this.getExceptionTips(throwable)).map(c -> System.lineSeparator() + c).orElse("");
@@ -79,7 +79,7 @@ public class AzureMessage implements IAzureMessage {
     }
 
     protected String getDetailItem(Operation o) {
-        return Optional.ofNullable(o.getTitle())
+        return Optional.ofNullable(o.getDescription())
             .map(t -> decorateText(t, t::getString))
             .map(StringUtils::capitalize)
             .map(t -> String.format("● %s", t))
@@ -154,7 +154,7 @@ public class AzureMessage implements IAzureMessage {
         final Set<Object> seen = ConcurrentHashMap.newKeySet();
         final List<Operation> operations = Streams.concat(contextOperations.stream(), exceptionOperations.stream())
             .filter(t -> seen.add(t.getId()))
-            .filter(o -> Objects.nonNull(o.getTitle()))
+            .filter(o -> Objects.nonNull(o.getDescription()))
             .collect(Collectors.toList());
         return Lists.reverse(operations);
     }
