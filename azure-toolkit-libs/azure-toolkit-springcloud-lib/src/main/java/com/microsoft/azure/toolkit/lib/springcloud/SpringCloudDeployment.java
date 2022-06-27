@@ -26,7 +26,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
@@ -178,10 +177,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
 
     @Nonnull
     public List<DeploymentInstance> getInstances() {
-        if (Objects.nonNull(this.getRemote())) {
-            return this.getRemote().instances();
-        }
-        return new ArrayList<>();
+        return Optional.ofNullable(this.getRemote()).map(SpringAppDeployment::instances).orElse(Collections.emptyList());
     }
 
     @Nullable
