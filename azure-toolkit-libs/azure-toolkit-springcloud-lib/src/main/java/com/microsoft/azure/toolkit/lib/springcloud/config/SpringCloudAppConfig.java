@@ -56,7 +56,7 @@ public class SpringCloudAppConfig {
         final SpringCloudDeploymentConfig deploymentConfig = SpringCloudDeploymentConfig.fromDeployment(deployment);
         final SpringCloudAppConfig appConfig = SpringCloudAppConfig.builder().deployment(deploymentConfig).build();
         appConfig.setSubscriptionId(app.getSubscriptionId());
-        appConfig.setResourceGroup(appConfig.getResourceGroup());
+        appConfig.setResourceGroup(app.getParent().getResourceGroupName());
         appConfig.setClusterName(app.getParent().getName());
         appConfig.setAppName(app.getName());
         appConfig.setIsPublic(Objects.equals(app.isPublicEndpointEnabled(), true));
