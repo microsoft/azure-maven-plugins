@@ -29,7 +29,7 @@ public class RunMojo extends AbstractFunctionMojo {
     protected static final String RUN_FUNCTIONS_FAILURE = "Failed to run Azure Functions. Please checkout console output.";
     protected static final String RUNTIME_NOT_FOUND = "Azure Functions Core Tools not found. " +
             "Please go to https://aka.ms/azfunc-install to install Azure Functions Core Tools first.";
-    private static final String STAGE_DIR_FOUND = "Azure Function App's staging directory found at: ";
+    private static final String STAGE_DIR_FOUND = "Function App's staging directory found at: ";
     private static final String STAGE_DIR_NOT_FOUND =
             "Stage directory not found. Please run mvn package first.";
     private static final String RUNTIME_FOUND = "Azure Functions Core Tools found.";
