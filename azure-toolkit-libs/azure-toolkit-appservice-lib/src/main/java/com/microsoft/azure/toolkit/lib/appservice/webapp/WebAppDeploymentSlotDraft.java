@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
+import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -139,7 +140,7 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
     )
     public DeploymentSlot updateResourceInAzure(@Nonnull WebSiteBase base) {
         DeploymentSlot remote = (DeploymentSlot) base;
-        final Map<String, String> oldAppSettings = origin.getAppSettings();
+        final Map<String, String> oldAppSettings = Utils.normalizeAppSettings(remote.getAppSettings());
         final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();
         settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
         final Set<String> settingsToRemove = this.ensureConfig().getAppSettingsToRemove().stream()
@@ -148,8 +149,7 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
         final DockerConfiguration newDockerConfig = this.ensureConfig().getDockerConfiguration();
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
 
-
-        final Runtime oldRuntime = Objects.requireNonNull(origin.getRuntime());
+        final Runtime oldRuntime = AppServiceUtils.getRuntimeFromAppService(remote);
         boolean isRuntimeModified =  !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
         boolean isDockerConfigurationModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
         boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
