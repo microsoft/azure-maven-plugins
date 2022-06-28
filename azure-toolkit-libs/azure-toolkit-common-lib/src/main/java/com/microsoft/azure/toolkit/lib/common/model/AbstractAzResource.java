@@ -249,7 +249,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         log.debug("[{}:{}]:delete->this.setStatus(DELETED)", this.module.getName(), this.getName());
         this.setStatus(Status.DELETED);
         log.debug("[{}:{}]:delete->module.deleteResourceFromLocal({})", this.module.getName(), this.getName(), this.getName());
-        this.getModule().deleteResourceFromLocal(this.getName());
+        this.getModule().deleteResourceFromLocal(this.getId());
         final ResourceId id = ResourceId.fromString(this.getId());
         final ResourceGroup resourceGroup = this.getResourceGroup();
         if (Objects.isNull(id.parent()) && Objects.nonNull(resourceGroup)) { // resource group manages top resources only

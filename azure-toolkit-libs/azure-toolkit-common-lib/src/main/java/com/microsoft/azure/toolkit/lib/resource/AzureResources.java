@@ -51,6 +51,12 @@ public class AzureResources extends AbstractAzService<ResourcesServiceSubscripti
         return new ResourcesServiceSubscription(remote, this);
     }
 
+    @Nonnull
+    @Override
+    public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
+        return String.format("/subscriptions/%s", resourceName);
+    }
+
     @Nullable
     public <E> E getById(@Nonnull String id) {
         ResourceId resourceId = ResourceId.fromString(id);

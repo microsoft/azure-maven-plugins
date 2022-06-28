@@ -86,8 +86,7 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
     @Nonnull
     @Override
     public String toResourceId(@Nonnull String resourceName, String resourceGroup) {
-        final String rg = StringUtils.firstNonBlank(resourceGroup, AzResource.RESOURCE_GROUP_PLACEHOLDER);
-        return String.format("/subscriptions/%s/resourceGroups/%s/providers/%s", resourceName, rg, this.getName());
+        return String.format("/subscriptions/%s/resourceGroups/%s/providers/%s", resourceName, AzResource.RESOURCE_GROUP_PLACEHOLDER, this.getName());
     }
 
     @Nullable

@@ -133,16 +133,17 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             AzureMessager.getMessager().error(t);
             return;
         }
-        final Map<String, T> loadedResources = loaded.map(this::newResource).collect(Collectors.toMap(AbstractAzResource::getName, r -> r));
+        final Map<String, T> loadedResources = loaded.map(this::newResource).collect(Collectors.toMap(r -> r.getId().toLowerCase(), r -> r));
         this.setResources(loadedResources);
     }
 
     private void setResources(Map<String, T> loadedResources) {
         synchronized (this.syncTimeRef) {
             final Set<String> localResources = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
-                .map(AbstractAzResource::getName).collect(Collectors.toSet());
+                .map(AbstractAzResource::getId).map(String::toLowerCase).collect(Collectors.toSet());
             final Set<String> creating = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
-                .filter(r -> AzResource.Status.CREATING.equals(r.getStatus())).map(AbstractAzResource::getName).collect(Collectors.toSet());
+                .filter(r -> AzResource.Status.CREATING.equals(r.getStatus()))
+                .map(AbstractAzResource::getId).map(String::toLowerCase).collect(Collectors.toSet());
             log.debug("[{}]:reload().creating={}", this.name, creating);
             final Sets.SetView<String> refreshed = Sets.intersection(localResources, loadedResources.keySet());
             log.debug("[{}]:reload().refreshed={}", this.name, refreshed);
@@ -152,14 +153,14 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             log.debug("[{}]:reload().added={}", this.name, added);
 
             log.debug("[{}]:reload.refreshed->resource.setRemote", this.name);
-            refreshed.forEach(name -> this.resources.get(name).ifPresent(r -> r.setRemote(loadedResources.get(name).getRemote())));
+            refreshed.forEach(id -> this.resources.get(id).ifPresent(r -> r.setRemote(loadedResources.get(id).getRemote())));
             log.debug("[{}]:reload.deleted->deleteResourceFromLocal", this.name);
-            deleted.forEach(name -> this.resources.get(name).ifPresent(r -> {
+            deleted.forEach(id -> this.resources.get(id).ifPresent(r -> {
                 r.setRemote(null);
                 r.deleteFromLocal();
             }));
             log.debug("[{}]:reload.added->addResourceToLocal", this.name);
-            added.forEach(name -> this.addResourceToLocal(name, loadedResources.get(name), true));
+            added.forEach(id -> this.addResourceToLocal(id, loadedResources.get(id), true));
             this.syncTimeRef.set(System.currentTimeMillis());
             this.syncTimeRef.notifyAll();
         }
@@ -189,7 +190,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             return null;
         }
         Azure.az(IAzureAccount.class).account();
-        if (!this.resources.containsKey(name)) {
+        final String id = this.toResourceId(name, resourceGroup).toLowerCase();
+        if (!this.resources.containsKey(id)) {
             R remote = null;
             try {
                 log.debug("[{}]:get({}, {})->loadResourceFromAzure()", this.name, name, resourceGroup);
@@ -206,15 +208,15 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             }
             if (Objects.isNull(remote)) {
                 log.debug("[{}]:get({}, {})->addResourceToLocal({}, null)", this.name, name, resourceGroup, name);
-                this.addResourceToLocal(name, null, true);
+                this.addResourceToLocal(id, null, true);
             } else {
                 final T resource = newResource(remote);
                 log.debug("[{}]:get({}, {})->addResourceToLocal({}, resource)", this.name, name, resourceGroup, name);
-                this.addResourceToLocal(name, resource, true);
+                this.addResourceToLocal(id, resource, true);
             }
         }
-        log.debug("[{}]:get({}, {})->this.resources.get({})", this.name, name, resourceGroup, name);
-        return this.resources.get(name).orElse(null);
+        log.debug("[{}]:get({}, {})->this.resources.get({})", this.name, id, resourceGroup, name);
+        return this.resources.get(id).orElse(null);
     }
 
     @Nullable
@@ -254,10 +256,11 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public T getOrInit(@Nonnull String name, @Nullable String resourceGroup) {
         log.debug("[{}]:getOrDraft({}, {})", this.name, name, resourceGroup);
         synchronized (this.syncTimeRef) {
-            return this.resources.getOrDefault(name, Optional.empty()).orElseGet(() -> {
+            final String id = this.toResourceId(name, resourceGroup);
+            return this.resources.getOrDefault(id, Optional.empty()).orElseGet(() -> {
                 final T resource = this.newResource(name, resourceGroup);
-                log.debug("[{}]:get({}, {})->addResourceToLocal({}, resource)", this.name, name, resourceGroup, name);
-                this.addResourceToLocal(name, resource);
+                log.debug("[{}]:get({}, {})->addResourceToLocal({}, resource)", this.name, id, resourceGroup, name);
+                this.addResourceToLocal(id, resource);
                 return resource;
             });
         }
@@ -290,7 +293,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             final T resource = cast(draft);
             // this will notify azure explorer to show a draft resource first
             log.debug("[{}]:create->addResourceToLocal({})", this.name, resource);
-            this.addResourceToLocal(resource.getName(), resource);
+            this.addResourceToLocal(resource.getId(), resource);
             final ResourceId id = ResourceId.fromString(resource.getId());
             final ResourceGroup resourceGroup = resource.getResourceGroup();
             if (Objects.isNull(id.parent()) && Objects.nonNull(resourceGroup) && !(resource instanceof ResourceGroup)) {
@@ -345,11 +348,12 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nullable
-    T deleteResourceFromLocal(@Nonnull String name, boolean... silent) {
-        log.debug("[{}]:deleteResourceFromLocal({})", this.name, name);
-        log.debug("[{}]:deleteResourceFromLocal->this.resources.remove({})", this.name, name);
+    T deleteResourceFromLocal(@Nonnull String id, boolean... silent) {
+        log.debug("[{}]:deleteResourceFromLocal({})", this.name, id);
+        log.debug("[{}]:deleteResourceFromLocal->this.resources.remove({})", this.name, id);
         synchronized (this.syncTimeRef) {
-            final Optional<T> removed = this.resources.remove(name);
+            id = id.toLowerCase();
+            final Optional<T> removed = this.resources.remove(id);
             if (Objects.nonNull(removed) && removed.isPresent() && (silent.length == 0 || !silent[0])) {
                 log.debug("[{}]:deleteResourceFromLocal->fireResourcesChangedEvent()", this.name);
                 fireEvents.debounce();
@@ -358,14 +362,15 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         }
     }
 
-    private void addResourceToLocal(@Nonnull String name, @Nullable T resource, boolean... silent) {
-        log.debug("[{}]:addResourceToLocal({}, {})", this.name, name, resource);
+    private void addResourceToLocal(@Nonnull String id, @Nullable T resource, boolean... silent) {
+        log.debug("[{}]:addResourceToLocal({}, {})", this.name, id, resource);
         synchronized (this.syncTimeRef) {
-            final Optional<T> oldResource = this.resources.getOrDefault(name, Optional.empty());
+            id = id.toLowerCase();
+            final Optional<T> oldResource = this.resources.getOrDefault(id, Optional.empty());
             final Optional<T> newResource = Optional.ofNullable(resource);
             if (!oldResource.isPresent()) {
-                log.debug("[{}]:addResourceToLocal->this.resources.put({}, {})", this.name, name, resource);
-                this.resources.put(name, newResource);
+                log.debug("[{}]:addResourceToLocal->this.resources.put({}, {})", this.name, id, resource);
+                this.resources.put(id, newResource);
                 if (newResource.isPresent() && (silent.length == 0 || !silent[0])) {
                     log.debug("[{}]:addResourceToLocal->fireResourcesChangedEvent()", this.name);
                     fireEvents.debounce();
