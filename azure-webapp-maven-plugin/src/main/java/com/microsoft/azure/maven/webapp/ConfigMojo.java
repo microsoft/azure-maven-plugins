@@ -520,9 +520,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
         }
         options.addAll(javaOrDockerWebapps);
         return new CustomTextIoStringListReader<WebAppOption>(TextIOUtils::getTextTerminal, null)
-                .withCustomPrompt(String.format("Please choose a %s Web App: ", webAppType))
+                .withCustomPrompt(String.format("Please choose a %sWeb App: ", webAppType))
                 .withNumberedPossibleValues(options)
-                .read(String.format("%s Web Apps in subscription %s:", webAppType, TextUtils.blue(targetSubscription.getName())));
+                .read(String.format("%sWeb Apps in subscription %s:", webAppType, TextUtils.blue(targetSubscription.getName())));
     }
 
     private WebAppConfiguration getConfigurationFromExisting(WebApp webapp,
@@ -570,11 +570,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final boolean isContainer = !Utils.isJarPackagingProject(packaging);
         final boolean isDockerOnly = Utils.isPomPackagingProject(packaging);
         if (isDockerOnly) {
-            return "Docker";
+            return "Docker ";
         } else if (isContainer) {
-            return "Web Container";
+            return "";
         } else {
-            return "Java SE";
+            return "Java SE ";
         }
     }
 }
