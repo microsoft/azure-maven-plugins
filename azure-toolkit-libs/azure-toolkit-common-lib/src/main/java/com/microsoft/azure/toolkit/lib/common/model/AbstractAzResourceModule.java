@@ -25,6 +25,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import com.microsoft.azure.toolkit.lib.resource.GenericResource;
 import com.microsoft.azure.toolkit.lib.resource.GenericResourceModule;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroupModule;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -183,7 +184,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nullable
     @Override
-    public T get(@Nullable String name, @Nullable String resourceGroup) {
+    public T get(@Nonnull String name, @Nullable String rgName) {
+        final String resourceGroup = normalizeResourceGroupName(name, rgName);
         log.debug("[{}]:get({}, {})", this.name, name, resourceGroup);
         if (StringUtils.isBlank(name) || this.parent.isDraftForCreating()) {
             log.debug("[{}]:get->parent.isDraftForCreating()=true||isBlank(name)=true", this.name);
@@ -212,7 +214,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             } else {
                 final T resource = newResource(remote);
                 log.debug("[{}]:get({}, {})->addResourceToLocal({}, resource)", this.name, name, resourceGroup, name);
-                this.addResourceToLocal(id, resource, true);
+                this.addResourceToLocal(resource.getId(), resource, true);
             }
         }
         log.debug("[{}]:get({}, {})->this.resources.get({})", this.name, id, resourceGroup, name);
@@ -227,14 +229,16 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Override
-    public boolean exists(@Nonnull String name, @Nullable String resourceGroup) {
+    public boolean exists(@Nonnull String name, @Nullable String rgName) {
+        final String resourceGroup = normalizeResourceGroupName(name, rgName);
         log.debug("[{}]:exists({}, {})", this.name, name, resourceGroup);
         final T resource = this.get(name, resourceGroup);
         return Objects.nonNull(resource) && resource.exists();
     }
 
     @Override
-    public void delete(@Nonnull String name, @Nullable String resourceGroup) {
+    public void delete(@Nonnull String name, @Nullable String rgName) {
+        final String resourceGroup = normalizeResourceGroupName(name, rgName);
         log.debug("[{}]:delete({}, {})", this.name, name, resourceGroup);
         log.debug("[{}]:delete->this.get({}, {})", this.name, name, resourceGroup);
         final T resource = this.get(name, resourceGroup);
@@ -247,14 +251,16 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
-    public T getOrDraft(@Nonnull String name, @Nullable String resourceGroup) {
+    public T getOrDraft(@Nonnull String name, @Nullable String rgName) {
+        final String resourceGroup = normalizeResourceGroupName(name, rgName);
         log.debug("[{}]:getOrDraft({}, {})", this.name, name, resourceGroup);
         return Optional.ofNullable(this.get(name, resourceGroup)).orElseGet(() -> this.cast(this.newDraftForCreate(name, resourceGroup)));
     }
 
     @Nonnull
-    public T getOrInit(@Nonnull String name, @Nullable String resourceGroup) {
-        log.debug("[{}]:getOrDraft({}, {})", this.name, name, resourceGroup);
+    public T getOrInit(@Nonnull String name, @Nullable String rgName) {
+        final String resourceGroup = normalizeResourceGroupName(name, rgName);
+        log.debug("[{}]:getOrDraft({}, {})", this.name, name, rgName);
         synchronized (this.syncTimeRef) {
             final String id = this.toResourceId(name, resourceGroup);
             return this.resources.getOrDefault(id, Optional.empty()).orElseGet(() -> {
@@ -267,7 +273,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
-    public <D extends AzResource.Draft<T, R>> D updateOrCreate(@Nonnull String name, @Nullable String resourceGroup) {
+    public <D extends AzResource.Draft<T, R>> D updateOrCreate(@Nonnull String name, @Nullable String rgName) {
+        final String resourceGroup = normalizeResourceGroupName(name, rgName);
         log.debug("[{}]:updateOrCreate({}, {})", this.name, name, resourceGroup);
         final T resource = this.get(name, resourceGroup);
         if (Objects.nonNull(resource)) {
@@ -277,7 +284,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
-    public <D extends AzResource.Draft<T, R>> D create(@Nonnull String name, @Nullable String resourceGroup) {
+    public <D extends AzResource.Draft<T, R>> D create(@Nonnull String name, @Nullable String rgName) {
+        final String resourceGroup = normalizeResourceGroupName(name, rgName);
         log.debug("[{}]:create({}, {})", this.name, name, resourceGroup);
         // TODO: use generics to avoid class casting
         log.debug("[{}]:create->newDraftForCreate({}, {})", this.name, name, resourceGroup);
@@ -445,8 +453,21 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         }
     }
 
+    private String normalizeResourceGroupName(String name, @Nullable String rgName) {
+        rgName = StringUtils.firstNonBlank(rgName, this.getParent().getResourceGroupName());
+        if (StringUtils.isBlank(rgName) || StringUtils.equalsIgnoreCase(rgName, RESOURCE_GROUP_PLACEHOLDER)) {
+            if (this instanceof ResourceGroupModule) {
+                return name;
+            } else if (this instanceof AzService) {
+                return RESOURCE_GROUP_PLACEHOLDER;
+            }
+            throw new IllegalArgumentException("Resource Group name is required for " + this.getResourceTypeName());
+        }
+        return rgName;
+    }
+
     @Nonnull
-    protected AzResource.Draft<T, R> newDraftForCreate(@Nonnull String name, @Nullable String resourceGroup) {
+    protected AzResource.Draft<T, R> newDraftForCreate(@Nonnull String name, @Nullable String rgName) {
         throw new AzureToolkitRuntimeException("not supported");
     }
 
