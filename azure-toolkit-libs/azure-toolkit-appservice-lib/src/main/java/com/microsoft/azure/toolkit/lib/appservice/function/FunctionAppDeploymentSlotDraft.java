@@ -119,7 +119,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
             AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, newDiagnosticConfig);
         }
         final IAzureMessager messager = AzureMessager.getMessager();
-        messager.info(AzureString.format("Start creating Azure Functions app deployment slot ({0})...", name));
+        messager.info(AzureString.format("Start creating Function App deployment slot ({0})...", name));
         // As we can not update runtime for deployment slot during creation, so call update resource here
         FunctionDeploymentSlot slot = (FunctionDeploymentSlot) Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
         final boolean isRuntimeModified = Objects.nonNull(this.getRuntime()) || Objects.nonNull(this.getDockerConfiguration());
@@ -127,7 +127,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
             final FunctionDeploymentSlot slotToUpdate = slot;
             slot = (FunctionDeploymentSlot) Objects.requireNonNull(this.doModify(() -> updateResourceInAzure(slotToUpdate), Status.CREATING));
         }
-        messager.success(AzureString.format("Azure Functions app deployment slot ({0}) is successfully created", name));
+        messager.success(AzureString.format("Function App deployment slot ({0}) is successfully created", name));
         return slot;
     }
 
@@ -166,9 +166,9 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
             Optional.ofNullable(newDiagnosticConfig)
                     .ifPresent(diagnosticConfig -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, diagnosticConfig));
             final IAzureMessager messager = AzureMessager.getMessager();
-            messager.info(AzureString.format("Start updating Azure Functions app deployment slot({0})...", remote.name()));
+            messager.info(AzureString.format("Start updating Function App deployment slot({0})...", remote.name()));
             remote = update.apply();
-            messager.success(AzureString.format("Azure Functions app deployment slot({0}) is successfully updated", remote.name()));
+            messager.success(AzureString.format("Function app deployment slot({0}) is successfully updated", remote.name()));
         }
         return remote;
     }
