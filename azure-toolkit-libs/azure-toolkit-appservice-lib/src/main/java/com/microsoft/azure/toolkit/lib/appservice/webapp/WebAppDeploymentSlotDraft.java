@@ -33,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -142,9 +143,12 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
         DeploymentSlot remote = (DeploymentSlot) base;
         final Map<String, String> oldAppSettings = Utils.normalizeAppSettings(remote.getAppSettings());
         final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();
-        settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
-        final Set<String> settingsToRemove = this.ensureConfig().getAppSettingsToRemove().stream()
-                .filter(key -> oldAppSettings.containsValue(key)).collect(Collectors.toSet());
+        if (ObjectUtils.allNotNull(oldAppSettings, settingsToAdd)) {
+            settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
+        }
+        final Set<String> settingsToRemove = Optional.ofNullable(this.ensureConfig().getAppSettingsToRemove())
+                .map(set -> set.stream().filter(key -> oldAppSettings.containsValue(key)).collect(Collectors.toSet()))
+                .orElse(Collections.emptySet());
         final Runtime newRuntime = this.ensureConfig().getRuntime();
         final DockerConfiguration newDockerConfig = this.ensureConfig().getDockerConfiguration();
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();

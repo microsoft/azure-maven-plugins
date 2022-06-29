@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -138,9 +139,12 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebS
         assert origin != null : "updating target is not specified.";
         final Map<String, String> oldAppSettings = origin.getAppSettings();
         final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();
-        settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
-        final Set<String> settingsToRemove = this.ensureConfig().getAppSettingsToRemove().stream()
-                .filter(key -> oldAppSettings.containsValue(key)).collect(Collectors.toSet());
+        if (ObjectUtils.allNotNull(oldAppSettings, settingsToAdd)) {
+            settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
+        }
+        final Set<String> settingsToRemove = Optional.ofNullable(this.ensureConfig().getAppSettingsToRemove())
+                .map(set -> set.stream().filter(key -> oldAppSettings.containsValue(key)).collect(Collectors.toSet()))
+                .orElse(Collections.emptySet());
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
         final Runtime newRuntime = this.ensureConfig().getRuntime();
         final AppServicePlan newPlan = this.ensureConfig().getPlan();

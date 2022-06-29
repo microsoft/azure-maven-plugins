@@ -34,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -173,9 +174,12 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         assert origin != null : "updating target is not specified.";
         final Map<String, String> oldAppSettings = origin.getAppSettings();
         final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();
-        settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
-        final Set<String> settingsToRemove = this.ensureConfig().getAppSettingsToRemove().stream()
-                .filter(key -> oldAppSettings.containsValue(key)).collect(Collectors.toSet());
+        if (ObjectUtils.allNotNull(oldAppSettings, settingsToAdd)) {
+            settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
+        }
+        final Set<String> settingsToRemove = Optional.ofNullable(this.ensureConfig().getAppSettingsToRemove())
+                .map(set -> set.stream().filter(key -> oldAppSettings.containsValue(key)).collect(Collectors.toSet()))
+                .orElse(Collections.emptySet());
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
         final Runtime newRuntime = this.ensureConfig().getRuntime();
         final AppServicePlan newPlan = this.ensureConfig().getPlan();
