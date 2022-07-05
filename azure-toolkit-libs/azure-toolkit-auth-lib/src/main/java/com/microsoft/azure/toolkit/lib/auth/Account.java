@@ -53,7 +53,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Getter
@@ -281,9 +280,10 @@ public abstract class Account implements IAccount {
         @Override
         public Mono<AccessToken> getToken(TokenRequestContext request) {
             request.setTenantId(StringUtils.firstNonBlank(request.getTenantId(), this.tenantId));
-            final String resource = ScopeUtil.scopesToResource(request.getScopes());
-            final Function<String, SimpleTokenCache> func = (ignore) -> new SimpleTokenCache(() -> defaultCredential.getToken(request));
-            return resourceTokenCache.computeIfAbsent(resource, func).getToken();
+            // final String resource = ScopeUtil.scopesToResource(request.getScopes());
+            // final Function<String, SimpleTokenCache> func = (ignore) -> new SimpleTokenCache(() -> defaultCredential.getToken(request));
+            // return resourceTokenCache.computeIfAbsent(resource, func).getToken();
+            return defaultCredential.getToken(request);
         }
     }
 }
