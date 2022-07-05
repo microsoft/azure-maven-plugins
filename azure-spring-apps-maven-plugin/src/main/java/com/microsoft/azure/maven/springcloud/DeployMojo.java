@@ -68,7 +68,7 @@ public class DeployMojo extends AbstractMojoBase {
     @AzureOperation(name = "springcloud.deploy_mojo", type = AzureOperation.Type.ACTION)
     protected void doExecute() throws Throwable {
         // set up account and select subscription here in `deploy`, since in some cases, `config` will not need to sign in
-        getAzureAccount();
+        loginAzure();
         selectSubscription();
 
         // Init spring clients, and prompt users to confirm

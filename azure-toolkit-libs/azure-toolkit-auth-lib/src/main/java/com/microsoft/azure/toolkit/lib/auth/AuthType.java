@@ -3,11 +3,12 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.auth.model;
+package com.microsoft.azure.toolkit.lib.auth;
 
-import com.microsoft.azure.toolkit.lib.auth.exception.InvalidConfigurationException;
+import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -26,6 +27,7 @@ public enum AuthType {
     DEVICE_CODE,
     OAUTH2;
 
+    @Nonnull
     public static AuthType parseAuthType(String type) throws InvalidConfigurationException {
         if (StringUtils.isBlank(type)) {
             return AUTO;

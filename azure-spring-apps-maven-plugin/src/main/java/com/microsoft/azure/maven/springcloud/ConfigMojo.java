@@ -13,7 +13,7 @@ import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
+import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -137,13 +137,13 @@ public class ConfigMojo extends AbstractMojoBase {
             }
             // select subscription in spring apps -> config is different from other goals since it is prompted after select project.
             // set up account and select subscription here
-            getAzureAccount();
+            loginAzure();
             promptAndSelectSubscription();
 
             selectAppCluster();
             configCommon();
             confirmAndSave();
-        } catch (IOException | InvalidConfigurationException | UnsupportedOperationException | MavenDecryptException | LoginFailureException e) {
+        } catch (IOException | InvalidConfigurationException | UnsupportedOperationException | MavenDecryptException | AzureToolkitAuthenticationException e) {
             throw new AzureExecutionException(e.getMessage());
         } finally {
             if (this.wrapper != null) {
@@ -362,7 +362,7 @@ public class ConfigMojo extends AbstractMojoBase {
         final Subscription select = this.wrapper.handleSelectOne("select-subscriptions", subscriptions,
             CollectionUtils.isNotEmpty(selectedSubscriptions) ? selectedSubscriptions.get(0) : null,
             t -> String.format("%s (%s)", t.getName(), t.getId()));
-        com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account().selectSubscription(Collections.singletonList(select.getId()));
+        com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account().setSelectedSubscriptions(Collections.singletonList(select.getId()));
         return select.getId();
     }
 

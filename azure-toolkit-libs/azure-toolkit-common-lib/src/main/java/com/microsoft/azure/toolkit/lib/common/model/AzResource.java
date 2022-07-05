@@ -83,7 +83,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
     default String getPortalUrl() {
         final IAccount account = Azure.az(IAzureAccount.class).account();
         Subscription subscription = account.getSubscription(this.getSubscriptionId());
-        return String.format("%s/#@%s/resource%s", account.portalUrl(), subscription.getTenantId(), this.getId());
+        return String.format("%s/#@%s/resource%s", account.getPortalUrl(), subscription.getTenantId(), this.getId());
     }
 
     // ***** START! TO BE REMOVED ***** //

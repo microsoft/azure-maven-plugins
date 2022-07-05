@@ -3,13 +3,13 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.auth.model;
+package com.microsoft.azure.toolkit.lib.auth.cli;
 
 import com.azure.core.management.AzureEnvironment;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
+import com.microsoft.azure.toolkit.lib.auth.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,7 +19,7 @@ import java.util.Map;
 @Setter
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AzureCliSubscription extends Subscription {
+class AzureCliSubscription extends Subscription {
     @JsonProperty
     private String homeTenantId;
     @JsonProperty
