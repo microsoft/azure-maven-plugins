@@ -85,14 +85,12 @@ public abstract class Account implements IAccount {
     protected abstract TokenCredential buildDefaultTokenCredential();
 
     public TokenCredential getTokenCredential(String subscriptionId) {
-        requireLoggedIn();
         final Subscription subscription = getSubscription(subscriptionId);
         return getTenantTokenCredential(subscription.getTenantId());
     }
 
     @Nonnull
     public TokenCredential getTenantTokenCredential(@Nonnull String tenantId) {
-        requireLoggedIn();
         if (StringUtils.isBlank(tenantId)) {
             throw new IllegalArgumentException("tenant id is required to retrieve credential.");
         } else {
@@ -131,13 +129,6 @@ public abstract class Account implements IAccount {
         }
     }
 
-    private void requireLoggedIn() {
-        if (!this.isLoggedIn()) {
-            final String cause = "You are not signed-in or there are no subscriptions in your current Account.";
-            throw new AzureToolkitRuntimeException(cause, IAccountActions.AUTHENTICATE, IAccountActions.TRY_AZURE);
-        }
-    }
-
     @CacheEvict(CacheEvict.ALL)
         // evict all caches on signing out
     void logout() {
@@ -170,7 +161,10 @@ public abstract class Account implements IAccount {
 
     @Nonnull
     public List<Subscription> getSubscriptions() {
-        requireLoggedIn();
+        if (!this.isLoggedIn()) {
+            final String cause = "You are not signed-in or there are no subscriptions in your current Account.";
+            throw new AzureToolkitRuntimeException(cause, IAccountActions.AUTHENTICATE, IAccountActions.TRY_AZURE);
+        }
         return new ArrayList<>(Optional.ofNullable(this.subscriptions).orElse(Collections.emptyList()));
     }
 
