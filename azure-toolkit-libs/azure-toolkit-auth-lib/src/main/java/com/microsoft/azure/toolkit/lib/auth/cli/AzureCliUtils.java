@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.auth.util;
+package com.microsoft.azure.toolkit.lib.auth.cli;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,8 +11,7 @@ import com.github.zafarkhaja.semver.Version;
 import com.google.gson.JsonObject;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
-import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
-import com.microsoft.azure.toolkit.lib.auth.model.AzureCliSubscription;
+import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.utils.CommandUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
@@ -31,19 +30,24 @@ import static com.microsoft.azure.toolkit.lib.common.utils.Utils.distinctByKey;
 public class AzureCliUtils {
     private static final String MIN_VERSION = "2.11.0";
 
-    public static void ensureMinimumCliVersion() {
+    public static boolean isAppropriateCliInstalled() {
         try {
             final JsonObject result = JsonUtils.getGson().fromJson(AzureCliUtils.executeAzureCli("az version --output json"), JsonObject.class);
             final String cliVersion = result.get("azure-cli").getAsString();
             // we require at least azure cli version 2.11.0
-            if (Version.valueOf(cliVersion).lessThan(Version.valueOf(MIN_VERSION))) {
-                throw new AzureToolkitAuthenticationException(String.format("your Azure Cli version '%s' is too old, " +
-                        "you need to upgrade your CLI with 'az upgrade'.", cliVersion));
-            }
+            return Version.valueOf(cliVersion).greaterThanOrEqualTo(Version.valueOf(MIN_VERSION));
         } catch (NullPointerException | NumberFormatException ex) {
-            throw new AzureToolkitAuthenticationException(
-                    String.format("Azure Cli is not ready, " +
-                            "please make sure your Azure Cli is installed and signed-in, the detailed error is : %s", ex.getMessage()));
+            return false;
+        }
+    }
+
+    public static boolean isSignedIn() {
+        try {
+            final JsonObject result = JsonUtils.getGson().fromJson(AzureCliUtils.executeAzureCli("az account show --output json"), JsonObject.class);
+            final String subscriptionId = result.get("id").getAsString();
+            return StringUtils.isNotBlank(subscriptionId);
+        } catch (Throwable ex) {
+            return false;
         }
     }
 
@@ -79,7 +83,7 @@ public class AzureCliUtils {
             return CommandUtils.exec(command, env);
         } catch (IOException e) {
             throw new AzureToolkitAuthenticationException(
-                    String.format("execute Azure Cli command '%s' failed due to error: %s.", command, e.getMessage()));
+                String.format("execute Azure Cli command '%s' failed due to error: %s.", command, e.getMessage()));
         }
     }
 }

@@ -100,6 +100,7 @@ public class Region implements ExpandableParameter {
         return values;
     }
 
+    @Nonnull
     public static Region fromName(@Nonnull String value) {
         return values().stream()
                 .filter(region -> StringUtils.equalsAnyIgnoreCase(value, region.name, region.label))

@@ -5,23 +5,24 @@
 
 package com.microsoft.azure.maven.appservice;
 
-import com.azure.core.management.AzureEnvironment;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microsoft.azure.maven.AbstractAzureMojo;
+import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
+import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
+import lombok.Getter;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.IOException;
@@ -36,7 +37,6 @@ import java.util.Properties;
  */
 public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     protected static final String MAVEN_PLUGIN_POSTFIX = "-maven-plugin";
-    protected static final String PORTAL_URL_PATTERN = "%s/#@/resource%s";
 
     /**
      * Name of the resource group. It will be created if it doesn't exist.
@@ -84,6 +84,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
      * }
      * </pre>
      */
+    @Getter
     @JsonProperty("deploymentSlot")
     @Parameter(alias = "deploymentSlot")
     protected DeploymentSlotSetting deploymentSlotSetting;
@@ -131,12 +132,8 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         return appSettings;
     }
 
-    public DeploymentSlotSetting getDeploymentSlotSetting() {
-        return deploymentSlotSetting;
-    }
-
     public List<DeploymentResource> getResources() {
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 
     public String getDeploymentStagingDirectoryPath() {
@@ -147,37 +144,18 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         ).toString();
     }
 
-    public void setDeploymentSlot(DeploymentSlotSetting slotSetting) {
-        this.deploymentSlotSetting = slotSetting;
-    }
-
-    public String getResourcePortalUrl(String id) {
-        final AzureEnvironment environment = Azure.az(AzureAccount.class).account().getEnvironment();
-        return String.format(PORTAL_URL_PATTERN, getPortalUrl(environment), id);
-    }
-
-    protected static String getPortalUrl(AzureEnvironment azureEnvironment) {
-        if (azureEnvironment == null || azureEnvironment == AzureEnvironment.AZURE) {
-            return "https://ms.portal.azure.com";
-        }
-        if (azureEnvironment == AzureEnvironment.AZURE_CHINA) {
-            return "https://portal.azure.cn";
-        }
-        return azureEnvironment.getPortal();
-    }
-
-    protected AzureAppService getOrCreateAzureAppServiceClient() {
+    protected AzureAppService initAzureAppServiceClient() {
         if (appServiceClient == null) {
             try {
-                final Account account = getAzureAccount();
+                final Account account = loginAzure();
                 final List<Subscription> subscriptions = account.getSubscriptions();
                 final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
                 AbstractAzureMojo.checkSubscription(subscriptions, targetSubscriptionId);
-                com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account().selectSubscription(Collections.singletonList(targetSubscriptionId));
+                com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account().setSelectedSubscriptions(Collections.singletonList(targetSubscriptionId));
                 appServiceClient = Azure.az(AzureAppService.class);
                 printCurrentSubscription(appServiceClient);
                 this.subscriptionId = targetSubscriptionId;
-            } catch (AzureLoginException | AzureExecutionException | IOException e) {
+            } catch (AzureToolkitAuthenticationException | AzureExecutionException | IOException | MavenDecryptException e) {
                 throw new AzureToolkitRuntimeException("Cannot authenticate", e);
             }
         }

@@ -6,10 +6,10 @@
 package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.management.AzureEnvironment;
+import com.azure.core.util.Configuration;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,6 +49,21 @@ public class AzureCloud implements AzService {
 
     public AzureCloud set(AzureEnvironment environment) {
         Objects.requireNonNull(environment, "Azure environment shall not be null.");
+        // change the default azure env after it is initialized in azure identity
+        // see code at
+        // https://github.com/Azure/azure-sdk-for-java/blob/32f8f7ca8b44035b2e5520c5e10455f42500a778/sdk/identity/azure-identity/
+        // src/main/java/com/azure/identity/implementation/IdentityClientOptions.java#L42
+        Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_AZURE_AUTHORITY_HOST, environment.getActiveDirectoryEndpoint());
+        final com.microsoft.azure.toolkit.lib.AzureConfiguration az = com.microsoft.azure.toolkit.lib.Azure.az().config();
+        if (StringUtils.isNotBlank(az.getProxySource())) {
+            String proxyAuthPrefix = StringUtils.EMPTY;
+            if (StringUtils.isNoneBlank(az.getProxyUsername(), az.getProxyPassword())) {
+                proxyAuthPrefix = az.getProxyUsername() + ":" + az.getProxyPassword() + "@";
+            }
+            final String proxy = String.format("http://%s%s:%d", proxyAuthPrefix, az.getHttpProxyHost(), az.getHttpProxyPort());
+            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTP_PROXY, proxy);
+            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTPS_PROXY, proxy);
+        }
         final String cloud = AzureEnvironmentUtils.getCloudName(environment);
         Azure.az().config().setCloud(cloud);
         return this;

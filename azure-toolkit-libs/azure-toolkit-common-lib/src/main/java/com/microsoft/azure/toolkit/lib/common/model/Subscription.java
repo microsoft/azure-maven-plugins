@@ -11,7 +11,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 import javax.annotation.Nonnull;
 
@@ -20,7 +19,6 @@ import javax.annotation.Nonnull;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-@SuperBuilder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Subscription {
     @Nonnull
@@ -32,4 +30,10 @@ public class Subscription {
     private String tenantId;
     @JsonProperty
     private boolean selected;
+
+    public Subscription(com.azure.resourcemanager.resources.models.Subscription s) {
+        this.id = s.subscriptionId();
+        this.name = s.displayName();
+        this.tenantId = s.innerModel().tenantId();
+    }
 }

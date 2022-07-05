@@ -5,20 +5,21 @@
 
 package com.microsoft.azure.maven.utils;
 
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
-import com.microsoft.azure.toolkit.lib.auth.exception.InvalidConfigurationException;
-import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
-import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
-import com.microsoft.azure.toolkit.lib.auth.util.ValidationUtil;
+import com.microsoft.azure.toolkit.lib.auth.AuthConfiguration;
+import com.microsoft.azure.toolkit.lib.auth.AuthType;
+import com.microsoft.azure.toolkit.lib.auth.AzureEnvironmentUtils;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.microsoft.azure.maven.auth.MavenSettingHelper.buildAuthConfigurationByServerId;
 
@@ -42,32 +43,31 @@ public class MavenAuthUtils {
     private static AuthConfiguration convertToAuthConfiguration(MavenAuthConfiguration mavenAuthConfiguration)
             throws InvalidConfigurationException {
         if (Objects.isNull(mavenAuthConfiguration)) {
-            return new AuthConfiguration();
+            return new AuthConfiguration(AuthType.AUTO);
         }
-        final AuthConfiguration authConfiguration = new AuthConfiguration();
+        final AuthType type = AuthType.parseAuthType(mavenAuthConfiguration.getType());
+        final AuthConfiguration authConfiguration = new AuthConfiguration(type);
         authConfiguration.setClient(mavenAuthConfiguration.getClient());
         authConfiguration.setTenant(mavenAuthConfiguration.getTenant());
         authConfiguration.setCertificate(mavenAuthConfiguration.getCertificate());
         authConfiguration.setCertificatePassword(mavenAuthConfiguration.getCertificatePassword());
         authConfiguration.setKey(mavenAuthConfiguration.getKey());
 
-        final String authTypeStr = mavenAuthConfiguration.getType();
-        authConfiguration.setType(AuthType.parseAuthType(authTypeStr));
-
         authConfiguration.setEnvironment(AzureEnvironmentUtils.stringToAzureEnvironment(mavenAuthConfiguration.getEnvironment()));
         if (StringUtils.isNotBlank(mavenAuthConfiguration.getEnvironment()) && Objects.isNull(authConfiguration.getEnvironment())) {
             throw new InvalidConfigurationException(String.format(INVALID_AZURE_ENVIRONMENT, mavenAuthConfiguration.getEnvironment()));
         }
+        authConfiguration.setEnvironment(Optional.ofNullable(authConfiguration.getEnvironment()).orElse(AzureEnvironment.AZURE));
 
         // if user specify 'auto', and there are SP configuration errors, it will fail back to other auth types
         // if user doesn't specify any authType
         if (StringUtils.isBlank(mavenAuthConfiguration.getType())) {
             if (!StringUtils.isAllBlank(mavenAuthConfiguration.getCertificate(), mavenAuthConfiguration.getKey(),
                     mavenAuthConfiguration.getCertificatePassword())) {
-                ValidationUtil.validateAuthConfiguration(authConfiguration);
+                authConfiguration.validate();
             }
         } else if (authConfiguration.getType() == AuthType.SERVICE_PRINCIPAL) {
-            ValidationUtil.validateAuthConfiguration(authConfiguration);
+            authConfiguration.validate();
         }
 
         return authConfiguration;

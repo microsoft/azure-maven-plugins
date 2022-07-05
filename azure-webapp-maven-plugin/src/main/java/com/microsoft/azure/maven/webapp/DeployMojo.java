@@ -47,7 +47,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected void doExecute() throws AzureExecutionException {
         validateConfiguration(message -> AzureMessager.getMessager().error(message.getMessage()), true);
         // initialize library client
-        az = getOrCreateAzureAppServiceClient();
+        az = initAzureAppServiceClient();
         final WebAppBase<?, ?, ?> target = createOrUpdateResource();
         deployExternalResources(target, getConfigParser().getExternalArtifacts());
         deploy(target, getConfigParser().getArtifacts());

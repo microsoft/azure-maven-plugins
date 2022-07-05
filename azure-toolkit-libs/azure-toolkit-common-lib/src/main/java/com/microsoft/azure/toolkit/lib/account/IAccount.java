@@ -13,13 +13,17 @@ import java.util.List;
 
 public interface IAccount {
 
-    List<Subscription> getSubscriptions();
+    String getPortalUrl();
+
+    String getUsername();
+
+    String getClientId();
+
+    List<? extends Subscription> getSubscriptions();
 
     List<Subscription> getSelectedSubscriptions();
 
     Subscription getSubscription(String subscriptionId);
-
-    String portalUrl();
 
     AzureEnvironment getEnvironment();
 

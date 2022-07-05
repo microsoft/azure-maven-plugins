@@ -92,7 +92,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     @AzureOperation(name = "functionapp.deploy_app", type = AzureOperation.Type.ACTION)
     protected void doExecute() throws Throwable {
         doValidate();
-        getOrCreateAzureAppServiceClient();
+        initAzureAppServiceClient();
 
         final FunctionAppBase<?, ?, ?> target = createOrUpdateResource(getParser().parseConfig());
         deployArtifact(target);

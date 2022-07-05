@@ -26,7 +26,7 @@ class AzureTokenCredentialsAdapter extends AzureTokenCredentials {
     private final Map<String, AccessToken> accessTokenCache = new ConcurrentHashMap<>();
 
     AzureTokenCredentialsAdapter(AzureEnvironment environment, String tenantId,
-                                        TokenCredential tokenCredential) {
+                                 TokenCredential tokenCredential) {
         super(environment, tenantId);
         this.tokenCredential = tokenCredential;
     }
@@ -42,8 +42,8 @@ class AzureTokenCredentialsAdapter extends AzureTokenCredentials {
 
     public static AzureTokenCredentials from(com.azure.core.management.AzureEnvironment env, String tenantId, TokenCredential tokenCredential) {
         AzureEnvironment azureEnvironment = Arrays.stream(AzureEnvironment.knownEnvironments())
-                .filter(e -> StringUtils.equalsIgnoreCase(env.getManagementEndpoint(), e.managementEndpoint()))
-                .findFirst().orElse(AzureEnvironment.AZURE);
+            .filter(e -> StringUtils.equalsIgnoreCase(env.getManagementEndpoint(), e.managementEndpoint()))
+            .findFirst().orElse(AzureEnvironment.AZURE);
 
         return new AzureTokenCredentialsAdapter(azureEnvironment, tenantId, tokenCredential);
     }

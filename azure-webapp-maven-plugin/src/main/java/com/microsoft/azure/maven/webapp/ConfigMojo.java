@@ -26,7 +26,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
-import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
+import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -468,7 +468,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebAppConfiguration chooseExistingWebappForConfiguration()
             throws AzureAuthFailureException {
         try {
-            final AzureAppService az = getOrCreateAzureAppServiceClient();
+            final AzureAppService az = initAzureAppServiceClient();
             if (Objects.isNull(az)) {
                 return null;
             }
