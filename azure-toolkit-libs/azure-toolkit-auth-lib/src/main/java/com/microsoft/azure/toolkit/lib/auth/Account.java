@@ -10,6 +10,7 @@ import com.azure.core.credential.SimpleTokenCache;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.core.http.policy.FixedDelay;
+import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.RetryPolicy;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
@@ -136,26 +137,27 @@ public abstract class Account implements IAccount {
     }
 
     protected List<Subscription> loadSubscriptions() {
-        return loadTenants().flatMap(this::loadSubscriptions).distinct(s -> s.getId().toLowerCase()).collectList().block();
-    }
-
-    @Nonnull
-    private Flux<String> loadTenants() {
         final TokenCredential credential = this.defaultTokenCredential;
         final ResourceManager.Authenticated client = configureAzure().authenticate(credential, new AzureProfile(this.getEnvironment()));
-        return client.tenants().listAsync().map(Tenant::tenantId).collectList().flatMapIterable(s -> s);
+        final List<Tenant> tenants = client.tenants().list().stream().collect(Collectors.toList());
+        return tenants.stream()
+            .flatMap(t -> this.loadSubscriptions(t.tenantId()).stream())
+            .filter(Utils.distinctByKey(Subscription::getId))
+            .collect(Collectors.toList());
     }
 
     @Nonnull
-    private Flux<Subscription> loadSubscriptions(String tenantId) {
+    private List<Subscription> loadSubscriptions(String tenantId) {
         final TokenCredential credential = this.getTenantTokenCredential(tenantId);
-        final ResourceManager.Authenticated client = configureAzure().authenticate(credential, new AzureProfile(tenantId, null, this.getEnvironment()));
-        return client.subscriptions().listAsync().onErrorResume(ex -> { // warn and ignore, should modify here if IMessage is ready
+        final AzureProfile profile = new AzureProfile(tenantId, null, this.getEnvironment());
+        final ResourceManager.Authenticated client = configureAzure().authenticate(credential, profile);
+        final List<Subscription> subscriptions = client.subscriptions().listAsync().onErrorResume(ex -> {
                 AzureMessager.getMessager().warning(String.format("Cannot get subscriptions for tenant %s " +
                     ", please verify you have proper permissions over this tenant, detailed error: %s", tenantId, ex.getMessage()));
                 return Flux.fromIterable(new ArrayList<>());
             }).map(Subscription::new)
-            .collect(Collectors.toList()).flatMapIterable(s -> s);
+            .collect(Collectors.toList()).flatMapIterable(s -> s).collectList().block();
+        return Optional.ofNullable(subscriptions).orElse(Collections.emptyList());
     }
 
     @Nonnull
@@ -244,6 +246,7 @@ public abstract class Account implements IAccount {
         // disable retry for getting tenant and subscriptions
         final String userAgent = Azure.az().config().getUserAgent();
         return ResourceManager.configure()
+            .withLogLevel(HttpLogDetailLevel.HEADERS)
             .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
             .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent))
             .withRetryPolicy(new RetryPolicy(new FixedDelay(0, Duration.ofSeconds(0))));
