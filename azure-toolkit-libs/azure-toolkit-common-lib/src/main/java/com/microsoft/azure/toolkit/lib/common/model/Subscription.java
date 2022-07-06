@@ -18,11 +18,12 @@ import javax.annotation.Nonnull;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Subscription {
     @Nonnull
     @JsonProperty
+    @EqualsAndHashCode.Include
     private String id;
     @JsonProperty
     private String name;
