@@ -102,7 +102,7 @@ public class AzureAccount implements IAzureAccount {
             account.setSelectedSubscriptions(selected);
         }
         if (this.accountRef.compareAndSet(null, account)) {
-            AzureEventBus.emit("account.login.account", account);
+            AzureEventBus.emit("account.logged_in.account", account);
         }
         return account;
     }
@@ -127,7 +127,7 @@ public class AzureAccount implements IAzureAccount {
         final Account oldAccount = this.accountRef.getAndSet(null);
         if (Objects.nonNull(oldAccount)) {
             oldAccount.logout();
-            AzureEventBus.emit("account.logout.account", oldAccount);
+            AzureEventBus.emit("account.logged_out.account", oldAccount);
         }
     }
 
