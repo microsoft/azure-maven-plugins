@@ -362,7 +362,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         promptAzureEnvironment(configEnv);
         Azure.az(AzureCloud.class).set(configEnv);
         MavenAuthUtils.disableIdentityLogs();
-        final Account account = Azure.az(AzureAccount.class).login(authConfig);
+        final Account account = Azure.az(AzureAccount.class).login(authConfig, false);
         final AzureEnvironment env = account.getEnvironment();
         final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
         if (env != AzureEnvironment.AZURE && env != configEnv) {
