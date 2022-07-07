@@ -10,14 +10,12 @@ import com.azure.core.credential.SimpleTokenCache;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.core.http.policy.FixedDelay;
-import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.RetryPolicy;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.identity.TokenCachePersistenceOptions;
 import com.azure.identity.implementation.MsalToken;
-import com.azure.identity.implementation.util.IdentityConstants;
 import com.azure.identity.implementation.util.ScopeUtil;
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.models.Tenant;
@@ -57,12 +55,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Getter
+@RequiredArgsConstructor
 public abstract class Account implements IAccount {
     protected static final TokenCachePersistenceOptions PERSISTENCE_OPTIONS = new TokenCachePersistenceOptions().setName("azure-toolkit.cache");
     private static final ClientLogger LOGGER = new ClientLogger(Account.class);
     private final Map<String, TokenCredential> tenantCredentialCache = new ConcurrentHashMap<>();
-    private final AuthType authType;
-    private final String clientId;
+    @Nonnull
+    private final AuthConfiguration config;
     protected String username;
     @Setter(AccessLevel.PACKAGE)
     protected boolean persistenceEnabled = true;
@@ -70,16 +69,6 @@ public abstract class Account implements IAccount {
     private TokenCredential defaultTokenCredential;
     @Getter(AccessLevel.NONE)
     private List<Subscription> subscriptions;
-
-    public Account(@Nonnull AuthType authType) {
-        this.authType = authType;
-        this.clientId = IdentityConstants.DEVELOPER_SINGLE_SIGN_ON_ID;
-    }
-
-    public Account(@Nonnull AuthType authType, @Nonnull String clientId) {
-        this.authType = authType;
-        this.clientId = clientId;
-    }
 
     @Nonnull
     protected abstract TokenCredential buildDefaultTokenCredential();
@@ -100,10 +89,9 @@ public abstract class Account implements IAccount {
 
     void login() {
         this.defaultTokenCredential = this.buildDefaultTokenCredential();
-        this.subscriptions = Optional.ofNullable(this.loadSubscriptions()).orElse(Collections.emptyList()).stream()
-            .sorted(Comparator.comparing(s -> s.getName().toLowerCase()))
-            .collect(Collectors.toList());
+        this.reloadSubscriptions();
         this.setupAfterLogin(this.defaultTokenCredential);
+        this.config.setUsername(this.getUsername());
     }
 
     public abstract boolean checkAvailable();
@@ -134,6 +122,13 @@ public abstract class Account implements IAccount {
     void logout() {
         this.subscriptions = null;
         this.defaultTokenCredential = null;
+    }
+
+    public List<Subscription> reloadSubscriptions() {
+        this.subscriptions = Optional.ofNullable(this.loadSubscriptions()).orElse(Collections.emptyList()).stream()
+            .sorted(Comparator.comparing(s -> s.getName().toLowerCase()))
+            .collect(Collectors.toList());
+        return this.getSubscriptions();
     }
 
     protected List<Subscription> loadSubscriptions() {
@@ -170,26 +165,20 @@ public abstract class Account implements IAccount {
     }
 
     public void setSelectedSubscriptions(List<String> selectedSubscriptionIds) {
-        if (CollectionUtils.isEmpty(selectedSubscriptionIds)) {
+        final Set<String> selected = selectedSubscriptionIds.stream().map(String::toLowerCase).collect(Collectors.toSet());
+        if (CollectionUtils.isEmpty(selected)) {
             throw new AzureToolkitRuntimeException("No subscriptions are selected. You must select at least one subscription.", IAccountActions.SELECT_SUBS);
         }
-        if (this.getSubscriptions().stream().anyMatch(s -> Utils.containsIgnoreCase(selectedSubscriptionIds, s.getId()))) {
-            markSubscriptionsSelected(selectedSubscriptionIds);
-            AzureEventBus.emit("account.subscription_changed.account", this);
-            final AzureTaskManager manager = AzureTaskManager.getInstance();
-            if (Objects.nonNull(manager)) {
-                manager.runOnPooledThread(Preloader::load);
-            }
-        } else {
-            throw new AzureToolkitRuntimeException("the selected subscriptions are invalid", IAccountActions.SELECT_SUBS);
-        }
-    }
-
-    private void markSubscriptionsSelected(@Nonnull List<String> subscriptionIds) {
-        final Set<String> set = subscriptionIds.stream().map(String::toLowerCase).collect(Collectors.toSet());
+        this.getSubscriptions().forEach(s -> s.setSelected(false));
         this.getSubscriptions().stream()
-            .filter(s -> set.contains(s.getId().toLowerCase()))
+            .filter(s -> selected.contains(s.getId().toLowerCase()))
             .forEach(s -> s.setSelected(true));
+        this.config.setSelectedSubscriptions(selectedSubscriptionIds);
+        AzureEventBus.emit("account.subscription_changed.account", this);
+        final AzureTaskManager manager = AzureTaskManager.getInstance();
+        if (Objects.nonNull(manager)) {
+            manager.runOnPooledThread(Preloader::load);
+        }
     }
 
     @Override
@@ -246,7 +235,6 @@ public abstract class Account implements IAccount {
         // disable retry for getting tenant and subscriptions
         final String userAgent = Azure.az().config().getUserAgent();
         return ResourceManager.configure()
-            .withLogLevel(HttpLogDetailLevel.HEADERS)
             .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
             .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent))
             .withRetryPolicy(new RetryPolicy(new FixedDelay(0, Duration.ofSeconds(0))));
@@ -257,8 +245,8 @@ public abstract class Account implements IAccount {
         final List<String> details = new ArrayList<>();
         final List<Subscription> selectedSubscriptions = getSelectedSubscriptions();
         final String username = this.getUsername();
-        if (getAuthType() != null) {
-            details.add(String.format("Auth type: %s", TextUtils.cyan(getAuthType().toString())));
+        if (getType() != null) {
+            details.add(String.format("Auth type: %s", TextUtils.cyan(getType().toString())));
         }
         if (CollectionUtils.isNotEmpty(selectedSubscriptions)) {
             if (selectedSubscriptions.size() == 1) {
@@ -288,5 +276,11 @@ public abstract class Account implements IAccount {
             // return resourceTokenCache.computeIfAbsent(resource, func).getToken();
             return defaultCredential.getToken(request);
         }
+    }
+
+    public abstract AuthType getType();
+
+    public String getClientId() {
+        return Optional.ofNullable(this.config.getClient()).orElse("04b07795-8ddb-461a-bbee-02f9e1bf7b46");
     }
 }

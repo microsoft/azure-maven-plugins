@@ -9,8 +9,8 @@ import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.DeviceCodeInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,10 +21,10 @@ import java.util.function.Consumer;
 
 @Setter
 @Getter
-@RequiredArgsConstructor
 public class AuthConfiguration {
     @Nonnull
-    private final AuthType type;
+    @Setter(AccessLevel.NONE)
+    private AuthType type;
     private String client;
     private String tenant;
     /**
@@ -59,6 +59,17 @@ public class AuthConfiguration {
      * for restoring token cache only
      */
     private List<String> selectedSubscriptions;
+
+    public AuthConfiguration(@Nonnull final AuthType type) {
+        this.type = type;
+    }
+
+    public void setType(AuthType type) {
+        if (this.type != AuthType.AUTO) {
+            throw new IllegalArgumentException("type can't be changed");
+        }
+        this.type = type;
+    }
 
     public void validate() throws InvalidConfigurationException {
         String tenant = this.getTenant();

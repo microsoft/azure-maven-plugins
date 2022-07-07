@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.auth;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.resourcemanager.resources.models.Location;
 import com.azure.resourcemanager.resources.models.RegionType;
-import com.azure.resourcemanager.resources.models.Subscription;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.cli.AzureCliAccount;
@@ -22,6 +21,8 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -29,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -40,14 +42,15 @@ import java.util.stream.Collectors;
 import static com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription.getResourceManager;
 
 public class AzureAccount implements IAzureAccount {
-    private final AtomicReference<Account> accountRef = new AtomicReference<>();
+    @Nullable
+    private AtomicReference<Account> accountRef;
 
     /**
      * @return the current account
      * @throws AzureToolkitAuthenticationException if not initialized
      */
     public Account account() throws AzureToolkitAuthenticationException {
-        return Optional.ofNullable(this.accountRef.get())
+        return Optional.ofNullable(this.accountRef).map(AtomicReference::get)
             .orElseThrow(() -> new AzureToolkitAuthenticationException("you are not signed-in."));
     }
 
@@ -59,25 +62,44 @@ public class AzureAccount implements IAzureAccount {
         return login(config, false);
     }
 
-    public Account login(@Nonnull AuthConfiguration config, boolean enablePersistence) {
+    public Account login(@Nonnull Account account) {
+        if (this.isLoggedIn()) {
+            AzureMessager.getMessager().warning("You have already logged in!");
+            return this.account();
+        }
+        if (account.getType() == AuthType.OAUTH2 || account.getType() == AuthType.DEVICE_CODE) {
+            Log.prompt(String.format("Auth type: %s", TextUtils.cyan(account.getType().name())));
+        }
+        this.accountRef = new AtomicReference<>();
+        AzureEventBus.emit("account.logging_in.type", account.getType());
+        account.login();
+        if (this.accountRef.compareAndSet(null, account)) {
+            AzureEventBus.emit("account.logged_in.account", account);
+        }
+        return account;
+    }
+
+    @AzureOperation(name = "account.login.type", params = {"config.getType()"}, type = AzureOperation.Type.SERVICE)
+    public synchronized Account login(@Nonnull AuthConfiguration config, boolean enablePersistence) {
         // TODO: azure environment/cloud should be set from azure configuration before login.
         if (this.isLoggedIn()) {
             AzureMessager.getMessager().warning("You have already logged in!");
+            return this.account();
         }
         AzureEnvironment env = Azure.az(AzureCloud.class).getOrDefault();
         if (Objects.nonNull(config.getEnvironment()) && env != config.getEnvironment()) {
             String msg = String.format("you have switched to Azure Cloud '%s' since the last time you signed in.", AzureEnvironmentUtils.getCloudName(env));
+            this.logout();
             throw new AzureToolkitAuthenticationException(msg);
         }
         AuthType type = config.getType();
+        OperationContext.current().setTelemetryProperty("authType", type.name());
+        OperationContext.current().setTelemetryProperty("azureEnvironment", AzureEnvironmentUtils.azureEnvironmentToString(env));
         final List<String> selected = config.getSelectedSubscriptions();
         final boolean restoring = CollectionUtils.isNotEmpty(selected);
         final Account account;
         if (type == AuthType.AUTO) {
             account = this.getAutoAccount(config);
-            if (account.getAuthType() == AuthType.OAUTH2 || account.getAuthType() == AuthType.DEVICE_CODE) {
-                Log.prompt(String.format("Auth type: %s", TextUtils.cyan(account.getAuthType().toString())));
-            }
         } else if (type == AuthType.SERVICE_PRINCIPAL) {
             account = new ServicePrincipalAccount(config);
         } else if (type == AuthType.MANAGED_IDENTITY) {
@@ -92,14 +114,13 @@ public class AzureAccount implements IAzureAccount {
             throw new AzureToolkitRuntimeException(String.format("Unsupported auth type '%s'", type));
         }
         account.setPersistenceEnabled(enablePersistence);
-        AzureEventBus.emit("account.logging_in.type", config.getType());
+        if (account.getType() == AuthType.OAUTH2 || account.getType() == AuthType.DEVICE_CODE) {
+            Log.prompt(String.format("Auth type: %s", TextUtils.cyan(account.getType().name())));
+        }
+        this.accountRef = new AtomicReference<>();
+        AzureEventBus.emit("account.logging_in.type", account.getType());
         account.login();
         if (restoring) {
-            if (StringUtils.isNotBlank(config.getUsername()) && !StringUtils.equalsIgnoreCase(account.getUsername(), config.getUsername())) {
-                String msg = String.format("you have changed the account from '%s' to '%s' since the last time you signed in.",
-                    config.getUsername(), account.getUsername());
-                throw new AzureToolkitAuthenticationException(msg);
-            }
             account.setSelectedSubscriptions(selected);
         }
         if (this.accountRef.compareAndSet(null, account)) {
@@ -108,9 +129,13 @@ public class AzureAccount implements IAzureAccount {
         return account;
     }
 
+    public Account getAutoAccount() {
+        return this.getAutoAccount(new AuthConfiguration(AuthType.AUTO));
+    }
+
     @Nonnull
     private Account getAutoAccount(@Nonnull AuthConfiguration config) {
-        final ArrayList<Account> candidates = new ArrayList<>(8);
+        final List<Account> candidates = new ArrayList<>(8);
         candidates.add(new ServicePrincipalAccount(config));
         // candidates.add(new SharedTokenCacheAccount(config));
         candidates.add(new ManagedIdentityAccount(config));
@@ -118,26 +143,34 @@ public class AzureAccount implements IAzureAccount {
         candidates.add(new OAuthAccount(config));
         for (Account candidate : candidates) {
             if (candidate.checkAvailable()) {
+                config.setType(candidate.getType());
                 return candidate;
             }
         }
+        config.setType(AuthType.DEVICE_CODE);
         return new DeviceCodeAccount(config);
     }
 
-    public void logout() {
-        final Account oldAccount = this.accountRef.getAndSet(null);
+    public synchronized void logout() {
+        final Account oldAccount = Optional.ofNullable(this.accountRef).map(r -> r.getAndSet(null)).orElse(null);
         if (Objects.nonNull(oldAccount)) {
             oldAccount.logout();
+            this.accountRef = null;
             AzureEventBus.emit("account.logged_out.account", oldAccount);
         }
     }
 
     public boolean isLoggedIn() {
-        return Optional.ofNullable(this.accountRef.get()).map(Account::isLoggedInCompletely).isPresent();
+        return Optional.ofNullable(this.accountRef).map(AtomicReference::get).map(Account::isLoggedInCompletely).isPresent();
     }
 
+    public boolean isLoggingIn() {
+        return Objects.nonNull(this.accountRef) && Objects.isNull(this.accountRef.get());
+    }
+
+    @Nullable
     public Account getAccount() {
-        return this.accountRef.get();
+        return Optional.ofNullable(this.accountRef).map(AtomicReference::get).orElse(null);
     }
 
     @Override
@@ -177,7 +210,7 @@ public class AzureAccount implements IAzureAccount {
 
     // todo: share codes with other library which leverage track2 mgmt sdk
     @Cacheable(cacheName = "subscriptions/{}", key = "$subscriptionId")
-    private Subscription getSubscription(String subscriptionId) {
+    private com.azure.resourcemanager.resources.models.Subscription getSubscription(String subscriptionId) {
         return getResourceManager(subscriptionId).subscriptions().getById(subscriptionId);
     }
 }

@@ -10,23 +10,23 @@ import com.azure.identity.InteractiveBrowserCredentialBuilder;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.AuthType;
+import lombok.Getter;
 import me.alexpanov.net.FreePortFinder;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.Optional;
 
 public class OAuthAccount extends Account {
-    private final AuthConfiguration config;
+    @Getter
+    private final AuthType type = AuthType.OAUTH2;
 
     public OAuthAccount() {
-        this(null);
+        this(new AuthConfiguration(AuthType.OAUTH2));
     }
 
-    public OAuthAccount(@Nullable AuthConfiguration config) {
-        super(AuthType.OAUTH2);
-        this.config = config;
+    public OAuthAccount(@Nonnull AuthConfiguration config) {
+        super(config);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class OAuthAccount extends Account {
     @Nonnull
     @Override
     protected TokenCredential buildDefaultTokenCredential() {
-        final String tenantId = Optional.ofNullable(this.config).map(AuthConfiguration::getTenant).orElse(null);
+        final String tenantId = Optional.of(this.getConfig()).map(AuthConfiguration::getTenant).orElse(null);
         return new InteractiveBrowserCredentialBuilder()
             .clientId(this.getClientId())
             .tenantId(tenantId)

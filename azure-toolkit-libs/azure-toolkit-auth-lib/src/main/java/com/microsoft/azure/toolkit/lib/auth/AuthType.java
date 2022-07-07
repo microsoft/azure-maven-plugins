@@ -5,7 +5,13 @@
 
 package com.microsoft.azure.toolkit.lib.auth;
 
+import com.microsoft.azure.toolkit.lib.auth.cli.AzureCliAccount;
+import com.microsoft.azure.toolkit.lib.auth.devicecode.DeviceCodeAccount;
+import com.microsoft.azure.toolkit.lib.auth.managedidentity.ManagedIdentityAccount;
+import com.microsoft.azure.toolkit.lib.auth.oauth.OAuthAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -15,17 +21,21 @@ import java.util.stream.Collectors;
 /**
  * The auth type which user may define in configuration.
  */
+@Getter
+@RequiredArgsConstructor
 public enum AuthType {
-    AUTO,
-    SERVICE_PRINCIPAL,
-    AZURE_AUTH_MAVEN_PLUGIN,
-    MANAGED_IDENTITY,
-    AZURE_CLI,
-    VSCODE,
-    INTELLIJ_IDEA,
-    VISUAL_STUDIO,
-    DEVICE_CODE,
-    OAUTH2;
+    AUTO("Auto"),
+    SERVICE_PRINCIPAL("Service Principal"),
+    AZURE_AUTH_MAVEN_PLUGIN("Maven Plugin"),
+    MANAGED_IDENTITY("Managed Identity"),
+    AZURE_CLI("Azure CLI"),
+    VSCODE("VSCode"),
+    INTELLIJ_IDEA("IntelliJ IDEA"),
+    VISUAL_STUDIO("Visual Studio"),
+    DEVICE_CODE("Device Code"),
+    OAUTH2("OAuth2");
+
+    private final String label;
 
     @Nonnull
     public static AuthType parseAuthType(String type) throws InvalidConfigurationException {
@@ -56,6 +66,27 @@ public enum AuthType {
             default:
                 throw new InvalidConfigurationException(String.format("Invalid auth type '%s', supported values are: %s.", type,
                     Arrays.stream(values()).map(Object::toString).map(StringUtils::lowerCase).collect(Collectors.joining(", "))));
+        }
+    }
+
+    public boolean checkAvailable() {
+        return this.checkAvailable(new AuthConfiguration(this));
+    }
+
+    public boolean checkAvailable(final AuthConfiguration config) {
+        switch (this) {
+            case AUTO:
+                return true;
+            case MANAGED_IDENTITY:
+                return new ManagedIdentityAccount(config).checkAvailable();
+            case AZURE_CLI:
+                return new AzureCliAccount(config).checkAvailable();
+            case OAUTH2:
+                return new OAuthAccount(config).checkAvailable();
+            case DEVICE_CODE:
+                return new DeviceCodeAccount(config).checkAvailable();
+            default:
+                return false;
         }
     }
 }

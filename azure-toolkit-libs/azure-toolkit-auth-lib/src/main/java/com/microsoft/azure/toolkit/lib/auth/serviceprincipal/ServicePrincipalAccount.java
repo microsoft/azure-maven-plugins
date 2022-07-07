@@ -8,30 +8,32 @@ package com.microsoft.azure.toolkit.lib.auth.serviceprincipal;
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.ClientCertificateCredentialBuilder;
 import com.azure.identity.ClientSecretCredentialBuilder;
-import com.azure.identity.implementation.util.ValidationUtil;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.AuthType;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 
 public class ServicePrincipalAccount extends Account {
-    private final AuthConfiguration config;
+    @Getter
+    private final AuthType type = AuthType.SERVICE_PRINCIPAL;
 
     public ServicePrincipalAccount(@Nonnull AuthConfiguration config) {
-        super(AuthType.SERVICE_PRINCIPAL);
-        this.config = config;
+        super(config);
     }
 
     @Override
     public boolean checkAvailable() {
+        final AuthConfiguration config = getConfig();
         return !StringUtils.isAllBlank(config.getCertificate(), config.getCertificatePassword(), config.getKey());
     }
 
     @Nonnull
     @Override
     protected TokenCredential buildDefaultTokenCredential() {
+        final AuthConfiguration config = getConfig();
         return StringUtils.isNotBlank(config.getCertificate()) ?
             new ClientCertificateCredentialBuilder()
                 .tenantId(config.getTenant())
@@ -47,6 +49,6 @@ public class ServicePrincipalAccount extends Account {
 
     @Override
     public String getClientId() {
-        return this.config.getClient();
+        return this.getConfig().getClient();
     }
 }

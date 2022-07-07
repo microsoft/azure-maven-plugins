@@ -6,16 +6,15 @@ import com.azure.identity.SharedTokenCacheCredentialBuilder;
 import javax.annotation.Nonnull;
 
 public class SharedTokenCacheAccount extends Account {
-    private final AuthConfiguration config;
 
     public SharedTokenCacheAccount(@Nonnull AuthConfiguration config) {
-        super(config.getType(), config.getClient());
-        this.config = config;
+        super(config);
     }
 
     @Nonnull
     @Override
     protected TokenCredential buildDefaultTokenCredential() {
+        final AuthConfiguration config = getConfig();
         return new SharedTokenCacheCredentialBuilder()
             .tokenCachePersistenceOptions(PERSISTENCE_OPTIONS)
             // default tenant id in azure identity is organizations
@@ -30,5 +29,10 @@ public class SharedTokenCacheAccount extends Account {
     @Override
     public boolean checkAvailable() {
         return this.getManagementToken().isPresent();
+    }
+
+    @Override
+    public AuthType getType() {
+        return this.getConfig().getType();
     }
 }

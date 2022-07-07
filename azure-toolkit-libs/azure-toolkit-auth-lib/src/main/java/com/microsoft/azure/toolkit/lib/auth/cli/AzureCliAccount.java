@@ -34,19 +34,16 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+@Getter
 public class AzureCliAccount extends Account {
     private static final String CLOUD_SHELL_ENV_KEY = "ACC_CLOUD";
-    private final AuthConfiguration config;
-    @Getter
+    private final AuthType type = AuthType.AZURE_CLI;
     private String username;
 
     public AzureCliAccount(AuthConfiguration config) {
-        super(AuthType.AZURE_CLI);
-        this.config = config;
+        super(config);
     }
 
     @Nonnull
@@ -77,7 +74,7 @@ public class AzureCliAccount extends Account {
     @Nonnull
     @Override
     protected TokenCredential buildDefaultTokenCredential() {
-        final String tenantId = Optional.ofNullable(this.config).map(AuthConfiguration::getTenant).orElse(null);
+        final String tenantId = Optional.of(this.getConfig()).map(AuthConfiguration::getTenant).orElse(null);
         return new AzureCliTokenCredential(tenantId);
     }
 
