@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
+import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.ExecutorService;
@@ -21,12 +22,11 @@ import java.util.concurrent.ThreadFactory;
 public class DeviceCodeAccount extends Account {
     private static final ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("azure-toolkit-auth-%d").build();
     private final ExecutorService executorService = Executors.newFixedThreadPool(2, namedThreadFactory);
-    @Nonnull
-    private final AuthConfiguration config;
+    @Getter
+    private final AuthType type = AuthType.DEVICE_CODE;
 
     public DeviceCodeAccount(@Nonnull AuthConfiguration config) {
-        super(AuthType.DEVICE_CODE);
-        this.config = config;
+        super(config);
     }
 
     @Override
@@ -42,10 +42,10 @@ public class DeviceCodeAccount extends Account {
         }
         return new DeviceCodeCredentialBuilder()
             .clientId(this.getClientId())
-            .tenantId(this.config.getTenant())
+            .tenantId(this.getConfig().getTenant())
             .tokenCachePersistenceOptions(this.getPersistenceOptions())
             .executorService(executorService)
-            .challengeConsumer(this.config.getDeviceCodeConsumer())
+            .challengeConsumer(this.getConfig().getDeviceCodeConsumer())
             .build();
     }
 

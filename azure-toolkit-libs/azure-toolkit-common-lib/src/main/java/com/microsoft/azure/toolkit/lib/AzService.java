@@ -5,19 +5,12 @@
 
 package com.microsoft.azure.toolkit.lib;
 
-import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
 public interface AzService {
-    default List<Subscription> getSubscriptions() {
-        return Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
-    }
-
     String getName();
 
     void refresh();

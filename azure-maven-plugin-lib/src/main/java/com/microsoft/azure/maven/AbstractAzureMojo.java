@@ -368,7 +368,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
         }
         printCredentialDescription(account);
-        telemetryProxy.addDefaultProperty(AUTH_TYPE, account.getAuthType().toString());
+        telemetryProxy.addDefaultProperty(AUTH_TYPE, account.getType().toString());
         telemetryProxy.addDefaultProperty(AUTH_METHOD, getActualAuthType());
         telemetryProxy.addDefaultProperty(AZURE_ENVIRONMENT, environmentName);
         return account;
@@ -423,7 +423,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     }
 
     protected static void printCredentialDescription(Account account) {
-        final boolean skipType = account.getAuthType() == AuthType.OAUTH2 || account.getAuthType() == AuthType.DEVICE_CODE;
+        final boolean skipType = account.getType() == AuthType.OAUTH2 || account.getType() == AuthType.DEVICE_CODE;
         if (skipType) {
             if (CollectionUtils.isNotEmpty(account.getSubscriptions())) {
                 final List<Subscription> selectedSubscriptions = account.getSelectedSubscriptions();
@@ -465,7 +465,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     public String getActualAuthType() {
         final Account account = Azure.az(AzureAccount.class).account();
         if (account != null) {
-            return account.getAuthType().toString();
+            return account.getType().toString();
         }
         return "Unknown";
     }

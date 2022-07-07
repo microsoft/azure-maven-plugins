@@ -32,6 +32,10 @@ public class Subscription {
     @JsonProperty
     private boolean selected;
 
+    public Subscription(@Nonnull String id) {
+        this.id = id;
+    }
+
     public Subscription(com.azure.resourcemanager.resources.models.Subscription s) {
         this.id = s.subscriptionId();
         this.name = s.displayName();

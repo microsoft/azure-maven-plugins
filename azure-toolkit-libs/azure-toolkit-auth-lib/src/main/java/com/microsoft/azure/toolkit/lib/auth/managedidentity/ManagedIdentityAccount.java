@@ -13,17 +13,17 @@ import com.microsoft.azure.toolkit.lib.auth.AuthType;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.Optional;
 
-@Getter
 public class ManagedIdentityAccount extends Account {
-    @Nullable
-    private final AuthConfiguration config;
+    @Getter
+    private final AuthType type = AuthType.MANAGED_IDENTITY;
 
-    public ManagedIdentityAccount(@Nullable final AuthConfiguration config) {
-        super(AuthType.MANAGED_IDENTITY);
-        this.config = config;
+    public ManagedIdentityAccount() {
+        super(new AuthConfiguration(AuthType.MANAGED_IDENTITY));
+    }
+
+    public ManagedIdentityAccount(@Nonnull final AuthConfiguration config) {
+        super(config);
     }
 
     @Nonnull
@@ -35,9 +35,5 @@ public class ManagedIdentityAccount extends Account {
     @Override
     public boolean checkAvailable() {
         return this.getManagementToken().isPresent();
-    }
-
-    public String getClientId() {
-        return Optional.ofNullable(this.config).map(AuthConfiguration::getClient).orElse(null);
     }
 }
