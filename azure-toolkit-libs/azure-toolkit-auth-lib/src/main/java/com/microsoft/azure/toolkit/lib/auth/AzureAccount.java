@@ -55,11 +55,11 @@ public class AzureAccount implements IAzureAccount {
     }
 
     public Account login(@Nonnull AuthType type) {
-        return login(new AuthConfiguration(type), false);
+        return login(new AuthConfiguration(type), true);
     }
 
     public Account login(@Nonnull AuthConfiguration config) {
-        return login(config, false);
+        return login(config, true);
     }
 
     public Account login(@Nonnull Account account) {
