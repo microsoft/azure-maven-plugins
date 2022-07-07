@@ -14,6 +14,8 @@ import com.azure.core.http.policy.RetryPolicy;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.core.util.logging.ClientLogger;
+import com.azure.identity.DeviceCodeCredential;
+import com.azure.identity.InteractiveBrowserCredential;
 import com.azure.identity.TokenCachePersistenceOptions;
 import com.azure.identity.implementation.MsalToken;
 import com.azure.identity.implementation.util.ScopeUtil;
@@ -35,13 +37,16 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,6 +57,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Getter
@@ -115,6 +121,7 @@ public abstract class Account implements IAccount {
         if (token instanceof MsalToken) {
             this.username = ((MsalToken) token).getAccount().username();
         }
+        Optional.ofNullable(this.getConfig().getDoAfterLogin()).ifPresent(Runnable::run);
     }
 
     @CacheEvict(CacheEvict.ALL)
@@ -274,7 +281,22 @@ public abstract class Account implements IAccount {
             // final String resource = ScopeUtil.scopesToResource(request.getScopes());
             // final Function<String, SimpleTokenCache> func = (ignore) -> new SimpleTokenCache(() -> defaultCredential.getToken(request));
             // return resourceTokenCache.computeIfAbsent(resource, func).getToken();
-            return defaultCredential.getToken(request);
+            // final Mono<AccessToken> token = defaultCredential.getToken(request);
+            final String resource = ScopeUtil.scopesToResource(request.getScopes());
+            final Function<String, SimpleTokenCache> func = (ignore) -> new SimpleTokenCache(() -> defaultCredential.getToken(request).doOnTerminate(() -> {
+                if (defaultCredential instanceof InteractiveBrowserCredential || defaultCredential instanceof DeviceCodeCredential) {
+                    disableAutomaticAuthentication();// disable after first success.
+                }
+            }));
+            return resourceTokenCache.computeIfAbsent(resource, func).getToken();
+        }
+
+        @SneakyThrows
+        private void disableAutomaticAuthentication() {
+            final Field automaticField = FieldUtils.getField(this.defaultCredential.getClass(), "automaticAuthentication", true);
+            if (Objects.nonNull(automaticField) && ((boolean) FieldUtils.readField(automaticField, this.defaultCredential))) {
+                FieldUtils.writeField(automaticField, this.defaultCredential, false);
+            }
         }
     }
 
