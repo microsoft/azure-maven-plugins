@@ -142,14 +142,9 @@ public class AzureAccount implements IAzureAccount {
         candidates.add(new ManagedIdentityAccount(config));
         candidates.add(new AzureCliAccount(config));
         candidates.add(new OAuthAccount(config));
-        for (Account candidate : candidates) {
-            if (candidate.checkAvailable()) {
-                config.setType(candidate.getType());
-                return candidate;
-            }
-        }
-        config.setType(AuthType.DEVICE_CODE);
-        return new DeviceCodeAccount(config);
+        final Account account = candidates.stream().parallel().filter(Account::checkAvailable).findFirst().orElseGet(() -> new DeviceCodeAccount(config));
+        config.setType(account.getType());
+        return account;
     }
 
     public synchronized void logout() {
