@@ -52,6 +52,12 @@ public class AuthConfiguration {
     private transient Consumer<DeviceCodeInfo> deviceCodeConsumer;
 
     /**
+     * for DC only
+     */
+    @JsonIgnore
+    private transient Runnable doAfterLogin;
+
+    /**
      * for restoring token cache only
      */
     private String username;
