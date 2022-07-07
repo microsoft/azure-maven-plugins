@@ -9,6 +9,7 @@ import com.azure.core.management.AzureEnvironment;
 import com.azure.core.util.Configuration;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -54,6 +55,7 @@ public class AzureEnvironmentUtils {
      * @param environment the environment key
      * @return the AzureEnvironment instance
      */
+    @Nullable
     public static AzureEnvironment stringToAzureEnvironment(String environment) {
         final String targetEnvironment = StringUtils.replaceChars(environment, '-', '_');
         return AZURE_CLOUD_ALIAS_MAP.entrySet().stream().filter(entry -> Utils.containsIgnoreCase(Arrays.asList(entry.getValue()), targetEnvironment))

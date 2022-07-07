@@ -86,13 +86,14 @@ public class AzureAccount implements IAzureAccount {
             AzureMessager.getMessager().warning("You have already logged in!");
             return this.account();
         }
-        AzureEnvironment env = Azure.az(AzureCloud.class).getOrDefault();
-        if (Objects.nonNull(config.getEnvironment()) && env != config.getEnvironment()) {
+        final AzureEnvironment env = Azure.az(AzureCloud.class).getOrDefault();
+        final AzureEnvironment configEnv = AzureEnvironmentUtils.stringToAzureEnvironment(config.getEnvironment());
+        if (Objects.nonNull(configEnv) && env != configEnv) {
             String msg = String.format("you have switched to Azure Cloud '%s' since the last time you signed in.", AzureEnvironmentUtils.getCloudName(env));
             this.logout();
             throw new AzureToolkitAuthenticationException(msg);
         }
-        AuthType type = config.getType();
+        final AuthType type = config.getType();
         OperationContext.current().setTelemetryProperty("authType", type.name());
         OperationContext.current().setTelemetryProperty("azureEnvironment", AzureEnvironmentUtils.azureEnvironmentToString(env));
         final List<String> selected = config.getSelectedSubscriptions();

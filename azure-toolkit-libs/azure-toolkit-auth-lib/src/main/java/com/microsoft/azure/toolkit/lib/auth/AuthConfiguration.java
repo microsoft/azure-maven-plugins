@@ -5,9 +5,10 @@
 
 package com.microsoft.azure.toolkit.lib.auth;
 
-import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.DeviceCodeInfo;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,14 +28,16 @@ public class AuthConfiguration {
     private AuthType type;
     private String client;
     private String tenant;
+
     /**
      * only usable for maven/gradle thisuration
      */
-    private AzureEnvironment environment;
+    private String environment;
 
     /**
      * for SP only
      */
+    @JsonIgnore
     private String key;
     /**
      * for SP only
@@ -43,6 +46,7 @@ public class AuthConfiguration {
     /**
      * for SP only
      */
+    @JsonIgnore
     private String certificatePassword;
 
     /**
@@ -66,12 +70,13 @@ public class AuthConfiguration {
      */
     private List<String> selectedSubscriptions;
 
-    public AuthConfiguration(@Nonnull final AuthType type) {
+    @JsonCreator
+    public AuthConfiguration(@JsonProperty("type") @Nonnull final AuthType type) {
         this.type = type;
     }
 
     public void setType(AuthType type) {
-        if (this.type != AuthType.AUTO) {
+        if (this.type != AuthType.AUTO && type != this.type) {
             throw new IllegalArgumentException("type can't be changed");
         }
         this.type = type;

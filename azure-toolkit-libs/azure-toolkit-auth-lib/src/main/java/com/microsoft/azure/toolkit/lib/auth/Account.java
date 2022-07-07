@@ -97,6 +97,9 @@ public abstract class Account implements IAccount {
         this.defaultTokenCredential = this.buildDefaultTokenCredential();
         this.reloadSubscriptions();
         this.setupAfterLogin(this.defaultTokenCredential);
+        this.config.setType(this.getType());
+        this.config.setClient(this.getClientId());
+        this.config.setEnvironment(AzureEnvironmentUtils.azureEnvironmentToString(this.getEnvironment()));
         this.config.setUsername(this.getUsername());
     }
 
