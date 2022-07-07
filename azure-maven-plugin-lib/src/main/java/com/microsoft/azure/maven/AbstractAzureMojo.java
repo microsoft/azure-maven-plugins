@@ -358,13 +358,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
                 System.out.println(message);
             });
         }
-        promptAzureEnvironment(authConfig.getEnvironment());
-        Azure.az(AzureCloud.class).set(authConfig.getEnvironment());
+        final AzureEnvironment configEnv = AzureEnvironmentUtils.stringToAzureEnvironment(authConfig.getEnvironment());
+        promptAzureEnvironment(configEnv);
+        Azure.az(AzureCloud.class).set(configEnv);
         MavenAuthUtils.disableIdentityLogs();
         final Account account = Azure.az(AzureAccount.class).login(authConfig);
         final AzureEnvironment env = account.getEnvironment();
         final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
-        if (env != AzureEnvironment.AZURE && env != authConfig.getEnvironment()) {
+        if (env != AzureEnvironment.AZURE && env != configEnv) {
             Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
         }
         printCredentialDescription(account);

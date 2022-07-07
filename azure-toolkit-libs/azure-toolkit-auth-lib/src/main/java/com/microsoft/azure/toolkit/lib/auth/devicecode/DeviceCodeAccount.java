@@ -12,9 +12,11 @@ import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,6 +30,9 @@ public class DeviceCodeAccount extends Account {
 
     public DeviceCodeAccount(@Nonnull AuthConfiguration config) {
         super(config);
+        if (Objects.isNull(config.getDeviceCodeConsumer())) {
+            throw new AzureToolkitRuntimeException("device code consumer is not configured.");
+        }
     }
 
     @Override

@@ -53,17 +53,18 @@ public class MavenAuthUtils {
         authConfiguration.setCertificatePassword(mavenAuthConfiguration.getCertificatePassword());
         authConfiguration.setKey(mavenAuthConfiguration.getKey());
 
-        authConfiguration.setEnvironment(AzureEnvironmentUtils.stringToAzureEnvironment(mavenAuthConfiguration.getEnvironment()));
+        authConfiguration.setEnvironment(mavenAuthConfiguration.getEnvironment());
         if (StringUtils.isNotBlank(mavenAuthConfiguration.getEnvironment()) && Objects.isNull(authConfiguration.getEnvironment())) {
             throw new InvalidConfigurationException(String.format(INVALID_AZURE_ENVIRONMENT, mavenAuthConfiguration.getEnvironment()));
         }
-        authConfiguration.setEnvironment(Optional.ofNullable(authConfiguration.getEnvironment()).orElse(AzureEnvironment.AZURE));
+        authConfiguration.setEnvironment(Optional.ofNullable(authConfiguration.getEnvironment())
+            .orElseGet(() -> AzureEnvironmentUtils.azureEnvironmentToString(AzureEnvironment.AZURE)));
 
         // if user specify 'auto', and there are SP configuration errors, it will fail back to other auth types
         // if user doesn't specify any authType
         if (StringUtils.isBlank(mavenAuthConfiguration.getType())) {
             if (!StringUtils.isAllBlank(mavenAuthConfiguration.getCertificate(), mavenAuthConfiguration.getKey(),
-                    mavenAuthConfiguration.getCertificatePassword())) {
+                mavenAuthConfiguration.getCertificatePassword())) {
                 authConfiguration.validate();
             }
         } else if (authConfiguration.getType() == AuthType.SERVICE_PRINCIPAL) {
