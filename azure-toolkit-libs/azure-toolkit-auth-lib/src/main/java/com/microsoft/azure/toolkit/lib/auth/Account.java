@@ -135,9 +135,16 @@ public abstract class Account implements IAccount {
     }
 
     public List<Subscription> reloadSubscriptions() {
+        final List<String> selected = Optional.ofNullable(this.subscriptions).orElse(Collections.emptyList())
+            .stream().filter(Subscription::isSelected)
+            .map(Subscription::getId)
+            .collect(Collectors.toList());
         this.subscriptions = Optional.ofNullable(this.loadSubscriptions()).orElse(Collections.emptyList()).stream()
             .sorted(Comparator.comparing(s -> s.getName().toLowerCase()))
             .collect(Collectors.toList());
+        this.subscriptions.stream()
+            .filter(s -> selected.contains(s.getId().toLowerCase()))
+            .forEach(s -> s.setSelected(true));
         return this.getSubscriptions();
     }
 
@@ -175,10 +182,10 @@ public abstract class Account implements IAccount {
     }
 
     public void setSelectedSubscriptions(List<String> selectedSubscriptionIds) {
-        final Set<String> selected = selectedSubscriptionIds.stream().map(String::toLowerCase).collect(Collectors.toSet());
-        if (CollectionUtils.isEmpty(selected)) {
+        if (CollectionUtils.isEmpty(selectedSubscriptionIds)) {
             throw new AzureToolkitRuntimeException("No subscriptions are selected. You must select at least one subscription.", IAccountActions.SELECT_SUBS);
         }
+        final Set<String> selected = selectedSubscriptionIds.stream().map(String::toLowerCase).collect(Collectors.toSet());
         this.getSubscriptions().forEach(s -> s.setSelected(false));
         this.getSubscriptions().stream()
             .filter(s -> selected.contains(s.getId().toLowerCase()))
