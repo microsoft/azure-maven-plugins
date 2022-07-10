@@ -6,6 +6,8 @@
 package com.microsoft.azure.toolkit.lib.common.messager;
 
 import com.azure.core.exception.HttpResponseException;
+import com.azure.core.http.HttpResponse;
+import com.azure.core.management.exception.ManagementError;
 import com.azure.core.management.exception.ManagementException;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
@@ -25,6 +27,7 @@ import lombok.experimental.Accessors;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -104,9 +107,15 @@ public class AzureMessage implements IAzureMessage {
         }
         String cause = null;
         if (root instanceof ManagementException) {
-            cause = ((ManagementException) root).getValue().getMessage();
+            cause = Optional.of((ManagementException) root)
+                .map(ManagementException::getValue)
+                .map(ManagementError::getMessage)
+                .orElse("Unknown cause");
         } else if (root instanceof HttpResponseException) {
-            cause = ((HttpResponseException) root).getResponse().getBodyAsString().block();
+            cause = Optional.of((HttpResponseException) root)
+                .map(HttpResponseException::getResponse)
+                .map(HttpResponse::getBodyAsString)
+                .map(Mono::block).orElse("Unknown cause");
         }
         final String causeMsg = StringUtils.firstNonBlank(cause, root.getMessage());
         return Optional.ofNullable(causeMsg)
