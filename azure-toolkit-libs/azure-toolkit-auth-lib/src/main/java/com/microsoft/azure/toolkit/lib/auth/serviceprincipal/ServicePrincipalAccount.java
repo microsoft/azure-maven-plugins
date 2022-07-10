@@ -39,11 +39,13 @@ public class ServicePrincipalAccount extends Account {
                 .tenantId(config.getTenant())
                 .clientId(config.getClient())
                 .pfxCertificate(config.getCertificate(), config.getCertificatePassword())
+                .executorService(config.getExecutorService())
                 .build() :
             new ClientSecretCredentialBuilder()
                 .tenantId(config.getTenant())
                 .clientId(config.getClient())
                 .clientSecret(config.getKey())
+                .executorService(config.getExecutorService())
                 .build();
     }
 

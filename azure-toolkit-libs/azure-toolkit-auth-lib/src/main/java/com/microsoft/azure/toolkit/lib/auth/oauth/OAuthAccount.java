@@ -43,6 +43,7 @@ public class OAuthAccount extends Account {
             .tenantId(tenantId)
             .tokenCachePersistenceOptions(getPersistenceOptions())
             .redirectUrl("http://localhost:" + FreePortFinder.findFreeLocalPort())
+            .executorService(this.getConfig().getExecutorService())
             .build();
     }
 }
