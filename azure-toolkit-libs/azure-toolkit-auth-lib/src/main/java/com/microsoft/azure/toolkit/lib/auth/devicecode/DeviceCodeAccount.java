@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.auth.devicecode;
 
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.DeviceCodeCredentialBuilder;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.AuthType;
@@ -19,12 +18,8 @@ import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 public class DeviceCodeAccount extends Account {
-    private static final ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("azure-toolkit-auth-%d").build();
-    private final ExecutorService executorService = Executors.newFixedThreadPool(2, namedThreadFactory);
     @Getter
     private final AuthType type = AuthType.DEVICE_CODE;
 
@@ -43,22 +38,16 @@ public class DeviceCodeAccount extends Account {
     @Nonnull
     @Override
     protected TokenCredential buildDefaultTokenCredential() {
-        if (executorService.isShutdown()) {
+        final AuthConfiguration config = this.getConfig();
+        if (Optional.ofNullable(config.getExecutorService()).filter(ExecutorService::isShutdown).isPresent()) {
             throw new AzureToolkitAuthenticationException("device login twice is forbidden.");
         }
-        final String tenantId = Optional.of(this.getConfig()).map(AuthConfiguration::getTenant).orElse(null);
         return new DeviceCodeCredentialBuilder()
             .clientId(this.getClientId())
-            .tenantId(tenantId)
+            .tenantId(config.getTenant())
             .tokenCachePersistenceOptions(this.getPersistenceOptions())
-            .executorService(executorService)
-            .challengeConsumer(this.getConfig().getDeviceCodeConsumer())
+            .executorService(config.getExecutorService())
+            .challengeConsumer(config.getDeviceCodeConsumer())
             .build();
-    }
-
-    @Override
-    protected void setupAfterLogin(TokenCredential defaultTokenCredential) {
-        super.setupAfterLogin(defaultTokenCredential);
-        this.executorService.shutdown();
     }
 }
