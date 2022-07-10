@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.credential.AccessToken;
-import com.azure.core.credential.SimpleTokenCache;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.core.http.policy.FixedDelay;
@@ -57,7 +56,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Getter
@@ -122,7 +120,9 @@ public abstract class Account implements IAccount {
         final AccessToken token = defaultTokenCredential.getToken(request).blockOptional()
             .orElseThrow(() -> new AzureToolkitAuthenticationException("Failed to retrieve token."));
         if (token instanceof MsalToken) {
-            this.username = ((MsalToken) token).getAccount().username();
+            this.username = Optional.of((MsalToken) token)
+                .map(MsalToken::getAccount).map(com.microsoft.aad.msal4j.IAccount::username)
+                .orElse(this.getClientId());
         }
         Optional.ofNullable(this.getConfig().getDoAfterLogin()).ifPresent(Runnable::run);
     }
@@ -260,15 +260,17 @@ public abstract class Account implements IAccount {
     @Override
     public String toString() {
         final List<String> details = new ArrayList<>();
-        final List<Subscription> selectedSubscriptions = getSelectedSubscriptions();
         final String username = this.getUsername();
         if (getType() != null) {
             details.add(String.format("Auth type: %s", TextUtils.cyan(getType().toString())));
         }
-        if (CollectionUtils.isNotEmpty(selectedSubscriptions)) {
-            if (selectedSubscriptions.size() == 1) {
-                details.add(String.format("Default subscription: %s(%s)", TextUtils.cyan(selectedSubscriptions.get(0).getName()),
-                    TextUtils.cyan(selectedSubscriptions.get(0).getId())));
+        if (this.isLoggedIn()) {
+            final List<Subscription> selectedSubscriptions = getSelectedSubscriptions();
+            if (CollectionUtils.isNotEmpty(selectedSubscriptions)) {
+                if (selectedSubscriptions.size() == 1) {
+                    details.add(String.format("Default subscription: %s(%s)", TextUtils.cyan(selectedSubscriptions.get(0).getName()),
+                        TextUtils.cyan(selectedSubscriptions.get(0).getId())));
+                }
             }
         }
         if (StringUtils.isNotEmpty(username)) {
@@ -281,7 +283,7 @@ public abstract class Account implements IAccount {
     @RequiredArgsConstructor
     private static class TenantTokenCredential implements TokenCredential {
         // cache for different resources on the same tenant
-        private final Map<String, SimpleTokenCache> resourceTokenCache = new ConcurrentHashMap<>();
+        // private final Map<String, SimpleTokenCache> resourceTokenCache = new ConcurrentHashMap<>();
         private final String tenantId;
         private final TokenCredential defaultCredential;
 
@@ -292,13 +294,12 @@ public abstract class Account implements IAccount {
             // final Function<String, SimpleTokenCache> func = (ignore) -> new SimpleTokenCache(() -> defaultCredential.getToken(request));
             // return resourceTokenCache.computeIfAbsent(resource, func).getToken();
             // final Mono<AccessToken> token = defaultCredential.getToken(request);
-            final String resource = ScopeUtil.scopesToResource(request.getScopes());
-            final Function<String, SimpleTokenCache> func = (ignore) -> new SimpleTokenCache(() -> defaultCredential.getToken(request).doOnTerminate(() -> {
+            // final String resource = ScopeUtil.scopesToResource(request.getScopes());
+            return defaultCredential.getToken(request).doOnTerminate(() -> {
                 if (defaultCredential instanceof InteractiveBrowserCredential || defaultCredential instanceof DeviceCodeCredential) {
-                    disableAutomaticAuthentication();// disable after first success.
+                    disableAutomaticAuthentication(); // disable after first success.
                 }
-            }));
-            return resourceTokenCache.computeIfAbsent(resource, func).getToken();
+            });
         }
 
         @SneakyThrows
