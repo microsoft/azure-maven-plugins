@@ -120,11 +120,16 @@ public class AzureAccount implements IAzureAccount {
         }
         this.accountRef = new AtomicReference<>();
         AzureEventBus.emit("account.logging_in.type", account.getType());
-        account.login();
-        if (restoring) {
-            account.setSelectedSubscriptions(selected);
+        try {
+            account.login();
+        } catch (Throwable t) {
+            AzureEventBus.emit("account.failed_logging_in.type", account.getType());
+            throw t;
         }
         if (this.accountRef.compareAndSet(null, account)) {
+            if (restoring) {
+                account.setSelectedSubscriptions(selected);
+            }
             AzureEventBus.emit("account.logged_in.account", account);
         }
         return account;
