@@ -9,11 +9,14 @@ import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.SpringServices;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.microsoft.azure.toolkit.lib.common.model.AzResource.RESOURCE_GROUP_PLACEHOLDER;
 
 public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringCloudCluster, SpringCloudServiceSubscription, SpringService> {
 
@@ -27,6 +30,16 @@ public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringClo
     @Override
     public SpringServices getClient() {
         return Optional.ofNullable(this.parent.getRemote()).map(AppPlatformManager::springServices).orElse(null);
+    }
+
+    @Nullable
+    @Override
+    public SpringCloudCluster get(@Nonnull String name, @Nullable String resourceGroup) {
+        resourceGroup = StringUtils.firstNonBlank(resourceGroup, this.getParent().getResourceGroupName());
+        if (StringUtils.isBlank(resourceGroup) || StringUtils.equalsIgnoreCase(resourceGroup, RESOURCE_GROUP_PLACEHOLDER)) {
+            return this.list().stream().filter(c -> StringUtils.equalsIgnoreCase(name, c.getName())).findAny().orElse(null);
+        }
+        return super.get(name, resourceGroup);
     }
 
     @Nonnull

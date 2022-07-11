@@ -23,8 +23,8 @@ public class MSFunctionDeployHandler implements IFunctionDeployHandler {
     private static final String DEPLOYMENT_PACKAGE_CONTAINER = "java-functions-deployment-packages";
     private static final String UPLOAD_PACKAGE_START = "Step 1 of 3: Uploading ZIP file to Azure Storage...";
     private static final String UPLOAD_PACKAGE_DONE = "Successfully uploaded ZIP file to ";
-    private static final String DEPLOY_PACKAGE_START = "Step 2 of 3: Deploying Azure Function App with package...";
-    private static final String DEPLOY_PACKAGE_DONE = "Successfully deployed Azure Function App.";
+    private static final String DEPLOY_PACKAGE_START = "Step 2 of 3: Deploying package to Azure Function App...";
+    private static final String DEPLOY_PACKAGE_DONE = "Successfully deployed to Azure Function App.";
     private static final String DELETE_PACKAGE_START = "Step 3 of 3: Deleting deployment package from Azure Storage...";
     private static final String DELETE_PACKAGE_DONE = "Successfully deleted deployment package ";
     private static final String DELETE_PACKAGE_FAIL = "Failed to delete deployment package ";

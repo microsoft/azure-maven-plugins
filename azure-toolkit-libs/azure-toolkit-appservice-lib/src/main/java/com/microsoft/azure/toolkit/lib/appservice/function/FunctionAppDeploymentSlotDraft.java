@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
+import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -32,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -118,7 +120,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
             AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, newDiagnosticConfig);
         }
         final IAzureMessager messager = AzureMessager.getMessager();
-        messager.info(AzureString.format("Start creating Azure Functions app deployment slot ({0})...", name));
+        messager.info(AzureString.format("Start creating Function App deployment slot ({0})...", name));
         // As we can not update runtime for deployment slot during creation, so call update resource here
         FunctionDeploymentSlot slot = (FunctionDeploymentSlot) Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
         final boolean isRuntimeModified = Objects.nonNull(this.getRuntime()) || Objects.nonNull(this.getDockerConfiguration());
@@ -126,7 +128,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
             final FunctionDeploymentSlot slotToUpdate = slot;
             slot = (FunctionDeploymentSlot) Objects.requireNonNull(this.doModify(() -> updateResourceInAzure(slotToUpdate), Status.CREATING));
         }
-        messager.success(AzureString.format("Azure Functions app deployment slot ({0}) is successfully created", name));
+        messager.success(AzureString.format("Function App deployment slot ({0}) is successfully created", name));
         return slot;
     }
 
@@ -139,16 +141,19 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
     )
     public FunctionDeploymentSlot updateResourceInAzure(@Nonnull WebSiteBase base) {
         FunctionDeploymentSlot remote = (FunctionDeploymentSlot) base;
-        final Map<String, String> oldAppSettings = origin.getAppSettings();
+        final Map<String, String> oldAppSettings = Utils.normalizeAppSettings(remote.getAppSettings());
         final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();
-        settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
-        final Set<String> settingsToRemove = this.ensureConfig().getAppSettingsToRemove().stream()
-                .filter(key -> oldAppSettings.containsValue(key)).collect(Collectors.toSet());
+        if (ObjectUtils.allNotNull(oldAppSettings, settingsToAdd)) {
+            settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
+        }
+        final Set<String> settingsToRemove = Optional.ofNullable(this.ensureConfig().getAppSettingsToRemove())
+                .map(set -> set.stream().filter(key -> oldAppSettings.containsValue(key)).collect(Collectors.toSet()))
+                .orElse(Collections.emptySet());
         final Runtime newRuntime = this.ensureConfig().getRuntime();
         final DockerConfiguration newDockerConfig = this.ensureConfig().getDockerConfiguration();
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
 
-        final Runtime oldRuntime = Objects.requireNonNull(origin.getRuntime());
+        final Runtime oldRuntime = AppServiceUtils.getRuntimeFromAppService(remote);
         boolean isRuntimeModified =  !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
         boolean isDockerConfigurationModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
         boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
@@ -165,9 +170,9 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
             Optional.ofNullable(newDiagnosticConfig)
                     .ifPresent(diagnosticConfig -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, diagnosticConfig));
             final IAzureMessager messager = AzureMessager.getMessager();
-            messager.info(AzureString.format("Start updating Azure Functions app deployment slot({0})...", remote.name()));
+            messager.info(AzureString.format("Start updating Function App deployment slot({0})...", remote.name()));
             remote = update.apply();
-            messager.success(AzureString.format("Azure Functions app deployment slot({0}) is successfully updated", remote.name()));
+            messager.success(AzureString.format("Function app deployment slot({0}) is successfully updated", remote.name()));
         }
         return remote;
     }

@@ -85,7 +85,7 @@ public abstract class AppServiceAppBase<
     @Nullable
     public synchronized F getFullRemote() {
         WebSiteBase remote = this.getRemote();
-        if (!(remote instanceof WebAppBase)) {
+        if (Objects.nonNull(remote) && !(remote instanceof WebAppBase)) {
             this.refresh();
             remote = this.getRemote();
         }

@@ -52,12 +52,6 @@ public class ResourcesServiceSubscription extends AbstractAzServiceSubscription<
 
     @Nonnull
     @Override
-    public String getId() {
-        return String.format("/subscriptions/%s", this.subscriptionId);
-    }
-
-    @Nonnull
-    @Override
     public ResourceManager getResourceManager() {
         return Objects.requireNonNull(this.getRemote()).resourceManager();
     }

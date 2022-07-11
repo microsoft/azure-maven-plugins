@@ -34,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -92,8 +93,8 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         OperationContext.action().setTelemetryProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
 
         final String name = getName();
-        final Runtime newRuntime = Objects.requireNonNull(getRuntime(), "'runtime' is required to create a Azure Functions app");
-        final AppServicePlan newPlan = Objects.requireNonNull(getAppServicePlan(), "'service plan' is required to create a Azure Functions app");
+        final Runtime newRuntime = Objects.requireNonNull(getRuntime(), "'runtime' is required to create a Function App");
+        final AppServicePlan newPlan = Objects.requireNonNull(getAppServicePlan(), "'service plan' is required to create a Function App");
         final Map<String, String> newAppSettings = getAppSettings();
         final DiagnosticConfig newDiagnosticConfig = getDiagnosticConfig();
         final String funcExtVersion = Optional.ofNullable(newAppSettings).map(map -> map.get(FUNCTIONS_EXTENSION_VERSION)).orElse(null);
@@ -124,16 +125,16 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, newDiagnosticConfig);
         }
         final IAzureMessager messager = AzureMessager.getMessager();
-        messager.info(AzureString.format("Start creating Azure Functions app({0})...", name));
+        messager.info(AzureString.format("Start creating Function App({0})...", name));
         com.azure.resourcemanager.appservice.models.FunctionApp functionApp = (com.azure.resourcemanager.appservice.models.FunctionApp)
             Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
-        messager.success(AzureString.format("Azure Functions app({0}) is successfully created", name));
+        messager.success(AzureString.format("Function App({0}) is successfully created", name));
         return functionApp;
     }
 
     DefinitionStages.WithCreate createDockerApp(@Nonnull DefinitionStages.Blank blank, @Nonnull AppServicePlan plan) {
         // check service plan, consumption is not supported
-        final String message = "Docker configuration is required to create a docker based Azure Functions app";
+        final String message = "Docker configuration is required to create a docker based Function app";
         final DockerConfiguration config = Objects.requireNonNull(this.getDockerConfiguration(), message);
         if (StringUtils.equalsIgnoreCase(plan.getPricingTier().getTier(), "Dynamic")) {
             throw new AzureToolkitRuntimeException("Docker function is not supported in consumption service plan");
@@ -173,9 +174,12 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         assert origin != null : "updating target is not specified.";
         final Map<String, String> oldAppSettings = origin.getAppSettings();
         final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();
-        settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
-        final Set<String> settingsToRemove = this.ensureConfig().getAppSettingsToRemove().stream()
-                .filter(key -> oldAppSettings.containsValue(key)).collect(Collectors.toSet());
+        if (ObjectUtils.allNotNull(oldAppSettings, settingsToAdd)) {
+            settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
+        }
+        final Set<String> settingsToRemove = Optional.ofNullable(this.ensureConfig().getAppSettingsToRemove())
+                .map(set -> set.stream().filter(key -> oldAppSettings.containsValue(key)).collect(Collectors.toSet()))
+                .orElse(Collections.emptySet());
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
         final Runtime newRuntime = this.ensureConfig().getRuntime();
         final AppServicePlan newPlan = this.ensureConfig().getPlan();
@@ -201,9 +205,9 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             Optional.ofNullable(newDiagnosticConfig).ifPresent(c -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, c));
 
             final IAzureMessager messager = AzureMessager.getMessager();
-            messager.info(AzureString.format("Start updating Azure Functions App({0})...", remote.name()));
+            messager.info(AzureString.format("Start updating Function App({0})...", remote.name()));
             remote = update.apply();
-            messager.success(AzureString.format("Azure Functions App({0}) is successfully updated", remote.name()));
+            messager.success(AzureString.format("Function App({0}) is successfully updated", remote.name()));
         }
         return remote;
     }

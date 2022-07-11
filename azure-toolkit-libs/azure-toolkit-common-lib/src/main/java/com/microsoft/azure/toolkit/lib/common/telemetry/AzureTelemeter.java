@@ -67,7 +67,7 @@ public class AzureTelemeter {
 
     public static void afterExit(@Nonnull final Operation op) {
         op.getContext().setTelemetryProperty(AzureTelemetry.OP_EXIT_AT, Instant.now().toString());
-        AzureTelemeter.log(AzureTelemetry.Type.INFO, serialize(op));
+        AzureTelemeter.log(AzureTelemetry.Type.OP_END, serialize(op));
     }
 
     public static void onError(@Nonnull final Operation op, Throwable error) {
