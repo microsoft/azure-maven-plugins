@@ -38,10 +38,11 @@ public class DeploymentBuildStatus {
     public static final DeploymentBuildStatus RUNTIME_SUCCESSFUL = new DeploymentBuildStatus("RuntimeSuccessful");
 
     private static final Set<DeploymentBuildStatus> SUCCEED_STATUS = Collections.unmodifiableSet(Sets.newHashSet(RUNTIME_SUCCESSFUL));
-    private static final Set<DeploymentBuildStatus> FAILED_STATUS = Collections.unmodifiableSet(Sets.newHashSet(TIMED_OUT, RUNTIME_FAILED, BUILD_ABORTED, BUILD_FAILED));
+    private static final Set<DeploymentBuildStatus> TIMEOUT_STATUS = Collections.unmodifiableSet(Sets.newHashSet(TIMED_OUT));
+    private static final Set<DeploymentBuildStatus> FAILED_STATUS = Collections.unmodifiableSet(Sets.newHashSet(RUNTIME_FAILED, BUILD_ABORTED, BUILD_FAILED));
     private static final Set<DeploymentBuildStatus> RUNNING_STATUS = Collections.unmodifiableSet(Sets.newHashSet(BUILD_REQUEST_RECEIVED,
             BUILD_PENDING, BUILD_IN_PROGRESS, BUILD_SUCCESSFUL, POST_BUILD_RESTART_REQUIRED, START_POLLING, START_POLLING_WITH_RESTART, RUNTIME_STARTING));
-    private static final Set<DeploymentBuildStatus> VALUES = Stream.of(SUCCEED_STATUS, FAILED_STATUS, RUNNING_STATUS)
+    private static final Set<DeploymentBuildStatus> VALUES = Stream.of(SUCCEED_STATUS, FAILED_STATUS, TIMEOUT_STATUS, RUNNING_STATUS)
             .flatMap(Set::stream).collect(Collectors.toSet());
 
     private String value;
@@ -56,6 +57,10 @@ public class DeploymentBuildStatus {
 
     public boolean isFailed() {
         return FAILED_STATUS.contains(this);
+    }
+
+    public boolean isTimeout() {
+        return TIMEOUT_STATUS.contains(this);
     }
 
     public boolean isUnknownStatus() {

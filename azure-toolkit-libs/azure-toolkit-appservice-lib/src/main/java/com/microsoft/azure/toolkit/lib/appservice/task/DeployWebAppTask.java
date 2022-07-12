@@ -5,6 +5,11 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.task;
 
+import com.microsoft.azure.toolkit.lib.appservice.model.CsmDeploymentStatus;
+import com.microsoft.azure.toolkit.lib.appservice.model.DeployOptions;
+import com.microsoft.azure.toolkit.lib.appservice.model.DeploymentBuildStatus;
+import com.microsoft.azure.toolkit.lib.appservice.model.ErrorEntity;
+import com.microsoft.azure.toolkit.lib.appservice.model.KuduDeploymentResult;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -13,11 +18,20 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
+import javax.annotation.Nonnull;
+import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private static final String SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE = "Skip deployment for docker webapp, " +
@@ -71,8 +85,36 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         final List<WebAppArtifact> artifactsOneDeploy = this.artifacts.stream()
             .filter(artifact -> artifact.getDeployType() != null)
             .collect(Collectors.toList());
-        artifactsOneDeploy.forEach(resource -> webApp.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
+        final AtomicReference<KuduDeploymentResult> reference = new AtomicReference<>();
+        artifactsOneDeploy.forEach(resource ->
+                reference.set(webApp.pushDeploy(resource.getDeployType(), resource.getFile(), DeployOptions.builder().path(resource.getPath()).build())));
+        trackDeployment(reference);
         OperationContext.action().setTelemetryProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
+    }
+
+    private void trackDeployment(final AtomicReference<KuduDeploymentResult> resultReference) {
+        final KuduDeploymentResult kuduDeploymentResult = resultReference.get();
+        if (kuduDeploymentResult == null) {
+            return;
+        }
+        final CsmDeploymentStatus status = Mono.fromCallable(() -> webApp.getDeploymentStatus(kuduDeploymentResult.getDeploymentId()))
+                .delayElement(Duration.ofSeconds(1))
+                .subscribeOn(Schedulers.boundedElastic())
+                .repeat()
+                .takeUntil(csmDeploymentStatus -> !csmDeploymentStatus.getStatus().isRunning())
+                .blockLast();
+        final DeploymentBuildStatus buildStatus = status.getStatus();
+        if (buildStatus.isSucceed()) {
+            return;
+        } else if (buildStatus.isTimeout()) {
+            AzureMessager.getMessager().warning("Deploy succeed, but failed to get the deployment status");
+        } else if (status.getStatus().isFailed()) {
+            final String failedInstancesLogs = CollectionUtils.isEmpty(status.getFailedInstancesLogs()) ?
+                    StringUtils.join(status.getFailedInstancesLogs(), StringUtils.LF) : StringUtils.EMPTY;
+            final String errorMessages = CollectionUtils.isNotEmpty(status.getErrors()) ?
+                    status.getErrors().stream().map(ErrorEntity::getMessage).collect(Collectors.joining(StringUtils.LF)) : StringUtils.EMPTY;
+            throw new AzureToolkitRuntimeException(String.join(StringUtils.LF, errorMessages, errorMessages));
+        }
     }
 
     private static void stopAppService(WebAppBase<?, ?, ?> target) {

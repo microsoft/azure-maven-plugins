@@ -4,7 +4,10 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.deploy;
 
+import com.microsoft.azure.toolkit.lib.appservice.model.CsmDeploymentStatus;
+import com.microsoft.azure.toolkit.lib.appservice.model.DeployOptions;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
+import com.microsoft.azure.toolkit.lib.appservice.model.KuduDeploymentResult;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 
@@ -16,12 +19,21 @@ public interface IOneDeploy {
     }
 
     default void deploy(DeployType deployType, File targetFile) {
-        deploy(deployType, targetFile, null);
+        deploy(deployType, targetFile, (String) null);
     }
 
     default void deploy(WebAppArtifact webAppArtifact) {
         deploy(webAppArtifact.getDeployType(), webAppArtifact.getFile(), webAppArtifact.getPath());
     }
 
-    void deploy(DeployType deployType, File targetFile, String targetPath);
+    default void deploy(DeployType deployType, File targetFile, String targetPath) {
+        deploy(deployType, targetFile, DeployOptions.builder().path(targetPath).build());
+    }
+
+    void deploy(DeployType deployType, File targetFile, DeployOptions deployOptions);
+
+    KuduDeploymentResult pushDeploy(DeployType var1, File var2, DeployOptions var3);
+
+    CsmDeploymentStatus getDeploymentStatus(String var1);
+
 }

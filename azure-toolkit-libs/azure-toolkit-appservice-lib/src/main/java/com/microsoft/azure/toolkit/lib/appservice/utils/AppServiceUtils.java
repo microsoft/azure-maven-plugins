@@ -17,8 +17,13 @@ import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.azure.resourcemanager.appservice.models.WebAppDiagnosticLogs;
 import com.azure.resourcemanager.resources.fluentcore.model.HasInnerModel;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
+import com.microsoft.azure.toolkit.lib.appservice.model.CsmDeploymentStatus;
+import com.microsoft.azure.toolkit.lib.appservice.model.DeployOptions;
+import com.microsoft.azure.toolkit.lib.appservice.model.DeploymentBuildStatus;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
+import com.microsoft.azure.toolkit.lib.appservice.model.ErrorEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.KuduDeploymentResult;
 import com.microsoft.azure.toolkit.lib.appservice.model.LogLevel;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
@@ -292,4 +297,46 @@ public class AppServiceUtils {
                 .properties(bindingProperties).build();
     }
 
+    public static com.azure.resourcemanager.appservice.models.DeployOptions toDeployOptions(@Nonnull final DeployOptions deployOptions) {
+        return new com.azure.resourcemanager.appservice.models.DeployOptions().withPath(deployOptions.getPath())
+                .withCleanDeployment(deployOptions.getCleanDeployment())
+                .withRestartSite(deployOptions.getRestartSite())
+                .withTrackDeployment(deployOptions.getTrackDeployment());
+    }
+
+    public static KuduDeploymentResult fromKuduDeploymentResult(@Nonnull final com.azure.resourcemanager.appservice.models.KuduDeploymentResult result) {
+        return KuduDeploymentResult.builder().deploymentId(result.deploymentId()).build();
+    }
+
+    public static CsmDeploymentStatus fromCsmDeploymentStatus(@Nonnull final com.azure.resourcemanager.appservice.models.CsmDeploymentStatus deploymentStatus) {
+        final DeploymentBuildStatus buildStatus = DeploymentBuildStatus.fromString(deploymentStatus.status().toString());
+        final List<ErrorEntity> errors = Optional.ofNullable(deploymentStatus.errors())
+                .map(list -> list.stream().map(AppServiceUtils::fromErrorEntity).collect(Collectors.toList())).orElse(Collections.emptyList());
+        return CsmDeploymentStatus.builder()
+                .deploymentId(deploymentStatus.deploymentId())
+                .status(buildStatus)
+                .errors(errors)
+                .numberOfInstancesSuccessful(deploymentStatus.numberOfInstancesSuccessful())
+                .numberOfInstancesFailed(deploymentStatus.numberOfInstancesFailed())
+                .numberOfInstancesInProgress(deploymentStatus.numberOfInstancesInProgress())
+                .failedInstancesLogs(deploymentStatus.failedInstancesLogs())
+                .build();
+    }
+
+    private static ErrorEntity fromErrorEntity(@Nonnull final com.azure.resourcemanager.appservice.models.ErrorEntity entity) {
+        final List<ErrorEntity> details = Optional.ofNullable(entity.details())
+                .map(list -> list.stream().map(AppServiceUtils::fromErrorEntity).collect(Collectors.toList())).orElse(Collections.emptyList());
+        final List<ErrorEntity> innerErrors = Optional.ofNullable(entity.innerErrors())
+                .map(list -> list.stream().map(AppServiceUtils::fromErrorEntity).collect(Collectors.toList())).orElse(Collections.emptyList());
+        return ErrorEntity.builder()
+                .details(details)
+                .innerErrors(innerErrors)
+                .code(entity.code())
+                .extendedCode(entity.extendedCode())
+                .message(entity.message())
+                .messageTemplate(entity.messageTemplate())
+                .parameters(entity.parameters())
+                .target(entity.target())
+                .build();
+    }
 }
