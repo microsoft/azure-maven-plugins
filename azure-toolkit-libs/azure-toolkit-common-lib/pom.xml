@@ -109,10 +109,6 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>applicationinsights-web</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>adal4j</artifactId>
-        </dependency>
     </dependencies>
 
     <build>

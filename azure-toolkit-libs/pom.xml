@@ -75,7 +75,7 @@
         <azure-resourcemanager-postgre.version>1.0.2</azure-resourcemanager-postgre.version>
         <azure-core-management.version>1.6.2</azure-core-management.version>
         <azure.client.version>1.7.14</azure.client.version>
-        <azure.identity.version>1.5.1</azure.identity.version>
+        <azure.identity.version>1.5.2</azure.identity.version>
         <azure.storage.version>8.6.6</azure.storage.version>
         <azure.storage-file-share.version>12.9.1</azure.storage-file-share.version>
         <azure.function.version>1.4.2</azure.function.version>
@@ -170,11 +170,6 @@
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-core-http-netty</artifactId>
-                <version>${azure.core.http.netty.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-auth-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
@@ -220,11 +215,6 @@
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
             <dependency>
-                <groupId>redis.clients</groupId>
-                <artifactId>jedis</artifactId>
-                <version>${jedis.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-postgre-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
@@ -239,51 +229,88 @@
                 <artifactId>azure-toolkit-containerregistry-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
-            <!-- azure libs -->
+            <!-- azure sdk -->
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-core</artifactId>
+                <version>${azure.core.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.azure</groupId>
+                        <artifactId>azure-core-http-okhttp</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-identity</artifactId>
+                <version>${azure.identity.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.linguafranca.pwdb</groupId>
+                        <artifactId>KeePassJava2</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
             <dependency>
                 <groupId>com.azure</groupId>
                 <artifactId>azure-core-management</artifactId>
                 <version>${azure-core-management.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-storage</artifactId>
-                <version>${azure.storage.version}</version>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-core-http-netty</artifactId>
+                <version>${azure.core.http.netty.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-client-runtime</artifactId>
-                <version>${azure.client.version}</version>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-appservice</artifactId>
+                <version>${azure.resourcemanager.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>applicationinsights-core</artifactId>
-                <version>${azure.applicationinsights.version}</version>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-resources</artifactId>
+                <version>${azure.resourcemanager.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>applicationinsights-web</artifactId>
-                <version>${azure.applicationinsights.version}</version>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-sql</artifactId>
+                <version>${azure.resourcemanager.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-data-lake-store-sdk</artifactId>
-                <version>2.3.10</version>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-storage</artifactId>
+                <version>${azure.resourcemanager.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.microsoft.rest</groupId>
-                <artifactId>client-runtime</artifactId>
-                <version>${azure.client.version}</version>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-mysql</artifactId>
+                <version>${azure-resourcemanager-mysql.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.nimbusds</groupId>
-                <artifactId>oauth2-oidc-sdk</artifactId>
-                <version>${nimbusds.oauth2.oidc.sdk.version}</version>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-postgresql</artifactId>
+                <version>${azure-resourcemanager-postgre.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>adal4j</artifactId>
-                <version>${azure.aad.version}</version>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-redis</artifactId>
+                <version>${azure.resourcemanager.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-appplatform</artifactId>
+                <version>${azure.resourcemanager.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-compute</artifactId>
+                <version>${azure.resourcemanager.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-containerregistry</artifactId>
+                <version>${azure.resourcemanager.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
@@ -291,10 +318,12 @@
                 <version>${azure.resourcemanager-applicationinsights.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.yaml</groupId>
-                <artifactId>snakeyaml</artifactId>
-                <version>${snakeyaml.version}</version>
+                <groupId>com.microsoft.rest</groupId>
+                <artifactId>client-runtime</artifactId>
+                <version>${azure.client.version}</version>
             </dependency>
+
+            <!-- jackson libs -->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
@@ -355,41 +384,8 @@
                 <artifactId>jackson-dataformat-xml</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.errorprone</groupId>
-                        <artifactId>error_prone_annotations</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.code.findbugs</groupId>
-                        <artifactId>jsr305</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
 
-            <dependency>
-                <groupId>com.google.code.gson</groupId>
-                <artifactId>gson</artifactId>
-                <version>${gson.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.fusesource.jansi</groupId>
-                <artifactId>jansi</artifactId>
-                <version>${jansi.version}</version>
-            </dependency>
-
-            <!-- javax annotations e.g. @Nonnull -->
-            <dependency>
-                <groupId>com.google.code.findbugs</groupId>
-                <artifactId>jsr305</artifactId>
-                <version>${google.jsr305.version}</version>
-            </dependency>
-
+            <!-- commons libs -->
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
@@ -426,6 +422,108 @@
                 <version>${commons.configuration2.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections4</artifactId>
+                <version>${commons.collections4.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-exec</artifactId>
+                <version>${commons.exec.version}</version>
+            </dependency>
+
+            <!-- azure sdk (Track 1) -->
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-storage</artifactId>
+                <version>${azure.storage.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-client-runtime</artifactId>
+                <version>${azure.client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>applicationinsights-core</artifactId>
+                <version>${azure.applicationinsights.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>applicationinsights-web</artifactId>
+                <version>${azure.applicationinsights.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-data-lake-store-sdk</artifactId>
+                <version>2.3.10</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>adal4j</artifactId>
+                <version>${azure.aad.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-arm-client-runtime</artifactId>
+                <version>${azure.client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure.functions</groupId>
+                <artifactId>azure-functions-java-library</artifactId>
+                <version>${azure.function.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>redis.clients</groupId>
+                <artifactId>jedis</artifactId>
+                <version>${jedis.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nimbusds</groupId>
+                <artifactId>oauth2-oidc-sdk</artifactId>
+                <version>${nimbusds.oauth2.oidc.sdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${snakeyaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${gson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.fusesource.jansi</groupId>
+                <artifactId>jansi</artifactId>
+                <version>${jansi.version}</version>
+            </dependency>
+
+            <!-- javax annotations e.g. @Nonnull -->
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>${google.jsr305.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
@@ -452,106 +550,10 @@
                 <version>${jetbrains.annotations.version}</version>
             </dependency>
 
-            <!-- azure sdk -->
-            <dependency>
-                <groupId>com.azure.resourcemanager</groupId>
-                <artifactId>azure-resourcemanager-appservice</artifactId>
-                <version>${azure.resourcemanager.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure.resourcemanager</groupId>
-                <artifactId>azure-resourcemanager-resources</artifactId>
-                <version>${azure.resourcemanager.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure.resourcemanager</groupId>
-                <artifactId>azure-resourcemanager-sql</artifactId>
-                <version>${azure.resourcemanager.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure.resourcemanager</groupId>
-                <artifactId>azure-resourcemanager-storage</artifactId>
-                <version>${azure.resourcemanager.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure.resourcemanager</groupId>
-                <artifactId>azure-resourcemanager-mysql</artifactId>
-                <version>${azure-resourcemanager-mysql.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure.resourcemanager</groupId>
-                <artifactId>azure-resourcemanager-postgresql</artifactId>
-                <version>${azure-resourcemanager-postgre.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure.resourcemanager</groupId>
-                <artifactId>azure-resourcemanager-redis</artifactId>
-                <version>${azure.resourcemanager.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure.resourcemanager</groupId>
-                <artifactId>azure-resourcemanager-appplatform</artifactId>
-                <version>${azure.resourcemanager.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure.resourcemanager</groupId>
-                <artifactId>azure-resourcemanager-compute</artifactId>
-                <version>${azure.resourcemanager.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure.resourcemanager</groupId>
-                <artifactId>azure-resourcemanager-containerregistry</artifactId>
-                <version>${azure.resourcemanager.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-identity</artifactId>
-                <version>${azure.identity.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.nimbusds</groupId>
-                        <artifactId>oauth2-oidc-sdk</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.azure</groupId>
-                        <artifactId>azure-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.azure</groupId>
-                        <artifactId>azure-core-http-netty</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.linguafranca.pwdb</groupId>
-                        <artifactId>KeePassJava2</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
-            <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-core</artifactId>
-                <version>${azure.core.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.azure</groupId>
-                        <artifactId>azure-core-http-okhttp</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
                 <version>${httpclient.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-collections4</artifactId>
-                <version>${commons.collections4.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-exec</artifactId>
-                <version>${commons.exec.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.reflections</groupId>
@@ -596,11 +598,6 @@
                 <version>${httpcore.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-arm-client-runtime</artifactId>
-                <version>${azure.client.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.zeroturnaround</groupId>
                 <artifactId>zt-zip</artifactId>
                 <version>${zt.zip.version}</version>
@@ -609,11 +606,6 @@
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-utils</artifactId>
                 <version>${codehaus.plexus-utils.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure.functions</groupId>
-                <artifactId>azure-functions-java-library</artifactId>
-                <version>${azure.function.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.zafarkhaja</groupId>
