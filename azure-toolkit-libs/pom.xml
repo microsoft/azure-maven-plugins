@@ -79,7 +79,7 @@
         <azure.storage.version>8.6.6</azure.storage.version>
         <azure.storage-file-share.version>12.9.1</azure.storage-file-share.version>
         <azure.function.version>1.4.2</azure.function.version>
-        <azure.core.http.netty.version>1.12.2</azure.core.http.netty.version>
+        <azure.core.http.netty.version>1.12.3</azure.core.http.netty.version>
         <aspectj.version>1.9.9.1</aspectj.version>
         <codehaus.plexus-utils.version>3.4.2</codehaus.plexus-utils.version>
         <commons.codec.version>1.15</commons.codec.version>
