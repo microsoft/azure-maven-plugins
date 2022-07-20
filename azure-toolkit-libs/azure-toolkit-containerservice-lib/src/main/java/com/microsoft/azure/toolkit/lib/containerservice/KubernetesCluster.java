@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.containerservice;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Startable;
@@ -18,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class KubernetesCluster extends AbstractAzResource<KubernetesCluster, ContainerServiceSubscription,
@@ -76,12 +78,12 @@ public class KubernetesCluster extends AbstractAzResource<KubernetesCluster, Con
 
     @Override
     public void start() {
-        getRemote().start();
+        this.doModify(() -> Objects.requireNonNull(this.getRemote()).start(), AzResource.Status.STARTING);
     }
 
     @Override
     public void stop() {
-        getRemote().stop();
+        this.doModify(() -> Objects.requireNonNull(this.getRemote()).stop(), AzResource.Status.STOPPING);
     }
 
     public byte[] getAdminKubeConfig() {
