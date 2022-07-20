@@ -12,6 +12,8 @@ import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Startable;
 import com.microsoft.azure.toolkit.lib.containerservice.model.ContainerServiceNetworkProfile;
+import com.microsoft.azure.toolkit.lib.containerservice.model.PowerState;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -56,6 +58,10 @@ public class KubernetesCluster extends AbstractAzResource<KubernetesCluster, Con
         return Optional.ofNullable(getRemote()).map(cluster -> cluster.region()).map(region -> Region.fromName(region.name())).orElse(null);
     }
 
+    public PowerState getPowerStatus() {
+        return Optional.ofNullable(getRemote()).map(remote -> PowerState.fromString(remote.powerState().code().toString())).orElse(null);
+    }
+
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, KubernetesCluster, ?>> getSubModules() {
@@ -65,7 +71,8 @@ public class KubernetesCluster extends AbstractAzResource<KubernetesCluster, Con
     @Nonnull
     @Override
     public String loadStatus(@Nonnull com.azure.resourcemanager.containerservice.models.KubernetesCluster remote) {
-        return remote.provisioningState();
+        final String provisioningState = remote.provisioningState();
+        return StringUtils.equalsIgnoreCase("Succeeded", provisioningState) ? getPowerStatus().getValue() : provisioningState;
     }
 
     @Override
