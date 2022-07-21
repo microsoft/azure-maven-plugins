@@ -22,7 +22,6 @@ public class OutboundType {
     public static final OutboundType MANAGED_NATGATEWAY = new OutboundType("managedNATGateway");
     public static final OutboundType USER_ASSIGNED_NATGATEWAY = new OutboundType("userAssignedNATGateway");
 
-
     private String value;
 
     public static List<OutboundType> values() {

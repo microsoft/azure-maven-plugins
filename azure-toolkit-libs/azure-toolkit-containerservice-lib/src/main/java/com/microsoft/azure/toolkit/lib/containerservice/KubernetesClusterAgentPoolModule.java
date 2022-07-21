@@ -24,7 +24,8 @@ public class KubernetesClusterAgentPoolModule extends
 
     @Nonnull
     @Override
-    protected KubernetesClusterAgentPool newResource(@Nonnull com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool kubernetesClusterAgentPool) {
+    protected KubernetesClusterAgentPool newResource(
+            @Nonnull com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool kubernetesClusterAgentPool) {
         return new KubernetesClusterAgentPool(kubernetesClusterAgentPool, this);
     }
 
@@ -48,7 +49,8 @@ public class KubernetesClusterAgentPoolModule extends
 
     @Nullable
     @Override
-    protected com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
+    protected com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool loadResourceFromAzure(
+            @Nonnull String name, @Nullable String resourceGroup) {
         return Optional.ofNullable(this.getClient()).map(cluster -> cluster.agentPools().get(name)).orElse(null);
     }
 
@@ -61,6 +63,6 @@ public class KubernetesClusterAgentPoolModule extends
     @Nullable
     @Override
     protected com.azure.resourcemanager.containerservice.models.KubernetesCluster getClient() {
-        return Optional.ofNullable(this.parent.getRemote()).orElse(null);
+        return this.parent.getRemote();
     }
 }

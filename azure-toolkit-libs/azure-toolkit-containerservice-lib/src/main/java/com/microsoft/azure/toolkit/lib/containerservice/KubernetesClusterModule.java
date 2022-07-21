@@ -15,10 +15,12 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class KubernetesClusterModule extends AbstractAzResourceModule<KubernetesCluster, ContainerServiceSubscription, com.azure.resourcemanager.containerservice.models.KubernetesCluster> {
+public class KubernetesClusterModule extends AbstractAzResourceModule<KubernetesCluster, ContainerServiceSubscription,
+        com.azure.resourcemanager.containerservice.models.KubernetesCluster> {
     private static final String NAME = "managedClusters";
 
     public KubernetesClusterModule(@Nonnull final ContainerServiceSubscription parent) {
@@ -26,7 +28,8 @@ public class KubernetesClusterModule extends AbstractAzResourceModule<Kubernetes
     }
 
     public List<String> listVirtualMachineVersion(@Nonnull final Region region) {
-        return getClient().listOrchestrators(com.azure.core.management.Region.fromName(region.getName()), ContainerServiceResourceTypes.MANAGED_CLUSTERS)
+        return Objects.requireNonNull(getClient()).listOrchestrators(com.azure.core.management.Region.fromName(region.getName()),
+                        ContainerServiceResourceTypes.MANAGED_CLUSTERS)
                 .stream().map(profile -> profile.orchestratorVersion())
                 .collect(Collectors.toList());
     }
@@ -40,7 +43,7 @@ public class KubernetesClusterModule extends AbstractAzResourceModule<Kubernetes
     @Nonnull
     @Override
     protected KubernetesCluster newResource(@Nonnull String name, @Nullable String resourceGroupName) {
-        return new KubernetesCluster(name, resourceGroupName, this);
+        return new KubernetesCluster(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nullable
@@ -59,6 +62,6 @@ public class KubernetesClusterModule extends AbstractAzResourceModule<Kubernetes
     @Override
     protected AzResource.Draft<KubernetesCluster,
             com.azure.resourcemanager.containerservice.models.KubernetesCluster> newDraftForCreate(@Nonnull String name, @Nullable String rgName) {
-        return new KubernetesClusterDraft(name, rgName, this);
+        return new KubernetesClusterDraft(name, Objects.requireNonNull(rgName), this);
     }
 }

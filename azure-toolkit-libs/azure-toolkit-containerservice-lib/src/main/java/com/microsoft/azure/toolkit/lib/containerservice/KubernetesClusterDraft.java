@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ */
+
 package com.microsoft.azure.toolkit.lib.containerservice;
 
 import com.azure.resourcemanager.containerservice.ContainerServiceManager;
@@ -75,7 +80,7 @@ public class KubernetesClusterDraft extends KubernetesCluster implements
             ((ResourceGroupDraft) resourceGroup).createIfNotExist();
         }
         // Create Kubernetes service
-        final ContainerServiceManager manager = this.getParent().getRemote();
+        final ContainerServiceManager manager = Objects.requireNonNull(this.getParent().getRemote());
         final DefinitionStages.WithCreate withCreate = manager.kubernetesClusters().define(this.getName())
                 .withRegion(region.getName())
                 .withExistingResourceGroup(this.getResourceGroupName())
@@ -96,7 +101,7 @@ public class KubernetesClusterDraft extends KubernetesCluster implements
         withCreate.withDnsPrefix(dnsPrefix);
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Kubernetes service ({0})...", getName()));
-        com.azure.resourcemanager.containerservice.models.KubernetesCluster cluster = (com.azure.resourcemanager.containerservice.models.KubernetesCluster)
+        com.azure.resourcemanager.containerservice.models.KubernetesCluster cluster =
                 Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
         messager.success(AzureString.format("Kubernetes service ({0}) is successfully created", getName()));
         return cluster;
@@ -114,12 +119,6 @@ public class KubernetesClusterDraft extends KubernetesCluster implements
         return config != null && !Objects.equals(config, new Config());
     }
 
-    @Nullable
-    @Override
-    public KubernetesCluster getOrigin() {
-        return this.origin;
-    }
-
     @Nonnull
     private synchronized Config ensureConfig() {
         this.config = Optional.ofNullable(this.config).orElseGet(Config::new);
@@ -127,7 +126,7 @@ public class KubernetesClusterDraft extends KubernetesCluster implements
     }
 
     public Region getRegion() {
-        return Optional.ofNullable(config).map(Config::getRegion).orElse(null);
+        return Optional.ofNullable(config).map(Config::getRegion).orElse(super.getRegion());
     }
 
     public void setRegion(Region region) {
@@ -135,7 +134,7 @@ public class KubernetesClusterDraft extends KubernetesCluster implements
     }
 
     public String getKubernetesVersion() {
-        return Optional.ofNullable(config).map(Config::getKubernetesVersion).orElse(null);
+        return Optional.ofNullable(config).map(Config::getKubernetesVersion).orElse(super.getKubernetesVersion());
     }
 
     public void setKubernetesVersion(String kubernetesVersion) {
