@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.compute.virtualmachine;
 import com.azure.resourcemanager.compute.models.LinuxConfiguration;
 import com.azure.resourcemanager.compute.models.OSProfile;
 import com.azure.resourcemanager.network.models.PublicIpAddress;
+import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -100,6 +101,7 @@ public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeSe
     }
 
     @Nullable
+    @Cacheable(cacheName = "vm/{}/hostIp", key = "${this.getId()}")
     public String getHostIp() {
         return this.remoteOptional()
             .map(com.azure.resourcemanager.compute.models.VirtualMachine::getPrimaryPublicIPAddress)
