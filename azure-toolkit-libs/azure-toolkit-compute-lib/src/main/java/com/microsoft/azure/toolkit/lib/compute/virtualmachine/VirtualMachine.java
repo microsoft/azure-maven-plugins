@@ -101,7 +101,7 @@ public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeSe
     }
 
     @Nullable
-    @Cacheable(cacheName = "vm/{}/hostIp", key = "${this.getName()}")
+    @Cacheable(cacheName = "vm/{}/hostIp", key = "${this.getId()}")
     public String getHostIp() {
         return this.remoteOptional()
             .map(com.azure.resourcemanager.compute.models.VirtualMachine::getPrimaryPublicIPAddress)
