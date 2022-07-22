@@ -48,6 +48,7 @@
         <module>azure-toolkit-redis-lib</module>
         <module>azure-toolkit-compute-lib</module>
         <module>azure-toolkit-containerregistry-lib</module>
+        <module>azure-toolkit-containerservice-lib</module>
     </modules>
 
     <properties>
@@ -229,6 +230,12 @@
                 <artifactId>azure-toolkit-containerregistry-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-containerservice-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
+
             <!-- azure sdk -->
             <dependency>
                 <groupId>com.azure</groupId>
@@ -316,6 +323,11 @@
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-applicationinsights</artifactId>
                 <version>${azure.resourcemanager-applicationinsights.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-containerservice</artifactId>
+                <version>${azure.resourcemanager.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.rest</groupId>
