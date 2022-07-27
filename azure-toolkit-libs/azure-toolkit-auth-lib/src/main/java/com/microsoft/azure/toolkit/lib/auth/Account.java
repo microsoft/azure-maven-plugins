@@ -98,7 +98,6 @@ public abstract class Account implements IAccount {
         this.config.setType(this.getType());
         this.config.setClient(this.getClientId());
         final List<String> tenantIds = this.getTenantIds();
-        this.config.setTenants(tenantIds);
         if (StringUtils.isEmpty(this.config.getTenant())) {
             this.config.setTenant(CollectionUtils.isEmpty(tenantIds) ? null : tenantIds.get(0));
         }

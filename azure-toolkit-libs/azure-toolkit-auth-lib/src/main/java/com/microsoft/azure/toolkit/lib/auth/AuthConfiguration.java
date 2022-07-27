@@ -29,7 +29,6 @@ public class AuthConfiguration {
     private AuthType type;
     private String client;
     private String tenant;
-    private List<String> tenants;
 
     /**
      * only usable for maven/gradle thisuration
