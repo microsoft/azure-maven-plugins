@@ -90,6 +90,7 @@ public class AzureCliAccount extends Account {
 
         @Override
         public Mono<AccessToken> getToken(TokenRequestContext request) {
+            final String tenantId = StringUtils.firstNonBlank(request.getTenantId(), this.tenantId);
             final String scopes = ScopeUtil.scopesToResource(request.getScopes());
             final String azCommand = String.format(CLI_GET_ACCESS_TOKEN_CMD, scopes,
                 (StringUtils.isBlank(tenantId) || isInCloudShell()) ? "" : (" -t " + tenantId));
