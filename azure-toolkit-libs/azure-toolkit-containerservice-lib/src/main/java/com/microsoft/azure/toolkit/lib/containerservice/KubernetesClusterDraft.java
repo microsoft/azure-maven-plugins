@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.containerservice.model.VirtualMachineSize;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
@@ -64,6 +65,10 @@ public class KubernetesClusterDraft extends KubernetesCluster implements
 
     @Nonnull
     @Override
+    @AzureOperation(
+            name = "resource.create_resource.resource|type",
+            params = {"this.getName()", "this.getResourceTypeName()"},
+            type = AzureOperation.Type.SERVICE)
     public com.azure.resourcemanager.containerservice.models.KubernetesCluster createResourceInAzure() {
         final Region region = Objects.requireNonNull(getRegion(), "'region' is required to create Azure Kubernetes Service");
         final String dnsPrefix = Objects.requireNonNull(getDnsPrefix(), "'dnsPrefix' is required to create Azure Kubernetes Service");
@@ -109,6 +114,7 @@ public class KubernetesClusterDraft extends KubernetesCluster implements
 
     @Nonnull
     @Override
+    @AzureOperation(name = "resource.update_resource.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     public com.azure.resourcemanager.containerservice.models.KubernetesCluster updateResourceInAzure(
             @Nonnull com.azure.resourcemanager.containerservice.models.KubernetesCluster origin) {
         throw new UnsupportedOperationException("not support");
