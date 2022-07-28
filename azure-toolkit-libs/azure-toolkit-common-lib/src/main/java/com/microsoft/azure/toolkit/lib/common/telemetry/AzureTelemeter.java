@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Property;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Triple;
 
@@ -83,7 +84,7 @@ public class AzureTelemeter {
     }
 
     public static void log(final AzureTelemetry.Type type, final Map<String, String> properties) {
-        if (client != null) {
+        if (client != null && !StringUtils.equals(properties.get(OP_NAME), Operation.UNKNOWN_NAME)) {
             properties.putAll(Optional.ofNullable(getCommonProperties()).orElse(new HashMap<>()));
             final String eventName = Optional.ofNullable(getEventNamePrefix()).orElse("AzurePlugin") + "/" + type.name();
             client.trackEvent(eventName, properties, null);
@@ -94,7 +95,7 @@ public class AzureTelemeter {
     private static Map<String, String> serialize(@Nonnull final Operation op) {
         final OperationContext context = op.getContext();
         final Map<String, String> actionProperties = getActionProperties(op);
-        final Optional<Operation> parent = Optional.ofNullable(op.getParent());
+        final Optional<Operation> parent = Optional.ofNullable(op.getEffectiveParent());
         final Map<String, String> properties = new HashMap<>();
         final String name = op.getId().replaceAll("\\(.+\\)", "(***)"); // e.g. `appservice.list_file.dir`
         final String[] parts = name.split("\\."); // ["appservice|file", "list", "dir"]

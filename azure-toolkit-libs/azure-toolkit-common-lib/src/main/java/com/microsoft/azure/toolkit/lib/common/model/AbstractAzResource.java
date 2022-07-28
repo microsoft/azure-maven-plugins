@@ -197,8 +197,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         if (Objects.nonNull(newRemote)) {
             log.debug("[{}:{}]:setRemote->setStatus(LOADING)", this.module.getName(), this.getName());
             this.setStatus(Status.LOADING);
-            log.debug("[{}:{}]:setRemote->this.reloadStatus", this.module.getName(), this.getName());
-            AzureTaskManager.getInstance().runOnPooledThread(this::reloadStatus);
+            log.debug("[{}:{}]:setRemote->this.loadStatus", this.module.getName(), this.getName());
+            Optional.of(newRemote).map(this::loadStatus).ifPresent(this::setStatus);
         } else {
             log.debug("[{}:{}]:setRemote->this.setStatus(DISCONNECTED)", this.module.getName(), this.getName());
             this.setStatus(Status.DELETED);
@@ -277,28 +277,12 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
-    @AzureOperation(
-        name = "resource.reload_status.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
-    private void reloadStatus() {
-        log.debug("[{}:{}]:reloadStatus()", this.module.getName(), this.getName());
-        try {
-            log.debug("[{}:{}]:reloadStatus->loadStatus()", this.module.getName(), this.getName());
-            this.remoteOptional().map(this::loadStatus).ifPresent(this::setStatus);
-        } catch (Throwable t) {
-            log.debug("[{}:{}]:reloadStatus->loadStatus()=EXCEPTION", this.module.getName(), this.getName(), t);
-            this.setStatus(Status.UNKNOWN);
-        }
-    }
-
     @Nonnull
     public String getStatus() {
         final String status = this.statusRef.get();
         if ((this.syncTimeRef.get() < 0)) {
             log.debug("[{}:{}]:getStatus->reloadStatus()", this.module.getName(), this.getName());
-            AzureTaskManager.getInstance().runOnPooledThread(this::reloadStatus);
+            AzureTaskManager.getInstance().runOnPooledThread(this::reloadRemote);
             return this.statusRef.get();
         }
         return status;
@@ -318,7 +302,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             }
             if (this.syncTimeRef.get() < 0) {
                 log.debug("[{}:{}]:getStatusSync->reloadStatus()", this.module.getName(), this.getName());
-                this.reloadStatus();
+                this.reloadRemote();
                 return this.statusRef.get();
             }
             return status;
