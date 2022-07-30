@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.auth.cli;
 
 import com.azure.core.credential.AccessToken;
+import com.azure.core.credential.SimpleTokenCache;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.core.management.AzureEnvironment;
@@ -34,7 +35,9 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 public class AzureCliAccount extends Account {
@@ -86,25 +89,31 @@ public class AzureCliAccount extends Account {
     @AllArgsConstructor
     static class AzureCliTokenCredential implements TokenCredential {
         private static final String CLI_GET_ACCESS_TOKEN_CMD = "az account get-access-token --resource %s %s --output json";
+        private final Map<String, SimpleTokenCache> tenantResourceTokenCache = new ConcurrentHashMap<>();
         private final String tenantId;
 
         @Override
         public Mono<AccessToken> getToken(TokenRequestContext request) {
+            final String tId = StringUtils.firstNonBlank(request.getTenantId(), this.tenantId);
             final String scopes = ScopeUtil.scopesToResource(request.getScopes());
-            final String azCommand = String.format(CLI_GET_ACCESS_TOKEN_CMD, scopes,
-                (StringUtils.isBlank(tenantId) || isInCloudShell()) ? "" : (" -t " + tenantId));
-            JsonObject result = JsonUtils.getGson().fromJson(AzureCliUtils.executeAzureCli(azCommand), JsonObject.class);
+            final String key = String.format("%s:%s", tId, scopes);
+            return tenantResourceTokenCache.computeIfAbsent(key, k -> new SimpleTokenCache(() -> {
+                final String azCommand = String.format(CLI_GET_ACCESS_TOKEN_CMD, scopes, (StringUtils.isBlank(tId) || isInCloudShell()) ? "" : (" -t " + tId));
+                final JsonObject result = JsonUtils.getGson().fromJson(AzureCliUtils.executeAzureCli(azCommand), JsonObject.class);
 
-            // com.azure.identity.implementation.IdentityClient.authenticateWithAzureCli
-            String accessToken = result.get("accessToken").getAsString();
-            final OffsetDateTime expiresDateTime = Optional.ofNullable(result.get("expiresOn"))
-                .filter(jsonElement -> !jsonElement.isJsonNull())
-                .map(JsonElement::getAsString)
-                .map(value -> value.substring(0, value.indexOf(".")))
-                .map(value -> String.join("T", value.split(" "))).map(value -> LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                    .atZone(ZoneId.systemDefault()).toOffsetDateTime().withOffsetSameInstant(ZoneOffset.UTC))
-                .orElse(OffsetDateTime.MAX);
-            return Mono.just(new AccessToken(accessToken, expiresDateTime));
+                // com.azure.identity.implementation.IdentityClient.authenticateWithAzureCli
+                final String accessToken = result.get("accessToken").getAsString();
+                final OffsetDateTime expiresDateTime = Optional.ofNullable(result.get("expiresOn"))
+                    .filter(jsonElement -> !jsonElement.isJsonNull())
+                    .map(JsonElement::getAsString)
+                    .map(value -> value.substring(0, value.indexOf(".")))
+                    .map(value -> String.join("T", value.split(" ")))
+                    .map(value -> LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                        .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                        .withOffsetSameInstant(ZoneOffset.UTC))
+                    .orElse(OffsetDateTime.MAX);
+                return Mono.just(new AccessToken(accessToken, expiresDateTime));
+            })).getToken();
         }
     }
 
