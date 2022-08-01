@@ -7,18 +7,18 @@ package com.microsoft.azure.maven.function;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.PrettyPrinter;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.microsoft.azure.maven.model.DeploymentResource;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.Binding;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingEnum;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionConfiguration;
@@ -28,7 +28,6 @@ import com.microsoft.azure.toolkit.lib.legacy.function.handlers.CommandHandler;
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.CommandHandlerImpl;
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreToolsHandler;
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreToolsHandlerImpl;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BOMInputStream;
@@ -51,6 +50,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -392,11 +392,11 @@ public class PackageMojo extends AbstractFunctionMojo {
             Log.info(SKIP_INSTALL_EXTENSIONS_FLAG);
             return false;
         }
-        final JsonObject hostJson = readHostJson();
+        final Map<String, Object> hostJson = readHostJson();
         final String extensionBundleId = Optional.ofNullable(hostJson)
-                .map(host -> host.getAsJsonObject(EXTENSION_BUNDLE))
-                .map(extensionBundle -> extensionBundle.get("id"))
-                .map(JsonElement::getAsString).orElse(null);
+                .map(host -> ((Map<String, Object>) host.get(EXTENSION_BUNDLE)))
+                .map(extensionBundle -> ((String) extensionBundle.get("id")))
+                .orElse(null);
         if (StringUtils.equalsAnyIgnoreCase(extensionBundleId, EXTENSION_BUNDLE_ID, EXTENSION_BUNDLE_PREVIEW_ID)) {
             Log.info(SKIP_INSTALL_EXTENSIONS_BUNDLE);
             return false;
@@ -410,12 +410,12 @@ public class PackageMojo extends AbstractFunctionMojo {
         return true;
     }
 
-    protected JsonObject readHostJson() {
+    protected Map<String, Object> readHostJson() {
         final File hostJson = new File(project.getBasedir(), HOST_JSON);
         try (final FileInputStream fis = new FileInputStream(hostJson);
              final Scanner scanner = new Scanner(new BOMInputStream(fis))) {
             final String jsonRaw = scanner.useDelimiter("\\Z").next();
-            return JsonParser.parseString(jsonRaw).getAsJsonObject();
+            return JsonUtils.fromJson(jsonRaw, new TypeReference<HashMap<String, Object>>(){});
         } catch (IOException e) {
             return null;
         }

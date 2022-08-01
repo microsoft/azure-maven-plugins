@@ -5,26 +5,25 @@
 
 package com.microsoft.azure.toolkit.lib.common.utils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 
 public class JsonUtils {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    public static <T> T fromJson(String json, Class<T> classOfT) throws JsonSyntaxException {
-        return GSON.fromJson(json, classOfT);
+    @SneakyThrows
+    public static <T> T fromJson(String json, Class<T> clazz) {
+        return MAPPER.readValue(json, clazz);
     }
 
+    @SneakyThrows
+    public static <T> T fromJson(String json, TypeReference<T> type) {
+        return MAPPER.readValue(json, type);
+    }
+
+    @SneakyThrows
     public static String toJson(Object src) {
-        return GSON.toJson(src);
-    }
-
-    public static Gson getGson() {
-        return GSON;
-    }
-
-    private JsonUtils() {
-
+        return MAPPER.writeValueAsString(src);
     }
 }
