@@ -114,7 +114,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
-    public List<T> listLocalResources() { // getResources
+    public List<T> listCachedResources() { // getResources
         return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
             .sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
     }
@@ -158,7 +158,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             log.debug("[{}]:reload.deleted->deleteResourceFromLocal", this.name);
             deleted.forEach(id -> this.resources.get(id).ifPresent(r -> {
                 r.setRemote(null);
-                r.deleteFromLocal();
+                r.deleteFromCache();
             }));
             log.debug("[{}]:reload.added->addResourceToLocal", this.name);
             added.forEach(id -> this.addResourceToLocal(id, loadedResources.get(id), true));
