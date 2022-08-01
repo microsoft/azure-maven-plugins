@@ -103,7 +103,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                     this.syncTimeRef.set(-1);
                 }
             }
-            if (this.syncTimeRef.compareAndSet(-1, 0)) {
+            final boolean cacheExpired = System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME;
+            if (this.syncTimeRef.compareAndSet(-1, 0) || cacheExpired) {
                 log.debug("[{}]:list->this.reload()", this.name);
                 this.reloadResources();
             }
