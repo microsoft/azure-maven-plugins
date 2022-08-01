@@ -66,21 +66,19 @@
         <maven.javadoc-plugin.version>2.9.1</maven.javadoc-plugin.version>
         <maven.aspectj-plugin.version>1.12.6</maven.aspectj-plugin.version>
 
-        <azure.core.version>1.30.0</azure.core.version>
-        <azure.aad.version>1.6.7</azure.aad.version>
+        <azure.adal4j.version>1.6.7</azure.adal4j.version>
         <azure.applicationinsights.version>2.6.4</azure.applicationinsights.version>
-        <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
-        <azure.resourcemanager.version>2.15.0</azure.resourcemanager.version>
-        <azure.resourcemanager-applicationinsights.version>1.0.0-beta.4</azure.resourcemanager-applicationinsights.version>
+        <azure.resourcemanager.version>2.17.0</azure.resourcemanager.version>
+        <azure.client-runtime.version>1.7.14</azure.client-runtime.version>
+        <azure-core.version>1.30.0</azure-core.version>
+        <azure-resourcemanager-applicationinsights.version>1.0.0-beta.5</azure-resourcemanager-applicationinsights.version>
         <azure-resourcemanager-mysql.version>1.0.2</azure-resourcemanager-mysql.version>
         <azure-resourcemanager-postgre.version>1.0.2</azure-resourcemanager-postgre.version>
         <azure-core-management.version>1.7.0</azure-core-management.version>
-        <azure.client.version>1.7.14</azure.client.version>
-        <azure.identity.version>1.5.2</azure.identity.version>
-        <azure.storage.version>8.6.6</azure.storage.version>
-        <azure.storage-file-share.version>12.9.1</azure.storage-file-share.version>
-        <azure.function.version>1.4.2</azure.function.version>
-        <azure.core.http.netty.version>1.12.3</azure.core.http.netty.version>
+        <azure-identity.version>1.5.3</azure-identity.version>
+        <azure-storage.version>8.6.6</azure-storage.version>
+        <azure-functions-java-library.version>1.4.2</azure-functions-java-library.version>
+        <azure-core-http-netty.version>1.12.3</azure-core-http-netty.version>
         <aspectj.version>1.9.9.1</aspectj.version>
         <codehaus.plexus-utils.version>3.4.2</codehaus.plexus-utils.version>
         <commons.codec.version>1.15</commons.codec.version>
@@ -240,7 +238,7 @@
             <dependency>
                 <groupId>com.azure</groupId>
                 <artifactId>azure-core</artifactId>
-                <version>${azure.core.version}</version>
+                <version>${azure-core.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>com.azure</groupId>
@@ -251,7 +249,7 @@
             <dependency>
                 <groupId>com.azure</groupId>
                 <artifactId>azure-identity</artifactId>
-                <version>${azure.identity.version}</version>
+                <version>${azure-identity.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.linguafranca.pwdb</groupId>
@@ -267,7 +265,7 @@
             <dependency>
                 <groupId>com.azure</groupId>
                 <artifactId>azure-core-http-netty</artifactId>
-                <version>${azure.core.http.netty.version}</version>
+                <version>${azure-core-http-netty.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
@@ -322,7 +320,7 @@
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-applicationinsights</artifactId>
-                <version>${azure.resourcemanager-applicationinsights.version}</version>
+                <version>${azure-resourcemanager-applicationinsights.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
@@ -332,7 +330,7 @@
             <dependency>
                 <groupId>com.microsoft.rest</groupId>
                 <artifactId>client-runtime</artifactId>
-                <version>${azure.client.version}</version>
+                <version>${azure.client-runtime.version}</version>
             </dependency>
 
             <!-- jackson libs -->
@@ -448,12 +446,12 @@
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-storage</artifactId>
-                <version>${azure.storage.version}</version>
+                <version>${azure-storage.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-client-runtime</artifactId>
-                <version>${azure.client.version}</version>
+                <version>${azure.client-runtime.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
@@ -473,17 +471,17 @@
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>adal4j</artifactId>
-                <version>${azure.aad.version}</version>
+                <version>${azure.adal4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-arm-client-runtime</artifactId>
-                <version>${azure.client.version}</version>
+                <version>${azure.client-runtime.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure.functions</groupId>
                 <artifactId>azure-functions-java-library</artifactId>
-                <version>${azure.function.version}</version>
+                <version>${azure-functions-java-library.version}</version>
             </dependency>
 
             <dependency>
