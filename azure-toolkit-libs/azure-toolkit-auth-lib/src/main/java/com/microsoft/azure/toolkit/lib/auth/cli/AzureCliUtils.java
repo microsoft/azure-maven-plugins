@@ -5,14 +5,11 @@
 
 package com.microsoft.azure.toolkit.lib.auth.cli;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.github.zafarkhaja.semver.Version;
-import com.google.gson.JsonObject;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.utils.CommandUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,8 +29,11 @@ public class AzureCliUtils {
 
     public static boolean isAppropriateCliInstalled() {
         try {
-            final JsonObject result = JsonUtils.getGson().fromJson(AzureCliUtils.executeAzureCli("az version --output json"), JsonObject.class);
-            final String cliVersion = result.get("azure-cli").getAsString();
+            final String str = AzureCliUtils.executeAzureCli("az version --output json");
+            final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
+            };
+            final Map<String, Object> result = JsonUtils.fromJson(str, typeRef);
+            final String cliVersion = (String) result.get("azure-cli");
             // we require at least azure cli version 2.11.0
             return Version.valueOf(cliVersion).greaterThanOrEqualTo(Version.valueOf(MIN_VERSION));
         } catch (NullPointerException | NumberFormatException ex) {
@@ -43,8 +43,11 @@ public class AzureCliUtils {
 
     public static boolean isSignedIn() {
         try {
-            final JsonObject result = JsonUtils.getGson().fromJson(AzureCliUtils.executeAzureCli("az account show --output json"), JsonObject.class);
-            final String subscriptionId = result.get("id").getAsString();
+            final String str = AzureCliUtils.executeAzureCli("az account show --output json");
+            final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
+            };
+            final Map<String, Object> result = JsonUtils.fromJson(str, typeRef);
+            final String subscriptionId = (String) result.get("id");
             return StringUtils.isNotBlank(subscriptionId);
         } catch (Throwable ex) {
             return false;
@@ -54,16 +57,11 @@ public class AzureCliUtils {
     @Nonnull
     public static List<AzureCliSubscription> listSubscriptions() {
         final String jsonString = executeAzureCli("az account list --output json");
-        final ObjectMapper mapper = new ObjectMapper();
-        try {
-            final AzureCliSubscription[] subscriptions = mapper.readValue(jsonString, AzureCliSubscription[].class);
-            return Arrays.stream(subscriptions)
-                .filter(s -> StringUtils.isNoneBlank(s.getId(), s.getName()) && s.getState().equalsIgnoreCase("Enabled"))
-                .filter(distinctByKey(t -> StringUtils.lowerCase(t.getId())))
-                .collect(Collectors.toList());
-        } catch (JsonProcessingException e) {
-            throw new AzureToolkitRuntimeException("failed to load subscriptions from Azure CLI");
-        }
+        final AzureCliSubscription[] subscriptions = JsonUtils.fromJson(jsonString, AzureCliSubscription[].class);
+        return Arrays.stream(subscriptions)
+            .filter(s -> StringUtils.isNoneBlank(s.getId(), s.getName()) && s.getState().equalsIgnoreCase("Enabled"))
+            .filter(distinctByKey(t -> StringUtils.lowerCase(t.getId())))
+            .collect(Collectors.toList());
     }
 
     @Nonnull

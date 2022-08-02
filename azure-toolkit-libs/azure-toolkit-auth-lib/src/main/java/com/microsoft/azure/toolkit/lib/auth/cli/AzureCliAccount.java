@@ -11,8 +11,7 @@ import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.implementation.util.ScopeUtil;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AuthConfiguration;
@@ -34,6 +33,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -99,13 +99,14 @@ public class AzureCliAccount extends Account {
             final String key = String.format("%s:%s", tId, scopes);
             return tenantResourceTokenCache.computeIfAbsent(key, k -> new SimpleTokenCache(() -> {
                 final String azCommand = String.format(CLI_GET_ACCESS_TOKEN_CMD, scopes, (StringUtils.isBlank(tId) || isInCloudShell()) ? "" : (" -t " + tId));
-                final JsonObject result = JsonUtils.getGson().fromJson(AzureCliUtils.executeAzureCli(azCommand), JsonObject.class);
+                final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
+                };
+                final Map<String, Object> result = JsonUtils.fromJson(AzureCliUtils.executeAzureCli(azCommand), typeRef);
 
                 // com.azure.identity.implementation.IdentityClient.authenticateWithAzureCli
-                final String accessToken = result.get("accessToken").getAsString();
-                final OffsetDateTime expiresDateTime = Optional.ofNullable(result.get("expiresOn"))
-                    .filter(jsonElement -> !jsonElement.isJsonNull())
-                    .map(JsonElement::getAsString)
+                final String accessToken = (String) result.get("accessToken");
+                final OffsetDateTime expiresDateTime = Optional.ofNullable(((String) result.get("expiresOn")))
+                    .filter(StringUtils::isNotBlank)
                     .map(value -> value.substring(0, value.indexOf(".")))
                     .map(value -> String.join("T", value.split(" ")))
                     .map(value -> LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
