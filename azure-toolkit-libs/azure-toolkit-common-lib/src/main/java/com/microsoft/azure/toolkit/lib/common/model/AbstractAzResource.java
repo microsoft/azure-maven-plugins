@@ -111,10 +111,18 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Override
     public void refresh() {
         log.debug("[{}:{}]:refresh()", this.module.getName(), this.getName());
-        this.syncTimeRef.set(-1);
-        log.debug("[{}:{}]:refresh->subModules.refresh()", this.module.getName(), this.getName());
-        this.getSubModules().forEach(AzResourceModule::refresh);
+        this.invalidateCache();
         AzureEventBus.emit("resource.refreshed.resource", this);
+    }
+
+    void invalidateCache() {
+        log.debug("[{}]:invalidateCache()", this.name);
+        synchronized (this.syncTimeRef) {
+            this.syncTimeRef.set(-1);
+            this.syncTimeRef.notifyAll();
+            log.debug("[{}:{}]:refresh->subModules.invalidateCache()", this.module.getName(), this.getName());
+            this.getSubModules().forEach(AbstractAzResourceModule::invalidateCache);
+        }
     }
 
     @Override

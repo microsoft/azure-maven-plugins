@@ -81,8 +81,17 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @AzureOperation(name = "resource.refresh.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     public void refresh() {
         log.debug("[{}]:refresh()", this.name);
-        this.syncTimeRef.set(-1);
+        this.invalidateCache();
         AzureEventBus.emit("module.refreshed.module", this);
+    }
+
+    void invalidateCache() {
+        log.debug("[{}]:invalidateCache()", this.name);
+        synchronized (this.syncTimeRef) {
+            this.resources.values().forEach(v -> v.ifPresent(AbstractAzResource::invalidateCache));
+            this.syncTimeRef.set(-1);
+            this.syncTimeRef.notifyAll();
+        }
     }
 
     @Nonnull
