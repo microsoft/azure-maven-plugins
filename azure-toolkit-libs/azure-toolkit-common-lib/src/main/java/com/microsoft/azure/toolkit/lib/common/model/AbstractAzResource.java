@@ -128,22 +128,24 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Override
     @Nullable
     public final R getRemote() {
-        synchronized (this.syncTimeRef) {
-            while (this.syncTimeRef.get() == 0) {
-                try {
-                    this.syncTimeRef.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    this.syncTimeRef.set(-1);
+        if (this.syncTimeRef.get() == 0) {
+            synchronized (this.syncTimeRef) {
+                while (this.syncTimeRef.get() == 0) {
+                    try {
+                        this.syncTimeRef.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        this.syncTimeRef.set(-1);
+                    }
                 }
             }
-            final boolean cacheExpired = System.currentTimeMillis() - this.syncTimeRef.get() > CACHE_LIFETIME;
-            if (this.syncTimeRef.compareAndSet(-1, 0) || cacheExpired) {
-                log.debug("[{}:{}]:getRemote->reload()", this.module.getName(), this.getName());
-                this.reloadRemote();
-            }
-            return this.remoteRef.get();
         }
+        final boolean cacheExpired = System.currentTimeMillis() - this.syncTimeRef.get() > CACHE_LIFETIME;
+        if (this.syncTimeRef.compareAndSet(-1, 0) || cacheExpired) {
+            log.debug("[{}:{}]:getRemote->reload()", this.module.getName(), this.getName());
+            this.reloadRemote();
+        }
+        return this.remoteRef.get();
     }
 
     @AzureOperation(name = "resource.reload.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)

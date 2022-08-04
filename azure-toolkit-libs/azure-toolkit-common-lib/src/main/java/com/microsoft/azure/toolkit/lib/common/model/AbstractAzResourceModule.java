@@ -103,24 +103,32 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             return Collections.emptyList();
         }
         Azure.az(IAzureAccount.class).account();
-        synchronized (this.syncTimeRef) {
-            while (this.syncTimeRef.get() == 0) {
-                try {
-                    this.syncTimeRef.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    this.syncTimeRef.set(-1);
+        boolean toReload = false;
+        if (this.syncTimeRef.get() == 0) {
+            synchronized (this.syncTimeRef) {
+                while (this.syncTimeRef.get() == 0) {
+                    try {
+                        this.syncTimeRef.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        this.syncTimeRef.set(-1);
+                    }
                 }
+                final boolean cacheExpired = System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME;
+                if (cacheExpired) {
+                    this.syncTimeRef.set(0);
+                }
+                toReload = cacheExpired || this.syncTimeRef.compareAndSet(-1, 0);
+                this.syncTimeRef.notifyAll();
             }
-            final boolean cacheExpired = System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME;
-            if (this.syncTimeRef.compareAndSet(-1, 0) || cacheExpired) {
-                log.debug("[{}]:list->this.reload()", this.name);
-                this.reloadResources();
-            }
-            log.debug("[{}]:list->this.resources.values()", this.name);
-            return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
-                .sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
         }
+        if (toReload) {
+            log.debug("[{}]:list->this.reload()", this.name);
+            this.reloadResources();
+        }
+        log.debug("[{}]:list->this.resources.values()", this.name);
+        return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
+            .sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
     }
 
     @Nonnull
