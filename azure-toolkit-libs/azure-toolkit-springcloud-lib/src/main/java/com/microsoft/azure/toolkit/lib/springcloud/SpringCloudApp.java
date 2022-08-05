@@ -53,6 +53,12 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
         this.setRemote(remote);
     }
 
+    @Override
+    protected void copyFrom(SpringCloudApp origin) {
+        super.copyFrom(origin);
+        this.activeDeploymentName = origin.activeDeploymentName;
+    }
+
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, SpringCloudApp, ?>> getSubModules() {
@@ -67,7 +73,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
             return Status.INACTIVE;
         }
         activeDeployment.refresh();
-        return activeDeployment.getStatusSync();
+        return activeDeployment.getStatus();
     }
 
     @Nonnull

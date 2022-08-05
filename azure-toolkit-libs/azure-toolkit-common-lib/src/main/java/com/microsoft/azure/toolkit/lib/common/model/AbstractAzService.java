@@ -68,12 +68,6 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
         return Objects.requireNonNull(this.get(subscriptionId, null));
     }
 
-    @Override
-    public void refresh() {
-        super.refresh();
-        this.list().forEach(AbstractAzResource::refresh);
-    }
-
     @Nonnull
     @Override
     @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
