@@ -170,6 +170,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     protected synchronized void setRemote(@Nullable R newRemote) {
         final R oldRemote = this.remoteRef.get();
         log.debug("[{}:{}]:setRemote({})", this.module.getName(), this.getName(), newRemote);
+        if (oldRemote == null || newRemote == null) {
+            log.debug("[{}:{}]:setRemote->subModules.invalidateCache()", this.module.getName(), this.getName());
+            this.getSubModules().forEach(AbstractAzResourceModule::invalidateCache);
+        }
         log.debug("[{}:{}]:setRemote->this.remoteRef.set({})", this.module.getName(), this.getName(), newRemote);
         this.remoteRef.set(newRemote);
         this.syncTimeRef.set(System.currentTimeMillis());
@@ -184,9 +188,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             this.updateAdditionalProperties(null, oldRemote);
             this.setStatus(Status.DELETED);
             this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(r -> r.setRemote(null));
-        }
-        if (oldRemote == null || newRemote == null) {
-            this.getSubModules().forEach(AbstractAzResourceModule::invalidateCache);
         }
     }
 
