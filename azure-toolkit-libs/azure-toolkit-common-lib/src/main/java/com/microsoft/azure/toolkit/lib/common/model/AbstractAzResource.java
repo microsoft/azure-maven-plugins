@@ -177,15 +177,21 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             log.debug("[{}:{}]:setRemote->setStatus(LOADING)", this.module.getName(), this.getName());
             this.setStatus(Status.LOADING);
             log.debug("[{}:{}]:setRemote->this.loadStatus", this.module.getName(), this.getName());
+            this.updateAdditionalProperties(newRemote, oldRemote);
             Optional.of(newRemote).map(this::loadStatus).ifPresent(this::setStatus);
         } else {
             log.debug("[{}:{}]:setRemote->this.setStatus(DISCONNECTED)", this.module.getName(), this.getName());
+            this.updateAdditionalProperties(null, oldRemote);
             this.setStatus(Status.DELETED);
             this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(r -> r.setRemote(null));
         }
         if (oldRemote == null || newRemote == null) {
             this.getSubModules().forEach(AbstractAzResourceModule::invalidateCache);
         }
+    }
+
+    protected void updateAdditionalProperties(R newRemote, R oldRemote) {
+
     }
 
     @Nullable

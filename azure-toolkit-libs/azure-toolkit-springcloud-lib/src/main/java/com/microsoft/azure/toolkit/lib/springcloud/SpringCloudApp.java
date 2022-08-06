@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Getter
 public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringCloudCluster, SpringApp>
@@ -31,7 +30,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     @Nonnull
     private final SpringCloudDeploymentModule deploymentModule;
     @Nullable
-    private AtomicReference<String> activeDeploymentName = null;
+    private SpringCloudDeployment activeDeployment = null;
 
     protected SpringCloudApp(@Nonnull String name, @Nonnull SpringCloudAppModule module) {
         super(name, module);
@@ -44,7 +43,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     protected SpringCloudApp(@Nonnull SpringCloudApp origin) {
         super(origin);
         this.deploymentModule = origin.deploymentModule;
-        this.activeDeploymentName = origin.activeDeploymentName;
+        this.activeDeployment = origin.activeDeployment;
     }
 
     protected SpringCloudApp(@Nonnull SpringApp remote, @Nonnull SpringCloudAppModule module) {
@@ -56,7 +55,14 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     @Override
     protected void copyFrom(SpringCloudApp origin) {
         super.copyFrom(origin);
-        this.activeDeploymentName = origin.activeDeploymentName;
+        this.activeDeployment = origin.activeDeployment;
+    }
+
+    @Override
+    protected void updateAdditionalProperties(final SpringApp newRemote, final SpringApp oldRemote) {
+        super.updateAdditionalProperties(newRemote, oldRemote);
+        this.activeDeployment = Optional.ofNullable(newRemote).map(SpringApp::activeDeploymentName)
+            .map(name -> this.deployments().get(name, this.getResourceGroupName())).orElse(null);
     }
 
     @Nonnull
@@ -72,7 +78,6 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
         if (Objects.isNull(activeDeployment)) {
             return Status.INACTIVE;
         }
-        activeDeployment.refresh();
         return activeDeployment.getStatus();
     }
 
@@ -105,23 +110,14 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
         return false;
     }
 
-    @Override
-    protected void setRemote(@Nullable SpringApp newRemote) {
-        super.setRemote(newRemote);
-        this.activeDeploymentName = null;
-    }
-
     @Nullable
     public synchronized String getActiveDeploymentName() {
-        if (activeDeploymentName == null) {
-            activeDeploymentName = new AtomicReference<>(Optional.ofNullable(this.getRemote()).map(SpringApp::activeDeploymentName).orElse(null));
-        }
-        return activeDeploymentName.get();
+        return Optional.ofNullable(this.getActiveDeployment()).map(AbstractAzResource::getName).orElse(null);
     }
 
     @Nullable
     public SpringCloudDeployment getActiveDeployment() {
-        return Optional.ofNullable(this.getActiveDeploymentName()).map(n -> this.deployments().get(n, this.getResourceGroupName())).orElse(null);
+        return this.remoteOptional().map(r -> this.activeDeployment).orElse(null);
     }
 
     @Nullable
