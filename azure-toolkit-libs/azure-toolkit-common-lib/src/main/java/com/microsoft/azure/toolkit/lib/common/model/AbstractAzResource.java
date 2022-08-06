@@ -57,12 +57,12 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     private final AbstractAzResourceModule<T, P, R> module;
     @Nonnull
     @ToString.Include
-    final AtomicLong syncTimeRef; // 0:loading, <0:invalidated
+    private final AtomicLong syncTimeRef; // 0:loading, <0:invalidated
     @Nonnull
-    final AtomicReference<R> remoteRef;
+    private final AtomicReference<R> remoteRef;
     @Nonnull
     @ToString.Include
-    final AtomicReference<String> statusRef;
+    private final AtomicReference<String> statusRef;
     @Nonnull
     private final Debouncer fireEvents = new TailingDebouncer(this::fireStatusChangedEvent, 300);
 
@@ -87,7 +87,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     /**
      * copy constructor
      */
-    protected AbstractAzResource(@Nonnull T origin) {
+    protected AbstractAzResource(@Nonnull AbstractAzResource<T, P, R> origin) {
         this.name = origin.getName();
         this.resourceGroupName = origin.getResourceGroupName();
         this.module = origin.getModule();
@@ -96,7 +96,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         this.syncTimeRef = origin.syncTimeRef;
     }
 
-    protected void copyFrom(T origin) {
+    protected void copyFrom(@Nonnull AbstractAzResource<T, P, R> origin) {
         if (Objects.equals(this, origin)) {
             this.remoteRef.set(origin.remoteRef.get());
             this.statusRef.set(origin.statusRef.get());
