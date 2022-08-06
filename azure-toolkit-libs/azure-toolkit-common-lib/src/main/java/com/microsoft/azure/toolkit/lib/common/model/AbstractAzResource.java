@@ -36,8 +36,6 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Slf4j
 @ToString(onlyExplicitlyIncluded = true)
@@ -62,9 +60,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     final AtomicLong syncTimeRef; // 0:loading, <0:invalidated
     @Nonnull
     final AtomicReference<R> remoteRef;
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    private final Lock readLock = lock.readLock();
-    private final Lock writeLock = lock.writeLock();
     @Nonnull
     @ToString.Include
     final AtomicReference<String> statusRef;
@@ -130,21 +125,17 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         AzureEventBus.emit("resource.refreshed.resource", this);
     }
 
-    void invalidateCache() {
+    public synchronized void invalidateCache() {
         log.debug("[{}]:invalidateCache()", this.name);
-        try {
-            this.writeLock.lock();
-            log.debug("[{}:{}]:invalidateCache->subModules.invalidateCache()", this.module.getName(), this.getName());
-            this.getSubModules().forEach(AbstractAzResourceModule::invalidateCache);
-            this.syncTimeRef.set(-1);
-        } finally {
-            this.writeLock.unlock();
-        }
+        this.remoteRef.set(null);
+        log.debug("[{}:{}]:invalidateCache->subModules.invalidateCache()", this.module.getName(), this.getName());
+        this.getSubModules().forEach(AbstractAzResourceModule::invalidateCache);
+        this.syncTimeRef.set(-1);
     }
 
     @Override
     @Nullable
-    public final R getRemote() {
+    public final synchronized R getRemote() {
         log.debug("[{}:{}]:getRemote()", this.module.getName(), this.getName());
         if (this.isDraftForCreating()) {
             log.debug("[{}:{}]:getRemote->this.isDraftForCreating()=true", this.module.getName(), this.getName());
@@ -152,10 +143,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
         Azure.az(IAzureAccount.class).account();
         try {
-            this.writeLock.lock();
             if (this.syncTimeRef.get() == -1 || System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) { // double check
                 this.syncTimeRef.set(0);
-                log.debug("[{}:{}]:getRemote->reload()", this.module.getName(), this.getName());
+                log.debug("[{}:{}]:getRemote->reloadRemote()", this.module.getName(), this.getName());
                 this.reloadRemote();
             }
             return this.remoteRef.get();
@@ -163,8 +153,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             this.syncTimeRef.compareAndSet(0, -1);
             AzureMessager.getMessager().error(t);
             return null;
-        } finally {
-            this.writeLock.unlock();
         }
     }
 
@@ -179,29 +167,24 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }, Status.LOADING);
     }
 
-    protected void setRemote(@Nullable R newRemote) {
-        try {
-            this.writeLock.lock();
-            final R oldRemote = this.remoteRef.get();
-            log.debug("[{}:{}]:setRemote({})", this.module.getName(), this.getName(), newRemote);
-            log.debug("[{}:{}]:setRemote->this.remoteRef.set({})", this.module.getName(), this.getName(), newRemote);
-            this.remoteRef.set(newRemote);
-            this.syncTimeRef.set(System.currentTimeMillis());
-            if (Objects.nonNull(newRemote)) {
-                log.debug("[{}:{}]:setRemote->setStatus(LOADING)", this.module.getName(), this.getName());
-                this.setStatus(Status.LOADING);
-                log.debug("[{}:{}]:setRemote->this.loadStatus", this.module.getName(), this.getName());
-                Optional.of(newRemote).map(this::loadStatus).ifPresent(this::setStatus);
-            } else {
-                log.debug("[{}:{}]:setRemote->this.setStatus(DISCONNECTED)", this.module.getName(), this.getName());
-                this.setStatus(Status.DELETED);
-                this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(r -> r.setRemote(null));
-            }
-            if (oldRemote == null || newRemote == null) {
-                this.getSubModules().forEach(AbstractAzResourceModule::clear);
-            }
-        } finally {
-            this.writeLock.unlock();
+    protected synchronized void setRemote(@Nullable R newRemote) {
+        final R oldRemote = this.remoteRef.get();
+        log.debug("[{}:{}]:setRemote({})", this.module.getName(), this.getName(), newRemote);
+        log.debug("[{}:{}]:setRemote->this.remoteRef.set({})", this.module.getName(), this.getName(), newRemote);
+        this.remoteRef.set(newRemote);
+        this.syncTimeRef.set(System.currentTimeMillis());
+        if (Objects.nonNull(newRemote)) {
+            log.debug("[{}:{}]:setRemote->setStatus(LOADING)", this.module.getName(), this.getName());
+            this.setStatus(Status.LOADING);
+            log.debug("[{}:{}]:setRemote->this.loadStatus", this.module.getName(), this.getName());
+            Optional.of(newRemote).map(this::loadStatus).ifPresent(this::setStatus);
+        } else {
+            log.debug("[{}:{}]:setRemote->this.setStatus(DISCONNECTED)", this.module.getName(), this.getName());
+            this.setStatus(Status.DELETED);
+            this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(r -> r.setRemote(null));
+        }
+        if (oldRemote == null || newRemote == null) {
+            this.getSubModules().forEach(AbstractAzResourceModule::invalidateCache);
         }
     }
 
@@ -290,9 +273,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             final String oldStatus = this.statusRef.get();
             if (!Objects.equals(oldStatus, status)) {
                 this.statusRef.set(status);
-                if (!StringUtils.equalsIgnoreCase(status, Status.LOADING)) {
-                    this.statusRef.notifyAll();
-                }
                 fireEvents.debounce();
                 if (StringUtils.equalsAny(status, Status.DELETING, Status.DELETED)) {
                     this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(r -> r.setStatus(status));
@@ -310,9 +290,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return this.statusRef.get();
     }
 
-    protected void doModify(@Nonnull Runnable body, @Nullable String status) {
+    protected synchronized void doModify(@Nonnull Runnable body, @Nullable String status) {
         try {
-            this.writeLock.lock();
             this.syncTimeRef.set(0);
             this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
             log.debug("[{}:{}]:doModify->body.run()", this.module.getName(), this.getName());
@@ -325,15 +304,12 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             this.setStatus(Status.UNKNOWN);
             this.syncTimeRef.compareAndSet(0, -1);
             throw t;
-        } finally {
-            this.writeLock.unlock();
         }
     }
 
     @Nullable
-    public R doModify(@Nonnull Callable<R> body, @Nullable String status) {
+    public synchronized R doModify(@Nonnull Callable<R> body, @Nullable String status) {
         try {
-            this.writeLock.lock();
             this.syncTimeRef.set(0);
             this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
             log.debug("[{}:{}]:doModify->body.call()", this.module.getName(), this.getName());
@@ -345,8 +321,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             this.setStatus(Status.UNKNOWN);
             this.syncTimeRef.compareAndSet(0, -1);
             throw new AzureToolkitRuntimeException(t);
-        } finally {
-            this.writeLock.unlock();
         }
     }
 
