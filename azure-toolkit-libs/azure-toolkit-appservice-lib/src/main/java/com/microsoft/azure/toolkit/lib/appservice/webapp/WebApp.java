@@ -39,7 +39,6 @@ public class WebApp extends WebAppBase<WebApp, AppServiceServiceSubscription, co
     protected WebApp(@Nonnull WebAppBasic remote, @Nonnull WebAppModule module) {
         super(remote.name(), remote.resourceGroupName(), module);
         this.deploymentModule = new WebAppDeploymentSlotModule(this);
-        this.setRemote(remote);
     }
 
     public void swap(String slotName) {

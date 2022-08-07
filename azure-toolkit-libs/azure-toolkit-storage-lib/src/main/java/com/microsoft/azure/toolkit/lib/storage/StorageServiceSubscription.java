@@ -37,7 +37,6 @@ public class StorageServiceSubscription extends AbstractAzServiceSubscription<St
 
     StorageServiceSubscription(@Nonnull StorageManager remote, @Nonnull AzureStorageAccount service) {
         this(remote.subscriptionId(), service);
-        this.setRemote(remote);
     }
 
     @Nonnull

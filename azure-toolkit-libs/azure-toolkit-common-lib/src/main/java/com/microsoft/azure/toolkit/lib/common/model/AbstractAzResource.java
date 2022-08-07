@@ -96,16 +96,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         this.syncTimeRef = origin.syncTimeRef;
     }
 
-    protected void copyFrom(@Nonnull AbstractAzResource<T, P, R> origin) {
-        if (Objects.equals(this, origin)) {
-            this.remoteRef.set(origin.remoteRef.get());
-            this.statusRef.set(origin.statusRef.get());
-            this.syncTimeRef.set(origin.syncTimeRef.get());
-        } else {
-            throw new AzureToolkitRuntimeException("can not copy from another resource");
-        }
-    }
-
     public boolean exists() {
         final P parent = this.getParent();
         if (StringUtils.equals(this.statusRef.get(), Status.DELETED)) {
@@ -167,7 +157,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }, Status.LOADING);
     }
 
-    protected synchronized void setRemote(@Nullable R newRemote) {
+    synchronized void setRemote(@Nullable R newRemote) {
         final R oldRemote = this.remoteRef.get();
         log.debug("[{}:{}]:setRemote({})", this.module.getName(), this.getName(), newRemote);
         if (oldRemote == null || newRemote == null) {

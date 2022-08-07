@@ -46,7 +46,6 @@ public class AppServicePlan extends AbstractAzResource<AppServicePlan, AppServic
 
     protected AppServicePlan(@Nonnull com.azure.resourcemanager.appservice.models.AppServicePlan remote, @Nonnull AppServicePlanModule module) {
         super(remote.name(), remote.resourceGroupName(), module);
-        this.setRemote(remote);
     }
 
     @Nonnull

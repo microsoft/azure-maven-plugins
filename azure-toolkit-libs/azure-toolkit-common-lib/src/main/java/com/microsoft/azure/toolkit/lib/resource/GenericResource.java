@@ -42,14 +42,11 @@ public class GenericResource extends AbstractAzResource<GenericResource, Resourc
     protected GenericResource(@Nonnull HasId remote, @Nonnull GenericResourceModule module) {
         super(remote.id(), module.getParent().getResourceGroupName(), module);
         this.resourceId = ResourceId.fromString(remote.id());
-        this.setRemote(remote);
     }
 
     protected GenericResource(@Nonnull AbstractAzResource<?, ?, ?> concrete, @Nonnull GenericResourceModule module) {
-        super(concrete.getId(), module.getParent().getResourceGroupName(), module);
+        this(concrete::getId, module);
         this.concrete = concrete;
-        this.resourceId = ResourceId.fromString(concrete.getId());
-        this.setRemote(concrete::getId);
     }
 
     public synchronized AbstractAzResource<?, ?, ?> toConcreteResource() {

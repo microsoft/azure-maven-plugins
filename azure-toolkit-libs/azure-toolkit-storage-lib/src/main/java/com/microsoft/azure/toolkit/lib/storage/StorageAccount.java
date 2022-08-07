@@ -42,7 +42,6 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageSe
 
     protected StorageAccount(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount remote, @Nonnull StorageAccountModule module) {
         super(remote.name(), remote.resourceGroupName(), module);
-        this.setRemote(remote);
     }
 
     @Nonnull

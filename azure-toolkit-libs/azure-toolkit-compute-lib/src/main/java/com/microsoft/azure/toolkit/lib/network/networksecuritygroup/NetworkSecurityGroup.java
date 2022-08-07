@@ -30,7 +30,6 @@ public class NetworkSecurityGroup extends AbstractAzResource<NetworkSecurityGrou
 
     protected NetworkSecurityGroup(@Nonnull com.azure.resourcemanager.network.models.NetworkSecurityGroup remote, @Nonnull NetworkSecurityGroupModule module) {
         super(remote.name(), remote.resourceGroupName(), module);
-        this.setRemote(remote);
     }
 
     @Nonnull

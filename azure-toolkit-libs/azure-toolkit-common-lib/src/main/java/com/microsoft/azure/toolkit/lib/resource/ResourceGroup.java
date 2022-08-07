@@ -45,7 +45,6 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesSe
         super(remote.name(), remote.name(), module);
         this.deploymentModule = new ResourceDeploymentModule(this);
         this.resourceModule = new GenericResourceModule(this);
-        this.setRemote(remote);
     }
 
     @Nonnull

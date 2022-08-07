@@ -20,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import com.microsoft.azure.toolkit.lib.resource.GenericResource;
@@ -119,13 +120,13 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private void reloadResources() {
         log.debug("[{}]:reloadResources()", this.name);
         log.debug("[{}]:reloadResources->loadResourcesFromAzure()", this.name);
-        final Map<String, T> loadedResources = this.loadResourcesFromAzure().map(this::newResource)
-            .collect(Collectors.toMap(r -> r.getId().toLowerCase(), r -> r));
+        final Map<String, R> loadedResources = this.loadResourcesFromAzure()
+            .collect(Collectors.toMap(r -> this.newResource(r).getId().toLowerCase(), r -> r));
         log.debug("[{}]:reloadResources->setResources(xxx)", this.name);
         this.setResources(loadedResources);
     }
 
-    private synchronized void setResources(Map<String, T> loadedResources) {
+    private synchronized void setResources(Map<String, R> loadedResources) {
         final Set<String> localResources = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
             .map(AbstractAzResource::getId).map(String::toLowerCase).collect(Collectors.toSet());
         final Set<String> creating = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
@@ -138,16 +139,22 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         log.debug("[{}]:reload().deleted={}", this.name, deleted);
         final Sets.SetView<String> added = Sets.difference(loadedResources.keySet(), localResources);
         log.debug("[{}]:reload().added={}", this.name, added);
-
-        log.debug("[{}]:reload.refreshed->resource.setRemote", this.name);
-        refreshed.forEach(id -> this.resources.get(id).ifPresent(r -> r.copyFrom(loadedResources.get(id))));
         log.debug("[{}]:reload.deleted->deleteResourceFromLocal", this.name);
         deleted.forEach(id -> this.resources.get(id).ifPresent(r -> {
             r.setRemote(null);
             r.deleteFromCache();
         }));
+
+        final AzureTaskManager m = AzureTaskManager.getInstance();
+        log.debug("[{}]:reload.refreshed->resource.setRemote", this.name);
+        refreshed.forEach(id -> this.resources.get(id).ifPresent(r -> m.runOnPooledThread(() -> r.setRemote(loadedResources.get(id)))));
         log.debug("[{}]:reload.added->addResourceToLocal", this.name);
-        added.forEach(id -> this.addResourceToLocal(id, loadedResources.get(id), true));
+        added.forEach(id -> {
+            final R remote = loadedResources.get(id);
+            final T resource = this.newResource(remote);
+            m.runOnPooledThread(() -> resource.setRemote(remote));
+            this.addResourceToLocal(id, resource, true);
+        });
         this.syncTimeRef.set(System.currentTimeMillis());
     }
 
@@ -188,6 +195,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 this.addResourceToLocal(id, null, true);
             } else {
                 final T resource = newResource(remote);
+                resource.setRemote(remote);
                 log.debug("[{}]:get({}, {})->addResourceToLocal({}, resource)", this.name, name, resourceGroup, name);
                 this.addResourceToLocal(resource.getId(), resource, true);
             }

@@ -30,7 +30,6 @@ public class MySqlFirewallRule extends AbstractAzResource<MySqlFirewallRule, MyS
 
     protected MySqlFirewallRule(@Nonnull FirewallRule remote, @Nonnull MySqlFirewallRuleModule module) {
         super(remote.name(), module);
-        this.setRemote(remote);
     }
 
     @Nullable

@@ -46,7 +46,6 @@ public class AppServiceServiceSubscription extends AbstractAzServiceSubscription
 
     protected AppServiceServiceSubscription(@Nonnull AppServiceManager remote, @Nonnull AzureAppService service) {
         this(remote.subscriptionId(), service);
-        this.setRemote(remote);
     }
 
     @Nonnull

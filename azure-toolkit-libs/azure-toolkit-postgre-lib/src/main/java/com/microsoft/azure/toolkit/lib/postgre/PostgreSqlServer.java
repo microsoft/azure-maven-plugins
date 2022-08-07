@@ -57,7 +57,6 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
         this.databaseModule = new PostgreSqlDatabaseModule(this);
         this.firewallRuleModule = new PostgreSqlFirewallRuleModule(this);
-        this.setRemote(remote);
     }
 
     @Nullable

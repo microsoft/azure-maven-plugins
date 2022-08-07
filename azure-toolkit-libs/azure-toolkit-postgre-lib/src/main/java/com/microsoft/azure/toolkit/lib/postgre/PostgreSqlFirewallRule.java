@@ -30,7 +30,6 @@ public class PostgreSqlFirewallRule extends AbstractAzResource<PostgreSqlFirewal
 
     protected PostgreSqlFirewallRule(@Nonnull FirewallRule remote, @Nonnull PostgreSqlFirewallRuleModule module) {
         super(remote.name(), module);
-        this.setRemote(remote);
     }
 
     @Nullable

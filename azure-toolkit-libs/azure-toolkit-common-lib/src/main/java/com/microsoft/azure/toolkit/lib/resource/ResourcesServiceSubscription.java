@@ -31,7 +31,6 @@ public class ResourcesServiceSubscription extends AbstractAzServiceSubscription<
 
     ResourcesServiceSubscription(@Nonnull ResourceManager remote, @Nonnull AzureResources service) {
         this(remote.subscriptionId(), service);
-        this.setRemote(remote);
     }
 
     @Nonnull

@@ -30,7 +30,6 @@ public class MicrosoftSqlFirewallRule extends AbstractAzResource<MicrosoftSqlFir
 
     protected MicrosoftSqlFirewallRule(@Nonnull SqlFirewallRule remote, @Nonnull MicrosoftSqlFirewallRuleModule module) {
         super(remote.name(), module);
-        this.setRemote(remote);
     }
 
     @Nonnull

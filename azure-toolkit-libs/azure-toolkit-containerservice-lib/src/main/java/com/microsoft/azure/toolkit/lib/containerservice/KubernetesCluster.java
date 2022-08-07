@@ -41,7 +41,6 @@ public class KubernetesCluster extends AbstractAzResource<KubernetesCluster, Con
     protected KubernetesCluster(@Nonnull com.azure.resourcemanager.containerservice.models.KubernetesCluster remote, @Nonnull KubernetesClusterModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
         this.agentPoolModule = new KubernetesClusterAgentPoolModule(this);
-        this.setRemote(remote);
     }
 
     public ContainerServiceNetworkProfile getContainerServiceNetworkProfile() {

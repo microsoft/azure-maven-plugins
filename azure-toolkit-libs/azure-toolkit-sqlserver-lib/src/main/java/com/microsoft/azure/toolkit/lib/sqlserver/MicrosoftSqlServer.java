@@ -51,7 +51,6 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
         super(remote.name(), remote.resourceGroupName(), module);
         this.databaseModule = new MicrosoftSqlDatabaseModule(this);
         this.firewallRuleModule = new MicrosoftSqlFirewallRuleModule(this);
-        this.setRemote(remote);
     }
 
     @Nonnull

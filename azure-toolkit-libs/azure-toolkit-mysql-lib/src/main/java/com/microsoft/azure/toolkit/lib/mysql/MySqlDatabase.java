@@ -24,7 +24,6 @@ public class MySqlDatabase extends AbstractAzResource<MySqlDatabase, MySqlServer
 
     protected MySqlDatabase(@Nonnull Database remote, @Nonnull MySqlDatabaseModule module) {
         super(remote.name(), module);
-        this.setRemote(remote);
     }
 
     @Nullable

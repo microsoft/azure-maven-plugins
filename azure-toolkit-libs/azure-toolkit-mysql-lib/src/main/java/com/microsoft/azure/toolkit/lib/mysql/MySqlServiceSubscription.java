@@ -37,7 +37,6 @@ public class MySqlServiceSubscription extends AbstractAzServiceSubscription<MySq
 
     MySqlServiceSubscription(@Nonnull MySqlManager manager, @Nonnull AzureMySql service) {
         this(manager.serviceClient().getSubscriptionId(), service);
-        this.setRemote(manager);
     }
 
     @Nonnull

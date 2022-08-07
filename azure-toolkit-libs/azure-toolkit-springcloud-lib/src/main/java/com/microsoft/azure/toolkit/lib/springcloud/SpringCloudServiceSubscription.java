@@ -32,7 +32,6 @@ public class SpringCloudServiceSubscription extends AbstractAzServiceSubscriptio
 
     SpringCloudServiceSubscription(@Nonnull AppPlatformManager remote, @Nonnull AzureSpringCloud service) {
         this(remote.subscriptionId(), service);
-        this.setRemote(remote);
     }
 
     @Nonnull

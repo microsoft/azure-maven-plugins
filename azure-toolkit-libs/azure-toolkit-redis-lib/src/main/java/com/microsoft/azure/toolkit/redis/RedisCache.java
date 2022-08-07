@@ -42,7 +42,6 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisServiceSubsc
 
     protected RedisCache(@Nonnull com.azure.resourcemanager.redis.models.RedisCache remote, @Nonnull RedisCacheModule module) {
         super(remote.name(), remote.resourceGroupName(), module);
-        this.setRemote(remote);
     }
 
     @Override

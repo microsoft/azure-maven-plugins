@@ -38,7 +38,6 @@ public class ComputeServiceSubscription extends AbstractAzServiceSubscription<Co
 
     ComputeServiceSubscription(@Nonnull ComputeManager remote, @Nonnull AzureCompute service) {
         this(remote.subscriptionId(), service);
-        this.setRemote(remote);
     }
 
     @Nonnull

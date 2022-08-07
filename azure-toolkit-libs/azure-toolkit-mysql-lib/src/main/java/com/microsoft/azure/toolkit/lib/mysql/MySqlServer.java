@@ -56,7 +56,6 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSub
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
         this.databaseModule = new MySqlDatabaseModule(this);
         this.firewallRuleModule = new MySqlFirewallRuleModule(this);
-        this.setRemote(remote);
     }
 
     @Nullable
