@@ -115,34 +115,37 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         AzureEventBus.emit("resource.refreshed.resource", this);
     }
 
-    public synchronized void invalidateCache() {
+    public void invalidateCache() {
         log.debug("[{}]:invalidateCache()", this.name);
-        this.remoteRef.set(null);
+        synchronized (this.syncTimeRef) {
+            this.remoteRef.set(null);
+            this.syncTimeRef.set(-1);
+        }
         log.debug("[{}:{}]:invalidateCache->subModules.invalidateCache()", this.module.getName(), this.getName());
         this.getSubModules().forEach(AbstractAzResourceModule::invalidateCache);
-        this.syncTimeRef.set(-1);
     }
 
-    @Override
     @Nullable
-    public final synchronized R getRemote() {
+    public final R getRemote() {
         log.debug("[{}:{}]:getRemote()", this.module.getName(), this.getName());
+        Azure.az(IAzureAccount.class).account();
         if (this.isDraftForCreating()) {
             log.debug("[{}:{}]:getRemote->this.isDraftForCreating()=true", this.module.getName(), this.getName());
             return null;
         }
-        Azure.az(IAzureAccount.class).account();
-        try {
+        synchronized (this.syncTimeRef) {
             if (this.syncTimeRef.get() == -1 || System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) { // double check
                 this.syncTimeRef.set(0);
                 log.debug("[{}:{}]:getRemote->reloadRemote()", this.module.getName(), this.getName());
-                this.reloadRemote();
+                try {
+                    this.reloadRemote();
+                } catch (Throwable t) {
+                    this.syncTimeRef.compareAndSet(0, -1);
+                    AzureMessager.getMessager().error(t);
+                    return null;
+                }
             }
             return this.remoteRef.get();
-        } catch (Throwable t) {
-            this.syncTimeRef.compareAndSet(0, -1);
-            AzureMessager.getMessager().error(t);
-            return null;
         }
     }
 
@@ -157,27 +160,29 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }, Status.LOADING);
     }
 
-    synchronized void setRemote(@Nullable R newRemote) {
+    void setRemote(@Nullable R newRemote) {
         final R oldRemote = this.remoteRef.get();
         log.debug("[{}:{}]:setRemote({})", this.module.getName(), this.getName(), newRemote);
         if (oldRemote == null || newRemote == null) {
             log.debug("[{}:{}]:setRemote->subModules.invalidateCache()", this.module.getName(), this.getName());
             this.getSubModules().forEach(AbstractAzResourceModule::invalidateCache);
         }
-        log.debug("[{}:{}]:setRemote->this.remoteRef.set({})", this.module.getName(), this.getName(), newRemote);
-        this.remoteRef.set(newRemote);
-        this.syncTimeRef.set(System.currentTimeMillis());
-        if (Objects.nonNull(newRemote)) {
-            log.debug("[{}:{}]:setRemote->setStatus(LOADING)", this.module.getName(), this.getName());
-            this.setStatus(Status.LOADING);
-            log.debug("[{}:{}]:setRemote->this.loadStatus", this.module.getName(), this.getName());
-            this.updateAdditionalProperties(newRemote, oldRemote);
-            Optional.of(newRemote).map(this::loadStatus).ifPresent(this::setStatus);
-        } else {
-            log.debug("[{}:{}]:setRemote->this.setStatus(DISCONNECTED)", this.module.getName(), this.getName());
-            this.updateAdditionalProperties(null, oldRemote);
-            this.setStatus(Status.DELETED);
-            this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(r -> r.setRemote(null));
+        synchronized (this.syncTimeRef) {
+            log.debug("[{}:{}]:setRemote->this.remoteRef.set({})", this.module.getName(), this.getName(), newRemote);
+            this.remoteRef.set(newRemote);
+            this.syncTimeRef.set(System.currentTimeMillis());
+            if (Objects.nonNull(newRemote)) {
+                log.debug("[{}:{}]:setRemote->setStatus(LOADING)", this.module.getName(), this.getName());
+                this.setStatus(Status.LOADING);
+                log.debug("[{}:{}]:setRemote->this.loadStatus", this.module.getName(), this.getName());
+                this.updateAdditionalProperties(newRemote, oldRemote);
+                Optional.of(newRemote).map(this::loadStatus).ifPresent(this::setStatus);
+            } else {
+                log.debug("[{}:{}]:setRemote->this.setStatus(DISCONNECTED)", this.module.getName(), this.getName());
+                this.updateAdditionalProperties(null, oldRemote);
+                this.setStatus(Status.DELETED);
+                this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(r -> r.setRemote(null));
+            }
         }
     }
 
@@ -287,37 +292,44 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return this.statusRef.get();
     }
 
-    protected synchronized void doModify(@Nonnull Runnable body, @Nullable String status) {
-        try {
-            this.syncTimeRef.set(0);
-            this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
-            log.debug("[{}:{}]:doModify->body.run()", this.module.getName(), this.getName());
-            body.run();
-            log.debug("[{}:{}]:doModify->refreshRemote()", this.module.getName(), this.getName());
-            final R refreshed = Optional.ofNullable(this.remoteRef.get()).map(this::refreshRemote).orElse(null);
-            log.debug("[{}:{}]:doModify->setRemote({})", this.module.getName(), this.getName(), this.remoteRef.get());
-            this.setRemote(refreshed);
-        } catch (Throwable t) {
-            this.setStatus(Status.UNKNOWN);
-            this.syncTimeRef.compareAndSet(0, -1);
-            throw t;
+    protected void doModify(@Nonnull Runnable body, @Nullable String status) {
+        synchronized (this.syncTimeRef) {
+            try {
+                if (this.syncTimeRef.get() == 0) { // cancel if updating.
+                    return;
+                }
+                this.syncTimeRef.set(0);
+                this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
+                log.debug("[{}:{}]:doModify->body.run()", this.module.getName(), this.getName());
+                body.run();
+                log.debug("[{}:{}]:doModify->refreshRemote()", this.module.getName(), this.getName());
+                final R refreshed = Optional.ofNullable(this.remoteRef.get()).map(this::refreshRemote).orElse(null);
+                log.debug("[{}:{}]:doModify->setRemote({})", this.module.getName(), this.getName(), this.remoteRef.get());
+                this.setRemote(refreshed);
+            } catch (Throwable t) {
+                this.setStatus(Status.UNKNOWN);
+                this.syncTimeRef.compareAndSet(0, -1);
+                throw t;
+            }
         }
     }
 
     @Nullable
-    public synchronized R doModify(@Nonnull Callable<R> body, @Nullable String status) {
-        try {
-            this.syncTimeRef.set(0);
-            this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
-            log.debug("[{}:{}]:doModify->body.call()", this.module.getName(), this.getName());
-            final R remote = body.call();
-            log.debug("[{}:{}]:doModify->setRemote({})", this.module.getName(), this.getName(), remote);
-            this.setRemote(remote);
-            return remote;
-        } catch (Throwable t) {
-            this.setStatus(Status.UNKNOWN);
-            this.syncTimeRef.compareAndSet(0, -1);
-            throw new AzureToolkitRuntimeException(t);
+    public R doModify(@Nonnull Callable<R> body, @Nullable String status) {
+        synchronized (this.syncTimeRef) {
+            try {
+                this.syncTimeRef.set(0);
+                this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
+                log.debug("[{}:{}]:doModify->body.call()", this.module.getName(), this.getName());
+                final R remote = body.call();
+                log.debug("[{}:{}]:doModify->setRemote({})", this.module.getName(), this.getName(), remote);
+                this.setRemote(remote);
+                return remote;
+            } catch (Throwable t) {
+                this.setStatus(Status.UNKNOWN);
+                this.syncTimeRef.compareAndSet(0, -1);
+                throw new AzureToolkitRuntimeException(t);
+            }
         }
     }
 
@@ -328,8 +340,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @Nonnull
     public String getId() {
-        if (this.remoteRef.get() instanceof HasId) {
-            return ((HasId) this.remoteRef.get()).id();
+        final R r = this.remoteRef.get();
+        if (r instanceof HasId) {
+            return ((HasId) r).id();
         }
         return this.getModule().toResourceId(this.getName(), this.getResourceGroupName());
     }
