@@ -49,6 +49,7 @@
         <module>azure-toolkit-compute-lib</module>
         <module>azure-toolkit-containerregistry-lib</module>
         <module>azure-toolkit-containerservice-lib</module>
+        <module>azure-toolkit-cosmos-lib</module>
     </modules>
 
     <properties>
@@ -128,6 +129,7 @@
         <networknt.json-schema-validator.version>1.0.70</networknt.json-schema-validator.version>
         <jedis.version>3.6.3</jedis.version>
         <asm.version>9.3</asm.version>
+        <mongo.java-driver.version>3.12.11</mongo.java-driver.version>
     </properties>
 
     <repositories>
@@ -232,7 +234,11 @@
                 <artifactId>azure-toolkit-containerservice-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-cosmos-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
             <!-- azure sdk -->
             <dependency>
                 <groupId>com.azure</groupId>
@@ -324,6 +330,11 @@
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-containerservice</artifactId>
+                <version>${azure.resourcemanager.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-cosmos</artifactId>
                 <version>${azure.resourcemanager.version}</version>
             </dependency>
             <dependency>
@@ -676,6 +687,11 @@
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
                 <version>${asm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mongodb</groupId>
+                <artifactId>mongo-java-driver</artifactId>
+                <version>${mongo.java-driver.version}</version>
             </dependency>
             <!-- TEST -->
             <dependency>

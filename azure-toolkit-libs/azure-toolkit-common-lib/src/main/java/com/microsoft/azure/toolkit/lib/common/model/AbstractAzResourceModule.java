@@ -367,7 +367,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         }
     }
 
-    private void addResourceToLocal(@Nonnull String id, @Nullable T resource, boolean... silent) {
+    protected void addResourceToLocal(@Nonnull String id, @Nullable T resource, boolean... silent) {
         log.debug("[{}]:addResourceToLocal({}, {})", this.name, id, resource);
         id = id.toLowerCase();
         final Optional<T> oldResource = this.resources.getOrDefault(id, Optional.empty());
