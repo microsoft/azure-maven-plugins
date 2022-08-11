@@ -35,6 +35,6 @@ public class CassandraDatabaseAccountConnectionString {
     @Nullable
     private static String extractValueFromParameters(@Nonnull final String[] parameters, final String key) {
         final String parameter = Arrays.stream(parameters).filter(value -> StringUtils.containsIgnoreCase(value, key)).findFirst().orElse(null);
-        return StringUtils.isEmpty(parameter) ? null : StringUtils.substringAfterLast(parameter, "=");
+        return StringUtils.isEmpty(parameter) ? null : StringUtils.substringAfter(parameter, "=");
     }
 }
