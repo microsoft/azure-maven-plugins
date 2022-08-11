@@ -60,7 +60,7 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesSe
 
     @Override
     public void delete() {
-        final List<? extends AbstractAzResource<?, ?, ?>> localResources = this.genericResources().listLocalResources().stream()
+        final List<? extends AbstractAzResource<?, ?, ?>> localResources = this.genericResources().listCachedResources().stream()
             .map(GenericResource::toConcreteResource)
             .filter(r -> !(r instanceof GenericResource)).collect(Collectors.toList());
         localResources.forEach(r -> r.setStatus(Status.DELETING));

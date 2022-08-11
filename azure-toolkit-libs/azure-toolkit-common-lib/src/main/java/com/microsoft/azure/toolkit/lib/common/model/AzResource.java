@@ -19,6 +19,7 @@ import java.util.Objects;
 
 public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R>
     extends AzResourceBase, Refreshable {
+    long CACHE_LIFETIME = 30 * 60 * 1000; // 30 minutes
 
     None NONE = new None();
     String RESOURCE_GROUP_PLACEHOLDER = "${rg}";

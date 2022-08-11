@@ -129,7 +129,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
                     this.syncTimeRef.set(-1);
                 }
             }
-            if (this.syncTimeRef.compareAndSet(-1, 0)) {
+            final boolean cacheExpired = System.currentTimeMillis() - this.syncTimeRef.get() > CACHE_LIFETIME;
+            if (this.syncTimeRef.compareAndSet(-1, 0) || cacheExpired) {
                 log.debug("[{}:{}]:getRemote->reload()", this.module.getName(), this.getName());
                 this.reloadRemote();
             }
@@ -202,7 +203,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         } else {
             log.debug("[{}:{}]:setRemote->this.setStatus(DISCONNECTED)", this.module.getName(), this.getName());
             this.setStatus(Status.DELETED);
-            this.getSubModules().stream().flatMap(m -> m.listLocalResources().stream()).forEach(r -> r.setRemote(null));
+            this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(r -> r.setRemote(null));
         }
         if (oldRemote == null || newRemote == null) {
             this.getSubModules().forEach(AbstractAzResourceModule::clear);
@@ -226,7 +227,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             }
             return null;
         }, Status.DELETING);
-        this.deleteFromLocal();
+        this.deleteFromCache();
     }
 
     private void deleteFromAzure() {
@@ -239,13 +240,13 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             if (cause instanceof ManagementException && HttpStatus.SC_NOT_FOUND != ((ManagementException) cause).getResponse().getStatusCode()) {
                 log.debug("[{}]:delete()->deleteResourceFromAzure()=SC_NOT_FOUND", this.name, e);
             } else {
-                this.getSubModules().stream().flatMap(m -> m.listLocalResources().stream()).forEach(r -> r.setStatus(Status.UNKNOWN));
+                this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(r -> r.setStatus(Status.UNKNOWN));
                 throw e;
             }
         }
     }
 
-    public void deleteFromLocal() {
+    public void deleteFromCache() {
         log.debug("[{}:{}]:delete->this.setStatus(DELETED)", this.module.getName(), this.getName());
         this.setStatus(Status.DELETED);
         log.debug("[{}:{}]:delete->module.deleteResourceFromLocal({})", this.module.getName(), this.getName(), this.getName());
@@ -256,7 +257,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             final GenericResourceModule genericResourceModule = resourceGroup.genericResources();
             ((AbstractAzResourceModule) genericResourceModule).deleteResourceFromLocal(this.getId());
         }
-        this.getSubModules().stream().flatMap(m -> m.listLocalResources().stream()).forEach(AbstractAzResource::deleteFromLocal);
+        this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(AbstractAzResource::deleteFromCache);
     }
 
     public void setStatus(@Nonnull String status) {
@@ -271,7 +272,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
                 }
                 fireEvents.debounce();
                 if (StringUtils.equalsAny(status, Status.DELETING, Status.DELETED)) {
-                    this.getSubModules().stream().flatMap(m -> m.listLocalResources().stream()).forEach(r -> r.setStatus(status));
+                    this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(r -> r.setStatus(status));
                 }
             }
         }
@@ -328,11 +329,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
-    protected void doModifyAsync(@Nonnull Runnable body, @Nullable String status) {
-        this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
-        AzureTaskManager.getInstance().runOnPooledThread(() -> this.doModify(body, status));
-    }
-
     @Nullable
     public R doModify(@Nonnull Callable<R> body, @Nullable String status) {
         // TODO: lock so that can not modify if modifying.
@@ -350,11 +346,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             }
             throw new AzureToolkitRuntimeException(t);
         }
-    }
-
-    protected void doModifyAsync(@Nonnull Callable<R> body, @Nullable String status) {
-        this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
-        AzureTaskManager.getInstance().runOnPooledThread(() -> this.doModify(body, status));
     }
 
     private void fireStatusChangedEvent() {
