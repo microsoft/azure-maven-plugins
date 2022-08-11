@@ -35,7 +35,6 @@ public class CassandraKeyspace extends AbstractAzResource<CassandraKeyspace, Cos
     protected CassandraKeyspace(@Nonnull CassandraKeyspaceGetResultsInner remote, @Nonnull CassandraKeyspaceModule module) {
         super(remote.name(), module);
         this.containerModule = new CassandraTableModule(this);
-        this.setRemote(remote);
     }
 
     @NotNull

@@ -31,7 +31,6 @@ public class SqlCosmosDBAccount extends CosmosDBAccount {
     public SqlCosmosDBAccount(@NotNull com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote, @NotNull CosmosDBAccountModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
         this.sqlDatabaseModule = new SqlDatabaseModule(this);
-        this.setRemote(remote);
     }
 
     @Override

@@ -34,7 +34,6 @@ public class CosmosDBAccount extends AbstractAzResource<CosmosDBAccount, CosmosS
 
     protected CosmosDBAccount(@Nonnull com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote, @Nonnull CosmosDBAccountModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
-        this.setRemote(remote);
     }
 
     @Nullable

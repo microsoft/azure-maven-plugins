@@ -35,7 +35,6 @@ public class SqlDatabase extends AbstractAzResource<SqlDatabase, CosmosDBAccount
     protected SqlDatabase(@Nonnull SqlDatabaseGetResultsInner remote, @Nonnull SqlDatabaseModule module) {
         super(remote.name(), module);
         this.containerModule = new SqlContainerModule(this);
-        this.setRemote(remote);
     }
 
     @NotNull

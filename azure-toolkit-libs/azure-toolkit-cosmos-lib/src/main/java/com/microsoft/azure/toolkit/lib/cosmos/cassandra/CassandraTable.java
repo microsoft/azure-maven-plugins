@@ -24,7 +24,6 @@ public class CassandraTable extends AbstractAzResource<CassandraTable, Cassandra
 
     protected CassandraTable(@Nonnull CassandraTableGetResultsInner remote, @Nonnull CassandraTableModule module) {
         super(remote.name(), module);
-        this.setRemote(remote);
     }
 
     protected CassandraTable(@Nonnull CassandraTable collection) {

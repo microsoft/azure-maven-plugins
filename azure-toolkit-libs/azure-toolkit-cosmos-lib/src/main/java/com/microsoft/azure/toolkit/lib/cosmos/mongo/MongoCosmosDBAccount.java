@@ -37,7 +37,6 @@ public class MongoCosmosDBAccount extends CosmosDBAccount {
     public MongoCosmosDBAccount(@Nonnull com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote, @Nonnull CosmosDBAccountModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
         this.mongoDatabaseModule = new MongoDatabaseModule(this);
-        this.setRemote(remote);
     }
 
     public ConnectionString getPrimaryConnectionString() {

@@ -32,7 +32,6 @@ public class CassandraCosmosDBAccount extends CosmosDBAccount {
     public CassandraCosmosDBAccount(@NotNull com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote, @NotNull CosmosDBAccountModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
         this.keyspaceModule = new CassandraKeyspaceModule(this);
-        this.setRemote(remote);
     }
 
     public CassandraKeyspaceModule keySpaces() {

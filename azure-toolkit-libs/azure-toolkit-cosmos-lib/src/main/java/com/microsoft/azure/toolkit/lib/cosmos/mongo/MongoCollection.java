@@ -24,7 +24,6 @@ public class MongoCollection extends AbstractAzResource<MongoCollection, MongoDa
 
     protected MongoCollection(@Nonnull MongoDBCollectionGetResultsInner remote, @Nonnull MongoCollectionModule module) {
         super(remote.name(), module);
-        this.setRemote(remote);
     }
 
     protected MongoCollection(@Nonnull MongoCollection collection) {

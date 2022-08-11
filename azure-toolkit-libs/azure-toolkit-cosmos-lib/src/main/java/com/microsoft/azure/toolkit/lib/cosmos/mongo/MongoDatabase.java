@@ -35,7 +35,6 @@ public class MongoDatabase extends AbstractAzResource<MongoDatabase, CosmosDBAcc
     protected MongoDatabase(@Nonnull MongoDBDatabaseGetResultsInner remote, @Nonnull MongoDatabaseModule module) {
         super(remote.name(), module);
         this.collectionModule = new MongoCollectionModule(this);
-        this.setRemote(remote);
     }
 
     @NotNull

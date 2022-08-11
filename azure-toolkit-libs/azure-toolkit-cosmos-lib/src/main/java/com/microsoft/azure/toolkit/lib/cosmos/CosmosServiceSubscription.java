@@ -29,7 +29,6 @@ public class CosmosServiceSubscription extends AbstractAzServiceSubscription<Cos
 
     protected CosmosServiceSubscription(@Nonnull CosmosManager manager, @Nonnull AzureCosmosService service) {
         this(manager.subscriptionId(), service);
-        this.setRemote(manager);
     }
 
     public CosmosDBAccountModule databaseAccounts() {

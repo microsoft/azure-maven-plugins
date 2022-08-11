@@ -23,7 +23,6 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
 
     protected SqlContainer(@Nonnull SqlContainerGetResultsInner remote, @Nonnull SqlContainerModule module) {
         super(remote.name(), module);
-        this.setRemote(remote);
     }
 
     protected SqlContainer(@Nonnull SqlContainer collection) {
