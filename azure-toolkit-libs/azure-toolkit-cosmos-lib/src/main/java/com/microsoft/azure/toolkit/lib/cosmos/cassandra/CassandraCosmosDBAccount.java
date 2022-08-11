@@ -8,12 +8,11 @@ package com.microsoft.azure.toolkit.lib.cosmos.cassandra;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccountModule;
-import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseAccountConnectionStrings;
-import org.apache.commons.lang3.StringUtils;
+import com.microsoft.azure.toolkit.lib.cosmos.model.CassandraDatabaseAccountConnectionString;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class CassandraCosmosDBAccount extends CosmosDBAccount {
@@ -38,29 +37,30 @@ public class CassandraCosmosDBAccount extends CosmosDBAccount {
         return this.keyspaceModule;
     }
 
+    @Nullable
     public String getPrimaryConnectionString() {
-        return Optional.ofNullable(listConnectionStrings()).map(DatabaseAccountConnectionStrings::getPrimaryConnectionString).orElse(null);
+        return listConnectionStrings().getPrimaryConnectionString();
     }
 
+    @Nonnull
+    public CassandraDatabaseAccountConnectionString getCassandraConnectionString() {
+        return Optional.ofNullable(getPrimaryConnectionString())
+                .map(CassandraDatabaseAccountConnectionString::fromConnectionString)
+                .orElseGet(CassandraDatabaseAccountConnectionString::new);
+    }
+
+    @Nullable
     public Integer getPort() {
-        return Optional.ofNullable(getPrimaryConnectionString())
-                .map(connectionString -> getParameterFromConnectionString(connectionString, "Port"))
-                .map(Integer::valueOf).orElse(null);
+        return getCassandraConnectionString().getPort();
     }
 
+    @Nullable
     public String getUserName() {
-        return Optional.ofNullable(getPrimaryConnectionString())
-                .map(connectionString -> getParameterFromConnectionString(connectionString, "Username")).orElse(null);
+        return getCassandraConnectionString().getUsername();
     }
 
+    @Nullable
     public String getContactPoint() {
-        return Optional.ofNullable(getPrimaryConnectionString())
-                .map(connectionString -> getParameterFromConnectionString(connectionString, "HostName")).orElse(null);
-    }
-
-    public String getParameterFromConnectionString(@Nonnull final String connectionString, final String key) {
-        final String[] parameters = connectionString.split(";");
-        final String parameter = Arrays.stream(parameters).filter(value -> StringUtils.containsIgnoreCase(value, key)).findFirst().orElse(null);
-        return StringUtils.isEmpty(parameter) ? null : StringUtils.substringAfterLast(parameter, "=");
+        return getCassandraConnectionString().getContactPoint();
     }
 }

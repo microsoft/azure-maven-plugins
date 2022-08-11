@@ -7,15 +7,19 @@ package com.microsoft.azure.toolkit.lib.cosmos.model;
 
 import com.azure.resourcemanager.cosmos.models.DatabaseAccountConnectionString;
 import com.azure.resourcemanager.cosmos.models.DatabaseAccountListConnectionStringsResult;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode
 public class DatabaseAccountConnectionStrings {
     private String primaryConnectionString;

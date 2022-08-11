@@ -9,8 +9,10 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccountModule;
+import com.microsoft.azure.toolkit.lib.cosmos.model.SqlDatabaseAccountConnectionString;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,5 +42,14 @@ public class SqlCosmosDBAccount extends CosmosDBAccount {
 
     public SqlDatabaseModule sqlDatabases() {
         return this.sqlDatabaseModule;
+    }
+
+    @Nonnull
+    public SqlDatabaseAccountConnectionString getSqlAccountConnectionString() {
+        return SqlDatabaseAccountConnectionString.builder()
+                .connectionString(listConnectionStrings().getPrimaryConnectionString())
+                .key(listKeys().getPrimaryMasterKey())
+                .uri(getDocumentEndpoint())
+                .build();
     }
 }
