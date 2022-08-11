@@ -24,7 +24,6 @@ public class PostgreSqlDatabase extends AbstractAzResource<PostgreSqlDatabase, P
 
     protected PostgreSqlDatabase(@Nonnull Database remote, @Nonnull PostgreSqlDatabaseModule module) {
         super(remote.name(), module);
-        this.setRemote(remote);
     }
 
     @Nullable

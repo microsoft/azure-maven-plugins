@@ -42,7 +42,6 @@ public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeSe
 
     protected VirtualMachine(@Nonnull com.azure.resourcemanager.compute.models.VirtualMachine remote, @Nonnull VirtualMachineModule module) {
         super(remote.name(), remote.resourceGroupName(), module);
-        this.setRemote(remote);
     }
 
     @Nonnull

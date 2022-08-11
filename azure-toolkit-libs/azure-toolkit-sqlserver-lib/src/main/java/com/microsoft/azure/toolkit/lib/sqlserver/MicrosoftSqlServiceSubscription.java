@@ -35,7 +35,6 @@ public class MicrosoftSqlServiceSubscription extends AbstractAzServiceSubscripti
 
     MicrosoftSqlServiceSubscription(@Nonnull SqlServerManager manager, @Nonnull AzureSqlServer service) {
         this(manager.serviceClient().getSubscriptionId(), service);
-        this.setRemote(manager);
     }
 
     @Nonnull

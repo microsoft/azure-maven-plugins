@@ -30,7 +30,6 @@ public class ApplicationInsightsServiceSubscription extends AbstractAzServiceSub
 
     protected ApplicationInsightsServiceSubscription(@Nonnull ApplicationInsightsManager manager, @Nonnull AzureApplicationInsights service) {
         this(manager.serviceClient().getSubscriptionId(), service);
-        this.setRemote(manager);
     }
 
     @Nonnull

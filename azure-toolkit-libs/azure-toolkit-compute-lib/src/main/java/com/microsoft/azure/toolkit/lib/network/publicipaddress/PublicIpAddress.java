@@ -30,7 +30,6 @@ public class PublicIpAddress extends AbstractAzResource<PublicIpAddress, Network
 
     protected PublicIpAddress(@Nonnull com.azure.resourcemanager.network.models.PublicIpAddress remote, @Nonnull PublicIpAddressModule module) {
         super(remote.name(), remote.resourceGroupName(), module);
-        this.setRemote(remote);
     }
 
     @Nonnull

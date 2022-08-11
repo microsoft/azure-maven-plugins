@@ -38,7 +38,6 @@ public class RedisServiceSubscription extends AbstractAzServiceSubscription<Redi
 
     RedisServiceSubscription(@Nonnull RedisManager remote, @Nonnull AzureRedis service) {
         this(remote.subscriptionId(), service);
-        this.setRemote(remote);
     }
 
     @Nonnull

@@ -69,9 +69,6 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
 
     void delete();
 
-    @Nullable
-    R getRemote();
-
     @Nonnull
     String getStatus();
 

@@ -46,7 +46,6 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     protected FunctionApp(@Nonnull FunctionAppBasic remote, @Nonnull FunctionAppModule module) {
         super(remote.name(), remote.resourceGroupName(), module);
         this.deploymentModule = new FunctionAppDeploymentSlotModule(this);
-        this.setRemote(remote);
     }
 
     @Nonnull

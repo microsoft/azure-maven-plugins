@@ -13,7 +13,6 @@ import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
@@ -67,12 +66,6 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
     @Nonnull
     public T forSubscription(@Nonnull String subscriptionId) {
         return Objects.requireNonNull(this.get(subscriptionId, null));
-    }
-
-    @Override
-    public void refresh() {
-        super.refresh();
-        this.list().forEach(AbstractAzResource::refresh);
     }
 
     @Nonnull

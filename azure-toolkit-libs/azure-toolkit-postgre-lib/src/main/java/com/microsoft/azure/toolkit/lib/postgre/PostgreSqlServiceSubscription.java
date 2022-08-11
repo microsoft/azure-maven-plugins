@@ -37,7 +37,6 @@ public class PostgreSqlServiceSubscription extends AbstractAzServiceSubscription
 
     PostgreSqlServiceSubscription(@Nonnull PostgreSqlManager manager, @Nonnull AzurePostgreSql service) {
         this(manager.serviceClient().getSubscriptionId(), service);
-        this.setRemote(manager);
     }
 
     @Nonnull

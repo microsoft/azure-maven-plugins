@@ -32,7 +32,6 @@ public class Network extends AbstractAzResource<Network, NetworkServiceSubscript
 
     protected Network(@Nonnull com.azure.resourcemanager.network.models.Network remote, @Nonnull NetworkModule module) {
         super(remote.name(), remote.resourceGroupName(), module);
-        this.setRemote(remote);
     }
 
     @Nonnull

@@ -29,7 +29,6 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionAppDeploy
 
     protected FunctionAppDeploymentSlot(@Nonnull FunctionDeploymentSlotBasic remote, @Nonnull FunctionAppDeploymentSlotModule module) {
         super(remote.name(), module);
-        this.setRemote(remote);
     }
 
     @Nonnull

@@ -30,7 +30,6 @@ public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, A
 
     protected ApplicationInsight(@Nonnull ApplicationInsightsComponent remote, @Nonnull ApplicationInsightsModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
-        this.setRemote(remote);
     }
 
     @Nullable

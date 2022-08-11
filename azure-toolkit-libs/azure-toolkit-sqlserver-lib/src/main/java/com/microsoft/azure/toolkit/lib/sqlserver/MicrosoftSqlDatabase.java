@@ -25,7 +25,6 @@ public class MicrosoftSqlDatabase extends AbstractAzResource<MicrosoftSqlDatabas
 
     protected MicrosoftSqlDatabase(@Nonnull SqlDatabase remote, @Nonnull MicrosoftSqlDatabaseModule module) {
         super(remote.name(), module);
-        this.setRemote(remote);
     }
 
     @Nonnull

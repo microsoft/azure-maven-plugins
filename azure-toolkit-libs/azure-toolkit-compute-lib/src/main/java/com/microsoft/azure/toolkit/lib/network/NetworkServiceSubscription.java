@@ -40,7 +40,6 @@ public class NetworkServiceSubscription extends AbstractAzServiceSubscription<Ne
 
     NetworkServiceSubscription(@Nonnull NetworkManager remote, @Nonnull AzureNetwork service) {
         this(remote.subscriptionId(), service);
-        this.setRemote(remote);
     }
 
     @Nonnull

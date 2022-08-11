@@ -28,7 +28,6 @@ public class ContainerServiceSubscription extends AbstractAzServiceSubscription<
 
     protected ContainerServiceSubscription(@Nonnull ContainerServiceManager manager, @Nonnull AzureContainerService service) {
         this(manager.serviceClient().getSubscriptionId(), service);
-        this.setRemote(manager);
     }
 
     public KubernetesClusterModule kubernetes() {

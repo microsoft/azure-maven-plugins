@@ -50,7 +50,6 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
 
     protected SpringCloudDeployment(@Nonnull SpringAppDeployment remote, @Nonnull SpringCloudDeploymentModule module) {
         super(remote.name(), module);
-        this.setRemote(remote);
     }
 
     // MODIFY
@@ -124,7 +123,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     public boolean waitUntilReady(int timeoutInSeconds) {
         AzureMessager.getMessager().info("Getting deployment status...");
         final SpringCloudDeployment deployment = Utils.pollUntil(() -> {
-            this.refresh();
+            this.invalidateCache();
             return this;
         }, Utils::isDeploymentDone, timeoutInSeconds);
         return Utils.isDeploymentDone(deployment);

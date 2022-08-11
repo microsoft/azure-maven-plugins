@@ -29,7 +29,6 @@ public class KubernetesClusterAgentPool extends AbstractAzResource<KubernetesClu
     public KubernetesClusterAgentPool(@Nonnull com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool remote,
                                       @Nonnull KubernetesClusterAgentPoolModule module) {
         super(remote.name(), module);
-        this.setRemote(remote);
     }
 
     public int getNodeCount() {
