@@ -24,29 +24,31 @@ import java.util.Optional;
 public class CosmosDBAccount extends AbstractAzResource<CosmosDBAccount, CosmosServiceSubscription,
         com.azure.resourcemanager.cosmos.models.CosmosDBAccount> implements Deletable {
 
+    private DatabaseAccountKeys databaseAccountKeys;
+    private DatabaseAccountConnectionStrings databaseAccountConnectionStrings;
+
     protected CosmosDBAccount(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull CosmosDBAccountModule module) {
         super(name, resourceGroupName, module);
     }
 
     protected CosmosDBAccount(@Nonnull CosmosDBAccount account) {
         super(account);
+        this.databaseAccountKeys = account.databaseAccountKeys;
+        this.databaseAccountConnectionStrings = account.databaseAccountConnectionStrings;
     }
 
     protected CosmosDBAccount(@Nonnull com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote, @Nonnull CosmosDBAccountModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
     }
 
-    @Nullable
+    @Nonnull
     public DatabaseAccountKeys listKeys() {
-        return Optional.ofNullable(getRemote())
-                .map(remote -> DatabaseAccountKeys.fromDatabaseAccountListKeysResult(remote.listKeys())).orElse(null);
+        return remoteOptional().map(ignore -> this.databaseAccountKeys).orElseGet(DatabaseAccountKeys::new);
     }
 
-    @Nullable
+    @Nonnull
     public DatabaseAccountConnectionStrings listConnectionStrings() {
-        return Optional.ofNullable(getRemote())
-                .map(remote -> DatabaseAccountConnectionStrings.fromDatabaseAccountListConnectionStringsResult(remote.listConnectionStrings(), Objects.requireNonNull(getKind())))
-                .orElse(null);
+        return remoteOptional().map(ignore -> this.databaseAccountConnectionStrings).orElseGet(DatabaseAccountConnectionStrings::new);
     }
 
     @Nullable
@@ -60,8 +62,9 @@ public class CosmosDBAccount extends AbstractAzResource<CosmosDBAccount, CosmosS
         return Collections.emptyList();
     }
 
+    @Nullable
     public String getDocumentEndpoint() {
-        return getRemote().documentEndpoint();
+        return Optional.ofNullable(getRemote()).map(remote -> remote.documentEndpoint()).orElse(null);
     }
 
     @NotNull
@@ -69,5 +72,11 @@ public class CosmosDBAccount extends AbstractAzResource<CosmosDBAccount, CosmosS
     public String loadStatus(@NotNull com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote) {
         // todo: investigate how to get status instead of provisioning state
         return remote.innerModel().provisioningState();
+    }
+
+    @Override
+    protected void updateAdditionalProperties(com.azure.resourcemanager.cosmos.models.CosmosDBAccount newRemote, com.azure.resourcemanager.cosmos.models.CosmosDBAccount oldRemote) {
+        this.databaseAccountKeys = DatabaseAccountKeys.fromDatabaseAccountListKeysResult(newRemote.listKeys());
+        this.databaseAccountConnectionStrings = DatabaseAccountConnectionStrings.fromDatabaseAccountListConnectionStringsResult(newRemote.listConnectionStrings(), Objects.requireNonNull(this.getKind()));
     }
 }

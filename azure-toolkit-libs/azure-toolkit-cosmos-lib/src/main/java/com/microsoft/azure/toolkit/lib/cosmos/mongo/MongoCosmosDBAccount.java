@@ -10,12 +10,12 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccountModule;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseAccountConnectionStrings;
+import com.microsoft.azure.toolkit.lib.cosmos.model.MongoDatabaseAccountConnectionString;
 import com.mongodb.ConnectionString;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -39,37 +39,41 @@ public class MongoCosmosDBAccount extends CosmosDBAccount {
         this.mongoDatabaseModule = new MongoDatabaseModule(this);
     }
 
+    @Nullable
     public ConnectionString getPrimaryConnectionString() {
-        return Optional.ofNullable(listConnectionStrings())
-                .map(DatabaseAccountConnectionStrings::getPrimaryConnectionString).map(ConnectionString::new).orElse(null);
+        return Optional.ofNullable(listConnectionStrings().getPrimaryConnectionString()).map(ConnectionString::new).orElse(null);
     }
 
+    @Nonnull
+    public MongoDatabaseAccountConnectionString getMongoConnectionString() {
+        return Optional.ofNullable(listConnectionStrings().getPrimaryConnectionString())
+                .map(MongoDatabaseAccountConnectionString::fromConnectionString)
+                .orElseGet(MongoDatabaseAccountConnectionString::new);
+    }
+
+    @Nullable
     public List<String> getHosts() {
-        return Optional.ofNullable(getPrimaryConnectionString()).map(ConnectionString::getHosts).orElse(null);
+        return getMongoConnectionString().getHosts();
     }
 
+    @Nullable
     public String getContactPoint() {
-        final List<String> hosts = getHosts();
-        if (CollectionUtils.isEmpty(hosts)) {
-            return null;
-        }
-        return StringUtils.substringAfterLast(hosts.get(0), ":");
+        return getMongoConnectionString().getHost();
     }
 
+    @Nullable
     public Integer getPort() {
-        final List<String> hosts = getHosts();
-        if (CollectionUtils.isEmpty(hosts)) {
-            return null;
-        }
-        return Integer.valueOf(StringUtils.substringAfterLast(hosts.get(0), ":"));
+        return getMongoConnectionString().getPort();
     }
 
+    @Nullable
     public String getUserName() {
-        return getPrimaryConnectionString().getUsername();
+        return getMongoConnectionString().getUsername();
     }
 
-    public boolean isSslEnabled() {
-        return getPrimaryConnectionString().getSslEnabled();
+    @Nullable
+    public Boolean isSslEnabled() {
+        return getMongoConnectionString().getSslEnabled();
     }
 
     public MongoDatabaseModule mongoDatabases() {

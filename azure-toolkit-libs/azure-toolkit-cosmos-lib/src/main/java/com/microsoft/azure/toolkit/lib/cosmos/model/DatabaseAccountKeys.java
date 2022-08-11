@@ -6,14 +6,18 @@
 package com.microsoft.azure.toolkit.lib.cosmos.model;
 
 import com.azure.resourcemanager.cosmos.models.DatabaseAccountListKeysResult;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import javax.annotation.Nonnull;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode
 public class DatabaseAccountKeys {
     private String primaryMasterKey;
