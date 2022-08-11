@@ -6,9 +6,13 @@
 package com.microsoft.azure.toolkit.lib.cosmos.sql;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccountModule;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
+import java.util.List;
 
 public class SqlCosmosDBAccount extends CosmosDBAccount {
 
@@ -28,6 +32,11 @@ public class SqlCosmosDBAccount extends CosmosDBAccount {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
         this.sqlDatabaseModule = new SqlDatabaseModule(this);
         this.setRemote(remote);
+    }
+
+    @Override
+    public @NotNull List<AbstractAzResourceModule<?, CosmosDBAccount, ?>> getSubModules() {
+        return Collections.singletonList(sqlDatabaseModule);
     }
 
     public SqlDatabaseModule sqlDatabases() {

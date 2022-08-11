@@ -9,13 +9,14 @@ import com.azure.resourcemanager.cosmos.fluent.models.CassandraTableGetResultsIn
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.cosmos.ICosmosCollection;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 
-public class CassandraTable extends AbstractAzResource<CassandraTable, CassandraKeyspace, CassandraTableGetResultsInner> implements Deletable {
+public class CassandraTable extends AbstractAzResource<CassandraTable, CassandraKeyspace, CassandraTableGetResultsInner> implements Deletable, ICosmosCollection {
 
     protected CassandraTable(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull CassandraTableModule module) {
         super(name, resourceGroupName, module);

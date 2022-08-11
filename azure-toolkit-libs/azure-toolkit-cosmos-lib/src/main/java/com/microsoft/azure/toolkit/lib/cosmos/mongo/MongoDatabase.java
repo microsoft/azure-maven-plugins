@@ -10,13 +10,15 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
+import com.microsoft.azure.toolkit.lib.cosmos.ICosmosCollection;
+import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabase;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 
-public class MongoDatabase extends AbstractAzResource<MongoDatabase, CosmosDBAccount, MongoDBDatabaseGetResultsInner> implements Deletable {
+public class MongoDatabase extends AbstractAzResource<MongoDatabase, CosmosDBAccount, MongoDBDatabaseGetResultsInner> implements Deletable, ICosmosDatabase {
 
     private MongoCollectionModule collectionModule;
 
@@ -50,5 +52,10 @@ public class MongoDatabase extends AbstractAzResource<MongoDatabase, CosmosDBAcc
     @Override
     public String loadStatus(@NotNull MongoDBDatabaseGetResultsInner remote) {
         return Status.RUNNING;
+    }
+
+    @Override
+    public List<? extends ICosmosCollection> listCollection() {
+        return this.collections().list();
     }
 }
