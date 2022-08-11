@@ -34,7 +34,7 @@ public class DatabaseAccountKind {
     public static DatabaseAccountKind fromString(String input) {
         return values().stream()
                 .filter(logLevel -> StringUtils.equalsIgnoreCase(input, logLevel.getValue()))
-                .findFirst().orElse(null);
+                .findFirst().orElseGet(() -> new DatabaseAccountKind(input));
     }
 
     public static DatabaseAccountKind fromAccount(@Nonnull CosmosDBAccount account) {
