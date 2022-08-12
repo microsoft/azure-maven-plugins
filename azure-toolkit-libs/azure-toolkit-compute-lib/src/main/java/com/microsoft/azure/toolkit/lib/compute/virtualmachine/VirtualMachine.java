@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.compute.virtualmachine;
 import com.azure.resourcemanager.compute.models.LinuxConfiguration;
 import com.azure.resourcemanager.compute.models.OSProfile;
 import com.azure.resourcemanager.network.models.PublicIpAddress;
+import com.azure.resourcemanager.network.models.SecurityRuleProtocol;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -17,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.common.model.Startable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.compute.ComputeServiceSubscription;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.network.networksecuritygroup.SecurityRule;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -121,5 +123,9 @@ public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeSe
             .map(OSProfile::linuxConfiguration)
             .map(LinuxConfiguration::disablePasswordAuthentication)
             .orElse(false);
+    }
+
+    public int getSshPort() {
+        return SecurityRule.SSH_RULE.getToPort();
     }
 }
