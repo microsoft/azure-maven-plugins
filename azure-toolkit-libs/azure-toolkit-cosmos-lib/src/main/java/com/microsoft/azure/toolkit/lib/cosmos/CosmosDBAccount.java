@@ -9,6 +9,8 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.cosmos.model.CosmosDBAccountConnectionString;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseAccountConnectionStrings;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseAccountKeys;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseAccountKind;
@@ -65,6 +67,16 @@ public class CosmosDBAccount extends AbstractAzResource<CosmosDBAccount, CosmosS
     @Nullable
     public String getDocumentEndpoint() {
         return Optional.ofNullable(getRemote()).map(remote -> remote.documentEndpoint()).orElse(null);
+    }
+
+    @Nullable
+    public Region getRegion() {
+        return remoteOptional().map(remote -> Region.fromName(remote.regionName())).orElse(null);
+    }
+
+    @Nullable
+    public CosmosDBAccountConnectionString getCosmosDBAccountPrimaryConnectionString() {
+        return null;
     }
 
     @NotNull

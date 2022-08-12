@@ -14,13 +14,13 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 @Data
-public class MongoDatabaseAccountConnectionString {
+public class MongoDatabaseAccountConnectionString implements CosmosDBAccountConnectionString {
     private String host;
     private Integer port;
     private List<String> hosts;
     private String username;
-    private char[] password;
-    private String connection;
+    private String password;
+    private String connectionString;
     private Boolean sslEnabled;
 
     public static MongoDatabaseAccountConnectionString fromConnectionString(@Nonnull final String connectionString) {
@@ -30,9 +30,9 @@ public class MongoDatabaseAccountConnectionString {
         result.setHost(CollectionUtils.isEmpty(mongo.getHosts()) ? null : StringUtils.substringBefore(mongo.getHosts().get(0), ":"));
         result.setPort(CollectionUtils.isEmpty(mongo.getHosts()) ? null : Integer.valueOf(StringUtils.substringAfter(mongo.getHosts().get(0), ":")));
         result.setUsername(mongo.getUsername());
-        result.setPassword(mongo.getPassword());
+        result.setPassword(String.valueOf(mongo.getPassword()));
         result.setSslEnabled(mongo.getSslEnabled());
-        result.setConnection(connectionString);
+        result.setConnectionString(connectionString);
         return result;
     }
 }

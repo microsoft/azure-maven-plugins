@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 @Data
-public class CassandraDatabaseAccountConnectionString {
+public class CassandraDatabaseAccountConnectionString implements CosmosDBAccountConnectionString {
     private String contactPoint;
     private Integer port;
     private String username;
@@ -36,5 +36,10 @@ public class CassandraDatabaseAccountConnectionString {
     private static String extractValueFromParameters(@Nonnull final String[] parameters, final String key) {
         final String parameter = Arrays.stream(parameters).filter(value -> StringUtils.containsIgnoreCase(value, key)).findFirst().orElse(null);
         return StringUtils.isEmpty(parameter) ? null : StringUtils.substringAfter(parameter, "=");
+    }
+
+    @Override
+    public String getHost() {
+        return this.contactPoint;
     }
 }
