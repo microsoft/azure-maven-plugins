@@ -19,7 +19,7 @@ public class MongoDatabaseAccountConnectionString implements CosmosDBAccountConn
     private Integer port;
     private List<String> hosts;
     private String username;
-    private char[] password;
+    private String password;
     private String connectionString;
     private Boolean sslEnabled;
 
@@ -30,7 +30,7 @@ public class MongoDatabaseAccountConnectionString implements CosmosDBAccountConn
         result.setHost(CollectionUtils.isEmpty(mongo.getHosts()) ? null : StringUtils.substringBefore(mongo.getHosts().get(0), ":"));
         result.setPort(CollectionUtils.isEmpty(mongo.getHosts()) ? null : Integer.valueOf(StringUtils.substringAfter(mongo.getHosts().get(0), ":")));
         result.setUsername(mongo.getUsername());
-        result.setPassword(mongo.getPassword());
+        result.setPassword(String.valueOf(mongo.getPassword()));
         result.setSslEnabled(mongo.getSslEnabled());
         result.setConnectionString(connectionString);
         return result;
