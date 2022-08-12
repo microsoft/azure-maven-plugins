@@ -9,10 +9,12 @@ import com.azure.resourcemanager.cosmos.fluent.MongoDBResourcesClient;
 import com.azure.resourcemanager.cosmos.fluent.models.MongoDBDatabaseGetResultsInner;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -32,7 +34,7 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
     @NotNull
     @Override
     protected MongoDatabase newResource(@NotNull String name, @Nullable String resourceGroupName) {
-        return new MongoDatabase(name, resourceGroupName, this);
+        return new MongoDatabase(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @NotNull
@@ -48,6 +50,18 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
         return Optional.ofNullable(getClient()).map(client -> client.getMongoDBDatabase(parent.getResourceGroupName(), parent.getName(), name)).orElse(null);
     }
 
+    @NotNull
+    @Override
+    protected AzResource.Draft<MongoDatabase, MongoDBDatabaseGetResultsInner> newDraftForCreate(@NotNull String name, @Nullable String rgName) {
+        return new MongoDatabaseDraft(name, Objects.requireNonNull(rgName), this);
+    }
+
+    @NotNull
+    @Override
+    protected AzResource.Draft<MongoDatabase, MongoDBDatabaseGetResultsInner> newDraftForUpdate(@NotNull MongoDatabase mongoDatabase) {
+        throw new UnsupportedOperationException("not support");
+    }
+
     @Override
     protected void deleteResourceFromAzure(@NotNull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
@@ -57,6 +71,6 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
     @Nullable
     @Override
     protected MongoDBResourcesClient getClient() {
-        return this.parent.getRemote().manager().serviceClient().getMongoDBResources();
+        return Objects.requireNonNull(this.parent.getRemote()).manager().serviceClient().getMongoDBResources();
     }
 }
