@@ -9,7 +9,7 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccountModule;
-import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseAccountConnectionStrings;
+import com.microsoft.azure.toolkit.lib.cosmos.model.CosmosDBAccountConnectionString;
 import com.microsoft.azure.toolkit.lib.cosmos.model.MongoDatabaseAccountConnectionString;
 import com.mongodb.ConnectionString;
 import org.jetbrains.annotations.NotNull;
@@ -78,6 +78,12 @@ public class MongoCosmosDBAccount extends CosmosDBAccount {
 
     public MongoDatabaseModule mongoDatabases() {
         return this.mongoDatabaseModule;
+    }
+
+    @Nonnull
+    @Override
+    public CosmosDBAccountConnectionString getCosmosDBAccountPrimaryConnectionString() {
+        return getMongoConnectionString();
     }
 
     @Override

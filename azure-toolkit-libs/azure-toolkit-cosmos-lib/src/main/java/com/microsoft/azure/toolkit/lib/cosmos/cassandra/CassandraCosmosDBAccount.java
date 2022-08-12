@@ -9,6 +9,7 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccountModule;
 import com.microsoft.azure.toolkit.lib.cosmos.model.CassandraDatabaseAccountConnectionString;
+import com.microsoft.azure.toolkit.lib.cosmos.model.CosmosDBAccountConnectionString;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -62,5 +63,11 @@ public class CassandraCosmosDBAccount extends CosmosDBAccount {
     @Nullable
     public String getContactPoint() {
         return getCassandraConnectionString().getContactPoint();
+    }
+
+    @Nonnull
+    @Override
+    public CosmosDBAccountConnectionString getCosmosDBAccountPrimaryConnectionString() {
+        return getCassandraConnectionString();
     }
 }
