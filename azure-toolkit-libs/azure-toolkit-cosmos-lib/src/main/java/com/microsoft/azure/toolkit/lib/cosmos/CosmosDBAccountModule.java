@@ -46,8 +46,8 @@ public class CosmosDBAccountModule extends AbstractAzResourceModule<CosmosDBAcco
     @Nonnull
     @Override
     protected CosmosDBAccount newResource(@Nonnull String name, @Nullable String resourceGroupName) {
-        final com.azure.resourcemanager.cosmos.models.CosmosDBAccount account = getClient().getByResourceGroup(resourceGroupName, name);
-        return account == null ? new CosmosDBAccount(name, resourceGroupName, this) : newResource(account);
+        final com.azure.resourcemanager.cosmos.models.CosmosDBAccount account = Objects.requireNonNull(getClient()).getByResourceGroup(resourceGroupName, name);
+        return account == null ? new CosmosDBAccount(name, Objects.requireNonNull(resourceGroupName), this) : newResource(account);
     }
 
     @Nullable
@@ -65,15 +65,22 @@ public class CosmosDBAccountModule extends AbstractAzResourceModule<CosmosDBAcco
     @NotNull
     @Override
     protected AzResource.Draft<CosmosDBAccount, com.azure.resourcemanager.cosmos.models.CosmosDBAccount> newDraftForUpdate(@NotNull CosmosDBAccount cosmosDBAccount) {
-        return super.newDraftForUpdate(cosmosDBAccount);
+        throw new UnsupportedOperationException("not support");
+    }
+
+    @NotNull
+    @Override
+    protected AzResource.Draft<CosmosDBAccount, com.azure.resourcemanager.cosmos.models.CosmosDBAccount> newDraftForCreate(@NotNull String name, @org.jetbrains.annotations.Nullable String rgName) {
+        return new CosmosDBAccountDraft(name, Objects.requireNonNull(rgName), this);
     }
 
     @NotNull
     @Override
     public CosmosDBAccount create(@NotNull AzResource.Draft<CosmosDBAccount, com.azure.resourcemanager.cosmos.models.CosmosDBAccount> draft) {
-        super.create(draft);
-        final CosmosDBAccount account = this.get(draft.getResourceGroupName(), draft.getName());
-        this.addResourceToLocal(account.getId(), account);
-        return account;
+        final CosmosDBAccount draftAccount = super.create(draft);
+        this.deleteResourceFromLocal(draftAccount.getId()); // remove draft account from local cache as we can't tell the kind from draft
+        final CosmosDBAccount cosmosDBAccount = this.newResource(Objects.requireNonNull(draftAccount.getRemote()));
+        this.addResourceToLocal(cosmosDBAccount.getId(), cosmosDBAccount);
+        return cosmosDBAccount;
     }
 }
