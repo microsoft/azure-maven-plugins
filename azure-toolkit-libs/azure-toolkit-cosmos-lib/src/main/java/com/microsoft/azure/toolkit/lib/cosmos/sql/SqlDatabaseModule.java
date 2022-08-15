@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -32,7 +33,7 @@ public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, Cos
     @NotNull
     @Override
     protected SqlDatabase newResource(@NotNull String name, @Nullable String resourceGroupName) {
-        return new SqlDatabase(name, resourceGroupName, this);
+        return new SqlDatabase(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @NotNull
@@ -54,9 +55,21 @@ public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, Cos
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteSqlDatabase(id.resourceGroupName(), id.parent().name(), id.name()));
     }
 
+    @NotNull
+    @Override
+    protected SqlDatabaseDraft newDraftForCreate(@NotNull String name, @Nullable String rgName) {
+        return new SqlDatabaseDraft(name, Objects.requireNonNull(rgName), this);
+    }
+
+    @NotNull
+    @Override
+    protected SqlDatabaseDraft newDraftForUpdate(@NotNull SqlDatabase sqlDatabase) {
+        throw new UnsupportedOperationException("not support");
+    }
+
     @Nullable
     @Override
     protected SqlResourcesClient getClient() {
-        return this.parent.getRemote().manager().serviceClient().getSqlResources();
+        return Objects.requireNonNull(this.parent.getRemote()).manager().serviceClient().getSqlResources();
     }
 }
