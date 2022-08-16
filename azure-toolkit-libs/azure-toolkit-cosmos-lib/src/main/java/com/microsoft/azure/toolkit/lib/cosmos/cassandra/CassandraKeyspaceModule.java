@@ -69,6 +69,6 @@ public class CassandraKeyspaceModule extends AbstractAzResourceModule<CassandraK
 
     @Override
     protected CassandraResourcesClient getClient() {
-        return Objects.requireNonNull(this.parent.getRemote()).manager().serviceClient().getCassandraResources();
+        return Optional.ofNullable(this.parent.getRemote()).map(account -> account.manager().serviceClient().getCassandraResources()).orElse(null);
     }
 }

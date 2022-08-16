@@ -12,7 +12,7 @@ import com.azure.resourcemanager.cosmos.models.AutoscaleSettings;
 import com.azure.resourcemanager.cosmos.models.CreateUpdateOptions;
 import com.azure.resourcemanager.cosmos.models.MongoDBDatabaseCreateUpdateParameters;
 import com.azure.resourcemanager.cosmos.models.MongoDBDatabaseResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabaseDraft;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseConfig;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,7 +24,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class MongoDatabaseDraft extends MongoDatabase implements
-        AzResource.Draft<MongoDatabase, MongoDBDatabaseGetResultsInner> {
+        ICosmosDatabaseDraft<MongoDatabase, MongoDBDatabaseGetResultsInner> {
 
     @Setter
     @Getter

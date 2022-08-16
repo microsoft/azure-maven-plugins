@@ -70,6 +70,6 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
     @Nullable
     @Override
     protected MongoDBResourcesClient getClient() {
-        return Objects.requireNonNull(this.parent.getRemote()).manager().serviceClient().getMongoDBResources();
+        return Optional.ofNullable(this.parent.getRemote()).map(account -> account.manager().serviceClient().getMongoDBResources()).orElse(null);
     }
 }

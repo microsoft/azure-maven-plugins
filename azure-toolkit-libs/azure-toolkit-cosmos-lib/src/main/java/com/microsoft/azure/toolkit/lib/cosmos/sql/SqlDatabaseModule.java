@@ -70,6 +70,6 @@ public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, Cos
     @Nullable
     @Override
     protected SqlResourcesClient getClient() {
-        return Objects.requireNonNull(this.parent.getRemote()).manager().serviceClient().getSqlResources();
+        return Optional.ofNullable(this.parent.getRemote()).map(account -> account.manager().serviceClient().getSqlResources()).orElse(null);
     }
 }
