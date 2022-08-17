@@ -105,7 +105,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         }
         synchronized (this.syncTimeRef) {
             try {
-                if (this.syncTimeRef.get() == -1 || System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) { // double check
+                if (this.syncTimeRef.get() != 0 && (this.syncTimeRef.get() == -1 || System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME)) {
                     this.syncTimeRef.set(0);
                     log.debug("[{}]:list->this.reload()", this.name);
                     this.reloadResources();
