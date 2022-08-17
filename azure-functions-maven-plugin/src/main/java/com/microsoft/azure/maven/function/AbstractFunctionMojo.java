@@ -62,7 +62,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      * Properties for Windows/Linux function app
      * <ul>
      *     <li> os: Operating system for the function App, default to be Windows. </li>
-     *     <li> javaVersion: Java runtime version the function App, supported values are `Java 8` and `Java 11`, default to be `Java 8`. </li>
+     *     <li> javaVersion: Java runtime version the function App, supported values are `Java 8`, `Java 11` and `Java 17`, default to be `Java 8`. </li>
      * </ul>
      * <pre>
      * {@code
