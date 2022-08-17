@@ -295,9 +295,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     protected void doModify(@Nonnull Runnable body, @Nullable String status) {
         synchronized (this.syncTimeRef) {
             try {
-                if (this.syncTimeRef.get() == 0) { // cancel if updating.
-                    return;
-                }
                 this.syncTimeRef.set(0);
                 this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
                 log.debug("[{}:{}]:doModify->body.run()", this.module.getName(), this.getName());
