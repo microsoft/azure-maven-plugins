@@ -118,7 +118,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     public void invalidateCache() {
         log.debug("[{}]:invalidateCache()", this.name);
         synchronized (this.syncTimeRef) {
-            this.remoteRef.set(null);
+            // this.remoteRef.set(null); will make a newly created resource behave as a "draft for creating"(since isDraftForCreating() will return true)
             this.syncTimeRef.set(-1);
         }
         log.debug("[{}:{}]:invalidateCache->subModules.invalidateCache()", this.module.getName(), this.getName());
