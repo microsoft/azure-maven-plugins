@@ -75,7 +75,7 @@ public class DeployMojo extends AbstractFunctionMojo {
             "please refer to https://aka.ms/maven_function_configuration#supported-pricing-tiers for valid values";
     private static final String EXPANDABLE_REGION_WARNING = "'%s' may not be a valid region, " +
             "please refer to https://aka.ms/maven_function_configuration#supported-regions for valid values";
-    private static final String EXPANDABLE_JAVA_VERSION_WARNING = "'%s' may not be a valid java version, recommended values are `Java 8` and `Java 11`";
+    private static final String EXPANDABLE_JAVA_VERSION_WARNING = "'%s' may not be a valid java version, recommended values are `Java 8`, `Java 11` and `Java 17`";
 
     /**
      * The deployment approach to use, valid values are FTP, ZIP, MSDEPLOY, RUN_FROM_ZIP, RUN_FROM_BLOB <p>

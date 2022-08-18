@@ -70,7 +70,7 @@ public class WebContainer implements ExpandableParameter {
         if (StringUtils.isEmpty(input)) {
             return WebContainer.JAVA_OFF;
         }
-        if (StringUtils.equalsAnyIgnoreCase(input, JAVA, JAVA_7, JAVA_8, JAVA_11, STRING_JAVA_SE)) {
+        if (StringUtils.equalsAnyIgnoreCase(input, JAVA, JAVA_7, JAVA_8, JAVA_11, JAVA_17, STRING_JAVA_SE)) {
             return WebContainer.JAVA_SE;
         }
         return values().stream()

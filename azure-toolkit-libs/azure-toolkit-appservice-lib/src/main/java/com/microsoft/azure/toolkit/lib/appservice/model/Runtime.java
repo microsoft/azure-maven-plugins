@@ -58,8 +58,10 @@ public class Runtime {
     // Function
     public static final Runtime FUNCTION_WINDOWS_JAVA8 = new Runtime(OperatingSystem.WINDOWS, WebContainer.JAVA_OFF, JavaVersion.JAVA_8);
     public static final Runtime FUNCTION_WINDOWS_JAVA11 = new Runtime(OperatingSystem.WINDOWS, WebContainer.JAVA_OFF, JavaVersion.JAVA_11);
+    public static final Runtime FUNCTION_WINDOWS_JAVA17 = new Runtime(OperatingSystem.WINDOWS, WebContainer.JAVA_OFF, JavaVersion.JAVA_17);
     public static final Runtime FUNCTION_LINUX_JAVA8 = new Runtime(OperatingSystem.LINUX, WebContainer.JAVA_OFF, JavaVersion.JAVA_8);
     public static final Runtime FUNCTION_LINUX_JAVA11 = new Runtime(OperatingSystem.LINUX, WebContainer.JAVA_OFF, JavaVersion.JAVA_11);
+    public static final Runtime FUNCTION_LINUX_JAVA17 = new Runtime(OperatingSystem.LINUX, WebContainer.JAVA_OFF, JavaVersion.JAVA_17);
     // Docker
     public static final Runtime DOCKER = new Runtime(OperatingSystem.DOCKER, null, null);
 
@@ -67,8 +69,8 @@ public class Runtime {
             WINDOWS_JAVA8_TOMCAT9, WINDOWS_JAVA8_TOMCAT85, WINDOWS_JAVA8_TOMCAT10, WINDOWS_JAVA11_TOMCAT9, WINDOWS_JAVA11_TOMCAT85, WINDOWS_JAVA11_TOMCAT10,
             WINDOWS_JAVA17_TOMCAT10, LINUX_JAVA8, LINUX_JAVA11, LINUX_JAVA17, LINUX_JAVA8_TOMCAT9, LINUX_JAVA8_TOMCAT85, LINUX_JAVA8_TOMCAT10,
             LINUX_JAVA11_JBOSS7, LINUX_JAVA8_JBOSS7, LINUX_JAVA11_TOMCAT9, LINUX_JAVA11_TOMCAT85, LINUX_JAVA11_TOMCAT10, LINUX_JAVA17_TOMCAT10));
-    public static final List<Runtime> FUNCTION_APP_RUNTIME = Collections.unmodifiableList(Arrays.asList(FUNCTION_LINUX_JAVA8, FUNCTION_LINUX_JAVA11,
-            FUNCTION_WINDOWS_JAVA8, FUNCTION_WINDOWS_JAVA11));
+    public static final List<Runtime> FUNCTION_APP_RUNTIME = Collections.unmodifiableList(Arrays.asList(FUNCTION_LINUX_JAVA8, FUNCTION_LINUX_JAVA11, FUNCTION_LINUX_JAVA17,
+            FUNCTION_WINDOWS_JAVA8, FUNCTION_WINDOWS_JAVA11, FUNCTION_WINDOWS_JAVA17));
     private static final List<Runtime> values =
             Collections.unmodifiableList(new ArrayList<>(new HashSet<>(ListUtils.union(WEBAPP_RUNTIME, FUNCTION_APP_RUNTIME))));
 
@@ -113,24 +115,6 @@ public class Runtime {
 
     public boolean isDocker() {
         return Objects.equals(operatingSystem, OperatingSystem.DOCKER);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Runtime)) {
-            return false;
-        }
-        final Runtime runtime = (Runtime) o;
-        return operatingSystem == runtime.operatingSystem && Objects.equals(webContainer, runtime.webContainer) &&
-            Objects.equals(javaVersion, runtime.javaVersion);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(operatingSystem, webContainer, javaVersion);
     }
 
     @Override
