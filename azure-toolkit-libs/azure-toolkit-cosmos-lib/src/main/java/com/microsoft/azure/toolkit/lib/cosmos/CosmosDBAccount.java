@@ -88,7 +88,12 @@ public class CosmosDBAccount extends AbstractAzResource<CosmosDBAccount, CosmosS
 
     @Override
     protected void updateAdditionalProperties(com.azure.resourcemanager.cosmos.models.CosmosDBAccount newRemote, com.azure.resourcemanager.cosmos.models.CosmosDBAccount oldRemote) {
-        this.databaseAccountKeys = DatabaseAccountKeys.fromDatabaseAccountListKeysResult(newRemote.listKeys());
-        this.databaseAccountConnectionStrings = DatabaseAccountConnectionStrings.fromDatabaseAccountListConnectionStringsResult(newRemote.listConnectionStrings(), Objects.requireNonNull(this.getKind()));
+        if (newRemote == null) {
+            this.databaseAccountKeys = null;
+            this.databaseAccountConnectionStrings = null;
+        } else {
+            this.databaseAccountKeys = DatabaseAccountKeys.fromDatabaseAccountListKeysResult(newRemote.listKeys());
+            this.databaseAccountConnectionStrings = DatabaseAccountConnectionStrings.fromDatabaseAccountListConnectionStringsResult(newRemote.listConnectionStrings(), Objects.requireNonNull(this.getKind()));
+        }
     }
 }

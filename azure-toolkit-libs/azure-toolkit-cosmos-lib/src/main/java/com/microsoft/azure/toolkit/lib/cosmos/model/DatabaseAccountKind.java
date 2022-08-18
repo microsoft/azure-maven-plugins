@@ -56,4 +56,9 @@ public class DatabaseAccountKind {
             return fromString(StringUtils.remove(name, "Enable"));
         }
     }
+
+    @Override
+    public String toString() {
+        return value;
+    }
 }

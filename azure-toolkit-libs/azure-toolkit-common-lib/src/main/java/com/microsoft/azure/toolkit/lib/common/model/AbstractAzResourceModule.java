@@ -356,7 +356,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         return String.format("%s/%s/%s", this.parent.getId(), this.getName(), resourceName).replace(RESOURCE_GROUP_PLACEHOLDER, resourceGroup);
     }
 
-    void deleteResourceFromLocal(@Nonnull String id, boolean... silent) {
+    protected void deleteResourceFromLocal(@Nonnull String id, boolean... silent) {
         log.debug("[{}]:deleteResourceFromLocal({})", this.name, id);
         log.debug("[{}]:deleteResourceFromLocal->this.resources.remove({})", this.name, id);
         id = id.toLowerCase();

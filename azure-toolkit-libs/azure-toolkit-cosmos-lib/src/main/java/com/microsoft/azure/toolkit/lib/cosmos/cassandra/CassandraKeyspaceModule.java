@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -32,7 +33,7 @@ public class CassandraKeyspaceModule extends AbstractAzResourceModule<CassandraK
     @NotNull
     @Override
     protected CassandraKeyspace newResource(@NotNull String name, @Nullable String resourceGroupName) {
-        return new CassandraKeyspace(name, resourceGroupName, this);
+        return new CassandraKeyspace(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @NotNull
@@ -54,8 +55,20 @@ public class CassandraKeyspaceModule extends AbstractAzResourceModule<CassandraK
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteCassandraKeyspace(id.resourceGroupName(), id.parent().name(), id.name()));
     }
 
+    @NotNull
+    @Override
+    protected CassandraKeyspaceDraft newDraftForCreate(@NotNull String name, @Nullable String rgName) {
+        return new CassandraKeyspaceDraft(name, Objects.requireNonNull(rgName), this);
+    }
+
+    @NotNull
+    @Override
+    protected CassandraKeyspaceDraft newDraftForUpdate(@NotNull CassandraKeyspace cassandraKeyspace) {
+        throw new UnsupportedOperationException("not support");
+    }
+
     @Override
     protected CassandraResourcesClient getClient() {
-        return this.parent.getRemote().manager().serviceClient().getCassandraResources();
+        return Optional.ofNullable(this.parent.getRemote()).map(account -> account.manager().serviceClient().getCassandraResources()).orElse(null);
     }
 }

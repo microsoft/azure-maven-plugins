@@ -9,7 +9,6 @@ import com.azure.resourcemanager.cosmos.fluent.MongoDBResourcesClient;
 import com.azure.resourcemanager.cosmos.fluent.models.MongoDBDatabaseGetResultsInner;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,13 +51,13 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
 
     @NotNull
     @Override
-    protected AzResource.Draft<MongoDatabase, MongoDBDatabaseGetResultsInner> newDraftForCreate(@NotNull String name, @Nullable String rgName) {
+    protected MongoDatabaseDraft newDraftForCreate(@NotNull String name, @Nullable String rgName) {
         return new MongoDatabaseDraft(name, Objects.requireNonNull(rgName), this);
     }
 
     @NotNull
     @Override
-    protected AzResource.Draft<MongoDatabase, MongoDBDatabaseGetResultsInner> newDraftForUpdate(@NotNull MongoDatabase mongoDatabase) {
+    protected MongoDatabaseDraft newDraftForUpdate(@NotNull MongoDatabase mongoDatabase) {
         throw new UnsupportedOperationException("not support");
     }
 
@@ -71,6 +70,6 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
     @Nullable
     @Override
     protected MongoDBResourcesClient getClient() {
-        return Objects.requireNonNull(this.parent.getRemote()).manager().serviceClient().getMongoDBResources();
+        return Optional.ofNullable(this.parent.getRemote()).map(account -> account.manager().serviceClient().getMongoDBResources()).orElse(null);
     }
 }

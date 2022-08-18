@@ -186,7 +186,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
-    protected void updateAdditionalProperties(R newRemote, R oldRemote) {
+    protected void updateAdditionalProperties(@Nullable R newRemote, @Nullable R oldRemote) {
 
     }
 

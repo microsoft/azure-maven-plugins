@@ -54,6 +54,7 @@ public class CassandraTableModule extends AbstractAzResourceModule<CassandraTabl
     }
 
     @Override
+    @Nullable
     protected CassandraResourcesClient getClient() {
         return ((CassandraKeyspaceModule)this.getParent().getModule()).getClient();
     }
