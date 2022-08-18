@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -27,6 +28,7 @@ import java.util.stream.Stream;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class Runtime {
     private static final Pattern LINUX_FX_VERSION_PATTERN = Pattern.compile("(?i)(JAVA|TOMCAT|JBOSSEAP)\\|((.*)-)?(.+)");
 
@@ -113,24 +115,6 @@ public class Runtime {
 
     public boolean isDocker() {
         return Objects.equals(operatingSystem, OperatingSystem.DOCKER);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Runtime)) {
-            return false;
-        }
-        final Runtime runtime = (Runtime) o;
-        return operatingSystem == runtime.operatingSystem && Objects.equals(webContainer, runtime.webContainer) &&
-            Objects.equals(javaVersion, runtime.javaVersion);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(operatingSystem, webContainer, javaVersion);
     }
 
     @Override
