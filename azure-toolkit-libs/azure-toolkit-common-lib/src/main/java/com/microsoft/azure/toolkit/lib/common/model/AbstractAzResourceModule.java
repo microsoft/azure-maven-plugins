@@ -103,22 +103,24 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             log.debug("[{}]:list->parent.isDraftForCreating()=true", this.name);
             return Collections.emptyList();
         }
-        synchronized (this.syncTimeRef) {
-            try {
+        if (System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) { // 0, -1 or too old.
+            synchronized (this.syncTimeRef) {
                 if (this.syncTimeRef.get() != 0 && (this.syncTimeRef.get() == -1 || System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME)) {
-                    this.syncTimeRef.set(0);
-                    log.debug("[{}]:list->this.reload()", this.name);
-                    this.reloadResources();
+                    try {
+                        this.syncTimeRef.set(0);
+                        log.debug("[{}]:list->this.reload()", this.name);
+                        this.reloadResources();
+                    } catch (Throwable t) {
+                        this.syncTimeRef.compareAndSet(0, -1);
+                        AzureMessager.getMessager().error(t);
+                        return Collections.emptyList();
+                    }
                 }
-                log.debug("[{}]:list->this.resources.values()", this.name);
-                return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
-                    .sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
-            } catch (Throwable t) {
-                this.syncTimeRef.compareAndSet(0, -1);
-                AzureMessager.getMessager().error(t);
-                return Collections.emptyList();
             }
         }
+        log.debug("[{}]:list->this.resources.values()", this.name);
+        return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
+            .sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
     }
 
     private void reloadResources() {

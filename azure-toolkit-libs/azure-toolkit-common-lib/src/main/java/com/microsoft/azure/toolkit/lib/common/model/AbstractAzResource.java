@@ -133,20 +133,26 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             log.debug("[{}:{}]:getRemote->this.isDraftForCreating()=true", this.module.getName(), this.getName());
             return null;
         }
-        synchronized (this.syncTimeRef) {
-            if (this.syncTimeRef.get() != 0 && (this.syncTimeRef.get() == -1 || System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME)) {
-                this.syncTimeRef.set(0);
-                log.debug("[{}:{}]:getRemote->reloadRemote()", this.module.getName(), this.getName());
-                try {
-                    this.reloadRemote();
-                } catch (Throwable t) {
-                    this.syncTimeRef.compareAndSet(0, -1);
-                    AzureMessager.getMessager().error(t);
-                    return null;
+        if (System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) { // 0, -1 or too old.
+            final R remote = this.remoteRef.get();
+            if (this.syncTimeRef.get() == 0 && Objects.nonNull(remote)) {
+                return remote;
+            }
+            synchronized (this.syncTimeRef) {
+                if (this.syncTimeRef.get() != 0 && (this.syncTimeRef.get() == -1 || System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME)) {
+                    this.syncTimeRef.set(0);
+                    log.debug("[{}:{}]:getRemote->reloadRemote()", this.module.getName(), this.getName());
+                    try {
+                        this.reloadRemote();
+                    } catch (Throwable t) {
+                        this.syncTimeRef.compareAndSet(0, -1);
+                        AzureMessager.getMessager().error(t);
+                        return null;
+                    }
                 }
             }
-            return this.remoteRef.get();
         }
+        return this.remoteRef.get();
     }
 
     @AzureOperation(name = "resource.reload.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
