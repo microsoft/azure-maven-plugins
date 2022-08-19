@@ -12,10 +12,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.lib.common.action.Action.RESOURCE_TYPE;
 
@@ -29,13 +31,16 @@ public class AzureTelemetryClient {
     private static final String FILE_PATH_REGEX =
             "(file://)?([a-zA-Z]:(\\\\\\\\|\\\\|/)|(\\\\\\\\|\\\\|/))?([\\w-._]+(\\\\\\\\|\\\\|/))+[\\w-._]*";
     private static final Pattern FILE_PATH_PATTERN = Pattern.compile(FILE_PATH_REGEX);
-    // refers https://stackoverflow.com/questions/201323/how-can-i-validate-an-email-address-using-a-regular-expression
-    private static final String EMAIL_REGEX = "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"" +
-            "(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@" +
-            "(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\\.){3}" +
-            "(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:" +
-            "(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)])";
-    private static final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
+    // refers https://github.com/microsoft/vscode-extension-telemetry/blob/v0.6.2/src/common/baseTelemetryReporter.ts#L241
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("@[a-zA-Z0-9-.]+");
+    private static final Pattern SECRET_PATTERN = Pattern.compile("(key|token|sig|signature|password|pwd|android:value|sv)[^a-zA-Z0-9]", Pattern.CASE_INSENSITIVE);
+    private static final Pattern TOKEN_REGEX = Pattern.compile("xox[pbaors]-[a-zA-Z0-9]+-[a-zA-Z0-9-]+?", Pattern.CASE_INSENSITIVE);
+
+    private static final Map<Pattern, String> PATTERN_MAP = new HashMap<Pattern, String>() {{
+        put(EMAIL_PATTERN, "<REDACTED: email>");
+        put(SECRET_PATTERN, "<REDACTED: secret>");
+        put(TOKEN_REGEX, "<REDACTED: token>");
+    }};
 
     private final TelemetryClient client;
     @Setter
@@ -115,13 +120,20 @@ public class AzureTelemetryClient {
         this.addDefaultProperty(JDK_KEY, System.getProperty("java.version"));
     }
 
-    private void anonymizePersonallyIdentifiableInformation(final Map<String, String> properties) {
+    private static void anonymizePersonallyIdentifiableInformation(final Map<String, String> properties) {
         properties.replaceAll((key, value) -> {
             if (StringUtils.isBlank(value) || StringUtils.equalsAnyIgnoreCase(key, SYSTEM_PROPERTIES)) {
                 return value;
             }
-            final String input = FILE_PATH_PATTERN.matcher(value).replaceAll("<REDACTED: user-file-path>");
-            return EMAIL_PATTERN.matcher(input).replaceAll("<REDACTED: user-email-address>");
+            return Arrays.stream(value.split("\\r?\\n")).map(line -> {
+                final String input = FILE_PATH_PATTERN.matcher(line).replaceAll("<REDACTED: user-file-path>");
+                for (final Pattern pattern : PATTERN_MAP.keySet()) {
+                    if (pattern.matcher(input).find()) {
+                        return PATTERN_MAP.get(pattern);
+                    }
+                }
+                return input;
+            }).collect(Collectors.joining(StringUtils.LF));
         });
     }
 }
