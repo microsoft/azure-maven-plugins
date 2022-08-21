@@ -11,6 +11,7 @@ import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
 import com.azure.resourcemanager.resources.fluentcore.model.Refreshable;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -140,15 +141,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             }
             synchronized (this.syncTimeRef) {
                 if (this.syncTimeRef.get() != 0 && (this.syncTimeRef.get() == -1 || System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME)) {
-                    this.syncTimeRef.set(0);
                     log.debug("[{}:{}]:getRemote->reloadRemote()", this.module.getName(), this.getName());
-                    try {
-                        this.reloadRemote();
-                    } catch (Throwable t) {
-                        this.syncTimeRef.compareAndSet(0, -1);
-                        AzureMessager.getMessager().error(t);
-                        return null;
-                    }
+                    this.reloadRemote();
                 }
             }
         }
@@ -160,9 +154,16 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         log.debug("[{}:{}]:reloadRemote()", this.module.getName(), this.getName());
         this.doModify(() -> {
             log.debug("[{}:{}]:reloadRemote->this.refreshRemote()", this.module.getName(), this.getName());
-            final R refreshed = Objects.nonNull(this.remoteRef.get()) ? this.refreshRemote(this.remoteRef.get()) : null;
+            final R oldRemote = this.remoteRef.get();
+            final R refreshed = Objects.nonNull(oldRemote) ? this.refreshRemote(oldRemote) : null;
             log.debug("[{}:{}]:reloadRemote->this.loadRemote()", this.module.getName(), this.getName());
-            return Objects.nonNull(refreshed) ? refreshed : this.loadRemote();
+            final R remote = Objects.nonNull(refreshed) ? refreshed : this.loadRemote();
+            if (Objects.isNull(remote)) {
+                this.deleteFromCache();
+                // warn when refreshing a deleted resource.
+                AzureMessager.getMessager().warning(AzureString.format("%s (%s) is not found.", this.getResourceTypeName(), this.getName()));
+            }
+            return remote;
         }, Status.LOADING);
     }
 
@@ -198,11 +199,11 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @Nullable
     protected final R loadRemote() {
-        log.debug("[{}:{}]:reloadRemote()", this.module.getName(), this.getName());
+        log.debug("[{}:{}]:loadRemote()", this.module.getName(), this.getName());
         try {
             return this.getModule().loadResourceFromAzure(this.getName(), this.getResourceGroupName());
         } catch (Exception e) {
-            log.debug("[{}:{}]:reload->this.refreshRemote/loadResourceFromAzure=EXCEPTION", this.module.getName(), this.getName(), e);
+            log.debug("[{}:{}]:loadRemote()=EXCEPTION", this.module.getName(), this.getName(), e);
             final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
             if (cause instanceof ManagementException && HttpStatus.SC_NOT_FOUND == ((ManagementException) cause).getResponse().getStatusCode()) {
                 return null;
@@ -211,15 +212,35 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }
     }
 
+    /**
+     * @return null if resource has been deleted.
+     */
     @Nullable
-    protected R refreshRemote(@Nonnull R remote) {
-        log.debug("[{}:{}]:refreshRemote()", this.module.getName(), this.getName());
+    private R refreshRemote(@Nonnull R remote) {
+        try {
+            return this.refreshRemoteFromAzure(remote);
+        } catch (Exception e) {
+            log.debug("[{}:{}]:refreshRemoteFromAzure()=EXCEPTION", this.module.getName(), this.getName(), e);
+            final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
+            if (cause instanceof ManagementException && HttpStatus.SC_NOT_FOUND == ((ManagementException) cause).getResponse().getStatusCode()) {
+                return null;
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * @return null if resource has been deleted.
+     */
+    @Nullable
+    protected R refreshRemoteFromAzure(@Nonnull R remote) {
+        log.debug("[{}:{}]:refreshRemoteFromAzure()", this.module.getName(), this.getName());
         if (remote instanceof Refreshable) {
-            log.debug("[{}:{}]:refreshRemote->remote.refresh()", this.module.getName(), this.getName());
+            log.debug("[{}:{}]:refreshRemoteFromAzure->remote.refresh()", this.module.getName(), this.getName());
             // noinspection unchecked
             return ((Refreshable<R>) remote).refresh();
         } else {
-            log.debug("[{}:{}]:refreshRemote->reloadRemote()", this.module.getName(), this.getName());
+            log.debug("[{}:{}]:refreshRemoteFromAzure->reloadRemote()", this.module.getName(), this.getName());
             return this.loadRemote();
         }
     }
@@ -269,7 +290,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         final ResourceGroup resourceGroup = this.getResourceGroup();
         if (Objects.isNull(id.parent()) && Objects.nonNull(resourceGroup)) { // resource group manages top resources only
             final GenericResourceModule genericResourceModule = resourceGroup.genericResources();
-            ((AbstractAzResourceModule) genericResourceModule).deleteResourceFromLocal(this.getId());
+            genericResourceModule.deleteResourceFromLocal(this.getId());
         }
         this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(AbstractAzResource::deleteFromCache);
     }

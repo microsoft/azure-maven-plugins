@@ -106,15 +106,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         if (System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) { // 0, -1 or too old.
             synchronized (this.syncTimeRef) {
                 if (this.syncTimeRef.get() != 0 && (this.syncTimeRef.get() == -1 || System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME)) {
-                    try {
-                        this.syncTimeRef.set(0);
-                        log.debug("[{}]:list->this.reload()", this.name);
-                        this.reloadResources();
-                    } catch (Throwable t) {
-                        this.syncTimeRef.compareAndSet(0, -1);
-                        AzureMessager.getMessager().error(t);
-                        return Collections.emptyList();
-                    }
+                    log.debug("[{}]:list->this.reload()", this.name);
+                    this.reloadResources();
                 }
             }
         }
@@ -125,11 +118,29 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     private void reloadResources() {
         log.debug("[{}]:reloadResources()", this.name);
-        log.debug("[{}]:reloadResources->loadResourcesFromAzure()", this.name);
-        final Map<String, R> loadedResources = this.loadResourcesFromAzure()
-            .collect(Collectors.toMap(r -> this.newResource(r).getId().toLowerCase(), r -> r));
-        log.debug("[{}]:reloadResources->setResources(xxx)", this.name);
-        this.setResources(loadedResources);
+        synchronized (this.syncTimeRef) {
+            this.syncTimeRef.set(0);
+            try {
+                log.debug("[{}]:reloadResources->loadResourcesFromAzure()", this.name);
+                final Map<String, R> loadedResources = this.loadResourcesFromAzure()
+                    .collect(Collectors.toMap(r -> this.newResource(r).getId().toLowerCase(), r -> r));
+                log.debug("[{}]:reloadResources->setResources(xxx)", this.name);
+                this.setResources(loadedResources);
+            } catch (Exception e) {
+                log.debug("[{}]:reloadResources->setResources([])", this.name);
+                final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
+                if (cause instanceof ManagementException && HttpStatus.SC_NOT_FOUND == ((ManagementException) cause).getResponse().getStatusCode()) {
+                    log.debug("[{}]:reloadResources->loadResourceFromAzure()=SC_NOT_FOUND", this.name, e);
+                    this.setResources(Collections.emptyMap());
+                } else {
+                    log.debug("[{}]:reloadResources->loadResourcesFromAzure()=EXCEPTION", this.name, e);
+                    this.resources.clear();
+                    this.syncTimeRef.compareAndSet(0, -1);
+                    AzureMessager.getMessager().error(e);
+                    throw e;
+                }
+            }
+        }
     }
 
     private void setResources(Map<String, R> loadedResources) {
