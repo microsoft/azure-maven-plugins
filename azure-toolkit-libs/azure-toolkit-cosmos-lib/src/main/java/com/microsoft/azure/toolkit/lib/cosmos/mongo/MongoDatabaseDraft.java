@@ -12,6 +12,8 @@ import com.azure.resourcemanager.cosmos.models.AutoscaleSettings;
 import com.azure.resourcemanager.cosmos.models.CreateUpdateOptions;
 import com.azure.resourcemanager.cosmos.models.MongoDBDatabaseCreateUpdateParameters;
 import com.azure.resourcemanager.cosmos.models.MongoDBDatabaseResource;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabaseDraft;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseConfig;
 import lombok.Getter;
@@ -58,8 +60,11 @@ public class MongoDatabaseDraft extends MongoDatabase implements
             }
             parameters.withOptions(options);
         }
-        return cosmosDBManagementClient.getMongoDBResources().createUpdateMongoDBDatabase(this.getResourceGroupName(), this.getParent().getName(),
+        AzureMessager.getMessager().info(AzureString.format("Start creating database({0})...", this.getName()));
+        final MongoDBDatabaseGetResultsInner result = cosmosDBManagementClient.getMongoDBResources().createUpdateMongoDBDatabase(this.getResourceGroupName(), this.getParent().getName(),
                 this.getName(), parameters, Context.NONE);
+        AzureMessager.getMessager().success(AzureString.format("Database({0}) is successfully created.", this.getName()));
+        return result;
     }
 
     @NotNull

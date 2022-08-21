@@ -10,7 +10,9 @@ import com.azure.resourcemanager.cosmos.models.CosmosDBAccount.DefinitionStages.
 import com.azure.resourcemanager.cosmos.models.CosmosDBAccount.DefinitionStages.WithKind;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -65,9 +67,12 @@ public class CosmosDBAccountDraft extends CosmosDBAccount implements
         } else {
             throw new AzureToolkitRuntimeException(String.format("kind %s is not supported for Cosmos DB account", kind.getValue()));
         }
-        return withConsistencyPolicy.withSessionConsistency()
+        AzureMessager.getMessager().info(AzureString.format("Start creating account({0})...", this.getName()));
+        final com.azure.resourcemanager.cosmos.models.CosmosDBAccount account = withConsistencyPolicy.withSessionConsistency()
                 .withWriteReplication(com.azure.core.management.Region.fromName(region.getName()))
                 .create();
+        AzureMessager.getMessager().success(AzureString.format("Account({0}) is successfully created.", this.getName()));
+        return account;
     }
 
     @NotNull
