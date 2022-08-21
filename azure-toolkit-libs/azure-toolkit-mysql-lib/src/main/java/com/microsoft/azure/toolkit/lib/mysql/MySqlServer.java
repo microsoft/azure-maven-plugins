@@ -60,7 +60,7 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSub
 
     @Nullable
     @Override
-    protected Server refreshRemote(@Nonnull Server remote) {
+    protected Server refreshRemoteFromAzure(@Nonnull Server remote) {
         return remote.refresh();
     }
 

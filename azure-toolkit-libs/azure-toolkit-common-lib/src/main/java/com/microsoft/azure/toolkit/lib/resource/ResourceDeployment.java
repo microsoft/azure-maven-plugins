@@ -48,7 +48,7 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
 
     @Nonnull
     @Override
-    protected Deployment refreshRemote(@Nonnull Deployment remote) {
+    protected Deployment refreshRemoteFromAzure(@Nonnull Deployment remote) {
         return remote.manager().deployments().getById(remote.id());
     }
 

@@ -34,7 +34,7 @@ public class MySqlFirewallRule extends AbstractAzResource<MySqlFirewallRule, MyS
 
     @Nullable
     @Override
-    protected FirewallRule refreshRemote(@Nonnull FirewallRule remote) {
+    protected FirewallRule refreshRemoteFromAzure(@Nonnull FirewallRule remote) {
         return remote.refresh();
     }
 

@@ -34,7 +34,7 @@ public class PostgreSqlFirewallRule extends AbstractAzResource<PostgreSqlFirewal
 
     @Nullable
     @Override
-    protected FirewallRule refreshRemote(@Nonnull FirewallRule remote) {
+    protected FirewallRule refreshRemoteFromAzure(@Nonnull FirewallRule remote) {
         return remote.refresh();
     }
 

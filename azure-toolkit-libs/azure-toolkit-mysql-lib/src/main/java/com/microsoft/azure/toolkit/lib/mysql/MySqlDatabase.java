@@ -28,7 +28,7 @@ public class MySqlDatabase extends AbstractAzResource<MySqlDatabase, MySqlServer
 
     @Nullable
     @Override
-    protected Database refreshRemote(@Nonnull Database remote) {
+    protected Database refreshRemoteFromAzure(@Nonnull Database remote) {
         return remote.refresh();
     }
 
