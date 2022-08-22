@@ -54,6 +54,7 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
 
     @AzureOperation(name = "resource.refresh_on_subscription_changed.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.ACTION)
     private void refreshOnSubscriptionChanged() {
+        this.clear();
         this.refresh();
     }
 
