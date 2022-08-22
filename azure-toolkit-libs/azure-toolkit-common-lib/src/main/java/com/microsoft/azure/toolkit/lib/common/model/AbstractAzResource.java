@@ -390,7 +390,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @Nullable
     public AbstractAzResourceModule<?, T, ?> getSubModule(String moduleName) {
-        return this.getSubModules().stream().filter(m -> m.getName().equals(moduleName)).findAny().orElse(null);
+        return this.getSubModules().stream().filter(m -> m.getName().equalsIgnoreCase(moduleName)).findAny().orElse(null);
     }
 
     @Nullable
