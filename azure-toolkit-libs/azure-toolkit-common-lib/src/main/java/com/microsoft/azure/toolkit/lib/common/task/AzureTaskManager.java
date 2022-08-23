@@ -199,6 +199,41 @@ public abstract class AzureTaskManager {
         this.runInObservable(this::doRunInModal, task).subscribe();
     }
 
+    public final void runInConditionalModal(String title, Runnable task) {
+        this.runInConditionalModal(new AzureTask<>(title, task));
+    }
+
+    public final void runInConditionalModal(AzureString title, Runnable task) {
+        this.runInConditionalModal(new AzureTask<>(title, task));
+    }
+
+    public final void runInConditionalModal(String title, Callable<Void> task) {
+        this.runInConditionalModal(new AzureTask<>(title, task));
+    }
+
+    public final void runInConditionalModal(AzureString title, Callable<Void> task) {
+        this.runInConditionalModal(new AzureTask<>(title, task));
+    }
+
+    public final void runInConditionalModal(String title, boolean cancellable, Runnable task) {
+        this.runInConditionalModal(new AzureTask<>(null, title, cancellable, task));
+    }
+
+    public final void runInConditionalModal(AzureString title, boolean cancellable, Runnable task) {
+        this.runInConditionalModal(new AzureTask<>(null, title, cancellable, task));
+    }
+
+    public final void runInConditionalModal(String title, boolean cancellable, Callable<Void> task) {
+        this.runInConditionalModal(new AzureTask<>(null, title, cancellable, task));
+    }
+
+    public final void runInConditionalModal(AzureString title, boolean cancellable, Callable<Void> task) {
+        this.runInConditionalModal(new AzureTask<>(null, title, cancellable, task));
+    }
+    public final void runInConditionalModal(AzureTask<Void> task) {
+        this.runInObservable(this::doRunInConditionalModal, task).subscribe();
+    }
+
     public final Observable<Void> readAsObservable(Runnable task) {
         return this.readAsObservable(new AzureTask<>(task));
     }
@@ -410,4 +445,6 @@ public abstract class AzureTaskManager {
     protected abstract void doRunInBackground(Runnable runnable, AzureTask<?> task);
 
     protected abstract void doRunInModal(Runnable runnable, AzureTask<?> task);
+
+    protected abstract void doRunInConditionalModal(Runnable runnable, AzureTask<?> task);
 }
