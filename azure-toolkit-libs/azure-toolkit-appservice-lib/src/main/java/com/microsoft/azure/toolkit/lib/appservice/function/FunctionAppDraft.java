@@ -178,7 +178,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
         }
         final Set<String> settingsToRemove = Optional.ofNullable(this.ensureConfig().getAppSettingsToRemove())
-                .map(set -> set.stream().filter(key -> oldAppSettings.containsValue(key)).collect(Collectors.toSet()))
+                .map(set -> set.stream().filter(key -> oldAppSettings.containsKey(key)).collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
         final Runtime newRuntime = this.ensureConfig().getRuntime();
