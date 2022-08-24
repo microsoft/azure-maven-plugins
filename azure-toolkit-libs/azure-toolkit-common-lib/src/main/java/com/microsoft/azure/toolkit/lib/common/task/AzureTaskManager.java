@@ -410,6 +410,42 @@ public abstract class AzureTaskManager {
         return this.runInObservable(this::doRunInModal, task);
     }
 
+    public final Observable<Void> runInConditionalModalAsObservable(String title, Runnable task) {
+        return this.runInConditionalModalAsObservable(new AzureTask<>(title, task));
+    }
+
+    public final Observable<Void> runInConditionalModalAsObservable(AzureString title, Runnable task) {
+        return this.runInConditionalModalAsObservable(new AzureTask<>(title, task));
+    }
+
+    public final <T> Observable<T> runInConditionalModalAsObservable(String title, Callable<T> task) {
+        return this.runInConditionalModalAsObservable(new AzureTask<>(title, task));
+    }
+
+    public final <T> Observable<T> runInConditionalModalAsObservable(AzureString title, Callable<T> task) {
+        return this.runInConditionalModalAsObservable(new AzureTask<>(title, task));
+    }
+
+    public final Observable<Void> runInConditionalModalAsObservable(String title, boolean cancellable, Runnable task) {
+        return this.runInConditionalModalAsObservable(new AzureTask<>(null, title, cancellable, task));
+    }
+
+    public final Observable<Void> runInConditionalModalAsObservable(AzureString title, boolean cancellable, Runnable task) {
+        return this.runInConditionalModalAsObservable(new AzureTask<>(null, title, cancellable, task));
+    }
+
+    public final <T> Observable<T> runInConditionalModalAsObservable(String title, boolean cancellable, Callable<T> task) {
+        return this.runInConditionalModalAsObservable(new AzureTask<>(null, title, cancellable, task));
+    }
+
+    public final <T> Observable<T> runInConditionalModalAsObservable(AzureString title, boolean cancellable, Callable<T> task) {
+        return this.runInConditionalModalAsObservable(new AzureTask<>(null, title, cancellable, task));
+    }
+
+    public final <T> Observable<T> runInConditionalModalAsObservable(AzureTask<T> task) {
+        return this.runInObservable(this::doRunInConditionalModal, task);
+    }
+
     private <T> Observable<T> runInObservable(final BiConsumer<? super Runnable, ? super AzureTask<T>> consumer, final AzureTask<T> task) {
         return Observable.create((Emitter<T> emitter) -> {
             final OperationThreadContext context = OperationThreadContext.current().derive();
