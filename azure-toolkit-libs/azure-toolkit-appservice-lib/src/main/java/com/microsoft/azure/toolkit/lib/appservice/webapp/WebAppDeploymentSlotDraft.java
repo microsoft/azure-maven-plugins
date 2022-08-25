@@ -147,7 +147,7 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
             settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
         }
         final Set<String> settingsToRemove = Optional.ofNullable(this.ensureConfig().getAppSettingsToRemove())
-                .map(set -> set.stream().filter(key -> oldAppSettings.containsValue(key)).collect(Collectors.toSet()))
+                .map(set -> set.stream().filter(key -> oldAppSettings.containsKey(key)).collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
         final Runtime newRuntime = this.ensureConfig().getRuntime();
         final DockerConfiguration newDockerConfig = this.ensureConfig().getDockerConfiguration();

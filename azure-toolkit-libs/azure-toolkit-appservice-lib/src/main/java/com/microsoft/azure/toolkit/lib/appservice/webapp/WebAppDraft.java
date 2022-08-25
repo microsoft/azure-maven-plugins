@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebSiteBase> {
     public static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     public static final String CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS = "Can not update the operation system for existing app service";
-    public static final Runtime DEFAULT_RUNTIME = Runtime.LINUX_JAVA8;
+    public static final Runtime DEFAULT_RUNTIME = Runtime.LINUX_JAVA17;
 
     @Getter
     @Nullable
@@ -143,7 +143,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebS
             settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
         }
         final Set<String> settingsToRemove = Optional.ofNullable(this.ensureConfig().getAppSettingsToRemove())
-                .map(set -> set.stream().filter(key -> oldAppSettings.containsValue(key)).collect(Collectors.toSet()))
+                .map(set -> set.stream().filter(key -> oldAppSettings.containsKey(key)).collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
         final Runtime newRuntime = this.ensureConfig().getRuntime();

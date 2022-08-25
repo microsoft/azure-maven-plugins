@@ -30,7 +30,7 @@ public class WebContainer implements ExpandableParameter {
     private static final String STRING_JAVA_SE = "Java SE";
 
     public static final WebContainer JAVA_OFF = new WebContainer("<null>");
-    public static final WebContainer JAVA_SE = new WebContainer("java se");
+    public static final WebContainer JAVA_SE = new WebContainer(STRING_JAVA_SE);
     public static final WebContainer TOMCAT_7 = new WebContainer("tomcat 7.0");
     public static final WebContainer TOMCAT_8 = new WebContainer("tomcat 8.0");
     public static final WebContainer TOMCAT_85 = new WebContainer("tomcat 8.5");
