@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ */
+
 package com.microsoft.azure.toolkit.lib.common.cache;
 
 import com.google.common.cache.Cache;
@@ -16,8 +21,10 @@ import org.aspectj.lang.reflect.MethodSignature;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -26,18 +33,22 @@ import java.util.logging.Level;
 @Log
 public class CacheManager {
     private static final CacheLoader<String, Cache<Object, Object>> loader = new CacheLoader<String, Cache<Object, Object>>() {
+        @Nonnull
         @Override
         public Cache<Object, Object> load(@Nonnull String key) {
             return CacheBuilder.newBuilder()
-                    .softValues()
-                    .expireAfterAccess(4, TimeUnit.HOURS) // TODO: justify
-                    .build();
+                .softValues()
+                .expireAfterAccess(4, TimeUnit.HOURS) // TODO: justify
+                .build();
         }
     };
     private static final LoadingCache<String, Cache<Object, Object>> caches = CacheBuilder.newBuilder()
-            .softValues()
-            .expireAfterAccess(4, TimeUnit.HOURS) // TODO: justify
-            .build(loader);
+        .softValues()
+        .expireAfterAccess(4, TimeUnit.HOURS) // TODO: justify
+        .build(loader);
+
+    private static final Map<Class<?>, Object> histories = new ConcurrentHashMap<>();
+    private static final Map<String, Object> namedHistories = new ConcurrentHashMap<>();
 
     @Pointcut("execution(@com.microsoft.azure.toolkit.lib.common.cache.Cacheable * *..*.*(..))")
     public void cacheable() {
@@ -130,5 +141,24 @@ public class CacheManager {
         } else {
             return result.orElse(null);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> LRUStack<T> getUsageHistory(final Class<T> clazz) {
+        if (histories.containsKey(clazz)) {
+            return (LRUStack<T>) histories.get(clazz);
+        } else {
+            final Optional<Map.Entry<Class<?>, Object>> found = histories.entrySet().stream().filter(e -> e.getKey().isAssignableFrom(clazz) || clazz.isAssignableFrom(e.getKey())).findFirst();
+            if (found.isPresent()) {
+                return (LRUStack<T>) found.get().getValue();
+            } else {
+                return (LRUStack<T>) histories.computeIfAbsent(clazz, c -> new LRUStack<>());
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> LRUStack<T> getUsageHistory(final String name) {
+        return (LRUStack<T>) namedHistories.computeIfAbsent(name, n -> new LRUStack<>());
     }
 }

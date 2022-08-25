@@ -10,6 +10,7 @@ import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages;
 import com.azure.resourcemanager.network.models.NetworkInterface;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -112,11 +113,15 @@ public class VirtualMachineDraft extends VirtualMachine implements AzResource.Dr
     }
 
     public VirtualMachineDraft withDefaultConfig() {
-        this.setImage(VmImage.UBUNTU_SERVER_18_04_LTS);
-        this.setSize(VmSize.Standard_D2s_v3);
+        final VmImage historyImage = CacheManager.getUsageHistory(VmImage.class).peek();
+        final VmSize historySize = CacheManager.getUsageHistory(VmSize.class).peek();
+        final Region historyRegion = CacheManager.getUsageHistory(Region.class).peek();
+
+        this.setImage(Optional.ofNullable(historyImage).orElse(VmImage.UBUNTU_SERVER_18_04_LTS));
+        this.setSize(Optional.ofNullable(historySize).orElse(VmSize.Standard_D2s_v3));
         final String subs = this.getSubscriptionId();
         final String rg = this.getResourceGroupName();
-        this.setRegion(Optional.ofNullable(this.getResourceGroup()).map(ResourceGroup::getRegion).orElse(Region.US_CENTRAL));
+        this.setRegion(Optional.ofNullable(this.getResourceGroup()).map(ResourceGroup::getRegion).orElse(Optional.ofNullable(historyRegion).orElse(Region.US_CENTRAL)));
 
         final String networkName = NetworkDraft.generateDefaultName();
         final NetworkDraft networkDraft = Azure.az(AzureNetwork.class).virtualNetworks(subs).create(networkName, rg);
@@ -128,6 +133,7 @@ public class VirtualMachineDraft extends VirtualMachine implements AzResource.Dr
         networkDraft.withDefaultConfig();
         securityGroupDraft.setSecurityRules(Collections.singletonList(SecurityRule.SSH_RULE));
 
+        this.setAdminUserName(System.getProperty(System.getProperty("user.name")));
         this.setNetwork(networkDraft);
         this.setIpAddress(ipAddressDraft);
         this.setSecurityGroup(securityGroupDraft);
