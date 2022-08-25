@@ -47,6 +47,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -75,6 +77,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     private final Debouncer fireEvents = new TailingDebouncer(this::fireChildrenChangedEvent, 300);
+    private final Lock lock = new ReentrantLock();
 
     @Override
     @AzureOperation(name = "resource.refresh.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
@@ -86,9 +89,13 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     void invalidateCache() {
         log.debug("[{}]:invalidateCache()", this.name);
-        synchronized (this.syncTimeRef) {
-            this.resources.entrySet().removeIf(e -> !e.getValue().isPresent());
-            this.syncTimeRef.set(-1);
+        if (this.lock.tryLock()) {
+            try {
+                this.resources.entrySet().removeIf(e -> !e.getValue().isPresent());
+                this.syncTimeRef.set(-1);
+            } finally {
+                this.lock.unlock();
+            }
         }
         log.debug("[{}]:invalidateCache->resources.invalidateCache()", this.name);
         this.resources.values().forEach(v -> v.ifPresent(AbstractAzResource::invalidateCache));
@@ -104,18 +111,14 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             return Collections.emptyList();
         }
         if (System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) { // 0, -1 or too old.
-            synchronized (this.syncTimeRef) {
-                if (this.syncTimeRef.get() != 0 && (this.syncTimeRef.get() == -1 || System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME)) {
-                    try {
-                        this.syncTimeRef.set(0);
-                        log.debug("[{}]:list->this.reload()", this.name);
-                        this.reloadResources();
-                    } catch (Throwable t) {
-                        this.syncTimeRef.compareAndSet(0, -1);
-                        AzureMessager.getMessager().error(t);
-                        return Collections.emptyList();
-                    }
+            try {
+                this.lock.lock();
+                if (this.syncTimeRef.get() != 0 && System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) {// -1 or too old.
+                    log.debug("[{}]:list->this.reload()", this.name);
+                    this.reloadResources();
                 }
+            } finally {
+                this.lock.unlock();
             }
         }
         log.debug("[{}]:list->this.resources.values()", this.name);
@@ -125,52 +128,69 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     private void reloadResources() {
         log.debug("[{}]:reloadResources()", this.name);
-        log.debug("[{}]:reloadResources->loadResourcesFromAzure()", this.name);
-        final Map<String, R> loadedResources = this.loadResourcesFromAzure()
-            .collect(Collectors.toMap(r -> this.newResource(r).getId().toLowerCase(), r -> r));
-        log.debug("[{}]:reloadResources->setResources(xxx)", this.name);
-        this.setResources(loadedResources);
+        this.syncTimeRef.set(0);
+        try {
+            log.debug("[{}]:reloadResources->loadResourcesFromAzure()", this.name);
+            final Map<String, R> loadedResources = this.loadResourcesFromAzure()
+                .collect(Collectors.toMap(r -> this.newResource(r).getId().toLowerCase(), r -> r));
+            log.debug("[{}]:reloadResources->setResources(xxx)", this.name);
+            this.setResources(loadedResources);
+        } catch (Exception e) {
+            log.debug("[{}]:reloadResources->setResources([])", this.name);
+            final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
+            if (cause instanceof ManagementException && HttpStatus.SC_NOT_FOUND == ((ManagementException) cause).getResponse().getStatusCode()) {
+                log.debug("[{}]:reloadResources->loadResourceFromAzure()=SC_NOT_FOUND", this.name, e);
+                this.setResources(Collections.emptyMap());
+            } else {
+                log.debug("[{}]:reloadResources->loadResourcesFromAzure()=EXCEPTION", this.name, e);
+                this.resources.clear();
+                this.syncTimeRef.compareAndSet(0, -1);
+                AzureMessager.getMessager().error(e);
+                throw e;
+            }
+        }
     }
 
     private void setResources(Map<String, R> loadedResources) {
-        synchronized (this.syncTimeRef) {
-            final Set<String> localResources = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
-                .map(AbstractAzResource::getId).map(String::toLowerCase).collect(Collectors.toSet());
-            final Set<String> creating = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
-                .filter(AbstractAzResource::isDraftForCreating)
-                .map(AbstractAzResource::getId).map(String::toLowerCase).collect(Collectors.toSet());
-            log.debug("[{}]:reload().creating={}", this.name, creating);
-            final Sets.SetView<String> refreshed = Sets.intersection(localResources, loadedResources.keySet());
-            log.debug("[{}]:reload().refreshed={}", this.name, refreshed);
-            final Sets.SetView<String> deleted = Sets.difference(Sets.difference(localResources, loadedResources.keySet()), creating);
-            log.debug("[{}]:reload().deleted={}", this.name, deleted);
-            final Sets.SetView<String> added = Sets.difference(loadedResources.keySet(), localResources);
-            log.debug("[{}]:reload().added={}", this.name, added);
-            log.debug("[{}]:reload.deleted->deleteResourceFromLocal", this.name);
-            deleted.forEach(id -> this.resources.get(id).ifPresent(r -> {
-                r.deleteFromCache();
-                r.setRemote(null);
-            }));
+        final Set<String> localResources = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
+            .map(AbstractAzResource::getId).map(String::toLowerCase).collect(Collectors.toSet());
+        final Set<String> creating = this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
+            .filter(AbstractAzResource::isDraftForCreating)
+            .map(AbstractAzResource::getId).map(String::toLowerCase).collect(Collectors.toSet());
+        log.debug("[{}]:reload().creating={}", this.name, creating);
+        final Sets.SetView<String> refreshed = Sets.intersection(localResources, loadedResources.keySet());
+        log.debug("[{}]:reload().refreshed={}", this.name, refreshed);
+        final Sets.SetView<String> deleted = Sets.difference(Sets.difference(localResources, loadedResources.keySet()), creating);
+        log.debug("[{}]:reload().deleted={}", this.name, deleted);
+        final Sets.SetView<String> added = Sets.difference(loadedResources.keySet(), localResources);
+        log.debug("[{}]:reload().added={}", this.name, added);
+        log.debug("[{}]:reload.deleted->deleteResourceFromLocal", this.name);
+        deleted.forEach(id -> this.resources.get(id).ifPresent(r -> {
+            r.deleteFromCache();
+            r.setRemote(null);
+        }));
 
-            final AzureTaskManager m = AzureTaskManager.getInstance();
-            log.debug("[{}]:reload.refreshed->resource.setRemote", this.name);
-            refreshed.forEach(id -> this.resources.get(id).ifPresent(r -> m.runOnPooledThread(() -> r.setRemote(loadedResources.get(id)))));
-            log.debug("[{}]:reload.added->addResourceToLocal", this.name);
-            added.forEach(id -> {
-                final R remote = loadedResources.get(id);
-                final T resource = this.newResource(remote);
-                m.runOnPooledThread(() -> resource.setRemote(remote));
-                this.addResourceToLocal(id, resource, true);
-            });
-            this.syncTimeRef.set(System.currentTimeMillis());
-        }
+        final AzureTaskManager m = AzureTaskManager.getInstance();
+        log.debug("[{}]:reload.refreshed->resource.setRemote", this.name);
+        refreshed.forEach(id -> this.resources.get(id).ifPresent(r -> m.runOnPooledThread(() -> r.setRemote(loadedResources.get(id)))));
+        log.debug("[{}]:reload.added->addResourceToLocal", this.name);
+        added.forEach(id -> {
+            final R remote = loadedResources.get(id);
+            final T resource = this.newResource(remote);
+            m.runOnPooledThread(() -> resource.setRemote(remote));
+            this.addResourceToLocal(id, resource, true);
+        });
+        this.syncTimeRef.set(System.currentTimeMillis());
     }
 
     public void clear() {
         log.debug("[{}]:clear()", this.name);
-        synchronized (this.syncTimeRef) {
+        try {
+            this.lock.lock();
             this.resources.clear();
             this.syncTimeRef.set(-1);
+        } finally {
+            this.lock.unlock();
         }
     }
 

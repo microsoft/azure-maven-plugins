@@ -49,7 +49,7 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesSe
 
     @Nonnull
     @Override
-    protected com.azure.resourcemanager.resources.models.ResourceGroup refreshRemote(@Nonnull com.azure.resourcemanager.resources.models.ResourceGroup remote) {
+    protected com.azure.resourcemanager.resources.models.ResourceGroup refreshRemoteFromAzure(@Nonnull com.azure.resourcemanager.resources.models.ResourceGroup remote) {
         // ResourceGroup.refresh() doesn't work:
         // com.azure.core.management.exception.ManagementException: Status code 404,
         // "{"error":{"code":"ResourceGroupNotFound","message":"Resource group '${UUID}' could not be found."}}": Resource group '${UUID}' could not be found.

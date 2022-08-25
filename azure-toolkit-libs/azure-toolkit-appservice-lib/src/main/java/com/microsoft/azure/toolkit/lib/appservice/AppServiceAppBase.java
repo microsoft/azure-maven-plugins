@@ -78,7 +78,7 @@ public abstract class AppServiceAppBase<
 
     @Nullable
     @Override
-    protected WebSiteBase refreshRemote(@Nonnull WebSiteBase remote) {
+    protected WebSiteBase refreshRemoteFromAzure(@Nonnull WebSiteBase remote) {
         return super.loadRemote();
     }
 

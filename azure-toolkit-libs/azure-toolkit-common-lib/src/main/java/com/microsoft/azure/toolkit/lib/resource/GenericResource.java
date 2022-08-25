@@ -58,7 +58,7 @@ public class GenericResource extends AbstractAzResource<GenericResource, Resourc
 
     @Nullable
     @Override
-    protected HasId refreshRemote(@Nonnull HasId remote) {
+    protected HasId refreshRemoteFromAzure(@Nonnull HasId remote) {
         return remote;
     }
 

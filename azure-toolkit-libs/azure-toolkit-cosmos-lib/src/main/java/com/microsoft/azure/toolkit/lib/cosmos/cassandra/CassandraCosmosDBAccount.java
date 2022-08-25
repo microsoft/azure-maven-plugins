@@ -6,30 +6,32 @@
 package com.microsoft.azure.toolkit.lib.cosmos.cassandra;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccountModule;
 import com.microsoft.azure.toolkit.lib.cosmos.model.CassandraDatabaseAccountConnectionString;
 import com.microsoft.azure.toolkit.lib.cosmos.model.CosmosDBAccountConnectionString;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 public class CassandraCosmosDBAccount extends CosmosDBAccount {
     private final CassandraKeyspaceModule keyspaceModule;
 
-    public CassandraCosmosDBAccount(@NotNull String name, @NotNull String resourceGroupName, @NotNull CosmosDBAccountModule module) {
+    public CassandraCosmosDBAccount(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull CosmosDBAccountModule module) {
         super(name, resourceGroupName, module);
         this.keyspaceModule = new CassandraKeyspaceModule(this);
     }
 
-    public CassandraCosmosDBAccount(@NotNull CosmosDBAccount account) {
+    public CassandraCosmosDBAccount(@Nonnull CosmosDBAccount account) {
         super(account);
         this.keyspaceModule = new CassandraKeyspaceModule(this);
     }
 
-    public CassandraCosmosDBAccount(@NotNull com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote, @NotNull CosmosDBAccountModule module) {
+    public CassandraCosmosDBAccount(@Nonnull com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote, @Nonnull CosmosDBAccountModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
         this.keyspaceModule = new CassandraKeyspaceModule(this);
     }
@@ -48,6 +50,11 @@ public class CassandraCosmosDBAccount extends CosmosDBAccount {
         return Optional.ofNullable(getPrimaryConnectionString())
                 .map(CassandraDatabaseAccountConnectionString::fromConnectionString)
                 .orElseGet(CassandraDatabaseAccountConnectionString::new);
+    }
+
+    @Override
+    public @Nonnull List<AbstractAzResourceModule<?, CosmosDBAccount, ?>> getSubModules() {
+        return Collections.singletonList(this.keyspaceModule);
     }
 
     @Nullable
