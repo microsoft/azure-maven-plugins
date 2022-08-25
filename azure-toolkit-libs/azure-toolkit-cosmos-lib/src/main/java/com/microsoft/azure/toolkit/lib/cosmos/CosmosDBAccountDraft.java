@@ -8,20 +8,30 @@ package com.microsoft.azure.toolkit.lib.cosmos;
 import com.azure.resourcemanager.cosmos.CosmosManager;
 import com.azure.resourcemanager.cosmos.models.CosmosDBAccount.DefinitionStages.WithConsistencyPolicy;
 import com.azure.resourcemanager.cosmos.models.CosmosDBAccount.DefinitionStages.WithKind;
+import com.google.common.base.Preconditions;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseAccountKind;
+import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import lombok.Data;
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.microsoft.azure.toolkit.lib.Azure.az;
 
 public class CosmosDBAccountDraft extends CosmosDBAccount implements
         AzResource.Draft<CosmosDBAccount, com.azure.resourcemanager.cosmos.models.CosmosDBAccount> {
@@ -57,9 +67,12 @@ public class CosmosDBAccountDraft extends CosmosDBAccount implements
         } else {
             throw new AzureToolkitRuntimeException(String.format("kind %s is not supported for Cosmos DB account", kind.getValue()));
         }
-        return withConsistencyPolicy.withSessionConsistency()
+        AzureMessager.getMessager().info(AzureString.format("Start creating account({0})...", this.getName()));
+        final com.azure.resourcemanager.cosmos.models.CosmosDBAccount account = withConsistencyPolicy.withSessionConsistency()
                 .withWriteReplication(com.azure.core.management.Region.fromName(region.getName()))
                 .create();
+        AzureMessager.getMessager().success(AzureString.format("Account({0}) is successfully created.", this.getName()));
+        return account;
     }
 
     @NotNull
@@ -103,5 +116,21 @@ public class CosmosDBAccountDraft extends CosmosDBAccount implements
         private ResourceGroup resourceGroup;
         private Region region;
         private DatabaseAccountKind kind;
+
+        public static Config getDefaultConfig(final ResourceGroup resourceGroup) {
+            final List<Subscription> selectedSubscriptions = az(AzureAccount.class).account().getSelectedSubscriptions();
+            Preconditions.checkArgument(CollectionUtils.isNotEmpty(selectedSubscriptions), "There are no subscriptions in your account.");
+            final String name = String.format("cosmos-db-%s", Utils.getTimestamp());
+            final String defaultResourceGroupName = String.format("rg-%s", name);
+            final Subscription subscription = resourceGroup == null ? selectedSubscriptions.get(0) : resourceGroup.getSubscription();
+            final ResourceGroup group = resourceGroup == null ? az(AzureResources.class).groups(subscription.getId())
+                    .create(defaultResourceGroupName, defaultResourceGroupName) : resourceGroup;
+            final CosmosDBAccountDraft.Config config = new CosmosDBAccountDraft.Config();
+            config.setName(name);
+            config.setSubscription(subscription);
+            config.setResourceGroup(group);
+            config.setKind(DatabaseAccountKind.SQL);
+            return config;
+        }
     }
 }

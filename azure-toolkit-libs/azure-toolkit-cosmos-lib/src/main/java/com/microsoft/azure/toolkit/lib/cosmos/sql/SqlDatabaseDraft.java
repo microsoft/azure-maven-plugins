@@ -12,6 +12,8 @@ import com.azure.resourcemanager.cosmos.models.AutoscaleSettings;
 import com.azure.resourcemanager.cosmos.models.CreateUpdateOptions;
 import com.azure.resourcemanager.cosmos.models.SqlDatabaseCreateUpdateParameters;
 import com.azure.resourcemanager.cosmos.models.SqlDatabaseResource;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabaseDraft;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseConfig;
 import lombok.Getter;
@@ -58,8 +60,11 @@ public class SqlDatabaseDraft extends SqlDatabase implements
             }
             parameters.withOptions(options);
         }
-        return cosmosDBManagementClient.getSqlResources().createUpdateSqlDatabase(this.getResourceGroupName(), this.getParent().getName(),
+        AzureMessager.getMessager().info(AzureString.format("Start creating database({0})...", this.getName()));
+        final SqlDatabaseGetResultsInner result = cosmosDBManagementClient.getSqlResources().createUpdateSqlDatabase(this.getResourceGroupName(), this.getParent().getName(),
                 this.getName(), parameters, Context.NONE);
+        AzureMessager.getMessager().success(AzureString.format("Database({0}) is successfully created.", this.getName()));
+        return result;
     }
 
     @NotNull

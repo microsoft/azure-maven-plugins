@@ -79,8 +79,13 @@ public class CosmosDBAccountModule extends AbstractAzResourceModule<CosmosDBAcco
     public CosmosDBAccount create(@NotNull AzResource.Draft<CosmosDBAccount, com.azure.resourcemanager.cosmos.models.CosmosDBAccount> draft) {
         final CosmosDBAccount draftAccount = super.create(draft);
         this.deleteResourceFromLocal(draftAccount.getId()); // remove draft account from local cache as we can't tell the kind from draft
-        final CosmosDBAccount cosmosDBAccount = this.newResource(Objects.requireNonNull(draftAccount.getRemote()));
-        this.addResourceToLocal(cosmosDBAccount.getId(), cosmosDBAccount);
-        return cosmosDBAccount;
+        final com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote = draftAccount.getRemote();
+        if (Objects.isNull(remote)) {
+            return Objects.requireNonNull(get(draftAccount.getName(), draftAccount.getResourceGroupName()), "failed to create account");
+        } else {
+            final CosmosDBAccount cosmosDBAccount = this.newResource(remote);
+            this.addResourceToLocal(cosmosDBAccount.getId(), cosmosDBAccount);
+            return cosmosDBAccount;
+        }
     }
 }
