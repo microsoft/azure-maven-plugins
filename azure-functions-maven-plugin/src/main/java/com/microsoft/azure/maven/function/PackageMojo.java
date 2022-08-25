@@ -39,6 +39,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -54,6 +55,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.Set;
@@ -344,10 +346,10 @@ public class PackageMojo extends AbstractFunctionMojo {
                 .map(Artifact::getArtifactId).findFirst().orElse(AZURE_FUNCTIONS_JAVA_LIBRARY);
         for (final Artifact artifact : artifacts) {
             if (!StringUtils.equalsIgnoreCase(artifact.getArtifactId(), libraryToExclude)) {
-                FileUtils.copyFileToDirectory(artifact.getFile(), libFolder);
+                copyFileToDirectory(artifact.getFile(), libFolder);
             }
         }
-        FileUtils.copyFileToDirectory(getArtifactFile(), new File(stagingDirectory));
+        copyFileToDirectory(getArtifactFile(), new File(stagingDirectory));
         Log.info(COPY_SUCCESS);
     }
 
@@ -450,5 +452,11 @@ public class PackageMojo extends AbstractFunctionMojo {
                 .distinct()
                 .collect(Collectors.toList());
         getTelemetryProxy().addDefaultProperty(TRIGGER_TYPE, StringUtils.join(bindingTypeSet, ","));
+    }
+
+    private static void copyFileToDirectory(@Nonnull final File srcFile, @Nonnull final File destFile) throws IOException {
+        if (!Objects.equals(srcFile.getParentFile(), destFile)) {
+            FileUtils.copyFileToDirectory(srcFile, destFile);
+        }
     }
 }

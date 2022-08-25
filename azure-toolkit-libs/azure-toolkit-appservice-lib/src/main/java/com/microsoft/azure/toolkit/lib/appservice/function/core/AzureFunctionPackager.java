@@ -25,6 +25,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -36,11 +37,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+// todo: investigate whether we need to migrate to unified function packager in java tooling
 public class AzureFunctionPackager extends AzureFunctionPackagerBase {
     private static final String TRIGGER_TYPE = "triggerType";
     protected static final String LINE_FEED = "\r\n";
@@ -136,7 +139,6 @@ public class AzureFunctionPackager extends AzureFunctionPackagerBase {
             final List<FunctionMethod> functions = project.findAnnotatedMethods();
             AzureMessager.getMessager().info(functions.size() + FOUND_FUNCTIONS);
             return functions;
-
         } catch (Exception ex) {
             // Log and warn
             AzureMessager.getMessager().error(ex, "Encounter error when parsing Azure Function annotations.");
@@ -240,9 +242,9 @@ public class AzureFunctionPackager extends AzureFunctionPackagerBase {
             FileUtils.cleanDirectory(libFolder);
         }
         for (final File file : project.getDependencies()) {
-            FileUtils.copyFileToDirectory(file, libFolder);
+            copyFileToDirectory(file, libFolder);
         }
-        FileUtils.copyFileToDirectory(project.getArtifactFile(), new File(stagingDirectory));
+        copyFileToDirectory(project.getArtifactFile(), new File(stagingDirectory));
         AzureMessager.getMessager().info(COPY_SUCCESS);
     }
 
@@ -296,6 +298,12 @@ public class AzureFunctionPackager extends AzureFunctionPackagerBase {
             return JsonUtils.fromJson(jsonRaw, new TypeReference<HashMap<String, Object>>(){});
         } catch (IOException e) {
             return null;
+        }
+    }
+
+    private static void copyFileToDirectory(@Nonnull final File srcFile, @Nonnull final File destFile) throws IOException {
+        if (!Objects.equals(srcFile.getParentFile(), destFile)) {
+            FileUtils.copyFileToDirectory(srcFile, destFile);
         }
     }
 }
