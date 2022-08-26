@@ -11,6 +11,7 @@ import com.azure.resourcemanager.cosmos.models.CosmosDBAccount.DefinitionStages.
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
@@ -118,13 +119,18 @@ public class CosmosDBAccountDraft extends CosmosDBAccount implements
         private DatabaseAccountKind kind;
 
         public static Config getDefaultConfig(final ResourceGroup resourceGroup) {
-            final List<Subscription> selectedSubscriptions = az(AzureAccount.class).account().getSelectedSubscriptions();
-            Preconditions.checkArgument(CollectionUtils.isNotEmpty(selectedSubscriptions), "There are no subscriptions in your account.");
+            final List<Subscription> subs = az(AzureAccount.class).account().getSelectedSubscriptions();
+            Preconditions.checkArgument(CollectionUtils.isNotEmpty(subs), "There are no subscriptions in your account.");
             final String name = String.format("cosmos-db-%s", Utils.getTimestamp());
             final String defaultResourceGroupName = String.format("rg-%s", name);
-            final Subscription subscription = resourceGroup == null ? selectedSubscriptions.get(0) : resourceGroup.getSubscription();
-            final ResourceGroup group = resourceGroup == null ? az(AzureResources.class).groups(subscription.getId())
-                    .create(defaultResourceGroupName, defaultResourceGroupName) : resourceGroup;
+            final Subscription historySub = CacheManager.getUsageHistory(Subscription.class).peek(subs::contains);
+            final ResourceGroup historyRg = CacheManager.getUsageHistory(ResourceGroup.class)
+                    .peek(r -> Objects.isNull(historySub) || r.getSubscriptionId().equals(historySub.getId()));
+            final ResourceGroup group = Optional.ofNullable(resourceGroup)
+                    .orElseGet(() -> Optional.ofNullable(historyRg).orElseGet(() -> az(AzureResources.class)
+                            .groups(subs.get(0).getId()).create(defaultResourceGroupName, defaultResourceGroupName)));
+            final Subscription subscription = Optional.of(group).map(AzResource::getSubscription)
+                    .orElseGet(() -> Optional.ofNullable(historySub).orElseGet(() -> subs.get(0)));
             final CosmosDBAccountDraft.Config config = new CosmosDBAccountDraft.Config();
             config.setName(name);
             config.setSubscription(subscription);
