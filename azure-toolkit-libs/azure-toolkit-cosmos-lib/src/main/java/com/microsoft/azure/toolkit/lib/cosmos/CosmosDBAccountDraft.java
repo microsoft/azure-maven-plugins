@@ -124,6 +124,7 @@ public class CosmosDBAccountDraft extends CosmosDBAccount implements
             final String name = String.format("cosmos-db-%s", Utils.getTimestamp());
             final String defaultResourceGroupName = String.format("rg-%s", name);
             final Subscription historySub = CacheManager.getUsageHistory(Subscription.class).peek(subs::contains);
+            final Region historyReg = CacheManager.getUsageHistory(Region.class).peek();
             final ResourceGroup historyRg = CacheManager.getUsageHistory(ResourceGroup.class)
                     .peek(r -> Objects.isNull(historySub) || r.getSubscriptionId().equals(historySub.getId()));
             final ResourceGroup group = Optional.ofNullable(resourceGroup)
@@ -135,6 +136,7 @@ public class CosmosDBAccountDraft extends CosmosDBAccount implements
             config.setName(name);
             config.setSubscription(subscription);
             config.setResourceGroup(group);
+            config.setRegion(historyReg);
             config.setKind(DatabaseAccountKind.SQL);
             return config;
         }
