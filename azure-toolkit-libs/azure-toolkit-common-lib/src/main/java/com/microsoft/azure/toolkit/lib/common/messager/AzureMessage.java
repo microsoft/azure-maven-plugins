@@ -160,8 +160,16 @@ public class AzureMessage implements IAzureMessage {
             .orElse(new ArrayList<>());
         final Operation current = exceptionOperations.isEmpty() ? OperationThreadContext.current().currentOperation() : exceptionOperations.get(0);
         final List<Operation> contextOperations = getAncestorOperationsUtilAction(current);
+        final List<Operation> contextOperationWithoutException = contextOperations.stream().filter(t -> {
+            for (Operation operation: exceptionOperations) {
+                if (t.getId().equals(operation.getId())) {
+                    return false;
+                }
+            }
+            return true;
+        }).collect(Collectors.toList());
         final Set<Object> seen = ConcurrentHashMap.newKeySet();
-        final List<Operation> operations = Streams.concat(contextOperations.stream(), exceptionOperations.stream())
+        final List<Operation> operations = Streams.concat(contextOperationWithoutException.stream(), exceptionOperations.stream())
             .filter(t -> seen.add(t.getId()))
             .filter(o -> Objects.nonNull(o.getDescription()))
             .collect(Collectors.toList());
