@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.utils;
 
+import com.azure.resourcemanager.resources.fluentcore.utils.ResourceNamer;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -15,6 +16,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,6 +46,11 @@ public class Utils {
     private static final String EAR = "ear";
     private static final String SUBSCRIPTIONS = "subscriptions";
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyMMddHHmmss");
+
+    public static String generateRandomResourceName(@Nonnull final String prefix, final int maxLength) {
+        final String name = String.format("%s-%s", prefix, Utils.getTimestamp());
+        return name.length() <= maxLength ? name : new ResourceNamer(StringUtils.EMPTY).getRandomName(name.substring(0, maxLength - 10), maxLength);
+    }
 
     public static String getTimestamp() {
         return DATE_FORMAT.format(new Date());
