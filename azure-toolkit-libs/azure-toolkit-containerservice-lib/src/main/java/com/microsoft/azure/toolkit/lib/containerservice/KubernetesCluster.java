@@ -44,7 +44,8 @@ public class KubernetesCluster extends AbstractAzResource<KubernetesCluster, Con
     }
 
     public ContainerServiceNetworkProfile getContainerServiceNetworkProfile() {
-        return Optional.ofNullable(getRemote()).map(cluster -> ContainerServiceNetworkProfile.fromNetworkProfile(cluster.networkProfile())).orElse(null);
+        return Optional.ofNullable(getRemote()).map(cluster -> cluster.networkProfile())
+                .map(profile -> ContainerServiceNetworkProfile.fromNetworkProfile(profile)).orElse(null);
     }
 
     @Nullable

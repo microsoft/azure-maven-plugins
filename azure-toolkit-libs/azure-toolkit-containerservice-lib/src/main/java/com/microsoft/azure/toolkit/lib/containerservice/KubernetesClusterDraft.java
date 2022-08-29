@@ -131,6 +131,7 @@ public class KubernetesClusterDraft extends KubernetesCluster implements
         return this.config;
     }
 
+    @Override
     public Region getRegion() {
         return Optional.ofNullable(config).map(Config::getRegion).orElse(super.getRegion());
     }
@@ -139,6 +140,7 @@ public class KubernetesClusterDraft extends KubernetesCluster implements
         this.ensureConfig().setRegion(region);
     }
 
+    @Override
     public String getKubernetesVersion() {
         return Optional.ofNullable(config).map(Config::getKubernetesVersion).orElse(super.getKubernetesVersion());
     }
