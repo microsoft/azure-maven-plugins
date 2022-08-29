@@ -9,6 +9,7 @@ import com.azure.resourcemanager.compute.ComputeManager;
 import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages;
 import com.azure.resourcemanager.network.models.NetworkInterface;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -42,11 +43,13 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import static com.azure.resourcemanager.compute.models.VirtualMachineEvictionPolicyTypes.DEALLOCATE;
 import static com.azure.resourcemanager.compute.models.VirtualMachineEvictionPolicyTypes.DELETE;
+import static com.microsoft.azure.toolkit.lib.Azure.az;
 import static com.microsoft.azure.toolkit.lib.compute.virtualmachine.model.SpotConfig.EvictionPolicy.StopAndDeallocate;
 
 @Getter
@@ -115,12 +118,13 @@ public class VirtualMachineDraft extends VirtualMachine implements AzResource.Dr
     public VirtualMachineDraft withDefaultConfig() {
         final VmImage historyImage = CacheManager.getUsageHistory(VmImage.class).peek();
         final VmSize historySize = CacheManager.getUsageHistory(VmSize.class).peek();
-        final Region historyRegion = CacheManager.getUsageHistory(Region.class).peek();
 
         this.setImage(Optional.ofNullable(historyImage).orElse(VmImage.UBUNTU_SERVER_18_04_LTS));
         this.setSize(Optional.ofNullable(historySize).orElse(VmSize.Standard_D2s_v3));
         final String subs = this.getSubscriptionId();
         final String rg = this.getResourceGroupName();
+        final List<Region> regions = az(AzureAccount.class).listRegions(subs);
+        final Region historyRegion = CacheManager.getUsageHistory(Region.class).peek(regions::contains);
         this.setRegion(Optional.ofNullable(this.getResourceGroup()).map(ResourceGroup::getRegion).orElse(Optional.ofNullable(historyRegion).orElse(Region.US_CENTRAL)));
 
         final String networkName = NetworkDraft.generateDefaultName();

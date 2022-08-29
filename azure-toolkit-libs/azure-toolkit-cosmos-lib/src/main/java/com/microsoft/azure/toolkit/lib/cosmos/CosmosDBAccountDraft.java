@@ -124,14 +124,15 @@ public class CosmosDBAccountDraft extends CosmosDBAccount implements
             final String name = String.format("cosmos-db-%s", Utils.getTimestamp());
             final String defaultResourceGroupName = String.format("rg-%s", name);
             final Subscription historySub = CacheManager.getUsageHistory(Subscription.class).peek(subs::contains);
-            final Region historyReg = CacheManager.getUsageHistory(Region.class).peek();
             final ResourceGroup historyRg = CacheManager.getUsageHistory(ResourceGroup.class)
-                    .peek(r -> Objects.isNull(historySub) || r.getSubscriptionId().equals(historySub.getId()));
+                .peek(r -> Objects.isNull(historySub) ? subs.stream().anyMatch(s -> s.getId().equals(r.getSubscriptionId())) : r.getSubscriptionId().equals(historySub.getId()));
             final ResourceGroup group = Optional.ofNullable(resourceGroup)
-                    .orElseGet(() -> Optional.ofNullable(historyRg).orElseGet(() -> az(AzureResources.class)
-                            .groups(subs.get(0).getId()).create(defaultResourceGroupName, defaultResourceGroupName)));
+                .orElseGet(() -> Optional.ofNullable(historyRg).orElseGet(() -> az(AzureResources.class)
+                    .groups(subs.get(0).getId()).create(defaultResourceGroupName, defaultResourceGroupName)));
             final Subscription subscription = Optional.of(group).map(AzResource::getSubscription)
-                    .orElseGet(() -> Optional.ofNullable(historySub).orElseGet(() -> subs.get(0)));
+                .orElseGet(() -> Optional.ofNullable(historySub).orElseGet(() -> subs.get(0)));
+            final List<Region> regions = az(AzureAccount.class).listRegions(subscription.getId());
+            final Region historyReg = CacheManager.getUsageHistory(Region.class).peek(regions::contains);
             final CosmosDBAccountDraft.Config config = new CosmosDBAccountDraft.Config();
             config.setName(name);
             config.setSubscription(subscription);
