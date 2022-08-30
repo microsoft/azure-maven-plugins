@@ -137,7 +137,7 @@ public class VirtualMachineDraft extends VirtualMachine implements AzResource.Dr
         networkDraft.withDefaultConfig();
         securityGroupDraft.setSecurityRules(Collections.singletonList(SecurityRule.SSH_RULE));
 
-        this.setAdminUserName(System.getProperty(System.getProperty("user.name")));
+        this.setAdminUserName(System.getProperty("user.name"));
         this.setNetwork(networkDraft);
         this.setIpAddress(ipAddressDraft);
         this.setSecurityGroup(securityGroupDraft);
