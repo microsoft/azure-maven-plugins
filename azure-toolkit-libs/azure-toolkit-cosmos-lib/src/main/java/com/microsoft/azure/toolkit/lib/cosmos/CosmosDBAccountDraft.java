@@ -68,11 +68,11 @@ public class CosmosDBAccountDraft extends CosmosDBAccount implements
         } else {
             throw new AzureToolkitRuntimeException(String.format("kind %s is not supported for Cosmos DB account", kind.getValue()));
         }
-        AzureMessager.getMessager().info(AzureString.format("Start creating account({0})...", this.getName()));
+        AzureMessager.getMessager().info(AzureString.format("Start creating Azure Cosmos DB account({0})...", this.getName()));
         final com.azure.resourcemanager.cosmos.models.CosmosDBAccount account = withConsistencyPolicy.withSessionConsistency()
                 .withWriteReplication(com.azure.core.management.Region.fromName(region.getName()))
                 .create();
-        AzureMessager.getMessager().success(AzureString.format("Account({0}) is successfully created.", this.getName()));
+        AzureMessager.getMessager().success(AzureString.format(" Azure Cosmos DB account({0}) is successfully created.", this.getName()));
         return account;
     }
 

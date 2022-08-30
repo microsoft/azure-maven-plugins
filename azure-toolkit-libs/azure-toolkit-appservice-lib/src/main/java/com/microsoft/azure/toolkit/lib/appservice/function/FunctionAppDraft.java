@@ -95,6 +95,10 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         final String name = getName();
         final Runtime newRuntime = Objects.requireNonNull(getRuntime(), "'runtime' is required to create a Function App");
         final AppServicePlan newPlan = Objects.requireNonNull(getAppServicePlan(), "'service plan' is required to create a Function App");
+        final OperatingSystem os = newRuntime.isDocker() ? OperatingSystem.LINUX : newRuntime.getOperatingSystem();
+        if (!Objects.equals(os, newPlan.getOperatingSystem())) {
+            throw new AzureToolkitRuntimeException(String.format("Could not create %s app service in %s service plan", newRuntime.getOperatingSystem(), newPlan.getOperatingSystem()));
+        }
         final Map<String, String> newAppSettings = getAppSettings();
         final DiagnosticConfig newDiagnosticConfig = getDiagnosticConfig();
         final String funcExtVersion = Optional.ofNullable(newAppSettings).map(map -> map.get(FUNCTIONS_EXTENSION_VERSION)).orElse(null);
@@ -172,7 +176,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     public com.azure.resourcemanager.appservice.models.FunctionApp updateResourceInAzure(@Nonnull WebSiteBase base) {
         com.azure.resourcemanager.appservice.models.FunctionApp remote = (com.azure.resourcemanager.appservice.models.FunctionApp) base;
         assert origin != null : "updating target is not specified.";
-        final Map<String, String> oldAppSettings = origin.getAppSettings();
+        final Map<String, String> oldAppSettings = Objects.requireNonNull(origin.getAppSettings());
         final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();
         if (ObjectUtils.allNotNull(oldAppSettings, settingsToAdd)) {
             settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
@@ -200,7 +204,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             Optional.ofNullable(newPlan).ifPresent(p -> updateAppServicePlan(update, p));
             Optional.ofNullable(newRuntime).ifPresent(p -> updateRuntime(update, p, funcExtVersion));
             Optional.ofNullable(settingsToAdd).ifPresent(update::withAppSettings);
-            Optional.ofNullable(settingsToRemove).ifPresent(s -> s.forEach(update::withoutAppSetting));
+            Optional.of(settingsToRemove).filter(CollectionUtils::isNotEmpty).ifPresent(s -> s.forEach(update::withoutAppSetting));
             Optional.ofNullable(newDockerConfig).ifPresent(p -> updateDockerConfiguration(update, p));
             Optional.ofNullable(newDiagnosticConfig).ifPresent(c -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, c));
 
@@ -214,6 +218,10 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
 
     private void updateAppServicePlan(@Nonnull Update update, @Nonnull AppServicePlan newPlan) {
         Objects.requireNonNull(newPlan.getRemote(), "Target app service plan doesn't exist");
+        final OperatingSystem os = Objects.requireNonNull(getRuntime()).isDocker() ? OperatingSystem.LINUX : getRuntime().getOperatingSystem();
+        if (!Objects.equals(os, newPlan.getOperatingSystem())) {
+            throw new AzureToolkitRuntimeException(String.format("Could not migrate %s app service to %s service plan", getRuntime().getOperatingSystem(), newPlan.getOperatingSystem()));
+        }
         update.withExistingAppServicePlan(newPlan.getRemote());
     }
 
