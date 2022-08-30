@@ -7,6 +7,8 @@ package com.microsoft.azure.toolkit.lib.appservice.webapp;
 
 import com.azure.resourcemanager.appservice.models.WebAppBasic;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import lombok.Getter;
@@ -42,7 +44,10 @@ public class WebApp extends WebAppBase<WebApp, AppServiceServiceSubscription, co
     }
 
     public void swap(String slotName) {
-        this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).swap(slotName), Status.UPDATING);
+        this.doModify(() -> {
+            Objects.requireNonNull(this.getFullRemote()).swap(slotName);
+            AzureMessager.getMessager().info(AzureString.format("Swap deployment slot %s into production successfully", slotName));
+        }, Status.UPDATING);
     }
 
     @Nonnull
