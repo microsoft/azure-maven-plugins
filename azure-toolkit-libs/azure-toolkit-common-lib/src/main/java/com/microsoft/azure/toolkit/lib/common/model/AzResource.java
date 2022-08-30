@@ -74,7 +74,11 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
 
     @Nonnull
     default Subscription getSubscription() {
-        return Azure.az(IAzureAccount.class).account().getSubscription(this.getSubscriptionId());
+        try {
+            return Azure.az(IAzureAccount.class).account().getSubscription(this.getSubscriptionId());
+        } catch (IllegalArgumentException e) {
+            return new Subscription(this.getSubscriptionId());
+        }
     }
 
     @Nonnull
