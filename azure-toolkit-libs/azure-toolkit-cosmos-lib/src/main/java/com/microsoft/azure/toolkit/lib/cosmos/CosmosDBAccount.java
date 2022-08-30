@@ -45,12 +45,12 @@ public class CosmosDBAccount extends AbstractAzResource<CosmosDBAccount, CosmosS
 
     @Nonnull
     public DatabaseAccountKeys listKeys() {
-        return remoteOptional().map(ignore -> this.databaseAccountKeys).orElseGet(DatabaseAccountKeys::new);
+        return remoteOptional(true).map(ignore -> this.databaseAccountKeys).orElseGet(DatabaseAccountKeys::new);
     }
 
     @Nonnull
     public DatabaseAccountConnectionStrings listConnectionStrings() {
-        return remoteOptional().map(ignore -> this.databaseAccountConnectionStrings).orElseGet(DatabaseAccountConnectionStrings::new);
+        return remoteOptional(true).map(ignore -> this.databaseAccountConnectionStrings).orElseGet(DatabaseAccountConnectionStrings::new);
     }
 
     @Nullable

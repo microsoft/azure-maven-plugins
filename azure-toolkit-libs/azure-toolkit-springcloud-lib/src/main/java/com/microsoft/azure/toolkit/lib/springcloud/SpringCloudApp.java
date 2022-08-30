@@ -110,7 +110,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     @Nullable
     public SpringCloudDeployment getActiveDeployment() {
-        return this.remoteOptional().map(r -> this.activeDeployment).orElse(null);
+        return this.remoteOptional(true).map(r -> this.activeDeployment).orElse(null);
     }
 
     @Nullable

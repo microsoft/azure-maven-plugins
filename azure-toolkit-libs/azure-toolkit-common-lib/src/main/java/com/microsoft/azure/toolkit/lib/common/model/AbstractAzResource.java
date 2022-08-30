@@ -134,13 +134,26 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @Nullable
-    public final R getRemote() {
+    public final R getRemote(boolean... sync) {
         log.debug("[{}:{}]:getRemote()", this.module.getName(), this.getName());
         Azure.az(IAzureAccount.class).account();
         if (this.isDraftForCreating()) {
             log.debug("[{}:{}]:getRemote->this.isDraftForCreating()=true", this.module.getName(), this.getName());
             return null;
         }
+        if (sync.length > 0 && sync[0]) {
+            try {
+                this.lock.lock();
+                return this.getRemoteInner();
+            } finally {
+                this.lock.unlock();
+            }
+        } else {
+            return this.getRemoteInner();
+        }
+    }
+
+    private R getRemoteInner() {
         if (System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) { // 0, -1 or too old.
             final R remote = this.remoteRef.get();
             if (this.syncTimeRef.get() == 0 && Objects.nonNull(remote)) {
@@ -148,7 +161,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             }
             try {
                 this.lock.lock();
-                if (this.syncTimeRef.get() != 0 && System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) {// -1 or too old.
+                if (this.syncTimeRef.get() != 0 && System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) { // -1 or too old.
                     log.debug("[{}:{}]:getRemote->reloadRemote()", this.module.getName(), this.getName());
                     this.reloadRemote();
                 }
@@ -400,8 +413,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     public abstract String loadStatus(@Nonnull R remote);
 
     @Nonnull
-    protected Optional<R> remoteOptional() {
-        return Optional.ofNullable(this.getRemote());
+    protected Optional<R> remoteOptional(boolean... sync) {
+        return Optional.ofNullable(this.getRemote(sync));
     }
 
     @Nonnull
