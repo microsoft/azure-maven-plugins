@@ -7,14 +7,19 @@ package com.microsoft.azure.toolkit.lib.resource;
 
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.models.ResourceGroups;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.account.IAccount;
+import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup, ResourcesServiceSubscription, com.azure.resourcemanager.resources.models.ResourceGroup> {
 
@@ -22,6 +27,14 @@ public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup,
 
     public ResourceGroupModule(@Nonnull ResourcesServiceSubscription parent) {
         super(NAME, parent);
+    }
+
+    @Nonnull
+    @Override
+    public List<ResourceGroup> list() {
+        final IAccount account = Azure.az(IAzureAccount.class).account();
+        // FIXME: @wamgmi, improve this hotfix of #1980254
+        return super.list().stream().filter(rg -> account.getSelectedSubscriptions().contains(rg.getSubscription())).collect(Collectors.toList());
     }
 
     @Nonnull
