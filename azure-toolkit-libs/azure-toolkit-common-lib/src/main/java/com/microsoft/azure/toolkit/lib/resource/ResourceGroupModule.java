@@ -7,9 +7,6 @@ package com.microsoft.azure.toolkit.lib.resource;
 
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.models.ResourceGroups;
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.account.IAccount;
-import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -32,9 +29,8 @@ public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup,
     @Nonnull
     @Override
     public List<ResourceGroup> list() {
-        final IAccount account = Azure.az(IAzureAccount.class).account();
         // FIXME: @wamgmi, improve this hotfix of #1980254
-        return super.list().stream().filter(rg -> account.getSelectedSubscriptions().contains(rg.getSubscription())).collect(Collectors.toList());
+        return super.list().stream().filter(rg -> rg.getSubscription().isSelected()).collect(Collectors.toList());
     }
 
     @Nonnull
