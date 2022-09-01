@@ -87,7 +87,7 @@ public abstract class AppServiceAppBase<
         WebSiteBase remote = this.getRemote();
         if (Objects.nonNull(remote) && !(remote instanceof WebAppBase)) {
             this.invalidateCache();
-            remote = this.getRemote();
+            remote = this.getRemote(true);
         }
         //noinspection unchecked
         return (F) remote;
