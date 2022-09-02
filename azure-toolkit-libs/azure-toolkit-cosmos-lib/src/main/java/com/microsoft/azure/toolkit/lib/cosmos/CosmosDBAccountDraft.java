@@ -68,11 +68,11 @@ public class CosmosDBAccountDraft extends CosmosDBAccount implements
         } else {
             throw new AzureToolkitRuntimeException(String.format("kind %s is not supported for Cosmos DB account", kind.getValue()));
         }
-        AzureMessager.getMessager().info(AzureString.format("Start creating account({0})...", this.getName()));
+        AzureMessager.getMessager().info(AzureString.format("Start creating Azure Cosmos DB account({0})...", this.getName()));
         final com.azure.resourcemanager.cosmos.models.CosmosDBAccount account = withConsistencyPolicy.withSessionConsistency()
                 .withWriteReplication(com.azure.core.management.Region.fromName(region.getName()))
                 .create();
-        AzureMessager.getMessager().success(AzureString.format("Account({0}) is successfully created.", this.getName()));
+        AzureMessager.getMessager().success(AzureString.format(" Azure Cosmos DB account({0}) is successfully created.", this.getName()));
         return account;
     }
 
@@ -125,16 +125,19 @@ public class CosmosDBAccountDraft extends CosmosDBAccount implements
             final String defaultResourceGroupName = String.format("rg-%s", name);
             final Subscription historySub = CacheManager.getUsageHistory(Subscription.class).peek(subs::contains);
             final ResourceGroup historyRg = CacheManager.getUsageHistory(ResourceGroup.class)
-                    .peek(r -> Objects.isNull(historySub) || r.getSubscriptionId().equals(historySub.getId()));
+                .peek(r -> Objects.isNull(historySub) ? subs.stream().anyMatch(s -> s.getId().equals(r.getSubscriptionId())) : r.getSubscriptionId().equals(historySub.getId()));
             final ResourceGroup group = Optional.ofNullable(resourceGroup)
-                    .orElseGet(() -> Optional.ofNullable(historyRg).orElseGet(() -> az(AzureResources.class)
-                            .groups(subs.get(0).getId()).create(defaultResourceGroupName, defaultResourceGroupName)));
+                .orElseGet(() -> Optional.ofNullable(historyRg).orElseGet(() -> az(AzureResources.class)
+                    .groups(subs.get(0).getId()).create(defaultResourceGroupName, defaultResourceGroupName)));
             final Subscription subscription = Optional.of(group).map(AzResource::getSubscription)
-                    .orElseGet(() -> Optional.ofNullable(historySub).orElseGet(() -> subs.get(0)));
+                .orElseGet(() -> Optional.ofNullable(historySub).orElseGet(() -> subs.get(0)));
+            final List<Region> regions = az(AzureAccount.class).listRegions(subscription.getId());
+            final Region historyReg = CacheManager.getUsageHistory(Region.class).peek(regions::contains);
             final CosmosDBAccountDraft.Config config = new CosmosDBAccountDraft.Config();
             config.setName(name);
             config.setSubscription(subscription);
             config.setResourceGroup(group);
+            config.setRegion(historyReg);
             config.setKind(DatabaseAccountKind.SQL);
             return config;
         }

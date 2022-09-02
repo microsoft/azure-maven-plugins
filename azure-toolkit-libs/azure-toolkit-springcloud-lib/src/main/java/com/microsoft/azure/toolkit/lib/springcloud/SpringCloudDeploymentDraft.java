@@ -184,7 +184,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         final Double newMemoryInGB = this.getMemoryInGB();
         final Integer newInstanceNum = this.getInstanceNum();
         final boolean scaled = (!Objects.equals(deployment.cpu(), newCpu) && Objects.nonNull(newCpu)) ||
-            (!Objects.equals(deployment.cpu(), newMemoryInGB) && Objects.nonNull(newMemoryInGB)) ||
+            (!Objects.equals(deployment.memoryInGB(), newMemoryInGB) && Objects.nonNull(newMemoryInGB)) ||
             (!Objects.equals(deployment.instances().size(), newInstanceNum) && Objects.nonNull(newInstanceNum));
         if (scaled) {
             Optional.ofNullable(newCpu).map(c -> c < 1 ? 0.5 : c.intValue()).ifPresent(update::withCpu);

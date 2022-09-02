@@ -132,14 +132,14 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     @Nullable
     public Double getCpu() {
         return Optional.ofNullable(this.getRemote())
-            .map(SpringAppDeployment::memoryInGB)
+            .map(SpringAppDeployment::cpu)
             .orElse(null);
     }
 
     @Nullable
     public Double getMemoryInGB() {
         return Optional.ofNullable(this.getRemote())
-            .map(SpringAppDeployment::cpu)
+            .map(SpringAppDeployment::memoryInGB)
             .orElse(null);
     }
 

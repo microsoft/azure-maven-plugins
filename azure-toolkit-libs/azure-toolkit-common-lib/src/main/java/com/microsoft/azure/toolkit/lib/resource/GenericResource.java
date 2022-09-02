@@ -82,6 +82,23 @@ public class GenericResource extends AbstractAzResource<GenericResource, Resourc
 
     @Nonnull
     @Override
+    public String getStatus() {
+        final AbstractAzResource<?, ?, ?> concrete = this.toConcreteResource();
+        return concrete instanceof GenericResource ? Status.UNKNOWN : concrete.getStatus();
+    }
+
+    @Override
+    public boolean isDraftForCreating() {
+        // don't use `toConcreteResource` because it will cause recursive calls.
+        // toConcreteResource -> Azure.getOrInitById -> AzureAppService.getOrInitById -> GenericResource.getKind -> AbstractAzResource.getRemote -> isDraftForCreating
+        if (Objects.nonNull(this.concrete) && !(this.concrete instanceof GenericResource)) {
+            return this.concrete.isDraftForCreating();
+        }
+        return super.isDraftForCreating();
+    }
+
+    @Nonnull
+    @Override
     public String getFullResourceType() {
         return this.resourceId.fullResourceType();
     }

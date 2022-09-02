@@ -31,6 +31,7 @@ import java.util.function.Consumer;
 public interface AzureFormInput<T> extends DataStore {
     String MSG_REQUIRED = "This field is required.";
     String FIELD_VALUE = "value";
+    String FIELD_LABEL = "label";
     String FIELD_DEFAULT_VALUE = "defaultValue";
     String FIELD_VALIDATORS = "validators";
     String FIELD_REQUIRED = "required";
@@ -109,7 +110,11 @@ public interface AzureFormInput<T> extends DataStore {
     }
 
     default String getLabel() {
-        return this.getClass().getSimpleName();
+        return this.get(FIELD_LABEL);
+    }
+
+    default void setLabel(String label) {
+        this.set(FIELD_LABEL, label);
     }
 
     /**
@@ -215,6 +220,8 @@ public interface AzureFormInput<T> extends DataStore {
         validating.setRight(flux.subscribe(info -> {
             if (Objects.equals(value, this.getValue())) {
                 this.setValidationInfo(info);
+            } else {
+                this.setValidationInfo(null);
             }
         }));
         this.set(VALIDATING, validating);
