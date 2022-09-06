@@ -18,7 +18,7 @@ For the easiest way, you can install [Azure Cli](https://docs.microsoft.com/en-u
 ```shell
 az login
 ```
-Mavan plugins supports Azure Cli and some other auth methods, see [Authentication](https://github.com/microsoft/azure-maven-plugins/wiki/Authentication) for details.
+Maven plugins supports Azure Cli and some other auth methods, see [Authentication](https://github.com/microsoft/azure-maven-plugins/wiki/Authentication) for details.
 
 
 ## Quickstart
