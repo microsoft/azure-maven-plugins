@@ -88,10 +88,11 @@ public class CommandUtils {
                 newEnv.putAll(env);
             }
             executor.execute(commandLine, newEnv);
-            if (!mergeErrorStream && err.size() > 0) {
-                log.warn(StringUtils.trim(err.toString()));
+            final String result = StringUtils.trimToEmpty(out.toString());
+            if (!mergeErrorStream && err.size() > 0 && StringUtils.isEmpty(result)) {
+                throw new IOException(StringUtils.trim(err.toString()));
             }
-            return out.toString();
+            return result;
         } finally {
             out.close();
             err.close();

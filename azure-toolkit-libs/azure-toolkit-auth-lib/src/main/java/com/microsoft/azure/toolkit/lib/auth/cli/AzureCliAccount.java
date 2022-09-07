@@ -83,7 +83,11 @@ public class AzureCliAccount extends Account {
 
     @Override
     public boolean checkAvailable() {
-        return this.getManagementToken().isPresent();
+        try {
+            return this.getManagementToken().isPresent();
+        } catch (Throwable e) {
+            return false;
+        }
     }
 
     @AllArgsConstructor
