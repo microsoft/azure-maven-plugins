@@ -25,6 +25,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import com.microsoft.azure.toolkit.lib.resource.GenericResource;
 import com.microsoft.azure.toolkit.lib.resource.GenericResourceModule;
+import com.microsoft.azure.toolkit.lib.resource.ResourceDeployment;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupModule;
 import lombok.EqualsAndHashCode;
@@ -113,7 +114,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         if (System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) { // 0, -1 or too old.
             try {
                 this.lock.lock();
-                if (this.syncTimeRef.get() != 0 && System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) {// -1 or too old.
+                if (this.syncTimeRef.get() != 0 && System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) { // -1 or too old.
                     log.debug("[{}]:list->this.reload()", this.name);
                     this.reloadResources();
                 }
@@ -327,7 +328,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             this.addResourceToLocal(resource.getId(), resource);
             final ResourceId id = ResourceId.fromString(resource.getId());
             final ResourceGroup resourceGroup = resource.getResourceGroup();
-            if (Objects.isNull(id.parent()) && Objects.nonNull(resourceGroup) && !(resource instanceof ResourceGroup)) {
+            if (Objects.isNull(id.parent()) && Objects.nonNull(resourceGroup) &&
+                !(resource instanceof ResourceGroup) && !(resource instanceof ResourceDeployment)) {
                 final GenericResourceModule genericResourceModule = resourceGroup.genericResources();
                 final GenericResource genericResource = genericResourceModule.newResource(resource);
                 //noinspection unchecked,rawtypes
