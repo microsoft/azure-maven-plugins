@@ -6,11 +6,16 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.maven.model.DeploymentResource;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
+import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,8 +33,9 @@ import java.util.Objects;
 @Setter
 @SuperBuilder(toBuilder = true)
 public class WebAppConfiguration {
+    private static final Region DEFAULT_REGION = Region.US_CENTRAL;
+
     public static final PricingTier DEFAULT_JBOSS_PRICING_TIER = PricingTier.PREMIUM_P1V3;
-    public static final Region DEFAULT_REGION = Region.US_CENTRAL;
     public static final PricingTier DEFAULT_PRICINGTIER = PricingTier.PREMIUM_P1V2;
     public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8;
     public static final WebContainer DEFAULT_CONTAINER = WebContainer.TOMCAT_85;
@@ -62,7 +68,22 @@ public class WebAppConfiguration {
     protected MavenResourcesFiltering filtering;
 
     public String getRegionOrDefault() {
-        return region != null ? region.toString() : DEFAULT_REGION.toString();
+        return region == null ? getDefaultRegion().toString() : region.toString();
+    }
+
+    public static Region getDefaultRegion() {
+        final AzureAccount az = Azure.az(AzureAccount.class);
+        if (az.isLoggedIn()) {
+            final Subscription sub = az.account().getSelectedSubscriptions().get(0);
+            final AppServiceServiceSubscription appServiceSubscription = Azure.az(AzureAppService.class).get(sub.getId(), null);
+            final List<Region> regions = Objects.requireNonNull(appServiceSubscription).listSupportedRegions();
+            if (regions.contains(DEFAULT_REGION)) {
+                return DEFAULT_REGION;
+            } else {
+                return regions.get(0);
+            }
+        }
+        return DEFAULT_REGION;
     }
 
     public String getJavaVersionOrDefault() {
