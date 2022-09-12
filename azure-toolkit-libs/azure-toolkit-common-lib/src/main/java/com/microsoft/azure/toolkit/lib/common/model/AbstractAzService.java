@@ -14,12 +14,15 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<T, R>, R> extends AbstractAzResourceModule<T, AzResource.None, R>
@@ -35,6 +38,12 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
     public T get(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         return this.get(id.subscriptionId(), id.resourceGroupName());
+    }
+
+    @NotNull
+    @Override
+    public List<T> list() {
+        return super.list().stream().filter(s -> s.getSubscription().isSelected()).collect(Collectors.toList());
     }
 
     @Nonnull
