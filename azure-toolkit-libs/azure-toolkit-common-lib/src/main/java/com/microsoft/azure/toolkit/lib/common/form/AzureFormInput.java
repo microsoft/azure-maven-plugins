@@ -59,19 +59,19 @@ public interface AzureFormInput<T> extends DataStore {
         this.set(FIELD_DEFAULT_VALUE, val);
     }
 
-    default void addValueChangedListener(Consumer<T> listener) {
-        final CopyOnWriteArrayList<Consumer<T>> valueChangedListeners = this.get(FIELD_VALUE_LISTENERS, new CopyOnWriteArrayList<>());
+    default void addValueChangedListener(AzureValueChangeListener<T> listener) {
+        final CopyOnWriteArrayList<AzureValueChangeListener<T>> valueChangedListeners = this.get(FIELD_VALUE_LISTENERS, new CopyOnWriteArrayList<>());
         if (!valueChangedListeners.contains(listener)) {
             valueChangedListeners.add(listener);
         }
     }
 
-    default void removeValueChangedListener(Consumer<T> listener) {
-        final CopyOnWriteArrayList<Consumer<T>> valueChangedListeners = this.get(FIELD_VALUE_LISTENERS, new CopyOnWriteArrayList<>());
+    default void removeValueChangedListener(AzureValueChangeListener<T> listener) {
+        final CopyOnWriteArrayList<AzureValueChangeListener<T>> valueChangedListeners = this.get(FIELD_VALUE_LISTENERS, new CopyOnWriteArrayList<>());
         valueChangedListeners.remove(listener);
     }
 
-    default List<Consumer<T>> getValueChangedListeners() {
+    default List<AzureValueChangeListener<T>> getValueChangedListeners() {
         return new ArrayList<>(this.get(FIELD_VALUE_LISTENERS, new CopyOnWriteArrayList<>()));
     }
 
@@ -83,7 +83,7 @@ public interface AzureFormInput<T> extends DataStore {
         final boolean changed = !Objects.equals(val, value);
         if (changed) {
             this.set(FIELD_VALUE, val);
-            this.getValueChangedListeners().forEach(l -> l.accept(val));
+            this.getValueChangedListeners().forEach(l -> l.accept(val, value));
         } else {
             // reset input component extension, see AzureTextInput#onDocumentChanged
             this.setValidationInfo(this.getValidationInfo());
@@ -231,12 +231,9 @@ public interface AzureFormInput<T> extends DataStore {
     default void trackValidation() {
         synchronized (this) {
             final Field<Consumer<T>> TRACKING = Field.of(FIELD_TRACKING);
-            Consumer<T> tracking = this.get(TRACKING);
-            if (Objects.isNull(tracking)) {
-                tracking = v -> {
-                    this.validateValueAsync();
-                };
-                this.addValueChangedListener(tracking);
+            if (Objects.isNull(this.get(TRACKING))) {
+                final Consumer<T> tracking = v -> this.validateValueAsync();
+                this.addValueChangedListener(tracking::accept);
                 this.set(TRACKING, tracking);
             }
         }
@@ -306,5 +303,23 @@ public interface AzureFormInput<T> extends DataStore {
     @FunctionalInterface
     interface Validator {
         AzureValidationInfo doValidate();
+    }
+
+    @FunctionalInterface
+    interface AzureValueChangeListener<T> extends Consumer<T> {
+        default void accept(T value, T previous) {
+            this.accept(value);
+        }
+
+    }
+
+    @FunctionalInterface
+    interface AzureValueChangeBiListener<T> extends AzureValueChangeListener<T> {
+        @Override
+        default void accept(T t) {
+            this.accept(t, null);
+        }
+
+        void accept(T value, T previous);
     }
 }
