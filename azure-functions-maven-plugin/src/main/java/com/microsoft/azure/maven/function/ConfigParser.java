@@ -5,12 +5,15 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.maven.appservice.MavenDockerCredentialProvider;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
@@ -44,12 +47,21 @@ public class ConfigParser {
                 .appSettings(mojo.getAppSettings());
     }
 
+    public AppServicePlan getServicePlan() {
+        final String subscriptionId = mojo.getSubscriptionId();
+        final String servicePlan = mojo.getAppServicePlanName();
+        final String servicePlanGroup = StringUtils.firstNonBlank(mojo.getAppServicePlanResourceGroup(), mojo.getResourceGroup());
+        return StringUtils.isAnyBlank(subscriptionId, servicePlan, servicePlanGroup) ? null :
+                Azure.az(AzureAppService.class).plans(subscriptionId).get(servicePlan, servicePlanGroup);
+    }
+
     public RuntimeConfig getRuntimeConfig() throws AzureExecutionException {
         final RuntimeConfiguration runtime = mojo.getRuntimeConfiguration();
         if (runtime == null) {
             return null;
         }
-        final OperatingSystem os = Optional.ofNullable(runtime.getOs()).map(OperatingSystem::fromString).orElse(null);
+        final OperatingSystem os = Optional.ofNullable(runtime.getOs()).map(OperatingSystem::fromString)
+                .orElseGet(() -> Optional.ofNullable(getServicePlan()).map(AppServicePlan::getOperatingSystem).orElse(null));
         final JavaVersion javaVersion = Optional.ofNullable(runtime.getJavaVersion()).map(JavaVersion::fromString).orElse(null);
         final RuntimeConfig result = new RuntimeConfig().os(os).javaVersion(javaVersion).webContainer(WebContainer.JAVA_OFF)
                 .image(runtime.getImage()).registryUrl(runtime.getRegistryUrl());
@@ -73,6 +85,7 @@ public class ConfigParser {
     }
 
     private PricingTier getParsedPricingTier() {
-        return Optional.ofNullable(mojo.getPricingTier()).map(PricingTier::fromString).orElse(null);
+        return Optional.ofNullable(mojo.getPricingTier()).map(PricingTier::fromString)
+                .orElseGet(() -> Optional.ofNullable(getServicePlan()).map(AppServicePlan::getPricingTier).orElse(null));
     }
 }
