@@ -87,7 +87,7 @@ property:         jvmOptions
 
 ---
 id:               configure-java-version
-promote:          "Input runtime JAVA version{{(schema.default) ? '(***' ~ schema.default ~ '***)' : ''}}:"
+promote:          "Input runtime Java version{{(schema.default) ? '(***' ~ schema.default ~ '***)' : ''}}:"
 resource:         Deployment
 property:         runtimeVersion
 
