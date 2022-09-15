@@ -272,6 +272,14 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
+    public T getOrTemp(@Nonnull String name, @Nullable String rgName) {
+        final String resourceGroup = normalizeResourceGroupName(name, rgName);
+        log.debug("[{}]:getOrTemp({}, {})", this.name, name, rgName);
+        final String id = this.toResourceId(name, resourceGroup);
+        return this.resources.getOrDefault(id, Optional.empty()).orElseGet(() -> this.newResource(name, resourceGroup));
+    }
+
+    @Nonnull
     public T getOrInit(@Nonnull String name, @Nullable String rgName) {
         final String resourceGroup = normalizeResourceGroupName(name, rgName);
         log.debug("[{}]:getOrDraft({}, {})", this.name, name, rgName);

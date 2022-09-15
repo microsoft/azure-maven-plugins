@@ -110,7 +110,7 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
         for (Pair<String, String> resourceTypeName : resourceTypeNames) {
             resource = Optional.ofNullable(resource)
                 .map(r -> r.getSubModule(resourceTypeName.getLeft()))
-                .map(m -> m.getOrDraft(resourceTypeName.getRight(), resourceGroup)).orElse(null);
+                .map(m -> m.getOrTemp(resourceTypeName.getRight(), resourceGroup)).orElse(null);
         }
         return (E) resource;
     }
