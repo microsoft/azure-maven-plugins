@@ -60,10 +60,10 @@ public class SqlDatabaseDraft extends SqlDatabase implements
             }
             parameters.withOptions(options);
         }
-        AzureMessager.getMessager().info(AzureString.format("Start creating database({0})...", this.getName()));
+        AzureMessager.getMessager().info(AzureString.format("Start creating SQL database({0})...", this.getName()));
         final SqlDatabaseGetResultsInner result = cosmosDBManagementClient.getSqlResources().createUpdateSqlDatabase(this.getResourceGroupName(), this.getParent().getName(),
                 this.getName(), parameters, Context.NONE);
-        AzureMessager.getMessager().success(AzureString.format("Database({0}) is successfully created.", this.getName()));
+        AzureMessager.getMessager().success(AzureString.format("SQL database({0}) is successfully created.", this.getName()));
         return result;
     }
 

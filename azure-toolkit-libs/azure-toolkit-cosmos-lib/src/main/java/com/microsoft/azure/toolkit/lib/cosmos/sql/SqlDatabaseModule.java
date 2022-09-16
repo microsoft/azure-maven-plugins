@@ -26,6 +26,12 @@ public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, Cos
 
     @NotNull
     @Override
+    public String getResourceTypeName() {
+        return "SQL Database";
+    }
+
+    @NotNull
+    @Override
     protected SqlDatabase newResource(@NotNull SqlDatabaseGetResultsInner resource) {
         return new SqlDatabase(resource, this);
     }

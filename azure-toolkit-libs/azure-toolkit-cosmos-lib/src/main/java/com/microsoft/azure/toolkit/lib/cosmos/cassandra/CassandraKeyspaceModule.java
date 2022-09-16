@@ -26,6 +26,12 @@ public class CassandraKeyspaceModule extends AbstractAzResourceModule<CassandraK
 
     @NotNull
     @Override
+    public String getResourceTypeName() {
+        return "Cassandra Keyspace";
+    }
+
+    @NotNull
+    @Override
     protected CassandraKeyspace newResource(@NotNull CassandraKeyspaceGetResultsInner resource) {
         return new CassandraKeyspace(resource, this);
     }

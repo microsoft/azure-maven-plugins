@@ -26,6 +26,12 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
 
     @NotNull
     @Override
+    public String getResourceTypeName() {
+        return "MongoDB Database";
+    }
+
+    @NotNull
+    @Override
     protected MongoDatabase newResource(@NotNull MongoDBDatabaseGetResultsInner resource) {
         return new MongoDatabase(resource, this);
     }

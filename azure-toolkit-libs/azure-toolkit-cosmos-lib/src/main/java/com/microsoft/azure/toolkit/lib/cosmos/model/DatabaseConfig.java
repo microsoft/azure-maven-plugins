@@ -15,8 +15,12 @@ public class DatabaseConfig {
     private Integer maxThroughput;
 
     public static DatabaseConfig getDefaultDatabaseConfig() {
+        return getDefaultDatabaseConfig("database");
+    }
+
+    public static DatabaseConfig getDefaultDatabaseConfig(final String prefix) {
         final DatabaseConfig result = new DatabaseConfig();
-        result.setName(String.format("database%s", Utils.getTimestamp()));
+        result.setName(String.format("%s%s", prefix, Utils.getTimestamp()));
         result.setMaxThroughput(4000);
         return result;
     }
