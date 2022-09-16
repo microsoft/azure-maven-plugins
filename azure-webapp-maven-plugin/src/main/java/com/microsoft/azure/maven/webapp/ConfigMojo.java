@@ -220,7 +220,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String defaultName = getProject().getArtifactId() + "-" + System.currentTimeMillis();
         final String resourceGroup = defaultName + "-rg";
         final String defaultSchemaVersion = "v2";
-        final Region defaultRegion = WebAppConfiguration.DEFAULT_REGION;
+        final Region defaultRegion = WebAppConfiguration.getDefaultRegion();
 
         return builder.appName(defaultName)
                 .subscriptionId(subscriptionId)

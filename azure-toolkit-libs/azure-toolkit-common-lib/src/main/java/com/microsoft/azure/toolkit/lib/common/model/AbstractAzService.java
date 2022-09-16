@@ -18,8 +18,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<T, R>, R> extends AbstractAzResourceModule<T, AzResource.None, R>
@@ -35,6 +37,12 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
     public T get(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         return this.get(id.subscriptionId(), id.resourceGroupName());
+    }
+
+    @Nonnull
+    @Override
+    public List<T> list() {
+        return super.list().stream().filter(s -> s.getSubscription().isSelected()).collect(Collectors.toList());
     }
 
     @Nonnull
@@ -101,7 +109,7 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
         for (Pair<String, String> resourceTypeName : resourceTypeNames) {
             resource = Optional.ofNullable(resource)
                 .map(r -> r.getSubModule(resourceTypeName.getLeft()))
-                .map(m -> m.getOrDraft(resourceTypeName.getRight(), resourceGroup)).orElse(null);
+                .map(m -> m.getOrTemp(resourceTypeName.getRight(), resourceGroup)).orElse(null);
         }
         return (E) resource;
     }

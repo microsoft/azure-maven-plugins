@@ -46,7 +46,8 @@ public class CosmosDBAccountModule extends AbstractAzResourceModule<CosmosDBAcco
     @Nonnull
     @Override
     protected CosmosDBAccount newResource(@Nonnull String name, @Nullable String resourceGroupName) {
-        final com.azure.resourcemanager.cosmos.models.CosmosDBAccount account = Objects.requireNonNull(getClient()).getByResourceGroup(resourceGroupName, name);
+        final com.azure.resourcemanager.cosmos.models.CosmosDBAccount account = Optional.ofNullable(getClient())
+            .map(c -> c.getByResourceGroup(resourceGroupName, name)).orElse(null);
         return account == null ? new CosmosDBAccount(name, Objects.requireNonNull(resourceGroupName), this) : newResource(account);
     }
 
