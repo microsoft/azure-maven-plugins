@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,7 +39,7 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
         return this.get(id.subscriptionId(), id.resourceGroupName());
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public List<T> list() {
         return super.list().stream().filter(s -> s.getSubscription().isSelected()).collect(Collectors.toList());
