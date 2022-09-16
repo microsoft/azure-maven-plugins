@@ -39,6 +39,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -105,19 +106,20 @@ public class AzureMessage implements IAzureMessage {
         if (Objects.isNull(root)) {
             return ExceptionUtils.getRootCause(throwable).toString();
         }
-        String cause = null;
+        AtomicReference<String> cause = new AtomicReference<>(null);
         if (root instanceof ManagementException) {
-            cause = Optional.of((ManagementException) root)
-                .map(ManagementException::getValue)
-                .map(ManagementError::getMessage)
-                .orElse("Unknown cause");
+            cause.set(Optional.of((ManagementException) root)
+                    .map(ManagementException::getValue)
+                    .map(ManagementError::getMessage)
+                    .orElse("Unknown cause"));
         } else if (root instanceof HttpResponseException) {
-            cause = Optional.of((HttpResponseException) root)
+            Optional.of((HttpResponseException) root)
                 .map(HttpResponseException::getResponse)
                 .map(HttpResponse::getBodyAsString)
-                .map(Mono::block).orElse("Unknown cause");
+                .orElse(Mono.just("Unknown cause"))
+                .subscribe(cause::set);
         }
-        final String causeMsg = StringUtils.firstNonBlank(cause, root.getMessage());
+        final String causeMsg = StringUtils.firstNonBlank(cause.get(), root.getMessage());
         return Optional.ofNullable(causeMsg)
             .filter(StringUtils::isNotBlank)
             .map(StringUtils::uncapitalize)
