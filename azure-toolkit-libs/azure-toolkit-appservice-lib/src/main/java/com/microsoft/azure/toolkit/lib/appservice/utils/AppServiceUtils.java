@@ -62,7 +62,8 @@ public class AppServiceUtils {
 
     private static Runtime getRuntimeFromLinuxFunctionApp(String linuxFxVersion) {
         final JavaVersion javaVersion = JavaVersion.fromString(linuxFxVersion.replace("|", " "));
-        return Runtime.getRuntime(OperatingSystem.LINUX, WebContainer.JAVA_OFF, javaVersion);
+        return StringUtils.containsIgnoreCase(linuxFxVersion, "java") ?
+                Runtime.getRuntime(OperatingSystem.LINUX, WebContainer.JAVA_OFF, javaVersion) : Runtime.getRuntime(OperatingSystem.LINUX, WebContainer.JAVA_OFF, JavaVersion.OFF);
     }
 
     private static Runtime getRuntimeFromWindowsAppService(WebAppBase webAppBase) {
