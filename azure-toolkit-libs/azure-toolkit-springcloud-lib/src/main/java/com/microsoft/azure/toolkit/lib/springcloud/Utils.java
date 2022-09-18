@@ -29,16 +29,22 @@ public class Utils {
         if (deployment == null) {
             return false;
         }
-        final String finalDiscoverStatus = BooleanUtils.isTrue(deployment.isActive()) ? "UP" : "OUT_OF_SERVICE";
-        final List<DeploymentInstance> instanceList = deployment.getInstances();
-        if (CollectionUtils.isEmpty(instanceList)) {
+        final List<DeploymentInstance> instances = deployment.getInstances();
+        if (CollectionUtils.isEmpty(instances)) {
             return false;
         }
-        final boolean isInstanceDeployed = instanceList.stream().noneMatch(instance ->
-                StringUtils.equalsIgnoreCase(instance.status(), "waiting") || StringUtils.equalsIgnoreCase(instance.status(), "pending"));
-        final boolean isInstanceDiscovered = instanceList.stream().allMatch(instance ->
-                StringUtils.equalsIgnoreCase(instance.discoveryStatus(), finalDiscoverStatus));
-        return isInstanceDeployed && isInstanceDiscovered;
+        // refer to https://learn.microsoft.com/en-us/azure/spring-apps/concept-app-status
+        final boolean isInstanceRunning = instances.stream().anyMatch(instance ->
+            StringUtils.equalsIgnoreCase(instance.status(), "running"));
+        if (deployment.getParent().getParent().isEnterpriseTier()) {
+            // refer to https://learn.microsoft.com/en-us/azure/spring-apps/concept-app-status
+            // Eureka isn't applicable to enterprise tier.
+            return isInstanceRunning;
+        }
+        final String finalDiscoverStatus = BooleanUtils.isTrue(deployment.isActive()) ? "UP" : "OUT_OF_SERVICE";
+        final boolean isInstanceDiscoverable = instances.stream().anyMatch(instance ->
+            StringUtils.equalsIgnoreCase(instance.discoveryStatus(), finalDiscoverStatus));
+        return isInstanceRunning && isInstanceDiscoverable;
     }
 
     /**
@@ -66,10 +72,10 @@ public class Utils {
     public static <T> T pollUntil(Callable<T> callable, @Nonnull Predicate<T> predicate, int timeOutInSeconds, int pollingInterval) {
         final long timeout = System.currentTimeMillis() + timeOutInSeconds * 1000L;
         return Observable.interval(pollingInterval, TimeUnit.SECONDS)
-                .timeout(timeOutInSeconds, TimeUnit.SECONDS)
-                .flatMap(aLong -> Observable.fromCallable(callable))
-                .subscribeOn(Schedulers.io())
-                .takeUntil(resource -> predicate.test(resource) || System.currentTimeMillis() > timeout)
-                .toBlocking().last();
+            .timeout(timeOutInSeconds, TimeUnit.SECONDS)
+            .flatMap(aLong -> Observable.fromCallable(callable))
+            .subscribeOn(Schedulers.io())
+            .takeUntil(resource -> predicate.test(resource) || System.currentTimeMillis() > timeout)
+            .toBlocking().last();
     }
 }
