@@ -37,12 +37,12 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class ConfigurationPrompter {
-    private ExpressionEvaluator expressionEvaluator;
+    private final ExpressionEvaluator expressionEvaluator;
     private IPrompter prompt;
     private Map<String, Map<String, Object>> templates;
     private Map<String, Object> commonVariables;
     private SchemaValidator validator;
-    private Log log;
+    private final Log log;
 
     public ConfigurationPrompter(ExpressionEvaluator expressionEvaluator, Log log) {
         this.expressionEvaluator = expressionEvaluator;
