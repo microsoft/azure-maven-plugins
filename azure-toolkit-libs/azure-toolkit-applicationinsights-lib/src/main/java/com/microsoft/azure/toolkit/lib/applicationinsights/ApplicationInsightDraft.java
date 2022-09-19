@@ -25,9 +25,9 @@ import java.util.Optional;
 
 public class ApplicationInsightDraft extends ApplicationInsight implements AzResource.Draft<ApplicationInsight, ApplicationInsightsComponent> {
 
-    private static final String REGION_IS_REQUIRED = "'region' is required to create application insight.";
-    private static final String START_CREATING_APPLICATION_INSIGHT = "Start creating Application Insight ({0})...";
-    private static final String APPLICATION_INSIGHTS_CREATED = "Application Insight ({0}) is successfully created. " +
+    private static final String REGION_IS_REQUIRED = "'region' is required to create Application Insights.";
+    private static final String START_CREATING_APPLICATION_INSIGHT = "Start creating Application Insights ({0})...";
+    private static final String APPLICATION_INSIGHTS_CREATED = "Application Insights ({0}) is successfully created. " +
             "You can visit {1} to view your Application Insights component.";
 
     @Setter

@@ -81,7 +81,7 @@ public interface AzureFormInput<T> extends DataStore {
     default boolean fireValueChangedEvent(T val) {
         final T value = this.get(FIELD_VALUE);
         final boolean changed = !Objects.equals(val, value);
-        if (changed) {
+        if (changed || AzureValidationInfo.Type.PENDING.equals(this.getValidationInfo().getType())) {
             this.set(FIELD_VALUE, val);
             this.getValueChangedListeners().forEach(l -> l.accept(val, value));
         } else {
