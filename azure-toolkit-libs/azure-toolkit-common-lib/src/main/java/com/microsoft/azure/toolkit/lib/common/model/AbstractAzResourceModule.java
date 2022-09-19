@@ -334,15 +334,6 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             // this will notify azure explorer to show a draft resource first
             log.debug("[{}]:create->addResourceToLocal({})", this.name, resource);
             this.addResourceToLocal(resource.getId(), resource);
-            final ResourceId id = ResourceId.fromString(resource.getId());
-            final ResourceGroup resourceGroup = resource.getResourceGroup();
-            if (Objects.isNull(id.parent()) && Objects.nonNull(resourceGroup) &&
-                !(resource instanceof ResourceGroup) && !(resource instanceof ResourceDeployment)) {
-                final GenericResourceModule genericResourceModule = resourceGroup.genericResources();
-                final GenericResource genericResource = genericResourceModule.newResource(resource);
-                //noinspection unchecked,rawtypes
-                ((AbstractAzResourceModule) genericResourceModule).addResourceToLocal(resource.getId(), genericResource);
-            }
             log.debug("[{}]:create->doModify(draft.createResourceInAzure({}))", this.name, resource);
             try {
                 resource.doModify(draft::createResourceInAzure, AzResource.Status.CREATING);
@@ -393,9 +384,22 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         log.debug("[{}]:deleteResourceFromLocal->this.resources.remove({})", this.name, id);
         id = id.toLowerCase();
         final Optional<T> removed = this.resources.remove(id);
-        if (Objects.nonNull(removed) && removed.isPresent() && (silent.length == 0 || !silent[0])) {
-            log.debug("[{}]:deleteResourceFromLocal->fireResourcesChangedEvent()", this.name);
-            fireEvents.debounce();
+        if (Objects.nonNull(removed) && removed.isPresent()) {
+            this.deleteResourceFromLocalResourceGroup(removed.get(), silent);
+            if ((silent.length == 0 || !silent[0])) {
+                log.debug("[{}]:deleteResourceFromLocal->fireResourcesChangedEvent()", this.name);
+                fireEvents.debounce();
+            }
+        }
+    }
+
+    protected void deleteResourceFromLocalResourceGroup(@Nonnull T resource, boolean... silent) {
+        final ResourceId rId = ResourceId.fromString(resource.getId());
+        final ResourceGroup resourceGroup = resource.getResourceGroup();
+        if (Objects.isNull(rId.parent()) && Objects.nonNull(resourceGroup) &&
+            !(resource instanceof ResourceGroup) && !(resource instanceof ResourceDeployment)) {
+            final GenericResourceModule genericResourceModule = resourceGroup.genericResources();
+            genericResourceModule.deleteResourceFromLocal(resource.getId(), silent);
         }
     }
 
@@ -407,10 +411,24 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         if (!oldResource.isPresent()) {
             log.debug("[{}]:addResourceToLocal->this.resources.put({}, {})", this.name, id, resource);
             this.resources.put(id, newResource);
-            if (newResource.isPresent() && (silent.length == 0 || !silent[0])) {
-                log.debug("[{}]:addResourceToLocal->fireResourcesChangedEvent()", this.name);
-                fireEvents.debounce();
+            if (newResource.isPresent()) {
+                this.addResourceToLocalResourceGroup(id, resource, silent);
+                if (silent.length == 0 || !silent[0]) {
+                    log.debug("[{}]:addResourceToLocal->fireResourcesChangedEvent()", this.name);
+                    fireEvents.debounce();
+                }
             }
+        }
+    }
+
+    protected void addResourceToLocalResourceGroup(@Nonnull String id, @Nonnull T resource, boolean... silent) {
+        final ResourceId rId = ResourceId.fromString(id);
+        final ResourceGroup resourceGroup = resource.getResourceGroup();
+        if (Objects.isNull(rId.parent()) && Objects.nonNull(resourceGroup) &&
+            !(resource instanceof ResourceGroup) && !(resource instanceof ResourceDeployment)) {
+            final GenericResourceModule genericResourceModule = resourceGroup.genericResources();
+            final GenericResource genericResource = genericResourceModule.newResource(resource);
+            genericResourceModule.addResourceToLocal(resource.getId(), genericResource, silent);
         }
     }
 

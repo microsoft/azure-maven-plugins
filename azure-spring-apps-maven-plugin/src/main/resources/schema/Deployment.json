@@ -13,15 +13,29 @@
       "description": "cpu cores",
       "type": "number",
       "default": 1,
-      "minimum": 0.5,
-      "maximum": 4
+      "enum": [
+        0.5,
+        1,
+        2,
+        3,
+        4
+      ]
     },
     "memoryInGB": {
       "description": "memory in GB",
       "type": "number",
       "default": 1,
-      "minimum": 0.5,
-      "maximum": 8
+      "enum": [
+        0.5,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
     },
     "instanceCount": {
       "description": "instance count",
