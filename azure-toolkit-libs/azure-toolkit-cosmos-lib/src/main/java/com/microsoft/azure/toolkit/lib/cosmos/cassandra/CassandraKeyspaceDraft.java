@@ -60,10 +60,10 @@ public class CassandraKeyspaceDraft extends CassandraKeyspace implements
             }
             parameters.withOptions(options);
         }
-        AzureMessager.getMessager().info(AzureString.format("Start creating keyspace({0})...", this.getName()));
+        AzureMessager.getMessager().info(AzureString.format("Start creating Cassandra keyspace({0})...", this.getName()));
         final CassandraKeyspaceGetResultsInner result = cosmosDBManagementClient.getCassandraResources().createUpdateCassandraKeyspace(this.getResourceGroupName(), this.getParent().getName(),
                 this.getName(), parameters, Context.NONE);
-        AzureMessager.getMessager().success(AzureString.format("Keyspace({0}) is successfully created.", this.getName()));
+        AzureMessager.getMessager().success(AzureString.format("Cassandra keyspace({0}) is successfully created.", this.getName()));
         return result;
     }
 

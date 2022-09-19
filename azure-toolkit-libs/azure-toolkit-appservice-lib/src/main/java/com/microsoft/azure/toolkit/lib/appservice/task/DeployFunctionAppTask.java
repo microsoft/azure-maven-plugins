@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import org.apache.commons.collections4.CollectionUtils;
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -60,11 +62,18 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
     private final FunctionAppBase<?, ?, ?> target;
     private final File stagingDirectory;
     private final FunctionDeployType deployType;
+    private final IAzureMessager messager;
 
     public DeployFunctionAppTask(@Nonnull FunctionAppBase<?, ?, ?> target, @Nonnull File stagingFolder, @Nullable FunctionDeployType deployType) {
+        this(target, stagingFolder, deployType, AzureMessager.getMessager());
+    }
+
+    public DeployFunctionAppTask(@Nonnull FunctionAppBase<?, ?, ?> target, @Nonnull File stagingFolder,
+                                 @Nullable FunctionDeployType deployType, @Nonnull IAzureMessager messager) {
         this.target = target;
         this.stagingDirectory = stagingFolder;
         this.deployType = deployType;
+        this.messager = messager;
     }
 
     @Override
@@ -74,8 +83,8 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
 
     @Override
     public FunctionAppBase<?, ?, ?> doExecute() {
-        if (target.getRuntime().isDocker()) {
-            AzureMessager.getMessager().info(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE);
+        if (Objects.requireNonNull(target.getRuntime()).isDocker()) {
+            messager.info(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE);
             return target;
         }
         deployArtifact();
@@ -86,7 +95,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
     }
 
     private void deployArtifact() {
-        AzureMessager.getMessager().info(DEPLOY_START);
+        messager.info(DEPLOY_START);
         // For ftp deploy, we need to upload entire staging directory not the zipped package
         final File file = deployType == FunctionDeployType.FTP ? stagingDirectory : packageStagingDirectory();
         final long startTime = System.currentTimeMillis();
@@ -99,7 +108,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
         if (!StringUtils.equalsIgnoreCase(target.getStatus(), RUNNING)) {
             target.start();
         }
-        AzureMessager.getMessager().info(String.format(DEPLOY_FINISH, target.getHostName()));
+        messager.info(String.format(DEPLOY_FINISH, target.getHostName()));
     }
 
     private File packageStagingDirectory() {
@@ -126,24 +135,24 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
                     StringUtils.equalsIgnoreCase(bindingResource.getTrigger().getProperty(AUTH_LEVEL), ANONYMOUS))
                 .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(httpFunction) || CollectionUtils.isEmpty(anonymousTriggers)) {
-                AzureMessager.getMessager().info(NO_ANONYMOUS_HTTP_TRIGGER);
+                messager.info(NO_ANONYMOUS_HTTP_TRIGGER);
                 return;
             }
-            AzureMessager.getMessager().info(HTTP_TRIGGER_URLS);
-            anonymousTriggers.forEach(trigger -> AzureMessager.getMessager().info(String.format("\t %s : %s", trigger.getName(), trigger.getTriggerUrl())));
+            messager.info(HTTP_TRIGGER_URLS);
+            anonymousTriggers.forEach(trigger -> messager.info(String.format("\t %s : %s", trigger.getName(), trigger.getTriggerUrl())));
             if (anonymousTriggers.size() < httpFunction.size()) {
-                AzureMessager.getMessager().info(UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS);
+                messager.info(UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS);
             }
         } catch (final RuntimeException | InterruptedException e) {
             // show warning instead of exception for list triggers
-            AzureMessager.getMessager().warning(FAILED_TO_LIST_TRIGGERS);
+            messager.warning(FAILED_TO_LIST_TRIGGERS);
         }
     }
 
     // todo: move to app service library
     // Refers https://github.com/Azure/azure-functions-core-tools/blob/3.0.3568/src/Azure.Functions.Cli/Actions/AzureActions/PublishFunctionAppAction.cs#L452
     private void syncTriggers(final FunctionApp functionApp) throws InterruptedException {
-        AzureMessager.getMessager().info(SYNC_TRIGGERS);
+        messager.info(SYNC_TRIGGERS);
         Thread.sleep(5 * 1000);
         Mono.fromRunnable(() -> {
                 try {
@@ -161,7 +170,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
         final int[] count = {0};
         return Mono.fromCallable(() -> {
                 final AzureString message = count[0]++ == 0 ? AzureString.fromString(LIST_TRIGGERS) : AzureString.format(LIST_TRIGGERS_WITH_RETRY, count[0], LIST_TRIGGERS_MAX_RETRY);
-                AzureMessager.getMessager().info(message);
+                messager.info(message);
                 return Optional.of(functionApp.listFunctions())
                     .filter(CollectionUtils::isNotEmpty)
                     .orElseThrow(() -> new AzureToolkitRuntimeException(NO_TRIGGERS_FOUNDED));

@@ -60,10 +60,10 @@ public class MongoDatabaseDraft extends MongoDatabase implements
             }
             parameters.withOptions(options);
         }
-        AzureMessager.getMessager().info(AzureString.format("Start creating database({0})...", this.getName()));
+        AzureMessager.getMessager().info(AzureString.format("Start creating MongoDB database({0})...", this.getName()));
         final MongoDBDatabaseGetResultsInner result = cosmosDBManagementClient.getMongoDBResources().createUpdateMongoDBDatabase(this.getResourceGroupName(), this.getParent().getName(),
                 this.getName(), parameters, Context.NONE);
-        AzureMessager.getMessager().success(AzureString.format("Database({0}) is successfully created.", this.getName()));
+        AzureMessager.getMessager().success(AzureString.format("MongoDB database({0}) is successfully created.", this.getName()));
         return result;
     }
 
