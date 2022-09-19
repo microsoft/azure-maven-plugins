@@ -7,7 +7,9 @@ package com.microsoft.azure.toolkit.lib.sqlserver;
 
 import com.azure.resourcemanager.sql.SqlServerManager;
 import com.azure.resourcemanager.sql.models.SqlServer;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
@@ -16,9 +18,11 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 import lombok.Getter;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -64,6 +68,11 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
     public SqlServer createResourceInAzure() {
         assert this.config != null;
         final SqlServerManager manager = Objects.requireNonNull(this.getParent().getRemote());
+        Optional.ofNullable(this.getRegion()).ifPresent(region -> {
+            if (!this.getParent().checkRegionAvailability(region)) {
+                throw new AzureToolkitRuntimeException("sql server is not available in this location for your subscription.");
+            }
+        });
         final SqlServer.DefinitionStages.WithCreate create = manager.sqlServers()
             .define(this.getName())
             .withRegion(Objects.requireNonNull(this.getRegion(), "'region' is required to create Sql server").getName())
