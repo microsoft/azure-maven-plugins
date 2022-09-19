@@ -114,12 +114,13 @@ public class OperationThreadContext {
         final OperationThreadContext current = OperationThreadContext.current();
         final long threadId = Thread.currentThread().getId();
         assert this == current && this.threadId == threadId : String.format("[threadId:%s] disposing context[%s] in context[%s].", threadId, this, current);
-        if (this.parent == null || this.threadId != this.parent.threadId || Objects.isNull(getAliveAncestor(current))) { // this is the root task of current thread.
+        final OperationThreadContext ancestorContext = getAliveAncestor(current);
+        if (this.parent == null || this.threadId != this.parent.threadId || Objects.isNull(ancestorContext)) { // this is the root task of current thread.
             OperationThreadContext.context.get().resetThreadId();
             OperationThreadContext.context.remove();
         } else { // this is not the root task of current thread.
             OperationThreadContext.context.get().resetThreadId();
-            OperationThreadContext.context.set(getAliveAncestor(current));
+            OperationThreadContext.context.set(ancestorContext);
         }
     }
 
