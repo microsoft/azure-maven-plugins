@@ -322,6 +322,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(AbstractAzResource::deleteFromCache);
     }
 
+    public void reloadStatus() {
+        this.setStatus(this.loadStatus(this.getRemote()));
+    }
+    
     public void setStatus(@Nonnull String status) {
         synchronized (this.statusRef) {
             log.debug("[{}:{}]:setStatus({})", this.module.getName(), this.getName(), status);

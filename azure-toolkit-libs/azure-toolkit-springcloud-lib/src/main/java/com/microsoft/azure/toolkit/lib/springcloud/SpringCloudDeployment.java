@@ -191,4 +191,13 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     public Boolean isActive() {
         return Optional.ofNullable(this.getRemote()).map(SpringAppDeployment::isActive).orElse(false);
     }
+
+    @Override
+    public void setStatus(@Nonnull String status) {
+        super.setStatus(status);
+        // update app status when active deployment status changed
+        if (this.isActive()) {
+            getParent().reloadStatus();
+        }
+    }
 }
