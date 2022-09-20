@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PomUtils {
-    public static Element getPluginConfigNode(PluginDescriptor plugin, File pom) throws FileNotFoundException, DocumentException {
+    public static Element getPluginNode(PluginDescriptor plugin, File pom) throws FileNotFoundException, DocumentException {
         final SAXReader reader = new CustomSAXReader();
         reader.setDocumentFactory(new LocatorAwareDocumentFactory());
         final Document doc = reader.read(new InputStreamReader(new FileInputStream(pom)));

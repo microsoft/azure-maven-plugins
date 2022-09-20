@@ -5,22 +5,21 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.maven.utils.PomUtils;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.serializer.ConfigurationSerializer;
 import com.microsoft.azure.maven.webapp.serializer.V2ConfigurationSerializer;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.FileUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.dom4j.dom.DOMElement;
-import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
-import org.dom4j.io.XMLWriter;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 
 // todo: migrate to com.microsoft.azure.maven.utils.PomUtils
@@ -43,27 +42,19 @@ public class WebAppPomHandler {
         return mavenPlugin == null ? null : mavenPlugin.element("configuration");
     }
 
-    public void updatePluginConfiguration(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs, PluginDescriptor descriptor)
-        throws IOException,
-        MojoFailureException {
-        Element pluginElement = getMavenPluginElement();
-        if (pluginElement == null) {
-            final Element buildNode = XMLUtils.getOrCreateSubElement("build", document.getRootElement());
-            final Element pluginsRootNode = XMLUtils.getOrCreateSubElement("plugins", buildNode);
-            pluginElement = createNewMavenPluginNode(pluginsRootNode, descriptor);
+    public void updatePluginConfiguration(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs, MavenProject project, PluginDescriptor plugin)
+        throws IOException, MojoFailureException, DocumentException {
+        final File pom = project.getFile();
+        final Element pluginNode = PomUtils.getPluginNode(plugin, pom);
+        Element configNode = PomUtils.getOrCreateNode(pluginNode, "configuration");
+        // newly created nodes are not LocationAwareElement
+        while (!(configNode.getParent() instanceof PomUtils.LocationAwareElement)) {
+            configNode = configNode.getParent();
         }
-        final Element configuration = XMLUtils.getOrCreateSubElement("configuration", pluginElement);
         final ConfigurationSerializer serializer = new V2ConfigurationSerializer(newConfigs, oldConfigs);
-        serializer.saveToXML(configuration);
-        XMLUtils.setNamespace(pluginElement, pluginElement.getNamespace());
-        saveModel();
-    }
-
-    private void saveModel() throws IOException {
-        final XMLWriter writer = new XMLWriter(new FileWriter(file), OutputFormat.createPrettyPrint());
-        writer.setEscapeText(false);
-        writer.write(document);
-        writer.close();
+        serializer.saveToXML(configNode);
+        XMLUtils.setNamespace(pluginNode, pluginNode.getNamespace());
+        FileUtils.fileWrite(pom, PomUtils.formatNode(FileUtils.fileRead(pom), (PomUtils.LocationAwareElement) configNode.getParent(), configNode));
     }
 
     // get webapp maven plugin node from pom
@@ -81,17 +72,5 @@ public class WebAppPomHandler {
             return null;
         }
         return null;
-    }
-
-    private static Element createNewMavenPluginNode(Element pluginsRootNode, PluginDescriptor descriptor) {
-
-        final Element result = new DOMElement("plugin");
-
-        ((DOMElement) result).setNamespace(pluginsRootNode.getNamespace());
-        result.add(XMLUtils.createSimpleElement("groupId", descriptor.getGroupId()));
-        result.add(XMLUtils.createSimpleElement("artifactId", descriptor.getArtifactId()));
-        result.add(XMLUtils.createSimpleElement("version", descriptor.getVersion()));
-        pluginsRootNode.add(result);
-        return result;
     }
 }
