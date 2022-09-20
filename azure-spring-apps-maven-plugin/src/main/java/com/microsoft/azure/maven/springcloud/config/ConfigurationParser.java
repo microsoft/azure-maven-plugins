@@ -7,6 +7,7 @@ package com.microsoft.azure.maven.springcloud.config;
 
 import com.microsoft.azure.maven.springcloud.AbstractMojoBase;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
@@ -14,7 +15,9 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class ConfigurationParser {
     public SpringCloudAppConfig parse(AbstractMojoBase springMojo) {
@@ -33,7 +36,14 @@ public class ConfigurationParser {
 
     @SneakyThrows
     private static SpringCloudDeploymentConfig toDeploymentConfig(AppDeploymentMavenConfig rawConfig, AbstractMojoBase mojo) {
-        final List<File> artifacts = MavenArtifactUtils.getArtifacts(rawConfig.getResources());
+        final List<File> artifacts = new ArrayList<>();
+        Optional.ofNullable(rawConfig.getResources()).ifPresent(resources-> resources.forEach(resource -> {
+            try {
+                artifacts.addAll(MavenArtifactUtils.getArtifacts(resource));
+            } catch (IllegalStateException e) {
+                AzureMessager.getMessager().warning(String.format("'%s' doesn't exist or isn't a directory", resource.getDirectory()));
+            }
+        }));
         if (artifacts.isEmpty()) {
             artifacts.addAll(MavenArtifactUtils.getArtifactFiles(mojo.getProject()));
         }
