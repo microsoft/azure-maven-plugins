@@ -111,6 +111,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         final WebAppDraft appDraft = Azure.az(AzureWebApp.class).webApps(config.subscriptionId()).create(config.appName(), config.resourceGroup());
         appDraft.setAppServicePlan(planDraft.commit());
         appDraft.setRuntime(getRuntime(config.runtime()));
+        appDraft.setDiagnosticConfig(config.diagnosticConfig());
         appDraft.setDockerConfiguration(getDockerConfiguration(config.runtime()));
         appDraft.setAppSettings(config.appSettings());
         return appDraft.createIfNotExist();
@@ -133,6 +134,8 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         draft.setRuntime(runtime);
         draft.setDockerConfiguration(getDockerConfiguration(config.runtime()));
         draft.setAppSettings(ObjectUtils.firstNonNull(config.appSettings(), new HashMap<>()));
+        draft.setDiagnosticConfig(config.diagnosticConfig());
+        draft.removeAppSettings(config.appSettingsToRemove());
         return draft.updateIfExist();
     }
 
@@ -141,6 +144,8 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         draft.setRuntime(getRuntime(config.runtime()));
         draft.setDockerConfiguration(getDockerConfiguration(config.runtime()));
         draft.setAppSettings(config.appSettings());
+        draft.removeAppSettings(config.appSettingsToRemove());
+        draft.setDiagnosticConfig(config.diagnosticConfig());
         draft.setConfigurationSource(config.deploymentSlotConfigurationSource());
         return draft.commit();
     }
@@ -149,7 +154,9 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private WebAppDeploymentSlot updateDeploymentSlot(final WebAppDeploymentSlotDraft draft) {
         draft.setRuntime(getRuntime(config.runtime()));
         draft.setDockerConfiguration(getDockerConfiguration(config.runtime()));
+        draft.setDiagnosticConfig(config.diagnosticConfig());
         draft.setAppSettings(config.appSettings());
+        draft.removeAppSettings(config.appSettingsToRemove());
         return draft.commit();
     }
 

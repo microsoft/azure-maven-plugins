@@ -121,6 +121,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setRuntime(getRuntime(functionAppConfig.runtime()));
             draft.setDockerConfiguration(getDockerConfiguration(functionAppConfig.runtime()));
             draft.setAppSettings(appSettings);
+            draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
             return draft.createIfNotExist();
         });
     }
@@ -161,6 +162,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setRuntime(getRuntime(functionAppConfig.runtime()));
             draft.setDockerConfiguration(getDockerConfiguration(functionAppConfig.runtime()));
             draft.setAppSettings(appSettings);
+            draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
+            draft.removeAppSettings(functionAppConfig.appSettingsToRemove());
             return draft.updateIfExist();
         });
     }
@@ -174,9 +177,11 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
                 appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, key));
             draft.setAppSettings(appSettings);
             draft.setRuntime(getRuntime(functionAppConfig.runtime()));
+            draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
             draft.setDockerConfiguration(getDockerConfiguration(functionAppConfig.runtime()));
             draft.setConfigurationSource(functionAppConfig.deploymentSlotConfigurationSource());
-            return draft.createIfNotExist();
+            draft.removeAppSettings(functionAppConfig.appSettingsToRemove());
+            return draft.commit();
         });
     }
 
@@ -191,8 +196,10 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             }
             draft.setRuntime(getRuntime(functionAppConfig.runtime()));
             draft.setDockerConfiguration(getDockerConfiguration(functionAppConfig.runtime()));
+            draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
             draft.setAppSettings(appSettings);
-            return draft.updateIfExist();
+            draft.removeAppSettings(functionAppConfig.appSettingsToRemove());
+            return draft.commit();
         });
     }
 

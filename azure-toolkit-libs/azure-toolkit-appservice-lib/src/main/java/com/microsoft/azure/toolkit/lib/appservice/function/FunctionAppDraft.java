@@ -307,6 +307,10 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         this.ensureConfig().getAppSettingsToRemove().add(key);
     }
 
+    public void removeAppSettings(Set<String> keys) {
+        this.ensureConfig().getAppSettingsToRemove().addAll(keys);
+    }
+
     @Nullable
     public Set<String> getAppSettingsToRemove() {
         return Optional.ofNullable(config).map(Config::getAppSettingsToRemove).orElse(new HashSet<>());

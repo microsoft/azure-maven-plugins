@@ -223,6 +223,10 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         this.ensureConfig().setAppSettings(appSettings);
     }
 
+    public void removeAppSettings(Set<String> keys) {
+        this.ensureConfig().getAppSettingsToRemove().addAll(keys);
+    }
+
     @Nullable
     @Override
     public Map<String, String> getAppSettings() {
