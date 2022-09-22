@@ -70,8 +70,4 @@ public class WebAppDeploymentSlotModule extends AbstractAzResourceModule<WebAppD
         return "Deployment slot";
     }
 
-    @Override
-    public List<? extends AbstractAzResource<?, ?, ?>> listDeploymentSlots() {
-        return this.list();
-    }
 }

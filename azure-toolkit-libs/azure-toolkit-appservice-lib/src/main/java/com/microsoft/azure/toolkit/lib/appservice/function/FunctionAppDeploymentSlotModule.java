@@ -68,8 +68,4 @@ public class FunctionAppDeploymentSlotModule extends AbstractAzResourceModule<Fu
         return "Deployment slot";
     }
 
-    @Override
-    public List<? extends AbstractAzResource<?, ?, ?>> listDeploymentSlots() {
-        return this.list();
-    }
 }

@@ -8,9 +8,6 @@ package com.microsoft.azure.toolkit.lib.appservice;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 
-import java.util.List;
-
 public interface IDeploymentSlotModule<T extends AbstractAzResource<T, P, R>, P extends AbstractAzResource<P, ?, ?>, R> extends
         AzResourceModule<T, P, R> {
-    List<? extends AbstractAzResource<?, ?, ?>> listDeploymentSlots();
 }
