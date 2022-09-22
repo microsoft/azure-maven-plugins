@@ -24,14 +24,14 @@ import java.util.Objects;
 public class ConfigurationUpdater {
     public static void updateAppConfigToPom(AppRawConfig config, MavenProject project, PluginDescriptor plugin) throws DocumentException, IOException {
         final File pom = project.getFile();
-        final Element pluginConfigNode = PomUtils.getPluginConfigNode(plugin, pom);
-        Element newNode = config != null ? createOrUpdateAppConfigNode(pluginConfigNode, config) : pluginConfigNode;
+        final Element pluginNode = PomUtils.getPluginNode(plugin, pom);
+        Element configNode = config != null ? createOrUpdateAppConfigNode(pluginNode, config) : pluginNode;
 
         // newly created nodes are not LocationAwareElement
-        while (!(newNode.getParent() instanceof PomUtils.LocationAwareElement)) {
-            newNode = newNode.getParent();
+        while (!(configNode.getParent() instanceof PomUtils.LocationAwareElement)) {
+            configNode = configNode.getParent();
         }
-        FileUtils.fileWrite(pom, PomUtils.formatNode(FileUtils.fileRead(pom), (PomUtils.LocationAwareElement) newNode.getParent(), newNode));
+        FileUtils.fileWrite(pom, PomUtils.formatNode(FileUtils.fileRead(pom), (PomUtils.LocationAwareElement) configNode.getParent(), configNode));
     }
 
     private static Element createOrUpdateAppConfigNode(Element pluginNode, AppRawConfig config) {

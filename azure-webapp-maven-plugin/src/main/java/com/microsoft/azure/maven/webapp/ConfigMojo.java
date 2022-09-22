@@ -142,7 +142,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return false;
     }
 
-    protected void config(WebAppConfiguration configuration) throws MojoFailureException, IOException, IllegalAccessException {
+    protected void config(WebAppConfiguration configuration) throws MojoFailureException, IOException, IllegalAccessException, DocumentException {
         WebAppConfiguration result;
         do {
             if (configuration == null || !isProjectConfigured()) {
@@ -162,7 +162,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             }
         } while (!confirmConfiguration(result));
         Log.info(SAVING_TO_POM);
-        pomHandler.updatePluginConfiguration(result, configuration, plugin);
+        pomHandler.updatePluginConfiguration(result, configuration, this.project, plugin);
     }
 
     protected boolean confirmConfiguration(WebAppConfiguration configuration) {
