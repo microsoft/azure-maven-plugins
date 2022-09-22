@@ -40,7 +40,7 @@ public class AzureTelemeter {
     public static final String ERROR_ROOT_MSG = "error.root_error_message";
     public static final String ERROR_TYPE = "error.error_type";
     public static final String ERROR_CLASSNAME = "error.error_class_name";
-    public static final String ERROR_ROOT_CLASSNAME = "error.root_error_message";
+    public static final String ERROR_ROOT_CLASSNAME = "error.root_error_class_name";
     public static final String ERROR_STACKTRACE = "error.error_stack";
     @Getter
     @Setter
