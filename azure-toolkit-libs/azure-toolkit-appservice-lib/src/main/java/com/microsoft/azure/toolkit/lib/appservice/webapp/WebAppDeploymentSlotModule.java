@@ -8,14 +8,20 @@ package com.microsoft.azure.toolkit.lib.appservice.webapp;
 import com.azure.resourcemanager.appservice.models.DeploymentSlots;
 import com.azure.resourcemanager.appservice.models.WebDeploymentSlotBasic;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
+import com.microsoft.azure.toolkit.lib.appservice.IDeploymentSlotModule;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Optional;
 
-public class WebAppDeploymentSlotModule extends AbstractAzResourceModule<WebAppDeploymentSlot, WebApp, WebSiteBase> {
+public class WebAppDeploymentSlotModule extends AbstractAzResourceModule<WebAppDeploymentSlot, WebApp, WebSiteBase>
+        implements IDeploymentSlotModule<WebAppDeploymentSlot, WebApp, WebSiteBase> {
 
     public static final String NAME = "slots";
 
@@ -63,4 +69,5 @@ public class WebAppDeploymentSlotModule extends AbstractAzResourceModule<WebAppD
     public String getResourceTypeName() {
         return "Deployment slot";
     }
+
 }

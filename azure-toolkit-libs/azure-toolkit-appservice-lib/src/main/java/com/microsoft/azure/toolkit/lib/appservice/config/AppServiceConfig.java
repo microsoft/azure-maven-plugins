@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.config;
 
+import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
@@ -17,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -41,9 +43,13 @@ public class AppServiceConfig {
 
     private Map<String, String> appSettings;
 
+    private Set<String> appSettingsToRemove;
+
     private String deploymentSlotName;
 
     private String deploymentSlotConfigurationSource;
+
+    private DiagnosticConfig diagnosticConfig;
 
     public AppServicePlanConfig getServicePlanConfig() {
         return AppServicePlanConfig.builder()
