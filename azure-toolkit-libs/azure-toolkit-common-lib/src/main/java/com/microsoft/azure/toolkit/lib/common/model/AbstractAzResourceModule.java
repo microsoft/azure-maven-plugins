@@ -341,6 +341,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 resource.delete();
                 throw e;
             }
+            AzureEventBus.emit("azure.explorer.highlight_resource", resource);
             return resource;
         }
         throw new AzureToolkitRuntimeException(String.format("resource \"%s\" is existing", existing.getName()));
