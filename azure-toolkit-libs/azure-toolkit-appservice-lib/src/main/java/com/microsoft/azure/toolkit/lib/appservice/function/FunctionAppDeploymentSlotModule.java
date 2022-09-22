@@ -8,14 +8,18 @@ package com.microsoft.azure.toolkit.lib.appservice.function;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlotBasic;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlots;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
+import com.microsoft.azure.toolkit.lib.appservice.IDeploymentSlotModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Optional;
 
-public class FunctionAppDeploymentSlotModule extends AbstractAzResourceModule<FunctionAppDeploymentSlot, FunctionApp, WebSiteBase> {
+public class FunctionAppDeploymentSlotModule extends AbstractAzResourceModule<FunctionAppDeploymentSlot, FunctionApp, WebSiteBase>
+        implements IDeploymentSlotModule<FunctionAppDeploymentSlot, FunctionApp, WebSiteBase> {
 
     public static final String NAME = "slots";
 
@@ -62,5 +66,10 @@ public class FunctionAppDeploymentSlotModule extends AbstractAzResourceModule<Fu
     @Override
     public String getResourceTypeName() {
         return "Deployment slot";
+    }
+
+    @Override
+    public List<? extends AbstractAzResource<?, ?, ?>> listDeploymentSlots() {
+        return this.list();
     }
 }
