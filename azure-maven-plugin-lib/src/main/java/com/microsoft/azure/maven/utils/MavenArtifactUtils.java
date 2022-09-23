@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.maven.utils;
 
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Resource;
