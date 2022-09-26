@@ -224,7 +224,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
     }
 
     public void removeAppSettings(Set<String> keys) {
-        this.ensureConfig().getAppSettingsToRemove().addAll(keys);
+        this.ensureConfig().getAppSettingsToRemove().addAll(ObjectUtils.firstNonNull(keys, Collections.emptySet()));
     }
 
     @Nullable

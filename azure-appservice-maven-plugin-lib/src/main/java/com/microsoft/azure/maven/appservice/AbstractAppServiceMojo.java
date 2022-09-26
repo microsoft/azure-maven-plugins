@@ -79,7 +79,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
      * {@code
      * <deploymentSlotSetting>
      *     <name>Slot-Name</name>
-     *     <configurationSource>Source</value>
+     *     <configurationSource>Source</configurationSource>
      * </deploymentSlotSetting>
      * }
      * </pre>
