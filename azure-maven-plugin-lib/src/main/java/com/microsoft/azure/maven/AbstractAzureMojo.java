@@ -186,12 +186,12 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
      *         <ul>
      *             <li> service_principal : Will use credential specified in plugin configuration or Maven settings.xml,
      *             this is also the first priority authentication method in auto</li>
-     *             <li> managed identity : Will use the system managed credential managed by azure</li>
+     *             <li> managed_identity : Will use the system managed credential managed by azure</li>
      *             <li> azure_cli : Will use credential provided by Azure CLI, this could also be used in Azure Cloud Shell</li>
      *             <li> oauth2 : Will use credential provided by oauth2, a browser will be opened, you need to follow the page to follow the login process</li>
      *             <li> device_code : Similar to oauth2, it provides you a login-code together with an url, you need to open a browser at any machine and fill-in
      *             the login-code, then you can follow the page to follow to finish the login process on the web page</li>
-     *             <li> auto: The default auth type, it will try all the auth methods in the following sequence: service_principal, managed identity, azure_cli, oauth2, device_code </li>
+     *             <li> auto: The default auth type, it will try all the auth methods in the following sequence: service_principal, managed_identity, azure_cli, oauth2, device_code </li>
      *         </ul>
      *     </li>
      *     <li> environment: Specifies the target Azure cloud environment<p>

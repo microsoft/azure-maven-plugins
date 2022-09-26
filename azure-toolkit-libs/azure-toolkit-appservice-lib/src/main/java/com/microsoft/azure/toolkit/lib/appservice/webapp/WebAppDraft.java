@@ -264,7 +264,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebS
     }
 
     public void removeAppSettings(Set<String> keys) {
-        this.ensureConfig().getAppSettingsToRemove().addAll(keys);
+        this.ensureConfig().getAppSettingsToRemove().addAll(ObjectUtils.firstNonNull(keys, Collections.emptySet()));
     }
 
     @Nullable
