@@ -149,4 +149,14 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     public boolean isPersistentDiskEnabled() {
         return Objects.nonNull(this.getPersistentDisk());
     }
+
+    public void enableDebugging(int port) {
+        Utils.enableDebugging(this.getSubscriptionId(), this.getResourceGroupName(), Objects.requireNonNull(this.getParent().getRemote()).name(),
+                this.getName(), this.getActiveDeploymentName(), port);
+    }
+
+    public void disableDebugging() {
+        Utils.disableDebugging(this.getSubscriptionId(), this.getResourceGroupName(), Objects.requireNonNull(this.getParent().getRemote()).name(),
+                this.getName(), this.getActiveDeploymentName());
+    }
 }
