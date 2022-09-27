@@ -6,12 +6,9 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.core.management.profile.AzureProfile;
-import com.azure.resourcemanager.appplatform.fluent.AppPlatformManagementClient;
 import com.azure.resourcemanager.appplatform.fluent.DeploymentsClient;
-import com.azure.resourcemanager.appplatform.fluent.models.RemoteDebuggingInner;
 import com.azure.resourcemanager.appplatform.implementation.AppPlatformManagementClientBuilder;
 import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
-import com.azure.resourcemanager.appplatform.models.RemoteDebuggingPayload;
 import com.azure.resourcemanager.resources.fluentcore.utils.HttpPipelineProvider;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
@@ -89,26 +86,13 @@ public class Utils {
             .toBlocking().last();
     }
 
-    public static void enableDebugging(String subscriptionId, String resourceGroupName,
-                                                       String serviceName, String appName, String deploymentName, int port) {
-        DeploymentsClient client = getAppPlatformManagementClient(subscriptionId).getDeployments();
-        RemoteDebuggingPayload payload = new RemoteDebuggingPayload().withPort(port);
-        client.enableRemoteDebugging(resourceGroupName, serviceName, appName, deploymentName, payload);
-    }
-
-    public static void disableDebugging(String subscriptionId, String resourceGroupName,
-                                        String serviceName, String appName, String deploymentName) {
-        DeploymentsClient client = getAppPlatformManagementClient(subscriptionId).getDeployments();
-        client.disableRemoteDebugging(resourceGroupName, serviceName, appName, deploymentName);
-    }
-
-    private static AppPlatformManagementClient getAppPlatformManagementClient(String subscriptionId) {
+    public static DeploymentsClient getDeployClient(String subscriptionId) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
         return (new AppPlatformManagementClientBuilder())
                 .pipeline(HttpPipelineProvider.buildHttpPipeline(account.getTokenCredential(subscriptionId), azureProfile))
                 .endpoint(azureProfile.getEnvironment().getResourceManagerEndpoint())
                 .subscriptionId(subscriptionId)
-                .buildClient();
+                .buildClient().getDeployments();
     }
 }

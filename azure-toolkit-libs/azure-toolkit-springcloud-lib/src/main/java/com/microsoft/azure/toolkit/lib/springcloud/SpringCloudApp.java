@@ -5,7 +5,9 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
+import com.azure.resourcemanager.appplatform.fluent.DeploymentsClient;
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
+import com.azure.resourcemanager.appplatform.models.RemoteDebuggingPayload;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -150,13 +152,22 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
         return Objects.nonNull(this.getPersistentDisk());
     }
 
-    public void enableDebugging(int port) {
-        Utils.enableDebugging(this.getSubscriptionId(), this.getResourceGroupName(), Objects.requireNonNull(this.getParent().getRemote()).name(),
-                this.getName(), this.getActiveDeploymentName(), port);
+    public void enableRemoteDebugging(int port) {
+        DeploymentsClient client = Utils.getDeployClient(this.getSubscriptionId());
+        RemoteDebuggingPayload payload = new RemoteDebuggingPayload().withPort(port);
+        client.enableRemoteDebugging(this.getResourceGroupName(), Objects.requireNonNull(this.getParent().getRemote()).name(),
+                this.getName(), this.getActiveDeploymentName(), payload);
     }
 
-    public void disableDebugging() {
-        Utils.disableDebugging(this.getSubscriptionId(), this.getResourceGroupName(), Objects.requireNonNull(this.getParent().getRemote()).name(),
+    public void disableRemoteDebugging() {
+        DeploymentsClient client = Utils.getDeployClient(this.getSubscriptionId());
+        client.disableRemoteDebugging(this.getResourceGroupName(), Objects.requireNonNull(this.getParent().getRemote()).name(),
                 this.getName(), this.getActiveDeploymentName());
+    }
+
+    public boolean isRemoteDebuggingEnabled() {
+        DeploymentsClient client = Utils.getDeployClient(this.getSubscriptionId());
+        return client.getRemoteDebuggingConfig(this.getResourceGroupName(), Objects.requireNonNull(this.getParent().getRemote()).name(),
+                this.getName(), this.getActiveDeploymentName()).enabled();
     }
 }
