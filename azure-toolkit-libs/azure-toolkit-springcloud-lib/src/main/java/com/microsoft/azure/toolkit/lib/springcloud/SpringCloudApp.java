@@ -153,20 +153,20 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     }
 
     public void enableRemoteDebugging(int port) {
-        DeploymentsClient client = Utils.getDeployClient(this.getSubscriptionId());
+        DeploymentsClient client = Utils.getDeploymentsClient(this.getSubscriptionId());
         RemoteDebuggingPayload payload = new RemoteDebuggingPayload().withPort(port);
         client.enableRemoteDebugging(this.getResourceGroupName(), Objects.requireNonNull(this.getParent().getRemote()).name(),
                 this.getName(), this.getActiveDeploymentName(), payload);
     }
 
     public void disableRemoteDebugging() {
-        DeploymentsClient client = Utils.getDeployClient(this.getSubscriptionId());
+        DeploymentsClient client = Utils.getDeploymentsClient(this.getSubscriptionId());
         client.disableRemoteDebugging(this.getResourceGroupName(), Objects.requireNonNull(this.getParent().getRemote()).name(),
                 this.getName(), this.getActiveDeploymentName());
     }
 
     public boolean isRemoteDebuggingEnabled() {
-        DeploymentsClient client = Utils.getDeployClient(this.getSubscriptionId());
+        DeploymentsClient client = Utils.getDeploymentsClient(this.getSubscriptionId());
         return client.getRemoteDebuggingConfig(this.getResourceGroupName(), Objects.requireNonNull(this.getParent().getRemote()).name(),
                 this.getName(), this.getActiveDeploymentName()).enabled();
     }

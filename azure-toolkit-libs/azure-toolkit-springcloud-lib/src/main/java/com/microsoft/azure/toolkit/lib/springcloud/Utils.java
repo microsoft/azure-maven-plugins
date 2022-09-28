@@ -85,7 +85,7 @@ public class Utils {
             .toBlocking().last();
     }
 
-    public static DeploymentsClient getDeployClient(String subscriptionId) {
+    public static DeploymentsClient getDeploymentsClient(String subscriptionId) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
         return (new AppPlatformManagementClientBuilder())
