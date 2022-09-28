@@ -14,6 +14,8 @@ import javax.annotation.Nonnull;
 
 @Getter
 public class SpringCloudDeploymentInstanceEntity {
+    // https://${fqdn}/api/remoteDebugging/apps/${appName}/deployments/${deploymentName}/instances/${instanceName}
+    private static final String REMOTE_URL_TEMPLATE = "https://%s/api/remoteDebugging/apps/%s/deployments/%s/instances/%s";
     @Nonnull
     private final SpringCloudDeployment deployment;
     @Nonnull
@@ -42,5 +44,10 @@ public class SpringCloudDeploymentInstanceEntity {
     @Nonnull
     public String discoveryStatus() {
         return this.remote.discoveryStatus();
+    }
+
+    public String getRemoteUrl() {
+        SpringCloudApp app = this.getDeployment().getParent();
+        return String.format(REMOTE_URL_TEMPLATE, app.getParent().getFqdn(), app.getName(), this.getDeployment().getName(), this.name);
     }
 }

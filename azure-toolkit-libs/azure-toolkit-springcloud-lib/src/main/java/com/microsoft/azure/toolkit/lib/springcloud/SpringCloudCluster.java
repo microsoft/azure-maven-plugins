@@ -5,6 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
+import com.azure.resourcemanager.appplatform.fluent.models.ServiceResourceInner;
+import com.azure.resourcemanager.appplatform.models.ClusterResourceProperties;
 import com.azure.resourcemanager.appplatform.models.ProvisioningState;
 import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SkuName;
@@ -79,5 +81,9 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
 
     public boolean isEnterpriseTier() {
         return this.remoteOptional().map(SpringService::sku).filter(s -> s.name().equalsIgnoreCase(SkuName.E0.toString())).isPresent();
+    }
+
+    public String getFqdn() {
+        return this.remoteOptional().map(SpringService::innerModel).map(ServiceResourceInner::properties).map(ClusterResourceProperties::fqdn).orElse("");
     }
 }
