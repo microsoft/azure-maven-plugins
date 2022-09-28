@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.appplatform.fluent.DeploymentsClient;
 import com.azure.resourcemanager.appplatform.implementation.AppPlatformManagementClientBuilder;
-import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
 import com.azure.resourcemanager.resources.fluentcore.utils.HttpPipelineProvider;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
@@ -36,7 +35,7 @@ public class Utils {
         if (deployment == null) {
             return false;
         }
-        final List<DeploymentInstance> instances = deployment.getInstances();
+        final List<SpringCloudDeploymentInstanceEntity> instances = deployment.getInstances();
         if (CollectionUtils.isEmpty(instances)) {
             return false;
         }

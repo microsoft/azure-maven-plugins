@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.core.util.ExpandableStringEnum;
-import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
 import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.google.common.base.Charsets;
@@ -34,6 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment> {
 
@@ -175,8 +175,8 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     }
 
     @Nonnull
-    public List<DeploymentInstance> getInstances() {
-        return Optional.ofNullable(this.getRemote()).map(SpringAppDeployment::instances).orElse(Collections.emptyList());
+    public List<SpringCloudDeploymentInstanceEntity> getInstances() {
+        return Optional.ofNullable(this.getRemote()).map(SpringAppDeployment::instances).orElse(Collections.emptyList()).stream().map(deploymentInstance -> new SpringCloudDeploymentInstanceEntity(deploymentInstance, this)).collect(Collectors.toList());
     }
 
     @Nullable
