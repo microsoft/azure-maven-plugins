@@ -522,7 +522,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         failureParameters.put(AzureTelemeter.ERROR_MSG, throwable.getMessage());
         failureParameters.put(AzureTelemeter.ERROR_STACKTRACE, ExceptionUtils.getStackTrace(throwable));
         failureParameters.put(AzureTelemeter.ERROR_CLASSNAME, throwable.getClass().getName());
-
+        Optional.ofNullable(ExceptionUtils.getRootCause(throwable)).ifPresent(root -> {
+            failureParameters.put(AzureTelemeter.ERROR_ROOT_MSG, root.getMessage());
+            failureParameters.put(AzureTelemeter.ERROR_ROOT_CLASSNAME, root.getClass().getName());
+        });
         telemetryProxy.trackEvent(this.getClass().getSimpleName() + ".failure", recordJvmUpTime(failureParameters));
     }
 

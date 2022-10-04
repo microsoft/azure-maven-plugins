@@ -37,8 +37,10 @@ public class AzureTelemeter {
 
     public static final String ERROR_CODE = "error.error_code";
     public static final String ERROR_MSG = "error.error_message";
+    public static final String ERROR_ROOT_MSG = "error.root_error_message";
     public static final String ERROR_TYPE = "error.error_type";
     public static final String ERROR_CLASSNAME = "error.error_class_name";
+    public static final String ERROR_ROOT_CLASSNAME = "error.root_error_class_name";
     public static final String ERROR_STACKTRACE = "error.error_stack";
     @Getter
     @Setter
@@ -157,6 +159,10 @@ public class AzureTelemeter {
         properties.put(ERROR_CLASSNAME, e.getClass().getName());
         properties.put(ERROR_TYPE, type.name());
         properties.put(ERROR_MSG, e.getMessage());
+        Optional.ofNullable(ExceptionUtils.getRootCause(e)).ifPresent(root -> {
+            properties.put(ERROR_ROOT_MSG, root.getMessage());
+            properties.put(ERROR_ROOT_CLASSNAME, root.getClass().getName());
+        });
         properties.put(ERROR_STACKTRACE, ExceptionUtils.getStackTrace(e));
         return properties;
     }

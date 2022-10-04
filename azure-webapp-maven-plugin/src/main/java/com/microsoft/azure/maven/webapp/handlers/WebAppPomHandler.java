@@ -47,13 +47,13 @@ public class WebAppPomHandler {
         final File pom = project.getFile();
         final Element pluginNode = PomUtils.getPluginNode(plugin, pom);
         Element configNode = PomUtils.getOrCreateNode(pluginNode, "configuration");
+        final ConfigurationSerializer serializer = new V2ConfigurationSerializer(newConfigs, oldConfigs);
+        serializer.saveToXML(configNode);
+        XMLUtils.setNamespace(pluginNode, pluginNode.getNamespace());
         // newly created nodes are not LocationAwareElement
         while (!(configNode.getParent() instanceof PomUtils.LocationAwareElement)) {
             configNode = configNode.getParent();
         }
-        final ConfigurationSerializer serializer = new V2ConfigurationSerializer(newConfigs, oldConfigs);
-        serializer.saveToXML(configNode);
-        XMLUtils.setNamespace(pluginNode, pluginNode.getNamespace());
         FileUtils.fileWrite(pom, PomUtils.formatNode(FileUtils.fileRead(pom), (PomUtils.LocationAwareElement) configNode.getParent(), configNode));
     }
 

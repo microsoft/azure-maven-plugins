@@ -37,7 +37,7 @@ public class ConfigurationParser {
     @SneakyThrows
     private static SpringCloudDeploymentConfig toDeploymentConfig(AppDeploymentMavenConfig rawConfig, AbstractMojoBase mojo) {
         final List<File> artifacts = new ArrayList<>();
-        Optional.ofNullable(rawConfig.getResources()).ifPresent(resources-> resources.forEach(resource -> {
+        Optional.ofNullable(rawConfig.getResources()).ifPresent(resources -> resources.forEach(resource -> {
             try {
                 artifacts.addAll(MavenArtifactUtils.getArtifacts(resource));
             } catch (IllegalStateException e) {
