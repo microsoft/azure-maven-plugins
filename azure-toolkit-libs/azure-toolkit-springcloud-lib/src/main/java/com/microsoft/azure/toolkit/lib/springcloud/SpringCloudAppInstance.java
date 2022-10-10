@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class SpringCloudAppInstance extends AbstractAzResource<SpringCloudAppInstance, SpringCloudDeployment, DeploymentInstance> {
+    private static final String REMOTE_URL_TEMPLATE = "https://%s/api/remoteDebugging/apps/%s/deployments/%s/instances/%s";
 
     protected SpringCloudAppInstance(@NotNull String name, @NotNull SpringCloudAppInstanceModule module) {
         super(name, module);
@@ -29,6 +30,11 @@ public class SpringCloudAppInstance extends AbstractAzResource<SpringCloudAppIns
     @Override
     public String loadStatus(@NotNull DeploymentInstance remote) {
         return remote.status();
+    }
+
+    public String getRemoteUrl() {
+        SpringCloudApp app = this.getParent().getParent();
+        return String.format(REMOTE_URL_TEMPLATE, app.getParent().getFqdn(), app.getName(), this.getParent().getName(), this.getName());
     }
 
 }
