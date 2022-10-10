@@ -36,9 +36,12 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment> {
+    @Nonnull
+    private final SpringCloudAppInstanceModule instanceModule;
 
     protected SpringCloudDeployment(@Nonnull String name, @Nonnull SpringCloudDeploymentModule module) {
         super(name, module);
+        this.instanceModule = new SpringCloudAppInstanceModule(this);
     }
 
     /**
@@ -46,10 +49,12 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
      */
     protected SpringCloudDeployment(@Nonnull SpringCloudDeployment origin) {
         super(origin);
+        this.instanceModule = origin.instanceModule;
     }
 
     protected SpringCloudDeployment(@Nonnull SpringAppDeployment remote, @Nonnull SpringCloudDeploymentModule module) {
         super(remote.name(), module);
+        this.instanceModule = new SpringCloudAppInstanceModule(this);
     }
 
     // MODIFY
@@ -177,6 +182,10 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     @Nonnull
     public List<SpringCloudDeploymentInstanceEntity> getInstances() {
         return Optional.ofNullable(this.getRemote()).map(SpringAppDeployment::instances).orElse(Collections.emptyList()).stream().map(deploymentInstance -> new SpringCloudDeploymentInstanceEntity(deploymentInstance, this)).collect(Collectors.toList());
+    }
+
+    public List<SpringCloudAppInstance> getInstanceResources() {
+        return Optional.ofNullable(this.getRemote()).map(SpringAppDeployment::instances).orElse(Collections.emptyList()).stream().map(deploymentInstance -> new SpringCloudAppInstance(deploymentInstance.name(), this.instanceModule)).collect(Collectors.toList());
     }
 
     @Nullable
