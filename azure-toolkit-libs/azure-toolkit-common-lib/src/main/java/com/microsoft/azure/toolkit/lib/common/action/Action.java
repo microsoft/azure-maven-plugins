@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.action;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBase;
@@ -137,6 +138,11 @@ public class Action<D> extends OperationBase {
     protected void handle(D source, Object e, BiConsumer<D, Object> handler) {
         if (source instanceof AzResource) {
             final AzResource<?, ?, ?> resource = (AzResource<?, ?, ?>) source;
+            final OperationContext context = OperationContext.action();
+            context.setTelemetryProperty("subscriptionId", resource.getSubscriptionId());
+            context.setTelemetryProperty("resourceType", resource.getFullResourceType());
+        } else if (source instanceof AzResourceModule) {
+            final AzResourceModule<?, ?, ?> resource = (AzResourceModule<?, ?, ?>) source;
             final OperationContext context = OperationContext.action();
             context.setTelemetryProperty("subscriptionId", resource.getSubscriptionId());
             context.setTelemetryProperty("resourceType", resource.getFullResourceType());
