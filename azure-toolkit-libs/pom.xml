@@ -67,16 +67,16 @@
         <maven.javadoc-plugin.version>2.9.1</maven.javadoc-plugin.version>
         <maven.aspectj-plugin.version>1.12.6</maven.aspectj-plugin.version>
 
-        <azure-core.version>1.31.0</azure-core.version>
-        <azure-core-management.version>1.7.1</azure-core-management.version>
-        <azure-identity.version>1.5.4</azure-identity.version>
-        <azure-core-http-netty.version>1.12.4</azure-core-http-netty.version>
-        <reactor.netty.version>1.0.22</reactor.netty.version>
-        <reactor.core.version>3.4.22</reactor.core.version>
+        <azure-core.version>1.33.0</azure-core.version>
+        <azure-core-management.version>1.8.1</azure-core-management.version>
+        <azure-identity.version>1.6.1</azure-identity.version>
+        <azure-core-http-netty.version>1.12.6</azure-core-http-netty.version>
+        <reactor-netty.version>1.0.23</reactor-netty.version>
+        <reactor-core.version>3.4.23</reactor-core.version>
         <httpcore.version>4.4.15</httpcore.version>
         <azure.adal4j.version>1.6.7</azure.adal4j.version>
         <azure.applicationinsights.version>2.6.4</azure.applicationinsights.version>
-        <azure.resourcemanager.version>2.17.0</azure.resourcemanager.version>
+        <azure.resourcemanager.version>2.19.0</azure.resourcemanager.version>
         <azure.client-runtime.version>1.7.14</azure.client-runtime.version>
         <azure-resourcemanager-applicationinsights.version>1.0.0-beta.5</azure-resourcemanager-applicationinsights.version>
         <azure-resourcemanager-mysql.version>1.0.2</azure-resourcemanager-mysql.version>
@@ -625,12 +625,12 @@
             <dependency>
                 <groupId>io.projectreactor</groupId>
                 <artifactId>reactor-core</artifactId>
-                <version>${reactor.core.version}</version>
+                <version>${reactor-core.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.projectreactor.netty</groupId>
                 <artifactId>reactor-netty</artifactId>
-                <version>${reactor.netty.version}</version>
+                <version>${reactor-netty.version}</version>
             </dependency>
             <!-- JAXB For Application Insight Issue -->
             <dependency>
