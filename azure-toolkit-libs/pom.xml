@@ -82,6 +82,11 @@
         <azure-resourcemanager-mysql.version>1.0.2</azure-resourcemanager-mysql.version>
         <azure-resourcemanager-postgre.version>1.0.2</azure-resourcemanager-postgre.version>
         <azure-storage.version>8.6.6</azure-storage.version>
+        <azure-storage-blob.version>12.19.1</azure-storage-blob.version>
+        <azure-storage-file-share.version>12.15.1</azure-storage-file-share.version>
+        <azure-storage-queue.version>12.14.2</azure-storage-queue.version>
+        <azure-storage-tables.version>12.3.4</azure-storage-tables.version>
+
         <azure-functions-java-library.version>1.4.2</azure-functions-java-library.version>
         <aspectj.version>1.9.9.1</aspectj.version>
         <codehaus.plexus-utils.version>3.4.2</codehaus.plexus-utils.version>
@@ -239,7 +244,28 @@
                 <artifactId>azure-toolkit-cosmos-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
-            <!-- azure sdk -->
+            <!-- azure data management sdk -->
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-storage-blob</artifactId>
+                <version>${azure-storage-blob.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-storage-file-share</artifactId>
+                <version>${azure-storage-file-share.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-storage-queue</artifactId>
+                <version>${azure-storage-queue.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-data-tables</artifactId>
+                <version>${azure-storage-tables.version}</version>
+            </dependency>
+            <!-- azure resource management sdk -->
             <dependency>
                 <groupId>com.azure</groupId>
                 <artifactId>azure-core</artifactId>
