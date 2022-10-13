@@ -179,13 +179,11 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
             }).orElse(null);
     }
 
-    @Nonnull
-    public List<SpringCloudDeploymentInstanceEntity> getInstances() {
-        return Optional.ofNullable(this.getRemote()).map(SpringAppDeployment::instances).orElse(Collections.emptyList()).stream().map(deploymentInstance -> new SpringCloudDeploymentInstanceEntity(deploymentInstance, this)).collect(Collectors.toList());
-    }
-
-    public List<SpringCloudAppInstance> getInstanceResources() {
-        return Optional.ofNullable(this.getRemote()).map(SpringAppDeployment::instances).orElse(Collections.emptyList()).stream().map(deploymentInstance -> new SpringCloudAppInstance(deploymentInstance.name(), this.instanceModule)).collect(Collectors.toList());
+    public List<SpringCloudAppInstance> getInstances() {
+        return Optional.ofNullable(this.getRemote()).map(SpringAppDeployment::instances)
+                .orElse(Collections.emptyList()).stream()
+                .map(deploymentInstance -> new SpringCloudAppInstance(deploymentInstance.name(), this.instanceModule))
+                .collect(Collectors.toList());
     }
 
     @Nullable

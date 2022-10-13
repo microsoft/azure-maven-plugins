@@ -6,9 +6,9 @@
 package com.microsoft.azure.toolkit.lib.springcloud.config;
 
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstance;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentInstanceEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -77,7 +77,7 @@ public class SpringCloudDeploymentConfig {
         if (Objects.isNull(deployment)) {
             return null;
         }
-        final List<SpringCloudDeploymentInstanceEntity> instances = deployment.getInstances();
+        final List<SpringCloudAppInstance> instances = deployment.getInstances();
         final SpringCloudPersistentDisk disk = deployment.getParent().getPersistentDisk();
         final SpringCloudDeploymentConfig deploymentConfig = SpringCloudDeploymentConfig.builder().build();
         deploymentConfig.setRuntimeVersion(deployment.getRuntimeVersion());

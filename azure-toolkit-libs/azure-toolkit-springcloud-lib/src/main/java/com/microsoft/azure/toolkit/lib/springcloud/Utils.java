@@ -35,13 +35,13 @@ public class Utils {
         if (deployment == null) {
             return false;
         }
-        final List<SpringCloudDeploymentInstanceEntity> instances = deployment.getInstances();
+        final List<SpringCloudAppInstance> instances = deployment.getInstances();
         if (CollectionUtils.isEmpty(instances)) {
             return false;
         }
         // refer to https://learn.microsoft.com/en-us/azure/spring-apps/concept-app-status
         final boolean isInstanceRunning = instances.stream().anyMatch(instance ->
-            StringUtils.equalsIgnoreCase(instance.status(), "running"));
+            StringUtils.equalsIgnoreCase(instance.getStatus(), "running"));
         if (deployment.getParent().getParent().isEnterpriseTier()) {
             // refer to https://learn.microsoft.com/en-us/azure/spring-apps/concept-app-status
             // Eureka isn't applicable to enterprise tier.
@@ -49,7 +49,7 @@ public class Utils {
         }
         final String finalDiscoverStatus = BooleanUtils.isTrue(deployment.isActive()) ? "UP" : "OUT_OF_SERVICE";
         final boolean isInstanceDiscoverable = instances.stream().anyMatch(instance ->
-            StringUtils.equalsIgnoreCase(instance.discoveryStatus(), finalDiscoverStatus));
+            StringUtils.equalsIgnoreCase(instance.getDiscoveryStatus(), finalDiscoverStatus));
         return isInstanceRunning && isInstanceDiscoverable;
     }
 

@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class SpringCloudAppInstance extends AbstractAzResource<SpringCloudAppInstance, SpringCloudDeployment, DeploymentInstance> {
     private static final String REMOTE_URL_TEMPLATE = "https://%s/api/remoteDebugging/apps/%s/deployments/%s/instances/%s";
@@ -30,6 +31,14 @@ public class SpringCloudAppInstance extends AbstractAzResource<SpringCloudAppIns
     @Override
     public String loadStatus(@NotNull DeploymentInstance remote) {
         return remote.status();
+    }
+
+    public String getDiscoveryStatus() {
+        final DeploymentInstance deploymentInstance = this.getRemote();
+        if (Objects.nonNull(deploymentInstance)) {
+            return deploymentInstance.discoveryStatus();
+        }
+        return Status.UNKNOWN;
     }
 
     public String getRemoteUrl() {
