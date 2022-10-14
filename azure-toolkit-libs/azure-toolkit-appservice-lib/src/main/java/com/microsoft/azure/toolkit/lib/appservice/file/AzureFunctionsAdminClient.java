@@ -12,6 +12,7 @@ import com.azure.core.annotation.Headers;
 import com.azure.core.annotation.Host;
 import com.azure.core.annotation.HostParam;
 import com.azure.core.annotation.PathParam;
+import com.azure.core.annotation.Post;
 import com.azure.core.annotation.Put;
 import com.azure.core.annotation.ServiceInterface;
 import com.azure.core.http.HttpHeaders;
@@ -46,20 +47,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class AzureFunctionsFileClient implements IFileClient {
+public class AzureFunctionsAdminClient implements IFileClient {
     private static final String LINUX_ROOT = "home";
 
     private final String host;
     private final FunctionsService functionsService;
     private final FunctionAppBase<?, ?, ?> app;
 
-    private AzureFunctionsFileClient(FunctionsService functionsService, FunctionAppBase<?, ?, ?> app) {
+    private AzureFunctionsAdminClient(FunctionsService functionsService, FunctionAppBase<?, ?, ?> app) {
         this.app = app;
         this.functionsService = functionsService;
         this.host = String.format("https://%s", app.getHostName());
     }
 
-    public static AzureFunctionsFileClient getClient(@Nonnull WebAppBase functionApp, @Nonnull FunctionAppBase<?, ?, ?> appService) {
+    public static AzureFunctionsAdminClient getClient(@Nonnull WebAppBase functionApp, @Nonnull FunctionAppBase<?, ?, ?> appService) {
         // refers : https://github.com/Azure/azure-sdk-for-java/blob/master/sdk/resourcemanager/azure-resourcemanager-appservice/src/main/java/
         // com/azure/resourcemanager/appservice/implementation/KuduClient.java
         if (!(functionApp instanceof FunctionApp || functionApp instanceof FunctionDeploymentSlot)) {
@@ -75,7 +76,7 @@ public class AzureFunctionsFileClient implements IFileClient {
                 .build();
         final FunctionsService functionsService = RestProxy.create(FunctionsService.class, httpPipeline,
                 SerializerFactory.createDefaultManagementSerializerAdapter());
-        return new AzureFunctionsFileClient(functionsService, appService);
+        return new AzureFunctionsAdminClient(functionsService, appService);
     }
 
     public Flux<ByteBuffer> getFileContent(final String path) {
@@ -116,9 +117,19 @@ public class AzureFunctionsFileClient implements IFileClient {
                 originPath : Paths.get(LINUX_ROOT, originPath).toString();
     }
 
+    public void ping() {
+        this.functionsService.ping(host).block();
+    }
+
     @Host("{$host}")
     @ServiceInterface(name = "FunctionHost")
     private interface FunctionsService {
+        @Headers({
+                "Content-Type: application/json; charset=utf-8"
+        })
+        @Post("admin/host/ping")
+        Mono<Void> ping(@HostParam("$host") String host);
+
         @Headers({
             "Content-Type: application/json; charset=utf-8"
         })
