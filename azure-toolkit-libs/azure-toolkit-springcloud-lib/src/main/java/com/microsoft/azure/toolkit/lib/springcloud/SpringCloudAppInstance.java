@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class SpringCloudAppInstance extends AbstractAzResource<SpringCloudAppInstance, SpringCloudDeployment, DeploymentInstance> {
-    private static final String REMOTE_URL_TEMPLATE = "https://%s/api/remoteDebugging/apps/%s/deployments/%s/instances/%s";
+    private static final String REMOTE_URL_TEMPLATE = "https://%s/api/remoteDebugging/apps/%s/deployments/%s/instances/%s?port=%s";
 
     protected SpringCloudAppInstance(@NotNull String name, @NotNull SpringCloudAppInstanceModule module) {
         super(name, module);
@@ -41,9 +41,9 @@ public class SpringCloudAppInstance extends AbstractAzResource<SpringCloudAppIns
         return Status.UNKNOWN;
     }
 
-    public String getRemoteDebuggingUrl () {
+    public String getRemoteDebuggingUrl() {
         SpringCloudApp app = this.getParent().getParent();
-        return String.format(REMOTE_URL_TEMPLATE, app.getParent().getFqdn(), app.getName(), this.getParent().getName(), this.getName());
+        return String.format(REMOTE_URL_TEMPLATE, app.getParent().getFqdn(), app.getName(), this.getParent().getName(), this.getName(), this.getParent().getRemoteDebuggingPort());
     }
 
 }
