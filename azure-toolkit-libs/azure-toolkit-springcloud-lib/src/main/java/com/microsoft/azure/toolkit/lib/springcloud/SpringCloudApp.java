@@ -5,14 +5,9 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.azure.resourcemanager.appplatform.fluent.DeploymentsClient;
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
-import com.azure.resourcemanager.appplatform.models.RemoteDebuggingPayload;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.Deletable;
-import com.microsoft.azure.toolkit.lib.common.model.Startable;
+import com.microsoft.azure.toolkit.lib.common.model.*;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
 import lombok.Getter;
@@ -150,24 +145,5 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     public boolean isPersistentDiskEnabled() {
         return Objects.nonNull(this.getPersistentDisk());
-    }
-
-    public void enableRemoteDebugging(int port) {
-        DeploymentsClient client = Utils.getDeploymentsClient(this.getSubscriptionId());
-        RemoteDebuggingPayload payload = new RemoteDebuggingPayload().withPort(port);
-        client.enableRemoteDebugging(this.getResourceGroupName(), Objects.requireNonNull(this.getParent().getRemote()).name(),
-                this.getName(), this.getActiveDeploymentName(), payload);
-    }
-
-    public void disableRemoteDebugging() {
-        DeploymentsClient client = Utils.getDeploymentsClient(this.getSubscriptionId());
-        client.disableRemoteDebugging(this.getResourceGroupName(), Objects.requireNonNull(this.getParent().getRemote()).name(),
-                this.getName(), this.getActiveDeploymentName());
-    }
-
-    public boolean isRemoteDebuggingEnabled() {
-        DeploymentsClient client = Utils.getDeploymentsClient(this.getSubscriptionId());
-        return client.getRemoteDebuggingConfig(this.getResourceGroupName(), Objects.requireNonNull(this.getParent().getRemote()).name(),
-                this.getName(), this.getActiveDeploymentName()).enabled();
     }
 }

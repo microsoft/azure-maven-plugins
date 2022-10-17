@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class SpringCloudAppInstanceModule extends AbstractAzResourceModule<SpringCloudAppInstance, SpringCloudDeployment, DeploymentInstance> {
-    public static final String NAME = "appinstance";
+    public static final String NAME = "instances";
     public SpringCloudAppInstanceModule(@NotNull SpringCloudDeployment parent) {
         super(NAME, parent);
     }

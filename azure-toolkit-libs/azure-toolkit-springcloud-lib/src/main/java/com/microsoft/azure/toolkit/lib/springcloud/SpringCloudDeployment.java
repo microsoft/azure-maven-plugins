@@ -6,7 +6,9 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.core.util.ExpandableStringEnum;
+import com.azure.resourcemanager.appplatform.fluent.DeploymentsClient;
 import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
+import com.azure.resourcemanager.appplatform.models.RemoteDebuggingPayload;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.google.common.base.Charsets;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -33,7 +35,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment> {
     @Nonnull
@@ -180,10 +181,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     }
 
     public List<SpringCloudAppInstance> getInstances() {
-        return Optional.ofNullable(this.getRemote()).map(SpringAppDeployment::instances)
-                .orElse(Collections.emptyList()).stream()
-                .map(deploymentInstance -> new SpringCloudAppInstance(deploymentInstance.name(), this.instanceModule))
-                .collect(Collectors.toList());
+        return this.instanceModule.list();
     }
 
     @Nullable
@@ -206,5 +204,27 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
         if (this.isActive()) {
             getParent().reloadStatus();
         }
+    }
+
+    public void enableRemoteDebugging(int port) {
+        final DeploymentsClient client = Utils.getDeploymentsClient(getSubscriptionId());
+        final RemoteDebuggingPayload payload = new RemoteDebuggingPayload().withPort(port);
+        final String clusterName = this.getParent().getParent().getName();
+        final String appName = this.getParent().getName();
+        doModify(() -> client.enableRemoteDebugging(this.getResourceGroupName(), clusterName, appName, getName(), payload), Status.UPDATING);
+    }
+
+    public void disableRemoteDebugging() {
+        final DeploymentsClient client = Utils.getDeploymentsClient(getSubscriptionId());
+        final String clusterName = this.getParent().getParent().getName();
+        final String appName = this.getParent().getName();
+        doModify(() -> client.disableRemoteDebugging(this.getResourceGroupName(), clusterName, appName, getName()), Status.UPDATING);
+    }
+
+    public boolean isRemoteDebuggingEnabled() {
+        final DeploymentsClient client = Utils.getDeploymentsClient(getSubscriptionId());
+        final String clusterName = this.getParent().getParent().getName();
+        final String appName = this.getParent().getName();
+        return client.getRemoteDebuggingConfig(this.getResourceGroupName(), clusterName, appName, getName()).enabled();
     }
 }
