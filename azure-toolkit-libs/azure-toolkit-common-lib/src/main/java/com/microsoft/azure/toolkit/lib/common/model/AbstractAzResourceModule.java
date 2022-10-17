@@ -59,7 +59,7 @@ import static com.microsoft.azure.toolkit.lib.common.model.AzResource.RESOURCE_G
 @RequiredArgsConstructor
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P, R>, P extends AzResource<P, ?>, R>
+public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P, R>, P extends AzResource, R>
     implements AzResourceModule<T, R> {
     @Getter
     @Nonnull
@@ -436,7 +436,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private void fireChildrenChangedEvent() {
         log.debug("[{}]:fireChildrenChangedEvent()", this.name);
         if (this.getParent() instanceof AbstractAzServiceSubscription) {
-            final AzResourceModule<P, ?> service = this.getParent().getModule();
+            @SuppressWarnings("unchecked")
+            final AzResourceModule<P, ?> service = (AzResourceModule<P, ?>) this.getParent().getModule();
             AzureEventBus.emit("service.children_changed.service", service);
         }
         if (this instanceof AzService) {

@@ -43,7 +43,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, P extends AzResource<P, ?>, R> implements AzResource<T, R> {
+public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, P extends AzResource, R> implements AzResource {
     @Nonnull
     @Getter
     @ToString.Include
@@ -273,7 +273,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @Nonnull
-    @Override
     public AzResource.Draft<T, R> update() {
         log.debug("[{}:{}]:update()", this.module.getName(), this.getName());
         log.debug("[{}:{}]:update->module.update(this)", this.module.getName(), this.getName());

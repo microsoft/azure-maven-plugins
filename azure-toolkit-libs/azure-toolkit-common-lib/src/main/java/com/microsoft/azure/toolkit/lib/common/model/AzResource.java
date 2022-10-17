@@ -17,7 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public interface AzResource<T extends AzResource<T, R>, R>
+public interface AzResource
     extends AzResourceBase, Refreshable {
     long CACHE_LIFETIME = 30 * 60 * 1000; // 30 minutes
 
@@ -29,7 +29,7 @@ public interface AzResource<T extends AzResource<T, R>, R>
     void refresh();
 
     @Nonnull
-    AzResourceModule<T, R> getModule();
+    AzResourceModule<?, ?> getModule();
 
     @Nonnull
     String getName();
@@ -58,9 +58,6 @@ public interface AzResource<T extends AzResource<T, R>, R>
     default String getResourceGroupName() {
         return ResourceId.fromString(this.getId()).resourceGroupName();
     }
-
-    @Nonnull
-    AzResource.Draft<T, R> update();
 
     void delete();
 
@@ -149,7 +146,7 @@ public interface AzResource<T extends AzResource<T, R>, R>
         }
     }
 
-    interface Draft<T extends AzResource<T, R>, R> {
+    interface Draft<T extends AzResource, R> {
 
         String getName();
 

@@ -137,7 +137,7 @@ public class Action<D> extends OperationBase {
 
     protected void handle(D source, Object e, BiConsumer<D, Object> handler) {
         if (source instanceof AzResource) {
-            final AzResource<?, ?> resource = (AzResource<?, ?>) source;
+            final AzResource resource = (AzResource) source;
             final OperationContext context = OperationContext.action();
             context.setTelemetryProperty("subscriptionId", resource.getSubscriptionId());
             context.setTelemetryProperty("resourceType", resource.getFullResourceType());
