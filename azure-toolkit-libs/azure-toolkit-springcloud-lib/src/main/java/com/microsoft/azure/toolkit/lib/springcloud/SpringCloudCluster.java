@@ -83,6 +83,7 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
         return this.remoteOptional().map(SpringService::sku).filter(s -> s.name().equalsIgnoreCase(SkuName.E0.toString())).isPresent();
     }
 
+    @Nonnull
     public String getFqdn() {
         return this.remoteOptional().map(SpringService::innerModel).map(ServiceResourceInner::properties).map(ClusterResourceProperties::fqdn).orElse("");
     }
