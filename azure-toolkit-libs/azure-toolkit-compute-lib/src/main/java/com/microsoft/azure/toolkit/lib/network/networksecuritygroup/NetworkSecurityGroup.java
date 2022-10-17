@@ -34,7 +34,7 @@ public class NetworkSecurityGroup extends AbstractAzResource<NetworkSecurityGrou
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, NetworkSecurityGroup, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

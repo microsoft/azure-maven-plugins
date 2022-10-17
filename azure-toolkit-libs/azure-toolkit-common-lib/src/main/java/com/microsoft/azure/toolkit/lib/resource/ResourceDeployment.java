@@ -54,7 +54,7 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, ResourceDeployment, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

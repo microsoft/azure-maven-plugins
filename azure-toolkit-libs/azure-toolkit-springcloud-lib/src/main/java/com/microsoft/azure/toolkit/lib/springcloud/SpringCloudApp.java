@@ -60,7 +60,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, SpringCloudApp, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(deploymentModule);
     }
 

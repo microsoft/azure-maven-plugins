@@ -36,7 +36,7 @@ public class ContainerServiceSubscription extends AbstractAzServiceSubscription<
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, ContainerServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(kubernetesClusterModule);
     }
 }

@@ -60,7 +60,7 @@ public class CosmosDBAccount extends AbstractAzResource<CosmosDBAccount, CosmosS
 
     @NotNull
     @Override
-    public List<AbstractAzResourceModule<?, CosmosDBAccount, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

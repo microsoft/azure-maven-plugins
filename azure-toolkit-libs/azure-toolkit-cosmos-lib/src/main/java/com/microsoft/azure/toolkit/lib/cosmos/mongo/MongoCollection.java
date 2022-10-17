@@ -32,7 +32,7 @@ public class MongoCollection extends AbstractAzResource<MongoCollection, MongoDa
 
     @NotNull
     @Override
-    public List<AbstractAzResourceModule<?, MongoCollection, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

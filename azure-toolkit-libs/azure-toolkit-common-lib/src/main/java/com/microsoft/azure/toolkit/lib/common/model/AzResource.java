@@ -115,7 +115,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
 
         @Nonnull
         @Override
-        public List<AbstractAzResourceModule<?, None, ?>> getSubModules() {
+        public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
             return Collections.emptyList();
         }
 

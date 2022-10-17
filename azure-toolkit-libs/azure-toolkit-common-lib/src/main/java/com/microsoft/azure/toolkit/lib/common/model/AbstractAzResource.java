@@ -325,7 +325,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     public void reloadStatus() {
         this.setStatus(this.loadStatus(this.getRemote()));
     }
-    
+
     public void setStatus(@Nonnull String status) {
         synchronized (this.statusRef) {
             log.debug("[{}:{}]:setStatus({})", this.module.getName(), this.getName(), status);
@@ -411,7 +411,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @Nonnull
-    public abstract List<AbstractAzResourceModule<?, T, ?>> getSubModules();
+    public abstract List<AbstractAzResourceModule<?, ?, ?>> getSubModules();
 
     @Nonnull
     public abstract String loadStatus(@Nonnull R remote);
@@ -428,7 +428,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @Nullable
-    public AbstractAzResourceModule<?, T, ?> getSubModule(String moduleName) {
+    public AbstractAzResourceModule<?, ?, ?> getSubModule(String moduleName) {
         return this.getSubModules().stream().filter(m -> m.getName().equalsIgnoreCase(moduleName)).findAny().orElse(null);
     }
 

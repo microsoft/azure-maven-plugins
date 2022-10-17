@@ -32,7 +32,7 @@ public class WebAppDeploymentSlot extends WebAppBase<WebAppDeploymentSlot, WebAp
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, WebAppDeploymentSlot, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 }

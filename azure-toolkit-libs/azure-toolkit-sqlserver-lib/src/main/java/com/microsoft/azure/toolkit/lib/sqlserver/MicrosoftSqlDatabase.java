@@ -29,7 +29,7 @@ public class MicrosoftSqlDatabase extends AbstractAzResource<MicrosoftSqlDatabas
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, MicrosoftSqlDatabase, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

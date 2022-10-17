@@ -59,7 +59,7 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisServiceSubsc
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, RedisCache, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

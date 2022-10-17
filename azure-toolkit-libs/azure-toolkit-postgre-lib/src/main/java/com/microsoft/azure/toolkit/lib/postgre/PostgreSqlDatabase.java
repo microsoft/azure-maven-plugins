@@ -34,7 +34,7 @@ public class PostgreSqlDatabase extends AbstractAzResource<PostgreSqlDatabase, P
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, PostgreSqlDatabase, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

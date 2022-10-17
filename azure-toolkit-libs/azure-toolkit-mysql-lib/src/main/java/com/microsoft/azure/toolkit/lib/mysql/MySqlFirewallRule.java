@@ -40,7 +40,7 @@ public class MySqlFirewallRule extends AbstractAzResource<MySqlFirewallRule, MyS
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, MySqlFirewallRule, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

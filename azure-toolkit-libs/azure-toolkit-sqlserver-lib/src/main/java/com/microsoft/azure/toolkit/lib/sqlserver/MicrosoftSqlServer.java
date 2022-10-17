@@ -55,7 +55,7 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, MicrosoftSqlServer, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Arrays.asList(this.firewallRuleModule, this.databaseModule);
     }
 
