@@ -234,4 +234,11 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     public boolean isRemoteDebuggingEnabled() {
         return this.remoteDebuggingEnabled;
     }
+
+    public int getRemoteDebuggingPort() {
+        AppPlatformManager manager = this.getParent().getParent().getRemote().manager();
+        final String clusterName = this.getParent().getParent().getName();
+        final String appName = this.getParent().getName();
+        return manager.serviceClient().getDeployments().getRemoteDebuggingConfig(this.getResourceGroupName(), clusterName, appName, getName()).port();
+    }
 }
