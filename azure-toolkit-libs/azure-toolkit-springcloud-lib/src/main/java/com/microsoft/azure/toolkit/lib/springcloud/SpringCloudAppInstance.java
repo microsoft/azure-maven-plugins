@@ -41,7 +41,7 @@ public class SpringCloudAppInstance extends AbstractAzResource<SpringCloudAppIns
         return Status.UNKNOWN;
     }
 
-    public String getRemoteUrl() {
+    public String getRemoteDebuggingUrl () {
         SpringCloudApp app = this.getParent().getParent();
         return String.format(REMOTE_URL_TEMPLATE, app.getParent().getFqdn(), app.getName(), this.getParent().getName(), this.getName());
     }
