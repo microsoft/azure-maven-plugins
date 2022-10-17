@@ -128,7 +128,7 @@ public class DeployMojo extends AbstractMojoBase {
         log.info("Deployment Status: {}", color(deployment.getStatus()));
         deployment.getInstances().forEach(instance ->
                 log.info(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s",
-                        instance.name(), color(instance.status()), instance.reason(), instance.discoveryStatus())));
+                        instance.getName(), color(instance.getStatus()), instance.getRemote().reason(), instance.getDiscoveryStatus())));
     }
 
     private static String color(String status) {
