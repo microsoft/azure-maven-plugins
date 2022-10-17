@@ -60,7 +60,7 @@ import static com.microsoft.azure.toolkit.lib.common.model.AzResource.RESOURCE_G
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P, R>, P extends AzResource, R>
-    implements AzResourceModule<T, R> {
+    implements AzResourceModule<T> {
     @Getter
     @Nonnull
     @ToString.Include
@@ -326,7 +326,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     @Override
-    public T create(@Nonnull AzResource.Draft<T, R> draft) {
+    public T create(@Nonnull AzResource.Draft<T, ?> draft) {
         log.debug("[{}]:create(draft:{})", this.name, draft);
         final T existing = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.isNull(existing)) {
@@ -363,12 +363,13 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     @Override
-    public T update(@Nonnull AzResource.Draft<T, R> draft) {
+    public T update(@Nonnull AzResource.Draft<T, ?> draft) {
+        final AzResource.Draft<T, R> d = this.cast(draft);
         log.debug("[{}]:update(draft:{})", this.name, draft);
         final T resource = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.nonNull(resource) && Objects.nonNull(resource.getRemote())) {
             log.debug("[{}]:update->doModify(draft.updateResourceInAzure({}))", this.name, resource.getRemote());
-            resource.doModify(() -> draft.updateResourceInAzure(resource.getRemote()), AzResource.Status.UPDATING);
+            resource.doModify(() -> d.updateResourceInAzure(Objects.requireNonNull(resource.getRemote())), AzResource.Status.UPDATING);
             return resource;
         }
         throw new AzureToolkitRuntimeException(String.format("resource \"%s\" doesn't exist", draft.getName()));
@@ -437,7 +438,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         log.debug("[{}]:fireChildrenChangedEvent()", this.name);
         if (this.getParent() instanceof AbstractAzServiceSubscription) {
             @SuppressWarnings("unchecked")
-            final AzResourceModule<P, ?> service = (AzResourceModule<P, ?>) this.getParent().getModule();
+            final AzResourceModule<P> service = (AzResourceModule<P>) this.getParent().getModule();
             AzureEventBus.emit("service.children_changed.service", service);
         }
         if (this instanceof AzService) {
@@ -559,7 +560,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
-    private <D> D cast(@Nonnull Object origin) {
+    protected <D> D cast(@Nonnull Object origin) {
         //noinspection unchecked
         return (D) origin;
     }

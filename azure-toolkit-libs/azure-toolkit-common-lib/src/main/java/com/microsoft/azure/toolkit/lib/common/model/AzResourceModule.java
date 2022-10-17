@@ -14,7 +14,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public interface AzResourceModule<T extends AzResource, R> extends Refreshable {
+public interface AzResourceModule<T extends AzResource> extends Refreshable {
     @Nonnull
     None NONE = new None();
 
@@ -38,10 +38,10 @@ public interface AzResourceModule<T extends AzResource, R> extends Refreshable {
     void delete(@Nonnull String name, @Nullable String resourceGroup);
 
     @Nonnull
-    T create(@Nonnull AzResource.Draft<T, R> draft);
+    T create(@Nonnull AzResource.Draft<T, ?> draft);
 
     @Nonnull
-    T update(@Nonnull AzResource.Draft<T, R> draft);
+    T update(@Nonnull AzResource.Draft<T, ?> draft);
 
     void refresh();
 

@@ -29,7 +29,7 @@ public interface AzResource
     void refresh();
 
     @Nonnull
-    AzResourceModule<?, ?> getModule();
+    AzResourceModule<?> getModule();
 
     @Nonnull
     String getName();
@@ -152,7 +152,7 @@ public interface AzResource
 
         String getResourceGroupName();
 
-        AzResourceModule<T, R> getModule();
+        AzResourceModule<T> getModule();
 
         default T commit() {
             synchronized (this) {

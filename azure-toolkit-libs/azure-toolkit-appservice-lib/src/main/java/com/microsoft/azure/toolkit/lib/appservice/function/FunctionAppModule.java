@@ -72,7 +72,8 @@ public class FunctionAppModule extends AbstractAzResourceModule<FunctionApp, App
 
     @NotNull
     @Override
-    public FunctionApp update(@NotNull AzResource.Draft<FunctionApp, WebSiteBase> draft) {
+    public FunctionApp update(@NotNull AzResource.Draft<FunctionApp, ?> d) {
+        final AzResource.Draft<FunctionApp, WebSiteBase> draft = this.cast(d);
         log.debug("[{}]:update(draft:{})", this.getName(), draft);
         final FunctionApp resource = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.nonNull(resource) && Objects.nonNull(resource.getRemote())) {
