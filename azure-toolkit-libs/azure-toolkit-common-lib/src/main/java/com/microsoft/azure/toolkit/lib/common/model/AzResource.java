@@ -17,7 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R>
+public interface AzResource<T extends AzResource<T, R>, R>
     extends AzResourceBase, Refreshable {
     long CACHE_LIFETIME = 30 * 60 * 1000; // 30 minutes
 
@@ -29,7 +29,7 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
     void refresh();
 
     @Nonnull
-    AzResourceModule<T, P, R> getModule();
+    AzResourceModule<T, R> getModule();
 
     @Nonnull
     String getName();
@@ -47,11 +47,6 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
     @Nonnull
     default String getId() {
         return String.format("%s/%s", this.getModule().getId(), this.getName());
-    }
-
-    @Nonnull
-    default P getParent() {
-        return this.getModule().getParent();
     }
 
     @Nonnull
@@ -154,13 +149,13 @@ public interface AzResource<T extends AzResource<T, P, R>, P extends AzResource<
         }
     }
 
-    interface Draft<T extends AzResource<T, ?, R>, R> {
+    interface Draft<T extends AzResource<T, R>, R> {
 
         String getName();
 
         String getResourceGroupName();
 
-        AzResourceModule<T, ?, R> getModule();
+        AzResourceModule<T, R> getModule();
 
         default T commit() {
             synchronized (this) {

@@ -43,7 +43,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, P extends AbstractAzResource<P, ?, ?>, R> implements AzResource<T, P, R> {
+public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, P extends AzResource<P, ?>, R> implements AzResource<T, R> {
     @Nonnull
     @Getter
     @ToString.Include
@@ -444,6 +444,11 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             return null;
         }
         return Azure.az(AzureResources.class).groups(this.getSubscriptionId()).get(rgName, rgName);
+    }
+
+    @Nonnull
+    public P getParent() {
+        return this.getModule().getParent();
     }
 
     public boolean isDraft() {

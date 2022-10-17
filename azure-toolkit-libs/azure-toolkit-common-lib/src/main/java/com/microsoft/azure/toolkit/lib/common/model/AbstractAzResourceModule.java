@@ -59,8 +59,8 @@ import static com.microsoft.azure.toolkit.lib.common.model.AzResource.RESOURCE_G
 @RequiredArgsConstructor
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P, R>, P extends AbstractAzResource<P, ?, ?>, R>
-    implements AzResourceModule<T, P, R> {
+public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P, R>, P extends AzResource<P, ?>, R>
+    implements AzResourceModule<T, R> {
     @Getter
     @Nonnull
     @ToString.Include
@@ -107,7 +107,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public List<T> list() { // getResources
         log.debug("[{}]:list()", this.name);
         Azure.az(IAzureAccount.class).account();
-        if (this.parent.isDraftForCreating()) {
+        if (this.parent instanceof AbstractAzResource && ((AbstractAzResource<?, ?, ?>) this.parent).isDraftForCreating()) {
             log.debug("[{}]:list->parent.isDraftForCreating()=true", this.name);
             return Collections.emptyList();
         }
@@ -200,7 +200,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public T get(@Nonnull String name, @Nullable String rgName) {
         final String resourceGroup = normalizeResourceGroupName(name, rgName);
         log.debug("[{}]:get({}, {})", this.name, name, resourceGroup);
-        if (StringUtils.isBlank(name) || this.parent.isDraftForCreating()) {
+        if (StringUtils.isBlank(name) || (this.parent instanceof AbstractAzResource && ((AbstractAzResource<?, ?, ?>) this.parent).isDraftForCreating())) {
             log.debug("[{}]:get->parent.isDraftForCreating()=true||isBlank(name)=true", this.name);
             return null;
         }
@@ -436,7 +436,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private void fireChildrenChangedEvent() {
         log.debug("[{}]:fireChildrenChangedEvent()", this.name);
         if (this.getParent() instanceof AbstractAzServiceSubscription) {
-            final AzResourceModule<P, ?, ?> service = this.getParent().getModule();
+            final AzResourceModule<P, ?> service = this.getParent().getModule();
             AzureEventBus.emit("service.children_changed.service", service);
         }
         if (this instanceof AzService) {
@@ -534,6 +534,27 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nullable
     protected Object getClient() {
         throw new AzureToolkitRuntimeException("not implemented");
+    }
+
+    @Override
+    @Nonnull
+    public String getFullResourceType() {
+        return this.getParent().getFullResourceType() + "/" + this.getName();
+    }
+
+    @Nonnull
+    public String getResourceTypeName() {
+        return this.getFullResourceType();
+    }
+
+    @Nonnull
+    public String getSubscriptionId() {
+        return this.getParent().getSubscriptionId();
+    }
+
+    @Nonnull
+    public String getId() {
+        return String.format("%s/%s", this.getParent().getId(), this.getName());
     }
 
     @Nonnull

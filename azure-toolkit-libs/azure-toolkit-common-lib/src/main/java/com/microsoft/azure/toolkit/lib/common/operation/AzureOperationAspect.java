@@ -58,11 +58,11 @@ public final class AzureOperationAspect {
 
     public static void beforeEnter(Operation operation, Object source) {
         if (source instanceof AzResourceModule) {
-            operation.getContext().setTelemetryProperty("resourceType", ((AzResourceModule<?, ?, ?>) source).getFullResourceType());
-            operation.getContext().setTelemetryProperty("subscriptionId", ((AzResourceModule<?, ?, ?>) source).getSubscriptionId());
+            operation.getContext().setTelemetryProperty("resourceType", ((AzResourceModule<?, ?>) source).getFullResourceType());
+            operation.getContext().setTelemetryProperty("subscriptionId", ((AzResourceModule<?, ?>) source).getSubscriptionId());
         } else if (source instanceof AzResource) {
-            operation.getContext().setTelemetryProperty("resourceType", ((AzResource<?, ?, ?>) source).getFullResourceType());
-            operation.getContext().setTelemetryProperty("subscriptionId", ((AzResource<?, ?, ?>) source).getSubscriptionId());
+            operation.getContext().setTelemetryProperty("resourceType", ((AzResource<?, ?>) source).getFullResourceType());
+            operation.getContext().setTelemetryProperty("subscriptionId", ((AzResource<?, ?>) source).getSubscriptionId());
         }
         AzureTelemeter.beforeEnter(operation);
         OperationThreadContext.current().pushOperation(operation);

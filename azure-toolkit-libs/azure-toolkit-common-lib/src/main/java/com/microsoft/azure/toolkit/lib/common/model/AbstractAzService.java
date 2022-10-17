@@ -67,7 +67,7 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
     }
 
     @AzureOperation(name = "resource.preload.type", params = {"module.getResourceTypeName()"}, type = AzureOperation.Type.ACTION)
-    private static void preload(AzResourceModule<?, ?, ?> module) {
+    private static void preload(AzResourceModule<?, ?> module) {
         OperationContext.action().setTelemetryProperty("preloading", String.valueOf(true));
         module.list();
     }
