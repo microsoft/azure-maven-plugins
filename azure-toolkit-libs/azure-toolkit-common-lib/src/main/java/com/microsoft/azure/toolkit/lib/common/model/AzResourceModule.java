@@ -57,9 +57,6 @@ public interface AzResourceModule<T extends AzResource> extends Refreshable {
     @Nonnull
     String getSubscriptionId();
 
-    @Nonnull
-    String getId();
-
     @Getter
     final class None extends AbstractAzResourceModule<AzResource.None, AzResource.None, Void> {
         public None() {

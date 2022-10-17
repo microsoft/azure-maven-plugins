@@ -35,6 +35,9 @@ public interface AzResource
     String getName();
 
     @Nonnull
+    String getId();
+
+    @Nonnull
     default String getFullResourceType() {
         return this.getModule().getFullResourceType();
     }
@@ -42,11 +45,6 @@ public interface AzResource
     @Nonnull
     default String getResourceTypeName() {
         return this.getModule().getResourceTypeName();
-    }
-
-    @Nonnull
-    default String getId() {
-        return String.format("%s/%s", this.getModule().getId(), this.getName());
     }
 
     @Nonnull

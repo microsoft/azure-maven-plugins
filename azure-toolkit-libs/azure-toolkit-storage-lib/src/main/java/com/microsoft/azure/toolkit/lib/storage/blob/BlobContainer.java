@@ -11,17 +11,22 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
+import lombok.Getter;
 
 import javax.annotation.Nonnull;
+import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
+@Getter
 public class BlobContainer extends AbstractAzResource<BlobContainer, StorageAccount, BlobContainerClient>
-    implements Deletable {
+    implements Deletable, IBlobFile {
+
+    private final BlobFileModule subFileModule;
 
     protected BlobContainer(@Nonnull String name, @Nonnull BlobContainerModule module) {
         super(name, module);
+        this.subFileModule = new BlobFileModule(this);
     }
 
     /**
@@ -29,10 +34,7 @@ public class BlobContainer extends AbstractAzResource<BlobContainer, StorageAcco
      */
     public BlobContainer(@Nonnull BlobContainer origin) {
         super(origin);
-    }
-
-    protected BlobContainer(@Nonnull BlobContainerClient remote, @Nonnull BlobContainerModule module) {
-        super(remote.getBlobContainerName(), module.getParent().getResourceGroupName(), module);
+        this.subFileModule = origin.subFileModule;
     }
 
     @Nonnull
@@ -47,14 +49,28 @@ public class BlobContainer extends AbstractAzResource<BlobContainer, StorageAcco
         return "OK";
     }
 
-    public List<BlobFile> listBlobs() {
-        final BlobContainerClient client = this.getClient();
-        return client.listBlobsByHierarchy(null).stream().map(i -> new BlobFile(i, null, this)).collect(Collectors.toList());
-    }
-
     public BlobContainerClient getClient() {
         final BlobContainerModule module = (BlobContainerModule) this.getModule();
         final BlobServiceClient blobServiceClient = module.getBlobServiceClient();
         return blobServiceClient.getBlobContainerClient(this.getName());
+    }
+
+    @Override
+    public String getPath() {
+        return null;
+    }
+
+    @Override
+    public BlobContainer getContainer() {
+        return this;
+    }
+
+    @Override
+    public boolean isDirectory() {
+        return true;
+    }
+
+    @Override
+    public void download(OutputStream output) {
     }
 }

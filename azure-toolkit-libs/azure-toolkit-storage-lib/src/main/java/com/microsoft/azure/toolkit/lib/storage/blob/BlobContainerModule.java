@@ -71,7 +71,7 @@ public class BlobContainerModule extends AbstractAzResourceModule<BlobContainer,
 
     @Nonnull
     protected BlobContainer newResource(@Nonnull BlobContainerClient r) {
-        return new BlobContainer(r, this);
+        return new BlobContainer(r.getBlobContainerName(), this);
     }
 
     @Nonnull
@@ -82,6 +82,6 @@ public class BlobContainerModule extends AbstractAzResourceModule<BlobContainer,
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "Share";
+        return "Blob Container";
     }
 }

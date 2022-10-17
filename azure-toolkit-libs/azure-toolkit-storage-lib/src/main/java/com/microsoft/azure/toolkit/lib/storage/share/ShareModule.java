@@ -71,7 +71,7 @@ public class ShareModule extends AbstractAzResourceModule<Share, StorageAccount,
 
     @Nonnull
     protected Share newResource(@Nonnull ShareClient r) {
-        return new Share(r, this);
+        return new Share(r.getShareName(), this);
     }
 
     @Nonnull

@@ -12,17 +12,22 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
+import lombok.Getter;
 
 import javax.annotation.Nonnull;
+import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
+@Getter
 public class Share extends AbstractAzResource<Share, StorageAccount, ShareClient>
-    implements Deletable {
+    implements Deletable, IShareFile {
+
+    private final ShareFileModule subFileModule;
 
     protected Share(@Nonnull String name, @Nonnull ShareModule module) {
         super(name, module);
+        this.subFileModule = new ShareFileModule(this);
     }
 
     /**
@@ -30,16 +35,13 @@ public class Share extends AbstractAzResource<Share, StorageAccount, ShareClient
      */
     public Share(@Nonnull Share origin) {
         super(origin);
-    }
-
-    protected Share(@Nonnull ShareClient remote, @Nonnull ShareModule module) {
-        super(remote.getShareName(), module.getParent().getResourceGroupName(), module);
+        this.subFileModule = origin.subFileModule;
     }
 
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.emptyList();
+        return Collections.singletonList(this.subFileModule);
     }
 
     @Nonnull
@@ -48,18 +50,26 @@ public class Share extends AbstractAzResource<Share, StorageAccount, ShareClient
         return "OK";
     }
 
-    public List<ShareFile> listFiles() {
-        final ShareModule module = (ShareModule) this.getModule();
-        final ShareServiceClient fileShareServiceClient = module.getFileShareServiceClient();
-        final ShareClient shareClient = fileShareServiceClient.getShareClient(this.getName());
-        final ShareDirectoryClient client = shareClient.getRootDirectoryClient();
-        return client.listFilesAndDirectories().stream().map(f -> new ShareFile(f, null, this)).collect(Collectors.toList());
-    }
-
+    @Override
     public ShareDirectoryClient getClient() {
         final ShareModule module = (ShareModule) this.getModule();
         final ShareServiceClient fileShareServiceClient = module.getFileShareServiceClient();
         final ShareClient shareClient = fileShareServiceClient.getShareClient(this.getName());
         return shareClient.getRootDirectoryClient();
+    }
+
+    @Override
+    public Share getShare() {
+        return this;
+    }
+
+    @Override
+    public boolean isDirectory() {
+        return true;
+    }
+
+    @Override
+    public void download(OutputStream output) {
+
     }
 }

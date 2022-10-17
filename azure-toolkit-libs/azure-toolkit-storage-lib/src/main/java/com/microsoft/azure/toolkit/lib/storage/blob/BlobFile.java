@@ -5,75 +5,76 @@
 
 package com.microsoft.azure.toolkit.lib.storage.blob;
 
-import com.azure.storage.blob.BlobClient;
+import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.models.BlobItem;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
-import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.io.OutputStream;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
-public class BlobFile implements Deletable, StorageFile {
-    private final BlobFile parent;
-    private final BlobItem remote;
-    private final BlobContainer container;
-    private final String name;
+public class BlobFile extends AbstractAzResource<BlobFile, IBlobFile, BlobItem> implements Deletable, IBlobFile {
+    private final BlobFileModule subFileModule;
 
-    public BlobFile(BlobItem remote, BlobFile parent, BlobContainer container) {
-        this.remote = remote;
-        this.parent = parent;
-        this.container = container;
-        this.name = Paths.get(remote.getName()).getFileName().toString();
+    protected BlobFile(@Nonnull String name, @Nonnull BlobFileModule module) {
+        super(name, module);
+        this.subFileModule = new BlobFileModule(this);
     }
 
-    @Override
-    public String getPath() {
-        return this.remote.getName();
+    /**
+     * copy constructor
+     */
+    public BlobFile(@Nonnull BlobFile origin) {
+        super(origin);
+        this.subFileModule = origin.subFileModule;
     }
 
+    @Nonnull
     @Override
-    @SneakyThrows
-    public String getId() {
-        return String.format("%s/files/%s", this.container.getId(), URLEncoder.encode(this.getPath(), StandardCharsets.UTF_8.name()));
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
+        return this.isDirectory() ? Collections.singletonList(this.subFileModule) : Collections.emptyList();
     }
 
+    @Nonnull
     @Override
+    public String loadStatus(@Nonnull BlobItem remote) {
+        return "OK";
+    }
+
     public long getSize() {
-        return this.remote.getProperties().getContentLength();
-    }
-
-    public boolean isDirectory() {
-        return BooleanUtils.isTrue(this.remote.isPrefix());
-    }
-
-    public void deleteFromAzure() {
-        getClient().deleteIfExists();
+        if (!this.isDirectory()) {
+            return this.remoteOptional().map(r -> r.getProperties().getContentLength()).orElse(-1L);
+        }
+        return -1;
     }
 
     @Override
     public void download(OutputStream output) {
-        getClient().downloadStream(output);
+        this.getClient().getBlobClient(this.getPath()).downloadStream(output);
     }
 
-    @NotNull
-    private BlobClient getClient() {
-        return this.container.getClient().getBlobClient(this.remote.getName());
+    @Nonnull
+    public BlobContainerClient getClient() {
+        return this.getParent().getClient();
     }
 
-    public void delete() {
-        this.deleteFromAzure();
+    @Override
+    public String getPath() {
+        return this.remoteOptional().map(BlobItem::getName).orElse(this.getName());
     }
 
-    public List<BlobFile> listFiles() {
-        return this.container.getClient().listBlobsByHierarchy(this.remote.getName()).stream().map(b -> new BlobFile(b, this, this.container)).collect(Collectors.toList());
+    @Override
+    public BlobContainer getContainer() {
+        return this.getParent().getContainer();
+    }
+
+    public boolean isDirectory() {
+        return this.remoteOptional().map(r -> BooleanUtils.isTrue(r.isPrefix())).orElse(false);
     }
 }

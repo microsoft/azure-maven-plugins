@@ -5,24 +5,26 @@
 
 package com.microsoft.azure.toolkit.lib.storage.model;
 
-import lombok.SneakyThrows;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 
 import java.io.OutputStream;
-import java.util.List;
 
-public interface StorageFile {
-    String getName();
+public interface StorageFile extends AzResource {
 
-    String getPath();
+    AbstractAzResourceModule<? extends StorageFile, ? extends StorageFile, ?> getSubFileModule();
 
-    @SneakyThrows
-    String getId();
+    Object getClient();
 
     boolean isDirectory();
 
-    long getSize();
+    default long getSize() {
+        if (this.isDirectory()) {
+            return -1;
+        }
+        throw new AzureToolkitRuntimeException("Not implemented.");
+    }
 
     void download(OutputStream output);
-
-    List<? extends StorageFile> listFiles();
 }

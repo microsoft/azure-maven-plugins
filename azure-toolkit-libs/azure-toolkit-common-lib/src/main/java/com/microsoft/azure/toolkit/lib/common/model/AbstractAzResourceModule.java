@@ -555,11 +555,6 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
-    public String getId() {
-        return String.format("%s/%s", this.getParent().getId(), this.getName());
-    }
-
-    @Nonnull
     protected <D> D cast(@Nonnull Object origin) {
         //noinspection unchecked
         return (D) origin;
