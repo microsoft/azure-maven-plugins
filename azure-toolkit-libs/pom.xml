@@ -60,12 +60,12 @@
         <maven.build.timestamp.format>yyyyMMddHHmmssSSS</maven.build.timestamp.format>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.plugin-tools.version>3.6.1</maven.plugin-tools.version>
-        <maven.dependency-plugin.version>3.1.2</maven.dependency-plugin.version>
-        <maven.source-plugin.version>2.2.1</maven.source-plugin.version>
-        <maven.jar-plugin.version>3.0.2</maven.jar-plugin.version>
-        <maven.javadoc-plugin.version>2.9.1</maven.javadoc-plugin.version>
-        <maven.aspectj-plugin.version>1.12.6</maven.aspectj-plugin.version>
+        <maven-plugin-tools.version>3.6.1</maven-plugin-tools.version>
+        <maven-dependency-plugin.version>3.1.2</maven-dependency-plugin.version>
+        <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
+        <maven-jar-plugin.version>3.0.2</maven-jar-plugin.version>
+        <maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
+        <aspectj-maven-plugin.version>1.12.6</aspectj-maven-plugin.version>
 
         <azure-core.version>1.33.0</azure-core.version>
         <azure-core-management.version>1.8.1</azure-core-management.version>
@@ -74,62 +74,62 @@
         <reactor-netty.version>1.0.23</reactor-netty.version>
         <reactor-core.version>3.4.23</reactor-core.version>
         <httpcore.version>4.4.15</httpcore.version>
-        <azure.adal4j.version>1.6.7</azure.adal4j.version>
-        <azure.applicationinsights.version>2.6.4</azure.applicationinsights.version>
+        <adal4j.version>1.6.7</adal4j.version>
+        <applicationinsights.version>2.6.4</applicationinsights.version>
         <azure.resourcemanager.version>2.19.0</azure.resourcemanager.version>
-        <azure.client-runtime.version>1.7.14</azure.client-runtime.version>
+        <azure-arm-client-runtime.version>1.7.14</azure-arm-client-runtime.version>
         <azure-resourcemanager-applicationinsights.version>1.0.0-beta.5</azure-resourcemanager-applicationinsights.version>
         <azure-resourcemanager-mysql.version>1.0.2</azure-resourcemanager-mysql.version>
         <azure-resourcemanager-postgre.version>1.0.2</azure-resourcemanager-postgre.version>
         <azure-storage.version>8.6.6</azure-storage.version>
         <azure-functions-java-library.version>1.4.2</azure-functions-java-library.version>
         <aspectj.version>1.9.9.1</aspectj.version>
-        <codehaus.plexus-utils.version>3.4.2</codehaus.plexus-utils.version>
-        <commons.codec.version>1.15</commons.codec.version>
-        <commons.collections4.version>4.4</commons.collections4.version>
-        <commons.exec.version>1.3</commons.exec.version>
-        <commons.io.version>2.11.0</commons.io.version>
-        <commons.lang3.version>3.12.0</commons.lang3.version>
-        <commons.math3.version>3.6.1</commons.math3.version>
-        <commons.net.version>3.8.0</commons.net.version>
-        <commons.compress.version>1.21</commons.compress.version>
-        <commons.configuration2.version>2.8.0</commons.configuration2.version>
+        <plexus-utils.version>3.4.2</plexus-utils.version>
+        <commons-codec.version>1.15</commons-codec.version>
+        <commons-collections4.version>4.4</commons-collections4.version>
+        <commons-exec.version>1.3</commons-exec.version>
+        <commons-io.version>2.11.0</commons-io.version>
+        <commons-lang3.version>3.12.0</commons-lang3.version>
+        <commons-math3.version>3.6.1</commons-math3.version>
+        <commons-net.version>3.8.0</commons-net.version>
+        <commons-compress.version>1.21</commons-compress.version>
+        <commons-configuration2.version>2.8.0</commons-configuration2.version>
         <dom4j.version>2.1.3</dom4j.version>
         <guava.version>31.1-jre</guava.version>
         <httpclient.version>4.5.13</httpclient.version>
         <jackson.version>2.13.3</jackson.version>
         <jansi.version>2.4.0</jansi.version>
-        <jetbrains.annotations.version>23.0.0</jetbrains.annotations.version>
-        <json.schema.validator.version>2.2.14</json.schema.validator.version>
+        <annotations.version>23.0.0</annotations.version>
+        <json-schema-validator.version>2.2.14</json-schema-validator.version>
         <groovy.version>3.0.11</groovy.version>
         <junit.version>4.13.2</junit.version>
         <lombok.version>1.18.24</lombok.version>
         <mockito.version>3.10.0</mockito.version>
-        <rx.version>1.3.8</rx.version>
+        <rxjava.version>1.3.8</rxjava.version>
         <snakeyaml.version>1.31</snakeyaml.version>
         <slf4j-api.version>1.7.36</slf4j-api.version>
         <spring-test.version>5.3.20</spring-test.version>
-        <google.jsr305.version>3.0.2</google.jsr305.version>
-        <free.port.finder.version>1.1.1</free.port.finder.version>
+        <jsr305.version>3.0.2</jsr305.version>
+        <free-port-finder.version>1.1.1</free-port-finder.version>
         <jjwt.version>0.9.1</jjwt.version>
         <reflections.version>0.10.2</reflections.version>
-        <nimbusds.oauth2.oidc.sdk.version>9.38.1</nimbusds.oauth2.oidc.sdk.version>
+        <oauth2-oidc-sdk.version>9.38.1</oauth2-oidc-sdk.version>
         <nimbus-jose-jwt.version>9.23</nimbus-jose-jwt.version>
         <joda-time.version>2.10.14</joda-time.version>
         <evo-inflector.version>1.3</evo-inflector.version>
         <jaxb.version>3.0.2-b01</jaxb.version>
-        <jaxb.runtime.version>3.0.2</jaxb.runtime.version>
-        <jaxb.bind-api.version>3.0.1</jaxb.bind-api.version>
-        <jtwig.core.version>5.87.0.RELEASE</jtwig.core.version>
+        <jaxb-runtime.version>3.0.2</jaxb-runtime.version>
+        <jakarta.xml.bind-api.version>3.0.1</jakarta.xml.bind-api.version>
+        <jtwig-core.version>5.87.0.RELEASE</jtwig-core.version>
         <semver.version>0.9.0</semver.version>
         <text-io.version>3.4.1</text-io.version>
-        <zt.zip.version>1.15</zt.zip.version>
+        <zt-zip.version>1.15</zt-zip.version>
         <plexus-interpolation.version>1.26</plexus-interpolation.version>
         <powermock.version>2.0.9</powermock.version>
-        <networknt.json-schema-validator.version>1.0.70</networknt.json-schema-validator.version>
+        <json-schema-validator.version>1.0.70</json-schema-validator.version>
         <jedis.version>3.6.3</jedis.version>
         <asm.version>9.3</asm.version>
-        <mongo.java-driver.version>3.12.11</mongo.java-driver.version>
+        <mongo-java-driver.version>3.12.11</mongo-java-driver.version>
     </properties>
 
     <repositories>
@@ -340,7 +340,7 @@
             <dependency>
                 <groupId>com.microsoft.rest</groupId>
                 <artifactId>client-runtime</artifactId>
-                <version>${azure.client-runtime.version}</version>
+                <version>${azure-arm-client-runtime.version}</version>
             </dependency>
 
             <!-- jackson libs -->
@@ -409,47 +409,47 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>${commons.lang3.version}</version>
+                <version>${commons-lang3.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-math3</artifactId>
-                <version>${commons.math3.version}</version>
+                <version>${commons-math3.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-net</groupId>
                 <artifactId>commons-net</artifactId>
-                <version>${commons.net.version}</version>
+                <version>${commons-net.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
-                <version>${commons.codec.version}</version>
+                <version>${commons-codec.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
-                <version>${commons.io.version}</version>
+                <version>${commons-io.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
-                <version>${commons.compress.version}</version>
+                <version>${commons-compress.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-configuration2</artifactId>
-                <version>${commons.configuration2.version}</version>
+                <version>${commons-configuration2.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-collections4</artifactId>
-                <version>${commons.collections4.version}</version>
+                <version>${commons-collections4.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-exec</artifactId>
-                <version>${commons.exec.version}</version>
+                <version>${commons-exec.version}</version>
             </dependency>
 
             <!-- azure sdk (Track 1) -->
@@ -461,17 +461,17 @@
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-client-runtime</artifactId>
-                <version>${azure.client-runtime.version}</version>
+                <version>${azure-arm-client-runtime.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>applicationinsights-core</artifactId>
-                <version>${azure.applicationinsights.version}</version>
+                <version>${applicationinsights.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>applicationinsights-web</artifactId>
-                <version>${azure.applicationinsights.version}</version>
+                <version>${applicationinsights.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
@@ -481,12 +481,12 @@
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>adal4j</artifactId>
-                <version>${azure.adal4j.version}</version>
+                <version>${adal4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-arm-client-runtime</artifactId>
-                <version>${azure.client-runtime.version}</version>
+                <version>${azure-arm-client-runtime.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure.functions</groupId>
@@ -502,7 +502,7 @@
             <dependency>
                 <groupId>com.nimbusds</groupId>
                 <artifactId>oauth2-oidc-sdk</artifactId>
-                <version>${nimbusds.oauth2.oidc.sdk.version}</version>
+                <version>${oauth2-oidc-sdk.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.yaml</groupId>
@@ -531,7 +531,7 @@
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>jsr305</artifactId>
-                <version>${google.jsr305.version}</version>
+                <version>${jsr305.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
@@ -542,7 +542,7 @@
             <dependency>
                 <groupId>io.reactivex</groupId>
                 <artifactId>rxjava</artifactId>
-                <version>${rx.version}</version>
+                <version>${rxjava.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.groovy</groupId>
@@ -552,12 +552,12 @@
             <dependency>
                 <groupId>me.alexpanov</groupId>
                 <artifactId>free-port-finder</artifactId>
-                <version>${free.port.finder.version}</version>
+                <version>${free-port-finder.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.jetbrains</groupId>
                 <artifactId>annotations</artifactId>
-                <version>${jetbrains.annotations.version}</version>
+                <version>${annotations.version}</version>
             </dependency>
 
             <dependency>
@@ -610,12 +610,12 @@
             <dependency>
                 <groupId>org.zeroturnaround</groupId>
                 <artifactId>zt-zip</artifactId>
-                <version>${zt.zip.version}</version>
+                <version>${zt-zip.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-utils</artifactId>
-                <version>${codehaus.plexus-utils.version}</version>
+                <version>${plexus-utils.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.zafarkhaja</groupId>
@@ -636,17 +636,17 @@
             <dependency>
                 <groupId>jakarta.xml.bind</groupId>
                 <artifactId>jakarta.xml.bind-api</artifactId>
-                <version>${jaxb.bind-api.version}</version>
+                <version>${jakarta.xml.bind-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.jaxb</groupId>
                 <artifactId>jaxb-runtime</artifactId>
-                <version>${jaxb.runtime.version}</version>
+                <version>${jaxb-runtime.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.networknt</groupId>
                 <artifactId>json-schema-validator</artifactId>
-                <version>${networknt.json-schema-validator.version}</version>
+                <version>${json-schema-validator.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>com.sun.mail</groupId>
@@ -661,7 +661,7 @@
             <dependency>
                 <groupId>com.github.java-json-tools</groupId>
                 <artifactId>json-schema-validator</artifactId>
-                <version>${json.schema.validator.version}</version>
+                <version>${json-schema-validator.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.beryx</groupId>
@@ -681,7 +681,7 @@
             <dependency>
                 <groupId>org.jtwig</groupId>
                 <artifactId>jtwig-core</artifactId>
-                <version>${jtwig.core.version}</version>
+                <version>${jtwig-core.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ow2.asm</groupId>
@@ -691,7 +691,7 @@
             <dependency>
                 <groupId>org.mongodb</groupId>
                 <artifactId>mongo-java-driver</artifactId>
-                <version>${mongo.java-driver.version}</version>
+                <version>${mongo-java-driver.version}</version>
             </dependency>
             <!-- TEST -->
             <dependency>
@@ -733,22 +733,22 @@
                     <!-- http://www.quabr.com/62976155/aspectj-maven-plugin-1-11-missing-tools-jar-issue-with-jdk-11 -->
                     <groupId>com.nickwongdev</groupId>
                     <artifactId>aspectj-maven-plugin</artifactId>
-                    <version>${maven.aspectj-plugin.version}</version>
+                    <version>${aspectj-maven-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>${maven.dependency-plugin.version}</version>
+                    <version>${maven-dependency-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>${maven.jar-plugin.version}</version>
+                    <version>${maven-jar-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>${maven.javadoc-plugin.version}</version>
+                    <version>${maven-javadoc-plugin.version}</version>
                     <configuration>
                         <show>private</show>
                         <failOnError>false</failOnError>
@@ -768,7 +768,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
-                    <version>${maven.source-plugin.version}</version>
+                    <version>${maven-source-plugin.version}</version>
                     <executions>
                         <execution>
                             <id>attach-sources</id>
