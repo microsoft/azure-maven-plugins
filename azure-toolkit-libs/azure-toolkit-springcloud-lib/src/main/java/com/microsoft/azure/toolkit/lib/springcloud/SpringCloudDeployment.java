@@ -39,6 +39,7 @@ import java.util.function.Consumer;
 public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment> {
     @Nonnull
     private final SpringCloudAppInstanceModule instanceModule;
+    private boolean remoteDebuggingEnabled;
 
     protected SpringCloudDeployment(@Nonnull String name, @Nonnull SpringCloudDeploymentModule module) {
         super(name, module);
@@ -51,6 +52,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     protected SpringCloudDeployment(@Nonnull SpringCloudDeployment origin) {
         super(origin);
         this.instanceModule = origin.instanceModule;
+        this.remoteDebuggingEnabled = origin.remoteDebuggingEnabled;
     }
 
     protected SpringCloudDeployment(@Nonnull SpringAppDeployment remote, @Nonnull SpringCloudDeploymentModule module) {
@@ -87,6 +89,14 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
+    }
+
+    @Override
+    protected void updateAdditionalProperties(SpringAppDeployment newRemote, SpringAppDeployment oldRemote) {
+        final AppPlatformManager manager = this.getParent().getParent().getRemote().manager();
+        final String clusterName = this.getParent().getParent().getName();
+        final String appName = this.getParent().getName();
+        this.remoteDebuggingEnabled =  manager.serviceClient().getDeployments().getRemoteDebuggingConfig(this.getResourceGroupName(), clusterName, appName, getName()).enabled();
     }
 
     @Nonnull
@@ -222,9 +232,6 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     }
 
     public boolean isRemoteDebuggingEnabled() {
-        AppPlatformManager manager = this.getParent().getParent().getRemote().manager();
-        final String clusterName = this.getParent().getParent().getName();
-        final String appName = this.getParent().getName();
-        return manager.serviceClient().getDeployments().getRemoteDebuggingConfig(this.getResourceGroupName(), clusterName, appName, getName()).enabled();
+        return this.remoteDebuggingEnabled;
     }
 }
