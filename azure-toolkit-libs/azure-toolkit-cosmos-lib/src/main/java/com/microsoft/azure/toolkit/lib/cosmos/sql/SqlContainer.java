@@ -31,7 +31,7 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
 
     @NotNull
     @Override
-    public List<AbstractAzResourceModule<?, SqlContainer, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

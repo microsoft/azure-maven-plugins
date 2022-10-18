@@ -39,7 +39,7 @@ public class CassandraKeyspace extends AbstractAzResource<CassandraKeyspace, Cos
 
     @NotNull
     @Override
-    public List<AbstractAzResourceModule<?, CassandraKeyspace, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(containerModule);
     }
 

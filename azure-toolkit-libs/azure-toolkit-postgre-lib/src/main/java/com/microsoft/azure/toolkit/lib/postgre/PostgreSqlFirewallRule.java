@@ -40,7 +40,7 @@ public class PostgreSqlFirewallRule extends AbstractAzResource<PostgreSqlFirewal
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, PostgreSqlFirewallRule, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

@@ -70,7 +70,7 @@ public class KubernetesCluster extends AbstractAzResource<KubernetesCluster, Con
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, KubernetesCluster, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(agentPoolModule);
     }
 

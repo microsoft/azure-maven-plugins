@@ -33,7 +33,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionAppDeploy
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, FunctionAppDeploymentSlot, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

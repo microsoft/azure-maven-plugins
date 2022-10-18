@@ -14,7 +14,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzResource<P, ?, ?>, R> extends Refreshable {
+public interface AzResourceModule<T extends AzResource> extends Refreshable {
     @Nonnull
     None NONE = new None();
 
@@ -38,10 +38,10 @@ public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzRes
     void delete(@Nonnull String name, @Nullable String resourceGroup);
 
     @Nonnull
-    T create(@Nonnull AzResource.Draft<T, R> draft);
+    T create(@Nonnull AzResource.Draft<T, ?> draft);
 
     @Nonnull
-    T update(@Nonnull AzResource.Draft<T, R> draft);
+    T update(@Nonnull AzResource.Draft<T, ?> draft);
 
     void refresh();
 
@@ -49,27 +49,16 @@ public interface AzResourceModule<T extends AzResource<T, P, R>, P extends AzRes
     String getName();
 
     @Nonnull
-    default String getFullResourceType() {
-        return this.getParent().getFullResourceType() + "/" + this.getName();
-    }
+    String getFullResourceType();
 
     @Nonnull
-    default String getResourceTypeName() {
-        return this.getFullResourceType();
-    }
+    String getResourceTypeName();
 
     @Nonnull
-    P getParent();
+    String getSubscriptionId();
 
     @Nonnull
-    default String getSubscriptionId() {
-        return this.getParent().getSubscriptionId();
-    }
-
-    @Nonnull
-    default String getId() {
-        return String.format("%s/%s", this.getParent().getId(), this.getName());
-    }
+    String getId();
 
     @Getter
     final class None extends AbstractAzResourceModule<AzResource.None, AzResource.None, Void> {

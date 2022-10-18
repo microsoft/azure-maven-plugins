@@ -34,7 +34,7 @@ public class MicrosoftSqlFirewallRule extends AbstractAzResource<MicrosoftSqlFir
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, MicrosoftSqlFirewallRule, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

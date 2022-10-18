@@ -62,7 +62,7 @@ public class KubernetesClusterAgentPool extends AbstractAzResource<KubernetesClu
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, KubernetesClusterAgentPool, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

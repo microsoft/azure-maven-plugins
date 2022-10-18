@@ -36,7 +36,7 @@ public class SpringCloudServiceSubscription extends AbstractAzServiceSubscriptio
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, SpringCloudServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(clusterModule);
     }
 

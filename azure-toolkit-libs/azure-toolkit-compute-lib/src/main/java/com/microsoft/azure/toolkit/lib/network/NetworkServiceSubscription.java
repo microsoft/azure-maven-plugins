@@ -44,7 +44,7 @@ public class NetworkServiceSubscription extends AbstractAzServiceSubscription<Ne
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, NetworkServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Arrays.asList(networkSecurityGroupModule, publicIpAddressModule, networkModule);
     }
 

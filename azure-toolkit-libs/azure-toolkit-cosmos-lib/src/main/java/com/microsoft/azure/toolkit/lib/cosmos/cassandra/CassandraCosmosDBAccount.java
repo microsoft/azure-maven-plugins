@@ -53,7 +53,7 @@ public class CassandraCosmosDBAccount extends CosmosDBAccount {
     }
 
     @Override
-    public @Nonnull List<AbstractAzResourceModule<?, CosmosDBAccount, ?>> getSubModules() {
+    public @Nonnull List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(this.keyspaceModule);
     }
 

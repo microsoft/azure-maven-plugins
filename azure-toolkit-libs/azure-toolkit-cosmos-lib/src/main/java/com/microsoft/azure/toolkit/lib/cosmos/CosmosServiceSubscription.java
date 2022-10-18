@@ -59,7 +59,7 @@ public class CosmosServiceSubscription extends AbstractAzServiceSubscription<Cos
 
     @NotNull
     @Override
-    public List<AbstractAzResourceModule<?, CosmosServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(cosmosDBAccountModule);
     }
 }

@@ -64,7 +64,7 @@ public class GenericResource extends AbstractAzResource<GenericResource, Resourc
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, GenericResource, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

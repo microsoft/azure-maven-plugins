@@ -34,7 +34,7 @@ public class PublicIpAddress extends AbstractAzResource<PublicIpAddress, Network
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, PublicIpAddress, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

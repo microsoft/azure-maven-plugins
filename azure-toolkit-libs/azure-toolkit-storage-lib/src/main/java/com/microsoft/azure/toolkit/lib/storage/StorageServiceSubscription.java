@@ -41,7 +41,7 @@ public class StorageServiceSubscription extends AbstractAzServiceSubscription<St
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, StorageServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(storageModule);
     }
 

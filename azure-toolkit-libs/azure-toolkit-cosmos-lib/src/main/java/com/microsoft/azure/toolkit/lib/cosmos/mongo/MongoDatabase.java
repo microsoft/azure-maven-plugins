@@ -39,7 +39,7 @@ public class MongoDatabase extends AbstractAzResource<MongoDatabase, CosmosDBAcc
 
     @NotNull
     @Override
-    public List<AbstractAzResourceModule<?, MongoDatabase, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(collectionModule);
     }
 

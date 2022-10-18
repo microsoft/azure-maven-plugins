@@ -46,7 +46,7 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageSe
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, StorageAccount, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

@@ -41,7 +41,7 @@ public class MySqlServiceSubscription extends AbstractAzServiceSubscription<MySq
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, MySqlServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(serverModule);
     }
 

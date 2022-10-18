@@ -36,7 +36,7 @@ public class Network extends AbstractAzResource<Network, NetworkServiceSubscript
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, Network, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

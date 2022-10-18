@@ -35,7 +35,7 @@ public class ResourcesServiceSubscription extends AbstractAzServiceSubscription<
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, ResourcesServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(groupModule);
     }
 
