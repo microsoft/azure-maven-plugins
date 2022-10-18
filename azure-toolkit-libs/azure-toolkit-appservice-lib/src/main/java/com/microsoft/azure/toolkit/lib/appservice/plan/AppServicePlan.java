@@ -50,7 +50,7 @@ public class AppServicePlan extends AbstractAzResource<AppServicePlan, AppServic
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, AppServicePlan, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

@@ -39,7 +39,7 @@ public class MicrosoftSqlServiceSubscription extends AbstractAzServiceSubscripti
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, MicrosoftSqlServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(serverModule);
     }
 

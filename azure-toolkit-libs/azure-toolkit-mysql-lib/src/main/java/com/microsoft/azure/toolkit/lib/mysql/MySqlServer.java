@@ -66,7 +66,7 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSub
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, MySqlServer, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Arrays.asList(this.firewallRuleModule, this.databaseModule);
     }
 

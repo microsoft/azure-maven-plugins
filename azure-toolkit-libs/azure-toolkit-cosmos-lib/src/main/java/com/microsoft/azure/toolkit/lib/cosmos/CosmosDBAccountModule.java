@@ -76,8 +76,7 @@ public class CosmosDBAccountModule extends AbstractAzResourceModule<CosmosDBAcco
     }
 
     @NotNull
-    @Override
-    public CosmosDBAccount create(@NotNull AzResource.Draft<CosmosDBAccount, com.azure.resourcemanager.cosmos.models.CosmosDBAccount> draft) {
+    public CosmosDBAccount create(@NotNull AzResource.Draft<CosmosDBAccount, ?> draft) {
         final CosmosDBAccount draftAccount = super.create(draft);
         this.deleteResourceFromLocal(draftAccount.getId()); // remove draft account from local cache as we can't tell the kind from draft
         final com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote = draftAccount.getRemote();

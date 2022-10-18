@@ -58,7 +58,7 @@ public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, A
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, ApplicationInsight, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

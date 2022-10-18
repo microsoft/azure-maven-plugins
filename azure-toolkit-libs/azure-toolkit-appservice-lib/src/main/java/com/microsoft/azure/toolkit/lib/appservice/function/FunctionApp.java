@@ -50,7 +50,7 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, FunctionApp, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(deploymentModule);
     }
 

@@ -37,7 +37,7 @@ public class AzureContainerRegistryServiceSubscription extends AbstractAzService
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, AzureContainerRegistryServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(azureContainerRegistryModule);
     }
 }

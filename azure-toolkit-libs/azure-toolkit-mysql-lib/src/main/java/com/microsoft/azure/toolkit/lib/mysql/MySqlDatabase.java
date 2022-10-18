@@ -34,7 +34,7 @@ public class MySqlDatabase extends AbstractAzResource<MySqlDatabase, MySqlServer
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, MySqlDatabase, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

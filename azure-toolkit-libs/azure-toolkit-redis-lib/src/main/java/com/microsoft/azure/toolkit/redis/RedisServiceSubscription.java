@@ -42,7 +42,7 @@ public class RedisServiceSubscription extends AbstractAzServiceSubscription<Redi
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, RedisServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(cacheModule);
     }
 

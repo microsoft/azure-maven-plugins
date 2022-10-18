@@ -87,7 +87,7 @@ public class MongoCosmosDBAccount extends CosmosDBAccount {
     }
 
     @Override
-    public @NotNull List<AbstractAzResourceModule<?, CosmosDBAccount, ?>> getSubModules() {
+    public @NotNull List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(mongoDatabaseModule);
     }
 }

@@ -52,7 +52,7 @@ public class WebApp extends WebAppBase<WebApp, AppServiceServiceSubscription, co
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, WebApp, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(deploymentModule);
     }
 

@@ -42,7 +42,7 @@ public class ComputeServiceSubscription extends AbstractAzServiceSubscription<Co
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, ComputeServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(virtualMachineModule);
     }
 

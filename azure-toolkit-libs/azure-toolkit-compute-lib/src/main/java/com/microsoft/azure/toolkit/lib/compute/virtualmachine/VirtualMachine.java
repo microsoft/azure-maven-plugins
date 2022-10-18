@@ -47,7 +47,7 @@ public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeSe
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, VirtualMachine, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

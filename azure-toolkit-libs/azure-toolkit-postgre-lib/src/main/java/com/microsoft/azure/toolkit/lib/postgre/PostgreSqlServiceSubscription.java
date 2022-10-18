@@ -41,7 +41,7 @@ public class PostgreSqlServiceSubscription extends AbstractAzServiceSubscription
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, PostgreSqlServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(serverModule);
     }
 

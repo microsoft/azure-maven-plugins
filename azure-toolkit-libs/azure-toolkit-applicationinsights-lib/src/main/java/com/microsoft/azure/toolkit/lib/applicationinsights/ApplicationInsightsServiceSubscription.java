@@ -39,7 +39,7 @@ public class ApplicationInsightsServiceSubscription extends AbstractAzServiceSub
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, ApplicationInsightsServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(applicationInsightsModule);
     }
 

@@ -10,6 +10,7 @@ import com.azure.resourcemanager.appservice.models.WebAppBasic;
 import com.azure.resourcemanager.appservice.models.WebApps;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
@@ -74,7 +75,8 @@ public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceSer
 
     @NotNull
     @Override
-    public WebApp update(@NotNull AzResource.Draft<WebApp, WebSiteBase> draft) {
+    public WebApp update(@NotNull AzResource.Draft<WebApp, ?> d) {
+        final AzResource.Draft<FunctionApp, WebSiteBase> draft = this.cast(d);
         log.debug("[{}]:update(draft:{})", this.getName(), draft);
         final WebApp resource = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.nonNull(resource) && Objects.nonNull(resource.getRemote())) {

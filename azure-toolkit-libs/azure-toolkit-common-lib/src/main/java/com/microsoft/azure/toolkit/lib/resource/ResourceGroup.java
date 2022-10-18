@@ -74,7 +74,7 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesSe
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, ResourceGroup, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Arrays.asList(deploymentModule, resourceModule);
     }
 

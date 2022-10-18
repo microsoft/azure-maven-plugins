@@ -26,7 +26,7 @@ public class WebAppServiceSubscription extends AppServiceServiceSubscription {
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, AppServiceServiceSubscription, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(this.getWebAppModule());
     }
 }

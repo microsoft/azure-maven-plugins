@@ -39,7 +39,7 @@ public class SqlDatabase extends AbstractAzResource<SqlDatabase, CosmosDBAccount
 
     @NotNull
     @Override
-    public List<AbstractAzResourceModule<?, SqlDatabase, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(containerModule);
     }
 
