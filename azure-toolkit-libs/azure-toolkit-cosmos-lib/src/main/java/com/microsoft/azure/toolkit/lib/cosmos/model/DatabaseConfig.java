@@ -7,12 +7,12 @@ package com.microsoft.azure.toolkit.lib.cosmos.model;
 
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class DatabaseConfig {
+@EqualsAndHashCode(callSuper = true)
+public class DatabaseConfig extends ThroughputConfig {
     private String name;
-    private Integer throughput;
-    private Integer maxThroughput;
 
     public static DatabaseConfig getDefaultDatabaseConfig() {
         return getDefaultDatabaseConfig("database");

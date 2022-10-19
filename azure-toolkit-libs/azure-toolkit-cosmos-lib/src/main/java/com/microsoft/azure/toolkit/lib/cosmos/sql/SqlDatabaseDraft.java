@@ -8,8 +8,6 @@ package com.microsoft.azure.toolkit.lib.cosmos.sql;
 import com.azure.core.util.Context;
 import com.azure.resourcemanager.cosmos.fluent.CosmosDBManagementClient;
 import com.azure.resourcemanager.cosmos.fluent.models.SqlDatabaseGetResultsInner;
-import com.azure.resourcemanager.cosmos.models.AutoscaleSettings;
-import com.azure.resourcemanager.cosmos.models.CreateUpdateOptions;
 import com.azure.resourcemanager.cosmos.models.SqlDatabaseCreateUpdateParameters;
 import com.azure.resourcemanager.cosmos.models.SqlDatabaseResource;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -38,7 +36,7 @@ public class SqlDatabaseDraft extends SqlDatabase implements
 
     @Override
     public void reset() {
-
+        this.config = null;
     }
 
     @NotNull
@@ -48,18 +46,7 @@ public class SqlDatabaseDraft extends SqlDatabase implements
         final SqlDatabaseCreateUpdateParameters parameters = new SqlDatabaseCreateUpdateParameters()
                 .withLocation(Objects.requireNonNull(this.getParent().getRegion()).getName())
                 .withResource(new SqlDatabaseResource().withId(this.getName()));
-        final Integer throughput = ensureConfig().getThroughput();
-        final Integer maxThroughput = ensureConfig().getMaxThroughput();
-        assert ObjectUtils.anyNull(throughput, maxThroughput);
-        if (ObjectUtils.anyNotNull(throughput, maxThroughput)) {
-            final CreateUpdateOptions options = new CreateUpdateOptions();
-            if (Objects.nonNull(ensureConfig().getThroughput())) {
-                options.withThroughput(throughput);
-            } else {
-                options.withAutoscaleSettings(new AutoscaleSettings().withMaxThroughput(maxThroughput));
-            }
-            parameters.withOptions(options);
-        }
+        parameters.withOptions(ensureConfig().toCreateUpdateOptions());
         AzureMessager.getMessager().info(AzureString.format("Start creating SQL database({0})...", this.getName()));
         final SqlDatabaseGetResultsInner result = cosmosDBManagementClient.getSqlResources().createUpdateSqlDatabase(this.getResourceGroupName(), this.getParent().getName(),
                 this.getName(), parameters, Context.NONE);

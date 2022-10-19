@@ -8,10 +8,8 @@ package com.microsoft.azure.toolkit.lib.cosmos.cassandra;
 import com.azure.core.util.Context;
 import com.azure.resourcemanager.cosmos.fluent.CosmosDBManagementClient;
 import com.azure.resourcemanager.cosmos.fluent.models.CassandraKeyspaceGetResultsInner;
-import com.azure.resourcemanager.cosmos.models.AutoscaleSettings;
 import com.azure.resourcemanager.cosmos.models.CassandraKeyspaceCreateUpdateParameters;
 import com.azure.resourcemanager.cosmos.models.CassandraKeyspaceResource;
-import com.azure.resourcemanager.cosmos.models.CreateUpdateOptions;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabaseDraft;
@@ -48,18 +46,7 @@ public class CassandraKeyspaceDraft extends CassandraKeyspace implements
         final CassandraKeyspaceCreateUpdateParameters parameters = new CassandraKeyspaceCreateUpdateParameters()
                 .withLocation(Objects.requireNonNull(this.getParent().getRegion()).getName())
                 .withResource(new CassandraKeyspaceResource().withId(this.getName()));
-        final Integer throughput = ensureConfig().getThroughput();
-        final Integer maxThroughput = ensureConfig().getMaxThroughput();
-        assert ObjectUtils.anyNull(throughput, maxThroughput);
-        if (ObjectUtils.anyNotNull(throughput, maxThroughput)) {
-            final CreateUpdateOptions options = new CreateUpdateOptions();
-            if (Objects.nonNull(ensureConfig().getThroughput())) {
-                options.withThroughput(throughput);
-            } else {
-                options.withAutoscaleSettings(new AutoscaleSettings().withMaxThroughput(maxThroughput));
-            }
-            parameters.withOptions(options);
-        }
+        parameters.withOptions(ensureConfig().toCreateUpdateOptions());
         AzureMessager.getMessager().info(AzureString.format("Start creating Cassandra keyspace({0})...", this.getName()));
         final CassandraKeyspaceGetResultsInner result = cosmosDBManagementClient.getCassandraResources().createUpdateCassandraKeyspace(this.getResourceGroupName(), this.getParent().getName(),
                 this.getName(), parameters, Context.NONE);

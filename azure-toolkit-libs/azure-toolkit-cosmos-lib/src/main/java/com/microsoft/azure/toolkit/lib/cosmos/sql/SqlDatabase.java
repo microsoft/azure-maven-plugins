@@ -9,6 +9,7 @@ import com.azure.resourcemanager.cosmos.fluent.models.SqlDatabaseGetResultsInner
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosCollection;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabase;
@@ -20,7 +21,7 @@ import java.util.List;
 
 public class SqlDatabase extends AbstractAzResource<SqlDatabase, CosmosDBAccount, SqlDatabaseGetResultsInner> implements Deletable, ICosmosDatabase {
 
-    private SqlContainerModule containerModule;
+    private final SqlContainerModule containerModule;
 
     protected SqlDatabase(@NotNull String name, @NotNull String resourceGroupName, @NotNull SqlDatabaseModule module) {
         super(name, resourceGroupName, module);
@@ -45,6 +46,10 @@ public class SqlDatabase extends AbstractAzResource<SqlDatabase, CosmosDBAccount
 
     public SqlContainerModule containers() {
         return this.containerModule;
+    }
+
+    public Region getRegion() {
+        return getParent().getRegion();
     }
 
     @NotNull
