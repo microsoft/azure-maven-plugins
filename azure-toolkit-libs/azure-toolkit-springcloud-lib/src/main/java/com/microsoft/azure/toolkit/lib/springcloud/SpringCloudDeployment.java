@@ -88,7 +88,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.emptyList();
+        return Collections.singletonList(instanceModule);
     }
 
     @Override

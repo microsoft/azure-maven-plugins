@@ -23,7 +23,7 @@ public class SpringCloudAppInstance extends AbstractAzResource<SpringCloudAppIns
 
     @NotNull
     @Override
-    public List<AbstractAzResourceModule<?, SpringCloudAppInstance, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 
