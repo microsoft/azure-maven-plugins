@@ -47,7 +47,13 @@ public class BlobFileModule extends AbstractAzResourceModule<BlobFile, IBlobFile
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final BlobFile file = this.get(resourceId);
         if (file != null) {
-            this.getClient().getBlobClient(file.getPath()).deleteIfExists();
+            if (file.isDirectory()) {
+                this.getClient().listBlobsByHierarchy(file.getPath()).stream()
+                    .map(BlobItem::getName)
+                    .forEach(p -> this.getClient().getBlobClient(p).deleteIfExists());
+            } else {
+                this.getClient().getBlobClient(file.getPath()).deleteIfExists();
+            }
         }
     }
 
