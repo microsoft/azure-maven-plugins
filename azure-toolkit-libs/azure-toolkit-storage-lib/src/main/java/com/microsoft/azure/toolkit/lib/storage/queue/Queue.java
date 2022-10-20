@@ -42,6 +42,6 @@ public class Queue extends AbstractAzResource<Queue, StorageAccount, QueueClient
     @Nonnull
     @Override
     public String loadStatus(@Nonnull QueueClient remote) {
-        return "OK";
+        return "";
     }
 }

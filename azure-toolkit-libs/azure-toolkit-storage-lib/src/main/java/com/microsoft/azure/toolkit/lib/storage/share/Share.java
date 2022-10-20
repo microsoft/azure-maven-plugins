@@ -47,7 +47,7 @@ public class Share extends AbstractAzResource<Share, StorageAccount, ShareClient
     @Nonnull
     @Override
     public String loadStatus(@Nonnull ShareClient remote) {
-        return "OK";
+        return "";
     }
 
     @Override

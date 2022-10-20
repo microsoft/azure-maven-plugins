@@ -46,7 +46,7 @@ public class BlobContainer extends AbstractAzResource<BlobContainer, StorageAcco
     @Nonnull
     @Override
     public String loadStatus(@Nonnull BlobContainerClient remote) {
-        return "OK";
+        return "";
     }
 
     public BlobContainerClient getClient() {
