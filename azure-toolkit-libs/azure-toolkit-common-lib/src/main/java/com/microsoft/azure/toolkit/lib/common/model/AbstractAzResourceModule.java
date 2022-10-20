@@ -326,7 +326,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     @Override
-    public T create(@Nonnull AzResource.Draft<T, ?> draft) {
+    public T create(@Nonnull AzResource.Draft<T, ?> d) {
+        final AzResource.Draft<T, R> draft = this.cast(d);
         log.debug("[{}]:create(draft:{})", this.name, draft);
         final T existing = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.isNull(existing)) {
