@@ -88,7 +88,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         AzureEventBus.emit("module.refreshed.module", this);
     }
 
-    void invalidateCache() {
+    protected void invalidateCache() {
         log.debug("[{}]:invalidateCache()", this.name);
         if (this.lock.tryLock()) {
             try {
@@ -552,11 +552,6 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nonnull
     public String getSubscriptionId() {
         return this.getParent().getSubscriptionId();
-    }
-
-    @Nonnull
-    public String getId() {
-        return String.format("%s/%s", this.getParent().getId(), this.getName());
     }
 
     @Nonnull
