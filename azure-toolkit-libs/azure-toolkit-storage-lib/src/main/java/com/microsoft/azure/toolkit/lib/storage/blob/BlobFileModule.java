@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.storage.blob;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.models.BlobItem;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -55,6 +56,12 @@ public class BlobFileModule extends AbstractAzResourceModule<BlobFile, IBlobFile
                 this.getClient().getBlobClient(file.getPath()).deleteIfExists();
             }
         }
+    }
+
+    @Nonnull
+    @Override
+    protected AzResource.Draft<BlobFile, BlobItem> newDraftForCreate(@Nonnull String name, @Nullable String rgName) {
+        return new BlobFileDraft(name, this);
     }
 
     @Nonnull

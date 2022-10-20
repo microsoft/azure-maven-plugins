@@ -9,6 +9,7 @@ import com.azure.core.http.rest.PagedIterable;
 import com.azure.storage.file.share.ShareDirectoryClient;
 import com.azure.storage.file.share.models.ShareFileItem;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -62,6 +63,12 @@ public class ShareFileModule extends AbstractAzResourceModule<ShareFile, IShareF
             }
         }
         client.deleteIfExists();
+    }
+
+    @Nonnull
+    @Override
+    protected AzResource.Draft<ShareFile, ShareFileItem> newDraftForCreate(@Nonnull String name, @Nullable String rgName) {
+        return new ShareFileDraft(name, this);
     }
 
     @Nonnull
