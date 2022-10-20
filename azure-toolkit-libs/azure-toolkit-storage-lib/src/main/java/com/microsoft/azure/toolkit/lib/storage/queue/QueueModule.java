@@ -50,9 +50,8 @@ public class QueueModule extends AbstractAzResourceModule<Queue, StorageAccount,
 
     @Nullable
     @Override
-    protected QueueClient loadResourceFromAzure(@Nonnull String name, @org.jetbrains.annotations.Nullable String resourceGroup) {
-        final QueueServiceClient client = this.getQueueServiceClient();
-        return client.getQueueClient(name);
+    protected QueueClient loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
+        return this.loadResourcesFromAzure().filter(c -> c.getQueueName().equals(name)).findAny().orElse(null);
     }
 
     @Override
@@ -82,6 +81,6 @@ public class QueueModule extends AbstractAzResourceModule<Queue, StorageAccount,
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "Share";
+        return "Queue";
     }
 }

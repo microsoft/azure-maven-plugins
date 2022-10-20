@@ -50,9 +50,8 @@ public class TableModule extends AbstractAzResourceModule<Table, StorageAccount,
 
     @Nullable
     @Override
-    protected TableClient loadResourceFromAzure(@Nonnull String name, @org.jetbrains.annotations.Nullable String resourceGroup) {
-        final TableServiceClient client = this.getTableServiceClient();
-        return client.getTableClient(name);
+    protected TableClient loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
+        return this.loadResourcesFromAzure().filter(c -> c.getTableName().equals(name)).findAny().orElse(null);
     }
 
     @Override
@@ -82,6 +81,6 @@ public class TableModule extends AbstractAzResourceModule<Table, StorageAccount,
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "Share";
+        return "Table";
     }
 }

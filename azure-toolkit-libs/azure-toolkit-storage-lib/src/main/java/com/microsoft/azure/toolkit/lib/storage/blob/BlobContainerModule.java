@@ -50,9 +50,8 @@ public class BlobContainerModule extends AbstractAzResourceModule<BlobContainer,
 
     @Nullable
     @Override
-    protected BlobContainerClient loadResourceFromAzure(@Nonnull String name, @org.jetbrains.annotations.Nullable String resourceGroup) {
-        final BlobServiceClient client = this.getBlobServiceClient();
-        return client.getBlobContainerClient(name);
+    protected BlobContainerClient loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
+        return this.loadResourcesFromAzure().filter(c -> c.getBlobContainerName().equals(name)).findAny().orElse(null);
     }
 
     @Override
