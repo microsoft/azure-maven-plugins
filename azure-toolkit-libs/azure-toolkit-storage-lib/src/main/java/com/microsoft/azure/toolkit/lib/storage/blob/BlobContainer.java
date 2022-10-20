@@ -15,6 +15,7 @@ import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,15 +50,20 @@ public class BlobContainer extends AbstractAzResource<BlobContainer, StorageAcco
         return "";
     }
 
+    @Nonnull
     public BlobContainerClient getClient() {
         final BlobContainerModule module = (BlobContainerModule) this.getModule();
         final BlobServiceClient blobServiceClient = module.getBlobServiceClient();
         return blobServiceClient.getBlobContainerClient(this.getName());
     }
 
+    public boolean exists(String blobPath) {
+        return this.getClient().getBlobClient(blobPath).exists();
+    }
+
     @Override
     public String getPath() {
-        return null;
+        return "";
     }
 
     @Override
@@ -71,6 +77,15 @@ public class BlobContainer extends AbstractAzResource<BlobContainer, StorageAcco
     }
 
     @Override
+    public String getUrl() {
+        return this.getClient().getBlobContainerUrl();
+    }
+
+    @Override
     public void download(OutputStream output) {
+    }
+
+    @Override
+    public void download(Path dest) {
     }
 }

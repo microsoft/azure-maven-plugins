@@ -15,6 +15,8 @@ import org.apache.commons.lang3.BooleanUtils;
 
 import javax.annotation.Nonnull;
 import java.io.OutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
@@ -59,6 +61,11 @@ public class BlobFile extends AbstractAzResource<BlobFile, IBlobFile, BlobItem> 
         this.getClient().getBlobClient(this.getPath()).downloadStream(output);
     }
 
+    @Override
+    public void download(Path dest) {
+        this.getClient().getBlobClient(this.getPath()).downloadToFile(dest.toAbsolutePath().toString());
+    }
+
     @Nonnull
     public BlobContainerClient getClient() {
         return this.getParent().getClient();
@@ -66,7 +73,12 @@ public class BlobFile extends AbstractAzResource<BlobFile, IBlobFile, BlobItem> 
 
     @Override
     public String getPath() {
-        return this.remoteOptional().map(BlobItem::getName).orElse(this.getName());
+        return this.remoteOptional().map(BlobItem::getName).orElse(Paths.get(this.getParent().getPath(), this.getName()).toString());
+    }
+
+    @Override
+    public String getUrl() {
+        return this.getClient().getBlobClient(this.getPath()).getBlobUrl();
     }
 
     @Override
