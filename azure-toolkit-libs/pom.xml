@@ -105,7 +105,6 @@
         <jackson.version>2.13.3</jackson.version>
         <jansi.version>2.4.0</jansi.version>
         <annotations.version>23.0.0</annotations.version>
-        <json-schema-validator.version>2.2.14</json-schema-validator.version>
         <groovy.version>3.0.11</groovy.version>
         <junit.version>4.13.2</junit.version>
         <lombok.version>1.18.24</lombok.version>
@@ -131,6 +130,7 @@
         <zt-zip.version>1.15</zt-zip.version>
         <plexus-interpolation.version>1.26</plexus-interpolation.version>
         <powermock.version>2.0.9</powermock.version>
+        <github.json-schema-validator.version>2.2.14</github.json-schema-validator.version>
         <json-schema-validator.version>1.0.70</json-schema-validator.version>
         <jedis.version>3.6.3</jedis.version>
         <asm.version>9.3</asm.version>
@@ -687,7 +687,7 @@
             <dependency>
                 <groupId>com.github.java-json-tools</groupId>
                 <artifactId>json-schema-validator</artifactId>
-                <version>${json-schema-validator.version}</version>
+                <version>${github.json-schema-validator.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.beryx</groupId>
