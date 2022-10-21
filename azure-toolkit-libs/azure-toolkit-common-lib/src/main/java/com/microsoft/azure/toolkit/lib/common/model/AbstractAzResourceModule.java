@@ -88,7 +88,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         AzureEventBus.emit("module.refreshed.module", this);
     }
 
-    void invalidateCache() {
+    protected void invalidateCache() {
         log.debug("[{}]:invalidateCache()", this.name);
         if (this.lock.tryLock()) {
             try {
@@ -326,7 +326,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     @Override
-    public T create(@Nonnull AzResource.Draft<T, ?> draft) {
+    public T create(@Nonnull AzResource.Draft<T, ?> d) {
+        final AzResource.Draft<T, R> draft = this.cast(d);
         log.debug("[{}]:create(draft:{})", this.name, draft);
         final T existing = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.isNull(existing)) {
@@ -552,11 +553,6 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nonnull
     public String getSubscriptionId() {
         return this.getParent().getSubscriptionId();
-    }
-
-    @Nonnull
-    public String getId() {
-        return String.format("%s/%s", this.getParent().getId(), this.getName());
     }
 
     @Nonnull

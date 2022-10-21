@@ -15,22 +15,37 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.storage.blob.BlobContainerModule;
 import com.microsoft.azure.toolkit.lib.storage.model.AccessTier;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Performance;
 import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
+import com.microsoft.azure.toolkit.lib.storage.queue.QueueModule;
+import com.microsoft.azure.toolkit.lib.storage.share.ShareModule;
+import com.microsoft.azure.toolkit.lib.storage.table.TableModule;
+import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+@Getter
 public class StorageAccount extends AbstractAzResource<StorageAccount, StorageServiceSubscription, com.azure.resourcemanager.storage.models.StorageAccount>
     implements Deletable {
 
+    private final BlobContainerModule blobContainerModule;
+    private final ShareModule shareModule;
+    private final QueueModule queueModule;
+    private final TableModule tableModule;
+
     protected StorageAccount(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull StorageAccountModule module) {
         super(name, resourceGroupName, module);
+        this.blobContainerModule = new BlobContainerModule(this);
+        this.shareModule = new ShareModule(this);
+        this.queueModule = new QueueModule(this);
+        this.tableModule = new TableModule(this);
     }
 
     /**
@@ -38,16 +53,24 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageSe
      */
     public StorageAccount(@Nonnull StorageAccount origin) {
         super(origin);
+        this.shareModule = origin.shareModule;
+        this.blobContainerModule = origin.blobContainerModule;
+        this.queueModule = origin.queueModule;
+        this.tableModule = origin.tableModule;
     }
 
     protected StorageAccount(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount remote, @Nonnull StorageAccountModule module) {
         super(remote.name(), remote.resourceGroupName(), module);
+        this.blobContainerModule = new BlobContainerModule(this);
+        this.shareModule = new ShareModule(this);
+        this.queueModule = new QueueModule(this);
+        this.tableModule = new TableModule(this);
     }
 
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.emptyList();
+        return Arrays.asList(this.blobContainerModule, this.shareModule, this.queueModule, this.tableModule);
     }
 
     @Nonnull
