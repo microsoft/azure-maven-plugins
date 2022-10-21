@@ -7,6 +7,8 @@ package com.microsoft.azure.toolkit.lib.appservice;
 
 import com.azure.resourcemanager.appservice.models.CsmPublishingProfileOptions;
 import com.azure.resourcemanager.appservice.models.DeployOptions;
+import com.azure.resourcemanager.appservice.models.HostType;
+import com.azure.resourcemanager.appservice.models.HostnameSslState;
 import com.azure.resourcemanager.appservice.models.PublishingProfileFormat;
 import com.azure.resourcemanager.appservice.models.SupportsOneDeploy;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
@@ -28,6 +30,9 @@ import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanModule;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
+import com.microsoft.azure.toolkit.lib.auth.AuthType;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -124,6 +129,16 @@ public abstract class AppServiceAppBase<
     @Nullable
     public String getHostName() {
         return this.remoteOptional().map(WebSiteBase::defaultHostname).orElse(null);
+    }
+
+    @Nullable
+    public String getKuduHostName() {
+        return this.remoteOptional()
+                .map(siteBase -> siteBase.hostnameSslStates().values().stream()
+                        .filter(sslState -> sslState.hostType() == HostType.REPOSITORY)
+                        .map(HostnameSslState::name)
+                        .findFirst().orElse(null))
+                .orElse(null);
     }
 
     @Nullable

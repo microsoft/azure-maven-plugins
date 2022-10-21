@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.function;
 
+import com.azure.resourcemanager.appservice.models.PlatformArchitecture;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
@@ -14,7 +15,7 @@ import com.microsoft.azure.toolkit.lib.appservice.deploy.MSFunctionDeployHandler
 import com.microsoft.azure.toolkit.lib.appservice.deploy.RunFromBlobFunctionDeployHandler;
 import com.microsoft.azure.toolkit.lib.appservice.deploy.RunFromZipFunctionDeployHandler;
 import com.microsoft.azure.toolkit.lib.appservice.deploy.ZIPFunctionDeployHandler;
-import com.microsoft.azure.toolkit.lib.appservice.file.AzureFunctionsFileClient;
+import com.microsoft.azure.toolkit.lib.appservice.file.AzureFunctionsAdminClient;
 import com.microsoft.azure.toolkit.lib.appservice.file.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
@@ -24,21 +25,31 @@ import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.operation.Operation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P extends AbstractAzResource<P, ?, ?>, F extends WebAppBase>
     extends AppServiceAppBase<T, P, F> {
     private static final String FUNCTION_DEPLOY_TYPE = "functionDeployType";
+    public static final String JAVA_OPTS = "JAVA_OPTS";
+    public static final String HTTP_PLATFORM_DEBUG_PORT = "HTTP_PLATFORM_DEBUG_PORT";
+    public static final String PREFER_IPV_4_STACK_TRUE = "-Djava.net.preferIPv4Stack=true";
+    public static final String XDEBUG = "-Xdebug";
+    public static final String XRUNJDWP = "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=127.0.0.1:%s";
 
-    private AzureFunctionsFileClient fileClient;
+    private AzureFunctionsAdminClient fileClient;
+    public static final String DEFAULT_REMOTE_DEBUG_PORT = "8898";
+    public static final String DEFAULT_REMOTE_DEBUG_JAVA_OPTS = "-Djava.net.preferIPv4Stack=true -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=127.0.0.1:%s";
 
     protected FunctionAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, WebSiteBase> module) {
         super(name, resourceGroupName, module);
@@ -61,13 +72,17 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
         getDeployHandlerByType(functionDeployType).deploy(targetFile, getFullRemote());
     }
 
+    protected AzureFunctionsAdminClient getAdminClient() {
+        if (fileClient == null) {
+            fileClient = Optional.ofNullable(this.getFullRemote()).map(r -> AzureFunctionsAdminClient.getClient(r, this)).orElse(null);
+        }
+        return fileClient;
+    }
+
     @Nullable
     protected IFileClient getFileClient() {
         // kudu api does not applies to linux consumption, using functions admin api instead
-        if (fileClient == null) {
-            fileClient = Optional.ofNullable(this.getFullRemote()).map(r -> AzureFunctionsFileClient.getClient(r, this)).orElse(null);
-        }
-        return fileClient;
+        return getAdminClient();
     }
 
     protected FunctionDeployType getDefaultDeployType() {
@@ -98,4 +113,49 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
     }
 
     public abstract String getMasterKey();
+
+    public boolean isRemoteDebugEnabled() {
+        final F remote = Objects.requireNonNull(getFullRemote());
+        final Map<String, String> appSettings = Objects.requireNonNull(this.getAppSettings());
+        // siteConfig for remote debug
+        final boolean configEnabled = remote.webSocketsEnabled() && remote.platformArchitecture() == PlatformArchitecture.X64;
+        // JAVA_OPTS
+        final boolean appSettingsEnabled = appSettings.containsKey(HTTP_PLATFORM_DEBUG_PORT) &&
+                StringUtils.equalsIgnoreCase(appSettings.get(JAVA_OPTS), getJavaOptsWithRemoteDebugEnabled(appSettings));
+        return configEnabled && appSettingsEnabled;
+    }
+
+    public abstract void enableRemoteDebug();
+
+    public abstract void disableRemoteDebug();
+
+    public void ping() {
+        getAdminClient().ping();
+    }
+
+    public String getJavaOptsWithRemoteDebugDisabled(final Map<String, String> appSettings) {
+        final String javaOpts = appSettings.get(JAVA_OPTS);
+        if (StringUtils.isEmpty(javaOpts)) {
+            return String.format(StringUtils.EMPTY);
+        }
+        return Arrays.stream(javaOpts.split(" "))
+                .filter(opts -> !StringUtils.containsAnyIgnoreCase(opts, PREFER_IPV_4_STACK_TRUE, XDEBUG, "-Xrunjdwp"))
+                .collect(Collectors.joining(" "));
+    }
+
+    public String getJavaOptsWithRemoteDebugEnabled(final Map<String, String> appSettings) {
+        final String javaOpts = appSettings.get(JAVA_OPTS);
+        final String debugPort = appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, DEFAULT_REMOTE_DEBUG_PORT);
+        if (StringUtils.isEmpty(javaOpts)) {
+            return String.format(DEFAULT_REMOTE_DEBUG_JAVA_OPTS, debugPort);
+        }
+        final List<String> jvmOptions = Arrays.asList(javaOpts.split(" "));
+        final String jdwp = String.format(XRUNJDWP, debugPort);
+        for (final String configuration : Arrays.asList(PREFER_IPV_4_STACK_TRUE, XDEBUG, jdwp)) {
+            if (!jvmOptions.contains(configuration)) {
+                jvmOptions.add(configuration);
+            }
+        }
+        return String.join(" ", jvmOptions);
+    }
 }

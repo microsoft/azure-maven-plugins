@@ -6,12 +6,14 @@
 package com.microsoft.azure.toolkit.lib.appservice.function;
 
 import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
+import com.azure.resourcemanager.appservice.models.PlatformArchitecture;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -58,6 +60,27 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     @Override
     public String getMasterKey() {
         return Optional.ofNullable(this.getFullRemote()).map(com.azure.resourcemanager.appservice.models.FunctionApp::getMasterKey).orElse(null);
+    }
+
+    @Override
+    public void enableRemoteDebug() {
+        final Map<String, String> appSettings = Optional.ofNullable(this.getAppSettings()).orElseGet(HashMap::new);
+        Objects.requireNonNull(getFullRemote()).update()
+                .withWebSocketsEnabled(true)
+                .withPlatformArchitecture(PlatformArchitecture.X64)
+                .withAppSetting(HTTP_PLATFORM_DEBUG_PORT, appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, DEFAULT_REMOTE_DEBUG_PORT))
+                .withAppSetting(JAVA_OPTS, getJavaOptsWithRemoteDebugEnabled(appSettings)).apply();
+    }
+
+    @Override
+    public void disableRemoteDebug() {
+        final Map<String, String> appSettings = Objects.requireNonNull(this.getAppSettings());
+        final String javaOpts = this.getJavaOptsWithRemoteDebugDisabled(appSettings);
+        if (StringUtils.isEmpty(javaOpts)) {
+            Objects.requireNonNull(getFullRemote()).update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withoutAppSetting(JAVA_OPTS).apply();
+        } else {
+            Objects.requireNonNull(getFullRemote()).update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withAppSetting(JAVA_OPTS, javaOpts).apply();
+        }
     }
 
     @Nonnull
