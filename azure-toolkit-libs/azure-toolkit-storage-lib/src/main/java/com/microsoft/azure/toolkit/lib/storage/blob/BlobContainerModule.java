@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 public class BlobContainerModule extends AbstractAzResourceModule<BlobContainer, StorageAccount, BlobContainerClient> {
 
-    public static final String NAME = "containers";
+    public static final String NAME = "Azure.BlobContainer";
     private BlobServiceClient client;
 
     public BlobContainerModule(@Nonnull StorageAccount parent) {
