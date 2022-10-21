@@ -14,6 +14,8 @@ import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import java.io.OutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
@@ -62,6 +64,14 @@ public class ShareFile extends AbstractAzResource<ShareFile, IShareFile, ShareFi
     }
 
     @Override
+    public void download(Path dest) {
+        if (!this.isDirectory()) {
+            final ShareDirectoryClient parentClient = (ShareDirectoryClient) this.getParent().getClient();
+            parentClient.getFileClient(this.getName()).downloadToFile(dest.toAbsolutePath().toString());
+        }
+    }
+
+    @Override
     public Object getClient() {
         final ShareDirectoryClient parentClient = (ShareDirectoryClient) this.getParent().getClient();
         return this.isDirectory() ? parentClient.getSubdirectoryClient(this.getName()) : parentClient.getFileClient(this.getName());
@@ -75,5 +85,16 @@ public class ShareFile extends AbstractAzResource<ShareFile, IShareFile, ShareFi
     @Override
     public boolean isDirectory() {
         return this.remoteOptional().map(ShareFileItem::isDirectory).orElse(false);
+    }
+
+    @Override
+    public String getPath() {
+        return Paths.get(this.getParent().getPath(), this.getName()).toString();
+    }
+
+    @Override
+    public String getUrl() {
+        final ShareDirectoryClient parentClient = (ShareDirectoryClient) this.getParent().getClient();
+        return this.isDirectory() ? parentClient.getSubdirectoryClient(this.getName()).getDirectoryUrl() : parentClient.getFileClient(this.getName()).getFileUrl();
     }
 }

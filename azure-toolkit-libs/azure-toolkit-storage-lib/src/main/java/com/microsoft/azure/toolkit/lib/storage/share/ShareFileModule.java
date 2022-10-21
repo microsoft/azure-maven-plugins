@@ -5,9 +5,11 @@
 
 package com.microsoft.azure.toolkit.lib.storage.share;
 
+import com.azure.core.http.rest.PagedIterable;
 import com.azure.storage.file.share.ShareDirectoryClient;
 import com.azure.storage.file.share.models.ShareFileItem;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -44,11 +46,29 @@ public class ShareFileModule extends AbstractAzResourceModule<ShareFile, IShareF
         final ShareFile shareFile = this.get(resourceId);
         if (shareFile != null) {
             if (shareFile.isDirectory()) {
-                this.getClient().deleteSubdirectoryIfExists(shareFile.getName());
+                deleteDirectory((ShareDirectoryClient) shareFile.getClient());
             } else {
                 this.getClient().deleteFileIfExists(shareFile.getName());
             }
         }
+    }
+
+    private void deleteDirectory(ShareDirectoryClient client) {
+        final PagedIterable<ShareFileItem> files = client.listFilesAndDirectories();
+        for (ShareFileItem file : files) {
+            if (file.isDirectory()) {
+                deleteDirectory(client.getSubdirectoryClient(file.getName()));
+            } else {
+                client.getFileClient(file.getName()).delete();
+            }
+        }
+        client.deleteIfExists();
+    }
+
+    @Nonnull
+    @Override
+    protected AzResource.Draft<ShareFile, ShareFileItem> newDraftForCreate(@Nonnull String name, @Nullable String rgName) {
+        return new ShareFileDraft(name, this);
     }
 
     @Nonnull

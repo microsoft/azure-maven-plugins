@@ -16,6 +16,7 @@ import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,7 +48,7 @@ public class Share extends AbstractAzResource<Share, StorageAccount, ShareClient
     @Nonnull
     @Override
     public String loadStatus(@Nonnull ShareClient remote) {
-        return "OK";
+        return "";
     }
 
     @Override
@@ -56,6 +57,12 @@ public class Share extends AbstractAzResource<Share, StorageAccount, ShareClient
         final ShareServiceClient fileShareServiceClient = module.getFileShareServiceClient();
         final ShareClient shareClient = fileShareServiceClient.getShareClient(this.getName());
         return shareClient.getRootDirectoryClient();
+    }
+
+    public ShareClient getShareClient() {
+        final ShareModule module = (ShareModule) this.getModule();
+        final ShareServiceClient fileShareServiceClient = module.getFileShareServiceClient();
+        return fileShareServiceClient.getShareClient(this.getName());
     }
 
     @Override
@@ -69,7 +76,23 @@ public class Share extends AbstractAzResource<Share, StorageAccount, ShareClient
     }
 
     @Override
-    public void download(OutputStream output) {
+    public String getPath() {
+        return "";
+    }
 
+    @Override
+    public String getUrl() {
+        final ShareModule module = (ShareModule) this.getModule();
+        final ShareServiceClient fileShareServiceClient = module.getFileShareServiceClient();
+        final ShareClient shareClient = fileShareServiceClient.getShareClient(this.getName());
+        return shareClient.getShareUrl();
+    }
+
+    @Override
+    public void download(OutputStream output) {
+    }
+
+    @Override
+    public void download(Path dest) {
     }
 }

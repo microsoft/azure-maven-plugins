@@ -50,9 +50,8 @@ public class ShareModule extends AbstractAzResourceModule<Share, StorageAccount,
 
     @Nullable
     @Override
-    protected ShareClient loadResourceFromAzure(@Nonnull String name, @org.jetbrains.annotations.Nullable String resourceGroup) {
-        final ShareServiceClient client = this.getFileShareServiceClient();
-        return client.getShareClient(name);
+    protected ShareClient loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
+        return this.loadResourcesFromAzure().filter(c -> c.getShareName().equals(name)).findAny().orElse(null);
     }
 
     @Override
@@ -82,6 +81,6 @@ public class ShareModule extends AbstractAzResourceModule<Share, StorageAccount,
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "Share";
+        return "File Share";
     }
 }

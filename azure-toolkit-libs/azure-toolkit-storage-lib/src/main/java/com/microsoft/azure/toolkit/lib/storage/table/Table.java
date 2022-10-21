@@ -42,6 +42,6 @@ public class Table extends AbstractAzResource<Table, StorageAccount, TableClient
     @Nonnull
     @Override
     public String loadStatus(@Nonnull TableClient remote) {
-        return "OK";
+        return "";
     }
 }
