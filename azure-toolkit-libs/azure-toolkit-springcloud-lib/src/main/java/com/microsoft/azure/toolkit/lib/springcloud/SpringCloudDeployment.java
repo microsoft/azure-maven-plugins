@@ -6,8 +6,9 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.core.util.ExpandableStringEnum;
-import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
+import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
+import com.azure.resourcemanager.appplatform.models.RemoteDebuggingPayload;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.google.common.base.Charsets;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -36,9 +37,13 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment> {
+    @Nonnull
+    private final SpringCloudAppInstanceModule instanceModule;
+    private boolean remoteDebuggingEnabled;
 
     protected SpringCloudDeployment(@Nonnull String name, @Nonnull SpringCloudDeploymentModule module) {
         super(name, module);
+        this.instanceModule = new SpringCloudAppInstanceModule(this);
     }
 
     /**
@@ -46,10 +51,13 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
      */
     protected SpringCloudDeployment(@Nonnull SpringCloudDeployment origin) {
         super(origin);
+        this.instanceModule = origin.instanceModule;
+        this.remoteDebuggingEnabled = origin.remoteDebuggingEnabled;
     }
 
     protected SpringCloudDeployment(@Nonnull SpringAppDeployment remote, @Nonnull SpringCloudDeploymentModule module) {
         super(remote.name(), module);
+        this.instanceModule = new SpringCloudAppInstanceModule(this);
     }
 
     // MODIFY
@@ -80,7 +88,15 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.emptyList();
+        return Collections.singletonList(instanceModule);
+    }
+
+    @Override
+    protected void updateAdditionalProperties(SpringAppDeployment newRemote, SpringAppDeployment oldRemote) {
+        final AppPlatformManager manager = this.getParent().getParent().getRemote().manager();
+        final String clusterName = this.getParent().getParent().getName();
+        final String appName = this.getParent().getName();
+        this.remoteDebuggingEnabled =  manager.serviceClient().getDeployments().getRemoteDebuggingConfig(this.getResourceGroupName(), clusterName, appName, getName()).enabled();
     }
 
     @Nonnull
@@ -174,9 +190,8 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
             }).orElse(null);
     }
 
-    @Nonnull
-    public List<DeploymentInstance> getInstances() {
-        return Optional.ofNullable(this.getRemote()).map(SpringAppDeployment::instances).orElse(Collections.emptyList());
+    public List<SpringCloudAppInstance> getInstances() {
+        return this.instanceModule.list();
     }
 
     @Nullable
@@ -199,5 +214,24 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
         if (this.isActive()) {
             getParent().reloadStatus();
         }
+    }
+
+    public void enableRemoteDebugging(int port) {
+        AppPlatformManager manager = this.getParent().getParent().getRemote().manager();
+        final RemoteDebuggingPayload payload = new RemoteDebuggingPayload().withPort(port);
+        final String clusterName = this.getParent().getParent().getName();
+        final String appName = this.getParent().getName();
+        doModify(() -> manager.serviceClient().getDeployments().enableRemoteDebugging(this.getResourceGroupName(), clusterName, appName, getName(), payload), Status.UPDATING);
+    }
+
+    public void disableRemoteDebugging() {
+        AppPlatformManager manager = this.getParent().getParent().getRemote().manager();
+        final String clusterName = this.getParent().getParent().getName();
+        final String appName = this.getParent().getName();
+        doModify(() -> manager.serviceClient().getDeployments().disableRemoteDebugging(this.getResourceGroupName(), clusterName, appName, getName()), Status.UPDATING);
+    }
+
+    public boolean isRemoteDebuggingEnabled() {
+        return this.remoteDebuggingEnabled;
     }
 }

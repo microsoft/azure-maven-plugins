@@ -7,10 +7,7 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.Deletable;
-import com.microsoft.azure.toolkit.lib.common.model.Startable;
+import com.microsoft.azure.toolkit.lib.common.model.*;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
 import lombok.Getter;
