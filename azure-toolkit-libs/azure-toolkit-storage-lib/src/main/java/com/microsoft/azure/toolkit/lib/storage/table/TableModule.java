@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 public class TableModule extends AbstractAzResourceModule<Table, StorageAccount, TableClient> {
 
-    public static final String NAME = "tables";
+    public static final String NAME = "Azure.Table";
     private TableServiceClient client;
 
     public TableModule(@Nonnull StorageAccount parent) {

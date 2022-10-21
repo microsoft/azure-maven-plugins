@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 public class ShareModule extends AbstractAzResourceModule<Share, StorageAccount, ShareClient> {
 
-    public static final String NAME = "shares";
+    public static final String NAME = "Azure.FileShare";
     private ShareServiceClient client;
 
     public ShareModule(@Nonnull StorageAccount parent) {

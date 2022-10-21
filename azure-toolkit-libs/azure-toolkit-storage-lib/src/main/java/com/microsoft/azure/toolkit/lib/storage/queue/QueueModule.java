@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 public class QueueModule extends AbstractAzResourceModule<Queue, StorageAccount, QueueClient> {
 
-    public static final String NAME = "queues";
+    public static final String NAME = "Azure.Queue";
     private QueueServiceClient client;
 
     public QueueModule(@Nonnull StorageAccount parent) {
