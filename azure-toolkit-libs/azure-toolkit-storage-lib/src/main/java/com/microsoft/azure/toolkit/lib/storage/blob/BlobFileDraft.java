@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.storage.blob;
 import com.azure.core.util.BinaryData;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.models.BlobItem;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
 import lombok.Getter;
 import lombok.Setter;
@@ -64,7 +63,13 @@ public class BlobFileDraft extends BlobFile implements StorageFile.Draft<BlobFil
     @Nonnull
     @Override
     public BlobItem updateResourceInAzure(@Nonnull BlobItem origin) {
-        throw new AzureToolkitRuntimeException("not supported");
+        final BlobFileModule module = (BlobFileModule) this.getModule();
+        final String fullPath = origin.getName();
+        final BlobClient client = module.getClient().getBlobClient(fullPath);
+        if (Objects.nonNull(this.sourceFile)) {
+            client.uploadFromFile(this.sourceFile.toString(), true);
+        }
+        return origin;
     }
 
     @Override

@@ -81,6 +81,12 @@ public class BlobFileModule extends AbstractAzResourceModule<BlobFile, IBlobFile
 
     @Nonnull
     @Override
+    protected AzResource.Draft<BlobFile, BlobItem> newDraftForUpdate(@Nonnull BlobFile blobFile) {
+        return new BlobFileDraft(blobFile);
+    }
+
+    @Nonnull
+    @Override
     protected BlobFile newResource(@Nonnull BlobItem item) {
         final String name = Paths.get(item.getName()).getFileName().toString();
         return new BlobFile(name, this);
