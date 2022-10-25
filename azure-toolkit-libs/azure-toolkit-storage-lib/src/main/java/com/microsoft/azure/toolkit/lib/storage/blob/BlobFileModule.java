@@ -64,7 +64,7 @@ public class BlobFileModule extends AbstractAzResourceModule<BlobFile, IBlobFile
     private void deleteDirectory(BlobItem current) {
         final PagedIterable<BlobItem> files = this.getClient().listBlobsByHierarchy(current.getName());
         for (BlobItem file : files) {
-            if (file.isPrefix()) {
+            if (BooleanUtils.isTrue(file.isPrefix())) {
                 deleteDirectory(file);
             } else {
                 this.getClient().getBlobClient(file.getName()).deleteIfExists();
