@@ -136,6 +136,8 @@
         <jedis.version>3.6.3</jedis.version>
         <asm.version>9.3</asm.version>
         <mongo-java-driver.version>3.12.11</mongo-java-driver.version>
+        <azure-cosmos.version>4.38.0</azure-cosmos.version>
+        <java-driver-core.version>4.15.0</java-driver-core.version>
     </properties>
 
     <repositories>
@@ -719,6 +721,16 @@
                 <groupId>org.mongodb</groupId>
                 <artifactId>mongo-java-driver</artifactId>
                 <version>${mongo-java-driver.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-cosmos</artifactId>
+                <version>${azure-cosmos.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.datastax.oss</groupId>
+                <artifactId>java-driver-core</artifactId>
+                <version>${java-driver-core.version}</version>
             </dependency>
             <!-- TEST -->
             <dependency>

@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.cosmos.model.ThroughputConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
 public class SqlContainerDraft extends SqlContainer implements
         AzResource.Draft<SqlContainer, SqlContainerGetResultsInner> {
 
+    @Setter
     private SqlContainerConfig config;
 
     protected SqlContainerDraft(@NotNull String name, @NotNull String resourceGroupName, @NotNull SqlContainerModule module) {

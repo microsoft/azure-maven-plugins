@@ -9,6 +9,9 @@ import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 public class AzureConfiguration {
@@ -27,6 +30,8 @@ public class AzureConfiguration {
     private int httpProxyPort;
     private String proxyUsername;
     private String proxyPassword;
+    private int cosmosBatchSize = 50;
+    private List<String> documentsLabelFields = new ArrayList<>();
 
     public void setProxyInfo(ProxyInfo proxy) {
         this.setProxySource(proxy.getSource());

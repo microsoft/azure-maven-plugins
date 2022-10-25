@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.cosmos.model.ThroughputConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Setter;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +29,7 @@ import java.util.Optional;
 public class MongoCollectionDraft extends MongoCollection implements
         AzResource.Draft<MongoCollection, MongoDBCollectionGetResultsInner> {
 
+    @Setter
     private MongoCollectionConfig config;
 
     protected MongoCollectionDraft(@NotNull String name, @NotNull String resourceGroupName, @NotNull MongoCollectionModule module) {
