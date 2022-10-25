@@ -57,11 +57,6 @@ public class MongoDocument extends AbstractAzResource<MongoDocument, MongoCollec
         sqlDocumentDraft.commit();
     }
 
-    @Override
-    public String getDocumentDisplayName() {
-        return null;
-    }
-
     @NotNull
     @Override
     public String loadStatus(@NotNull Document remote) {

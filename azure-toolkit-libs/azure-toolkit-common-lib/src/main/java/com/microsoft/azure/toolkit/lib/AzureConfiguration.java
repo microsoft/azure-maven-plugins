@@ -10,11 +10,14 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Getter
 @Setter
 public class AzureConfiguration {
+    public static final List<String> DEFAULT_DOCUMENT_LABEL_FIELDS = Arrays.asList("name", "Name", "NAME", "ID", "UUID", "Id", "id", "uuid");
+
     private String logLevel;
     private String userAgent;
     private String cloud;
@@ -31,7 +34,7 @@ public class AzureConfiguration {
     private String proxyUsername;
     private String proxyPassword;
     private int cosmosBatchSize = 50;
-    private List<String> documentsLabelFields = new ArrayList<>();
+    private List<String> documentsLabelFields = new ArrayList<>(DEFAULT_DOCUMENT_LABEL_FIELDS);
 
     public void setProxyInfo(ProxyInfo proxy) {
         this.setProxySource(proxy.getSource());

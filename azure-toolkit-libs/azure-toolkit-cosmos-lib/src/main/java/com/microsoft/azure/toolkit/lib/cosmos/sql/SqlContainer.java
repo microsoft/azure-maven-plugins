@@ -82,6 +82,11 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
         return getDocumentModule().list();
     }
 
+    @Override
+    public long getDocumentCount() {
+        return documentModule.getDocumentCount();
+    }
+
     public String getPartitionKey() {
         return Optional.ofNullable(this.containerResponse)
                 .map(CosmosContainerResponse::getProperties)

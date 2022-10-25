@@ -32,6 +32,16 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
         super("documents", parent);
     }
 
+    public long getDocumentCount() {
+        final CosmosContainer client = getClient();
+        try {
+            return client == null ? 0L : client.queryItems("SELECT VALUE COUNT(1) FROM c", new CosmosQueryRequestOptions(), Long.class)
+                    .iterator().next();
+        } catch (final RuntimeException e) {
+            return 0L;
+        }
+    }
+
     @Nonnull
     @Override
     protected Stream<ObjectNode> loadResourcesFromAzure() {

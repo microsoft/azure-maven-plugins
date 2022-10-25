@@ -50,11 +50,6 @@ public class SqlDocument extends AbstractAzResource<SqlDocument, SqlContainer, O
     }
 
     @Override
-    public String getDocumentDisplayName() {
-        return null;
-    }
-
-    @Override
     @Nullable
     public ObjectNode getDocument() {
         return Optional.ofNullable(getRemote()).map(remote -> {

@@ -22,9 +22,9 @@ public interface ICosmosDocument extends AzResource {
     void updateDocument(ObjectNode document);
 
     default String getDocumentDisplayName() {
-        final List<String> documentsLabelFields = Azure.az().config().getDocumentsLabelFields();
+        final List<String> labels = Azure.az().config().getDocumentsLabelFields();
         final ObjectNode document = getDocument();
-        for (final String label : documentsLabelFields) {
+        for (final String label : labels) {
             if (document != null && document.has(label)) {
                 return document.get(label).asText();
             }

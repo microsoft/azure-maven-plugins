@@ -25,6 +25,7 @@ import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.lib.cosmos.mongo.MongoDocumentModule.MONGO_ID_KEY;
 
@@ -77,6 +78,11 @@ public class MongoCollection extends AbstractAzResource<MongoCollection, MongoDa
     @Override
     public List<MongoDocument> listDocuments() {
         return documents().list();
+    }
+
+    @Override
+    public long getDocumentCount() {
+        return Optional.ofNullable(getClient()).map(client -> client.countDocuments()).orElse(0L);
     }
 
     @Override

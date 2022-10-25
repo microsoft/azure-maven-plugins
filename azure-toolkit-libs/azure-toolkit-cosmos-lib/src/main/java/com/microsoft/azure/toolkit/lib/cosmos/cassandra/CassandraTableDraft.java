@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.cosmos.model.CassandraDatabaseAccountConnectionString;
 import com.microsoft.azure.toolkit.lib.cosmos.model.ThroughputConfig;
 import lombok.Data;
@@ -65,7 +66,7 @@ public class CassandraTableDraft extends CassandraTable implements
 
     private CqlSession createSession(final CassandraCosmosDBAccount account) throws NoSuchAlgorithmException, KeyManagementException {
         final SSLContext sc = SSLContext.getInstance("TLSv1.2");
-        sc.init(null,null, new java.security.SecureRandom());
+        sc.init(null, null, new java.security.SecureRandom());
         final DriverConfigLoader configLoader =
                 DriverConfigLoader.programmaticBuilder().withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(10)).build();
         final CassandraDatabaseAccountConnectionString connectionString = Objects.requireNonNull(account.getCassandraConnectionString());
@@ -102,7 +103,15 @@ public class CassandraTableDraft extends CassandraTable implements
     @Data
     @EqualsAndHashCode(callSuper = true)
     public static class CassandraTableConfig extends ThroughputConfig {
+        public static final String DEFAULT_SCHEMA = "(userid int, name text, email text, PRIMARY KEY (userid))";
         private String tableId;
         private String schema;
+
+        public static CassandraTableConfig getDefaultConfig() {
+            final CassandraTableConfig result = new CassandraTableConfig();
+            result.setTableId(String.format("table%s", Utils.getTimestamp()));
+            result.setSchema(DEFAULT_SCHEMA);
+            return result;
+        }
     }
 }

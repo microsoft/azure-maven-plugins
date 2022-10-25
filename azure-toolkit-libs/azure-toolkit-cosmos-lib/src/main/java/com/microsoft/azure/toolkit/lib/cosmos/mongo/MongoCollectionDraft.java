@@ -12,6 +12,7 @@ import com.azure.resourcemanager.cosmos.models.MongoDBCollectionResource;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.cosmos.model.ThroughputConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -87,5 +88,11 @@ public class MongoCollectionDraft extends MongoCollection implements
     public static class MongoCollectionConfig extends ThroughputConfig {
         private String collectionId;
         private String shardKey;
+
+        public static MongoCollectionConfig getDefaultConfig() {
+            final MongoCollectionConfig result = new MongoCollectionConfig();
+            result.setCollectionId(String.format("collection-%s", Utils.getTimestamp()));
+            return result;
+        }
     }
 }

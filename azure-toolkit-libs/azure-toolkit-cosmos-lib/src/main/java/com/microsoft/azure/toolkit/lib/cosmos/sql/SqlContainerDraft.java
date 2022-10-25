@@ -15,6 +15,7 @@ import com.azure.resourcemanager.cosmos.models.UniqueKeyPolicy;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.cosmos.model.ThroughputConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -105,5 +106,11 @@ public class SqlContainerDraft extends SqlContainer implements
         private String containerId;
         private String partitionKey;
         private List<String> uniqueKeys;
+
+        public static SqlContainerConfig getDefaultConfig() {
+            final SqlContainerConfig result = new SqlContainerConfig();
+            result.setContainerId(String.format("container-%s", Utils.getTimestamp()));
+            return result;
+        }
     }
 }

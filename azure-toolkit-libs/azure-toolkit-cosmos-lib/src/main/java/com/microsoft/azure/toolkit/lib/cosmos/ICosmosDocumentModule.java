@@ -14,4 +14,6 @@ public interface ICosmosDocumentModule<T extends ICosmosDocument> extends AzReso
     T importDocument(@Nonnull final ObjectNode node);
 
     List<T> listDocuments();
+
+    long getDocumentCount();
 }
