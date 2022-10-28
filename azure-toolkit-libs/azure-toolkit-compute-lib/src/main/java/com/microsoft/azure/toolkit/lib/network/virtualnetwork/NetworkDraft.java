@@ -66,11 +66,7 @@ public class NetworkDraft extends Network implements AzResource.Draft<Network, c
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.create_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "vm.create_network.network", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public com.azure.resourcemanager.network.models.Network createResourceInAzure() {
         final String name = this.getName();
         final Region region = Objects.requireNonNull(this.getRegion(), "'region' is required to create a Virtual network");
@@ -94,11 +90,7 @@ public class NetworkDraft extends Network implements AzResource.Draft<Network, c
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.update_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "vm.update_network.network", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public com.azure.resourcemanager.network.models.Network updateResourceInAzure(@Nonnull com.azure.resourcemanager.network.models.Network origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

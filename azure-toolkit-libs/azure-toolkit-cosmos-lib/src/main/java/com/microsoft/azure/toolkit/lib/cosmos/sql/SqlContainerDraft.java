@@ -15,6 +15,7 @@ import com.azure.resourcemanager.cosmos.models.UniqueKeyPolicy;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.cosmos.model.ThroughputConfig;
 import lombok.Data;
@@ -22,9 +23,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -33,12 +34,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class SqlContainerDraft extends SqlContainer implements
-        AzResource.Draft<SqlContainer, SqlContainerGetResultsInner> {
+    AzResource.Draft<SqlContainer, SqlContainerGetResultsInner> {
 
     @Setter
     private SqlContainerConfig config;
 
-    protected SqlContainerDraft(@NotNull String name, @NotNull String resourceGroupName, @NotNull SqlContainerModule module) {
+    protected SqlContainerDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull SqlContainerModule module) {
         super(name, resourceGroupName, module);
     }
 
@@ -47,8 +48,9 @@ public class SqlContainerDraft extends SqlContainer implements
         this.config = null;
     }
 
-    @NotNull
+    @Nonnull
     @Override
+    @AzureOperation(name = "cosmos.create_sql_container.container", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public SqlContainerGetResultsInner createResourceInAzure() {
         final SqlResourcesClient sqlResourcesClient = Objects.requireNonNull(((SqlContainerModule) Objects.requireNonNull(getModule())).getClient());
         final SqlContainerResource sqlContainerResource = new SqlContainerResource()
@@ -77,9 +79,10 @@ public class SqlContainerDraft extends SqlContainer implements
         return new UniqueKeyPolicy().withUniqueKeys(uniqueKeyList);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public SqlContainerGetResultsInner updateResourceInAzure(@NotNull SqlContainerGetResultsInner origin) {
+    @AzureOperation(name = "cosmos.update_sql_container.container", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    public SqlContainerGetResultsInner updateResourceInAzure(@Nonnull SqlContainerGetResultsInner origin) {
         throw new UnsupportedOperationException("not support");
     }
 

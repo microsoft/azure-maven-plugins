@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -39,6 +40,7 @@ public class BlobContainerDraft extends BlobContainer implements AzResource.Draf
 
     @Nonnull
     @Override
+    @AzureOperation(name = "storage.create_blob_container.container", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public BlobContainerClient createResourceInAzure() {
         final BlobContainerModule module = (BlobContainerModule) this.getModule();
         final BlobServiceClient client = module.getBlobServiceClient();
@@ -51,6 +53,7 @@ public class BlobContainerDraft extends BlobContainer implements AzResource.Draf
 
     @Nonnull
     @Override
+    @AzureOperation(name = "storage.update_blob_container.container", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public BlobContainerClient updateResourceInAzure(@Nonnull BlobContainerClient origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

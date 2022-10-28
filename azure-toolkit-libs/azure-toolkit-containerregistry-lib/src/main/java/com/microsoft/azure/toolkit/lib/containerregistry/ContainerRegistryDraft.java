@@ -66,11 +66,7 @@ public class ContainerRegistryDraft extends ContainerRegistry implements AzResou
 
     @Override
     @Nonnull
-    @AzureOperation(
-            name = "resource.create_resource.resource|type",
-            params = {"this.getName()", "this.getResourceTypeName()"},
-            type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "container.create_registry.registry", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public Registry createResourceInAzure() {
         if (ObjectUtils.anyNull(region, sku)) {
             throw new AzureToolkitRuntimeException(REGION_AND_SKU_IS_REQUIRED);
@@ -103,11 +99,7 @@ public class ContainerRegistryDraft extends ContainerRegistry implements AzResou
 
     @Override
     @Nonnull
-    @AzureOperation(
-            name = "resource.update_resource.resource|type",
-            params = {"this.getName()", "this.getResourceTypeName()"},
-            type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "container.update_registry.registry", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public Registry updateResourceInAzure(@Nonnull Registry origin) {
         if (!isModified()) {
             return origin;

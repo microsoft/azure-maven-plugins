@@ -82,11 +82,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.create_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "function.create_deployment_slot.slot", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public FunctionDeploymentSlot createResourceInAzure() {
         OperationContext.action().setTelemetryProperty(CREATE_NEW_DEPLOYMENT_SLOT, String.valueOf(true));
         final String name = getName();
@@ -134,11 +130,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.update_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "function.update_deployment_slot.slot", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public FunctionDeploymentSlot updateResourceInAzure(@Nonnull WebSiteBase base) {
         FunctionDeploymentSlot remote = (FunctionDeploymentSlot) base;
         final Map<String, String> oldAppSettings = Utils.normalizeAppSettings(remote.getAppSettings());
@@ -147,7 +139,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
             settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
         }
         final Set<String> settingsToRemove = Optional.ofNullable(this.ensureConfig().getAppSettingsToRemove())
-                .map(set -> set.stream().filter(key -> oldAppSettings.containsKey(key)).collect(Collectors.toSet()))
+                .map(set -> set.stream().filter(oldAppSettings::containsKey).collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
         final Runtime newRuntime = this.ensureConfig().getRuntime();
         final DockerConfiguration newDockerConfig = this.ensureConfig().getDockerConfiguration();

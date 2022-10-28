@@ -12,6 +12,7 @@ import com.azure.resourcemanager.cosmos.models.MongoDBCollectionResource;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.cosmos.model.ThroughputConfig;
 import lombok.Data;
@@ -19,21 +20,21 @@ import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 public class MongoCollectionDraft extends MongoCollection implements
-        AzResource.Draft<MongoCollection, MongoDBCollectionGetResultsInner> {
+    AzResource.Draft<MongoCollection, MongoDBCollectionGetResultsInner> {
 
     @Setter
     private MongoCollectionConfig config;
 
-    protected MongoCollectionDraft(@NotNull String name, @NotNull String resourceGroupName, @NotNull MongoCollectionModule module) {
+    protected MongoCollectionDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull MongoCollectionModule module) {
         super(name, resourceGroupName, module);
     }
 
@@ -42,8 +43,9 @@ public class MongoCollectionDraft extends MongoCollection implements
         this.config = null;
     }
 
-    @NotNull
+    @Nonnull
     @Override
+    @AzureOperation(name = "cosmos.create_mongo_collection.collection", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public MongoDBCollectionGetResultsInner createResourceInAzure() {
         final MongoDBResourcesClient mongoDBResourcesClient = Objects.requireNonNull(((MongoCollectionModule) Objects.requireNonNull(getModule())).getClient());
         final Map<String, String> shardKey = StringUtils.isEmpty(ensureConfig().getShardKey()) ? null : Collections.singletonMap(ensureConfig().getShardKey(), "Hash");
@@ -61,9 +63,10 @@ public class MongoCollectionDraft extends MongoCollection implements
         return result;
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public MongoDBCollectionGetResultsInner updateResourceInAzure(@NotNull MongoDBCollectionGetResultsInner origin) {
+    @AzureOperation(name = "cosmos.update_mongo_collection.collection", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    public MongoDBCollectionGetResultsInner updateResourceInAzure(@Nonnull MongoDBCollectionGetResultsInner origin) {
         throw new UnsupportedOperationException("not support");
     }
 

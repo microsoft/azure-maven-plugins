@@ -11,6 +11,7 @@ import com.azure.storage.file.share.models.ShareFileItem;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,6 +50,7 @@ public class ShareFileDraft extends ShareFile implements StorageFile.Draft<Share
 
     @Nonnull
     @Override
+    @AzureOperation(name = "storage.create_share_file.file", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public ShareFileItem createResourceInAzure() {
         final ShareFileModule module = (ShareFileModule) this.getModule();
         final ShareDirectoryClient client = module.getClient();
@@ -73,6 +75,7 @@ public class ShareFileDraft extends ShareFile implements StorageFile.Draft<Share
 
     @Nonnull
     @Override
+    @AzureOperation(name = "storage.update_share_file.file", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public ShareFileItem updateResourceInAzure(@Nonnull ShareFileItem origin) {
         final ShareFileModule module = (ShareFileModule) this.getModule();
         final String name = origin.getName();

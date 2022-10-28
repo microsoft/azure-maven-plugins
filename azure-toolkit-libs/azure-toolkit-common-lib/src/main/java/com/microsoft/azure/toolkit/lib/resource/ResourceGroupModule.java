@@ -34,7 +34,6 @@ public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup,
     }
 
     @Nonnull
-    @AzureOperation(name = "group.create.rg", params = {"name"}, type = AzureOperation.Type.SERVICE)
     public ResourceGroup createResourceGroupIfNotExist(@Nonnull String name, @Nonnull Region region) {
         final com.microsoft.azure.toolkit.lib.resource.ResourceGroup group = this.getOrDraft(name, name);
         if (group instanceof ResourceGroupDraft && !group.exists()) {

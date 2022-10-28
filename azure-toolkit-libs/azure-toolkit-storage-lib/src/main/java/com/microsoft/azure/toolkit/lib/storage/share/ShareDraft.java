@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -39,6 +40,7 @@ public class ShareDraft extends Share implements AzResource.Draft<Share, ShareCl
 
     @Nonnull
     @Override
+    @AzureOperation(name = "storage.create_share.share", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public ShareClient createResourceInAzure() {
         final ShareModule module = (ShareModule) this.getModule();
         final ShareServiceClient client = module.getFileShareServiceClient();
@@ -51,6 +53,7 @@ public class ShareDraft extends Share implements AzResource.Draft<Share, ShareCl
 
     @Nonnull
     @Override
+    @AzureOperation(name = "storage.update_share.share", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public ShareClient updateResourceInAzure(@Nonnull ShareClient origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

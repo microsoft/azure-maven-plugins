@@ -12,25 +12,26 @@ import com.azure.resourcemanager.cosmos.models.SqlDatabaseCreateUpdateParameters
 import com.azure.resourcemanager.cosmos.models.SqlDatabaseResource;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabaseDraft;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseConfig;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.ObjectUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
 public class SqlDatabaseDraft extends SqlDatabase implements
-        ICosmosDatabaseDraft<SqlDatabase, SqlDatabaseGetResultsInner> {
+    ICosmosDatabaseDraft<SqlDatabase, SqlDatabaseGetResultsInner> {
 
     @Setter
     @Getter
     private DatabaseConfig config;
 
-    protected SqlDatabaseDraft(@NotNull String name, @NotNull String resourceGroupName, @NotNull SqlDatabaseModule module) {
+    protected SqlDatabaseDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull SqlDatabaseModule module) {
         super(name, resourceGroupName, module);
     }
 
@@ -39,8 +40,9 @@ public class SqlDatabaseDraft extends SqlDatabase implements
         this.config = null;
     }
 
-    @NotNull
+    @Nonnull
     @Override
+    @AzureOperation(name = "cosmos.create_sql_database.database", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public SqlDatabaseGetResultsInner createResourceInAzure() {
         final CosmosDBManagementClient cosmosDBManagementClient = Objects.requireNonNull(getParent().getRemote()).manager().serviceClient();
         final SqlDatabaseCreateUpdateParameters parameters = new SqlDatabaseCreateUpdateParameters()
@@ -54,9 +56,10 @@ public class SqlDatabaseDraft extends SqlDatabase implements
         return result;
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public SqlDatabaseGetResultsInner updateResourceInAzure(@NotNull SqlDatabaseGetResultsInner origin) {
+    @AzureOperation(name = "cosmos.update_sql_database.database", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    public SqlDatabaseGetResultsInner updateResourceInAzure(@Nonnull SqlDatabaseGetResultsInner origin) {
         throw new UnsupportedOperationException("not support");
     }
 

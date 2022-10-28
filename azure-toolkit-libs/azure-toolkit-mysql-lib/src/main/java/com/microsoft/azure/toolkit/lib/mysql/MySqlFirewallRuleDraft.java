@@ -44,11 +44,7 @@ public class MySqlFirewallRuleDraft extends MySqlFirewallRule implements AzResou
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.create_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "mysql.create_firewall_rule.rule", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public FirewallRule createResourceInAzure() {
         final MySqlServer server = this.getParent();
         final MySqlManager manager = Objects.requireNonNull(server.getParent().getRemote());
@@ -65,11 +61,7 @@ public class MySqlFirewallRuleDraft extends MySqlFirewallRule implements AzResou
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.update_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "mysql.update_firewall_rule.rule", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public FirewallRule updateResourceInAzure(@Nonnull FirewallRule origin) {
         final Optional<String> modifiedStartIp = Optional.ofNullable(this.getStartIpAddress()).filter(n -> !Objects.equals(n, super.getStartIpAddress()));
         final Optional<String> modifiedEndIp = Optional.ofNullable(this.getEndIpAddress()).filter(n -> !Objects.equals(n, super.getEndIpAddress()));

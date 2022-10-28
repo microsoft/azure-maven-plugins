@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -39,6 +40,7 @@ public class QueueDraft extends Queue implements AzResource.Draft<Queue, QueueCl
 
     @Nonnull
     @Override
+    @AzureOperation(name = "storage.create_queue.queue", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public QueueClient createResourceInAzure() {
         final QueueModule module = (QueueModule) this.getModule();
         final QueueServiceClient client = module.getQueueServiceClient();
@@ -51,6 +53,7 @@ public class QueueDraft extends Queue implements AzResource.Draft<Queue, QueueCl
 
     @Nonnull
     @Override
+    @AzureOperation(name = "storage.update_queue.queue", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public QueueClient updateResourceInAzure(@Nonnull QueueClient origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

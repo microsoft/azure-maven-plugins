@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Getter;
@@ -21,7 +22,7 @@ import java.util.Optional;
 import static com.microsoft.azure.toolkit.lib.cosmos.mongo.MongoDocumentModule.MONGO_ID_KEY;
 
 public class MongoDocumentDraft extends MongoDocument implements
-        AzResource.Draft<MongoDocument, Document> {
+    AzResource.Draft<MongoDocument, Document> {
 
     @Getter
     private MongoDocument origin;
@@ -57,6 +58,7 @@ public class MongoDocumentDraft extends MongoDocument implements
 
     @Nonnull
     @Override
+    @AzureOperation(name = "cosmos.create_mongo_document.document", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public Document createResourceInAzure() {
         final com.mongodb.client.MongoCollection<Document> client = Objects.requireNonNull(((MongoDocumentModule) getModule()).getClient());
         final Object id = Objects.requireNonNull(draftDocument).get(MONGO_ID_KEY);
@@ -66,6 +68,7 @@ public class MongoDocumentDraft extends MongoDocument implements
 
     @Nonnull
     @Override
+    @AzureOperation(name = "cosmos.update_mongo_document.document", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public Document updateResourceInAzure(@Nonnull Document origin) {
         final com.mongodb.client.MongoCollection<Document> client = Objects.requireNonNull(((MongoDocumentModule) getModule()).getClient());
         final Object id = getDocumentId();

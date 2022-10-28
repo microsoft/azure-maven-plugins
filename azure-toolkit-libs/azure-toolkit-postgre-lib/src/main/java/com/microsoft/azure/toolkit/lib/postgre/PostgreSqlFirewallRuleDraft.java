@@ -44,11 +44,7 @@ public class PostgreSqlFirewallRuleDraft extends PostgreSqlFirewallRule implemen
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.create_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "postgre.create_firewall_rule.rule", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public FirewallRule createResourceInAzure() {
         final PostgreSqlServer server = this.getParent();
         final PostgreSqlManager manager = Objects.requireNonNull(server.getParent().getRemote());
@@ -65,11 +61,7 @@ public class PostgreSqlFirewallRuleDraft extends PostgreSqlFirewallRule implemen
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.update_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "postgre.update_firewall_rule.rule", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public FirewallRule updateResourceInAzure(@Nonnull FirewallRule origin) {
         final Optional<String> modifiedStartIp = Optional.ofNullable(this.getStartIpAddress()).filter(n -> !Objects.equals(n, super.getStartIpAddress()));
         final Optional<String> modifiedEndIp = Optional.ofNullable(this.getEndIpAddress()).filter(n -> !Objects.equals(n, super.getEndIpAddress()));

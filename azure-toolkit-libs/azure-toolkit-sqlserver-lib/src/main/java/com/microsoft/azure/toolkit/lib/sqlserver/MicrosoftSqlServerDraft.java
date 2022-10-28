@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.sqlserver;
 
 import com.azure.resourcemanager.sql.SqlServerManager;
 import com.azure.resourcemanager.sql.models.SqlServer;
-import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -18,11 +17,9 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 import lombok.Getter;
-import org.apache.commons.collections4.CollectionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -60,11 +57,7 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.create_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "sqlserver.create_server.server", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public SqlServer createResourceInAzure() {
         assert this.config != null;
         final SqlServerManager manager = Objects.requireNonNull(this.getParent().getRemote());
@@ -88,11 +81,7 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.update_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "sqlserver.update_server.server", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public SqlServer updateResourceInAzure(@Nonnull SqlServer origin) {
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {

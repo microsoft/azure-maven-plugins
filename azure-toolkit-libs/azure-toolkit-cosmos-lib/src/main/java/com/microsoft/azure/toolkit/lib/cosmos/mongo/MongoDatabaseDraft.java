@@ -12,25 +12,26 @@ import com.azure.resourcemanager.cosmos.models.MongoDBDatabaseCreateUpdateParame
 import com.azure.resourcemanager.cosmos.models.MongoDBDatabaseResource;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabaseDraft;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseConfig;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.ObjectUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
 public class MongoDatabaseDraft extends MongoDatabase implements
-        ICosmosDatabaseDraft<MongoDatabase, MongoDBDatabaseGetResultsInner> {
+    ICosmosDatabaseDraft<MongoDatabase, MongoDBDatabaseGetResultsInner> {
 
     @Setter
     @Getter
     private DatabaseConfig config;
 
-    protected MongoDatabaseDraft(@NotNull String name, @NotNull String resourceGroupName, @NotNull MongoDatabaseModule module) {
+    protected MongoDatabaseDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull MongoDatabaseModule module) {
         super(name, resourceGroupName, module);
     }
 
@@ -39,8 +40,9 @@ public class MongoDatabaseDraft extends MongoDatabase implements
 
     }
 
-    @NotNull
+    @Nonnull
     @Override
+    @AzureOperation(name = "cosmos.create_mongo_database.database", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public MongoDBDatabaseGetResultsInner createResourceInAzure() {
         final CosmosDBManagementClient cosmosDBManagementClient = Objects.requireNonNull(getParent().getRemote()).manager().serviceClient();
         final MongoDBDatabaseCreateUpdateParameters parameters = new MongoDBDatabaseCreateUpdateParameters()
@@ -54,9 +56,10 @@ public class MongoDatabaseDraft extends MongoDatabase implements
         return result;
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public MongoDBDatabaseGetResultsInner updateResourceInAzure(@NotNull MongoDBDatabaseGetResultsInner origin) {
+    @AzureOperation(name = "cosmos.update_mongo_database.database", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    public MongoDBDatabaseGetResultsInner updateResourceInAzure(@Nonnull MongoDBDatabaseGetResultsInner origin) {
         throw new UnsupportedOperationException("not support");
     }
 

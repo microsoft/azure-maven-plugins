@@ -83,11 +83,7 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.create_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "postgre.create_server.server", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public Server createResourceInAzure() {
         assert this.config != null;
         final PostgreSqlManager manager = Objects.requireNonNull(this.getParent().getRemote());
@@ -117,11 +113,7 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.update_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "postgre.update_server.server", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public Server updateResourceInAzure(@Nonnull Server origin) {
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {

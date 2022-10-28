@@ -17,6 +17,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseAccountKind;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
@@ -25,9 +26,9 @@ import lombok.Data;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -35,12 +36,12 @@ import java.util.Optional;
 import static com.microsoft.azure.toolkit.lib.Azure.az;
 
 public class CosmosDBAccountDraft extends CosmosDBAccount implements
-        AzResource.Draft<CosmosDBAccount, com.azure.resourcemanager.cosmos.models.CosmosDBAccount> {
+    AzResource.Draft<CosmosDBAccount, com.azure.resourcemanager.cosmos.models.CosmosDBAccount> {
 
     @Setter
     private Config config;
 
-    protected CosmosDBAccountDraft(@NotNull String name, @NotNull String resourceGroupName, @NotNull CosmosDBAccountModule module) {
+    protected CosmosDBAccountDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull CosmosDBAccountModule module) {
         super(name, resourceGroupName, module);
     }
 
@@ -49,8 +50,9 @@ public class CosmosDBAccountDraft extends CosmosDBAccount implements
         this.config = null;
     }
 
-    @NotNull
+    @Nonnull
     @Override
+    @AzureOperation(name = "cosmos.create_account.account", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
     public com.azure.resourcemanager.cosmos.models.CosmosDBAccount createResourceInAzure() {
         final CosmosManager remote = this.getParent().getRemote();
         final DatabaseAccountKind kind = Objects.requireNonNull(getKind(), "'kind' is required to create Azure Cosmos DB account");
@@ -76,9 +78,10 @@ public class CosmosDBAccountDraft extends CosmosDBAccount implements
         return account;
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public com.azure.resourcemanager.cosmos.models.CosmosDBAccount updateResourceInAzure(@NotNull com.azure.resourcemanager.cosmos.models.CosmosDBAccount origin) {
+    @AzureOperation(name = "cosmos.update_account.account", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    public com.azure.resourcemanager.cosmos.models.CosmosDBAccount updateResourceInAzure(@Nonnull com.azure.resourcemanager.cosmos.models.CosmosDBAccount origin) {
         throw new UnsupportedOperationException("not support");
     }
 
