@@ -9,6 +9,7 @@ import com.azure.resourcemanager.cosmos.fluent.models.MongoDBDatabaseGetResultsI
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosCollection;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabase;
@@ -20,7 +21,7 @@ import java.util.List;
 
 public class MongoDatabase extends AbstractAzResource<MongoDatabase, CosmosDBAccount, MongoDBDatabaseGetResultsInner> implements Deletable, ICosmosDatabase {
 
-    private MongoCollectionModule collectionModule;
+    private final MongoCollectionModule collectionModule;
 
     protected MongoDatabase(@NotNull String name, @NotNull String resourceGroupName, @NotNull MongoDatabaseModule module) {
         super(name, resourceGroupName, module);
@@ -35,6 +36,10 @@ public class MongoDatabase extends AbstractAzResource<MongoDatabase, CosmosDBAcc
     protected MongoDatabase(@Nonnull MongoDBDatabaseGetResultsInner remote, @Nonnull MongoDatabaseModule module) {
         super(remote.name(), module);
         this.collectionModule = new MongoCollectionModule(this);
+    }
+
+    public Region getRegion() {
+        return getParent().getRegion();
     }
 
     @NotNull

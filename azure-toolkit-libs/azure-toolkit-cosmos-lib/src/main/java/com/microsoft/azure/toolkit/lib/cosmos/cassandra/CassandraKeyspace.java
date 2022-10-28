@@ -9,6 +9,7 @@ import com.azure.resourcemanager.cosmos.fluent.models.CassandraKeyspaceGetResult
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosCollection;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabase;
@@ -41,6 +42,10 @@ public class CassandraKeyspace extends AbstractAzResource<CassandraKeyspace, Cos
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(containerModule);
+    }
+
+    public Region getRegion() {
+        return getParent().getRegion();
     }
 
     public CassandraTableModule tables() {

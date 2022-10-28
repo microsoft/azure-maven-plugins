@@ -7,7 +7,9 @@ package com.microsoft.azure.toolkit.lib.cosmos.sql;
 import com.azure.resourcemanager.cosmos.fluent.SqlResourcesClient;
 import com.azure.resourcemanager.cosmos.fluent.models.SqlContainerGetResultsInner;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,6 +53,18 @@ public class SqlContainerModule extends AbstractAzResourceModule<SqlContainer, S
     protected void deleteResourceFromAzure(@NotNull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteSqlContainer(id.resourceGroupName(), id.parent().parent().name(), id.parent().name(), id.name()));
+    }
+
+    @NotNull
+    @Override
+    protected AzResource.Draft<SqlContainer, SqlContainerGetResultsInner> newDraftForCreate(@NotNull String name, @Nullable String rgName) {
+        return new SqlContainerDraft(name, Objects.requireNonNull(rgName), this);
+    }
+
+    @NotNull
+    @Override
+    protected AzResource.Draft<SqlContainer, SqlContainerGetResultsInner> newDraftForUpdate(@NotNull SqlContainer sqlContainer) {
+        throw new AzureToolkitRuntimeException("not supported");
     }
 
     @Override

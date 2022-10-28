@@ -7,7 +7,9 @@ package com.microsoft.azure.toolkit.lib.cosmos.cassandra;
 import com.azure.resourcemanager.cosmos.fluent.CassandraResourcesClient;
 import com.azure.resourcemanager.cosmos.fluent.models.CassandraTableGetResultsInner;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,6 +53,18 @@ public class CassandraTableModule extends AbstractAzResourceModule<CassandraTabl
     protected void deleteResourceFromAzure(@NotNull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteCassandraTable(id.resourceGroupName(), id.parent().parent().name(), id.parent().name(), id.name()));
+    }
+
+    @NotNull
+    @Override
+    protected AzResource.Draft<CassandraTable, CassandraTableGetResultsInner> newDraftForCreate(@NotNull String name, @Nullable String rgName) {
+        return new CassandraTableDraft(name, Objects.requireNonNull(rgName), this);
+    }
+
+    @NotNull
+    @Override
+    protected AzResource.Draft<CassandraTable, CassandraTableGetResultsInner> newDraftForUpdate(@NotNull CassandraTable cassandraTable) {
+        throw new AzureToolkitRuntimeException("not supported");
     }
 
     @Override

@@ -7,10 +7,13 @@ package com.microsoft.azure.toolkit.lib.cosmos.mongo;
 import com.azure.resourcemanager.cosmos.fluent.MongoDBResourcesClient;
 import com.azure.resourcemanager.cosmos.fluent.models.MongoDBCollectionGetResultsInner;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -30,7 +33,7 @@ public class MongoCollectionModule extends AbstractAzResourceModule<MongoCollect
     @NotNull
     @Override
     protected MongoCollection newResource(@NotNull String name, @Nullable String resourceGroupName) {
-        return new MongoCollection(name, resourceGroupName, this);
+        return new MongoCollection(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @NotNull
@@ -50,6 +53,18 @@ public class MongoCollectionModule extends AbstractAzResourceModule<MongoCollect
     protected void deleteResourceFromAzure(@NotNull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteMongoDBCollection(id.resourceGroupName(), id.parent().parent().name(), id.parent().name(), id.name()));
+    }
+
+    @NotNull
+    @Override
+    protected AzResource.Draft<MongoCollection, MongoDBCollectionGetResultsInner> newDraftForCreate(@NotNull String name, @Nullable String rgName) {
+        return new MongoCollectionDraft(name, Objects.requireNonNull(rgName), this);
+    }
+
+    @NotNull
+    @Override
+    protected AzResource.Draft<MongoCollection, MongoDBCollectionGetResultsInner> newDraftForUpdate(@NotNull MongoCollection mongoCollection) {
+        throw new AzureToolkitRuntimeException("not supported");
     }
 
     @Nullable

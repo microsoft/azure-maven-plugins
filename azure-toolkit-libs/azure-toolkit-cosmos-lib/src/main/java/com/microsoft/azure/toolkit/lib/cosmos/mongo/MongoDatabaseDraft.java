@@ -8,8 +8,6 @@ package com.microsoft.azure.toolkit.lib.cosmos.mongo;
 import com.azure.core.util.Context;
 import com.azure.resourcemanager.cosmos.fluent.CosmosDBManagementClient;
 import com.azure.resourcemanager.cosmos.fluent.models.MongoDBDatabaseGetResultsInner;
-import com.azure.resourcemanager.cosmos.models.AutoscaleSettings;
-import com.azure.resourcemanager.cosmos.models.CreateUpdateOptions;
 import com.azure.resourcemanager.cosmos.models.MongoDBDatabaseCreateUpdateParameters;
 import com.azure.resourcemanager.cosmos.models.MongoDBDatabaseResource;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -48,18 +46,7 @@ public class MongoDatabaseDraft extends MongoDatabase implements
         final MongoDBDatabaseCreateUpdateParameters parameters = new MongoDBDatabaseCreateUpdateParameters()
                 .withLocation(Objects.requireNonNull(this.getParent().getRegion()).getName())
                 .withResource(new MongoDBDatabaseResource().withId(this.getName()));
-        final Integer throughput = ensureConfig().getThroughput();
-        final Integer maxThroughput = ensureConfig().getMaxThroughput();
-        assert ObjectUtils.anyNull(throughput, maxThroughput);
-        if (ObjectUtils.anyNotNull(throughput, maxThroughput)) {
-            final CreateUpdateOptions options = new CreateUpdateOptions();
-            if (Objects.nonNull(ensureConfig().getThroughput())) {
-                options.withThroughput(throughput);
-            } else {
-                options.withAutoscaleSettings(new AutoscaleSettings().withMaxThroughput(maxThroughput));
-            }
-            parameters.withOptions(options);
-        }
+        parameters.withOptions(ensureConfig().toCreateUpdateOptions());
         AzureMessager.getMessager().info(AzureString.format("Start creating MongoDB database({0})...", this.getName()));
         final MongoDBDatabaseGetResultsInner result = cosmosDBManagementClient.getMongoDBResources().createUpdateMongoDBDatabase(this.getResourceGroupName(), this.getParent().getName(),
                 this.getName(), parameters, Context.NONE);
