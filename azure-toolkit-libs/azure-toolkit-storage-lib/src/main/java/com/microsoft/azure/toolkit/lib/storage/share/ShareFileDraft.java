@@ -71,7 +71,7 @@ public class ShareFileDraft extends ShareFile implements StorageFile.Draft<Share
             client.create(FileUtils.sizeOf(sourceFile.toFile()));
             client.uploadFromFile(this.sourceFile.toString());
         }
-        return origin;
+        return Objects.requireNonNull(module.loadResourceFromAzure(this.getName(), this.getParent().getResourceGroupName()));
     }
 
     @Override

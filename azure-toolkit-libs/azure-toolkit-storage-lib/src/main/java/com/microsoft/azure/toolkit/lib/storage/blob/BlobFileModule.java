@@ -52,9 +52,6 @@ public class BlobFileModule extends AbstractAzResourceModule<BlobFile, IBlobFile
         if (file != null) {
             if (BooleanUtils.isTrue(file.isDirectory())) {
                 deleteDirectory(Objects.requireNonNull(file.getRemote()));
-                this.getClient().listBlobsByHierarchy(file.getPath()).stream()
-                    .map(BlobItem::getName)
-                    .forEach(p -> this.getClient().getBlobClient(p).deleteIfExists());
             } else {
                 this.getClient().getBlobClient(file.getPath()).deleteIfExists();
             }

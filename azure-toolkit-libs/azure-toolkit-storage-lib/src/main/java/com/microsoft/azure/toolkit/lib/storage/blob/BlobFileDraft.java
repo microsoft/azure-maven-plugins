@@ -69,7 +69,7 @@ public class BlobFileDraft extends BlobFile implements StorageFile.Draft<BlobFil
         if (Objects.nonNull(this.sourceFile)) {
             client.uploadFromFile(this.sourceFile.toString(), true);
         }
-        return origin;
+        return Objects.requireNonNull(module.loadResourceFromAzure(this.getName(), this.getParent().getResourceGroupName()));
     }
 
     @Override
