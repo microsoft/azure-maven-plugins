@@ -6,8 +6,8 @@
 package com.microsoft.azure.toolkit.lib.storage.share;
 
 import com.azure.storage.file.share.ShareDirectoryClient;
+import com.azure.storage.file.share.ShareFileClient;
 import com.azure.storage.file.share.models.ShareFileItem;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
 import lombok.Getter;
 import lombok.Setter;
@@ -63,7 +63,15 @@ public class ShareFileDraft extends ShareFile implements StorageFile.Draft<Share
     @Nonnull
     @Override
     public ShareFileItem updateResourceInAzure(@Nonnull ShareFileItem origin) {
-        throw new AzureToolkitRuntimeException("not supported");
+        final ShareFileModule module = (ShareFileModule) this.getModule();
+        final String name = origin.getName();
+        final ShareFileClient client = module.getClient().getFileClient(name);
+        if (Objects.nonNull(this.sourceFile)) {
+            client.deleteIfExists();
+            client.create(FileUtils.sizeOf(sourceFile.toFile()));
+            client.uploadFromFile(this.sourceFile.toString());
+        }
+        return origin;
     }
 
     @Override

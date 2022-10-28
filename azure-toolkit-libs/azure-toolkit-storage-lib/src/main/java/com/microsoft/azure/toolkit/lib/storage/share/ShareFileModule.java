@@ -73,6 +73,12 @@ public class ShareFileModule extends AbstractAzResourceModule<ShareFile, IShareF
 
     @Nonnull
     @Override
+    protected AzResource.Draft<ShareFile, ShareFileItem> newDraftForUpdate(@Nonnull ShareFile shareFile) {
+        return new ShareFileDraft(shareFile);
+    }
+
+    @Nonnull
+    @Override
     protected ShareFile newResource(@Nonnull ShareFileItem item) {
         return new ShareFile(item.getName(), this);
     }

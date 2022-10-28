@@ -41,7 +41,7 @@ public class BlobContainer extends AbstractAzResource<BlobContainer, StorageAcco
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.emptyList();
+        return Collections.singletonList(this.subFileModule);
     }
 
     @Nonnull
