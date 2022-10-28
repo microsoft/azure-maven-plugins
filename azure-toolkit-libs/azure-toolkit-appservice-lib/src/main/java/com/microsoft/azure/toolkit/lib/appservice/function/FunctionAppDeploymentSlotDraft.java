@@ -82,7 +82,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
 
     @Nonnull
     @Override
-    @AzureOperation(name = "function.create_deployment_slot.slot", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "function.create_deployment_slot.slot", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public FunctionDeploymentSlot createResourceInAzure() {
         OperationContext.action().setTelemetryProperty(CREATE_NEW_DEPLOYMENT_SLOT, String.valueOf(true));
         final String name = getName();
@@ -130,7 +130,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
 
     @Nonnull
     @Override
-    @AzureOperation(name = "function.update_deployment_slot.slot", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "function.update_deployment_slot.slot", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public FunctionDeploymentSlot updateResourceInAzure(@Nonnull WebSiteBase base) {
         FunctionDeploymentSlot remote = (FunctionDeploymentSlot) base;
         final Map<String, String> oldAppSettings = Utils.normalizeAppSettings(remote.getAppSettings());

@@ -54,7 +54,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
 
     @Nonnull
     @Override
-    @AzureOperation(name = "ai.create_ai.ai", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "ai.create_ai.ai", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public ApplicationInsightsComponent createResourceInAzure() {
         if (Objects.isNull(region)) {
             throw new AzureToolkitRuntimeException(REGION_IS_REQUIRED);
@@ -73,7 +73,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
 
     @Nonnull
     @Override
-    @AzureOperation(name = "ai.update_ai.ai", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "ai.update_ai.ai", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public ApplicationInsightsComponent updateResourceInAzure(@Nonnull ApplicationInsightsComponent origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

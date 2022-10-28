@@ -30,18 +30,12 @@ public class SpringCloudDeploymentModule extends AbstractAzResourceModule<Spring
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected SpringCloudDeploymentDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
         return new SpringCloudDeploymentDraft(name, this);
     }
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.draft_for_update.resource|type",
-        params = {"origin.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
     protected SpringCloudDeploymentDraft newDraftForUpdate(@Nonnull SpringCloudDeployment origin) {
         return new SpringCloudDeploymentDraft(origin);
     }

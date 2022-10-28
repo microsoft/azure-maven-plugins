@@ -85,7 +85,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
 
     @Nonnull
     @Override
-    @AzureOperation(name = "function.create_app.app", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "function.create_app.app", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.appservice.models.FunctionApp createResourceInAzure() {
         OperationContext.action().setTelemetryProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
 
@@ -169,7 +169,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
 
     @Nonnull
     @Override
-    @AzureOperation(name = "function.update_app.app", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "function.update_app.app", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.appservice.models.FunctionApp updateResourceInAzure(@Nonnull WebSiteBase base) {
         com.azure.resourcemanager.appservice.models.FunctionApp remote = (com.azure.resourcemanager.appservice.models.FunctionApp) base;
         assert origin != null : "updating target is not specified.";

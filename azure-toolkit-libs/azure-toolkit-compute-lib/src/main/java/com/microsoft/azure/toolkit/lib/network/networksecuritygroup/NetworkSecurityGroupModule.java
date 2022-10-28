@@ -31,7 +31,6 @@ public class NetworkSecurityGroupModule extends AbstractAzResourceModule<Network
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected NetworkSecurityGroupDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
         assert resourceGroupName != null : "'Resource group' is required.";
         return new NetworkSecurityGroupDraft(name, resourceGroupName, this);
@@ -39,11 +38,6 @@ public class NetworkSecurityGroupModule extends AbstractAzResourceModule<Network
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.draft_for_update.resource|type",
-        params = {"origin.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
     protected NetworkSecurityGroupDraft newDraftForUpdate(@Nonnull NetworkSecurityGroup origin) {
         return new NetworkSecurityGroupDraft(origin);
     }

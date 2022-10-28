@@ -51,7 +51,7 @@ public class SqlContainerModule extends AbstractAzResourceModule<SqlContainer, S
     }
 
     @Override
-    @AzureOperation(name = "cosmos.delete_sql_container.container", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "cosmos.delete_sql_container.container", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@NotNull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteSqlContainer(id.resourceGroupName(), id.parent().parent().name(), id.parent().name(), id.name()));

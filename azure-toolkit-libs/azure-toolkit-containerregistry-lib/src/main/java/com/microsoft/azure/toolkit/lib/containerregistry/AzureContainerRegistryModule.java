@@ -39,7 +39,7 @@ public class AzureContainerRegistryModule extends AbstractAzResourceModule<Conta
     }
 
     @Override
-    @AzureOperation(name = "container.delete_registry.registry", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "container.delete_registry.registry", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         Optional.ofNullable(this.getClient()).ifPresent(client -> client.deleteById(resourceId));
     }
@@ -58,18 +58,12 @@ public class AzureContainerRegistryModule extends AbstractAzResourceModule<Conta
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected ContainerRegistryDraft newDraftForCreate(@Nonnull String name, String resourceGroup) {
         return new ContainerRegistryDraft(name, resourceGroup, this);
     }
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.draft_for_update.resource|type",
-        params = {"origin.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
     protected ContainerRegistryDraft newDraftForUpdate(@Nonnull ContainerRegistry origin) {
         return new ContainerRegistryDraft(origin);
     }

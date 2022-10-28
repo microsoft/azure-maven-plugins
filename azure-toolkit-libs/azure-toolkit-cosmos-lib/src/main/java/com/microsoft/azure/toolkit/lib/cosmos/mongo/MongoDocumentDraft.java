@@ -58,7 +58,7 @@ public class MongoDocumentDraft extends MongoDocument implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "cosmos.create_mongo_document.document", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "cosmos.create_mongo_document.document", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public Document createResourceInAzure() {
         final com.mongodb.client.MongoCollection<Document> client = Objects.requireNonNull(((MongoDocumentModule) getModule()).getClient());
         final Object id = Objects.requireNonNull(draftDocument).get(MONGO_ID_KEY);
@@ -68,7 +68,7 @@ public class MongoDocumentDraft extends MongoDocument implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "cosmos.update_mongo_document.document", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "cosmos.update_mongo_document.document", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public Document updateResourceInAzure(@Nonnull Document origin) {
         final com.mongodb.client.MongoCollection<Document> client = Objects.requireNonNull(((MongoDocumentModule) getModule()).getClient());
         final Object id = getDocumentId();

@@ -62,7 +62,7 @@ public class BlobContainerModule extends AbstractAzResourceModule<BlobContainer,
     }
 
     @Override
-    @AzureOperation(name = "storage.delete_blob_container.container", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "storage.delete_blob_container.container", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         final BlobServiceClient client = this.getBlobServiceClient();
@@ -71,7 +71,6 @@ public class BlobContainerModule extends AbstractAzResourceModule<BlobContainer,
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected BlobContainerDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
         return new BlobContainerDraft(name, this);
     }

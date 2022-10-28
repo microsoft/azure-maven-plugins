@@ -32,18 +32,12 @@ public class FunctionAppDeploymentSlotModule extends AbstractAzResourceModule<Fu
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected FunctionAppDeploymentSlotDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
         return new FunctionAppDeploymentSlotDraft(name, this);
     }
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.draft_for_update.resource|type",
-        params = {"origin.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
     protected FunctionAppDeploymentSlotDraft newDraftForUpdate(@Nonnull FunctionAppDeploymentSlot origin) {
         return new FunctionAppDeploymentSlotDraft(origin);
     }

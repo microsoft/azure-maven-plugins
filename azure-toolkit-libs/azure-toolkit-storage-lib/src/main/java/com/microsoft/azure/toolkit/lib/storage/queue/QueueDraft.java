@@ -40,7 +40,7 @@ public class QueueDraft extends Queue implements AzResource.Draft<Queue, QueueCl
 
     @Nonnull
     @Override
-    @AzureOperation(name = "storage.create_queue.queue", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "storage.create_queue.queue", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public QueueClient createResourceInAzure() {
         final QueueModule module = (QueueModule) this.getModule();
         final QueueServiceClient client = module.getQueueServiceClient();
@@ -53,7 +53,7 @@ public class QueueDraft extends Queue implements AzResource.Draft<Queue, QueueCl
 
     @Nonnull
     @Override
-    @AzureOperation(name = "storage.update_queue.queue", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "storage.update_queue.queue", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public QueueClient updateResourceInAzure(@Nonnull QueueClient origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

@@ -31,7 +31,6 @@ public class PublicIpAddressModule extends AbstractAzResourceModule<PublicIpAddr
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected PublicIpAddressDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
         assert resourceGroupName != null : "'Resource group' is required.";
         return new PublicIpAddressDraft(name, resourceGroupName, this);
@@ -39,11 +38,6 @@ public class PublicIpAddressModule extends AbstractAzResourceModule<PublicIpAddr
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.draft_for_update.resource|type",
-        params = {"origin.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
     protected PublicIpAddressDraft newDraftForUpdate(@Nonnull PublicIpAddress origin) {
         return new PublicIpAddressDraft(origin);
     }

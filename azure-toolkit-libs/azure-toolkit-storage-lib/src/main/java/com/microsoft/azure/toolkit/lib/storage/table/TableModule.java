@@ -62,7 +62,7 @@ public class TableModule extends AbstractAzResourceModule<Table, StorageAccount,
     }
 
     @Override
-    @AzureOperation(name = "storage.delete_queue.queue", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "storage.delete_queue.queue", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         final TableServiceClient client = this.getTableServiceClient();
@@ -71,7 +71,6 @@ public class TableModule extends AbstractAzResourceModule<Table, StorageAccount,
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected TableDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
         return new TableDraft(name, this);
     }

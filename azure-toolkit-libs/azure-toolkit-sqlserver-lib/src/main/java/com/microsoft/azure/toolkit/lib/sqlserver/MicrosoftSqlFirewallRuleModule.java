@@ -43,20 +43,20 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected Stream<SqlFirewallRule> loadResourcesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());
     }
 
     @Nullable
     @Override
-    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected SqlFirewallRule loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
         return Optional.ofNullable(this.getClient()).map(c -> c.get(name)).orElse(null);
     }
 
     @Override
-    @AzureOperation(name = "sqlserver.delete_firewall_rule.rule", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "sqlserver.delete_firewall_rule.rule", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String id) {
         final ResourceId resourceId = ResourceId.fromString(id);
         final String name = resourceId.name();
@@ -65,7 +65,6 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected MicrosoftSqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
         assert resourceGroupName != null : "'Resource group' is required.";
         return new MicrosoftSqlFirewallRuleDraft(name, this);
@@ -73,11 +72,6 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.draft_for_update.resource|type",
-        params = {"origin.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
     protected MicrosoftSqlFirewallRuleDraft newDraftForUpdate(@Nonnull MicrosoftSqlFirewallRule origin) {
         return new MicrosoftSqlFirewallRuleDraft(origin);
     }

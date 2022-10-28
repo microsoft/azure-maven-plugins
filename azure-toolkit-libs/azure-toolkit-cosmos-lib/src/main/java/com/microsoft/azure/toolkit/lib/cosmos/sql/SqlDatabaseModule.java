@@ -57,7 +57,7 @@ public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, Cos
     }
 
     @Override
-    @AzureOperation(name = "cosmos.delete_sql_database.database", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "cosmos.delete_sql_database.database", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@NotNull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteSqlDatabase(id.resourceGroupName(), id.parent().name(), id.name()));

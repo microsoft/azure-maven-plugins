@@ -38,7 +38,7 @@ public class MySqlDatabaseModule extends AbstractAzResourceModule<MySqlDatabase,
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected Stream<Database> loadResourcesFromAzure() {
         final MySqlServer p = this.getParent();
         return Optional.ofNullable(this.getClient()).map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).stream()).orElse(Stream.empty());
@@ -46,14 +46,14 @@ public class MySqlDatabaseModule extends AbstractAzResourceModule<MySqlDatabase,
 
     @Nullable
     @Override
-    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected Database loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
         final MySqlServer p = this.getParent();
         return Optional.ofNullable(this.getClient()).map(c -> c.get(p.getResourceGroupName(), p.getName(), name)).orElse(null);
     }
 
     @Override
-    @AzureOperation(name = "mysql.delete_database.database", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "mysql.delete_database.database", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String id) {
         final MySqlServer p = this.getParent();
         final ResourceId resourceId = ResourceId.fromString(id);

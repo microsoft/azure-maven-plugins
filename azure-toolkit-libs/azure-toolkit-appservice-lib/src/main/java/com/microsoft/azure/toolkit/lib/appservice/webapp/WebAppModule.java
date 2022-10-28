@@ -39,18 +39,12 @@ public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceSer
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected WebAppDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
         return new WebAppDraft(name, resourceGroupName, this);
     }
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.draft_for_update.resource|type",
-        params = {"origin.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
     protected WebAppDraft newDraftForUpdate(@Nonnull WebApp origin) {
         return new WebAppDraft(origin);
     }

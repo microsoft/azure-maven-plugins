@@ -50,7 +50,7 @@ public class SqlContainerDraft extends SqlContainer implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "cosmos.create_sql_container.container", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "cosmos.create_sql_container.container", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public SqlContainerGetResultsInner createResourceInAzure() {
         final SqlResourcesClient sqlResourcesClient = Objects.requireNonNull(((SqlContainerModule) Objects.requireNonNull(getModule())).getClient());
         final SqlContainerResource sqlContainerResource = new SqlContainerResource()
@@ -81,7 +81,7 @@ public class SqlContainerDraft extends SqlContainer implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "cosmos.update_sql_container.container", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "cosmos.update_sql_container.container", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public SqlContainerGetResultsInner updateResourceInAzure(@Nonnull SqlContainerGetResultsInner origin) {
         throw new UnsupportedOperationException("not support");
     }

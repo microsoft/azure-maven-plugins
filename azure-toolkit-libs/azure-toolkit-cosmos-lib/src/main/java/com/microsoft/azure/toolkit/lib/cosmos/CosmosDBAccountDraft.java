@@ -52,7 +52,7 @@ public class CosmosDBAccountDraft extends CosmosDBAccount implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "cosmos.create_account.account", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "cosmos.create_account.account", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.cosmos.models.CosmosDBAccount createResourceInAzure() {
         final CosmosManager remote = this.getParent().getRemote();
         final DatabaseAccountKind kind = Objects.requireNonNull(getKind(), "'kind' is required to create Azure Cosmos DB account");
@@ -80,7 +80,7 @@ public class CosmosDBAccountDraft extends CosmosDBAccount implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "cosmos.update_account.account", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "cosmos.update_account.account", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.cosmos.models.CosmosDBAccount updateResourceInAzure(@Nonnull com.azure.resourcemanager.cosmos.models.CosmosDBAccount origin) {
         throw new UnsupportedOperationException("not support");
     }

@@ -65,7 +65,7 @@ public class KubernetesClusterDraft extends KubernetesCluster implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "kubernetes.create_cluster.cluster", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "kubernetes.create_cluster.cluster", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.containerservice.models.KubernetesCluster createResourceInAzure() {
         final Region region = Objects.requireNonNull(getRegion(), "'region' is required to create Azure Kubernetes Service");
         final String dnsPrefix = Objects.requireNonNull(getDnsPrefix(), "'dnsPrefix' is required to create Azure Kubernetes Service");
@@ -111,7 +111,7 @@ public class KubernetesClusterDraft extends KubernetesCluster implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "kubernetes.update_cluster.cluster", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "kubernetes.update_cluster.cluster", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.containerservice.models.KubernetesCluster updateResourceInAzure(
             @Nonnull com.azure.resourcemanager.containerservice.models.KubernetesCluster origin) {
         throw new UnsupportedOperationException("not support");

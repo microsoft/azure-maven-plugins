@@ -56,18 +56,12 @@ public class ResourceGroupModule extends AbstractAzResourceModule<ResourceGroup,
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected ResourceGroupDraft newDraftForCreate(@Nonnull String name, @Nonnull String resourceGroupName) {
         return new ResourceGroupDraft(name, resourceGroupName, this);
     }
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.draft_for_update.resource|type",
-        params = {"origin.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
     protected ResourceGroupDraft newDraftForUpdate(@Nonnull ResourceGroup origin) {
         return new ResourceGroupDraft(origin);
     }

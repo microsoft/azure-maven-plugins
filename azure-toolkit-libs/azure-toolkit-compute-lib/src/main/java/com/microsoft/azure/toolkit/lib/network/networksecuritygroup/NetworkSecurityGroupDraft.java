@@ -67,7 +67,7 @@ public class NetworkSecurityGroupDraft extends NetworkSecurityGroup implements A
 
     @Nonnull
     @Override
-    @AzureOperation(name = "vm.create_nsg.nsg", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "vm.create_nsg.nsg", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.network.models.NetworkSecurityGroup createResourceInAzure() {
         final String name = this.getName();
         final Region region = Objects.requireNonNull(this.getRegion(), "'region' is required to create a Network security group");
@@ -87,7 +87,7 @@ public class NetworkSecurityGroupDraft extends NetworkSecurityGroup implements A
 
     @Nonnull
     @Override
-    @AzureOperation(name = "vm.update_nsg.nsg", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "vm.update_nsg.nsg", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.network.models.NetworkSecurityGroup updateResourceInAzure(@Nonnull com.azure.resourcemanager.network.models.NetworkSecurityGroup origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

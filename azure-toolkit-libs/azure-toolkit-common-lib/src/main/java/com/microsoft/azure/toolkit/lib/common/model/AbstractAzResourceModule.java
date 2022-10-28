@@ -81,7 +81,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private final Lock lock = new ReentrantLock();
 
     @Override
-    @AzureOperation(name = "resource.refresh.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.refresh.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     public void refresh() {
         log.debug("[{}]:refresh()", this.name);
         this.invalidateCache();
@@ -450,7 +450,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
-    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected Stream<R> loadResourcesFromAzure() {
         log.debug("[{}]:loadResourcesFromAzure()", this.getName());
         final Object client = this.getClient();
@@ -467,7 +467,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nullable
-    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected R loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         log.debug("[{}]:loadResourceFromAzure({}, {})", this.getName(), name, resourceGroup);
         final Object client = this.getClient();
@@ -491,7 +491,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @AzureOperation(
         name = "resource.delete_resource.resource|type",
         params = {"nameFromResourceId(resourceId)", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
+        type = AzureOperation.Type.REQUEST
     )
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         log.debug("[{}]:deleteResourceFromAzure({})", this.getName(), resourceId);
