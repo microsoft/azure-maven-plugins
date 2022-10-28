@@ -51,11 +51,7 @@ public class MicrosoftSqlDatabaseModule extends AbstractAzResourceModule<Microso
     }
 
     @Override
-    @AzureOperation(
-        name = "resource.delete_resource.resource|type",
-        params = {"nameFromResourceId(id)", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "sqlserver.delete_database.database", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.SERVICE)
     protected void deleteResourceFromAzure(@Nonnull String id) {
         final ResourceId resourceId = ResourceId.fromString(id);
         final String name = resourceId.name();

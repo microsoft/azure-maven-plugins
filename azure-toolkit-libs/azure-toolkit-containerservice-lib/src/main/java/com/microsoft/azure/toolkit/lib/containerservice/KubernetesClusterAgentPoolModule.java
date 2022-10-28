@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.containerservice;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -55,6 +56,7 @@ public class KubernetesClusterAgentPoolModule extends
     }
 
     @Override
+    @AzureOperation(name = "kubernetes.delete_cluster.cluster", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.SERVICE)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final String name = ResourceId.fromString(resourceId).name();
         Optional.ofNullable(getClient()).ifPresent(cluster -> cluster.update().withoutAgentPool(name));

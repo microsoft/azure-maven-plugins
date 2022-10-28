@@ -56,11 +56,7 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
     }
 
     @Override
-    @AzureOperation(
-        name = "resource.delete_resource.resource|type",
-        params = {"nameFromResourceId(id)", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "sqlserver.delete_firewall_rule.rule", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.SERVICE)
     protected void deleteResourceFromAzure(@Nonnull String id) {
         final ResourceId resourceId = ResourceId.fromString(id);
         final String name = resourceId.name();

@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentModule;
 import org.apache.commons.lang3.StringUtils;
 
@@ -39,8 +40,8 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
         if (hasMoreDocuments()) {
             final FeedResponse<ObjectNode> response = iterator.next();
             response.getElements().stream()
-                    .map(this::newResource)
-                    .forEach(document -> addResourceToLocal(document.getId(), document, true));
+                .map(this::newResource)
+                .forEach(document -> addResourceToLocal(document.getId(), document, true));
             fireEvents.debounce();
         }
     }
@@ -58,7 +59,7 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
         }
         final int cosmosBatchSize = Azure.az().config().getCosmosBatchSize();
         this.iterator = client.queryItems("select * from c", new CosmosQueryRequestOptions(), ObjectNode.class)
-                .iterableByPage(cosmosBatchSize).iterator();
+            .iterableByPage(cosmosBatchSize).iterator();
         return iterator.hasNext() ? iterator.next().getElements().stream() : Stream.empty();
     }
 
@@ -72,9 +73,9 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
         final String id = split[0];
         final String partitionKey = split.length > 1 ? split[1] : StringUtils.EMPTY;
         return Optional.ofNullable(getClient())
-                .map(client -> Optional.ofNullable(doLoadDocument(client, new PartitionKey(partitionKey), id))
-                        .orElseGet(() -> doLoadDocument(client, PartitionKey.NONE, id)))
-                .orElse(null);
+            .map(client -> Optional.ofNullable(doLoadDocument(client, new PartitionKey(partitionKey), id))
+                .orElseGet(() -> doLoadDocument(client, PartitionKey.NONE, id)))
+            .orElse(null);
     }
 
     @Nullable
@@ -98,7 +99,7 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
         final String id = Objects.requireNonNull(objectNode.get("id")).asText();
         final String partitionKey = container.getPartitionKey();
         final String partitionValue = Optional.ofNullable(objectNode.get(partitionKey))
-                .map(JsonNode::asText).orElse(StringUtils.EMPTY);
+            .map(JsonNode::asText).orElse(StringUtils.EMPTY);
         final SqlDocument sqlDocument = newResource(String.format("%s#%s", id, partitionValue), container.getResourceGroupName());
         sqlDocument.setRemote(objectNode);
         return sqlDocument;
@@ -111,6 +112,7 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
     }
 
     @Override
+    @AzureOperation(name = "cosmos.delete_sql_document.document", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.SERVICE)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         final ObjectNode node = loadResourceFromAzure(id.name(), id.resourceGroupName());

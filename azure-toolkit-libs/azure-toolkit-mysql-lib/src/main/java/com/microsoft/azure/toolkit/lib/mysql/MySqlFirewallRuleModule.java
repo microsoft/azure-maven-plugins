@@ -56,11 +56,7 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
     }
 
     @Override
-    @AzureOperation(
-        name = "resource.delete_resource.resource|type",
-        params = {"nameFromResourceId(id)", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "mysql.delete_firewall_rule.rule", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.SERVICE)
     protected void deleteResourceFromAzure(@Nonnull String id) {
         final MySqlServer p = this.getParent();
         final ResourceId resourceId = ResourceId.fromString(id);

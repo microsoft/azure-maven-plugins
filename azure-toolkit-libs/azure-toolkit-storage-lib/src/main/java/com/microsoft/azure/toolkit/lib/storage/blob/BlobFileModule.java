@@ -10,6 +10,7 @@ import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.models.BlobItem;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.lang3.BooleanUtils;
 
 import javax.annotation.Nonnull;
@@ -47,6 +48,7 @@ public class BlobFileModule extends AbstractAzResourceModule<BlobFile, IBlobFile
     }
 
     @Override
+    @AzureOperation(name = "storage.delete_blob.blob", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.SERVICE)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final BlobFile file = this.get(resourceId);
         if (file != null) {

@@ -39,6 +39,7 @@ public class AzureContainerRegistryModule extends AbstractAzResourceModule<Conta
     }
 
     @Override
+    @AzureOperation(name = "container.delete_registry.registry", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.SERVICE)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         Optional.ofNullable(this.getClient()).ifPresent(client -> client.deleteById(resourceId));
     }

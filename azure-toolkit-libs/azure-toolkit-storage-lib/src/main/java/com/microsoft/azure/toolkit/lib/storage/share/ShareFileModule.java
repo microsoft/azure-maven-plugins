@@ -10,6 +10,7 @@ import com.azure.storage.file.share.ShareDirectoryClient;
 import com.azure.storage.file.share.models.ShareFileItem;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,6 +43,7 @@ public class ShareFileModule extends AbstractAzResourceModule<ShareFile, IShareF
     }
 
     @Override
+    @AzureOperation(name = "storage.delete_share_file.file", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.SERVICE)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ShareFile shareFile = this.get(resourceId);
         if (shareFile != null) {
