@@ -42,7 +42,7 @@ public class ApplicationInsightsModule extends AbstractAzResourceModule<Applicat
     }
 
     @Override
-    @AzureOperation(name = "ai.delete_ai.ai", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "ai.delete_ai_in_azure.ai", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         Optional.ofNullable(this.getClient()).ifPresent(c -> c.deleteById(resourceId));
     }

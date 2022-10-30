@@ -53,7 +53,7 @@ public class MySqlDatabaseModule extends AbstractAzResourceModule<MySqlDatabase,
     }
 
     @Override
-    @AzureOperation(name = "mysql.delete_database.database", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "mysql.delete_database_in_azure.database", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String id) {
         final MySqlServer p = this.getParent();
         final ResourceId resourceId = ResourceId.fromString(id);

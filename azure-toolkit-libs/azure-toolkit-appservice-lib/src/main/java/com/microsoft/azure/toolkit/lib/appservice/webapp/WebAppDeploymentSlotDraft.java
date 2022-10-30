@@ -81,7 +81,7 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
 
     @Nonnull
     @Override
-    @AzureOperation(name = "webapp.create_deployment_slot.slot", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "webapp.create_deployment_slot_in_azure.slot", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public DeploymentSlot createResourceInAzure() {
         OperationContext.action().setTelemetryProperty(CREATE_NEW_DEPLOYMENT_SLOT, String.valueOf(true));
 
@@ -130,7 +130,7 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
 
     @Nonnull
     @Override
-    @AzureOperation(name = "webapp.update_deployment_slot.slot", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "webapp.update_deployment_slot_in_azure.slot", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public DeploymentSlot updateResourceInAzure(@Nonnull WebSiteBase base) {
         DeploymentSlot remote = (DeploymentSlot) base;
         final Map<String, String> oldAppSettings = Utils.normalizeAppSettings(remote.getAppSettings());

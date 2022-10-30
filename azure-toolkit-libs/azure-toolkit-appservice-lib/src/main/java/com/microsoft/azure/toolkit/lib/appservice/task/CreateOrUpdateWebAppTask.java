@@ -96,7 +96,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         }
     }
 
-    @AzureOperation(name = "webapp.create_app.app", params = {"this.config.appName()"}, type = Type.SERVICE)
+    @AzureOperation(name = "webapp.create_app_in_azure.app", params = {"this.config.appName()"}, type = Type.SERVICE)
     private WebApp create() {
         OperationContext.action().setTelemetryProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
         final Region region = this.config.region();
@@ -117,7 +117,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         return appDraft.createIfNotExist();
     }
 
-    @AzureOperation(name = "webapp.update_app.app", params = {"this.config.appName()"}, type = Type.SERVICE)
+    @AzureOperation(name = "webapp.update_app_in_azure.app", params = {"this.config.appName()"}, type = Type.SERVICE)
     private WebApp update(final WebApp webApp) {
         final WebAppDraft draft = (WebAppDraft) webApp.update();
         final AppServicePlanConfig servicePlanConfig = config.getServicePlanConfig();

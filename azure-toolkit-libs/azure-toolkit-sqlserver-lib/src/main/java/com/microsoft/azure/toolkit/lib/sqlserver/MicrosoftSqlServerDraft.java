@@ -57,7 +57,7 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
 
     @Nonnull
     @Override
-    @AzureOperation(name = "sqlserver.create_server.server", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "sqlserver.create_server_in_azure.server", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public SqlServer createResourceInAzure() {
         assert this.config != null;
         final SqlServerManager manager = Objects.requireNonNull(this.getParent().getRemote());
@@ -81,7 +81,7 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
 
     @Nonnull
     @Override
-    @AzureOperation(name = "sqlserver.update_server.server", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "sqlserver.update_server_in_azure.server", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public SqlServer updateResourceInAzure(@Nonnull SqlServer origin) {
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {

@@ -44,7 +44,7 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
     }
 
     @Override
-    @AzureOperation(name = "sqlserver.delete_server.server", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "sqlserver.delete_server_in_azure.server", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         Optional.ofNullable(this.getClient()).ifPresent(c -> c.deleteById(resourceId));
     }

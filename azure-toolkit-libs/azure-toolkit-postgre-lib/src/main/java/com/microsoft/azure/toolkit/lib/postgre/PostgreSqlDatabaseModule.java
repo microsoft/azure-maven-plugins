@@ -58,7 +58,7 @@ public class PostgreSqlDatabaseModule extends AbstractAzResourceModule<PostgreSq
     }
 
     @Override
-    @AzureOperation(name = "postgre.delete_database.database", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "postgre.delete_database_in_azure.database", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String id) {
         final PostgreSqlServer p = this.getParent();
         final ResourceId resourceId = ResourceId.fromString(id);

@@ -112,7 +112,7 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
     }
 
     @Override
-    @AzureOperation(name = "cosmos.delete_sql_document.document", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "cosmos.delete_sql_document_in_azure.document", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         final ObjectNode node = loadResourceFromAzure(id.name(), id.resourceGroupName());

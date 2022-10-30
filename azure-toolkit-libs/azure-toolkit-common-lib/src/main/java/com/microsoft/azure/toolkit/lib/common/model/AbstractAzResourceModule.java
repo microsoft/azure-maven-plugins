@@ -489,7 +489,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @AzureOperation(
-        name = "resource.delete_resource.resource|type",
+        name = "resource.delete_resource_in_azure.resource|type",
         params = {"nameFromResourceId(resourceId)", "this.getResourceTypeName()"},
         type = AzureOperation.Type.REQUEST
     )

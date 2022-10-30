@@ -51,7 +51,7 @@ public class CassandraTableModule extends AbstractAzResourceModule<CassandraTabl
     }
 
     @Override
-    @AzureOperation(name = "cosmos.delete_cassandra_table.table", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "cosmos.delete_cassandra_table_in_azure.table", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@NotNull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteCassandraTable(id.resourceGroupName(), id.parent().parent().name(), id.parent().name(), id.name()));

@@ -62,7 +62,7 @@ public class SqlDocumentDraft extends SqlDocument implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "cosmos.create_sql_document.document", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "cosmos.create_sql_document_in_azure.document", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public ObjectNode createResourceInAzure() {
         final String documentPartitionKey = getParent().getPartitionKey();
         final PartitionKey partitionKey = draftDocument.get(documentPartitionKey) == null ? PartitionKey.NONE :
@@ -75,7 +75,7 @@ public class SqlDocumentDraft extends SqlDocument implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "cosmos.update_sql_document.document", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "cosmos.update_sql_document_in_azure.document", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public ObjectNode updateResourceInAzure(@Nonnull ObjectNode origin) {
         final CosmosContainer client = ((SqlDocumentModule) getModule()).getClient();
         final String documentPartitionKey = getDocumentPartitionKey();

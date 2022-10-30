@@ -45,7 +45,7 @@ public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MyS
     }
 
     @Override
-    @AzureOperation(name = "mysql.delete_server.server", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "mysql.delete_server_in_azure.server", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         Optional.ofNullable(this.getClient()).ifPresent(c -> c.deleteById(resourceId));
     }

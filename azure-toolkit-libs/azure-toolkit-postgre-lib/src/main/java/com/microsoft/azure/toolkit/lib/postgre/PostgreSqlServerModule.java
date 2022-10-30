@@ -42,7 +42,7 @@ public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlS
     }
 
     @Override
-    @AzureOperation(name = "postgre.delete_server.server", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "postgre.delete_server_in_azure.server", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         Optional.ofNullable(this.getClient()).ifPresent(c -> c.deleteById(resourceId));
     }

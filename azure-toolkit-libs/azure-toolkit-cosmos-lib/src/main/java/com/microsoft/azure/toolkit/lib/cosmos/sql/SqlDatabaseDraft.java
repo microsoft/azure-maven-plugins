@@ -42,7 +42,7 @@ public class SqlDatabaseDraft extends SqlDatabase implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "cosmos.create_sql_database.database", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "cosmos.create_sql_database_in_azure.database", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public SqlDatabaseGetResultsInner createResourceInAzure() {
         final CosmosDBManagementClient cosmosDBManagementClient = Objects.requireNonNull(getParent().getRemote()).manager().serviceClient();
         final SqlDatabaseCreateUpdateParameters parameters = new SqlDatabaseCreateUpdateParameters()
@@ -58,7 +58,7 @@ public class SqlDatabaseDraft extends SqlDatabase implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "cosmos.update_sql_database.database", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "cosmos.update_sql_database_in_azure.database", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public SqlDatabaseGetResultsInner updateResourceInAzure(@Nonnull SqlDatabaseGetResultsInner origin) {
         throw new UnsupportedOperationException("not support");
     }

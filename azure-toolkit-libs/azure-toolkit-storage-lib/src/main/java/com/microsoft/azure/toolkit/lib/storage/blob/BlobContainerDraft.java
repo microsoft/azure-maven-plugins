@@ -40,7 +40,7 @@ public class BlobContainerDraft extends BlobContainer implements AzResource.Draf
 
     @Nonnull
     @Override
-    @AzureOperation(name = "storage.create_blob_container.container", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "storage.create_blob_container_in_azure.container", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public BlobContainerClient createResourceInAzure() {
         final BlobContainerModule module = (BlobContainerModule) this.getModule();
         final BlobServiceClient client = module.getBlobServiceClient();
@@ -53,7 +53,7 @@ public class BlobContainerDraft extends BlobContainer implements AzResource.Draf
 
     @Nonnull
     @Override
-    @AzureOperation(name = "storage.update_blob_container.container", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "storage.update_blob_container_in_azure.container", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public BlobContainerClient updateResourceInAzure(@Nonnull BlobContainerClient origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

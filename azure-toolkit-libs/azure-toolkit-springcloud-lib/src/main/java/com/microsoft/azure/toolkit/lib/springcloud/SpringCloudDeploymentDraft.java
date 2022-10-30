@@ -102,7 +102,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
 
     @Nonnull
     @Override
-    @AzureOperation(name = "springcloud.create_app_deployment.deployment", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "springcloud.create_app_deployment_in_azure.deployment", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public SpringAppDeployment createResourceInAzure() {
         final String name = this.getName();
         final SpringApp app = Objects.requireNonNull(this.getParent().getRemote());
@@ -119,7 +119,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
 
     @Nonnull
     @Override
-    @AzureOperation(name = "springcloud.update_app_deployment.deployment", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "springcloud.update_app_deployment_in_azure.deployment", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public SpringAppDeployment updateResourceInAzure(@Nonnull SpringAppDeployment deployment) {
         final SpringAppDeploymentImpl update = ((SpringAppDeploymentImpl) Objects.requireNonNull(deployment).update());
         if (modify(update)) {
