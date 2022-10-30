@@ -10,9 +10,12 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.OffsetDateTime;
 import java.util.Objects;
 
 public interface StorageFile extends AzResource {
@@ -34,6 +37,14 @@ public interface StorageFile extends AzResource {
             return -1;
         }
         throw new AzureToolkitRuntimeException("Not implemented.");
+    }
+
+    @Nullable
+    OffsetDateTime getLastModified();
+
+    @Nullable
+    default OffsetDateTime getCreationTime() {
+        return null;
     }
 
     void download(OutputStream output);

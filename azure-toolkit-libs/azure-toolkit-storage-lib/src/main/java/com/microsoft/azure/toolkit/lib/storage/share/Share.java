@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.storage.share;
 import com.azure.storage.file.share.ShareClient;
 import com.azure.storage.file.share.ShareDirectoryClient;
 import com.azure.storage.file.share.ShareServiceClient;
+import com.azure.storage.file.share.models.ShareProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -15,8 +16,10 @@ import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -86,6 +89,12 @@ public class Share extends AbstractAzResource<Share, StorageAccount, ShareClient
         final ShareServiceClient fileShareServiceClient = module.getFileShareServiceClient();
         final ShareClient shareClient = fileShareServiceClient.getShareClient(this.getName());
         return shareClient.getShareUrl();
+    }
+
+    @Nullable
+    @Override
+    public OffsetDateTime getLastModified() {
+        return this.remoteOptional().map(ShareClient::getProperties).map(ShareProperties::getLastModified).orElse(null);
     }
 
     @Override

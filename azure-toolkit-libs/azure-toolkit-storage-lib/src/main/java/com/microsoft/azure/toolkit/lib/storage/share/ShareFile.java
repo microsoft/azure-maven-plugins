@@ -7,15 +7,18 @@ package com.microsoft.azure.toolkit.lib.storage.share;
 
 import com.azure.storage.file.share.ShareDirectoryClient;
 import com.azure.storage.file.share.models.ShareFileItem;
+import com.azure.storage.file.share.models.ShareFileItemProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -53,6 +56,18 @@ public class ShareFile extends AbstractAzResource<ShareFile, IShareFile, ShareFi
             return this.remoteOptional().map(ShareFileItem::getFileSize).orElse(-1L);
         }
         return -1;
+    }
+
+    @Nullable
+    @Override
+    public OffsetDateTime getLastModified() {
+        return this.remoteOptional().map(ShareFileItem::getProperties).map(ShareFileItemProperties::getLastModified).orElse(null);
+    }
+
+    @Override
+    @Nullable
+    public OffsetDateTime getCreationTime() {
+        return this.remoteOptional().map(ShareFileItem::getProperties).map(ShareFileItemProperties::getCreatedOn).orElse(null);
     }
 
     @Override

@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.storage.blob;
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.models.BlobContainerProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -14,8 +15,10 @@ import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -59,6 +62,12 @@ public class BlobContainer extends AbstractAzResource<BlobContainer, StorageAcco
 
     public boolean exists(String blobPath) {
         return this.getClient().getBlobClient(blobPath).exists();
+    }
+
+    @Nullable
+    @Override
+    public OffsetDateTime getLastModified() {
+        return this.remoteOptional().map(BlobContainerClient::getProperties).map(BlobContainerProperties::getLastModified).orElse(null);
     }
 
     @Override
