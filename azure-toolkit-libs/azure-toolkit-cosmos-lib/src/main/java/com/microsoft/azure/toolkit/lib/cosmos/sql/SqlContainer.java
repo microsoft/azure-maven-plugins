@@ -16,7 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosCollection;
-import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentModule;
+import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentContainer;
 import com.microsoft.azure.toolkit.lib.cosmos.model.SqlDatabaseAccountConnectionString;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -30,7 +30,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, SqlContainerGetResultsInner>
-        implements Deletable, ICosmosCollection, ICosmosDocumentModule<SqlDocument> {
+        implements Deletable, ICosmosCollection, ICosmosDocumentContainer<SqlDocument> {
     private CosmosContainer container;
     private CosmosContainerResponse containerResponse;
     @Getter
@@ -60,12 +60,6 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
     }
 
     @Override
-    protected void updateAdditionalProperties(@Nullable SqlContainerGetResultsInner newRemote, @Nullable SqlContainerGetResultsInner oldRemote) {
-        super.updateAdditionalProperties(newRemote, oldRemote);
-        doGetClient();
-    }
-
-    @Override
     public SqlDocument importDocument(@Nonnull final ObjectNode node) {
         if (node.get("id") == null) {
             node.put("id", UUID.randomUUID().toString());
@@ -75,16 +69,6 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
         final SqlDocumentDraft documentDraft = this.documentModule.create(String.format("%s#%s", id, partitionKey), getResourceGroupName());
         documentDraft.setDraftDocument(node);
         return documentDraft.commit();
-    }
-
-    @Override
-    public List<SqlDocument> listDocuments() {
-        return getDocumentModule().list();
-    }
-
-    @Override
-    public long getDocumentCount() {
-        return documentModule.getDocumentCount();
     }
 
     public String getPartitionKey() {
@@ -97,26 +81,33 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
 
     public synchronized CosmosContainer getClient() {
         if (Objects.isNull(this.container)) {
-            doGetClient();
+            this.container = getDocumentClient();
+            this.containerResponse = container.read();
         }
         return this.container;
     }
 
-    private void doGetClient() {
+    @Override
+    protected void updateAdditionalProperties(@Nullable SqlContainerGetResultsInner newRemote, @Nullable SqlContainerGetResultsInner oldRemote) {
+        super.updateAdditionalProperties(newRemote, oldRemote);
+        if (Objects.nonNull(newRemote)) {
+            this.container = getDocumentClient();
+            this.containerResponse = container.read();
+        } else {
+            this.container = null;
+            this.containerResponse = null;
+        }
+    }
+
+    private CosmosContainer getDocumentClient() {
         try {
             final SqlDatabase sqlDatabase = this.getParent();
             final SqlCosmosDBAccount account = (SqlCosmosDBAccount) sqlDatabase.getParent();
-            final SqlDatabaseAccountConnectionString connectionString = account.getSqlAccountConnectionString();
-            final CosmosClient cosmosClient = new CosmosClientBuilder()
-                    .endpoint(account.getDocumentEndpoint())
-                    .key(connectionString.getKey())
-                    .preferredRegions(Collections.singletonList(Objects.requireNonNull(account.getRegion()).getName()))
-                    .consistencyLevel(ConsistencyLevel.EVENTUAL)
-                    .buildClient();
-            this.container = cosmosClient.getDatabase(sqlDatabase.getName()).getContainer(this.getName());
-            this.containerResponse = container.read();
+            final CosmosClient cosmosClient = account.getClient();
+            return cosmosClient.getDatabase(sqlDatabase.getName()).getContainer(this.getName());
         } catch (Throwable e) {
             // swallow exception to load data client
+            return null;
         }
     }
 
