@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocument;
+import org.apache.commons.lang3.ObjectUtils;
 import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +56,12 @@ public class MongoDocument extends AbstractAzResource<MongoDocument, MongoCollec
         final MongoDocumentDraft sqlDocumentDraft = (MongoDocumentDraft) this.update();
         sqlDocumentDraft.setDocument(document);
         sqlDocumentDraft.commit();
+    }
+
+    public String getSharedKey() {
+        final String sharedKey = getParent().getSharedKey();
+        final ObjectNode document = getDocument();
+        return ObjectUtils.allNotNull(sharedKey, document) ? document.get(sharedKey).asText() : null;
     }
 
     @NotNull

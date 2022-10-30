@@ -83,6 +83,11 @@ public class MongoCollectionDraft extends MongoCollection implements
         return this.config;
     }
 
+    @Override
+    public @Nullable String getSharedKey() {
+        return Optional.ofNullable(config).map(MongoCollectionConfig::getShardKey).orElseGet(super::getSharedKey);
+    }
+
     @Data
     @EqualsAndHashCode(callSuper = true)
     public static class MongoCollectionConfig extends ThroughputConfig {
