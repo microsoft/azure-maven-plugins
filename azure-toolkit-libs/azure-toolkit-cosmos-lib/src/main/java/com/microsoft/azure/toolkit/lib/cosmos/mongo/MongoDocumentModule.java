@@ -8,20 +8,25 @@ package com.microsoft.azure.toolkit.lib.cosmos.mongo;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentModule;
+import com.mongodb.client.MongoCursor;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
-public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument, MongoCollection, Document> {
+public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument, MongoCollection, Document>
+        implements ICosmosDocumentModule<MongoDocument> {
 
     public static final String MONGO_ID_KEY = "_id";
+    private MongoCursor<Document> iterator;
 
     public MongoDocumentModule(@Nonnull MongoCollection parent) {
         super("documents", parent);
@@ -43,9 +48,25 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
     @Nonnull
     @Override
     protected Stream<Document> loadResourcesFromAzure() {
+        final com.mongodb.client.MongoCollection<Document> client = getClient();
         final int cosmosBatchSize = Azure.az().config().getCosmosBatchSize();
-        return Optional.ofNullable(getClient()).map(client -> client.find().limit(cosmosBatchSize))
-                .map(it -> StreamSupport.stream(it.spliterator(), false)).orElse(Stream.empty());
+        if (client == null) {
+            return Stream.empty();
+        }
+        iterator = client.find().batchSize(cosmosBatchSize).iterator();
+        return readDocuments(iterator);
+    }
+
+    private Stream<Document> readDocuments(final MongoCursor<Document> iterator) {
+        if (iterator == null || !iterator.hasNext()) {
+            return Stream.empty();
+        }
+        final int cosmosBatchSize = Azure.az().config().getCosmosBatchSize();
+        final List<Document> result = new ArrayList<>();
+        for (int i = 0; i < cosmosBatchSize && iterator.hasNext(); i++) {
+            result.add(iterator.next());
+        }
+        return result.stream();
     }
 
     @Nullable
@@ -74,7 +95,7 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteOne(new Document(MONGO_ID_KEY, documentId)));
     }
 
-    private Object getDocumentIdFromName(final String name){
+    private Object getDocumentIdFromName(final String name) {
         return this.list().stream()
                 .filter(document -> document.getDocumentId() != null && StringUtils.equals(name, document.getDocumentId().toString()))
                 .findFirst()
@@ -86,5 +107,15 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
     @Override
     protected com.mongodb.client.MongoCollection<Document> getClient() {
         return getParent().getClient();
+    }
+
+    @Override
+    public boolean hasMoreDocuments() {
+        return iterator.hasNext();
+    }
+
+    @Override
+    public void loadMoreDocuments() {
+        this.readDocuments(iterator).map(this::newResource).forEach(document -> this.addResourceToLocal(document.getId(), document));
     }
 }

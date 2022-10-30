@@ -4,16 +4,10 @@
  */
 package com.microsoft.azure.toolkit.lib.cosmos;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 
-import javax.annotation.Nonnull;
-import java.util.List;
+public interface ICosmosDocumentModule <T extends ICosmosDocument> extends AzResourceModule<T> {
+    boolean hasMoreDocuments();
 
-public interface ICosmosDocumentModule<T extends ICosmosDocument> extends AzResource {
-    T importDocument(@Nonnull final ObjectNode node);
-
-    List<T> listDocuments();
-
-    long getDocumentCount();
+    void loadMoreDocuments();
 }
