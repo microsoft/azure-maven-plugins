@@ -7,7 +7,10 @@ package com.microsoft.azure.toolkit.lib.storage.table;
 
 import com.azure.data.tables.TableClient;
 import com.azure.data.tables.TableServiceClient;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import lombok.Getter;
 
@@ -39,7 +42,11 @@ public class TableDraft extends Table implements AzResource.Draft<Table, TableCl
     public TableClient createResourceInAzure() {
         final TableModule module = (TableModule) this.getModule();
         final TableServiceClient client = module.getTableServiceClient();
-        return client.createTable(this.getName());
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Start creating Table ({0}).", this.getName()));
+        final TableClient table = client.createTable(this.getName());
+        messager.success(AzureString.format("Table ({0}) is successfully created.", this.getName()));
+        return table;
     }
 
     @Nonnull
