@@ -33,8 +33,9 @@ public class TableModule extends AbstractAzResourceModule<Table, StorageAccount,
         this.client = null;
     }
 
+    @Nullable
     synchronized TableServiceClient getTableServiceClient() {
-        if (Objects.isNull(this.client)) {
+        if (Objects.isNull(this.client) && this.parent.exists()) {
             final String connectionString = this.parent.getConnectionString();
             this.client = new TableServiceClientBuilder().connectionString(connectionString).buildClient();
         }
@@ -44,13 +45,19 @@ public class TableModule extends AbstractAzResourceModule<Table, StorageAccount,
     @Nonnull
     @Override
     protected Stream<TableClient> loadResourcesFromAzure() {
+        if (!this.parent.exists()) {
+            return Stream.empty();
+        }
         final TableServiceClient client = this.getTableServiceClient();
-        return client.listTables().stream().map(s -> client.getTableClient(s.getName()));
+        return Objects.requireNonNull(client).listTables().stream().map(s -> client.getTableClient(s.getName()));
     }
 
     @Nullable
     @Override
     protected TableClient loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
+        if (!this.parent.exists()) {
+            return null;
+        }
         return this.loadResourcesFromAzure().filter(c -> c.getTableName().equals(name)).findAny().orElse(null);
     }
 
@@ -58,7 +65,7 @@ public class TableModule extends AbstractAzResourceModule<Table, StorageAccount,
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         final TableServiceClient client = this.getTableServiceClient();
-        client.deleteTable(id.name());
+        Objects.requireNonNull(client).deleteTable(id.name());
     }
 
     @Nonnull

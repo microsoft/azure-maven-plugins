@@ -33,8 +33,9 @@ public class ShareModule extends AbstractAzResourceModule<Share, StorageAccount,
         this.client = null;
     }
 
+    @Nullable
     synchronized ShareServiceClient getFileShareServiceClient() {
-        if (Objects.isNull(this.client)) {
+        if (Objects.isNull(this.client) && this.parent.exists()) {
             final String connectionString = this.parent.getConnectionString();
             this.client = new ShareServiceClientBuilder().connectionString(connectionString).buildClient();
         }
@@ -44,13 +45,19 @@ public class ShareModule extends AbstractAzResourceModule<Share, StorageAccount,
     @Nonnull
     @Override
     protected Stream<ShareClient> loadResourcesFromAzure() {
+        if (!this.parent.exists()) {
+            return Stream.empty();
+        }
         final ShareServiceClient client = this.getFileShareServiceClient();
-        return client.listShares().stream().map(s -> client.getShareClient(s.getName()));
+        return Objects.requireNonNull(client).listShares().stream().map(s -> client.getShareClient(s.getName()));
     }
 
     @Nullable
     @Override
     protected ShareClient loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
+        if (!this.parent.exists()) {
+            return null;
+        }
         return this.loadResourcesFromAzure().filter(c -> c.getShareName().equals(name)).findAny().orElse(null);
     }
 
@@ -58,7 +65,7 @@ public class ShareModule extends AbstractAzResourceModule<Share, StorageAccount,
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         final ShareServiceClient client = this.getFileShareServiceClient();
-        client.deleteShare(id.name());
+        Objects.requireNonNull(client).deleteShare(id.name());
     }
 
     @Nonnull

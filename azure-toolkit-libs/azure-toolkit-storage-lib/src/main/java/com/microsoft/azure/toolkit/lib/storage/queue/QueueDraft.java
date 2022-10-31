@@ -7,7 +7,10 @@ package com.microsoft.azure.toolkit.lib.storage.queue;
 
 import com.azure.storage.queue.QueueClient;
 import com.azure.storage.queue.QueueServiceClient;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import lombok.Getter;
 
@@ -39,7 +42,11 @@ public class QueueDraft extends Queue implements AzResource.Draft<Queue, QueueCl
     public QueueClient createResourceInAzure() {
         final QueueModule module = (QueueModule) this.getModule();
         final QueueServiceClient client = module.getQueueServiceClient();
-        return client.createQueue(this.getName());
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Start creating Queue ({0}).", this.getName()));
+        final QueueClient queue = client.createQueue(this.getName());
+        messager.success(AzureString.format("Queue ({0}) is successfully created.", this.getName()));
+        return queue;
     }
 
     @Nonnull

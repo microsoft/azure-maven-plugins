@@ -7,7 +7,10 @@ package com.microsoft.azure.toolkit.lib.storage.blob;
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import lombok.Getter;
 
@@ -39,7 +42,11 @@ public class BlobContainerDraft extends BlobContainer implements AzResource.Draf
     public BlobContainerClient createResourceInAzure() {
         final BlobContainerModule module = (BlobContainerModule) this.getModule();
         final BlobServiceClient client = module.getBlobServiceClient();
-        return client.createBlobContainer(this.getName());
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Start creating Blob Container ({0}).", this.getName()));
+        final BlobContainerClient container = client.createBlobContainer(this.getName());
+        messager.success(AzureString.format("Blob Container ({0}) is successfully created.", this.getName()));
+        return container;
     }
 
     @Nonnull

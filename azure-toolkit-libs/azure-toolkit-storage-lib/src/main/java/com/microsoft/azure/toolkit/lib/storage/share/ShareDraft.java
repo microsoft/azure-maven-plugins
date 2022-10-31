@@ -7,7 +7,10 @@ package com.microsoft.azure.toolkit.lib.storage.share;
 
 import com.azure.storage.file.share.ShareClient;
 import com.azure.storage.file.share.ShareServiceClient;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import lombok.Getter;
 
@@ -39,7 +42,11 @@ public class ShareDraft extends Share implements AzResource.Draft<Share, ShareCl
     public ShareClient createResourceInAzure() {
         final ShareModule module = (ShareModule) this.getModule();
         final ShareServiceClient client = module.getFileShareServiceClient();
-        return client.createShare(this.getName());
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Start creating File Share ({0}).", this.getName()));
+        final ShareClient share = client.createShare(this.getName());
+        messager.success(AzureString.format("File Share ({0}) is successfully created.", this.getName()));
+        return share;
     }
 
     @Nonnull

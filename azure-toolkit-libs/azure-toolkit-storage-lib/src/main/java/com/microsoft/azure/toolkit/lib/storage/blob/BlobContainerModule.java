@@ -33,8 +33,9 @@ public class BlobContainerModule extends AbstractAzResourceModule<BlobContainer,
         this.client = null;
     }
 
+    @Nullable
     synchronized BlobServiceClient getBlobServiceClient() {
-        if (Objects.isNull(this.client)) {
+        if (Objects.isNull(this.client) && this.parent.exists()) {
             final String connectionString = this.parent.getConnectionString();
             this.client = new BlobServiceClientBuilder().connectionString(connectionString).buildClient();
         }
@@ -44,13 +45,19 @@ public class BlobContainerModule extends AbstractAzResourceModule<BlobContainer,
     @Nonnull
     @Override
     protected Stream<BlobContainerClient> loadResourcesFromAzure() {
+        if (!this.parent.exists()) {
+            return Stream.empty();
+        }
         final BlobServiceClient client = this.getBlobServiceClient();
-        return client.listBlobContainers().stream().map(s -> client.getBlobContainerClient(s.getName()));
+        return Objects.requireNonNull(client).listBlobContainers().stream().map(s -> client.getBlobContainerClient(s.getName()));
     }
 
     @Nullable
     @Override
     protected BlobContainerClient loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
+        if (!this.parent.exists()) {
+            return null;
+        }
         return this.loadResourcesFromAzure().filter(c -> c.getBlobContainerName().equals(name)).findAny().orElse(null);
     }
 
@@ -58,7 +65,7 @@ public class BlobContainerModule extends AbstractAzResourceModule<BlobContainer,
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         final BlobServiceClient client = this.getBlobServiceClient();
-        client.deleteBlobContainer(id.name());
+        Objects.requireNonNull(client).deleteBlobContainer(id.name());
     }
 
     @Nonnull

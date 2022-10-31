@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.storage.blob;
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.models.BlobItem;
+import com.azure.storage.blob.models.BlobItemProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -14,9 +15,11 @@ import lombok.Getter;
 import org.apache.commons.lang3.BooleanUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,11 +52,24 @@ public class BlobFile extends AbstractAzResource<BlobFile, IBlobFile, BlobItem> 
         return "OK";
     }
 
+    @Override
     public long getSize() {
         if (!this.isDirectory()) {
             return this.remoteOptional().map(r -> r.getProperties().getContentLength()).orElse(-1L);
         }
         return -1;
+    }
+
+    @Override
+    @Nullable
+    public OffsetDateTime getLastModified() {
+        return this.remoteOptional().map(BlobItem::getProperties).map(BlobItemProperties::getLastModified).orElse(null);
+    }
+
+    @Override
+    @Nullable
+    public OffsetDateTime getCreationTime() {
+        return this.remoteOptional().map(BlobItem::getProperties).map(BlobItemProperties::getCreationTime).orElse(null);
     }
 
     @Override
