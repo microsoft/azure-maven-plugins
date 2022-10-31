@@ -33,8 +33,9 @@ public class QueueModule extends AbstractAzResourceModule<Queue, StorageAccount,
         this.client = null;
     }
 
+    @Nullable
     synchronized QueueServiceClient getQueueServiceClient() {
-        if (Objects.isNull(this.client)) {
+        if (Objects.isNull(this.client) && this.parent.exists()) {
             final String connectionString = this.parent.getConnectionString();
             this.client = new QueueServiceClientBuilder().connectionString(connectionString).buildClient();
         }
@@ -44,13 +45,19 @@ public class QueueModule extends AbstractAzResourceModule<Queue, StorageAccount,
     @Nonnull
     @Override
     protected Stream<QueueClient> loadResourcesFromAzure() {
+        if (!this.parent.exists()) {
+            return Stream.empty();
+        }
         final QueueServiceClient client = this.getQueueServiceClient();
-        return client.listQueues().stream().map(s -> client.getQueueClient(s.getName()));
+        return Objects.requireNonNull(client).listQueues().stream().map(s -> client.getQueueClient(s.getName()));
     }
 
     @Nullable
     @Override
     protected QueueClient loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
+        if (!this.parent.exists()) {
+            return null;
+        }
         return this.loadResourcesFromAzure().filter(c -> c.getQueueName().equals(name)).findAny().orElse(null);
     }
 
@@ -58,7 +65,7 @@ public class QueueModule extends AbstractAzResourceModule<Queue, StorageAccount,
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         final QueueServiceClient client = this.getQueueServiceClient();
-        client.deleteQueue(id.name());
+        Objects.requireNonNull(client).deleteQueue(id.name());
     }
 
     @Nonnull
