@@ -75,7 +75,6 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
         return Optional.ofNullable(this.containerResponse)
                 .map(CosmosContainerResponse::getProperties)
                 .map(p -> p.getPartitionKeyDefinition().getPaths().get(0))
-                .map(key -> key.startsWith("/") ? key.substring(1) : key)
                 .orElse(null);
     }
 

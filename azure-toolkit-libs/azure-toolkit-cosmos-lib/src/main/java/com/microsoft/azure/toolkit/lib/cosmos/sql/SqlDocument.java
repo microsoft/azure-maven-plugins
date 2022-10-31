@@ -39,7 +39,8 @@ public class SqlDocument extends AbstractAzResource<SqlDocument, SqlContainer, O
     @Nullable
     public String getDocumentPartitionKey() {
         final String partitionKey = getParent().getPartitionKey();
-        return Optional.ofNullable(this.getRemote()).map(remote -> remote.get(partitionKey)).map(JsonNode::asText).orElse(null);
+        return Optional.ofNullable(this.getRemote())
+                .map(remote -> remote.at(partitionKey)).map(JsonNode::asText).orElse(null);
     }
 
     @Override

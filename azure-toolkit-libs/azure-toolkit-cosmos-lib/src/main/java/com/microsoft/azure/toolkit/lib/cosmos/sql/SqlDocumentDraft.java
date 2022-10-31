@@ -50,7 +50,7 @@ public class SqlDocumentDraft extends SqlDocument implements
     @Override
     public String getDocumentPartitionKey() {
         final String partitionKey = getParent().getPartitionKey();
-        return Optional.ofNullable(draftDocument).map(doc -> doc.get(partitionKey)).map(JsonNode::asText)
+        return Optional.ofNullable(draftDocument).map(doc -> doc.at(partitionKey)).map(JsonNode::asText)
                 .orElseGet(super::getDocumentPartitionKey);
     }
 
@@ -64,7 +64,7 @@ public class SqlDocumentDraft extends SqlDocument implements
     public ObjectNode createResourceInAzure() {
         final String documentPartitionKey = getParent().getPartitionKey();
         final PartitionKey partitionKey = draftDocument.get(documentPartitionKey) == null ? PartitionKey.NONE :
-                new PartitionKey(draftDocument.get(documentPartitionKey).asText());
+                new PartitionKey(draftDocument.at(documentPartitionKey).asText());
         final String documentId = draftDocument.get("id").asText();
         final CosmosContainer client = ((SqlDocumentModule) getModule()).getClient();
         Objects.requireNonNull(client).createItem(draftDocument).getItem();
