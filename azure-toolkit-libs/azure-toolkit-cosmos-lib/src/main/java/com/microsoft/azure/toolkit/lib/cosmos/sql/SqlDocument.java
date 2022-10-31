@@ -74,4 +74,8 @@ public class SqlDocument extends AbstractAzResource<SqlDocument, SqlContainer, O
         return Status.RUNNING;
     }
 
+    @Override
+    protected void setRemote(@Nullable ObjectNode newRemote) {
+        super.setRemote(newRemote);
+    }
 }

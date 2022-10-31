@@ -36,7 +36,9 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
     @Override
     protected MongoDocument newResource(@Nonnull Document document) {
         final String id = Objects.requireNonNull(document.get(MONGO_ID_KEY)).toString();
-        return new MongoDocument(id, parent.getResourceGroupName(), this);
+        final MongoDocument mongoDocument = new MongoDocument(id, parent.getResourceGroupName(), this);
+        mongoDocument.setRemote(document);
+        return mongoDocument;
     }
 
     @Nonnull
@@ -116,6 +118,7 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
 
     @Override
     public void loadMoreDocuments() {
-        this.readDocuments(iterator).map(this::newResource).forEach(document -> this.addResourceToLocal(document.getId(), document));
+        this.readDocuments(iterator).map(this::newResource).forEach(document -> this.addResourceToLocal(document.getId(), document, false));
+        fireEvents.debounce();
     }
 }

@@ -40,7 +40,8 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
             final FeedResponse<ObjectNode> response = iterator.next();
             response.getElements().stream()
                     .map(this::newResource)
-                    .forEach(document -> addResourceToLocal(document.getId(), document));
+                    .forEach(document -> addResourceToLocal(document.getId(), document, true));
+            fireEvents.debounce();
         }
     }
 
@@ -92,13 +93,15 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
 
     @Nonnull
     @Override
-    protected SqlDocument newResource(@Nonnull ObjectNode ObjectNode) {
+    protected SqlDocument newResource(@Nonnull ObjectNode objectNode) {
         final SqlContainer container = getParent();
-        final String id = Objects.requireNonNull(ObjectNode.get("id")).asText();
+        final String id = Objects.requireNonNull(objectNode.get("id")).asText();
         final String partitionKey = container.getPartitionKey();
-        final String partitionValue = Optional.ofNullable(ObjectNode.get(partitionKey))
+        final String partitionValue = Optional.ofNullable(objectNode.get(partitionKey))
                 .map(JsonNode::asText).orElse(StringUtils.EMPTY);
-        return newResource(String.format("%s#%s", id, partitionValue), container.getResourceGroupName());
+        final SqlDocument sqlDocument = newResource(String.format("%s#%s", id, partitionValue), container.getResourceGroupName());
+        sqlDocument.setRemote(objectNode);
+        return sqlDocument;
     }
 
     @Nonnull

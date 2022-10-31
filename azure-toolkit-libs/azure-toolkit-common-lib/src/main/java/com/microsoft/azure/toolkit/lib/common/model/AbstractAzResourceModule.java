@@ -77,7 +77,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private final Map<String, Optional<T>> resources = Collections.synchronizedMap(new CaseInsensitiveMap<>());
 
     @Nonnull
-    private final Debouncer fireEvents = new TailingDebouncer(this::fireChildrenChangedEvent, 300);
+    protected final Debouncer fireEvents = new TailingDebouncer(this::fireChildrenChangedEvent, 300);
     private final Lock lock = new ReentrantLock();
 
     @Override

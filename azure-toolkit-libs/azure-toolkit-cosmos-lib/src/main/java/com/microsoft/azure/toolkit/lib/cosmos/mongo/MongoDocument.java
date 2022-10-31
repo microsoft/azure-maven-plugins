@@ -64,6 +64,11 @@ public class MongoDocument extends AbstractAzResource<MongoDocument, MongoCollec
         return ObjectUtils.allNotNull(sharedKey, document) ? document.get(sharedKey).asText() : null;
     }
 
+    @Override
+    protected void setRemote(@javax.annotation.Nullable Document newRemote) {
+        super.setRemote(newRemote);
+    }
+
     @NotNull
     @Override
     public String loadStatus(@NotNull Document remote) {
