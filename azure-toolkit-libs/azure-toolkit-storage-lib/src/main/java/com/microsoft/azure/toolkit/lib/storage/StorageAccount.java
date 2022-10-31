@@ -24,6 +24,7 @@ import com.microsoft.azure.toolkit.lib.storage.queue.QueueModule;
 import com.microsoft.azure.toolkit.lib.storage.share.ShareModule;
 import com.microsoft.azure.toolkit.lib.storage.table.TableModule;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -108,6 +109,22 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageSe
             String[] replicationArr = remote.skuType().name().toString().split("_");
             return replicationArr.length == 2 ? Performance.fromName(replicationArr[0]) : null;
         }).orElse(null);
+    }
+
+    public boolean canHaveQueues() {
+        return remoteOptional().map(remote -> StringUtils.isNotBlank(remote.innerModel().primaryEndpoints().queue())).orElse(false);
+    }
+
+    public boolean canHaveTables() {
+        return remoteOptional().map(remote -> StringUtils.isNotBlank(remote.innerModel().primaryEndpoints().table())).orElse(false);
+    }
+
+    public boolean canHaveBlobs() {
+        return remoteOptional().map(remote -> StringUtils.isNotBlank(remote.innerModel().primaryEndpoints().blob())).orElse(false);
+    }
+
+    public boolean canHaveShares() {
+        return remoteOptional().map(remote -> StringUtils.isNotBlank(remote.innerModel().primaryEndpoints().file())).orElse(false);
     }
 
     @Nullable
