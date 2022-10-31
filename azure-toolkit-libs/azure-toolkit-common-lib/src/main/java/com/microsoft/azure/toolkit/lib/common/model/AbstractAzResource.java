@@ -190,7 +190,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         }, Status.LOADING);
     }
 
-    void setRemote(@Nullable R newRemote) {
+    protected void setRemote(@Nullable R newRemote) {
         final R oldRemote = this.remoteRef.get();
         log.debug("[{}:{}]:setRemote({})", this.module.getName(), this.getName(), newRemote);
         if (oldRemote == null || newRemote == null) {

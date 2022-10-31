@@ -11,11 +11,9 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosCollection;
-import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentModule;
-import com.microsoft.azure.toolkit.lib.cosmos.model.MongoDatabaseAccountConnectionString;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
+import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentContainer;
 import lombok.Getter;
+import org.apache.commons.collections4.MapUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +28,7 @@ import java.util.Optional;
 import static com.microsoft.azure.toolkit.lib.cosmos.mongo.MongoDocumentModule.MONGO_ID_KEY;
 
 public class MongoCollection extends AbstractAzResource<MongoCollection, MongoDatabase, MongoDBCollectionGetResultsInner>
-        implements Deletable, ICosmosCollection, ICosmosDocumentModule<MongoDocument> {
+        implements Deletable, ICosmosCollection, ICosmosDocumentContainer<MongoDocument> {
 
     @Getter
     private com.mongodb.client.MongoCollection<Document> collection;
@@ -75,20 +73,13 @@ public class MongoCollection extends AbstractAzResource<MongoCollection, MongoDa
         return documentDraft.commit();
     }
 
-    @Override
-    public List<MongoDocument> listDocuments() {
-        return documents().list();
-    }
-
-    @Override
-    public long getDocumentCount() {
-        return Optional.ofNullable(getClient()).map(client -> client.countDocuments()).orElse(0L);
-    }
-
-    @Override
-    protected void updateAdditionalProperties(@Nullable MongoDBCollectionGetResultsInner newRemote, @Nullable MongoDBCollectionGetResultsInner oldRemote) {
-        super.updateAdditionalProperties(newRemote, oldRemote);
-        this.collection = getDocumentClient();
+    @Nullable
+    public String getSharedKey() {
+        return Optional.ofNullable(getRemote())
+                .map(remote -> remote.resource().shardKey())
+                .filter(MapUtils::isNotEmpty)
+                .map(map -> map.keySet().iterator().next())
+                .orElse(null);
     }
 
     public synchronized com.mongodb.client.MongoCollection<Document> getClient() {
@@ -98,13 +89,21 @@ public class MongoCollection extends AbstractAzResource<MongoCollection, MongoDa
         return this.collection;
     }
 
+    @Override
+    protected void updateAdditionalProperties(@Nullable MongoDBCollectionGetResultsInner newRemote, @Nullable MongoDBCollectionGetResultsInner oldRemote) {
+        super.updateAdditionalProperties(newRemote, oldRemote);
+        if (Objects.nonNull(newRemote)) {
+            this.collection = getDocumentClient();
+        } else {
+            this.collection = null;
+        }
+    }
+
     private com.mongodb.client.MongoCollection<Document> getDocumentClient() {
         try {
             final MongoDatabase database = this.getParent();
             final MongoCosmosDBAccount account = (MongoCosmosDBAccount) database.getParent();
-            final MongoDatabaseAccountConnectionString mongoConnectionString = Objects.requireNonNull(account.getMongoConnectionString());
-            final MongoClient mongoClient = new MongoClient(new MongoClientURI(mongoConnectionString.getConnectionString()));
-            return mongoClient.getDatabase(database.getName()).getCollection(this.getName());
+            return account.getClient().getDatabase(database.getName()).getCollection(this.getName());
         } catch (Throwable e) {
             // swallow exception to load data client
             return null;

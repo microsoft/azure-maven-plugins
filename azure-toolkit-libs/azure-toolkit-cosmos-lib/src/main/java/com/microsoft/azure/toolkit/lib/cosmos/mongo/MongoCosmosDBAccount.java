@@ -12,16 +12,19 @@ import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccountModule;
 import com.microsoft.azure.toolkit.lib.cosmos.model.CosmosDBAccountConnectionString;
 import com.microsoft.azure.toolkit.lib.cosmos.model.MongoDatabaseAccountConnectionString;
 import com.mongodb.ConnectionString;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class MongoCosmosDBAccount extends CosmosDBAccount {
-
+    private MongoClient mongoClient;
     private final MongoDatabaseModule mongoDatabaseModule;
 
     public MongoCosmosDBAccount(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull CosmosDBAccountModule module) {
@@ -29,9 +32,10 @@ public class MongoCosmosDBAccount extends CosmosDBAccount {
         this.mongoDatabaseModule = new MongoDatabaseModule(this);
     }
 
-    public MongoCosmosDBAccount(@Nonnull CosmosDBAccount account) {
+    public MongoCosmosDBAccount(@Nonnull MongoCosmosDBAccount account) {
         super(account);
-        this.mongoDatabaseModule = new MongoDatabaseModule(this);
+        this.mongoDatabaseModule = account.mongoDatabaseModule;
+        this.mongoClient = account.mongoClient;
     }
 
     public MongoCosmosDBAccount(@Nonnull com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote, @Nonnull CosmosDBAccountModule module) {
@@ -89,5 +93,33 @@ public class MongoCosmosDBAccount extends CosmosDBAccount {
     @Override
     public @NotNull List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(mongoDatabaseModule);
+    }
+
+    public MongoClient getClient() {
+        if (Objects.isNull(this.mongoClient)) {
+            this.mongoClient = getMongoClient();
+        }
+        return this.mongoClient;
+    }
+
+    @Override
+    protected void updateAdditionalProperties(com.azure.resourcemanager.cosmos.models.CosmosDBAccount newRemote, com.azure.resourcemanager.cosmos.models.CosmosDBAccount oldRemote) {
+        super.updateAdditionalProperties(newRemote, oldRemote);
+        if (Objects.nonNull(newRemote)) {
+            this.mongoClient = getMongoClient();
+        } else {
+            Optional.ofNullable(this.mongoClient).ifPresent(MongoClient::close);
+            this.mongoClient = null;
+        }
+    }
+
+    private MongoClient getMongoClient() {
+        try {
+            final MongoDatabaseAccountConnectionString mongoConnectionString = Objects.requireNonNull(this.getMongoConnectionString());
+            return new MongoClient(new MongoClientURI(mongoConnectionString.getConnectionString()));
+        } catch (Throwable e) {
+            // swallow exception to load data client
+            return null;
+        }
     }
 }
