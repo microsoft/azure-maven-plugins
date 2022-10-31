@@ -18,6 +18,7 @@ import org.apache.commons.io.FileUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
@@ -63,7 +64,7 @@ public class ShareFileDraft extends ShareFile implements StorageFile.Draft<Share
                 messager.success(AzureString.format("File ({0}) is successfully uploaded.", sourceFile.getFileName()));
             } else {
                 messager.info(AzureString.format("Start creating file ({0}).", this.getName()));
-                client.createFile(this.getName(), 0);
+                client.createFile(this.getName(), 0).uploadRange(new ByteArrayInputStream(new byte[0]), 1);
                 messager.success(AzureString.format("File ({0}) is successfully created.", this.getName()));
             }
         }
