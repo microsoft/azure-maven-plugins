@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.model;
 
-import com.azure.core.management.exception.ManagementException;
+import com.azure.core.exception.HttpResponseException;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingById;
 import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingByName;
@@ -138,8 +138,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             this.setResources(loadedResources);
         } catch (Exception e) {
             log.debug("[{}]:reloadResources->setResources([])", this.name);
-            final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
-            if (cause instanceof ManagementException && HttpStatus.SC_NOT_FOUND == ((ManagementException) cause).getResponse().getStatusCode()) {
+            final Throwable cause = e instanceof HttpResponseException ? e : ExceptionUtils.getRootCause(e);
+            if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND == ((HttpResponseException) cause).getResponse().getStatusCode()) {
                 log.debug("[{}]:reloadResources->loadResourceFromAzure()=SC_NOT_FOUND", this.name, e);
                 this.setResources(Collections.emptyMap());
             } else {
@@ -213,9 +213,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 remote = loadResourceFromAzure(name, resourceGroup);
             } catch (Exception e) {
                 log.debug("[{}]:get({}, {})->loadResourceFromAzure()=EXCEPTION", this.name, name, resourceGroup, e);
-                final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
-                if (cause instanceof ManagementException) {
-                    if (HttpStatus.SC_NOT_FOUND != ((ManagementException) cause).getResponse().getStatusCode()) {
+                final Throwable cause = e instanceof HttpResponseException ? e : ExceptionUtils.getRootCause(e);
+                if (cause instanceof HttpResponseException) {
+                    if (HttpStatus.SC_NOT_FOUND != ((HttpResponseException) cause).getResponse().getStatusCode()) {
                         log.debug("[{}]:get({}, {})->loadResourceFromAzure()=SC_NOT_FOUND", this.name, name, resourceGroup, e);
                         throw e;
                     }
