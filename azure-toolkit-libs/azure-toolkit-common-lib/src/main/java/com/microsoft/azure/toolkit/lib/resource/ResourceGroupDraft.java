@@ -48,11 +48,7 @@ public class ResourceGroupDraft extends ResourceGroup implements AzResource.Draf
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.create_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "arm.create_group_in_azure.rg", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.resources.models.ResourceGroup createResourceInAzure() {
         OperationContext.action().setTelemetryProperty(CREATE_NEW_RESOURCE_GROUP_KEY, String.valueOf(true));
         final String name = this.getName();
@@ -71,11 +67,7 @@ public class ResourceGroupDraft extends ResourceGroup implements AzResource.Draf
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.update_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "arm.update_group_in_azure.rg", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.resources.models.ResourceGroup updateResourceInAzure(@Nonnull com.azure.resourcemanager.resources.models.ResourceGroup origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

@@ -65,6 +65,7 @@ public final class AzureOperationAspect {
             operation.getContext().setTelemetryProperty("subscriptionId", ((AzResource) source).getSubscriptionId());
         }
         AzureTelemeter.beforeEnter(operation);
+        OperationManager.getInstance().fireBeforeEnter(operation, source);
         OperationThreadContext.current().pushOperation(operation);
     }
 
@@ -73,6 +74,7 @@ public final class AzureOperationAspect {
         // TODO: this cannot ensure same operation actually, considering recursive call
         assert Objects.nonNull(operation) && Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the exiting operation[%s]", current, operation);
+        OperationManager.getInstance().fireAfterReturning(operation, source);
         AzureTelemeter.afterExit(operation);
     }
 
@@ -81,10 +83,14 @@ public final class AzureOperationAspect {
         // TODO: this cannot ensure same operation actually, considering recursive call
         assert Objects.nonNull(operation) && Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the operation[%s] throwing exception", current, operation);
-        AzureTelemeter.onError(operation, e);
+        OperationManager.getInstance().fireAfterThrowing(e, operation, source);
+        if (!(e instanceof OperationException)) {
+            AzureTelemeter.onError(operation, e);
+        }
         if (e instanceof OperationException || (e instanceof Exception && !(e instanceof RuntimeException))) {
             throw e; // do not wrap checked exception and AzureOperationException
         }
+        AzureTelemeter.onError(operation, e);
         throw new OperationException(operation, e);
     }
 

@@ -12,25 +12,26 @@ import com.azure.resourcemanager.cosmos.models.CassandraKeyspaceCreateUpdatePara
 import com.azure.resourcemanager.cosmos.models.CassandraKeyspaceResource;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabaseDraft;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseConfig;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.ObjectUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
 public class CassandraKeyspaceDraft extends CassandraKeyspace implements
-        ICosmosDatabaseDraft<CassandraKeyspace, CassandraKeyspaceGetResultsInner> {
+    ICosmosDatabaseDraft<CassandraKeyspace, CassandraKeyspaceGetResultsInner> {
 
     @Setter
     @Getter
     private DatabaseConfig config;
 
-    protected CassandraKeyspaceDraft(@NotNull String name, @NotNull String resourceGroupName, @NotNull CassandraKeyspaceModule module) {
+    protected CassandraKeyspaceDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull CassandraKeyspaceModule module) {
         super(name, resourceGroupName, module);
     }
 
@@ -39,8 +40,9 @@ public class CassandraKeyspaceDraft extends CassandraKeyspace implements
 
     }
 
-    @NotNull
+    @Nonnull
     @Override
+    @AzureOperation(name = "cosmos.create_cassandra_keyspace_in_azure.keyspace", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public CassandraKeyspaceGetResultsInner createResourceInAzure() {
         final CosmosDBManagementClient cosmosDBManagementClient = Objects.requireNonNull(getParent().getRemote()).manager().serviceClient();
         final CassandraKeyspaceCreateUpdateParameters parameters = new CassandraKeyspaceCreateUpdateParameters()
@@ -54,9 +56,10 @@ public class CassandraKeyspaceDraft extends CassandraKeyspace implements
         return result;
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public CassandraKeyspaceGetResultsInner updateResourceInAzure(@NotNull CassandraKeyspaceGetResultsInner origin) {
+    @AzureOperation(name = "cosmos.update_cassandra_keyspace_in_azure.keyspace", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    public CassandraKeyspaceGetResultsInner updateResourceInAzure(@Nonnull CassandraKeyspaceGetResultsInner origin) {
         throw new UnsupportedOperationException("not support");
     }
 

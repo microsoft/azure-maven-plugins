@@ -62,6 +62,7 @@ public class QueueModule extends AbstractAzResourceModule<Queue, StorageAccount,
     }
 
     @Override
+    @AzureOperation(name = "storage.delete_queue_in_azure.queue", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         final QueueServiceClient client = this.getQueueServiceClient();
@@ -70,7 +71,6 @@ public class QueueModule extends AbstractAzResourceModule<Queue, StorageAccount,
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected QueueDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
         return new QueueDraft(name, this);
     }

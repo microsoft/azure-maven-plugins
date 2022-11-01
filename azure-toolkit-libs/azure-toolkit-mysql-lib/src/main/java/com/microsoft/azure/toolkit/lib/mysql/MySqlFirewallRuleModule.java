@@ -41,7 +41,7 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected Stream<FirewallRule> loadResourcesFromAzure() {
         final MySqlServer p = this.getParent();
         return Optional.ofNullable(this.getClient()).map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).stream()).orElse(Stream.empty());
@@ -49,18 +49,14 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
 
     @Nullable
     @Override
-    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected FirewallRule loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
         final MySqlServer p = this.getParent();
         return Optional.ofNullable(this.getClient()).map(c -> c.get(p.getResourceGroupName(), p.getName(), name)).orElse(null);
     }
 
     @Override
-    @AzureOperation(
-        name = "resource.delete_resource.resource|type",
-        params = {"nameFromResourceId(id)", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "mysql.delete_firewall_rule_in_azure.rule", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String id) {
         final MySqlServer p = this.getParent();
         final ResourceId resourceId = ResourceId.fromString(id);
@@ -70,18 +66,12 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected MySqlFirewallRuleDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
         return new MySqlFirewallRuleDraft(name, this);
     }
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.draft_for_update.resource|type",
-        params = {"origin.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
     protected MySqlFirewallRuleDraft newDraftForUpdate(@Nonnull MySqlFirewallRule origin) {
         return new MySqlFirewallRuleDraft(origin);
     }

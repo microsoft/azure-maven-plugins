@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.Operation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBase;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.Getter;
@@ -115,16 +114,15 @@ public class Action<D> extends OperationBase {
     }
 
     public void handle(D source, Object e) {
-        final Runnable runnable = () -> {
-            final BiConsumer<D, Object> handler = this.getHandler(source, e);
-            if (Objects.nonNull(handler)) {
-                final AzureString title = Optional.ofNullable(this.viewBuilder).map(b -> b.title).map(t -> t.apply(source))
-                    .orElse(AzureString.fromString(Operation.UNKNOWN_NAME));
-                final AzureTask<Void> task = new AzureTask<>(title, () -> handle(source, e, handler));
-                task.setType(AzureOperation.Type.ACTION.name());
-                AzureTaskManager.getInstance().runInBackground(task);
-            }
-        };
+        final BiConsumer<D, Object> handler = this.getHandler(source, e);
+        if (Objects.isNull(handler)) {
+            return;
+        }
+        final AzureString desc = getDescription();
+        final Runnable runnable = () -> Operation.execute(desc, AzureOperation.Type.ACTION, () -> {
+            final AzureString title = Optional.ofNullable(this.viewBuilder).map(b -> b.title).map(t -> t.apply(source)).orElse(desc);
+            AzureTaskManager.getInstance().runInBackground(title, () -> handle(source, e, handler));
+        }, source);
         if (this.authRequired) {
             final Action<Runnable> requireAuth = AzureActionManager.getInstance().getAction(REQUIRE_AUTH);
             if (Objects.nonNull(requireAuth)) {
@@ -173,7 +171,7 @@ public class Action<D> extends OperationBase {
         return AzureOperation.Type.ACTION.name();
     }
 
-    @Nullable
+    @Nonnull
     @Override
     public AzureString getDescription() {
         return OperationBundle.description(this.id.id);

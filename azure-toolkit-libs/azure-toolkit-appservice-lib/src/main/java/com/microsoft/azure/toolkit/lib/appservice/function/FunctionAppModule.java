@@ -38,18 +38,12 @@ public class FunctionAppModule extends AbstractAzResourceModule<FunctionApp, App
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected FunctionAppDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
         return new FunctionAppDraft(name, resourceGroupName, this);
     }
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.draft_for_update.resource|type",
-        params = {"origin.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
     protected FunctionAppDraft newDraftForUpdate(@Nonnull FunctionApp origin) {
         return new FunctionAppDraft(origin);
     }

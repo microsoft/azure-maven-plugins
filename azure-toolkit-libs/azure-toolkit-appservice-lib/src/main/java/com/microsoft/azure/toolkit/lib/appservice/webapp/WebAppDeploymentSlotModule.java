@@ -36,18 +36,12 @@ public class WebAppDeploymentSlotModule extends AbstractAzResourceModule<WebAppD
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected WebAppDeploymentSlotDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
         return new WebAppDeploymentSlotDraft(name, this);
     }
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.draft_for_update.resource|type",
-        params = {"origin.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
     protected WebAppDeploymentSlotDraft newDraftForUpdate(@Nonnull WebAppDeploymentSlot origin) {
         return new WebAppDeploymentSlotDraft(origin);
     }

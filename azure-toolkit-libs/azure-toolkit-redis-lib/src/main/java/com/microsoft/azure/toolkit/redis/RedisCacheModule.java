@@ -30,7 +30,6 @@ public class RedisCacheModule extends AbstractAzResourceModule<RedisCache, Redis
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected RedisCacheDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
         assert resourceGroupName != null : "'Resource group' is required.";
         return new RedisCacheDraft(name, resourceGroupName, this);
@@ -38,11 +37,6 @@ public class RedisCacheModule extends AbstractAzResourceModule<RedisCache, Redis
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.draft_for_update.resource|type",
-        params = {"origin.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
     protected RedisCacheDraft newDraftForUpdate(@Nonnull RedisCache origin) {
         return new RedisCacheDraft(origin);
     }

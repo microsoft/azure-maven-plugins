@@ -172,7 +172,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return this.remoteRef.get();
     }
 
-    @AzureOperation(name = "resource.reload.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.reload.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     private void reloadRemote() {
         log.debug("[{}:{}]:reloadRemote()", this.module.getName(), this.getName());
         this.doModify(() -> {

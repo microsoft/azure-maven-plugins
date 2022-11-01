@@ -146,11 +146,7 @@ public class VirtualMachineDraft extends VirtualMachine implements AzResource.Dr
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.create_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "vm.create_vm_in_azure.vm", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.compute.models.VirtualMachine createResourceInAzure() {
         final ComputeManager manager = Objects.requireNonNull(this.getParent().getRemote());
         final String name = this.getName();
@@ -239,11 +235,7 @@ public class VirtualMachineDraft extends VirtualMachine implements AzResource.Dr
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.update_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "vm.update_vm_in_azure.vm", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.compute.models.VirtualMachine updateResourceInAzure(@Nonnull com.azure.resourcemanager.compute.models.VirtualMachine origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

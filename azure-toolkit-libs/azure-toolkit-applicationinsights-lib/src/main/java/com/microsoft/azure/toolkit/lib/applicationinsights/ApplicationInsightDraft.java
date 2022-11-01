@@ -28,7 +28,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
     private static final String REGION_IS_REQUIRED = "'region' is required to create Application Insights.";
     private static final String START_CREATING_APPLICATION_INSIGHT = "Start creating Application Insights ({0})...";
     private static final String APPLICATION_INSIGHTS_CREATED = "Application Insights ({0}) is successfully created. " +
-            "You can visit {1} to view your Application Insights component.";
+        "You can visit {1} to view your Application Insights component.";
 
     @Setter
     @Nullable
@@ -54,11 +54,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.create_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "ai.create_ai_in_azure.ai", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public ApplicationInsightsComponent createResourceInAzure() {
         if (Objects.isNull(region)) {
             throw new AzureToolkitRuntimeException(REGION_IS_REQUIRED);
@@ -77,11 +73,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.update_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "ai.update_ai_in_azure.ai", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public ApplicationInsightsComponent updateResourceInAzure(@Nonnull ApplicationInsightsComponent origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

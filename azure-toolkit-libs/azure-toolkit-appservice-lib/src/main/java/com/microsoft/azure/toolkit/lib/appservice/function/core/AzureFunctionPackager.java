@@ -94,7 +94,7 @@ public class AzureFunctionPackager extends AzureFunctionPackagerBase {
 
     @AzureOperation(
         name = "function.prepare_staging_folder",
-        type = AzureOperation.Type.TASK
+        type = AzureOperation.Type.REQUEST
     )
     public void packageProject(FunctionProject project, boolean installExtension, String funcPath) {
         final List<FunctionMethod> methods = findAnnotatedMethodsInner(project);
@@ -131,7 +131,7 @@ public class AzureFunctionPackager extends AzureFunctionPackagerBase {
     @AzureOperation(
         name = "function.list_function_methods",
         params = {"project.getName()"},
-        type = AzureOperation.Type.TASK
+        type = AzureOperation.Type.REQUEST
     )
     private List<FunctionMethod> findAnnotatedMethodsInner(FunctionProject project) {
         AzureMessager.getMessager().info(LINE_FEED + SEARCH_FUNCTIONS);

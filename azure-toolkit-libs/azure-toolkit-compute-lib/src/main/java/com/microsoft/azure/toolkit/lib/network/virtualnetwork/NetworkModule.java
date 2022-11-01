@@ -31,7 +31,6 @@ public class NetworkModule extends AbstractAzResourceModule<Network, NetworkServ
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected NetworkDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
         assert resourceGroupName != null : "'Resource group' is required.";
         return new NetworkDraft(name, resourceGroupName, this);
@@ -39,11 +38,6 @@ public class NetworkModule extends AbstractAzResourceModule<Network, NetworkServ
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.draft_for_update.resource|type",
-        params = {"origin.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
     protected NetworkDraft newDraftForUpdate(@Nonnull Network origin) {
         return new NetworkDraft(origin);
     }

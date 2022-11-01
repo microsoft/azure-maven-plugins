@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -39,6 +40,7 @@ public class TableDraft extends Table implements AzResource.Draft<Table, TableCl
 
     @Nonnull
     @Override
+    @AzureOperation(name = "storage.create_table_in_azure.table", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public TableClient createResourceInAzure() {
         final TableModule module = (TableModule) this.getModule();
         final TableServiceClient client = module.getTableServiceClient();
@@ -51,6 +53,7 @@ public class TableDraft extends Table implements AzResource.Draft<Table, TableCl
 
     @Nonnull
     @Override
+    @AzureOperation(name = "storage.update_table_in_azure.table", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public TableClient updateResourceInAzure(@Nonnull TableClient origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

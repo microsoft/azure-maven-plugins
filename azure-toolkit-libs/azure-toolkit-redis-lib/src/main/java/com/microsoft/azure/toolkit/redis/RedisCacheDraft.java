@@ -46,11 +46,7 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.create_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "redis.create_redis_in_azure.redis", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.redis.models.RedisCache createResourceInAzure() {
         final String redisName = this.getName();
         final RedisManager manager = Objects.requireNonNull(this.getParent().getRemote());
@@ -79,11 +75,7 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.update_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "redis.update_redis_in_azure.redis", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.redis.models.RedisCache updateResourceInAzure(@Nonnull com.azure.resourcemanager.redis.models.RedisCache origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

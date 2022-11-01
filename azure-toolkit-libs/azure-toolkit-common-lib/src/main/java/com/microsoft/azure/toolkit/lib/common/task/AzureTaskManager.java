@@ -376,8 +376,8 @@ public abstract class AzureTaskManager {
     }
 
     private <T> Observable<T> runInObservable(final BiConsumer<? super Runnable, ? super AzureTask<T>> consumer, final AzureTask<T> task) {
+        final OperationThreadContext context = OperationThreadContext.current().derive();
         return Observable.create((Emitter<T> emitter) -> {
-            final OperationThreadContext context = OperationThreadContext.current().derive();
             AzureTelemeter.afterCreate(task);
             final Runnable t = () -> context.run(() -> {
                 try {

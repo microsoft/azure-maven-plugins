@@ -31,18 +31,12 @@ public class AppServicePlanModule extends AbstractAzResourceModule<AppServicePla
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected AppServicePlanDraft newDraftForCreate(@Nonnull String name, String resourceGroupName) {
         return new AppServicePlanDraft(name, resourceGroupName, this);
     }
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.draft_for_update.resource|type",
-        params = {"origin.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
     protected AppServicePlanDraft newDraftForUpdate(@Nonnull AppServicePlan origin) {
         return new AppServicePlanDraft(origin);
     }

@@ -52,11 +52,7 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.create_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "storage.create_account_in_azure.account", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.storage.models.StorageAccount createResourceInAzure() {
         final String name = this.getName();
         final StorageManager manager = Objects.requireNonNull(this.getParent().getRemote());
@@ -87,11 +83,7 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.update_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "storage.update_account_in_azure.account", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.storage.models.StorageAccount updateResourceInAzure(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

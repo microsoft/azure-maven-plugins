@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.cosmos.model.CassandraDatabaseAccountConnectionString;
 import com.microsoft.azure.toolkit.lib.cosmos.model.ThroughputConfig;
@@ -21,9 +22,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import org.apache.commons.lang3.ObjectUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.net.ssl.SSLContext;
 import java.net.InetSocketAddress;
 import java.security.KeyManagementException;
@@ -33,12 +34,12 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class CassandraTableDraft extends CassandraTable implements
-        AzResource.Draft<CassandraTable, CassandraTableGetResultsInner> {
+    AzResource.Draft<CassandraTable, CassandraTableGetResultsInner> {
 
     @Setter
     private CassandraTableConfig config;
 
-    protected CassandraTableDraft(@NotNull String name, @NotNull String resourceGroupName, @NotNull CassandraTableModule module) {
+    protected CassandraTableDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull CassandraTableModule module) {
         super(name, resourceGroupName, module);
     }
 
@@ -47,8 +48,9 @@ public class CassandraTableDraft extends CassandraTable implements
         this.config = null;
     }
 
-    @NotNull
+    @Nonnull
     @Override
+    @AzureOperation(name = "cosmos.create_cassandra_table_in_azure.table", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public CassandraTableGetResultsInner createResourceInAzure() {
         final CassandraKeyspace keyspace = getParent();
         final CassandraCosmosDBAccount account = (CassandraCosmosDBAccount) keyspace.getParent();
@@ -78,9 +80,10 @@ public class CassandraTableDraft extends CassandraTable implements
                 .withAuthCredentials(connectionString.getUsername(), connectionString.getPassword()).build();
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public CassandraTableGetResultsInner updateResourceInAzure(@NotNull CassandraTableGetResultsInner origin) {
+    @AzureOperation(name = "cosmos.update_cassandra_table_in_azure.table", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    public CassandraTableGetResultsInner updateResourceInAzure(@Nonnull CassandraTableGetResultsInner origin) {
         throw new UnsupportedOperationException("not support");
     }
 

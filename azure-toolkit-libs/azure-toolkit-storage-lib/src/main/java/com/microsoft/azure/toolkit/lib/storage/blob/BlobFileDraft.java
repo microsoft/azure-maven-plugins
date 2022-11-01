@@ -11,6 +11,7 @@ import com.azure.storage.blob.models.BlobItem;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
 import lombok.Getter;
 import lombok.Setter;
@@ -51,6 +52,7 @@ public class BlobFileDraft extends BlobFile implements StorageFile.Draft<BlobFil
 
     @Nonnull
     @Override
+    @AzureOperation(name = "storage.create_blob_in_azure.blob", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public BlobItem createResourceInAzure() {
         final BlobFileModule module = (BlobFileModule) this.getModule();
         final String fullPath = Paths.get(this.getParent().getPath(), StringUtils.firstNonBlank(this.relativePath, this.getName())).toString();
@@ -70,6 +72,7 @@ public class BlobFileDraft extends BlobFile implements StorageFile.Draft<BlobFil
 
     @Nonnull
     @Override
+    @AzureOperation(name = "storage.update_blob_in_azure.blob", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public BlobItem updateResourceInAzure(@Nonnull BlobItem origin) {
         final BlobFileModule module = (BlobFileModule) this.getModule();
         final String fullPath = origin.getName();

@@ -36,7 +36,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class KubernetesClusterDraft extends KubernetesCluster implements
-        AzResource.Draft<KubernetesCluster, com.azure.resourcemanager.containerservice.models.KubernetesCluster> {
+    AzResource.Draft<KubernetesCluster, com.azure.resourcemanager.containerservice.models.KubernetesCluster> {
 
     public static final String AGENTPOOL = "agentpool";
     @Getter
@@ -65,10 +65,7 @@ public class KubernetesClusterDraft extends KubernetesCluster implements
 
     @Nonnull
     @Override
-    @AzureOperation(
-            name = "resource.create_resource.resource|type",
-            params = {"this.getName()", "this.getResourceTypeName()"},
-            type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "kubernetes.create_cluster_in_azure.cluster", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.containerservice.models.KubernetesCluster createResourceInAzure() {
         final Region region = Objects.requireNonNull(getRegion(), "'region' is required to create Azure Kubernetes Service");
         final String dnsPrefix = Objects.requireNonNull(getDnsPrefix(), "'dnsPrefix' is required to create Azure Kubernetes Service");
@@ -114,7 +111,7 @@ public class KubernetesClusterDraft extends KubernetesCluster implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.update_resource.resource|type", params = {"this.getName()", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "kubernetes.update_cluster_in_azure.cluster", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.containerservice.models.KubernetesCluster updateResourceInAzure(
             @Nonnull com.azure.resourcemanager.containerservice.models.KubernetesCluster origin) {
         throw new UnsupportedOperationException("not support");

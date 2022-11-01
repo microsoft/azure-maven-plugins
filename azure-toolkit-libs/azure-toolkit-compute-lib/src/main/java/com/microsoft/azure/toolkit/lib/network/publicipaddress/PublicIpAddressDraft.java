@@ -56,11 +56,7 @@ public class PublicIpAddressDraft extends PublicIpAddress implements AzResource.
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.create_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "vm.create_public_ip_address_in_azure.address", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.network.models.PublicIpAddress createResourceInAzure() {
         final String name = this.getName();
         final Region region = Objects.requireNonNull(this.getRegion(), "'region' is required to create a Public IP address");
@@ -79,11 +75,7 @@ public class PublicIpAddressDraft extends PublicIpAddress implements AzResource.
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.update_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "vm.update_public_ip_address_in_azure.address", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.network.models.PublicIpAddress updateResourceInAzure(@Nonnull com.azure.resourcemanager.network.models.PublicIpAddress origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

@@ -62,17 +62,17 @@ public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeSe
             .orElse(StringUtils.firstNonBlank(provisioningState, Status.UNKNOWN));
     }
 
-    @AzureOperation(name = "vm.start.vm", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.start_resource.resource", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public void start() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).start(), Status.STARTING);
     }
 
-    @AzureOperation(name = "vm.stop.vm", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.stop_resource.resource", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public void stop() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).powerOff(), Status.STOPPING);
     }
 
-    @AzureOperation(name = "vm.restart.vm", params = {"this.getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.restart_resource.resource", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public void restart() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).restart(), Status.RESTARTING);
     }

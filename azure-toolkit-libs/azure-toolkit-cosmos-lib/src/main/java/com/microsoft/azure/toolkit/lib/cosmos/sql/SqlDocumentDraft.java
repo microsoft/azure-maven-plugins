@@ -11,17 +11,18 @@ import com.azure.cosmos.models.PartitionKey;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
 public class SqlDocumentDraft extends SqlDocument implements
-        AzResource.Draft<SqlDocument, ObjectNode> {
+    AzResource.Draft<SqlDocument, ObjectNode> {
 
     @Getter
     private SqlDocument origin;
@@ -61,6 +62,7 @@ public class SqlDocumentDraft extends SqlDocument implements
 
     @Nonnull
     @Override
+    @AzureOperation(name = "cosmos.create_sql_document_in_azure.document", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public ObjectNode createResourceInAzure() {
         final String documentPartitionKey = getParent().getPartitionKey();
         final PartitionKey partitionKey = draftDocument.get(documentPartitionKey) == null ? PartitionKey.NONE :
@@ -73,6 +75,7 @@ public class SqlDocumentDraft extends SqlDocument implements
 
     @Nonnull
     @Override
+    @AzureOperation(name = "cosmos.update_sql_document_in_azure.document", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public ObjectNode updateResourceInAzure(@Nonnull ObjectNode origin) {
         final CosmosContainer client = ((SqlDocumentModule) getModule()).getClient();
         final String documentPartitionKey = getDocumentPartitionKey();

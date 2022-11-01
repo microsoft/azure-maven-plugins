@@ -36,7 +36,6 @@ public class ResourceDeploymentModule extends
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.draft_for_create.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
     protected ResourceDeploymentDraft newDraftForCreate(@Nonnull String name, @Nullable String resourceGroupName) {
         assert resourceGroupName != null : "'Resource group' is required.";
         return new ResourceDeploymentDraft(name, resourceGroupName, this);
@@ -44,18 +43,13 @@ public class ResourceDeploymentModule extends
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.draft_for_update.resource|type",
-        params = {"origin.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
     protected ResourceDeploymentDraft newDraftForUpdate(@Nonnull ResourceDeployment origin) {
         return new ResourceDeploymentDraft(origin);
     }
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected Stream<Deployment> loadResourcesFromAzure() {
         final Deployments deployments = Objects.requireNonNull(this.getClient());
         return deployments.listByResourceGroup(this.parent.getName()).stream();

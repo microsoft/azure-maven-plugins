@@ -84,11 +84,7 @@ public class AppServicePlanDraft extends AppServicePlan implements
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.create_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "appservice.create_plan_in_azure.plan", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.appservice.models.AppServicePlan createResourceInAzure() {
         SchemaValidator.getInstance().validateAndThrow("appservice/CreateAppServicePlan", this.getPlanConfig());
         OperationContext.action().setTelemetryProperty(CREATE_NEW_APP_SERVICE_PLAN, String.valueOf(true));
@@ -121,11 +117,7 @@ public class AppServicePlanDraft extends AppServicePlan implements
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "resource.update_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "appservice.update_plan_in_azure.plan", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.appservice.models.AppServicePlan updateResourceInAzure(
         @Nonnull com.azure.resourcemanager.appservice.models.AppServicePlan remote) {
         assert origin != null : "updating target is not specified.";

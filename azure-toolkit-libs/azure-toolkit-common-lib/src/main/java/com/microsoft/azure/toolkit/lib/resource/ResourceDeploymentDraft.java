@@ -52,11 +52,7 @@ public class ResourceDeploymentDraft extends ResourceDeployment
     @Nonnull
     @SneakyThrows({IOException.class})
     @Override
-    @AzureOperation(
-        name = "resource.create_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "arm.create_deployment_in_azure.deployment", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.resources.models.Deployment createResourceInAzure() {
         final ResourceGroup group = this.getParent();
         final String name = this.getName();
@@ -84,11 +80,7 @@ public class ResourceDeploymentDraft extends ResourceDeployment
     @Nonnull
     @SneakyThrows({IOException.class})
     @Override
-    @AzureOperation(
-        name = "resource.update_resource.resource|type",
-        params = {"this.getName()", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "arm.update_deployment_in_azure.deployment", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public com.azure.resourcemanager.resources.models.Deployment updateResourceInAzure(@Nonnull com.azure.resourcemanager.resources.models.Deployment origin) {
         final String name = this.getName();
         final String oldTemplate = super.getTemplateAsJson();
