@@ -16,6 +16,7 @@ import lombok.Setter;
 import org.bson.Document;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -49,6 +50,16 @@ public class MongoDocumentDraft extends MongoDocument implements
         return Optional.ofNullable(draftDocument)
                 .map(draftDocument -> draftDocument.get(MONGO_ID_KEY))
                 .orElseGet(super::getDocumentId);
+    }
+
+    @Nullable
+    @Override
+    public String getSharedKey() {
+        final String sharedKey = getParent().getSharedKey();
+        return Optional.ofNullable(draftDocument)
+                .map(node -> node.get(sharedKey))
+                .map(Object::toString)
+                .orElseGet(super::getSharedKey);
     }
 
     @Override
