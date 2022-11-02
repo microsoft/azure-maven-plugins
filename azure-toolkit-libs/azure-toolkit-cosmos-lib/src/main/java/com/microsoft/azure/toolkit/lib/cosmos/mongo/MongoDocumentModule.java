@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.cosmos.mongo;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentModule;
 import com.mongodb.client.MongoCursor;
 import org.apache.commons.lang3.StringUtils;
@@ -117,6 +118,7 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
     }
 
     @Override
+    @AzureOperation(name = "cosmos.load_more_mongo_documents_in_azure", type = AzureOperation.Type.REQUEST)
     public void loadMoreDocuments() {
         this.readDocuments(iterator).map(this::newResource).forEach(document -> this.addResourceToLocal(document.getId(), document, false));
         fireEvents.debounce();

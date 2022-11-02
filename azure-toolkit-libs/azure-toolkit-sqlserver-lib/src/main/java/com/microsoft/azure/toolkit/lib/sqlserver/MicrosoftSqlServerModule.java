@@ -30,14 +30,14 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "resource.load_resources_in_azure.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected Stream<SqlServer> loadResourcesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());
     }
 
     @Nullable
     @Override
-    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "resource.load_resource_in_azure.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected SqlServer loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         assert StringUtils.isNoneBlank(resourceGroup) : "resource group can not be empty";
         return Optional.ofNullable(this.getClient()).map(c -> c.getByResourceGroup(resourceGroup, name)).orElse(null);

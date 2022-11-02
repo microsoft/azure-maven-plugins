@@ -29,6 +29,8 @@ public @interface AzureOperation {
 
     Type type() default Type.DEFAULT;
 
+    Target target() default Target.DEFAULT;
+
     enum Type {
         DEFAULT,
 
@@ -54,5 +56,12 @@ public @interface AzureOperation {
          * a special type of task
          */
         REQUEST,
+    }
+
+    enum Target {
+        DEFAULT,
+        SYSTEM,
+        PLATFORM,
+        AZURE,
     }
 }
