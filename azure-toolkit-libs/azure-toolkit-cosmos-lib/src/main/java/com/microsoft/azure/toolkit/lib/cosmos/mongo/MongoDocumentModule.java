@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.cosmos.mongo;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
@@ -92,8 +93,9 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
     }
 
     @Override
-    public void delete(@Nonnull String name, @Nullable String rgName) {
-        final Object documentId = getDocumentIdFromName(name);
+    protected void deleteResourceFromAzure(@Nonnull String resourceId) {
+        final ResourceId id = ResourceId.fromString(resourceId);
+        final Object documentId = getDocumentIdFromName(id.name());
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteOne(new Document(MONGO_ID_KEY, documentId)));
     }
 
