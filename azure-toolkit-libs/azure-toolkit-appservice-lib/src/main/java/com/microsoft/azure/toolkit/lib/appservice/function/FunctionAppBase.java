@@ -47,10 +47,11 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
     public static final String PREFER_IPV_4_STACK_TRUE = "-Djava.net.preferIPv4Stack=true";
     public static final String XDEBUG = "-Xdebug";
     public static final String XRUNJDWP = "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=127.0.0.1:%s";
-
-    private AzureFunctionsAdminClient fileClient;
     public static final String DEFAULT_REMOTE_DEBUG_PORT = "8898";
     public static final String DEFAULT_REMOTE_DEBUG_JAVA_OPTS = "-Djava.net.preferIPv4Stack=true -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=127.0.0.1:%s";
+
+    private Boolean isEnableRemoteDebugging = null;
+    private AzureFunctionsAdminClient fileClient;
 
     protected FunctionAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, WebSiteBase> module) {
         super(name, resourceGroupName, module);
@@ -116,14 +117,17 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
     public abstract String getMasterKey();
 
     public boolean isRemoteDebugEnabled() {
-        final F remote = Objects.requireNonNull(getFullRemote());
-        final Map<String, String> appSettings = Objects.requireNonNull(this.getAppSettings());
-        // siteConfig for remote debug
-        final boolean configEnabled = remote.webSocketsEnabled() && remote.platformArchitecture() == PlatformArchitecture.X64;
-        // JAVA_OPTS
-        final boolean appSettingsEnabled = appSettings.containsKey(HTTP_PLATFORM_DEBUG_PORT) &&
-                StringUtils.equalsIgnoreCase(appSettings.get(JAVA_OPTS), getJavaOptsWithRemoteDebugEnabled(appSettings, appSettings.get(HTTP_PLATFORM_DEBUG_PORT)));
-        return configEnabled && appSettingsEnabled;
+        if (isEnableRemoteDebugging == null) {
+            final F remote = Objects.requireNonNull(getFullRemote());
+            final Map<String, String> appSettings = Objects.requireNonNull(this.getAppSettings());
+            // siteConfig for remote debug
+            final boolean configEnabled = remote.webSocketsEnabled() && remote.platformArchitecture() == PlatformArchitecture.X64;
+            // JAVA_OPTS
+            final boolean appSettingsEnabled = appSettings.containsKey(HTTP_PLATFORM_DEBUG_PORT) &&
+                    StringUtils.equalsIgnoreCase(appSettings.get(JAVA_OPTS), getJavaOptsWithRemoteDebugEnabled(appSettings, appSettings.get(HTTP_PLATFORM_DEBUG_PORT)));
+            isEnableRemoteDebugging = configEnabled && appSettingsEnabled;
+        }
+        return isEnableRemoteDebugging;
     }
 
     public abstract void enableRemoteDebug();
@@ -162,4 +166,15 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
         }
         return String.join(" ", jvmOptions);
     }
+
+    @Override
+    protected void updateAdditionalProperties(@Nullable WebSiteBase newRemote, @Nullable WebSiteBase oldRemote) {
+        super.updateAdditionalProperties(newRemote, oldRemote);
+        if (Objects.nonNull(newRemote)) {
+            this.isEnableRemoteDebugging = isRemoteDebugEnabled();
+        } else {
+            this.isEnableRemoteDebugging = null;
+        }
+    }
+
 }
