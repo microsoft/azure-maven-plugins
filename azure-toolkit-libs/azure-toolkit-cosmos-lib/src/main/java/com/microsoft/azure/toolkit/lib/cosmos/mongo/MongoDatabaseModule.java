@@ -53,7 +53,13 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
     @Nullable
     @Override
     protected MongoDBDatabaseGetResultsInner loadResourceFromAzure(@NotNull String name, @Nullable String resourceGroup) {
-        return Optional.ofNullable(getClient()).map(client -> client.getMongoDBDatabase(parent.getResourceGroupName(), parent.getName(), name)).orElse(null);
+        return Optional.ofNullable(getClient()).map(client -> {
+            try {
+                return client.getMongoDBDatabase(parent.getResourceGroupName(), parent.getName(), name);
+            } catch (final RuntimeException e) {
+                return null;
+            }
+        }).orElse(null);
     }
 
     @NotNull
