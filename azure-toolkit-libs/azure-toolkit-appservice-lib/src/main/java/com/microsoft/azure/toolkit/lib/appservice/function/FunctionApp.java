@@ -67,11 +67,12 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     @Override
     public void enableRemoteDebug() {
         final Map<String, String> appSettings = Optional.ofNullable(this.getAppSettings()).orElseGet(HashMap::new);
+        final String debugPort = appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, getRemoteDebugPort());
         Objects.requireNonNull(getFullRemote()).update()
                 .withWebSocketsEnabled(true)
                 .withPlatformArchitecture(PlatformArchitecture.X64)
-                .withAppSetting(HTTP_PLATFORM_DEBUG_PORT, appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, DEFAULT_REMOTE_DEBUG_PORT))
-                .withAppSetting(JAVA_OPTS, getJavaOptsWithRemoteDebugEnabled(appSettings)).apply();
+                .withAppSetting(HTTP_PLATFORM_DEBUG_PORT, appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, getRemoteDebugPort()))
+                .withAppSetting(JAVA_OPTS, getJavaOptsWithRemoteDebugEnabled(appSettings, debugPort)).apply();
     }
 
     @Override

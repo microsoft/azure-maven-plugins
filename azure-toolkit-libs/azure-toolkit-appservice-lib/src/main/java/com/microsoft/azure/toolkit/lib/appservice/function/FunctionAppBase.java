@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -121,7 +122,7 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
         final boolean configEnabled = remote.webSocketsEnabled() && remote.platformArchitecture() == PlatformArchitecture.X64;
         // JAVA_OPTS
         final boolean appSettingsEnabled = appSettings.containsKey(HTTP_PLATFORM_DEBUG_PORT) &&
-                StringUtils.equalsIgnoreCase(appSettings.get(JAVA_OPTS), getJavaOptsWithRemoteDebugEnabled(appSettings));
+                StringUtils.equalsIgnoreCase(appSettings.get(JAVA_OPTS), getJavaOptsWithRemoteDebugEnabled(appSettings, appSettings.get(HTTP_PLATFORM_DEBUG_PORT)));
         return configEnabled && appSettingsEnabled;
     }
 
@@ -131,6 +132,10 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
 
     public void ping() {
         getAdminClient().ping();
+    }
+
+    protected String getRemoteDebugPort() {
+        return DEFAULT_REMOTE_DEBUG_PORT;
     }
 
     public String getJavaOptsWithRemoteDebugDisabled(final Map<String, String> appSettings) {
@@ -143,13 +148,12 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
                 .collect(Collectors.joining(" "));
     }
 
-    public String getJavaOptsWithRemoteDebugEnabled(final Map<String, String> appSettings) {
+    public String getJavaOptsWithRemoteDebugEnabled(final Map<String, String> appSettings, String debugPort) {
         final String javaOpts = appSettings.get(JAVA_OPTS);
-        final String debugPort = appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, DEFAULT_REMOTE_DEBUG_PORT);
         if (StringUtils.isEmpty(javaOpts)) {
             return String.format(DEFAULT_REMOTE_DEBUG_JAVA_OPTS, debugPort);
         }
-        final List<String> jvmOptions = Arrays.asList(javaOpts.split(" "));
+        final List<String> jvmOptions = new ArrayList<>(Arrays.asList(javaOpts.split(" ")));
         final String jdwp = String.format(XRUNJDWP, debugPort);
         for (final String configuration : Arrays.asList(PREFER_IPV_4_STACK_TRUE, XDEBUG, jdwp)) {
             if (!jvmOptions.contains(configuration)) {

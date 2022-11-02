@@ -121,6 +121,8 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         FunctionDeploymentSlot slot = (FunctionDeploymentSlot) Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
         final Runtime runtime = this.getRuntime();
         final boolean isRuntimeModified = (Objects.nonNull(runtime) && !Objects.equals(runtime, getParent().getRuntime())) || Objects.nonNull(this.getDockerConfiguration());
+        this.ensureConfig().setAppSettings(null); // reset app settings
+        this.ensureConfig().setDiagnosticConfig(null); // reset diagnostic config
         if (isRuntimeModified) {
             final FunctionDeploymentSlot slotToUpdate = slot;
             slot = (FunctionDeploymentSlot) Objects.requireNonNull(this.doModify(() -> updateResourceInAzure(slotToUpdate), Status.CREATING));
