@@ -10,6 +10,8 @@ import com.azure.resourcemanager.appservice.models.PlatformArchitecture;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import lombok.Getter;
@@ -97,7 +99,10 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     }
 
     public void swap(String slotName) {
-        Optional.ofNullable(this.getFullRemote()).ifPresent(r -> r.swap(slotName));
+        this.doModify(() -> {
+            Objects.requireNonNull(this.getFullRemote()).swap(slotName);
+            AzureMessager.getMessager().info(AzureString.format("Swap deployment slot %s into production successfully", slotName));
+        }, Status.UPDATING);
     }
 
     public void syncTriggers() {
