@@ -61,17 +61,17 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     }
 
     // MODIFY
-    @AzureOperation(name = "resource.start_resource.resource", params = {"this.name()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "resource.start_resource_in_azure.resource", params = {"this.name()"}, type = AzureOperation.Type.REQUEST)
     public void start() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).start(), Status.STARTING);
     }
 
-    @AzureOperation(name = "resource.stop_resource.resource", params = {"this.name()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "resource.stop_resource_in_azure.resource", params = {"this.name()"}, type = AzureOperation.Type.REQUEST)
     public void stop() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).stop(), Status.STOPPING);
     }
 
-    @AzureOperation(name = "resource.restart_resource.resource", params = {"this.name()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "resource.restart_resource_in_azure.resource", params = {"this.name()"}, type = AzureOperation.Type.REQUEST)
     public void restart() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).restart(), Status.RESTARTING);
     }
@@ -96,7 +96,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
         final AppPlatformManager manager = this.getParent().getParent().getRemote().manager();
         final String clusterName = this.getParent().getParent().getName();
         final String appName = this.getParent().getName();
-        this.remoteDebuggingEnabled =  manager.serviceClient().getDeployments().getRemoteDebuggingConfig(this.getResourceGroupName(), clusterName, appName, getName()).enabled();
+        this.remoteDebuggingEnabled = manager.serviceClient().getDeployments().getRemoteDebuggingConfig(this.getResourceGroupName(), clusterName, appName, getName()).enabled();
     }
 
     @Nonnull
@@ -134,7 +134,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     @AzureOperation(
         name = "springcloud.wait_until_deployment_ready.deployment|app",
         params = {"this.getName()", "this.getParent().getName()"},
-        type = AzureOperation.Type.SERVICE
+        type = AzureOperation.Type.REQUEST
     )
     public boolean waitUntilReady(int timeoutInSeconds) {
         AzureMessager.getMessager().info("Getting deployment status...");
@@ -216,6 +216,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
         }
     }
 
+    @AzureOperation(name = "springcloud.enable_remote_debugging_in_azure.deployment", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public void enableRemoteDebugging(int port) {
         AppPlatformManager manager = this.getParent().getParent().getRemote().manager();
         final RemoteDebuggingPayload payload = new RemoteDebuggingPayload().withPort(port);
@@ -224,6 +225,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
         doModify(() -> manager.serviceClient().getDeployments().enableRemoteDebugging(this.getResourceGroupName(), clusterName, appName, getName(), payload), Status.UPDATING);
     }
 
+    @AzureOperation(name = "springcloud.disable_remote_debugging_in_azure.deployment", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public void disableRemoteDebugging() {
         AppPlatformManager manager = this.getParent().getParent().getRemote().manager();
         final String clusterName = this.getParent().getParent().getName();

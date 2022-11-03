@@ -36,6 +36,7 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
         super("documents", parent);
     }
 
+    @AzureOperation(name = "cosmos.load_more_sql_documents_in_azure", type = AzureOperation.Type.REQUEST)
     public void loadMoreDocuments() {
         if (hasMoreDocuments()) {
             final FeedResponse<ObjectNode> response = iterator.next();

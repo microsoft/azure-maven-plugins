@@ -81,7 +81,6 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageSe
     }
 
     @Nonnull
-    @AzureOperation(name = "storage.get_connection_string.account", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public String getConnectionString() {
         // see https://github.com/Azure/azure-cli/blob/ac3b190d4d/src/azure-cli/azure/cli/command_modules/storage/operations/account.py#L232
         final AzureEnvironment environment = Azure.az(AzureCloud.class).get();
@@ -89,7 +88,6 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageSe
     }
 
     @Nonnull
-    @AzureOperation(name = "storage.get_key.account", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public String getKey() {
         final com.azure.resourcemanager.storage.models.StorageAccount remote = this.getRemote();
         if (Objects.isNull(remote)) {

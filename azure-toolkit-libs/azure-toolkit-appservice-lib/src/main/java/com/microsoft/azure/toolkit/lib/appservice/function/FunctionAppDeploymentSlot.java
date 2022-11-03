@@ -11,6 +11,7 @@ import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlotBasic;
 import com.azure.resourcemanager.appservice.models.PlatformArchitecture;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -52,6 +53,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionAppDeploy
     }
 
     @Override
+    @AzureOperation(name = "function.enable_remote_debugging_in_azure.slot", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public void enableRemoteDebug() {
         final Map<String, String> appSettings = this.getAppSettings();
         final String debugPort = appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, getRemoteDebugPort());
@@ -63,6 +65,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionAppDeploy
     }
 
     @Override
+    @AzureOperation(name = "function.disable_remote_debugging_in_azure.slot", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public void disableRemoteDebug() {
         final Map<String, String> appSettings = this.getAppSettings();
         final String javaOpts = this.getJavaOptsWithRemoteDebugDisabled(appSettings);

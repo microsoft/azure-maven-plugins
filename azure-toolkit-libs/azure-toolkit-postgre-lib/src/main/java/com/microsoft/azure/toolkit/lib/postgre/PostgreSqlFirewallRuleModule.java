@@ -41,7 +41,7 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "resource.load_resources_in_azure.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected Stream<FirewallRule> loadResourcesFromAzure() {
         final PostgreSqlServer p = this.getParent();
         return Optional.ofNullable(this.getClient()).map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).stream()).orElse(Stream.empty());
@@ -49,7 +49,7 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
 
     @Nullable
     @Override
-    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "resource.load_resource_in_azure.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected FirewallRule loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
         final PostgreSqlServer p = this.getParent();
         return Optional.ofNullable(this.getClient()).map(c -> c.get(p.getResourceGroupName(), p.getName(), name)).orElse(null);

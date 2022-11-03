@@ -9,7 +9,6 @@ import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringApps;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -65,6 +66,7 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     }
 
     @Override
+    @AzureOperation(name = "function.enable_remote_debugging_in_azure.app", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public void enableRemoteDebug() {
         final Map<String, String> appSettings = Optional.ofNullable(this.getAppSettings()).orElseGet(HashMap::new);
         final String debugPort = appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, getRemoteDebugPort());
@@ -76,6 +78,7 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     }
 
     @Override
+    @AzureOperation(name = "function.disable_remote_debugging_in_azure.app", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public void disableRemoteDebug() {
         final Map<String, String> appSettings = Objects.requireNonNull(this.getAppSettings());
         final String javaOpts = this.getJavaOptsWithRemoteDebugDisabled(appSettings);
@@ -95,10 +98,12 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
             .orElse(Collections.emptyList());
     }
 
+    @AzureOperation(name = "function.trigger_function_in_azure.func", params = {"functionName"}, type = AzureOperation.Type.REQUEST)
     public void triggerFunction(String functionName, Object input) {
         Optional.ofNullable(this.getFullRemote()).ifPresent(r -> r.triggerFunction(functionName, input));
     }
 
+    @AzureOperation(name = "function.swap_slot_in_azure.app|slot", params = {"this.getName()", "slotName"}, type = AzureOperation.Type.REQUEST)
     public void swap(String slotName) {
         this.doModify(() -> {
             Objects.requireNonNull(this.getFullRemote()).swap(slotName);
