@@ -397,7 +397,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             } else {
                 this.syncTimeRef.compareAndSet(0, System.currentTimeMillis());
                 this.setStatus(Status.UNKNOWN);
-                throw new AzureToolkitRuntimeException(t);
+                throw t instanceof AzureToolkitRuntimeException ? (AzureToolkitRuntimeException) t : new AzureToolkitRuntimeException(t);
             }
         } finally {
             this.lock.unlock();

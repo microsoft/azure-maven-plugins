@@ -15,7 +15,6 @@ import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
@@ -155,7 +154,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
                 appServiceClient = Azure.az(AzureAppService.class);
                 printCurrentSubscription(appServiceClient);
                 this.subscriptionId = targetSubscriptionId;
-            } catch (AzureToolkitAuthenticationException | AzureExecutionException | IOException | MavenDecryptException e) {
+            } catch (AzureExecutionException | IOException | MavenDecryptException e) {
                 throw new AzureToolkitRuntimeException("Cannot authenticate", e);
             }
         }
