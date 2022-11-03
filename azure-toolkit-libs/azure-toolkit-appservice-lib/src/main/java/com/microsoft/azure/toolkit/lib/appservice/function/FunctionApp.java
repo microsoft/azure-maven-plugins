@@ -10,6 +10,8 @@ import com.azure.resourcemanager.appservice.models.PlatformArchitecture;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import lombok.Getter;
@@ -65,11 +67,12 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     @Override
     public void enableRemoteDebug() {
         final Map<String, String> appSettings = Optional.ofNullable(this.getAppSettings()).orElseGet(HashMap::new);
+        final String debugPort = appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, getRemoteDebugPort());
         Objects.requireNonNull(getFullRemote()).update()
                 .withWebSocketsEnabled(true)
                 .withPlatformArchitecture(PlatformArchitecture.X64)
-                .withAppSetting(HTTP_PLATFORM_DEBUG_PORT, appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, DEFAULT_REMOTE_DEBUG_PORT))
-                .withAppSetting(JAVA_OPTS, getJavaOptsWithRemoteDebugEnabled(appSettings)).apply();
+                .withAppSetting(HTTP_PLATFORM_DEBUG_PORT, appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, getRemoteDebugPort()))
+                .withAppSetting(JAVA_OPTS, getJavaOptsWithRemoteDebugEnabled(appSettings, debugPort)).apply();
     }
 
     @Override
@@ -97,7 +100,10 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     }
 
     public void swap(String slotName) {
-        Optional.ofNullable(this.getFullRemote()).ifPresent(r -> r.swap(slotName));
+        this.doModify(() -> {
+            Objects.requireNonNull(this.getFullRemote()).swap(slotName);
+            AzureMessager.getMessager().info(AzureString.format("Swap deployment slot %s into production successfully", slotName));
+        }, Status.UPDATING);
     }
 
     public void syncTriggers() {

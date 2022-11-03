@@ -47,7 +47,13 @@ public class SqlContainerModule extends AbstractAzResourceModule<SqlContainer, S
     @Nullable
     @Override
     protected SqlContainerGetResultsInner loadResourceFromAzure(@NotNull String name, @Nullable String resourceGroup) {
-        return Optional.ofNullable(getClient()).map(client -> client.getSqlContainer(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName(), name)).orElse(null);
+        return Optional.ofNullable(getClient()).map(client -> {
+            try {
+                return client.getSqlContainer(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName(), name);
+            } catch (final RuntimeException e) {
+                return null;
+            }
+        }).orElse(null);
     }
 
     @Override

@@ -53,7 +53,14 @@ public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, Cos
     @Nullable
     @Override
     protected SqlDatabaseGetResultsInner loadResourceFromAzure(@NotNull String name, @Nullable String resourceGroup) {
-        return Optional.ofNullable(getClient()).map(client -> client.getSqlDatabase(parent.getResourceGroupName(), parent.getName(), name)).orElse(null);
+        return Optional.ofNullable(getClient()).map(client -> {
+                    try {
+                        return client.getSqlDatabase(parent.getResourceGroupName(), parent.getName(), name);
+                    } catch (RuntimeException e) {
+                        return null;
+                    }
+                }
+        ).orElse(null);
     }
 
     @Override
