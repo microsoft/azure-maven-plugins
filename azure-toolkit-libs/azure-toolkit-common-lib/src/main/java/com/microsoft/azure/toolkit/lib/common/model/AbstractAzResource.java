@@ -183,8 +183,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             final R remote = Objects.nonNull(refreshed) ? refreshed : this.loadRemote();
             if (Objects.isNull(remote)) {
                 this.deleteFromCache();
-                // warn when refreshing a deleted resource.
-                AzureMessager.getMessager().warning(AzureString.format("%s (%s) is not found.", this.getResourceTypeName(), this.getName()));
             }
             return remote;
         }, Status.LOADING);
@@ -361,9 +359,14 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
                 log.debug("[{}:{}]:doModify->setRemote({})", this.module.getName(), this.getName(), this.remoteRef.get());
                 this.setRemote(refreshed);
             } catch (Throwable t) {
-                this.setStatus(Status.UNKNOWN);
-                this.syncTimeRef.compareAndSet(0, -1);
-                throw t;
+                final Throwable cause = t instanceof HttpResponseException ? t : ExceptionUtils.getRootCause(t);
+                if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND != ((HttpResponseException) cause).getResponse().getStatusCode()) {
+                    this.setRemote(null);
+                } else {
+                    this.syncTimeRef.compareAndSet(0, System.currentTimeMillis());
+                    this.setStatus(Status.UNKNOWN);
+                    throw t;
+                }
             } finally {
                 this.lock.unlock();
             }
@@ -387,9 +390,15 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             this.setRemote(remote);
             return remote;
         } catch (Throwable t) {
-            this.setStatus(Status.UNKNOWN);
-            this.syncTimeRef.compareAndSet(0, -1);
-            throw new AzureToolkitRuntimeException(t);
+            final Throwable cause = t instanceof HttpResponseException ? t : ExceptionUtils.getRootCause(t);
+            if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND != ((HttpResponseException) cause).getResponse().getStatusCode()) {
+                this.setRemote(null);
+                return null;
+            } else {
+                this.syncTimeRef.compareAndSet(0, System.currentTimeMillis());
+                this.setStatus(Status.UNKNOWN);
+                throw new AzureToolkitRuntimeException(t);
+            }
         } finally {
             this.lock.unlock();
         }
