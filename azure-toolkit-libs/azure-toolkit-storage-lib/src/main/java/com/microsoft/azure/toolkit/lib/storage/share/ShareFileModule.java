@@ -14,6 +14,8 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class ShareFileModule extends AbstractAzResourceModule<ShareFile, IShareFile, ShareFileItem> {
@@ -24,7 +26,7 @@ public class ShareFileModule extends AbstractAzResourceModule<ShareFile, IShareF
         super(NAME, parent);
     }
 
-    @Nonnull
+    @Nullable
     @Override
     protected ShareDirectoryClient getClient() {
         return (ShareDirectoryClient) this.parent.getClient();
@@ -33,7 +35,7 @@ public class ShareFileModule extends AbstractAzResourceModule<ShareFile, IShareF
     @Nonnull
     @Override
     protected Stream<ShareFileItem> loadResourcesFromAzure() {
-        return this.getClient().listFilesAndDirectories().stream();
+        return Optional.ofNullable(this.getClient()).map(ShareDirectoryClient::listFilesAndDirectories).map(PagedIterable::stream).orElse(Stream.empty());
     }
 
     @Nullable
@@ -46,11 +48,11 @@ public class ShareFileModule extends AbstractAzResourceModule<ShareFile, IShareF
     @AzureOperation(name = "storage.delete_share_file_in_azure.file", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ShareFile shareFile = this.get(resourceId);
-        if (shareFile != null) {
+        if (shareFile != null && shareFile.exists()) {
             if (shareFile.isDirectory()) {
-                deleteDirectory((ShareDirectoryClient) shareFile.getClient());
+                deleteDirectory((ShareDirectoryClient) Objects.requireNonNull(shareFile.getClient()));
             } else {
-                this.getClient().deleteFileIfExists(shareFile.getName());
+                Objects.requireNonNull(this.getClient()).deleteFileIfExists(shareFile.getName());
             }
         }
     }
