@@ -57,11 +57,11 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionAppDeploy
     public void enableRemoteDebug() {
         final Map<String, String> appSettings = this.getAppSettings();
         final String debugPort = appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, getRemoteDebugPort());
-        getFullRemote().update()
+        doModify(() -> getFullRemote().update()
                 .withWebSocketsEnabled(true)
                 .withPlatformArchitecture(PlatformArchitecture.X64)
                 .withAppSetting(HTTP_PLATFORM_DEBUG_PORT, debugPort)
-                .withAppSetting(JAVA_OPTS, getJavaOptsWithRemoteDebugEnabled(appSettings, debugPort)).apply();
+                .withAppSetting(JAVA_OPTS, getJavaOptsWithRemoteDebugEnabled(appSettings, debugPort)).apply(), Status.UPDATING);
     }
 
     @Override
@@ -69,11 +69,13 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionAppDeploy
     public void disableRemoteDebug() {
         final Map<String, String> appSettings = this.getAppSettings();
         final String javaOpts = this.getJavaOptsWithRemoteDebugDisabled(appSettings);
-        if (StringUtils.isEmpty(javaOpts)) {
-            getFullRemote().update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withoutAppSetting(JAVA_OPTS).apply();
-        } else {
-            getFullRemote().update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withAppSetting(JAVA_OPTS, javaOpts).apply();
-        }
+        doModify(() -> {
+            if (StringUtils.isEmpty(javaOpts)) {
+                getFullRemote().update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withoutAppSetting(JAVA_OPTS).apply();
+            } else {
+                getFullRemote().update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withAppSetting(JAVA_OPTS, javaOpts).apply();
+            }
+        }, Status.UPDATING);
     }
 
     @Override

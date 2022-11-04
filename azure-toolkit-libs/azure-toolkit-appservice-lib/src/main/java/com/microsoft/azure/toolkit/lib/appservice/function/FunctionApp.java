@@ -70,11 +70,11 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     public void enableRemoteDebug() {
         final Map<String, String> appSettings = Optional.ofNullable(this.getAppSettings()).orElseGet(HashMap::new);
         final String debugPort = appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, getRemoteDebugPort());
-        Objects.requireNonNull(getFullRemote()).update()
+        doModify(() -> Objects.requireNonNull(getFullRemote()).update()
                 .withWebSocketsEnabled(true)
                 .withPlatformArchitecture(PlatformArchitecture.X64)
                 .withAppSetting(HTTP_PLATFORM_DEBUG_PORT, appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, getRemoteDebugPort()))
-                .withAppSetting(JAVA_OPTS, getJavaOptsWithRemoteDebugEnabled(appSettings, debugPort)).apply();
+                .withAppSetting(JAVA_OPTS, getJavaOptsWithRemoteDebugEnabled(appSettings, debugPort)).apply(), Status.UPDATING);
     }
 
     @Override
@@ -82,11 +82,13 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     public void disableRemoteDebug() {
         final Map<String, String> appSettings = Objects.requireNonNull(this.getAppSettings());
         final String javaOpts = this.getJavaOptsWithRemoteDebugDisabled(appSettings);
-        if (StringUtils.isEmpty(javaOpts)) {
-            Objects.requireNonNull(getFullRemote()).update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withoutAppSetting(JAVA_OPTS).apply();
-        } else {
-            Objects.requireNonNull(getFullRemote()).update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withAppSetting(JAVA_OPTS, javaOpts).apply();
-        }
+        doModify(() -> {
+            if (StringUtils.isEmpty(javaOpts)) {
+                Objects.requireNonNull(getFullRemote()).update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withoutAppSetting(JAVA_OPTS).apply();
+            } else {
+                Objects.requireNonNull(getFullRemote()).update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withAppSetting(JAVA_OPTS, javaOpts).apply();
+            }
+        }, Status.UPDATING);
     }
 
     @Nonnull
