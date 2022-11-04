@@ -102,24 +102,21 @@ public class AzureMessage implements IAzureMessage {
 
     @Nullable
     protected String getCause(@Nonnull Throwable throwable) {
-        final Throwable root = getRecognizableCause(throwable);
-        if (Objects.isNull(root)) {
-            return ExceptionUtils.getRootCause(throwable).toString();
-        }
-        AtomicReference<String> cause = new AtomicReference<>(null);
-        if (root instanceof ManagementException) {
-            cause.set(Optional.of((ManagementException) root)
+        final Throwable cause = ExceptionUtils.getRootCause(throwable);
+        AtomicReference<String> causeMessage = new AtomicReference<>(null);
+        if (cause instanceof ManagementException) {
+            causeMessage.set(Optional.of((ManagementException) cause)
                     .map(ManagementException::getValue)
                     .map(ManagementError::getMessage)
                     .orElse("Unknown cause"));
-        } else if (root instanceof HttpResponseException) {
-            Optional.of((HttpResponseException) root)
+        } else if (cause instanceof HttpResponseException) {
+            Optional.of((HttpResponseException) cause)
                 .map(HttpResponseException::getResponse)
                 .map(HttpResponse::getBodyAsString)
                 .orElse(Mono.just("Unknown cause"))
-                .subscribe(cause::set);
+                .subscribe(causeMessage::set);
         }
-        final String causeMsg = StringUtils.firstNonBlank(cause.get(), root.getMessage());
+        final String causeMsg = StringUtils.firstNonBlank(causeMessage.get(), cause.getMessage());
         return Optional.ofNullable(causeMsg)
             .filter(StringUtils::isNotBlank)
             .map(StringUtils::uncapitalize)

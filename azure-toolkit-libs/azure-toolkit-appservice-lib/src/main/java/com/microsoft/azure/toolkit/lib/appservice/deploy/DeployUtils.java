@@ -41,6 +41,8 @@ class DeployUtils {
         }
         try {
             return CloudStorageAccount.parse(connectionString);
+        } catch (final AzureToolkitRuntimeException e) {
+            throw e;
         } catch (InvalidKeyException | URISyntaxException | RuntimeException e) {
             throw new AzureToolkitRuntimeException(INVALID_STORAGE_CONNECTION_STRING, e);
         }

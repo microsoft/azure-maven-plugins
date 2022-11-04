@@ -196,6 +196,8 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         for (final AzureTask<?> task : subTasks) {
             try {
                 result = task.getBody().call();
+            } catch (final AzureToolkitRuntimeException e) {
+                throw e;
             } catch (Throwable e) {
                 throw new AzureToolkitRuntimeException(e);
             }

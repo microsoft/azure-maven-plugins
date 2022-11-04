@@ -17,6 +17,7 @@ import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 public class BlobContainerDraft extends BlobContainer implements AzResource.Draft<BlobContainer, BlobContainerClient> {
     @Getter
@@ -44,6 +45,9 @@ public class BlobContainerDraft extends BlobContainer implements AzResource.Draf
     public BlobContainerClient createResourceInAzure() {
         final BlobContainerModule module = (BlobContainerModule) this.getModule();
         final BlobServiceClient client = module.getBlobServiceClient();
+        if (Objects.isNull(client)) {
+            throw new AzureToolkitRuntimeException(String.format("Failed to create Blob Container (%s) because storage account (%s) doesn't exist.", this.getName(), module.getParent().getName()));
+        }
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Blob Container ({0}).", this.getName()));
         final BlobContainerClient container = client.createBlobContainer(this.getName());

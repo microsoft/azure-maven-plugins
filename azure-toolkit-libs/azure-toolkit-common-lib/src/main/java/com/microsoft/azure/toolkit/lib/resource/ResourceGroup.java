@@ -65,9 +65,9 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesSe
         localResources.forEach(r -> r.setStatus(Status.DELETING));
         try {
             super.delete();
-        } catch (Throwable e) {
+        } catch (Throwable t) {
             localResources.forEach(r -> r.setStatus(Status.UNKNOWN));
-            throw new AzureToolkitRuntimeException(e);
+            throw t instanceof AzureToolkitRuntimeException ? (AzureToolkitRuntimeException) t : new AzureToolkitRuntimeException(t);
         }
         localResources.parallelStream().forEach(AbstractAzResource::delete);
     }

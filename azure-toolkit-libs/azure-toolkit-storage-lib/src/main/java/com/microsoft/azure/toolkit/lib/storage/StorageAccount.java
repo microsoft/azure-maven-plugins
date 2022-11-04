@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.blob.BlobContainerModule;
 import com.microsoft.azure.toolkit.lib.storage.model.AccessTier;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
@@ -28,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -71,7 +70,20 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageSe
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Arrays.asList(this.blobContainerModule, this.shareModule, this.queueModule, this.tableModule);
+        final ArrayList<AbstractAzResourceModule<?, ?, ?>> modules = new ArrayList<>();
+        if (this.canHaveBlobs()) {
+            modules.add(this.blobContainerModule);
+        }
+        if (this.canHaveShares()) {
+            modules.add(this.shareModule);
+        }
+        if (this.canHaveQueues()) {
+            modules.add(this.queueModule);
+        }
+        if (this.canHaveTables()) {
+            modules.add(this.tableModule);
+        }
+        return modules;
     }
 
     @Nonnull

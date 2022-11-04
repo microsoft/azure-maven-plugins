@@ -17,6 +17,7 @@ import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 public class ShareDraft extends Share implements AzResource.Draft<Share, ShareClient> {
     @Getter
@@ -44,6 +45,9 @@ public class ShareDraft extends Share implements AzResource.Draft<Share, ShareCl
     public ShareClient createResourceInAzure() {
         final ShareModule module = (ShareModule) this.getModule();
         final ShareServiceClient client = module.getFileShareServiceClient();
+        if (Objects.isNull(client)) {
+            throw new AzureToolkitRuntimeException(String.format("Failed to create Share (%s) because storage Account (%s) doesn't exist.", this.getName(), module.getParent().getName()));
+        }
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating File Share ({0}).", this.getName()));
         final ShareClient share = client.createShare(this.getName());

@@ -21,6 +21,7 @@ public interface StorageFile extends AzResource {
 
     AbstractAzResourceModule<? extends StorageFile, ? extends StorageFile, ?> getSubFileModule();
 
+    @Nullable
     Object getClient();
 
     boolean isDirectory();

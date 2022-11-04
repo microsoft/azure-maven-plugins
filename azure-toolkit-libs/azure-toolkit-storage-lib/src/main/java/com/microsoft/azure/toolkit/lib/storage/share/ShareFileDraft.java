@@ -9,6 +9,7 @@ import com.azure.storage.file.share.ShareDirectoryClient;
 import com.azure.storage.file.share.ShareFileClient;
 import com.azure.storage.file.share.models.ShareFileItem;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -53,6 +54,9 @@ public class ShareFileDraft extends ShareFile implements StorageFile.Draft<Share
     public ShareFileItem createResourceInAzure() {
         final ShareFileModule module = (ShareFileModule) this.getModule();
         final ShareDirectoryClient client = module.getClient();
+        if (Objects.isNull(client)) {
+            throw new AzureToolkitRuntimeException(String.format("parent directory(%s) doesn't exist.", module.getParent().getName()));
+        }
         final IAzureMessager messager = AzureMessager.getMessager();
         if (this.isDirectory()) {
             messager.info(AzureString.format("Start creating directory ({0}).", this.getName()));
@@ -78,7 +82,11 @@ public class ShareFileDraft extends ShareFile implements StorageFile.Draft<Share
     public ShareFileItem updateResourceInAzure(@Nonnull ShareFileItem origin) {
         final ShareFileModule module = (ShareFileModule) this.getModule();
         final String name = origin.getName();
-        final ShareFileClient client = module.getClient().getFileClient(name);
+        final ShareDirectoryClient dirClient = module.getClient();
+        if (Objects.isNull(dirClient)) {
+            throw new AzureToolkitRuntimeException(String.format("parent directory(%s) doesn't exist.", module.getParent().getName()));
+        }
+        final ShareFileClient client = dirClient.getFileClient(name);
         if (Objects.nonNull(this.sourceFile)) {
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating file ({0})", this.getName()));

@@ -6,8 +6,8 @@
 package com.microsoft.azure.toolkit.lib.storage.blob;
 
 import com.azure.storage.blob.BlobContainerClient;
-import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.models.BlobContainerProperties;
+import com.azure.storage.blob.specialized.BlobClientBase;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 public class BlobContainer extends AbstractAzResource<BlobContainer, StorageAccount, BlobContainerClient>
@@ -53,15 +54,15 @@ public class BlobContainer extends AbstractAzResource<BlobContainer, StorageAcco
         return "";
     }
 
-    @Nonnull
+    @Override
+    @Nullable
     public BlobContainerClient getClient() {
         final BlobContainerModule module = (BlobContainerModule) this.getModule();
-        final BlobServiceClient blobServiceClient = module.getBlobServiceClient();
-        return blobServiceClient.getBlobContainerClient(this.getName());
+        return Optional.ofNullable(module.getBlobServiceClient()).map(c -> c.getBlobContainerClient(this.getName())).orElse(null);
     }
 
     public boolean exists(String blobPath) {
-        return this.getClient().getBlobClient(blobPath).exists();
+        return Optional.ofNullable(this.getClient()).map(c -> c.getBlobClient(blobPath)).map(BlobClientBase::exists).orElse(false);
     }
 
     @Nullable
@@ -87,7 +88,7 @@ public class BlobContainer extends AbstractAzResource<BlobContainer, StorageAcco
 
     @Override
     public String getUrl() {
-        return this.getClient().getBlobContainerUrl();
+        return Optional.ofNullable(this.getClient()).map(BlobContainerClient::getBlobContainerUrl).orElse("");
     }
 
     @Override

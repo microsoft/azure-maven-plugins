@@ -40,6 +40,8 @@ import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -99,7 +101,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             }
         }
         log.debug("[{}]:invalidateCache->resources.invalidateCache()", this.name);
-        this.resources.values().forEach(v -> v.ifPresent(AbstractAzResource::invalidateCache));
+        final Collection<Optional<T>> values = new ArrayList<>(this.resources.values());
+        values.forEach(v -> v.ifPresent(AbstractAzResource::invalidateCache));
     }
 
     @Nonnull
@@ -145,7 +148,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             } else {
                 log.debug("[{}]:reloadResources->loadResourcesFromAzure()=EXCEPTION", this.name, e);
                 this.resources.clear();
-                this.syncTimeRef.compareAndSet(0, -1);
+                this.syncTimeRef.compareAndSet(0, System.currentTimeMillis());
                 AzureMessager.getMessager().error(e);
                 throw e;
             }
