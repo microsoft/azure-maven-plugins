@@ -83,7 +83,6 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private final Lock lock = new ReentrantLock();
 
     @Override
-    @AzureOperation(name = "resource.refresh.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     public void refresh() {
         log.debug("[{}]:refresh()", this.name);
         this.invalidateCache();

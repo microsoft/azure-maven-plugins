@@ -133,7 +133,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     }
 
     @Nonnull
-    @AzureOperation(name = "springcloud.scale_deployment.deployment", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "springcloud.scale_app_instances_in_azure.deployment", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     SpringAppDeployment scaleDeploymentInAzure(@Nonnull SpringAppDeployment deployment) {
         final SpringAppDeployment.Update update = deployment.update();
         boolean modified = scale(deployment, update);

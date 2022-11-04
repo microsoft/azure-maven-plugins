@@ -125,7 +125,7 @@ public class AzureFunctionPackager extends AzureFunctionPackagerBase {
         }
     }
 
-    @AzureOperation(name = "function.list_function_methods", params = {"project.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "function.list_function_methods", params = {"project.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
     private List<FunctionMethod> findAnnotatedMethodsInner(FunctionProject project) {
         AzureMessager.getMessager().info(LINE_FEED + SEARCH_FUNCTIONS);
         try {
