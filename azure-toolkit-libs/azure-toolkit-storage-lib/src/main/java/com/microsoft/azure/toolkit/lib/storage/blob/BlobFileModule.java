@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.storage.blob;
 import com.azure.core.http.rest.PagedIterable;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.models.BlobItem;
+import com.azure.storage.blob.specialized.BlobClientBase;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -17,6 +18,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class BlobFileModule extends AbstractAzResourceModule<BlobFile, IBlobFile, BlobItem> {
@@ -27,7 +29,7 @@ public class BlobFileModule extends AbstractAzResourceModule<BlobFile, IBlobFile
         super(NAME, parent);
     }
 
-    @Nonnull
+    @Nullable
     @Override
     protected BlobContainerClient getClient() {
         return this.parent.getClient();
@@ -36,7 +38,7 @@ public class BlobFileModule extends AbstractAzResourceModule<BlobFile, IBlobFile
     @Nonnull
     @Override
     protected Stream<BlobItem> loadResourcesFromAzure() {
-        return this.getClient().listBlobsByHierarchy(this.parent.getPath()).stream();
+        return Optional.ofNullable(this.getClient()).map(c -> c.listBlobsByHierarchy(this.parent.getPath())).map(PagedIterable::stream).orElse(Stream.empty());
     }
 
     @Nullable
@@ -55,21 +57,25 @@ public class BlobFileModule extends AbstractAzResourceModule<BlobFile, IBlobFile
             if (BooleanUtils.isTrue(file.isDirectory())) {
                 deleteDirectory(Objects.requireNonNull(file.getRemote()));
             } else {
-                this.getClient().getBlobClient(file.getPath()).deleteIfExists();
+                Optional.ofNullable(this.getClient()).map(c -> c.getBlobClient(file.getPath())).ifPresent(BlobClientBase::delete);
             }
         }
     }
 
     private void deleteDirectory(BlobItem current) {
-        final PagedIterable<BlobItem> files = this.getClient().listBlobsByHierarchy(current.getName());
+        final BlobContainerClient containerClient = this.getClient();
+        if (Objects.isNull(containerClient)) {
+            return;
+        }
+        final PagedIterable<BlobItem> files = containerClient.listBlobsByHierarchy(current.getName());
         for (BlobItem file : files) {
             if (BooleanUtils.isTrue(file.isPrefix())) {
                 deleteDirectory(file);
             } else {
-                this.getClient().getBlobClient(file.getName()).deleteIfExists();
+                containerClient.getBlobClient(file.getName()).deleteIfExists();
             }
         }
-        this.getClient().getBlobClient(current.getName()).deleteIfExists();
+        containerClient.getBlobClient(current.getName()).deleteIfExists();
     }
 
     @Nonnull

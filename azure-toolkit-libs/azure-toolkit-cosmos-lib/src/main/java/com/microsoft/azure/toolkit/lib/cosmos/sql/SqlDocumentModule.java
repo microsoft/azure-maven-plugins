@@ -30,15 +30,17 @@ import java.util.stream.Stream;
 public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, SqlContainer, ObjectNode> implements ICosmosDocumentModule<SqlDocument> {
 
     public static final String DELIMITER = "#";
+    @Nullable
     private Iterator<FeedResponse<ObjectNode>> iterator;
 
     public SqlDocumentModule(@Nonnull SqlContainer parent) {
         super("documents", parent);
     }
 
+    @AzureOperation(name = "cosmos.load_more_sql_documents_in_azure", type = AzureOperation.Type.REQUEST)
     public void loadMoreDocuments() {
         if (hasMoreDocuments()) {
-            final FeedResponse<ObjectNode> response = iterator.next();
+            final FeedResponse<ObjectNode> response = Objects.requireNonNull(iterator).next();
             response.getElements().stream()
                 .map(this::newResource)
                 .forEach(document -> addResourceToLocal(document.getId(), document, true));
@@ -47,7 +49,7 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
     }
 
     public boolean hasMoreDocuments() {
-        return iterator.hasNext();
+        return Optional.ofNullable(iterator).map(Iterator::hasNext).orElse(false);
     }
 
     @Nonnull

@@ -5,9 +5,11 @@
 
 package com.microsoft.azure.toolkit.lib.cosmos.mongo;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentModule;
 import com.mongodb.client.MongoCursor;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +19,7 @@ import org.bson.types.ObjectId;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -26,6 +29,7 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
         implements ICosmosDocumentModule<MongoDocument> {
 
     public static final String MONGO_ID_KEY = "_id";
+    @Nullable
     private MongoCursor<Document> iterator;
 
     public MongoDocumentModule(@Nonnull MongoCollection parent) {
@@ -92,8 +96,9 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
     }
 
     @Override
-    public void delete(@Nonnull String name, @Nullable String rgName) {
-        final Object documentId = getDocumentIdFromName(name);
+    protected void deleteResourceFromAzure(@Nonnull String resourceId) {
+        final ResourceId id = ResourceId.fromString(resourceId);
+        final Object documentId = getDocumentIdFromName(id.name());
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteOne(new Document(MONGO_ID_KEY, documentId)));
     }
 
@@ -113,10 +118,11 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
 
     @Override
     public boolean hasMoreDocuments() {
-        return iterator.hasNext();
+        return Optional.ofNullable(iterator).map(Iterator::hasNext).orElse(false);
     }
 
     @Override
+    @AzureOperation(name = "cosmos.load_more_mongo_documents_in_azure", type = AzureOperation.Type.REQUEST)
     public void loadMoreDocuments() {
         this.readDocuments(iterator).map(this::newResource).forEach(document -> this.addResourceToLocal(document.getId(), document, false));
         fireEvents.debounce();

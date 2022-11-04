@@ -21,6 +21,7 @@ import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 public class ShareFile extends AbstractAzResource<ShareFile, IShareFile, ShareFileItem> implements Deletable, IShareFile {
@@ -72,23 +73,27 @@ public class ShareFile extends AbstractAzResource<ShareFile, IShareFile, ShareFi
 
     @Override
     public void download(OutputStream output) {
-        if (!this.isDirectory()) {
-            final ShareDirectoryClient parentClient = (ShareDirectoryClient) this.getParent().getClient();
+        final ShareDirectoryClient parentClient = (ShareDirectoryClient) this.getParent().getClient();
+        if (!this.isDirectory() && Objects.nonNull(parentClient) && this.exists()) {
             parentClient.getFileClient(this.getName()).download(output);
         }
     }
 
     @Override
     public void download(Path dest) {
-        if (!this.isDirectory()) {
-            final ShareDirectoryClient parentClient = (ShareDirectoryClient) this.getParent().getClient();
+        final ShareDirectoryClient parentClient = (ShareDirectoryClient) this.getParent().getClient();
+        if (!this.isDirectory() && Objects.nonNull(parentClient) && this.exists()) {
             parentClient.getFileClient(this.getName()).downloadToFile(dest.toAbsolutePath().toString());
         }
     }
 
     @Override
+    @Nullable
     public Object getClient() {
         final ShareDirectoryClient parentClient = (ShareDirectoryClient) this.getParent().getClient();
+        if (Objects.isNull(parentClient) || !this.exists()) {
+            return null;
+        }
         return this.isDirectory() ? parentClient.getSubdirectoryClient(this.getName()) : parentClient.getFileClient(this.getName());
     }
 
@@ -110,6 +115,9 @@ public class ShareFile extends AbstractAzResource<ShareFile, IShareFile, ShareFi
     @Override
     public String getUrl() {
         final ShareDirectoryClient parentClient = (ShareDirectoryClient) this.getParent().getClient();
+        if (Objects.isNull(parentClient) || !this.exists()) {
+            return "";
+        }
         return this.isDirectory() ? parentClient.getSubdirectoryClient(this.getName()).getDirectoryUrl() : parentClient.getFileClient(this.getName()).getFileUrl();
     }
 }

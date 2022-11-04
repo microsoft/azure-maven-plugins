@@ -40,14 +40,25 @@ public class CassandraTableModule extends AbstractAzResourceModule<CassandraTabl
     @NotNull
     @Override
     protected Stream<CassandraTableGetResultsInner> loadResourcesFromAzure() {
-        return Optional.ofNullable(getClient()).map(client ->
-                client.listCassandraTables(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).stream()).orElse(Stream.empty());
+        return Optional.ofNullable(getClient()).map(client -> {
+            try {
+                return client.listCassandraTables(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).stream();
+            } catch (final RuntimeException e) {
+                return null;
+            }
+        }).orElse(Stream.empty());
     }
 
     @Nullable
     @Override
     protected CassandraTableGetResultsInner loadResourceFromAzure(@NotNull String name, @Nullable String resourceGroup) {
-        return Optional.ofNullable(getClient()).map(client -> client.getCassandraTable(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName(), name)).orElse(null);
+        return Optional.ofNullable(getClient()).map(client -> {
+            try {
+                return client.getCassandraTable(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName(), name);
+            } catch (final RuntimeException e) {
+                return null;
+            }
+        }).orElse(null);
     }
 
     @Override
@@ -72,6 +83,6 @@ public class CassandraTableModule extends AbstractAzResourceModule<CassandraTabl
     @Override
     @Nullable
     protected CassandraResourcesClient getClient() {
-        return ((CassandraKeyspaceModule)this.getParent().getModule()).getClient();
+        return ((CassandraKeyspaceModule) this.getParent().getModule()).getClient();
     }
 }

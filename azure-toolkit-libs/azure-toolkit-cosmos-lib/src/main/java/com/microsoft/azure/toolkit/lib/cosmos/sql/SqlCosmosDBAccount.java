@@ -88,6 +88,7 @@ public class SqlCosmosDBAccount extends CosmosDBAccount {
         try {
             final SqlDatabaseAccountConnectionString connectionString = this.getSqlAccountConnectionString();
             return new CosmosClientBuilder()
+                    .endpointDiscoveryEnabled(false)
                     .endpoint(this.getDocumentEndpoint())
                     .key(connectionString.getKey())
                     .preferredRegions(Collections.singletonList(Objects.requireNonNull(this.getRegion()).getName()))

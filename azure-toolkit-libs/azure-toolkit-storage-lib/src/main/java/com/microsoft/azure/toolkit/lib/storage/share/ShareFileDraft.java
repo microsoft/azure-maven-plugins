@@ -9,6 +9,7 @@ import com.azure.storage.file.share.ShareDirectoryClient;
 import com.azure.storage.file.share.ShareFileClient;
 import com.azure.storage.file.share.models.ShareFileItem;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -19,7 +20,6 @@ import org.apache.commons.io.FileUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.ByteArrayInputStream;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
@@ -54,6 +54,9 @@ public class ShareFileDraft extends ShareFile implements StorageFile.Draft<Share
     public ShareFileItem createResourceInAzure() {
         final ShareFileModule module = (ShareFileModule) this.getModule();
         final ShareDirectoryClient client = module.getClient();
+        if (Objects.isNull(client)) {
+            throw new AzureToolkitRuntimeException(String.format("parent directory(%s) doesn't exist.", module.getParent().getName()));
+        }
         final IAzureMessager messager = AzureMessager.getMessager();
         if (this.isDirectory()) {
             messager.info(AzureString.format("Start creating directory ({0}).", this.getName()));
@@ -66,7 +69,7 @@ public class ShareFileDraft extends ShareFile implements StorageFile.Draft<Share
                 messager.success(AzureString.format("File ({0}) is successfully uploaded.", sourceFile.getFileName()));
             } else {
                 messager.info(AzureString.format("Start creating file ({0}).", this.getName()));
-                client.createFile(this.getName(), 0).uploadRange(new ByteArrayInputStream(new byte[0]), 1);
+                client.createFile(this.getName(), 0);
                 messager.success(AzureString.format("File ({0}) is successfully created.", this.getName()));
             }
         }
@@ -79,7 +82,11 @@ public class ShareFileDraft extends ShareFile implements StorageFile.Draft<Share
     public ShareFileItem updateResourceInAzure(@Nonnull ShareFileItem origin) {
         final ShareFileModule module = (ShareFileModule) this.getModule();
         final String name = origin.getName();
-        final ShareFileClient client = module.getClient().getFileClient(name);
+        final ShareDirectoryClient dirClient = module.getClient();
+        if (Objects.isNull(dirClient)) {
+            throw new AzureToolkitRuntimeException(String.format("parent directory(%s) doesn't exist.", module.getParent().getName()));
+        }
+        final ShareFileClient client = dirClient.getFileClient(name);
         if (Objects.nonNull(this.sourceFile)) {
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating file ({0})", this.getName()));

@@ -10,7 +10,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.OutputStream;
 import java.nio.file.Path;
@@ -22,6 +21,7 @@ public interface StorageFile extends AzResource {
 
     AbstractAzResourceModule<? extends StorageFile, ? extends StorageFile, ?> getSubFileModule();
 
+    @Nullable
     Object getClient();
 
     boolean isDirectory();
@@ -51,6 +51,7 @@ public interface StorageFile extends AzResource {
 
     void download(Path dest);
 
+    @Nullable
     default StorageFile getFile(String relativePath) {
         if (StringUtils.isEmpty(relativePath) || StringUtils.equals(relativePath.trim(), ".")) {
             return this;

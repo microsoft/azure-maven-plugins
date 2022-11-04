@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.model;
 
-import com.azure.core.management.exception.ManagementException;
+import com.azure.core.exception.HttpResponseException;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingById;
 import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingByName;
@@ -40,6 +40,8 @@ import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -81,7 +83,6 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private final Lock lock = new ReentrantLock();
 
     @Override
-    @AzureOperation(name = "resource.refresh.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     public void refresh() {
         log.debug("[{}]:refresh()", this.name);
         this.invalidateCache();
@@ -99,7 +100,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             }
         }
         log.debug("[{}]:invalidateCache->resources.invalidateCache()", this.name);
-        this.resources.values().forEach(v -> v.ifPresent(AbstractAzResource::invalidateCache));
+        final Collection<Optional<T>> values = new ArrayList<>(this.resources.values());
+        values.forEach(v -> v.ifPresent(AbstractAzResource::invalidateCache));
     }
 
     @Nonnull
@@ -138,14 +140,14 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             this.setResources(loadedResources);
         } catch (Exception e) {
             log.debug("[{}]:reloadResources->setResources([])", this.name);
-            final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
-            if (cause instanceof ManagementException && HttpStatus.SC_NOT_FOUND == ((ManagementException) cause).getResponse().getStatusCode()) {
+            final Throwable cause = e instanceof HttpResponseException ? e : ExceptionUtils.getRootCause(e);
+            if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND == ((HttpResponseException) cause).getResponse().getStatusCode()) {
                 log.debug("[{}]:reloadResources->loadResourceFromAzure()=SC_NOT_FOUND", this.name, e);
                 this.setResources(Collections.emptyMap());
             } else {
                 log.debug("[{}]:reloadResources->loadResourcesFromAzure()=EXCEPTION", this.name, e);
                 this.resources.clear();
-                this.syncTimeRef.compareAndSet(0, -1);
+                this.syncTimeRef.compareAndSet(0, System.currentTimeMillis());
                 AzureMessager.getMessager().error(e);
                 throw e;
             }
@@ -213,9 +215,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 remote = loadResourceFromAzure(name, resourceGroup);
             } catch (Exception e) {
                 log.debug("[{}]:get({}, {})->loadResourceFromAzure()=EXCEPTION", this.name, name, resourceGroup, e);
-                final Throwable cause = e instanceof ManagementException ? e : ExceptionUtils.getRootCause(e);
-                if (cause instanceof ManagementException) {
-                    if (HttpStatus.SC_NOT_FOUND != ((ManagementException) cause).getResponse().getStatusCode()) {
+                final Throwable cause = e instanceof HttpResponseException ? e : ExceptionUtils.getRootCause(e);
+                if (cause instanceof HttpResponseException) {
+                    if (HttpStatus.SC_NOT_FOUND != ((HttpResponseException) cause).getResponse().getStatusCode()) {
                         log.debug("[{}]:get({}, {})->loadResourceFromAzure()=SC_NOT_FOUND", this.name, name, resourceGroup, e);
                         throw e;
                     }
@@ -450,7 +452,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
-    @AzureOperation(name = "resource.list_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "resource.load_resources_in_azure.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected Stream<R> loadResourcesFromAzure() {
         log.debug("[{}]:loadResourcesFromAzure()", this.getName());
         final Object client = this.getClient();
@@ -467,7 +469,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nullable
-    @AzureOperation(name = "resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "resource.load_resource_in_azure.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected R loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         log.debug("[{}]:loadResourceFromAzure({}, {})", this.getName(), name, resourceGroup);
         final Object client = this.getClient();
@@ -488,11 +490,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         }
     }
 
-    @AzureOperation(
-        name = "resource.delete_resource_in_azure.resource|type",
-        params = {"nameFromResourceId(resourceId)", "this.getResourceTypeName()"},
-        type = AzureOperation.Type.REQUEST
-    )
+    @AzureOperation(name = "resource.delete_resource_in_azure.resource|type", params = {"nameFromResourceId(resourceId)", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         log.debug("[{}]:deleteResourceFromAzure({})", this.getName(), resourceId);
         final Object client = this.getClient();

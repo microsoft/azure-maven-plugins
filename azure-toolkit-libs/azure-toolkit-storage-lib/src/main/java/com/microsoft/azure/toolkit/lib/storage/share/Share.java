@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 public class Share extends AbstractAzResource<Share, StorageAccount, ShareClient>
@@ -55,17 +56,16 @@ public class Share extends AbstractAzResource<Share, StorageAccount, ShareClient
     }
 
     @Override
+    @Nullable
     public ShareDirectoryClient getClient() {
-        final ShareModule module = (ShareModule) this.getModule();
-        final ShareServiceClient fileShareServiceClient = module.getFileShareServiceClient();
-        final ShareClient shareClient = fileShareServiceClient.getShareClient(this.getName());
-        return shareClient.getRootDirectoryClient();
+        return Optional.ofNullable(getShareClient()).map(ShareClient::getRootDirectoryClient).orElse(null);
     }
 
+    @Nullable
     public ShareClient getShareClient() {
         final ShareModule module = (ShareModule) this.getModule();
         final ShareServiceClient fileShareServiceClient = module.getFileShareServiceClient();
-        return fileShareServiceClient.getShareClient(this.getName());
+        return Optional.ofNullable(fileShareServiceClient).map(c -> c.getShareClient(this.getName())).orElse(null);
     }
 
     @Override
@@ -85,10 +85,7 @@ public class Share extends AbstractAzResource<Share, StorageAccount, ShareClient
 
     @Override
     public String getUrl() {
-        final ShareModule module = (ShareModule) this.getModule();
-        final ShareServiceClient fileShareServiceClient = module.getFileShareServiceClient();
-        final ShareClient shareClient = fileShareServiceClient.getShareClient(this.getName());
-        return shareClient.getShareUrl();
+        return Optional.ofNullable(getShareClient()).map(ShareClient::getShareUrl).orElse("");
     }
 
     @Nullable

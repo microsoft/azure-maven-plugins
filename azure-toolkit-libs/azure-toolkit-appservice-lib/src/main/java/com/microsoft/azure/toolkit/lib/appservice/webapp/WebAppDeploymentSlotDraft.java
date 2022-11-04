@@ -119,7 +119,8 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
         messager.info(AzureString.format("Start creating Web App deployment slot ({0})...", name));
         // As we can not update runtime for deployment slot during creation, so call update resource here
         DeploymentSlot slot = (DeploymentSlot) Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
-        final boolean isRuntimeModified = Objects.nonNull(this.getRuntime()) || Objects.nonNull(this.getDockerConfiguration());
+        final Runtime runtime = this.getRuntime();
+        final boolean isRuntimeModified = (Objects.nonNull(runtime) && !Objects.equals(runtime, getParent().getRuntime())) || Objects.nonNull(this.getDockerConfiguration());
         if (isRuntimeModified) {
             final DeploymentSlot slotToUpdate = slot;
             slot = (DeploymentSlot) Objects.requireNonNull(this.doModify(() -> updateResourceInAzure(slotToUpdate), Status.CREATING));
@@ -143,14 +144,15 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
                 .orElse(Collections.emptySet());
         final Runtime newRuntime = this.ensureConfig().getRuntime();
         final DockerConfiguration newDockerConfig = this.ensureConfig().getDockerConfiguration();
+        final DiagnosticConfig oldDiagnosticConfig = super.getDiagnosticConfig();
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
 
         final Runtime oldRuntime = AppServiceUtils.getRuntimeFromAppService(remote);
         boolean isRuntimeModified =  !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
         boolean isDockerConfigurationModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
         boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
-        boolean modified = Objects.nonNull(newDiagnosticConfig) || isAppSettingsModified ||
-                isRuntimeModified || isDockerConfigurationModified;
+        boolean isDiagnosticConfigModified = Objects.nonNull(newDiagnosticConfig) && !Objects.equals(newDiagnosticConfig, oldDiagnosticConfig);
+        boolean modified = isDiagnosticConfigModified || isAppSettingsModified || isRuntimeModified || isDockerConfigurationModified;
 
         if (modified) {
             final DeploymentSlotBase.Update<DeploymentSlot> update = remote.update();

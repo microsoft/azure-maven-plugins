@@ -30,9 +30,6 @@ import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanModule;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
-import com.microsoft.azure.toolkit.lib.auth.AuthType;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -99,21 +96,22 @@ public abstract class AppServiceAppBase<
     }
 
     // MODIFY
-    @AzureOperation(name = "resource.start_resource.resource", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "resource.start_resource_in_azure.resource", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public void start() {
         this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).start(), AzResource.Status.STARTING);
     }
 
-    @AzureOperation(name = "resource.stop_resource.resource", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "resource.stop_resource_in_azure.resource", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public void stop() {
         this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).stop(), AzResource.Status.STOPPING);
     }
 
-    @AzureOperation(name = "resource.restart_resource.resource", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "resource.restart_resource_in_azure.resource", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public void restart() {
         this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).restart(), AzResource.Status.RESTARTING);
     }
 
+    @AzureOperation(name = "appservice.deploy_app.app", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public void deploy(@Nonnull DeployType deployType, @Nonnull File targetFile, @Nullable String targetPath) {
         final WebSiteBase remote = this.getRemote();
         if (remote instanceof SupportsOneDeploy) {

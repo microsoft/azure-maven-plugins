@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.storage.blob;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.models.BlobItem;
 import com.azure.storage.blob.models.BlobItemProperties;
+import com.azure.storage.blob.specialized.BlobClientBase;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -22,6 +23,7 @@ import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 public class BlobFile extends AbstractAzResource<BlobFile, IBlobFile, BlobItem> implements Deletable, IBlobFile {
@@ -74,15 +76,16 @@ public class BlobFile extends AbstractAzResource<BlobFile, IBlobFile, BlobItem> 
 
     @Override
     public void download(OutputStream output) {
-        this.getClient().getBlobClient(this.getPath()).downloadStream(output);
+        Optional.ofNullable(this.getClient()).map(c -> c.getBlobClient(this.getPath())).ifPresent(client -> client.downloadStream(output));
     }
 
     @Override
     public void download(Path dest) {
-        this.getClient().getBlobClient(this.getPath()).downloadToFile(dest.toAbsolutePath().toString());
+        Optional.ofNullable(this.getClient()).map(c -> c.getBlobClient(this.getPath())).ifPresent(client -> client.downloadToFile(dest.toAbsolutePath().toString()));
     }
 
-    @Nonnull
+    @Override
+    @Nullable
     public BlobContainerClient getClient() {
         return this.getParent().getClient();
     }
@@ -94,7 +97,7 @@ public class BlobFile extends AbstractAzResource<BlobFile, IBlobFile, BlobItem> 
 
     @Override
     public String getUrl() {
-        return this.getClient().getBlobClient(this.getPath()).getBlobUrl();
+        return Optional.ofNullable(this.getClient()).map(c -> c.getBlobClient(this.getPath())).map(BlobClientBase::getBlobUrl).orElse("");
     }
 
     @Override

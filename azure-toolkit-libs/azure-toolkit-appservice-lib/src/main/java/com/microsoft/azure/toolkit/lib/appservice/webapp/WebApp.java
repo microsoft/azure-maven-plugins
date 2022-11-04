@@ -11,6 +11,8 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation.Type;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -43,6 +45,7 @@ public class WebApp extends WebAppBase<WebApp, AppServiceServiceSubscription, co
         this.deploymentModule = new WebAppDeploymentSlotModule(this);
     }
 
+    @AzureOperation(name = "webapp.swap_slot_in_azure.app|slot", params = {"this.getName()", "slotName"}, type = Type.REQUEST)
     public void swap(String slotName) {
         this.doModify(() -> {
             Objects.requireNonNull(this.getFullRemote()).swap(slotName);
