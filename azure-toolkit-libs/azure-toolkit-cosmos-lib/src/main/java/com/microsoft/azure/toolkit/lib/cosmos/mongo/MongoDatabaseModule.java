@@ -46,8 +46,14 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
     @NotNull
     @Override
     protected Stream<MongoDBDatabaseGetResultsInner> loadResourcesFromAzure() {
-        return Optional.ofNullable(getClient()).map(client ->
-                client.listMongoDBDatabases(parent.getResourceGroupName(), parent.getName()).stream()).orElse(Stream.empty());
+        return Optional.ofNullable(getClient()).map(client -> {
+                    try {
+                        return client.listMongoDBDatabases(parent.getResourceGroupName(), parent.getName()).stream();
+                    } catch (final RuntimeException e) {
+                        return null;
+                    }
+                }
+        ).orElse(Stream.empty());
     }
 
     @Nullable

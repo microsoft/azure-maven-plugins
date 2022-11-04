@@ -40,8 +40,13 @@ public class MongoCollectionModule extends AbstractAzResourceModule<MongoCollect
     @NotNull
     @Override
     protected Stream<MongoDBCollectionGetResultsInner> loadResourcesFromAzure() {
-        return Optional.ofNullable(getClient()).map(client ->
-                client.listMongoDBCollections(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).stream()).orElse(Stream.empty());
+        return Optional.ofNullable(getClient()).map(client -> {
+            try {
+                return client.listMongoDBCollections(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).stream();
+            } catch (final RuntimeException e) {
+                return null;
+            }
+        }).orElse(Stream.empty());
     }
 
     @Nullable
