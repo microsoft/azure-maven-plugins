@@ -47,7 +47,7 @@ public class SqlDocument extends AbstractAzResource<SqlDocument, SqlContainer, O
     public void updateDocument(ObjectNode document) {
         final SqlDocumentDraft sqlDocumentDraft = (SqlDocumentDraft) this.update();
         sqlDocumentDraft.setDraftDocument(document);
-        sqlDocumentDraft.commit();
+        sqlDocumentDraft.updateIfExist();
     }
 
     @Override
