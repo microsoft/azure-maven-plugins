@@ -296,7 +296,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             this.getModule().deleteResourceFromAzure(this.getId());
         } catch (Exception e) {
             final Throwable cause = e instanceof HttpResponseException ? e : ExceptionUtils.getRootCause(e);
-            if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND != ((HttpResponseException) cause).getResponse().getStatusCode()) {
+            if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND == ((HttpResponseException) cause).getResponse().getStatusCode()) {
                 log.debug("[{}]:delete()->deleteResourceFromAzure()=SC_NOT_FOUND", this.name, e);
             } else {
                 this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(r -> r.setStatus(Status.UNKNOWN));
@@ -360,7 +360,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
                 this.setRemote(refreshed);
             } catch (Throwable t) {
                 final Throwable cause = t instanceof HttpResponseException ? t : ExceptionUtils.getRootCause(t);
-                if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND != ((HttpResponseException) cause).getResponse().getStatusCode()) {
+                if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND == ((HttpResponseException) cause).getResponse().getStatusCode()) {
                     this.setRemote(null);
                 } else {
                     this.syncTimeRef.compareAndSet(0, System.currentTimeMillis());
@@ -391,7 +391,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             return remote;
         } catch (Throwable t) {
             final Throwable cause = t instanceof HttpResponseException ? t : ExceptionUtils.getRootCause(t);
-            if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND != ((HttpResponseException) cause).getResponse().getStatusCode()) {
+            if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND == ((HttpResponseException) cause).getResponse().getStatusCode()) {
                 this.setRemote(null);
                 return null;
             } else {
