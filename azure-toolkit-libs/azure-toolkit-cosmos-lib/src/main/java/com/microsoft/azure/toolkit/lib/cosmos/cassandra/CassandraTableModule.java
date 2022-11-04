@@ -40,8 +40,13 @@ public class CassandraTableModule extends AbstractAzResourceModule<CassandraTabl
     @NotNull
     @Override
     protected Stream<CassandraTableGetResultsInner> loadResourcesFromAzure() {
-        return Optional.ofNullable(getClient()).map(client ->
-                client.listCassandraTables(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).stream()).orElse(Stream.empty());
+        return Optional.ofNullable(getClient()).map(client -> {
+            try {
+                return client.listCassandraTables(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).stream();
+            } catch (final RuntimeException e) {
+                return null;
+            }
+        }).orElse(Stream.empty());
     }
 
     @Nullable

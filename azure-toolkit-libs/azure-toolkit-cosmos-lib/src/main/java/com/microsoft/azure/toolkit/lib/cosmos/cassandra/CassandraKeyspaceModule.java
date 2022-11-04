@@ -46,8 +46,13 @@ public class CassandraKeyspaceModule extends AbstractAzResourceModule<CassandraK
     @NotNull
     @Override
     protected Stream<CassandraKeyspaceGetResultsInner> loadResourcesFromAzure() {
-        return Optional.ofNullable(getClient()).map(client ->
-                client.listCassandraKeyspaces(parent.getResourceGroupName(), parent.getName()).stream()).orElse(Stream.empty());
+        return Optional.ofNullable(getClient()).map(client -> {
+            try {
+                return client.listCassandraKeyspaces(parent.getResourceGroupName(), parent.getName()).stream();
+            } catch (final RuntimeException e) {
+                return null;
+            }
+        }).orElse(Stream.empty());
     }
 
     @Nullable

@@ -46,8 +46,13 @@ public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, Cos
     @NotNull
     @Override
     protected Stream<SqlDatabaseGetResultsInner> loadResourcesFromAzure() {
-        return Optional.ofNullable(getClient()).map(client ->
-                client.listSqlDatabases(parent.getResourceGroupName(), parent.getName()).stream()).orElse(Stream.empty());
+        return Optional.ofNullable(getClient()).map(client -> {
+            try {
+                return client.listSqlDatabases(parent.getResourceGroupName(), parent.getName()).stream();
+            } catch (final RuntimeException e) {
+                return null;
+            }
+        }).orElse(Stream.empty());
     }
 
     @Nullable

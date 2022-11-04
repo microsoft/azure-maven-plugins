@@ -19,6 +19,7 @@ import org.bson.types.ObjectId;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,6 +29,7 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
         implements ICosmosDocumentModule<MongoDocument> {
 
     public static final String MONGO_ID_KEY = "_id";
+    @Nullable
     private MongoCursor<Document> iterator;
 
     public MongoDocumentModule(@Nonnull MongoCollection parent) {
@@ -116,7 +118,7 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
 
     @Override
     public boolean hasMoreDocuments() {
-        return iterator.hasNext();
+        return Optional.ofNullable(iterator).map(Iterator::hasNext).orElse(false);
     }
 
     @Override
