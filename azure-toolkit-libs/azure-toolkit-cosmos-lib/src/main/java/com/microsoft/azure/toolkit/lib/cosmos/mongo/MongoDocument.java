@@ -55,7 +55,7 @@ public class MongoDocument extends AbstractAzResource<MongoDocument, MongoCollec
     public void updateDocument(ObjectNode document) {
         final MongoDocumentDraft sqlDocumentDraft = (MongoDocumentDraft) this.update();
         sqlDocumentDraft.setDocument(document);
-        sqlDocumentDraft.commit();
+        sqlDocumentDraft.updateIfExist();
     }
 
     public String getSharedKey() {
