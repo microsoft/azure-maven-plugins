@@ -118,14 +118,7 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
 
     public boolean isRemoteDebugEnabled() {
         if (isEnableRemoteDebugging == null) {
-            final F remote = Objects.requireNonNull(getFullRemote());
-            final Map<String, String> appSettings = Objects.requireNonNull(this.getAppSettings());
-            // siteConfig for remote debug
-            final boolean configEnabled = remote.webSocketsEnabled() && remote.platformArchitecture() == PlatformArchitecture.X64;
-            // JAVA_OPTS
-            final boolean appSettingsEnabled = appSettings.containsKey(HTTP_PLATFORM_DEBUG_PORT) &&
-                    StringUtils.equalsIgnoreCase(appSettings.get(JAVA_OPTS), getJavaOptsWithRemoteDebugEnabled(appSettings, appSettings.get(HTTP_PLATFORM_DEBUG_PORT)));
-            isEnableRemoteDebugging = configEnabled && appSettingsEnabled;
+            isEnableRemoteDebugging = getIsRemoteDebuggingEnabled();
         }
         return isEnableRemoteDebugging;
     }
@@ -171,10 +164,20 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
     protected void updateAdditionalProperties(@Nullable WebSiteBase newRemote, @Nullable WebSiteBase oldRemote) {
         super.updateAdditionalProperties(newRemote, oldRemote);
         if (Objects.nonNull(newRemote)) {
-            this.isEnableRemoteDebugging = isRemoteDebugEnabled();
+            this.isEnableRemoteDebugging = getIsRemoteDebuggingEnabled();
         } else {
             this.isEnableRemoteDebugging = null;
         }
     }
 
+    private boolean getIsRemoteDebuggingEnabled() {
+        final F remote = Objects.requireNonNull(getFullRemote());
+        final Map<String, String> appSettings = Objects.requireNonNull(this.getAppSettings());
+        // siteConfig for remote debug
+        final boolean configEnabled = remote.webSocketsEnabled() && remote.platformArchitecture() == PlatformArchitecture.X64;
+        // JAVA_OPTS
+        final boolean appSettingsEnabled = appSettings.containsKey(HTTP_PLATFORM_DEBUG_PORT) &&
+                StringUtils.equalsIgnoreCase(appSettings.get(JAVA_OPTS), getJavaOptsWithRemoteDebugEnabled(appSettings, appSettings.get(HTTP_PLATFORM_DEBUG_PORT)));
+        return configEnabled && appSettingsEnabled;
+    }
 }
