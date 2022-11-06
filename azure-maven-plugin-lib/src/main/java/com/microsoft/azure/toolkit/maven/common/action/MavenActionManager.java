@@ -17,7 +17,7 @@ public class MavenActionManager extends AzureActionManager {
     }
 
     @Override
-    public <D> void registerAction(Action.Id<D> id, Action<D> action) {
+    public <D> void registerAction(Action<D> action) {
     }
 
     @Override

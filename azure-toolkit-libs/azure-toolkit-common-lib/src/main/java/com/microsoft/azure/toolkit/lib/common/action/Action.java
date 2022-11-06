@@ -41,6 +41,7 @@ public class Action<D> extends OperationBase {
     public static final String RESOURCE_TYPE = "resourceType";
     public static final Id<Runnable> REQUIRE_AUTH = Id.of("common.requireAuth");
     public static final Id<Object> AUTHENTICATE = Id.of("account.authenticate");
+    public static final Id ANONYMOUS = Id.of("common.anonymous");
     @Nonnull
     private final List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
     @Nonnull
@@ -61,6 +62,26 @@ public class Action<D> extends OperationBase {
     @Setter
     @Getter
     private Object shortcuts;
+
+    public Action(@Nullable ActionView.Builder viewBuilder) {
+        this(ANONYMOUS, viewBuilder);
+    }
+
+    public Action(@Nonnull Consumer<D> handler) {
+        this(ANONYMOUS, handler);
+    }
+
+    public <E> Action(@Nonnull BiConsumer<D, E> handler) {
+        this(ANONYMOUS, handler);
+    }
+
+    public Action(@Nonnull Consumer<D> handler, @Nullable ActionView.Builder viewBuilder) {
+        this(ANONYMOUS, handler, viewBuilder);
+    }
+
+    public <E> Action(@Nonnull BiConsumer<D, E> handler, @Nullable ActionView.Builder viewBuilder) {
+        this(ANONYMOUS, handler, viewBuilder);
+    }
 
     public Action(@Nonnull final Id<D> id, @Nullable ActionView.Builder viewBuilder) {
         this.id = id;

@@ -27,10 +27,10 @@ public abstract class AzureActionManager {
         instance = manager;
     }
 
-    public abstract <D> void registerAction(Action.Id<D> id, Action<D> action);
+    public abstract <D> void registerAction(Action<D> action);
 
     public <D> void registerAction(Action.Id<D> id, Consumer<D> action) {
-        this.registerAction(id, new Action<>(id, action));
+        this.registerAction(new Action<>(id, action));
     }
 
     public abstract <D> Action<D> getAction(Action.Id<D> id);
