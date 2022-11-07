@@ -40,6 +40,12 @@ public class SqlDocumentDraft extends SqlDocument implements
         this.origin = origin;
     }
 
+    @Nullable
+    @Override
+    public ObjectNode getDocument() {
+        return Optional.ofNullable(draftDocument).orElseGet(super::getDocument);
+    }
+
     @Override
     public String getDocumentId() {
         return Optional.ofNullable(draftDocument)
@@ -51,7 +57,7 @@ public class SqlDocumentDraft extends SqlDocument implements
     @Override
     public String getDocumentPartitionKey() {
         final String partitionKey = getParent().getPartitionKey();
-        return Optional.ofNullable(draftDocument).map(doc -> doc.at(partitionKey)).map(JsonNode::asText)
+        return Optional.ofNullable(draftDocument).map(doc -> doc.at(partitionKey)).filter(node -> !node.isMissingNode()).map(JsonNode::asText)
                 .orElseGet(super::getDocumentPartitionKey);
     }
 
@@ -65,7 +71,7 @@ public class SqlDocumentDraft extends SqlDocument implements
     @AzureOperation(name = "cosmos.create_sql_document_in_azure.document", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public ObjectNode createResourceInAzure() {
         final String documentPartitionKey = getParent().getPartitionKey();
-        final PartitionKey partitionKey = draftDocument.get(documentPartitionKey) == null ? PartitionKey.NONE :
+        final PartitionKey partitionKey = draftDocument.at(documentPartitionKey).isMissingNode() ? PartitionKey.NONE :
                 new PartitionKey(draftDocument.at(documentPartitionKey).asText());
         final String documentId = draftDocument.get("id").asText();
         final CosmosContainer client = ((SqlDocumentModule) getModule()).getClient();
