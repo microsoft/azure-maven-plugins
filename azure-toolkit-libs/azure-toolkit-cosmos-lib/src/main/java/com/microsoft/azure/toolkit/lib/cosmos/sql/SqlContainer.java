@@ -4,9 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.cosmos.sql;
 
-import com.azure.cosmos.ConsistencyLevel;
 import com.azure.cosmos.CosmosClient;
-import com.azure.cosmos.CosmosClientBuilder;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.resourcemanager.cosmos.fluent.models.SqlContainerGetResultsInner;
@@ -17,7 +15,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosCollection;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentContainer;
-import com.microsoft.azure.toolkit.lib.cosmos.model.SqlDatabaseAccountConnectionString;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -65,7 +62,8 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
             node.put("id", UUID.randomUUID().toString());
         }
         final String id = node.get("id").asText();
-        final String partitionKey = Optional.ofNullable(node.get(getPartitionKey())).map(JsonNode::asText).orElse(StringUtils.EMPTY);
+        final String partitionKey = Optional.ofNullable(node.at(getPartitionKey())).filter(n -> !n.isMissingNode())
+                .map(JsonNode::asText).orElse(StringUtils.EMPTY);
         final SqlDocumentDraft documentDraft = this.documentModule.create(String.format("%s#%s", id, partitionKey), getResourceGroupName());
         documentDraft.setDraftDocument(node);
         return documentDraft.commit();
@@ -81,7 +79,7 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
     public synchronized CosmosContainer getClient() {
         if (Objects.isNull(this.container)) {
             this.container = getDocumentClient();
-            this.containerResponse = container.read();
+            this.containerResponse = getContainerResponse(this.container);
         }
         return this.container;
     }
@@ -91,7 +89,7 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
         super.updateAdditionalProperties(newRemote, oldRemote);
         if (Objects.nonNull(newRemote)) {
             this.container = getDocumentClient();
-            this.containerResponse = container.read();
+            this.containerResponse = getContainerResponse(this.container);
         } else {
             this.container = null;
             this.containerResponse = null;
@@ -106,6 +104,16 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
             return cosmosClient.getDatabase(sqlDatabase.getName()).getContainer(this.getName());
         } catch (Throwable e) {
             // swallow exception to load data client
+            return null;
+        }
+    }
+
+    @Nullable
+    private CosmosContainerResponse getContainerResponse(@Nullable CosmosContainer container) {
+        try {
+            return Optional.ofNullable(container).map(CosmosContainer::read).orElse(null);
+        } catch (final Throwable throwable) {
+            // swallow exception when get container response
             return null;
         }
     }
