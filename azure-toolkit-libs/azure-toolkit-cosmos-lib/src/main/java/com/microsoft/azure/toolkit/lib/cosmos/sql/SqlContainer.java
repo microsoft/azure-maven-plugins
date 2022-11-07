@@ -8,7 +8,6 @@ import com.azure.cosmos.CosmosClient;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.resourcemanager.cosmos.fluent.models.SqlContainerGetResultsInner;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -18,7 +17,6 @@ import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosCollection;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentContainer;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,6 +25,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.microsoft.azure.toolkit.lib.cosmos.sql.SqlDocumentModule.ID;
 
 public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, SqlContainerGetResultsInner>
         implements Deletable, ICosmosCollection, ICosmosDocumentContainer<SqlDocument> {
@@ -60,13 +60,12 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
 
     @Override
     public SqlDocument importDocument(@Nonnull final ObjectNode node) {
-        if (node.get("id") == null) {
-            node.put("id", UUID.randomUUID().toString());
+        if (node.get(ID) == null) {
+            node.put(ID, UUID.randomUUID().toString());
         }
-        final String id = node.get("id").asText();
-        final String partitionKey = Optional.ofNullable(node.at(getPartitionKey())).filter(n -> !n.isMissingNode())
-                .map(JsonNode::asText).orElse(StringUtils.EMPTY);
-        final SqlDocumentDraft documentDraft = this.documentModule.create(String.format("%s#%s", id, partitionKey), getResourceGroupName());
+        final String id = node.get(ID).asText();
+        final String partitionKey = SqlDocumentModule.getSqlDocumentPartitionValue(node, getPartitionKey());
+        final SqlDocumentDraft documentDraft = this.documentModule.create(SqlDocumentModule.getSqlDocumentResourceName(id, partitionKey), getResourceGroupName());
         documentDraft.setDraftDocument(node);
         final boolean existing = this.getDocumentModule().exists(documentDraft.getName(), documentDraft.getResourceGroupName());
         final SqlDocument result = documentDraft.commit();
@@ -86,7 +85,7 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
     public synchronized CosmosContainer getClient() {
         if (Objects.isNull(this.container)) {
             this.container = getDocumentClient();
-            this.containerResponse = getContainerResponse(this.container);
+            this.containerResponse = container.read();
         }
         return this.container;
     }
@@ -96,7 +95,7 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
         super.updateAdditionalProperties(newRemote, oldRemote);
         if (Objects.nonNull(newRemote)) {
             this.container = getDocumentClient();
-            this.containerResponse = getContainerResponse(this.container);
+            this.containerResponse = container.read();
         } else {
             this.container = null;
             this.containerResponse = null;
@@ -111,16 +110,6 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
             return cosmosClient.getDatabase(sqlDatabase.getName()).getContainer(this.getName());
         } catch (Throwable e) {
             // swallow exception to load data client
-            return null;
-        }
-    }
-
-    @Nullable
-    private CosmosContainerResponse getContainerResponse(@Nullable CosmosContainer container) {
-        try {
-            return Optional.ofNullable(container).map(CosmosContainer::read).orElse(null);
-        } catch (final Throwable throwable) {
-            // swallow exception when get container response
             return null;
         }
     }
