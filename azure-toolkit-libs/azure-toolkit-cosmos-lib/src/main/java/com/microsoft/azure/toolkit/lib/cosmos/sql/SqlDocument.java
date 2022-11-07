@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocument;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -19,6 +20,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.microsoft.azure.toolkit.lib.cosmos.sql.SqlDocumentModule.ID;
 
 public class SqlDocument extends AbstractAzResource<SqlDocument, SqlContainer, ObjectNode> implements Deletable, ICosmosDocument {
     protected static final String[] HIDE_FIELDS = {"_rid", "_self", "_etag", "_attachments", "_ts"};
@@ -33,16 +36,15 @@ public class SqlDocument extends AbstractAzResource<SqlDocument, SqlContainer, O
 
     @Nullable
     public String getDocumentId() {
-        return Optional.ofNullable(this.getRemote()).map(remote -> remote.get("id")).map(JsonNode::asText).orElse(null);
+        return Optional.ofNullable(this.getRemote()).map(remote -> remote.get(ID)).map(JsonNode::asText).orElse(null);
     }
 
     @Nullable
     public String getDocumentPartitionKey() {
         final String partitionKey = getParent().getPartitionKey();
         return Optional.ofNullable(this.getRemote())
-                .map(remote -> remote.at(partitionKey))
-                .filter(node -> !node.isMissingNode())
-                .map(JsonNode::asText).orElse(null);
+                .map(remote -> SqlDocumentModule.getSqlDocumentPartitionValue(remote, partitionKey))
+                .orElse(null);
     }
 
     @Override
