@@ -10,6 +10,8 @@ import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.resourcemanager.cosmos.fluent.models.SqlContainerGetResultsInner;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -66,7 +68,12 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
                 .map(JsonNode::asText).orElse(StringUtils.EMPTY);
         final SqlDocumentDraft documentDraft = this.documentModule.create(String.format("%s#%s", id, partitionKey), getResourceGroupName());
         documentDraft.setDraftDocument(node);
-        return documentDraft.commit();
+        final boolean existing = this.getDocumentModule().exists(documentDraft.getName(), documentDraft.getResourceGroupName());
+        final SqlDocument result = documentDraft.commit();
+        final AzureString importMessage = AzureString.format("Import document to Cosmos container %s successfully.", this.getName());
+        final AzureString updateMessage = AzureString.format("Update document %s in Cosmos container %s successfully.", id, this.getName());
+        AzureMessager.getMessager().info(existing ? updateMessage : importMessage);
+        return result;
     }
 
     public String getPartitionKey() {
