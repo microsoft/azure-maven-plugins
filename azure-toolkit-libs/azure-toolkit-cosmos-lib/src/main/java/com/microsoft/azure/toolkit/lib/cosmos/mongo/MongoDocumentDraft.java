@@ -9,6 +9,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Getter;
@@ -50,6 +51,15 @@ public class MongoDocumentDraft extends MongoDocument implements
         return Optional.ofNullable(draftDocument)
                 .map(draftDocument -> draftDocument.get(MONGO_ID_KEY))
                 .orElseGet(super::getDocumentId);
+    }
+
+    @Nullable
+    @Override
+    public ObjectNode getDocument() {
+        return Optional.ofNullable(draftDocument)
+                .map(Document::toJson)
+                .map(json -> JsonUtils.fromJson(json, ObjectNode.class))
+                .orElseGet(() -> super.getDocument());
     }
 
     @Nullable
