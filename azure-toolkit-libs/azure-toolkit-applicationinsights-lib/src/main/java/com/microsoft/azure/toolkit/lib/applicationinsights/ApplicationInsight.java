@@ -34,7 +34,7 @@ public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, A
 
     @Nullable
     public Region getRegion() {
-        return Optional.ofNullable(getRemote()).map(component -> Region.fromName(component.name())).orElse(null);
+        return Optional.ofNullable(getRemote()).map(component -> Region.fromName(component.regionName())).orElse(null);
     }
 
     @Nullable

@@ -81,6 +81,7 @@
         <azure-resourcemanager-applicationinsights.version>1.0.0-beta.5</azure-resourcemanager-applicationinsights.version>
         <azure-resourcemanager-mysql.version>1.0.2</azure-resourcemanager-mysql.version>
         <azure-resourcemanager-postgre.version>1.0.2</azure-resourcemanager-postgre.version>
+        <azure-resourcemanager-loganalytics.version>1.0.0-beta.3</azure-resourcemanager-loganalytics.version>
         <azure-storage.version>8.6.6</azure-storage.version>
         <azure-storage-blob.version>12.19.1</azure-storage-blob.version>
         <azure-storage-file-share.version>12.15.1</azure-storage-file-share.version>
@@ -365,6 +366,11 @@
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-cosmos</artifactId>
                 <version>${azure.resourcemanager.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-loganalytics</artifactId>
+                <version>${azure-resourcemanager-loganalytics.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.rest</groupId>
