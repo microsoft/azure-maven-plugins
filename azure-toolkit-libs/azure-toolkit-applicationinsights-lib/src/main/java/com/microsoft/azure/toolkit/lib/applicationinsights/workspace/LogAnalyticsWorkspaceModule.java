@@ -37,7 +37,7 @@ public class LogAnalyticsWorkspaceModule extends AbstractAzResourceModule<LogAna
     }
 
     @Override
-    @AzureOperation(name = "logworkspace.delete_logworkspace_in_azure.logworkspace", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "workspace.delete_log_analytics_workspace_in_azure.workspace", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         Optional.ofNullable(this.getClient()).ifPresent(workspaces -> workspaces.deleteById(resourceId));
     }

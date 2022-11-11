@@ -8,6 +8,8 @@ package com.microsoft.azure.toolkit.lib.applicationinsights;
 import com.azure.resourcemanager.applicationinsights.ApplicationInsightsManager;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsComponent;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationType;
+import com.microsoft.azure.toolkit.lib.applicationinsights.workspace.LogAnalyticsWorkspace;
+import com.microsoft.azure.toolkit.lib.applicationinsights.workspace.LogAnalyticsWorkspaceDraft;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -26,6 +28,7 @@ import java.util.Optional;
 public class ApplicationInsightDraft extends ApplicationInsight implements AzResource.Draft<ApplicationInsight, ApplicationInsightsComponent> {
 
     private static final String REGION_IS_REQUIRED = "'region' is required to create Application Insights.";
+    private static final String WORKSPACE_IS_REQUIRED = "'log analytics workspace' is required to create Application Insights.";
     private static final String START_CREATING_APPLICATION_INSIGHT = "Start creating Application Insights ({0})...";
     private static final String APPLICATION_INSIGHTS_CREATED = "Application Insights ({0}) is successfully created. " +
         "You can visit {1} to view your Application Insights component.";
@@ -33,6 +36,10 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
     @Setter
     @Nullable
     private Region region;
+    @Setter
+    @Getter
+    @Nullable
+    private LogAnalyticsWorkspace workspace;
     @Getter
     @Nullable
     private final ApplicationInsight origin;
@@ -59,6 +66,17 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
         if (Objects.isNull(region)) {
             throw new AzureToolkitRuntimeException(REGION_IS_REQUIRED);
         }
+        if (Objects.isNull(workspace)) {
+            throw new AzureToolkitRuntimeException(WORKSPACE_IS_REQUIRED);
+        }
+        String workspaceResourceId;
+        if (this.workspace instanceof LogAnalyticsWorkspaceDraft) {
+            ((LogAnalyticsWorkspaceDraft) this.workspace).setRegion(region);
+            workspaceResourceId = ((LogAnalyticsWorkspaceDraft) this.workspace).commit().getId();
+
+        } else {
+           workspaceResourceId = this.workspace.getId();
+        }
         final ApplicationInsightsManager applicationInsightsManager = Objects.requireNonNull(this.getParent().getRemote());
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format(START_CREATING_APPLICATION_INSIGHT, getName()));
@@ -66,6 +84,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
             .withRegion(region.getName())
             .withExistingResourceGroup(getResourceGroupName())
             .withKind("web")
+            .withWorkspaceResourceId(workspaceResourceId)
             .withApplicationType(ApplicationType.WEB).create();
         messager.success(AzureString.format(APPLICATION_INSIGHTS_CREATED, getName(), getPortalUrl()));
         return result;

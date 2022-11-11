@@ -47,7 +47,7 @@ public class LogAnalyticsWorkspaceDraft extends LogAnalyticsWorkspace implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "logworkspace.create_logworkspace_in_azure.logworkspace", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "workspace.create_log_analytics_workspace_in_azure.workspace", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public Workspace createResourceInAzure() {
         if (Objects.isNull(region)) {
             throw new AzureToolkitRuntimeException(REGION_IS_REQUIRED);
@@ -65,6 +65,7 @@ public class LogAnalyticsWorkspaceDraft extends LogAnalyticsWorkspace implements
 
     @Nonnull
     @Override
+    @AzureOperation(name = "workspace.update_log_analytics_workspace_in_azure.workspace", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public Workspace updateResourceInAzure(@Nonnull Workspace origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }
