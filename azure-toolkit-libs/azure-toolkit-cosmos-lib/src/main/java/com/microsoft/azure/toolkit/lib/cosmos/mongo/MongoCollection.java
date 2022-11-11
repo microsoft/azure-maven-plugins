@@ -7,6 +7,8 @@ package com.microsoft.azure.toolkit.lib.cosmos.mongo;
 
 import com.azure.resourcemanager.cosmos.fluent.models.MongoDBCollectionGetResultsInner;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -70,7 +72,12 @@ public class MongoCollection extends AbstractAzResource<MongoCollection, MongoDa
         final String id = document.get(MONGO_ID_KEY).toString();
         final MongoDocumentDraft documentDraft = this.documentModule.create(id, getResourceGroupName());
         documentDraft.setDraftDocument(document);
-        return documentDraft.commit();
+        final boolean existing = this.getDocumentModule().exists(documentDraft.getName(), documentDraft.getResourceGroupName());
+        final MongoDocument result = documentDraft.commit();
+        final AzureString importMessage = AzureString.format("Import document to Mongo collection %s successfully.", this.getName());
+        final AzureString updateMessage = AzureString.format("Update document %s in Mongo collection %s successfully.", id, this.getName());
+        AzureMessager.getMessager().info(existing ? updateMessage : importMessage);
+        return result;
     }
 
     @Nullable

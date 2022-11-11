@@ -30,6 +30,8 @@ import java.util.stream.Stream;
 public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, SqlContainer, ObjectNode> implements ICosmosDocumentModule<SqlDocument> {
 
     public static final String DELIMITER = "#";
+    public static final String ID = "id";
+    public static final String NONE = "$$$none$$$";
     @Nullable
     private Iterator<FeedResponse<ObjectNode>> iterator;
 
@@ -73,11 +75,11 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
             return null;
         }
         final String id = split[0];
-        final String partitionKey = split.length > 1 ? split[1] : StringUtils.EMPTY;
+        final String partitionKeyValue = split.length > 1 ? split[1] : StringUtils.EMPTY;
+        final PartitionKey partitionKey = StringUtils.equals(partitionKeyValue, NONE) ? PartitionKey.NONE : new PartitionKey(partitionKeyValue);
         return Optional.ofNullable(getClient())
-            .map(client -> Optional.ofNullable(doLoadDocument(client, new PartitionKey(partitionKey), id))
-                .orElseGet(() -> doLoadDocument(client, PartitionKey.NONE, id)))
-            .orElse(null);
+                .map(client -> doLoadDocument(client, partitionKey, id))
+                .orElse(null);
     }
 
     @Nullable
@@ -91,18 +93,17 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
 
     @Nullable
     public SqlDocument get(@Nonnull String id, @Nonnull String partitionKey, @Nullable String resourceGroup) {
-        return super.get(String.format("%s#%s", id, partitionKey), resourceGroup);
+        return super.get(getSqlDocumentResourceName(id, partitionKey), resourceGroup);
     }
 
     @Nonnull
     @Override
     protected SqlDocument newResource(@Nonnull ObjectNode objectNode) {
         final SqlContainer container = getParent();
-        final String id = Objects.requireNonNull(objectNode.get("id")).asText();
+        final String id = Objects.requireNonNull(objectNode.get(ID)).asText();
         final String partitionKey = container.getPartitionKey();
-        final String partitionValue = Optional.ofNullable(objectNode.get(partitionKey))
-            .map(JsonNode::asText).orElse(StringUtils.EMPTY);
-        final SqlDocument sqlDocument = newResource(String.format("%s#%s", id, partitionValue), container.getResourceGroupName());
+        final String partitionValue = getSqlDocumentPartitionValue(objectNode, partitionKey);
+        final SqlDocument sqlDocument = newResource(getSqlDocumentResourceName(id, partitionValue), container.getResourceGroupName());
         sqlDocument.setRemote(objectNode);
         return sqlDocument;
     }
@@ -137,5 +138,18 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
     @Nullable
     protected synchronized CosmosContainer getClient() {
         return getParent().getClient();
+    }
+
+    @Nonnull
+    public static String getSqlDocumentResourceName(@Nonnull final String id, @Nullable final String partitionKey) {
+        return String.format("%s#%s", id, Objects.isNull(partitionKey) ? NONE : partitionKey);
+    }
+
+    @Nullable
+    public static String getSqlDocumentPartitionValue(@Nonnull final ObjectNode node, @Nullable final String partitionKey) {
+        return Optional.ofNullable(partitionKey)
+                .map(node::at)
+                .filter(n -> !n.isMissingNode())
+                .map(JsonNode::asText).orElse(null);
     }
 }
