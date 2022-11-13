@@ -8,7 +8,9 @@ package com.microsoft.azure.toolkit.lib.applicationinsights;
 import com.azure.resourcemanager.applicationinsights.ApplicationInsightsManager;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsComponent;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationType;
-import com.microsoft.azure.toolkit.lib.applicationinsights.workspace.LogAnalyticsWorkspace;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.applicationinsights.workspace.AzureLogAnalyticsWorkspace;
+import com.microsoft.azure.toolkit.lib.applicationinsights.workspace.LogAnalyticsWorkspaceConfig;
 import com.microsoft.azure.toolkit.lib.applicationinsights.workspace.LogAnalyticsWorkspaceDraft;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -31,7 +33,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
     private static final String WORKSPACE_IS_REQUIRED = "'log analytics workspace' is required to create Application Insights.";
     private static final String START_CREATING_APPLICATION_INSIGHT = "Start creating Application Insights ({0})...";
     private static final String APPLICATION_INSIGHTS_CREATED = "Application Insights ({0}) is successfully created. " +
-        "You can visit {1} to view your Application Insights component.";
+        "You can visit <a href=\"{1}\">this link</a> to view your Application Insights component.";
 
     @Setter
     @Nullable
@@ -39,7 +41,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
     @Setter
     @Getter
     @Nullable
-    private LogAnalyticsWorkspace workspace;
+    private LogAnalyticsWorkspaceConfig workspaceConfig;
     @Getter
     @Nullable
     private final ApplicationInsight origin;
@@ -66,16 +68,18 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
         if (Objects.isNull(region)) {
             throw new AzureToolkitRuntimeException(REGION_IS_REQUIRED);
         }
-        if (Objects.isNull(workspace)) {
+        if (Objects.isNull(workspaceConfig)) {
             throw new AzureToolkitRuntimeException(WORKSPACE_IS_REQUIRED);
         }
         String workspaceResourceId;
-        if (this.workspace instanceof LogAnalyticsWorkspaceDraft) {
-            ((LogAnalyticsWorkspaceDraft) this.workspace).setRegion(region);
-            workspaceResourceId = ((LogAnalyticsWorkspaceDraft) this.workspace).commit().getId();
-
+        if (this.workspaceConfig.isNewCreate()) {
+            final LogAnalyticsWorkspaceDraft draft = Azure.az(AzureLogAnalyticsWorkspace.class)
+                    .logAnalyticsWorkspaces(getSubscriptionId())
+                    .create(workspaceConfig.getName(), workspaceConfig.getResourceGroupName());
+            draft.setRegion(this.region);
+            workspaceResourceId = draft.commit().getId();
         } else {
-           workspaceResourceId = this.workspace.getId();
+           workspaceResourceId = workspaceConfig.getResourceId();
         }
         final ApplicationInsightsManager applicationInsightsManager = Objects.requireNonNull(this.getParent().getRemote());
         final IAzureMessager messager = AzureMessager.getMessager();

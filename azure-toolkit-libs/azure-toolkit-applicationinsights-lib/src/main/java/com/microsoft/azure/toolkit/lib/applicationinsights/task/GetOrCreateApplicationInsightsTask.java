@@ -46,6 +46,8 @@ public class GetOrCreateApplicationInsightsTask extends AzureTask<ApplicationIns
         return Optional.ofNullable(insightsModule.get(name, this.resourceGroup)).orElseGet(() -> {
             final ApplicationInsightDraft draft = insightsModule.create(name, this.resourceGroup);
             draft.setRegion(region);
+            // todo read workspace resource id from function config
+//            draft.setWorkspaceConfig(LogAnalyticsWorkspaceConfig.builder().resourceId("").build());
             return draft.commit();
         });
     }
