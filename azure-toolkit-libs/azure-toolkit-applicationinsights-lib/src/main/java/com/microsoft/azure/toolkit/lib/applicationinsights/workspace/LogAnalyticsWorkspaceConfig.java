@@ -10,6 +10,5 @@ public class LogAnalyticsWorkspaceConfig {
     private boolean newCreate;
     private String name;
     private String resourceId;
-    private String resourceGroupName;
     private String subscriptionId;
 }

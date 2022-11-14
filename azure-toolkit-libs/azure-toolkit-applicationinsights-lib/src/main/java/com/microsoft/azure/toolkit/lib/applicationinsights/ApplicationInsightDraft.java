@@ -75,7 +75,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
         if (this.workspaceConfig.isNewCreate()) {
             final LogAnalyticsWorkspaceDraft draft = Azure.az(AzureLogAnalyticsWorkspace.class)
                     .logAnalyticsWorkspaces(getSubscriptionId())
-                    .create(workspaceConfig.getName(), workspaceConfig.getResourceGroupName());
+                    .create(workspaceConfig.getName(), getResourceGroupName());
             draft.setRegion(this.region);
             workspaceResourceId = draft.commit().getId();
         } else {
