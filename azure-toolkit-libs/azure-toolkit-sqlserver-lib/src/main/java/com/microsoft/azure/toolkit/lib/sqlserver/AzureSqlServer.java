@@ -18,7 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class AzureSqlServer extends AbstractAzService<MicrosoftSqlServiceSubscription, SqlServerManager> {
@@ -32,6 +34,11 @@ public class AzureSqlServer extends AbstractAzService<MicrosoftSqlServiceSubscri
         final MicrosoftSqlServiceSubscription rm = get(subscriptionId, null);
         assert rm != null;
         return rm.getServerModule();
+    }
+
+    @Nonnull
+    public List<MicrosoftSqlServer> servers() {
+        return this.list().stream().flatMap(m -> m.servers().list().stream()).collect(Collectors.toList());
     }
 
     @Nullable

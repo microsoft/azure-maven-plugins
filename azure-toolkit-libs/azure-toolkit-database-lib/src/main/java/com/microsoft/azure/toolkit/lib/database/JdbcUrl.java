@@ -67,7 +67,7 @@ public abstract class JdbcUrl {
     public static JdbcUrl postgre(@Nonnull String serverHost, @Nonnull String database) {
         // Postgre database name is required;
         return new PostgreSQLJdbcUrl(String.format("jdbc:postgresql://%s:%s/%s?ssl=true&sslmode=require",
-                encode(serverHost), POSTGRE_SQL_DEFAULT_PORT, encode(database)));
+            encode(serverHost), POSTGRE_SQL_DEFAULT_PORT, encode(database)));
     }
 
     @Nonnull
@@ -83,6 +83,9 @@ public abstract class JdbcUrl {
     }
 
     abstract int getDefaultPort();
+
+    @Nonnull
+    public abstract String getDefaultDriverClass();
 
     public int getPort() {
         if (this.uri.getPort() >= 0) {
@@ -190,6 +193,11 @@ public abstract class JdbcUrl {
             return MYSQL_DEFAULT_PORT;
         }
 
+        @Nonnull
+        @Override
+        public String getDefaultDriverClass() {
+            return "com.mysql.cj.jdbc.Driver";
+        }
     }
 
     private static class PostgreSQLJdbcUrl extends JdbcUrl {
@@ -203,6 +211,11 @@ public abstract class JdbcUrl {
             return POSTGRE_SQL_DEFAULT_PORT;
         }
 
+        @Nonnull
+        @Override
+        public String getDefaultDriverClass() {
+            return "org.postgresql.Driver";
+        }
     }
 
     private static class SQLServerJdbcUrl extends JdbcUrl {
@@ -218,6 +231,12 @@ public abstract class JdbcUrl {
 
         @Nonnull
         @Override
+        public String getDefaultDriverClass() {
+            return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+        }
+
+        @Nonnull
+        @Override
         public JdbcUrl setDatabase(String database) {
             this.uri.setParameter("database", database);
             return this;
@@ -227,7 +246,7 @@ public abstract class JdbcUrl {
         @Override
         public String getDatabase() {
             return this.uri.getQueryParams().stream().filter(e -> StringUtils.equals(e.getName(), "database"))
-                    .map(NameValuePair::getValue).findFirst().orElse(null);
+                .map(NameValuePair::getValue).findFirst().orElse(null);
         }
 
         @Override

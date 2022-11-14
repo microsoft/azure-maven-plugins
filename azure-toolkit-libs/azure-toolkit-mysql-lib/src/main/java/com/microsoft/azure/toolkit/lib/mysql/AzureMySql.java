@@ -38,6 +38,11 @@ public class AzureMySql extends AbstractAzService<MySqlServiceSubscription, MySq
     }
 
     @Nonnull
+    public List<MySqlServer> servers() {
+        return this.list().stream().flatMap(m -> m.servers().list().stream()).collect(Collectors.toList());
+    }
+
+    @Nonnull
     @Override
     protected MySqlManager loadResourceFromAzure(@Nonnull String subscriptionId, String resourceGroup) {
         final Account account = Azure.az(AzureAccount.class).account();
