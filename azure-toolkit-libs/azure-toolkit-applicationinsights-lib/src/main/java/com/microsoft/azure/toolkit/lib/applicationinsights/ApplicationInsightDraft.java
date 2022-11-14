@@ -33,7 +33,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
     private static final String WORKSPACE_IS_REQUIRED = "'log analytics workspace' is required to create Application Insights.";
     private static final String START_CREATING_APPLICATION_INSIGHT = "Start creating Application Insights ({0})...";
     private static final String APPLICATION_INSIGHTS_CREATED = "Application Insights ({0}) is successfully created. " +
-        "You can visit <a href=\"{1}\">this link</a> to view your Application Insights component.";
+        "You can visit <a href=\"%s\">portal</a> to view your Application Insights component.";
 
     @Setter
     @Nullable
@@ -90,7 +90,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
             .withKind("web")
             .withWorkspaceResourceId(workspaceResourceId)
             .withApplicationType(ApplicationType.WEB).create();
-        messager.success(AzureString.format(APPLICATION_INSIGHTS_CREATED, getName(), getPortalUrl()));
+        messager.success(AzureString.format(String.format(APPLICATION_INSIGHTS_CREATED, getPortalUrl()), getName()));
         return result;
     }
 
