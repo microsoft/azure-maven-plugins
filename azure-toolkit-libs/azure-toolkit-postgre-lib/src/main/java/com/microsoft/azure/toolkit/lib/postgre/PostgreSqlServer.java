@@ -169,7 +169,7 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
         String username = this.getAdminName() + "@" + this.getName();
         try {
             Class.forName("org.postgresql.Driver");
-            DriverManager.getConnection(JdbcUrl.postgre(this.getFullyQualifiedDomainName(), "postgre").toString(), username, null);
+            DriverManager.getConnection(JdbcUrl.postgre(this.getFullyQualifiedDomainName(), "postgres").toString(), username, null);
         } catch (SQLException e) {
             String ip = NetUtils.parseIpAddressFromMessage(e.getMessage());
             if (StringUtils.isNotBlank(ip)) {
@@ -183,7 +183,7 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
 
     @Nonnull
     public JdbcUrl getJdbcUrl() {
-        return JdbcUrl.postgre(this.getFullyQualifiedDomainName(), "postgre");
+        return JdbcUrl.postgre(this.getFullyQualifiedDomainName(), "postgres");
     }
 
     @Nonnull
