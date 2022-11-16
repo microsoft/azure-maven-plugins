@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.util.List;
@@ -41,6 +42,9 @@ import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigU
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractWebAppMojo {
+
+    @Parameter(property = "webapp.waitUntilStart")
+    protected Boolean waitUntilStart;
 
     @Override
     @AzureOperation(name = "webapp.deploy_app", type = AzureOperation.Type.ACTION)
@@ -90,7 +94,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deploy(WebAppBase<?, ?, ?> target, List<WebAppArtifact> artifacts) {
-        new DeployWebAppTask(target, artifacts, isStopAppDuringDeployment()).doExecute();
+        new DeployWebAppTask(target, artifacts, isStopAppDuringDeployment(), this.waitUntilStart).doExecute();
     }
 
     private void deployExternalResources(final WebAppBase<?, ?, ?> target, final List<DeploymentResource> resources) {

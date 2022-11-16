@@ -76,7 +76,7 @@ public abstract class WebAppBase<T extends WebAppBase<T, P, F>, P extends Abstra
     @Override
     @Nullable
     public CsmDeploymentStatus getDeploymentStatus(@Nonnull final String deploymentId) {
-        final WebSiteBase remote = this.getRemote();
+        final WebSiteBase remote = this.getFullRemote();
         if (remote instanceof SupportsOneDeploy) {
             return AppServiceUtils.fromCsmDeploymentStatus(((SupportsOneDeploy) remote).getDeploymentStatus(deploymentId));
         } else {
