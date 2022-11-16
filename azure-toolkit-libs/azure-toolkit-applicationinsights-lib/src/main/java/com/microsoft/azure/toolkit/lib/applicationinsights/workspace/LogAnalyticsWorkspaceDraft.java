@@ -18,9 +18,9 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class LogAnalyticsWorkspaceDraft extends LogAnalyticsWorkspace implements AzResource.Draft<LogAnalyticsWorkspace, Workspace> {
-    private static final String START_CREATING_LOG_ANALYTICS_WORKSPACE = "Start creating Log Analytics Workspace ({0})...";
-    private static final String REGION_IS_REQUIRED = "'region' is required to create Log Analytics Workspace.";
-    private static final String APPLICATION_INSIGHTS_CREATED = "Log Analytics Workspace ({0}) is successfully created.";
+    private static final String START_CREATING_LOG_ANALYTICS_WORKSPACE = "Start creating Log Analytics workspace ({0})...";
+    private static final String REGION_IS_REQUIRED = "'region' is required to create Log Analytics workspace.";
+    private static final String APPLICATION_INSIGHTS_CREATED = "Log Analytics workspace ({0}) is successfully created.";
 
     @Setter
     @Nullable
