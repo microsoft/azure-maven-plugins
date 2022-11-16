@@ -19,6 +19,9 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.resource.AzureResources;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroupDraft;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,7 +33,6 @@ import java.util.Optional;
 public class ApplicationInsightDraft extends ApplicationInsight implements AzResource.Draft<ApplicationInsight, ApplicationInsightsComponent> {
 
     private static final String REGION_IS_REQUIRED = "'region' is required to create Application Insights.";
-    private static final String WORKSPACE_IS_REQUIRED = "'log analytics workspace' is required to create Application Insights.";
     private static final String START_CREATING_APPLICATION_INSIGHT = "Start creating Application Insights ({0})...";
     private static final String APPLICATION_INSIGHTS_CREATED = "Application Insights ({0}) is successfully created. " +
         "You can visit <a href=\"%s\">portal</a> to view your Application Insights component.";
@@ -68,19 +70,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
         if (Objects.isNull(region)) {
             throw new AzureToolkitRuntimeException(REGION_IS_REQUIRED);
         }
-        if (Objects.isNull(workspaceConfig)) {
-            throw new AzureToolkitRuntimeException(WORKSPACE_IS_REQUIRED);
-        }
-        String workspaceResourceId;
-        if (this.workspaceConfig.isNewCreate()) {
-            final LogAnalyticsWorkspaceDraft draft = Azure.az(AzureLogAnalyticsWorkspace.class)
-                    .logAnalyticsWorkspaces(getSubscriptionId())
-                    .create(workspaceConfig.getName(), getResourceGroupName());
-            draft.setRegion(this.region);
-            workspaceResourceId = draft.commit().getId();
-        } else {
-           workspaceResourceId = workspaceConfig.getResourceId();
-        }
+        final String workspaceResourceId = extractWorkspaceId();
         final ApplicationInsightsManager applicationInsightsManager = Objects.requireNonNull(this.getParent().getRemote());
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format(START_CREATING_APPLICATION_INSIGHT, getName()));
@@ -110,5 +100,30 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
     @Override
     public boolean isModified() {
         return this.region != null && !Objects.equals(this.region, this.origin.getRegion());
+    }
+
+    @Nullable
+    private String extractWorkspaceId() {
+        if (Objects.isNull(workspaceConfig)) {
+            return null;
+        }
+        String workspaceResourceId;
+        if (this.workspaceConfig.isNewCreate()) {
+            final String resourceGroupName = String.format("DefaultResourceGroup-%s", region.getAbbreviation());
+            final ResourceGroup resourceGroup =
+                    Azure.az(AzureResources.class).groups(getSubscriptionId()).getOrDraft(resourceGroupName, resourceGroupName);
+            if (resourceGroup.isDraftForCreating()) {
+                ((ResourceGroupDraft) resourceGroup).setRegion(region);
+                ((ResourceGroupDraft) resourceGroup).createIfNotExist();
+            }
+            final LogAnalyticsWorkspaceDraft draft = Azure.az(AzureLogAnalyticsWorkspace.class)
+                    .logAnalyticsWorkspaces(getSubscriptionId())
+                    .create(workspaceConfig.getName(), resourceGroupName);
+            draft.setRegion(this.region);
+            workspaceResourceId = draft.commit().getId();
+        } else {
+            workspaceResourceId = workspaceConfig.getResourceId();
+        }
+        return workspaceResourceId;
     }
 }
