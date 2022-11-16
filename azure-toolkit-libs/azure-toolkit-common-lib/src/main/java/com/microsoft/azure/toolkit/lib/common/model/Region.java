@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -24,46 +25,46 @@ import java.util.Set;
 @EqualsAndHashCode
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class Region implements ExpandableParameter {
-    public static final Region US_EAST = new Region("eastus", "East US");
-    public static final Region US_EAST2 = new Region("eastus2", "East US 2");
-    public static final Region US_SOUTH_CENTRAL = new Region("southcentralus", "South Central US");
-    public static final Region US_WEST2 = new Region("westus2", "West US 2");
-    public static final Region US_CENTRAL = new Region("centralus", "Central US");
-    public static final Region US_NORTH_CENTRAL = new Region("northcentralus", "North Central US");
-    public static final Region US_WEST = new Region("westus", "West US");
+    public static final Region US_EAST = new Region("eastus", "East US", "EUS");
+    public static final Region US_EAST2 = new Region("eastus2", "East US 2", "EUS2");
+    public static final Region US_SOUTH_CENTRAL = new Region("southcentralus", "South Central US", "SCUS");
+    public static final Region US_WEST2 = new Region("westus2", "West US 2", "WUS2");
+    public static final Region US_CENTRAL = new Region("centralus", "Central US", "CUS");
+    public static final Region US_NORTH_CENTRAL = new Region("northcentralus", "North Central US", "NCUS");
+    public static final Region US_WEST = new Region("westus", "West US", "WUS");
     public static final Region US_WEST_CENTRAL = new Region("westcentralus", "West Central US");
-    public static final Region CANADA_CENTRAL = new Region("canadacentral", "Canada Central");
-    public static final Region CANADA_EAST = new Region("canadaeast", "Canada East");
-    public static final Region BRAZIL_SOUTH = new Region("brazilsouth", "Brazil South");
-    public static final Region BRAZIL_SOUTHEAST = new Region("brazilsoutheast", "Brazil Southeast");
-    public static final Region EUROPE_NORTH = new Region("northeurope", "North Europe");
-    public static final Region UK_SOUTH = new Region("uksouth", "UK South");
-    public static final Region EUROPE_WEST = new Region("westeurope", "West Europe");
-    public static final Region FRANCE_CENTRAL = new Region("francecentral", "France Central");
-    public static final Region GERMANY_WEST_CENTRAL = new Region("germanywestcentral", "Germany West Central");
-    public static final Region NORWAY_EAST = new Region("norwayeast", "Norway East");
-    public static final Region SWITZERLAND_NORTH = new Region("switzerlandnorth", "Switzerland North");
-    public static final Region FRANCE_SOUTH = new Region("francesouth", "France South");
+    public static final Region CANADA_CENTRAL = new Region("canadacentral", "Canada Central", "CCAN");
+    public static final Region CANADA_EAST = new Region("canadaeast", "Canada East", "canadaeast");
+    public static final Region BRAZIL_SOUTH = new Region("brazilsouth", "Brazil South", "CQ");
+    public static final Region BRAZIL_SOUTHEAST = new Region("brazilsoutheast", "Brazil Southeast", "brazilso");
+    public static final Region EUROPE_NORTH = new Region("northeurope", "North Europe", "NEU");
+    public static final Region UK_SOUTH = new Region("uksouth", "UK South", "SUK");
+    public static final Region EUROPE_WEST = new Region("westeurope", "West Europe",  "WEU");
+    public static final Region FRANCE_CENTRAL = new Region("francecentral", "France Central", "PAR");
+    public static final Region GERMANY_WEST_CENTRAL = new Region("germanywestcentral", "Germany West Central", "DEWC");
+    public static final Region NORWAY_EAST = new Region("norwayeast", "Norway East", "norwayea");
+    public static final Region SWITZERLAND_NORTH = new Region("switzerlandnorth", "Switzerland North", "CHN");
+    public static final Region FRANCE_SOUTH = new Region("francesouth", "France South", "francesouth");
     public static final Region GERMANY_NORTH = new Region("germanynorth", "Germany North");
-    public static final Region NORWAY_WEST = new Region("norwaywest", "Norway West");
-    public static final Region SWITZERLAND_WEST = new Region("switzerlandwest", "Switzerland West");
-    public static final Region UK_WEST = new Region("ukwest", "UK West");
-    public static final Region AUSTRALIA_EAST = new Region("australiaeast", "Australia East");
-    public static final Region ASIA_SOUTHEAST = new Region("southeastasia", "Southeast Asia");
-    public static final Region INDIA_CENTRAL = new Region("centralindia", "Central India");
-    public static final Region ASIA_EAST = new Region("eastasia", "East Asia");
-    public static final Region JAPAN_EAST = new Region("japaneast", "Japan East");
-    public static final Region KOREA_CENTRAL = new Region("koreacentral", "Korea Central");
-    public static final Region AUSTRALIA_CENTRAL = new Region("australiacentral", "Australia Central");
-    public static final Region AUSTRALIA_CENTRAL2 = new Region("australiacentral2", "Australia Central 2");
-    public static final Region AUSTRALIA_SOUTHEAST = new Region("australiasoutheast", "Australia Southeast");
-    public static final Region JAPAN_WEST = new Region("japanwest", "Japan West");
-    public static final Region KOREA_SOUTH = new Region("koreasouth", "Korea South");
-    public static final Region INDIA_SOUTH = new Region("southindia", "South India");
+    public static final Region NORWAY_WEST = new Region("norwaywest", "Norway West", "norwaywe");
+    public static final Region SWITZERLAND_WEST = new Region("switzerlandwest", "Switzerland West", "CHW");
+    public static final Region UK_WEST = new Region("ukwest", "UK West", "WUK");
+    public static final Region AUSTRALIA_EAST = new Region("australiaeast", "Australia East", "EAU");
+    public static final Region ASIA_SOUTHEAST = new Region("southeastasia", "Southeast Asia", "SEA");
+    public static final Region INDIA_CENTRAL = new Region("centralindia", "Central India", "CID");
+    public static final Region ASIA_EAST = new Region("eastasia", "East Asia", "EA");
+    public static final Region JAPAN_EAST = new Region("japaneast", "Japan East", "EJP");
+    public static final Region KOREA_CENTRAL = new Region("koreacentral", "Korea Central", "SE");
+    public static final Region AUSTRALIA_CENTRAL = new Region("australiacentral", "Australia Central", "CAU");
+    public static final Region AUSTRALIA_CENTRAL2 = new Region("australiacentral2", "Australia Central 2", "CBR2");
+    public static final Region AUSTRALIA_SOUTHEAST = new Region("australiasoutheast", "Australia Southeast", "SEAU");
+    public static final Region JAPAN_WEST = new Region("japanwest", "Japan West", "OS");
+    public static final Region KOREA_SOUTH = new Region("koreasouth", "Korea South", "koreasou");
+    public static final Region INDIA_SOUTH = new Region("southindia", "South India", "southindia");
     public static final Region INDIA_WEST = new Region("westindia", "West India");
-    public static final Region UAE_NORTH = new Region("uaenorth", "UAE North");
-    public static final Region UAE_CENTRAL = new Region("uaecentral", "UAE Central");
-    public static final Region SOUTHAFRICA_NORTH = new Region("southafricanorth", "South Africa North");
+    public static final Region UAE_NORTH = new Region("uaenorth", "UAE North", "uaenorth");
+    public static final Region UAE_CENTRAL = new Region("uaecentral", "UAE Central", "AUH");
+    public static final Region SOUTHAFRICA_NORTH = new Region("southafricanorth", "South Africa North", "JNB");
     public static final Region SOUTHAFRICA_WEST = new Region("southafricawest", "South Africa West");
     public static final Region CHINA_NORTH = new Region("chinanorth", "China North");
     public static final Region CHINA_EAST = new Region("chinaeast", "China East");
@@ -78,10 +79,13 @@ public class Region implements ExpandableParameter {
     public static final Region GOV_US_DOD_EAST = new Region("usdodeast", "US DoD East");
     public static final Region GOV_US_DOD_CENTRAL = new Region("usdodcentral", "US DoD Central");
 
-    public static final Region US_WEST3 = new Region("westus3", "West US 3");
+    public static final Region US_WEST3 = new Region("westus3", "West US 3", "WUS3");
     public static final Region US_CENTRAL_EUAP = new Region("centraluseuap", "Central US EUAP");
     public static final Region US_EAST2_EUAP = new Region("eastus2euap", "East US 2 EUAP");
-    public static final Region INDIA_JIO_WEST = new Region("jioindiawest", "Jio India West");
+    public static final Region INDIA_JIO_WEST = new Region("jioindiawest", "Jio India West", "JINW");
+    public static final Region EUROPE_SWEDEN_CENTRAL = new Region("swedencentral", "Sweden Central", "SEC");
+    public static final Region QATAR_CENTRAL = new Region("qatarcentral", "Qatar Central", "QAC");
+    public static final Region INDIA_JIO_CENTRAL = new Region("jioindiacentral", "Jio India Central", "JINC");
 
     private static final Set<Region> values = Collections.unmodifiableSet(Sets.newHashSet(US_EAST, US_EAST2, US_SOUTH_CENTRAL, US_WEST2, US_CENTRAL, US_NORTH_CENTRAL, US_WEST, US_WEST_CENTRAL, CANADA_CENTRAL,
             CANADA_EAST, BRAZIL_SOUTH, BRAZIL_SOUTHEAST, EUROPE_NORTH, UK_SOUTH, EUROPE_WEST, FRANCE_CENTRAL, GERMANY_WEST_CENTRAL, NORWAY_EAST,
@@ -89,12 +93,20 @@ public class Region implements ExpandableParameter {
             ASIA_EAST, JAPAN_EAST, KOREA_CENTRAL, AUSTRALIA_CENTRAL, AUSTRALIA_CENTRAL2, AUSTRALIA_SOUTHEAST, JAPAN_WEST, KOREA_SOUTH, INDIA_SOUTH,
             INDIA_WEST, UAE_NORTH, UAE_CENTRAL, SOUTHAFRICA_NORTH, SOUTHAFRICA_WEST, CHINA_NORTH, CHINA_EAST, CHINA_NORTH2, CHINA_EAST2, GERMANY_CENTRAL,
             GERMANY_NORTHEAST, GOV_US_VIRGINIA, GOV_US_IOWA, GOV_US_ARIZONA, GOV_US_TEXAS, GOV_US_DOD_EAST, GOV_US_DOD_CENTRAL, US_WEST3,
-            US_CENTRAL_EUAP, US_EAST2_EUAP, INDIA_JIO_WEST));
+            US_CENTRAL_EUAP, US_EAST2_EUAP, INDIA_JIO_WEST, EUROPE_SWEDEN_CENTRAL, QATAR_CENTRAL, INDIA_JIO_CENTRAL));
 
     @Nonnull
     private String name;
     @Nonnull
     private String label;
+    @Nonnull
+    private String abbreviation;
+
+    Region(@NotNull String name, @NotNull String label) {
+        this.name = name;
+        this.label = label;
+        this.abbreviation = name;
+    }
 
     public static Set<Region> values() {
         return values;
@@ -103,8 +115,8 @@ public class Region implements ExpandableParameter {
     @Nonnull
     public static Region fromName(@Nonnull String value) {
         return values().stream()
-                .filter(region -> StringUtils.equalsAnyIgnoreCase(value, region.name, region.label))
-                .findFirst().orElse(new Region(value, value));
+                .filter(region -> StringUtils.equalsAnyIgnoreCase(value, region.name, region.label, region.abbreviation))
+                .findFirst().orElse(new Region(value, value, value));
     }
 
     @Override
