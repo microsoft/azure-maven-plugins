@@ -29,7 +29,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -72,16 +71,9 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
             this.messager.info(AzureString.format(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE, "https://" + webApp.getHostName()));
             return webApp;
         }
-        try {
-            this.messager.info(String.format(DEPLOY_START, webApp.getName()));
-            if (isStopAppDuringDeployment) {
-                stopAppService(webApp);
-            }
-            deployArtifacts();
-            this.messager.info(String.format(DEPLOY_FINISH, webApp.getHostName()));
-        } finally {
-            startAppService(webApp);
-        }
+        this.messager.info(String.format(DEPLOY_START, webApp.getName()));
+        deployArtifacts();
+        this.messager.info(String.format(DEPLOY_FINISH, webApp.getHostName()));
         return webApp;
     }
 
@@ -96,10 +88,11 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         if (isWaitUntilRestart()) {
             final AtomicReference<KuduDeploymentResult> reference = new AtomicReference<>();
             artifactsOneDeploy.forEach(resource -> reference.set(webApp.pushDeploy(resource.getDeployType(), resource.getFile(),
-                    DeployOptions.builder().path(resource.getPath()).trackDeployment(true).build())));
+                    DeployOptions.builder().path(resource.getPath()).restartSite(isStopAppDuringDeployment).trackDeployment(true).build())));
             trackDeployment(webApp, reference);
         } else {
-            artifactsOneDeploy.forEach(resource -> webApp.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
+            artifactsOneDeploy.forEach(resource -> webApp.deploy(resource.getDeployType(), resource.getFile(),
+                    DeployOptions.builder().path(resource.getPath()).restartSite(isStopAppDuringDeployment).build()));
         }
         OperationContext.action().setTelemetryProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
     }
@@ -144,27 +137,6 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
                 deploymentStatus.getStatus().getValue(), deploymentStatus.getNumberOfInstancesSuccessful(), deploymentStatus.getNumberOfInstancesInProgress(), deploymentStatus.getNumberOfInstancesFailed());
         this.messager.info(statusMessage);
         return deploymentStatus;
-    }
-
-    private void stopAppService(WebAppBase<?, ?, ?> target) {
-        this.messager.info(STOP_APP);
-        target.stop();
-        // workaround for the resources release problem.
-        // More details: https://github.com/Microsoft/azure-maven-plugins/issues/191
-        try {
-            TimeUnit.SECONDS.sleep(10 /* 10 seconds */);
-        } catch (InterruptedException e) {
-            // swallow exception
-        }
-        this.messager.info(STOP_APP_DONE);
-    }
-
-    private void startAppService(WebAppBase<?, ?, ?> target) {
-        if (!StringUtils.equalsIgnoreCase(target.getStatus(), RUNNING)) {
-            this.messager.info(START_APP);
-            target.start();
-            this.messager.info(START_APP_DONE);
-        }
     }
 
 }
