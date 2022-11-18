@@ -7,7 +7,6 @@ package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
-
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugins.annotations.Mojo;

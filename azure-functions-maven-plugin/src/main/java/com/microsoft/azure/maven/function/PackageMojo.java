@@ -7,9 +7,9 @@ package com.microsoft.azure.maven.function;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.PrettyPrinter;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -17,7 +17,6 @@ import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.Binding;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingEnum;
@@ -30,7 +29,6 @@ import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreTool
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreToolsHandlerImpl;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -41,7 +39,6 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -51,13 +48,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -90,10 +85,8 @@ public class PackageMojo extends AbstractFunctionMojo {
     public static final String BUILD_SUCCESS = "Successfully built Azure Functions.";
 
     public static final String FUNCTION_JSON = "function.json";
-    public static final String HOST_JSON = "host.json";
     public static final String LOCAL_SETTINGS_JSON = "local.settings.json";
     public static final String EXTENSION_BUNDLE = "extensionBundle";
-    private static final String AZURE_FUNCTIONS_JAVA_LIBRARY = "azure-functions-java-library";
     private static final String AZURE_FUNCTIONS_JAVA_CORE_LIBRARY = "azure-functions-java-core-library";
     private static final String DEFAULT_LOCAL_SETTINGS_JSON = "{ \"IsEncrypted\": false, \"Values\": " +
             "{ \"FUNCTIONS_WORKER_RUNTIME\": \"java\" } }";
@@ -119,7 +112,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     @AzureOperation(name = "functionapp.package", type = AzureOperation.Type.ACTION)
     protected void doExecute() throws AzureExecutionException {
         validateAppName();
-
+        validateFunctionCompatibility();
         promptCompileInfo();
 
         final AnnotationHandler annotationHandler = getAnnotationHandler();
@@ -394,10 +387,10 @@ public class PackageMojo extends AbstractFunctionMojo {
             Log.info(SKIP_INSTALL_EXTENSIONS_FLAG);
             return false;
         }
-        final Map<String, Object> hostJson = readHostJson();
-        final String extensionBundleId = Optional.ofNullable(hostJson)
-                .map(host -> ((Map<String, Object>) host.get(EXTENSION_BUNDLE)))
-                .map(extensionBundle -> ((String) extensionBundle.get("id")))
+        final String extensionBundleId = Optional.ofNullable(readHostJson())
+                .map(node -> node.at("/extensionBundle/id"))
+                .filter(node -> !node.isMissingNode())
+                .map(JsonNode::asText)
                 .orElse(null);
         if (StringUtils.equalsAnyIgnoreCase(extensionBundleId, EXTENSION_BUNDLE_ID, EXTENSION_BUNDLE_PREVIEW_ID)) {
             Log.info(SKIP_INSTALL_EXTENSIONS_BUNDLE);
@@ -410,17 +403,6 @@ public class PackageMojo extends AbstractFunctionMojo {
             return false;
         }
         return true;
-    }
-
-    protected Map<String, Object> readHostJson() {
-        final File hostJson = new File(project.getBasedir(), HOST_JSON);
-        try (final FileInputStream fis = new FileInputStream(hostJson);
-             final Scanner scanner = new Scanner(new BOMInputStream(fis))) {
-            final String jsonRaw = scanner.useDelimiter("\\Z").next();
-            return JsonUtils.fromJson(jsonRaw, new TypeReference<HashMap<String, Object>>(){});
-        } catch (IOException e) {
-            return null;
-        }
     }
     // end region
 

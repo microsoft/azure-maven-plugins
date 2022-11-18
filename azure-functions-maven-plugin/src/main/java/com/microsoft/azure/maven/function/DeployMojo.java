@@ -101,6 +101,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected void doValidate() throws AzureExecutionException {
         validateParameters();
+        validateFunctionCompatibility();
         validateArtifactCompileVersion();
         validateApplicationInsightsConfiguration();
     }

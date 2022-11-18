@@ -44,6 +44,7 @@ public class PackageMojoTest extends MojoTestBase {
         doNothing().when(mojoSpy).promptCompileInfo();
         doNothing().when(mojoSpy).trackFunctionProperties(any());
         doNothing().when(mojoSpy).copyJarsToStageDirectory();
+        doNothing().when(mojoSpy).validateFunctionCompatibility();
         mojoSpy.doExecute();
     }
 
