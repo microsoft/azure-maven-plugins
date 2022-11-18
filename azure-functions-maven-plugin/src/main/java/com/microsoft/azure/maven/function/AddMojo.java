@@ -6,14 +6,15 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.BindingTemplate;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.FunctionSettingTemplate;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.FunctionTemplate;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.TemplateResources;
 import com.microsoft.azure.toolkit.lib.legacy.function.utils.FunctionUtils;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
-
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -21,13 +22,13 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.IOUtil;
 
 import javax.annotation.Nullable;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -144,7 +145,8 @@ public class AddMojo extends AbstractFunctionMojo {
     @AzureOperation(name = "functionapp.add", type = AzureOperation.Type.ACTION)
     protected void doExecute() throws AzureExecutionException {
         try {
-            final List<FunctionTemplate> templates = loadAllFunctionTemplates();
+            final FunctionExtensionVersion bundleVersion = getBundleVersion();
+            final List<FunctionTemplate> templates = loadAllFunctionTemplates(bundleVersion);
 
             final FunctionTemplate template = getFunctionTemplate(templates);
 
@@ -162,10 +164,13 @@ public class AddMojo extends AbstractFunctionMojo {
     //endregion
 
     //region Load templates
-    protected List<FunctionTemplate> loadAllFunctionTemplates() throws AzureExecutionException {
+    protected List<FunctionTemplate> loadAllFunctionTemplates(FunctionExtensionVersion bundleVersion) throws AzureExecutionException {
         Log.info("");
         Log.info(LOAD_TEMPLATES);
-        final List<FunctionTemplate> templates = FunctionUtils.loadAllFunctionTemplates();
+        final List<FunctionTemplate> templates = FunctionUtils.loadAllFunctionTemplates()
+                .stream()
+                .filter(template -> ObjectUtils.anyNull(bundleVersion, template.getSupportedExtensionVersions()) || template.getSupportedExtensionVersions().contains(bundleVersion))
+                .collect(Collectors.toList());
         Log.info(LOAD_TEMPLATES_DONE);
         return templates;
     }
@@ -267,7 +272,8 @@ public class AddMojo extends AbstractFunctionMojo {
                                                             final BindingTemplate bindingTemplate,
                                                             final Map<String, String> params)
             throws MojoFailureException {
-        for (final String property : template.getMetadata().getUserPrompt()) {
+        final List<String> userPrompt = ObjectUtils.firstNonNull(template.getMetadata().getUserPrompt(), Collections.emptyList());
+        for (final String property : userPrompt) {
             String initValue = System.getProperty(property);
             final List<String> options = getOptionsForUserPrompt(property);
             final FunctionSettingTemplate settingTemplate = bindingTemplate == null ?
@@ -500,7 +506,7 @@ public class AddMojo extends AbstractFunctionMojo {
             return Arrays.asList("ANONYMOUS", "FUNCTION", "ADMIN");
         }
         // Cosmos DB Trigger
-        if ("createLeaseCollectionIfNotExists".equalsIgnoreCase(promptName.trim())) {
+        if (StringUtils.equalsAnyIgnoreCase(promptName.trim(), "createLeaseCollectionIfNotExists", "createLeaseContainerIfNotExists")) {
             return Arrays.asList("true", "false");
         }
         if ("protocol".equalsIgnoreCase(promptName.trim())) {

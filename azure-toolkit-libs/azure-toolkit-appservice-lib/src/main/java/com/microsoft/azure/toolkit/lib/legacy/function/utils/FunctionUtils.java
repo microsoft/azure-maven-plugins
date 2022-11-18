@@ -21,6 +21,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class FunctionUtils {
@@ -28,12 +30,19 @@ public class FunctionUtils {
     private static final String LOAD_BINDING_TEMPLATES_FAIL = "Failed to load function binding template.";
     private static final String INVALID_FUNCTION_EXTENSION_VERSION = "FUNCTIONS_EXTENSION_VERSION is empty or invalid, " +
             "please check the configuration";
+    private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)\\.(\\d+|\\*)");
 
-    public static FunctionExtensionVersion parseFunctionExtensionVersion(String version) throws AzureExecutionException {
+    public static FunctionExtensionVersion parseFunctionExtensionVersion(String version) {
         return Arrays.stream(FunctionExtensionVersion.values())
-                .filter(versionEnum -> StringUtils.equalsIgnoreCase(versionEnum.getVersion(), version))
+                .filter(versionEnum -> StringUtils.equalsIgnoreCase(versionEnum.getVersion(), version) ||
+                        StringUtils.equalsIgnoreCase(String.valueOf(versionEnum.getValue()), version))
                 .findFirst()
-                .orElseThrow(() -> new AzureExecutionException(INVALID_FUNCTION_EXTENSION_VERSION));
+                .orElse(FunctionExtensionVersion.UNKNOWN);
+    }
+
+    public static FunctionExtensionVersion parseFunctionExtensionVersionFromHostJson(String version) {
+        final Matcher matcher = VERSION_PATTERN.matcher(version);
+        return matcher.find() ? parseFunctionExtensionVersion(matcher.group(1)) : null;
     }
 
     public static BindingTemplate loadBindingTemplate(String type) {
