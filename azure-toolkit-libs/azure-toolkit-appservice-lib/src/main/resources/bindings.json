@@ -419,6 +419,63 @@
           "help": "$kafka_consumergroup_help"
         }
       ]
+    },
+    {
+      "type": "DurableFunctionsOrchestrator",
+      "displayName": "$DurableFunctionsOrchestrator_displayName",
+      "direction": "trigger",
+      "enabledInTryMode": true,
+      "settings": [
+        
+      ]
+    },
+    {
+      "type": "cosmosDBTrigger-v4",
+      "displayName": "$cosmosDB_trigger_displayName",
+      "direction": "trigger",
+      "enabledInTryMode": false,
+      "settings": [
+        {
+          "name": "connection",
+          "value": "string",
+          "required": true,
+          "resource": "DocumentDB",
+          "label": "$cosmosDBIn_connection_label",
+          "help": "$cosmosDBIn_connection_help",
+          "placeholder": "[variables('selectConnection')]"
+        },
+        {
+          "name": "databaseName",
+          "value": "string",
+          "defaultValue": "",
+          "required": true,
+          "label": "$cosmosDBIn_databaseName_label",
+          "help": "$cosmosDBIn_databaseName_help"
+        },
+        {
+          "name": "containerName",
+          "value": "string",
+          "defaultValue": "",
+          "required": true,
+          "label": "$cosmosDBIn_containerName_label",
+          "help": "$cosmosDBIn_containerName_help"
+        },
+        {
+          "name": "leaseContainerName",
+          "value": "string",
+          "required": true,
+          "label": "$cosmosDBIn_leaseContainerName_label",
+          "help": "$cosmosDBIn_leaseContainerName_help"
+        },
+        {
+          "name": "createLeaseContainerIfNotExists",
+          "value": "boolean",
+          "defaultValue": true,
+          "required": true,
+          "label": "$cosmosDBIn_createLeaseContainerIfNotExists_label",
+          "help": "$cosmosDBIn_createLeaseContainerIfNotExists_help"
+        }
+      ]
     }
   ]
 }

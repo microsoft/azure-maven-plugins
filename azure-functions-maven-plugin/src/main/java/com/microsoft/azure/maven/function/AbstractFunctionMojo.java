@@ -5,18 +5,45 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.azure.core.implementation.SemanticVersion;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
 import com.microsoft.azure.maven.appservice.AbstractAppServiceMojo;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
+import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.RuntimeConfiguration;
+import com.microsoft.azure.toolkit.lib.legacy.function.utils.FunctionUtils;
 import lombok.Getter;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
+    protected static final String HOST_JSON = "host.json";
+    protected static final String TRIGGER_TYPE = "triggerType";
+    protected static final String AZURE_FUNCTIONS_JAVA_LIBRARY = "azure-functions-java-library";
+    protected static final Map<FunctionExtensionVersion, Set<Integer>> FUNCTION_EXTENSION_LIBRARY_MAP = new HashMap<FunctionExtensionVersion, Set<Integer>>() {
+        {
+            put(FunctionExtensionVersion.VERSION_2, Sets.newHashSet(1, 2));
+            put(FunctionExtensionVersion.VERSION_3, Sets.newHashSet(1, 2));
+            put(FunctionExtensionVersion.VERSION_4, Sets.newHashSet(3));
+        }
+    };
     private static final String FUNCTION_JAVA_VERSION_KEY = "functionJavaVersion";
     private static final String DISABLE_APP_INSIGHTS_KEY = "disableAppInsights";
     private static final String FUNCTION_RUNTIME_KEY = "os";
@@ -24,7 +51,6 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     private static final String FUNCTION_REGION_KEY = "region";
     private static final String FUNCTION_PRICING_KEY = "pricingTier";
     private static final String FUNCTION_DEPLOY_TO_SLOT_KEY = "isDeployToFunctionSlot";
-    protected static final String TRIGGER_TYPE = "triggerType";
 
     //region Properties
     @Parameter(defaultValue = "${project.build.finalName}", readonly = true, required = true)
@@ -156,6 +182,53 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         if (StringUtils.isBlank(appName)) {
             throw new AzureToolkitRuntimeException("<appName> is not configured in pom");
         }
+    }
+
+    protected void validateFunctionCompatibility() {
+        // get bundle version
+        final FunctionExtensionVersion bundleVersion = getBundleVersion();
+        // get function library version
+        final String functionLibraryVersion = getFunctionLibraryVersion();
+        final Integer functionLibraryMajorVersion = Optional.ofNullable(functionLibraryVersion)
+                .map(version -> SemanticVersion.parse(version).getMajorVersion())
+                .orElse(null);
+        // todo: validate host json version
+        if (bundleVersion == null || bundleVersion == FunctionExtensionVersion.UNKNOWN || functionLibraryMajorVersion == null) {
+            return;
+        }
+        final Set<Integer> matchedVersions = FUNCTION_EXTENSION_LIBRARY_MAP.get(bundleVersion);
+        if (!matchedVersions.contains(functionLibraryMajorVersion)) {
+            final String validVersions = matchedVersions.stream().map(value -> String.format("v%s.*", value)).collect(Collectors.joining(","));
+            AzureMessager.getMessager().error("There might be some compatibility issues between azure function extension bundle and azure functions java library");
+            AzureMessager.getMessager().error(AzureString.format("Valid function library versions for extension bundle v%s should be: %s, current value is %s",
+                    bundleVersion.getValue(), validVersions, functionLibraryVersion));
+        }
+    }
+
+    protected String getFunctionLibraryVersion() {
+        final Set<Artifact> artifacts = project.getArtifacts();
+        return artifacts.stream()
+                .filter(artifact -> StringUtils.equals(artifact.getArtifactId(), AZURE_FUNCTIONS_JAVA_LIBRARY))
+                .findFirst()
+                .map(artifact -> artifact.getVersion())
+                .orElse(null);
+    }
+
+    protected JsonNode readHostJson() {
+        // todo: add configuration for host.json location
+        final File hostJson = new File(project.getBasedir(), HOST_JSON);
+        try (final FileInputStream fis = new FileInputStream(hostJson)) {
+            final String content = IOUtils.toString(fis, Charset.defaultCharset());
+            return JsonUtils.fromJson(content, JsonNode.class);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    protected FunctionExtensionVersion getBundleVersion() {
+        final JsonNode hostJson = readHostJson();
+        final JsonNode at = hostJson.at("/extensionBundle/version");
+        return at.isMissingNode() ? null : FunctionUtils.parseFunctionExtensionVersionFromHostJson(at.asText());
     }
 
     @Override

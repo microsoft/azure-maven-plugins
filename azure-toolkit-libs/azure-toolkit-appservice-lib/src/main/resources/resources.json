@@ -83,6 +83,14 @@
     "kafka_authenticationmode_label": "SASL mechanism",
     "kafka_authenticationmode_help": "SASL mechanism to use for authentication",
     "kafka_consumergroup_label": "Consumer Group",
-    "kafka_consumergroup_help": "Consumer Group"
+    "kafka_consumergroup_help": "Consumer Group",
+    "DurableFunctionsOrchestrator_description": "An orchestrator function that invokes activity functions in a sequence.",
+    "DurableFunctionsOrchestrator_displayName":"Durable Functions Orchestrator",
+    "cosmosDBIn_containerName_label": "Container name",
+    "cosmosDBIn_containerName_help": "Name of the container to be monitored.",
+    "cosmosDBIn_leaseContainerName_label": "Container name for leases",
+    "cosmosDBIn_leaseContainerName_help": "Name of the container to store the leases.",
+    "cosmosDBIn_createLeaseContainerIfNotExists_label": "Create lease container if it does not exist",
+    "cosmosDBIn_createLeaseContainerIfNotExists_help": "Checks for existence and automatically creates the leases container."
   }
 }

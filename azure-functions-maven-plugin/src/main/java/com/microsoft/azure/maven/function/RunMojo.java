@@ -6,12 +6,11 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.CommandHandler;
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.CommandHandlerImpl;
 import com.microsoft.azure.toolkit.lib.legacy.function.utils.CommandUtils;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.plugins.annotations.Mojo;

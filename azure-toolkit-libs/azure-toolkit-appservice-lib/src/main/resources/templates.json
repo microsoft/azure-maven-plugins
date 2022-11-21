@@ -187,6 +187,7 @@
           "createLeaseCollectionIfNotExists"
         ]
       },
+      "bundle":["~1", "~2", "~3"],
       "function": {
         "bindings": [
           {
@@ -322,6 +323,74 @@
       },
       "files": {
         "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Kafka Trigger.\n */\npublic class $className$ {\n    /**\n     * This function consume KafkaEvents on the localhost. Change the topic, brokerList, and consumerGroup to fit your enviornment.\n     * The function is trigged one for each KafkaEvent\n     * @param kafkaEventData\n     * @param context\n     */\n    @FunctionName(\"$functionName$\")\n    public void run(\n            @KafkaTrigger(name = \"$name$\", \n                          topic = \"$topic$\", \n                          brokerList = \"$brokerList$\",\n                          username = \"$ConnectionString\",\n                          password = \"%KafkaPassword%\",\n                          authenticationMode = BrokerAuthenticationMode.$authenticationMode$,\n                          protocol = BrokerProtocol.$protocol$,\n                          consumerGroup=\"$Default\") String kafkaEventData,\n            final ExecutionContext context) {\n        context.getLogger().info(kafkaEventData);\n    }\n}"
+      }
+    },
+    {
+      "id": "CosmosDBTrigger-v4-Java",
+      "metadata": {
+        "name": "CosmosDBTrigger-v4",
+        "description": "$CosmosDBTrigger_description",
+        "defaultFunctionName": "cosmosDBTriggerJava",
+        "language": "Java",
+        "userPrompt": [
+          "databaseName",
+          "containerName",
+          "leaseContainerName",
+          "connection",
+          "createLeaseContainerIfNotExists"
+        ]
+      },
+      "bundle":["~4"],
+      "function": {
+        "disabled": false,
+        "bindings": [
+          {
+            "type" : "cosmosDBTrigger-v4",
+            "direction" : "in",
+            "name" : "items",
+            "databaseName" : "%databaseName%",
+            "containerName" : "%containerName%",
+            "leaseContainerName" : "%leaseContainerName%",
+            "connection" : "%connection%",
+            "createLeaseContainerIfNotExists" : true
+          }
+        ]
+      },
+      "files": {
+        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\nimport java.util.ArrayList;\n\n/**\n * Azure Functions with Cosmos DB trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when there are inserts or updates in the specified database and collection.\n     */\n    @FunctionName(\"$functionName$\")\n    public void run(\n        @CosmosDBTrigger(\n            name = \"items\",\n            databaseName = \"$databaseName$\",\n            containerName = \"$containerName$\",\n            leaseContainerName=\"$leaseContainerName$\",\n            connection = \"$connection$\",\n            createLeaseContainerIfNotExists = $createLeaseContainerIfNotExists$\n        )\n        Object inputItem,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Cosmos DB trigger function executed.\");\n        ArrayList<?> inputItems = (ArrayList<?>) inputItem;\n        context.getLogger().info(\"Documents modified: \" + inputItems.size());\n    }\n}\n"
+      }
+    },
+    {
+      "id": "DurableFunctionsOrchestrator-Java",
+      "metadata": {
+        "name": "DurableFunctionsOrchestrator",
+        "description": "$DurableFunctionsOrchestrator_description",
+        "defaultFunctionName": "DurableFunctionsOrchestrator",
+        "language": "Java"
+      },
+      "bundle":["~4"],
+      "function": {
+        "disabled": false,
+        "bindings": [
+          {
+            "type" : "durableClient",
+            "direction" : "in",
+            "name" : "durableContext"
+          },
+          {
+            "type" : "activityTrigger",
+            "direction" : "in",
+            "name" : "name"
+          },
+          {
+            "type" : "orchestrationTrigger",
+            "direction" : "in",
+            "name" : "runtimeState"
+          }
+        ]
+      },
+      "files": {
+        "function.java": "package $packageName$;\n\nimport java.util.Optional;\n\nimport com.microsoft.azure.functions.*;\nimport com.microsoft.azure.functions.annotation.*;\n\nimport com.microsoft.durabletask.*;\nimport com.microsoft.durabletask.azurefunctions.*;\n\n/**\n * Please follow the below steps to run this durable function sample\n * 1. Send an HTTP POST request to endpoint `StartHelloCities` to run a durable function\n * 2. Send request to statusQueryGetUri in `StartHelloCities` response to get the status of durable function\n * For more instructions, please refer https://aka.ms/durable-function-java\n * \n * Please add com.microsoft:durabletask-azure-functions to your project dependencies\n * Please add `\"extensions\": { \"durableTask\": { \"hubName\": \"JavaTestHub\" }}` to your host.json\n */\npublic class $className$ {\n    /**\n     * This HTTP-triggered function starts the orchestration.\n     */\n    @FunctionName(\"StartHelloCities\")\n    public HttpResponseMessage startHelloCities(\n            @HttpTrigger(name = \"req\", methods = {HttpMethod.POST}) HttpRequestMessage<Optional<String>> req,\n            @DurableClientInput(name = \"durableContext\") DurableClientContext durableContext,\n            final ExecutionContext context) {\n\n        DurableTaskClient client = durableContext.getClient();\n        String instanceId = client.scheduleNewOrchestrationInstance(\"HelloCities\");\n        context.getLogger().info(\"Created new Java orchestration with instance ID = \" + instanceId);\n        return durableContext.createCheckStatusResponse(req, instanceId);\n    }\n\n    /**\n     * This is the orchestrator function, which can schedule activity functions, create durable timers,\n     * or wait for external events in a way that's completely fault-tolerant. The OrchestrationRunner.loadAndRun()\n     * static method is used to take the function input and execute the orchestrator logic.\n     */\n    @FunctionName(\"HelloCities\")\n    public String helloCitiesOrchestrator(@DurableOrchestrationTrigger(name = \"runtimeState\") String runtimeState) {\n        return OrchestrationRunner.loadAndRun(runtimeState, ctx -> {\n            String result = \"\";\n            result += ctx.callActivity(\"SayHello\", \"Tokyo\", String.class).await() + \", \";\n            result += ctx.callActivity(\"SayHello\", \"London\", String.class).await() + \", \";\n            result += ctx.callActivity(\"SayHello\", \"Seattle\", String.class).await();\n            return result;\n        });\n    }\n\n    /**\n     * This is the activity function that gets invoked by the orchestrator function.\n     */\n    @FunctionName(\"SayHello\")\n    public String sayHello(@DurableActivityTrigger(name = \"name\") String name) {\n        return String.format(\"Hello %s!\", name);\n    }\n}"
       }
     }
   ]
