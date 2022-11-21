@@ -49,7 +49,7 @@ public class AzureStorageAccount extends AbstractAzService<StorageServiceSubscri
         return rm.getStorageModule().get(resourceId);
     }
 
-    @Nullable
+    @Nonnull
     public List<StorageAccount> accounts() {
         return this.list().stream().flatMap(m -> m.storageAccounts().list().stream()).collect(Collectors.toList());
     }

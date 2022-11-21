@@ -38,6 +38,11 @@ public class AzurePostgreSql extends AbstractAzService<PostgreSqlServiceSubscrip
         return rm.getServerModule();
     }
 
+    @Nonnull
+    public List<PostgreSqlServer> servers() {
+        return this.list().stream().flatMap(m -> m.servers().list().stream()).collect(Collectors.toList());
+    }
+
     @Nullable
     @Override
     protected PostgreSqlManager loadResourceFromAzure(@Nonnull String subscriptionId, String resourceGroup) {
