@@ -215,7 +215,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             try {
                 final String name = StringUtils.firstNonEmpty(functionAppConfig.appInsightsInstance(), functionAppConfig.appName());
                 return new GetOrCreateApplicationInsightsTask(functionAppConfig.subscriptionId(),
-                        functionAppConfig.resourceGroup(), functionAppConfig.region(), name).getBody().call();
+                        functionAppConfig.resourceGroup(), functionAppConfig.region(), name, functionAppConfig.workspaceConfig()).getBody().call();
             } catch (final Throwable e) {
                 final String errorMessage = Optional.ofNullable(ExceptionUtils.getRootCause(e)).orElse(e).getMessage();
                 AzureMessager.getMessager().warning(String.format(APPLICATION_INSIGHTS_CREATE_FAILED, errorMessage));

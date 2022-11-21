@@ -10,6 +10,7 @@ import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsightDraft;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsightsModule;
 import com.microsoft.azure.toolkit.lib.applicationinsights.AzureApplicationInsights;
+import com.microsoft.azure.toolkit.lib.applicationinsights.workspace.LogAnalyticsWorkspaceConfig;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
@@ -31,12 +32,15 @@ public class GetOrCreateApplicationInsightsTask extends AzureTask<ApplicationIns
     private final String name;
     @Nonnull
     private final Region region;
+    @Nonnull
+    private final LogAnalyticsWorkspaceConfig workspaceConfig;
 
-    public GetOrCreateApplicationInsightsTask(@Nonnull String subscriptionId, @Nonnull String resourceGroup, @Nonnull Region region, @Nonnull String name) {
+    public GetOrCreateApplicationInsightsTask(@Nonnull String subscriptionId, @Nonnull String resourceGroup, @Nonnull Region region, @Nonnull String name, @Nonnull LogAnalyticsWorkspaceConfig workspaceConfig) {
         this.subscriptionId = subscriptionId;
         this.resourceGroup = resourceGroup;
         this.name = name;
         this.region = region;
+        this.workspaceConfig = workspaceConfig;
     }
 
     @Override
@@ -46,6 +50,7 @@ public class GetOrCreateApplicationInsightsTask extends AzureTask<ApplicationIns
         return Optional.ofNullable(insightsModule.get(name, this.resourceGroup)).orElseGet(() -> {
             final ApplicationInsightDraft draft = insightsModule.create(name, this.resourceGroup);
             draft.setRegion(region);
+            draft.setWorkspaceConfig(workspaceConfig);
             return draft.commit();
         });
     }

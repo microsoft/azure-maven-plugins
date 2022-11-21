@@ -102,6 +102,10 @@
             <artifactId>azure-resourcemanager-applicationinsights</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.azure.resourcemanager</groupId>
+            <artifactId>azure-resourcemanager-loganalytics</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-toolkit-auth-lib</artifactId>
         </dependency>
