@@ -430,7 +430,7 @@
       ]
     },
     {
-      "type": "cosmosDBTrigger-v4",
+      "type": "v4-CosmosDBTrigger",
       "displayName": "$cosmosDB_trigger_displayName",
       "direction": "trigger",
       "enabledInTryMode": false,

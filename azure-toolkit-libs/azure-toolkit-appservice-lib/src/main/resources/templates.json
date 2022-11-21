@@ -326,9 +326,9 @@
       }
     },
     {
-      "id": "CosmosDBTrigger-v4-Java",
+      "id": "v4-CosmosDBTrigger",
       "metadata": {
-        "name": "CosmosDBTrigger-v4",
+        "name": "CosmosDBTrigger (Bundle V4)",
         "description": "$CosmosDBTrigger_description",
         "defaultFunctionName": "cosmosDBTriggerJava",
         "language": "Java",
@@ -345,13 +345,13 @@
         "disabled": false,
         "bindings": [
           {
-            "type" : "cosmosDBTrigger-v4",
+            "type" : "v4-CosmosDBTrigger",
             "direction" : "in",
             "name" : "items",
-            "databaseName" : "%databaseName%",
-            "containerName" : "%containerName%",
-            "leaseContainerName" : "%leaseContainerName%",
-            "connection" : "%connection%",
+            "databaseName" : "database",
+            "containerName" : "container",
+            "leaseContainerName" : "leaseContainerName",
+            "connection" : "",
             "createLeaseContainerIfNotExists" : true
           }
         ]
