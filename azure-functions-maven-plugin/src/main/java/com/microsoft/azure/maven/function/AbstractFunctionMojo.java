@@ -199,8 +199,8 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         final Set<Integer> matchedVersions = FUNCTION_EXTENSION_LIBRARY_MAP.get(bundleVersion);
         if (!matchedVersions.contains(functionLibraryMajorVersion)) {
             final String validVersions = matchedVersions.stream().map(value -> String.format("v%s.*", value)).collect(Collectors.joining(","));
-            AzureMessager.getMessager().error("There might be some compatibility issues between azure function extension bundle and azure functions java library");
-            AzureMessager.getMessager().error(AzureString.format("Valid function library versions for extension bundle v%s should be: %s, current value is %s",
+            AzureMessager.getMessager().warning("There might be some compatibility issues between azure function extension bundle and azure functions java library");
+            AzureMessager.getMessager().warning(AzureString.format("Valid function library versions for extension bundle v%s should be: %s, current value is %s",
                     bundleVersion.getValue(), validVersions, functionLibraryVersion));
         }
     }
