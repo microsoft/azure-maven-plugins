@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 import static java.util.regex.Pattern.compile;
 
 public class AzureHtmlMessage extends AzureMessage {
-    static final Pattern URL_PATTERN = compile("\\s+https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)");
+    static final Pattern URL_PATTERN = compile("\\s*https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)");
 
     public AzureHtmlMessage(@Nonnull Type type, @Nonnull AzureString message) {
         super(type, message);
