@@ -28,6 +28,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class AzureTelemeter {
+    public static final String EVENT_TYPE = "eventType";
     public static final String SERVICE_NAME = "serviceName";
     public static final String OPERATION_NAME = "operationName";
     public static final String OP_ID = "op_id";
@@ -87,8 +88,10 @@ public class AzureTelemeter {
 
     public static void log(final AzureTelemetry.Type type, final Map<String, String> properties) {
         if (client != null && !StringUtils.equals(properties.get(OP_NAME), Operation.UNKNOWN_NAME)) {
+            properties.put(AzureTelemeter.EVENT_TYPE, type.name());
             properties.putAll(Optional.ofNullable(getCommonProperties()).orElse(new HashMap<>()));
-            final String eventName = Optional.ofNullable(getEventNamePrefix()).orElse("AzurePlugin") + "/" + type.name();
+            final String operationId = properties.get(SERVICE_NAME) + "." + properties.get(OPERATION_NAME);
+            final String eventName = Optional.ofNullable(getEventNamePrefix()).orElse("AzurePlugin") + "/" + operationId;
             client.trackEvent(eventName, properties, null);
         }
     }
@@ -100,11 +103,10 @@ public class AzureTelemeter {
         final Optional<Operation> parent = Optional.ofNullable(op.getEffectiveParent());
         final Map<String, String> properties = new HashMap<>();
         final String name = op.getId().replaceAll("\\(.+\\)", "(***)"); // e.g. `appservice.list_file.dir`
-        final String[] parts = name.split("\\."); // ["appservice|file", "list", "dir"]
+        final String[] parts = name.split("\\."); // ["appservice", "list_file", "dir"]
         if (parts.length > 1) {
-            final String[] compositeServiceName = parts[0].split("\\|"); // ["appservice", "file"]
-            final String mainServiceName = compositeServiceName[0]; // "appservice"
-            final String operationName = compositeServiceName.length > 1 ? parts[1] + "_" + compositeServiceName[1] : parts[1]; // "list_file"
+            final String mainServiceName = parts[0]; // "appservice"
+            final String operationName = parts[1]; // "list_file"
             properties.put(SERVICE_NAME, mainServiceName);
             properties.put(OPERATION_NAME, operationName);
         }
