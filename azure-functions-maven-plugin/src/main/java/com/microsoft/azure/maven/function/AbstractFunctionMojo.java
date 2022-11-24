@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     protected static final String HOST_JSON = "host.json";
+    protected static final String LOCAL_SETTINGS_JSON = "local.settings.json";
     protected static final String TRIGGER_TYPE = "triggerType";
     protected static final String AZURE_FUNCTIONS_JAVA_LIBRARY = "azure-functions-java-library";
     protected static final Map<FunctionExtensionVersion, Set<Integer>> FUNCTION_EXTENSION_LIBRARY_MAP = new HashMap<FunctionExtensionVersion, Set<Integer>>() {
@@ -143,6 +144,14 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     protected boolean disableAppInsights;
 
     @Getter
+    @Parameter(property = "functions.hostJson", defaultValue = HOST_JSON)
+    protected String hostJson;
+
+    @Getter
+    @Parameter(property = "functions.localSettingsJson", defaultValue = LOCAL_SETTINGS_JSON)
+    protected String localSettingsJson;
+    
+    @Getter
     protected ConfigParser parser = new ConfigParser(this);
 
     //endregion
@@ -216,7 +225,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     protected JsonNode readHostJson() {
         // todo: add configuration for host.json location
-        final File hostJson = new File(project.getBasedir(), HOST_JSON);
+        final File hostJson = new File(project.getBasedir(), getHostJson());
         try (final FileInputStream fis = new FileInputStream(hostJson)) {
             final String content = IOUtils.toString(fis, Charset.defaultCharset());
             return JsonUtils.fromJson(content, JsonNode.class);

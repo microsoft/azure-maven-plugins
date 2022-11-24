@@ -85,7 +85,6 @@ public class PackageMojo extends AbstractFunctionMojo {
     public static final String BUILD_SUCCESS = "Successfully built Azure Functions.";
 
     public static final String FUNCTION_JSON = "function.json";
-    public static final String LOCAL_SETTINGS_JSON = "local.settings.json";
     public static final String EXTENSION_BUNDLE = "extensionBundle";
     private static final String AZURE_FUNCTIONS_JAVA_CORE_LIBRARY = "azure-functions-java-core-library";
     private static final String DEFAULT_LOCAL_SETTINGS_JSON = "{ \"IsEncrypted\": false, \"Values\": " +
@@ -281,7 +280,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     protected void copyHostJson() throws IOException {
         Log.info("");
         Log.info(SAVING_HOST_JSON);
-        final File sourceHostJsonFile = new File(project.getBasedir(), HOST_JSON);
+        final File sourceHostJsonFile = new File(project.getBasedir(), getHostJson());
         final File destHostJsonFile = Paths.get(getDeploymentStagingDirectoryPath(), HOST_JSON).toFile();
         copyFilesWithDefaultContent(sourceHostJsonFile, destHostJsonFile, DEFAULT_HOST_JSON);
         Log.info(SAVE_SUCCESS + destHostJsonFile.getAbsolutePath());
@@ -290,7 +289,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     protected void copyLocalSettingsJson() throws IOException {
         Log.info("");
         Log.info(SAVING_LOCAL_SETTINGS_JSON);
-        final File sourceLocalSettingsJsonFile = new File(project.getBasedir(), LOCAL_SETTINGS_JSON);
+        final File sourceLocalSettingsJsonFile = new File(project.getBasedir(), getLocalSettingsJson());
         final File destLocalSettingsJsonFile = Paths.get(getDeploymentStagingDirectoryPath(), LOCAL_SETTINGS_JSON).toFile();
         copyFilesWithDefaultContent(sourceLocalSettingsJsonFile, destLocalSettingsJsonFile, DEFAULT_LOCAL_SETTINGS_JSON);
         Log.info(SAVE_SUCCESS + destLocalSettingsJsonFile.getAbsolutePath());
