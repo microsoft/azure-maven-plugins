@@ -143,14 +143,24 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter(property = "functions.disableAppInsights", defaultValue = "false")
     protected boolean disableAppInsights;
 
+    /**
+     * Path for host.json file
+     *
+     * @since 1.22.0
+     */
     @Getter
     @Parameter(property = "functions.hostJson", defaultValue = HOST_JSON)
     protected String hostJson;
 
+    /**
+     * Path for local.settings.json file
+     *
+     * @since 1.22.0
+     */
     @Getter
     @Parameter(property = "functions.localSettingsJson", defaultValue = LOCAL_SETTINGS_JSON)
     protected String localSettingsJson;
-    
+
     @Getter
     protected ConfigParser parser = new ConfigParser(this);
 
