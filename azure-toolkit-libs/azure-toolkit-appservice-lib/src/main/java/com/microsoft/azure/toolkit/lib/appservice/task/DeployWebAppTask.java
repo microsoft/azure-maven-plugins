@@ -45,7 +45,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private final WebAppBase<?, ?, ?> webApp;
     private final List<WebAppArtifact> artifacts;
     private final boolean isStopAppDuringDeployment;
-    private final Boolean isWaitUntilStart;
+    private final Boolean waitDeploymentComplete;
     private final IAzureMessager messager;
 
     public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts) {
@@ -56,11 +56,11 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         this(webApp, artifacts, isStopAppDuringDeployment, null);
     }
 
-    public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts, boolean isStopAppDuringDeployment, Boolean isWaitUntilStart) {
+    public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts, boolean isStopAppDuringDeployment, Boolean waitDeploymentComplete) {
         this.webApp = webApp;
         this.artifacts = artifacts;
         this.isStopAppDuringDeployment = isStopAppDuringDeployment;
-        this.isWaitUntilStart = isWaitUntilStart;
+        this.waitDeploymentComplete = waitDeploymentComplete;
         this.messager = AzureMessager.getMessager();
     }
 
@@ -85,7 +85,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         final List<WebAppArtifact> artifactsOneDeploy = this.artifacts.stream()
                 .filter(artifact -> artifact.getDeployType() != null)
                 .collect(Collectors.toList());
-        if (isWaitUntilRestart()) {
+        if (isWaitDeploymentComplete()) {
             final AtomicReference<KuduDeploymentResult> reference = new AtomicReference<>();
             artifactsOneDeploy.forEach(resource -> reference.set(webApp.pushDeploy(resource.getDeployType(), resource.getFile(),
                     DeployOptions.builder().path(resource.getPath()).restartSite(isStopAppDuringDeployment).trackDeployment(true).build())));
@@ -97,12 +97,12 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         OperationContext.action().setTelemetryProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
     }
 
-    private boolean isWaitUntilRestart() {
-        if (webApp.getRuntime().isWindows() && BooleanUtils.isTrue(this.isWaitUntilStart)) {
-            messager.warning("Deployment Status is not supported in Windows runtime, skip waiting for deployment status.");
+    private boolean isWaitDeploymentComplete() {
+        if (webApp.getRuntime().isWindows() && BooleanUtils.isTrue(this.waitDeploymentComplete)) {
+            messager.warning("Wait deployment complete is not supported in Windows runtime, skip waiting for deployment status.");
             return false;
         }
-        return Optional.ofNullable(this.isWaitUntilStart).orElseGet(() -> webApp.getRuntime().isLinux());
+        return Optional.ofNullable(this.waitDeploymentComplete).orElseGet(() -> webApp.getRuntime().isLinux());
     }
 
     private void trackDeployment(final WebAppBase<?, ?, ?> target, final AtomicReference<KuduDeploymentResult> resultReference) {

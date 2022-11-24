@@ -43,8 +43,8 @@ import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigU
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractWebAppMojo {
 
-    @Parameter(property = "webapp.waitUntilStart")
-    protected Boolean waitUntilStart;
+    @Parameter(property = "webapp.waitDeploymentComplete")
+    protected Boolean waitDeploymentComplete;
 
     @Override
     @AzureOperation(name = "webapp.deploy_app", type = AzureOperation.Type.ACTION)
@@ -94,7 +94,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deploy(WebAppBase<?, ?, ?> target, List<WebAppArtifact> artifacts) {
-        new DeployWebAppTask(target, artifacts, isStopAppDuringDeployment(), this.waitUntilStart).doExecute();
+        new DeployWebAppTask(target, artifacts, isStopAppDuringDeployment(), this.waitDeploymentComplete).doExecute();
     }
 
     private void deployExternalResources(final WebAppBase<?, ?, ?> target, final List<DeploymentResource> resources) {
