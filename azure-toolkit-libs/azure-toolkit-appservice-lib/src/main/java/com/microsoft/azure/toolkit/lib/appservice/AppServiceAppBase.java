@@ -6,11 +6,9 @@
 package com.microsoft.azure.toolkit.lib.appservice;
 
 import com.azure.resourcemanager.appservice.models.CsmPublishingProfileOptions;
-import com.azure.resourcemanager.appservice.models.DeployOptions;
 import com.azure.resourcemanager.appservice.models.HostType;
 import com.azure.resourcemanager.appservice.models.HostnameSslState;
 import com.azure.resourcemanager.appservice.models.PublishingProfileFormat;
-import com.azure.resourcemanager.appservice.models.SupportsOneDeploy;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
@@ -20,7 +18,6 @@ import com.microsoft.azure.toolkit.lib.appservice.file.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.file.IProcessClient;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
 import com.microsoft.azure.toolkit.lib.appservice.model.CommandOutput;
-import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.ProcessInfo;
 import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
@@ -30,8 +27,6 @@ import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanModule;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
@@ -45,7 +40,6 @@ import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Collections;
@@ -109,19 +103,6 @@ public abstract class AppServiceAppBase<
     @AzureOperation(name = "resource.restart_resource_in_azure.resource", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public void restart() {
         this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).restart(), AzResource.Status.RESTARTING);
-    }
-
-    @AzureOperation(name = "appservice.deploy_app.app", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
-    public void deploy(@Nonnull DeployType deployType, @Nonnull File targetFile, @Nullable String targetPath) {
-        final WebSiteBase remote = this.getRemote();
-        if (remote instanceof SupportsOneDeploy) {
-            final DeployOptions options = new DeployOptions().withPath(targetPath);
-            AzureMessager.getMessager().info(AzureString.format("Deploying (%s)[%s] %s ...", targetFile.toString(),
-                (deployType.toString()), StringUtils.isBlank(targetPath) ? "" : (" to " + (targetPath))));
-            final com.azure.resourcemanager.appservice.models.DeployType type =
-                com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue());
-            this.doModify(() -> Objects.requireNonNull(((SupportsOneDeploy) remote)).deploy(type, targetFile, options), Status.DEPLOYING);
-        }
     }
 
     @Nullable
