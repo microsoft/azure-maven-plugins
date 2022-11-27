@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -70,6 +72,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     /**
      * Boolean flag to skip the execution of maven plugin for azure functions
+     *
      * @since 0.1.0
      */
     @Parameter(property = "functions.skip", defaultValue = "false")
@@ -79,6 +82,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      * Region for function app
      * Supported values: westus, westus2, eastus, eastus2, northcentralus, southcentralus, westcentralus, canadacentral, canadaeast, brazilsouth, northeurope,
      * westeurope, uksouth, eastasia, southeastasia, japaneast, japanwest, australiaeast, australiasoutheast, centralindia, southindia ...
+     *
      * @since 1.2.0
      */
     @Parameter(property = "functions.region")
@@ -116,6 +120,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      * </runtime>
      * }
      * </pre>
+     *
      * @since 1.4.0
      */
     @Parameter(property = "functions.runtime")
@@ -124,6 +129,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     /**
      * Name of the application insight instance, must be in the same resource group with function app.
      * Will be skipped if `appInsightsKey` is specified
+     *
      * @since 1.6.0
      */
     @Parameter(property = "functions.appInsightsInstance")
@@ -131,6 +137,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     /**
      * Instrumentation key of the application insights instance
+     *
      * @since 1.6.0
      */
     @Parameter(property = "functions.appInsightsKey")
@@ -138,6 +145,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     /**
      * Boolean flag to monitor the Function App with application insights
+     *
      * @since 1.6.0
      */
     @Parameter(property = "functions.disableAppInsights", defaultValue = "false")
@@ -197,6 +205,18 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         return runtime;
     }
 
+    protected File getHostJsonFile() {
+        final Path path = Paths.get(getHostJson());
+        return path.isAbsolute() ? path.toFile() :
+                Paths.get(project.getBasedir().getAbsolutePath(), getHostJson()).toFile();
+    }
+
+    protected File getLocalSettingsJsonFile() {
+        final Path path = Paths.get(getLocalSettingsJson());
+        return path.isAbsolute() ? path.toFile() :
+                Paths.get(project.getBasedir().getAbsolutePath(), getLocalSettingsJson()).toFile();
+    }
+
     protected void validateAppName() {
         if (StringUtils.isBlank(appName)) {
             throw new AzureToolkitRuntimeException("<appName> is not configured in pom");
@@ -235,7 +255,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     protected JsonNode readHostJson() {
         // todo: add configuration for host.json location
-        final File hostJson = new File(project.getBasedir(), getHostJson());
+        final File hostJson = getHostJsonFile();
         try (final FileInputStream fis = new FileInputStream(hostJson)) {
             final String content = IOUtils.toString(fis, Charset.defaultCharset());
             return JsonUtils.fromJson(content, JsonNode.class);

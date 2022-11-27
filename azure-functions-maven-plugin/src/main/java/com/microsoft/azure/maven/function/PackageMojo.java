@@ -280,7 +280,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     protected void copyHostJson() throws IOException {
         Log.info("");
         Log.info(SAVING_HOST_JSON);
-        final File sourceHostJsonFile = new File(project.getBasedir(), getHostJson());
+        final File sourceHostJsonFile = getHostJsonFile();
         final File destHostJsonFile = Paths.get(getDeploymentStagingDirectoryPath(), HOST_JSON).toFile();
         copyFilesWithDefaultContent(sourceHostJsonFile, destHostJsonFile, DEFAULT_HOST_JSON);
         Log.info(SAVE_SUCCESS + destHostJsonFile.getAbsolutePath());
@@ -289,7 +289,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     protected void copyLocalSettingsJson() throws IOException {
         Log.info("");
         Log.info(SAVING_LOCAL_SETTINGS_JSON);
-        final File sourceLocalSettingsJsonFile = new File(project.getBasedir(), getLocalSettingsJson());
+        final File sourceLocalSettingsJsonFile = getLocalSettingsJsonFile();
         final File destLocalSettingsJsonFile = Paths.get(getDeploymentStagingDirectoryPath(), LOCAL_SETTINGS_JSON).toFile();
         copyFilesWithDefaultContent(sourceLocalSettingsJsonFile, destLocalSettingsJsonFile, DEFAULT_LOCAL_SETTINGS_JSON);
         Log.info(SAVE_SUCCESS + destLocalSettingsJsonFile.getAbsolutePath());
