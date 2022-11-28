@@ -44,7 +44,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private static final String RUNNING = "Running";
     private final WebAppBase<?, ?, ?> webApp;
     private final List<WebAppArtifact> artifacts;
-    private final boolean isStopAppDuringDeployment;
+    private final boolean restartSite;
     private final Boolean waitDeploymentComplete;
     private final IAzureMessager messager;
 
@@ -52,14 +52,14 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         this(webApp, artifacts, false);
     }
 
-    public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts, boolean isStopAppDuringDeployment) {
-        this(webApp, artifacts, isStopAppDuringDeployment, null);
+    public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts, boolean restartSite) {
+        this(webApp, artifacts, restartSite, null);
     }
 
-    public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts, boolean isStopAppDuringDeployment, Boolean waitDeploymentComplete) {
+    public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts, boolean restartSite, Boolean waitDeploymentComplete) {
         this.webApp = webApp;
         this.artifacts = artifacts;
-        this.isStopAppDuringDeployment = isStopAppDuringDeployment;
+        this.restartSite = restartSite;
         this.waitDeploymentComplete = waitDeploymentComplete;
         this.messager = AzureMessager.getMessager();
     }
@@ -88,11 +88,11 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         if (isWaitDeploymentComplete()) {
             final AtomicReference<KuduDeploymentResult> reference = new AtomicReference<>();
             artifactsOneDeploy.forEach(resource -> reference.set(webApp.pushDeploy(resource.getDeployType(), resource.getFile(),
-                    DeployOptions.builder().path(resource.getPath()).restartSite(isStopAppDuringDeployment).trackDeployment(true).build())));
+                    DeployOptions.builder().path(resource.getPath()).restartSite(restartSite).trackDeployment(true).build())));
             trackDeployment(webApp, reference);
         } else {
             artifactsOneDeploy.forEach(resource -> webApp.deploy(resource.getDeployType(), resource.getFile(),
-                    DeployOptions.builder().path(resource.getPath()).restartSite(isStopAppDuringDeployment).build()));
+                    DeployOptions.builder().path(resource.getPath()).restartSite(restartSite).build()));
         }
         OperationContext.action().setTelemetryProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
     }

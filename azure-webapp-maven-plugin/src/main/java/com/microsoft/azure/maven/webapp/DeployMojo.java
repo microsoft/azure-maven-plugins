@@ -94,7 +94,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deploy(WebAppBase<?, ?, ?> target, List<WebAppArtifact> artifacts) {
-        new DeployWebAppTask(target, artifacts, isStopAppDuringDeployment(), this.waitDeploymentComplete).doExecute();
+        new DeployWebAppTask(target, artifacts, isRestartSite(), this.waitDeploymentComplete).doExecute();
     }
 
     private void deployExternalResources(final WebAppBase<?, ?, ?> target, final List<DeploymentResource> resources) {
