@@ -98,6 +98,10 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     }
 
     private boolean isWaitDeploymentComplete() {
+        if (webApp.getFormalStatus().isStopped()) {
+            messager.info("Skip waiting deployment status for stopped web app.");
+            return false;
+        }
         if (webApp.getRuntime().isWindows() && BooleanUtils.isTrue(this.waitDeploymentComplete)) {
             messager.warning("Wait deployment complete is not supported in Windows runtime, skip waiting for deployment status.");
             return false;
