@@ -24,7 +24,7 @@ import java.io.File;
 @Mojo(name = "run")
 public class RunMojo extends AbstractFunctionMojo {
     protected static final String FUNC_CMD = "func -v";
-    protected static final String FUNC_HOST_START_CMD = "func host start";
+    protected static final String FUNC_HOST_START_CMD = "func host start -p %s";
     protected static final String RUN_FUNCTIONS_FAILURE = "Failed to run Azure Functions. Please checkout console output.";
     protected static final String RUNTIME_NOT_FOUND = "Azure Functions Core Tools not found. " +
             "Please go to https://aka.ms/azfunc-install to install Azure Functions Core Tools first.";
@@ -32,7 +32,7 @@ public class RunMojo extends AbstractFunctionMojo {
     private static final String STAGE_DIR_NOT_FOUND =
             "Stage directory not found. Please run mvn package first.";
     private static final String RUNTIME_FOUND = "Azure Functions Core Tools found.";
-    private static final String FUNC_HOST_START_WITH_DEBUG_CMD = "func host start --language-worker -- " +
+    private static final String FUNC_HOST_START_WITH_DEBUG_CMD = "func host start -p %s --language-worker -- " +
             "\"-agentlib:jdwp=%s\"";
     private static final ComparableVersion JAVA_9 = new ComparableVersion("9");
     private static final ComparableVersion FUNC_3 = new ComparableVersion("3");
@@ -50,6 +50,13 @@ public class RunMojo extends AbstractFunctionMojo {
     @Parameter(property = "localDebugConfig", defaultValue = "transport=dt_socket,server=y,suspend=n,address=5005")
     protected String localDebugConfig;
 
+    /**
+     * Config port for function local host
+     *
+     * @since 1.22.0
+     */
+    @Parameter(property = "funcPort", defaultValue = "7071")
+    protected Integer funcPort;
     //region Getter
 
     public String getLocalDebugConfig() {
@@ -138,12 +145,12 @@ public class RunMojo extends AbstractFunctionMojo {
         if (StringUtils.isNotEmpty(enableDebug) && enableDebug.equalsIgnoreCase("true")) {
             return getStartFunctionHostWithDebugCommand();
         } else {
-            return FUNC_HOST_START_CMD;
+            return String.format(FUNC_HOST_START_CMD, funcPort);
         }
     }
 
     protected String getStartFunctionHostWithDebugCommand() {
-        return String.format(FUNC_HOST_START_WITH_DEBUG_CMD, this.getLocalDebugConfig());
+        return String.format(FUNC_HOST_START_WITH_DEBUG_CMD, funcPort, this.getLocalDebugConfig());
     }
 
     //endregion

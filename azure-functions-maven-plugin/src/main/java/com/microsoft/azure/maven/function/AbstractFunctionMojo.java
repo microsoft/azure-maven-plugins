@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     protected static final String HOST_JSON = "host.json";
+    protected static final String LOCAL_SETTINGS_JSON = "local.settings.json";
     protected static final String TRIGGER_TYPE = "triggerType";
     protected static final String AZURE_FUNCTIONS_JAVA_LIBRARY = "azure-functions-java-library";
     protected static final Map<FunctionExtensionVersion, Set<Integer>> FUNCTION_EXTENSION_LIBRARY_MAP = new HashMap<FunctionExtensionVersion, Set<Integer>>() {
@@ -69,6 +72,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     /**
      * Boolean flag to skip the execution of maven plugin for azure functions
+     *
      * @since 0.1.0
      */
     @Parameter(property = "functions.skip", defaultValue = "false")
@@ -78,6 +82,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      * Region for function app
      * Supported values: westus, westus2, eastus, eastus2, northcentralus, southcentralus, westcentralus, canadacentral, canadaeast, brazilsouth, northeurope,
      * westeurope, uksouth, eastasia, southeastasia, japaneast, japanwest, australiaeast, australiasoutheast, centralindia, southindia ...
+     *
      * @since 1.2.0
      */
     @Parameter(property = "functions.region")
@@ -115,6 +120,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      * </runtime>
      * }
      * </pre>
+     *
      * @since 1.4.0
      */
     @Parameter(property = "functions.runtime")
@@ -123,6 +129,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     /**
      * Name of the application insight instance, must be in the same resource group with function app.
      * Will be skipped if `appInsightsKey` is specified
+     *
      * @since 1.6.0
      */
     @Parameter(property = "functions.appInsightsInstance")
@@ -130,6 +137,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     /**
      * Instrumentation key of the application insights instance
+     *
      * @since 1.6.0
      */
     @Parameter(property = "functions.appInsightsKey")
@@ -137,10 +145,29 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     /**
      * Boolean flag to monitor the Function App with application insights
+     *
      * @since 1.6.0
      */
     @Parameter(property = "functions.disableAppInsights", defaultValue = "false")
     protected boolean disableAppInsights;
+
+    /**
+     * Path for host.json file
+     *
+     * @since 1.22.0
+     */
+    @Getter
+    @Parameter(property = "functions.hostJson", defaultValue = HOST_JSON)
+    protected String hostJson;
+
+    /**
+     * Path for local.settings.json file
+     *
+     * @since 1.22.0
+     */
+    @Getter
+    @Parameter(property = "functions.localSettingsJson", defaultValue = LOCAL_SETTINGS_JSON)
+    protected String localSettingsJson;
 
     @Getter
     protected ConfigParser parser = new ConfigParser(this);
@@ -176,6 +203,18 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     public RuntimeConfiguration getRuntimeConfiguration() {
         return runtime;
+    }
+
+    protected File getHostJsonFile() {
+        final Path path = Paths.get(getHostJson());
+        return path.isAbsolute() ? path.toFile() :
+                Paths.get(project.getBasedir().getAbsolutePath(), getHostJson()).toFile();
+    }
+
+    protected File getLocalSettingsJsonFile() {
+        final Path path = Paths.get(getLocalSettingsJson());
+        return path.isAbsolute() ? path.toFile() :
+                Paths.get(project.getBasedir().getAbsolutePath(), getLocalSettingsJson()).toFile();
     }
 
     protected void validateAppName() {
@@ -216,7 +255,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     protected JsonNode readHostJson() {
         // todo: add configuration for host.json location
-        final File hostJson = new File(project.getBasedir(), HOST_JSON);
+        final File hostJson = getHostJsonFile();
         try (final FileInputStream fis = new FileInputStream(hostJson)) {
             final String content = IOUtils.toString(fis, Charset.defaultCharset());
             return JsonUtils.fromJson(content, JsonNode.class);

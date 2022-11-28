@@ -114,7 +114,7 @@ public class RunMojoTest extends MojoTestBase {
     public void getStartFunctionHostCommand() throws Exception {
         final RunMojo mojo = getMojoFromPom();
         final RunMojo mojoSpy = spy(mojo);
-        assertEquals(FUNC_HOST_START_CMD, mojoSpy.getStartFunctionHostCommand());
+        assertEquals(String.format(FUNC_HOST_START_CMD, mojoSpy.funcPort), mojoSpy.getStartFunctionHostCommand());
         System.setProperty("enableDebug", "true");
         assertTrue(mojoSpy.getStartFunctionHostCommand().contains("-agentlib:jdwp"));
     }
