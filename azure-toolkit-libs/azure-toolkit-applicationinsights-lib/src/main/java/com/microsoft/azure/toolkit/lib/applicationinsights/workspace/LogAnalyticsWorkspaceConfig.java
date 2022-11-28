@@ -3,6 +3,7 @@ package com.microsoft.azure.toolkit.lib.applicationinsights.workspace;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
@@ -14,9 +15,12 @@ import java.util.Optional;
 @Getter
 @Setter
 @SuperBuilder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class LogAnalyticsWorkspaceConfig {
     private boolean newCreate;
+    @EqualsAndHashCode.Include
     private String name;
+    @EqualsAndHashCode.Include
     private String resourceId;
     private String subscriptionId;
     private String regionName;
@@ -34,19 +38,5 @@ public class LogAnalyticsWorkspaceConfig {
                 .build();
         remoteWorkspace.ifPresent(w -> workspaceConfig.setResourceId(w.getId()));
         return workspaceConfig;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof LogAnalyticsWorkspaceConfig)) {
-            return false;
-        }
-        LogAnalyticsWorkspaceConfig compObj = (LogAnalyticsWorkspaceConfig) obj;
-        if (this.newCreate && compObj.newCreate) {
-            return true;
-        } else if (this.newCreate != compObj.newCreate) {
-            return false;
-        }
-        return Objects.equals(this.resourceId, compObj.resourceId);
     }
 }
