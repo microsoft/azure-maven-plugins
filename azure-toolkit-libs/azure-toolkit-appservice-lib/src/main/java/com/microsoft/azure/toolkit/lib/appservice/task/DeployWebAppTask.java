@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
+import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,16 +38,19 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
             "you can navigate to %s to access your docker webapp.";
     private static final String DEPLOY_START = "Trying to deploy artifact to %s...";
     private static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
-    private static final String STOP_APP = "Stopping Web App before deploying artifacts...";
-    private static final String START_APP = "Starting Web App after deploying artifacts...";
-    private static final String STOP_APP_DONE = "Successfully stopped Web App.";
-    private static final String START_APP_DONE = "Successfully started Web App.";
-    private static final String RUNNING = "Running";
+    private static final int DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL = 10;
+    private static final int DEFAULT_DEPLOYMENT_STATUS_MAX_REFRESH_TIMES = 20;
+
     private final WebAppBase<?, ?, ?> webApp;
     private final List<WebAppArtifact> artifacts;
     private final boolean restartSite;
     private final Boolean waitDeploymentComplete;
     private final IAzureMessager messager;
+
+    @Setter
+    private long deploymentStatusRefreshInterval = DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL;
+    @Setter
+    private long deploymentStatusMaxRefreshTimes = DEFAULT_DEPLOYMENT_STATUS_MAX_REFRESH_TIMES;
 
     public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts) {
         this(webApp, artifacts, false);
@@ -115,14 +119,16 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
             return;
         }
         final CsmDeploymentStatus status = Mono.fromCallable(() -> getDeploymentStatus(target, kuduDeploymentResult))
-                .delayElement(Duration.ofSeconds(10))
+                .delayElement(Duration.ofSeconds(deploymentStatusRefreshInterval))
                 .subscribeOn(Schedulers.boundedElastic())
-                .repeat()
+                .repeat(deploymentStatusMaxRefreshTimes)
                 .takeUntil(csmDeploymentStatus -> !csmDeploymentStatus.getStatus().isRunning())
                 .blockLast();
         final DeploymentBuildStatus buildStatus = status.getStatus();
         if (buildStatus.isTimeout()) {
-            this.messager.warning("Deploy succeed, but failed to get the deployment status");
+            this.messager.warning("Resource deployed, but failed to get the deployment status as timeout");
+        } else if (buildStatus.isRunning()) {
+            this.messager.warning("Resource deployed, but the deployment is still in process in Azure");
         } else if (buildStatus.isFailed()) {
             final String errorMessages = CollectionUtils.isNotEmpty(status.getErrors()) ?
                     status.getErrors().stream().map(ErrorEntity::getMessage).collect(Collectors.joining(StringUtils.LF)) : StringUtils.EMPTY;
