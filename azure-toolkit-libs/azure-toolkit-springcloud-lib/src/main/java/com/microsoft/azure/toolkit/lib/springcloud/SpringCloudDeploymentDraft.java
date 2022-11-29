@@ -13,6 +13,7 @@ import com.azure.resourcemanager.appplatform.models.UserSourceType;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -142,6 +143,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             this.doModify(() -> {
                 messager.info(AzureString.format("Start scaling deployment({0})...", deployment.name()));
                 update.apply();
+                this.getSubModules().forEach(AbstractAzResourceModule::refresh);
                 messager.success(AzureString.format("Deployment({0}) is successfully scaled.", deployment.name()));
             }, Status.SCALING);
         }

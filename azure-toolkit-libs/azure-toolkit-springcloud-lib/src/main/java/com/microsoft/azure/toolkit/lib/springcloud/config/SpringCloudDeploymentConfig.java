@@ -77,14 +77,13 @@ public class SpringCloudDeploymentConfig {
         if (Objects.isNull(deployment)) {
             return null;
         }
-        final List<SpringCloudAppInstance> instances = deployment.getInstances();
         final SpringCloudPersistentDisk disk = deployment.getParent().getPersistentDisk();
         final SpringCloudDeploymentConfig deploymentConfig = SpringCloudDeploymentConfig.builder().build();
         deploymentConfig.setRuntimeVersion(deployment.getRuntimeVersion());
         deploymentConfig.setEnablePersistentStorage(Objects.nonNull(disk) && disk.getSizeInGB() > 0);
         deploymentConfig.setCpu(deployment.getCpu());
         deploymentConfig.setMemoryInGB(deployment.getMemoryInGB());
-        deploymentConfig.setInstanceCount(instances.size());
+        deploymentConfig.setInstanceCount(deployment.getInstanceNum());
         deploymentConfig.setJvmOptions(Optional.ofNullable(deployment.getJvmOptions()).map(String::trim).orElse(""));
         deploymentConfig.setEnvironment(Optional.ofNullable(deployment.getEnvironmentVariables()).orElse(new HashMap<>()));
         return deploymentConfig;

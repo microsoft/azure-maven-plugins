@@ -44,7 +44,7 @@ public interface AzResourceBase {
         RUNNING, STOPPED, FAILED, DELETED, UNKNOWN, WRITING, READING, CREATING;
 
         private static final HashSet<String> runningStatus = Sets.newHashSet("running", "success", "succeeded", "ready", "ok");
-        private static final HashSet<String> stoppedStatus = Sets.newHashSet("stopped");
+        private static final HashSet<String> stoppedStatus = Sets.newHashSet("stopped", "deallocated");
         private static final HashSet<String> failedStatus = Sets.newHashSet("failed", "error");
         private static final HashSet<String> writingStatus = Sets.newHashSet("writing", "pending", "processing", "updating", "deleting",
             "starting", "stopping", "restarting", "scaling");
