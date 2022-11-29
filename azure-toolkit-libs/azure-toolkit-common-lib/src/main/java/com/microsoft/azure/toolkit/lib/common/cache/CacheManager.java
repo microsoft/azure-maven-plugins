@@ -37,13 +37,11 @@ public class CacheManager {
         @Override
         public Cache<Object, Object> load(@Nonnull String key) {
             return CacheBuilder.newBuilder()
-                .softValues()
                 .expireAfterAccess(4, TimeUnit.HOURS) // TODO: justify
                 .build();
         }
     };
     private static final LoadingCache<String, Cache<Object, Object>> caches = CacheBuilder.newBuilder()
-        .softValues()
         .expireAfterAccess(4, TimeUnit.HOURS) // TODO: justify
         .build(loader);
 
