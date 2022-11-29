@@ -65,12 +65,23 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     /**
      * Boolean flag to control whether stop web app during deployment.
+     * @Deprecated Please use `restartSite` instead.
      * @Since 0.1.0
      */
     @Getter
     @JsonProperty
+    @Deprecated
     @Parameter(property = "webapp.stopAppDuringDeployment", defaultValue = "false")
     protected boolean stopAppDuringDeployment;
+
+    /**
+     * Boolean flag to control whether to restart site after deployment. By default the value is true.
+     * @Since 2.8.0
+     */
+    @Getter
+    @JsonProperty
+    @Parameter(property = "webapp.stopAppDuringDeployment", defaultValue = "true")
+    protected boolean restartSite;
 
     /**
      * Boolean flag to skip the execution of maven plugin for azure webapp
