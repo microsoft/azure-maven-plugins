@@ -27,7 +27,7 @@ public class LogAnalyticsWorkspaceConfig {
 
     public static LogAnalyticsWorkspaceConfig createConfig(Subscription subscription, Region region) {
         final String defaultWorkspaceName = String.format("DefaultWorkspace-%s-%s", subscription.getId(), Optional.ofNullable(region).map(Region::getAbbreviation).orElse(StringUtils.EMPTY));
-        final String finalWorkspaceName = defaultWorkspaceName.length() > 64 ? defaultWorkspaceName.substring(0, 64) : defaultWorkspaceName;
+        final String finalWorkspaceName = defaultWorkspaceName.length() > 63 ? defaultWorkspaceName.substring(0, 63) : defaultWorkspaceName;
         final Optional<LogAnalyticsWorkspace> remoteWorkspace = Azure.az(AzureLogAnalyticsWorkspace.class)
                 .logAnalyticsWorkspaces(subscription.getId()).list().stream()
                 .filter(workspace -> Objects.equals(workspace.getName(), finalWorkspaceName)).findFirst();
