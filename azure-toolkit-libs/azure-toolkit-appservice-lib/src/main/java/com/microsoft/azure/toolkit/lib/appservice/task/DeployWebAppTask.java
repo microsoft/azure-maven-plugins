@@ -107,7 +107,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
             return false;
         }
         if (webApp.getRuntime().isWindows() && BooleanUtils.isTrue(this.waitDeploymentComplete)) {
-            messager.warning("Wait deployment complete is not supported in Windows runtime, skip waiting for deployment status.");
+            messager.warning("`waitDeploymentComplete` is not supported in Windows runtime, skip waiting for deployment status.");
             return false;
         }
         return Optional.ofNullable(this.waitDeploymentComplete).orElseGet(() -> webApp.getRuntime().isLinux());
