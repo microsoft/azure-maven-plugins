@@ -40,7 +40,6 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
     private static final String START_APP = "Starting Web App after deploying artifacts...";
     private static final String START_APP_DONE = "Successfully started Web App.";
-    private static final String RUNNING = "Running";
     private static final int DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL = 10;
     private static final int DEFAULT_DEPLOYMENT_STATUS_MAX_REFRESH_TIMES = 20;
 
@@ -154,7 +153,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     }
 
     private static void startAppService(WebAppBase<?, ?, ?> target) {
-        if (!StringUtils.equalsIgnoreCase(target.getStatus(), RUNNING)) {
+        if (!target.getFormalStatus().isRunning()) {
             AzureMessager.getMessager().info(START_APP);
             target.start();
             AzureMessager.getMessager().info(START_APP_DONE);
