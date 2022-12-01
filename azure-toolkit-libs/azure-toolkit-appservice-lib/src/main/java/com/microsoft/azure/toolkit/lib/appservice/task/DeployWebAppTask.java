@@ -38,6 +38,8 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
             "you can navigate to %s to access your docker webapp.";
     private static final String DEPLOY_START = "Trying to deploy artifact to %s...";
     private static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
+    private static final String START_APP = "Starting Web App after deploying artifacts...";
+    private static final String START_APP_DONE = "Successfully started Web App.";
     private static final int DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL = 10;
     private static final int DEFAULT_DEPLOYMENT_STATUS_MAX_REFRESH_TIMES = 20;
 
@@ -78,6 +80,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         this.messager.info(String.format(DEPLOY_START, webApp.getName()));
         deployArtifacts();
         this.messager.info(String.format(DEPLOY_FINISH, webApp.getHostName()));
+        startAppService(webApp);
         return webApp;
     }
 
@@ -147,6 +150,14 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
                 deploymentStatus.getStatus().getValue(), deploymentStatus.getNumberOfInstancesSuccessful(), deploymentStatus.getNumberOfInstancesInProgress(), deploymentStatus.getNumberOfInstancesFailed());
         this.messager.info(statusMessage);
         return deploymentStatus;
+    }
+
+    private static void startAppService(WebAppBase<?, ?, ?> target) {
+        if (!target.getFormalStatus().isRunning()) {
+            AzureMessager.getMessager().info(START_APP);
+            target.start();
+            AzureMessager.getMessager().info(START_APP_DONE);
+        }
     }
 
 }
