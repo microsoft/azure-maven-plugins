@@ -41,7 +41,6 @@ public class AzureFunctions extends AzureAppService {
     }
 
     @Nonnull
-    @AzureOperation(name = "function.list_runtimes.os|version", params = {"os.getValue()", "version.getValue()"}, type = AzureOperation.Type.REQUEST)
     public List<Runtime> listFunctionAppRuntimes(@Nonnull OperatingSystem os, @Nonnull JavaVersion version) {
         return Runtime.FUNCTION_APP_RUNTIME.stream()
             .filter(runtime -> Objects.equals(os, runtime.getOperatingSystem()) && Objects.equals(version, runtime.getJavaVersion()))
