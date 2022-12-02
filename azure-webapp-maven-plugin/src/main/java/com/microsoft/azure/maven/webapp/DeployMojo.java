@@ -23,6 +23,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import lombok.Getter;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -33,6 +34,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.fromAppService;
 import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.mergeAppServiceConfig;
@@ -43,8 +45,29 @@ import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigU
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractWebAppMojo {
 
+    /**
+     * Boolean flag to control whether to wait deployment complete in app service with deployment status API.
+     * @Since 2.8.0
+     */
+    @Getter
     @Parameter(property = "webapp.waitDeploymentComplete")
     protected Boolean waitDeploymentComplete;
+
+    /**
+     *  The interval in seconds to check deployment status.
+     *  @Since 2.8.0
+     */
+    @Getter
+    @Parameter(property = "webapp.deploymentStatusRefreshInterval")
+    protected Long deploymentStatusRefreshInterval;
+
+    /**
+     *  The max retry times to check deployment status
+     *  @Since 2.8.0
+     */
+    @Getter
+    @Parameter(property = "webapp.deploymentStatusMaxRefreshTimes")
+    protected Long deploymentStatusMaxRefreshTimes;
 
     @Override
     @AzureOperation(name = "webapp.deploy_app", type = AzureOperation.Type.ACTION)
@@ -94,7 +117,10 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deploy(WebAppBase<?, ?, ?> target, List<WebAppArtifact> artifacts) {
-        new DeployWebAppTask(target, artifacts, isStopAppDuringDeployment(), this.waitDeploymentComplete).doExecute();
+        final DeployWebAppTask deployWebAppTask = new DeployWebAppTask(target, artifacts, this.isRestartSite(), this.getWaitDeploymentComplete());
+        Optional.ofNullable(this.getDeploymentStatusRefreshInterval()).ifPresent(deployWebAppTask::setDeploymentStatusRefreshInterval);
+        Optional.ofNullable(this.getDeploymentStatusMaxRefreshTimes()).ifPresent(deployWebAppTask::setDeploymentStatusMaxRefreshTimes);
+        deployWebAppTask.doExecute();
     }
 
     private void deployExternalResources(final WebAppBase<?, ?, ?> target, final List<DeploymentResource> resources) {

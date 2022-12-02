@@ -139,7 +139,7 @@ public class Action<D> extends OperationBase {
         if (Objects.isNull(handler)) {
             return;
         }
-        final AzureString desc = getDescription();
+        final AzureString desc = Optional.ofNullable(getViewBuilder()).map(ActionView.Builder::title).map(t -> t.apply(source)).orElseGet(this::getDescription);
         final Runnable runnable = () -> Operation.execute(desc, AzureOperation.Type.ACTION, () -> {
             final AzureString title = Optional.ofNullable(this.viewBuilder).map(b -> b.title).map(t -> t.apply(source)).orElse(desc);
             AzureTaskManager.getInstance().runInBackground(title, () -> handle(source, e, handler));

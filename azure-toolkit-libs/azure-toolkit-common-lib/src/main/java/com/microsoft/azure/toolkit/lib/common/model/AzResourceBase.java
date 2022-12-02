@@ -41,14 +41,15 @@ public interface AzResourceBase {
     }
 
     enum FormalStatus {
-        RUNNING, STOPPED, FAILED, DELETED, UNKNOWN, WRITING, READING, CREATING;
+        RUNNING, STOPPED, FAILED, DELETED, UNKNOWN, WRITING, READING, CREATING, DELETING;
 
         private static final HashSet<String> runningStatus = Sets.newHashSet("running", "success", "succeeded", "ready", "ok");
-        private static final HashSet<String> stoppedStatus = Sets.newHashSet("stopped");
+        private static final HashSet<String> stoppedStatus = Sets.newHashSet("stopped", "deallocated");
         private static final HashSet<String> failedStatus = Sets.newHashSet("failed", "error");
-        private static final HashSet<String> writingStatus = Sets.newHashSet("writing", "pending", "processing", "updating", "deleting",
+        private static final HashSet<String> writingStatus = Sets.newHashSet("writing", "pending", "processing", "updating",
             "starting", "stopping", "restarting", "scaling");
         private static final HashSet<String> readingStatus = Sets.newHashSet("reading", "loading", "refreshing");
+        private static final HashSet<String> deletingStatus = Sets.newHashSet("deleting");
         private static final HashSet<String> deletedStatus = Sets.newHashSet("deleted", "removed", "disconnected");
 
         public static FormalStatus dummyFormalize(String status) {
@@ -65,6 +66,8 @@ public interface AzResourceBase {
                 return FormalStatus.WRITING;
             } else if (readingStatus.contains(status)) {
                 return FormalStatus.READING;
+            } else if (deletingStatus.contains(status)) {
+                return FormalStatus.DELETING;
             } else if (deletedStatus.contains(status)) {
                 return FormalStatus.DELETED;
             } else {
@@ -92,6 +95,10 @@ public interface AzResourceBase {
             return this == CREATING;
         }
 
+        public boolean isDeleting() {
+            return this == DELETING;
+        }
+
         public boolean isWriting() {
             return this == WRITING || this.isCreating();
         }
@@ -113,7 +120,7 @@ public interface AzResourceBase {
         }
 
         public boolean isConnected() {
-            return !(this.isDeleted() || this.isUnknown() || this.isCreating());
+            return !(this.isDeleted() || this.isUnknown() || this.isCreating() || this.isDeleting());
         }
     }
 }
