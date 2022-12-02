@@ -54,7 +54,7 @@ public class BlobFileDraft extends BlobFile implements StorageFile.Draft<BlobFil
 
     @Nonnull
     @Override
-    @AzureOperation(name = "storage.create_blob_in_azure.blob", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/storage.create_blob.blob", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public BlobItem createResourceInAzure() {
         final BlobFileModule module = (BlobFileModule) this.getModule();
         final String fullPath = Paths.get(this.getParent().getPath(), StringUtils.firstNonBlank(this.relativePath, this.getName())).toString();
@@ -78,7 +78,7 @@ public class BlobFileDraft extends BlobFile implements StorageFile.Draft<BlobFil
 
     @Nonnull
     @Override
-    @AzureOperation(name = "storage.update_blob_in_azure.blob", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/storage.update_blob.blob", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public BlobItem updateResourceInAzure(@Nonnull BlobItem origin) {
         final BlobFileModule module = (BlobFileModule) this.getModule();
         final String fullPath = origin.getName();

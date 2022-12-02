@@ -45,7 +45,7 @@ public class MongoCollectionDraft extends MongoCollection implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "cosmos.create_mongo_collection_in_azure.collection", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/cosmos.create_mongo_collection.collection", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public MongoDBCollectionGetResultsInner createResourceInAzure() {
         final MongoDBResourcesClient mongoDBResourcesClient = Objects.requireNonNull(((MongoCollectionModule) Objects.requireNonNull(getModule())).getClient());
         final Map<String, String> shardKey = StringUtils.isEmpty(ensureConfig().getShardKey()) ? null : Collections.singletonMap(ensureConfig().getShardKey(), "Hash");
@@ -65,7 +65,7 @@ public class MongoCollectionDraft extends MongoCollection implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "cosmos.update_mongo_collection_in_azure.collection", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/cosmos.update_mongo_collection.collection", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public MongoDBCollectionGetResultsInner updateResourceInAzure(@Nonnull MongoDBCollectionGetResultsInner origin) {
         throw new UnsupportedOperationException("not support");
     }

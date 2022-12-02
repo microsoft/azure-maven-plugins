@@ -79,7 +79,7 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.load_resources_in_azure.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected Stream<R> loadResourcesFromAzure() {
         return Azure.az(IAzureAccount.class).account().getSelectedSubscriptions().stream().parallel()
             .map(Subscription::getId).map(i -> loadResourceFromAzure(i, null));
