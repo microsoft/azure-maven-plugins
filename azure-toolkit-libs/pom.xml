@@ -52,6 +52,7 @@
         <module>azure-toolkit-cosmos-lib</module>
         <module>azure-toolkit-containerapps-lib</module>
         <module>azure-toolkit-mysql-single-lib</module>
+        <module>azure-toolkit-monitor-lib</module>
     </modules>
 
     <properties>

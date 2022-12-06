@@ -1,4 +1,4 @@
-package com.microsoft.azure.toolkit.lib.applicationinsights.workspace;
+package com.microsoft.azure.toolkit.lib.monitor;
 
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.Region;

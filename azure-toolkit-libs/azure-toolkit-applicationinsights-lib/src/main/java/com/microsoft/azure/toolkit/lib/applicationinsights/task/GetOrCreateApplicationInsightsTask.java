@@ -10,9 +10,9 @@ import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsightDraft;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsightsModule;
 import com.microsoft.azure.toolkit.lib.applicationinsights.AzureApplicationInsights;
-import com.microsoft.azure.toolkit.lib.applicationinsights.workspace.LogAnalyticsWorkspaceConfig;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
+import com.microsoft.azure.toolkit.lib.monitor.LogAnalyticsWorkspaceConfig;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 
 import javax.annotation.Nonnull;
