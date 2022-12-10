@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.aspect.MethodInvocation;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -27,13 +28,14 @@ public class MethodOperation extends OperationBase {
     @Override
     public String toString() {
         final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
-        return String.format("{name:'%s', method:%s}", annotation.name(), this.invocation.getMethod().getName());
+        final String name = StringUtils.firstNonBlank(annotation.name(), annotation.value());
+        return String.format("{name:'%s', method:%s}", name, this.invocation.getMethod().getName());
     }
 
     @Nonnull
     public String getId() {
         final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
-        return annotation.name();
+        return StringUtils.firstNonBlank(annotation.name(), annotation.value());
     }
 
     @Override
@@ -56,7 +58,7 @@ public class MethodOperation extends OperationBase {
 
     public AzureString getDescription() {
         final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
-        final String name = annotation.name();
+        final String name = StringUtils.firstNonBlank(annotation.name(), annotation.value());
         final String[] params = Arrays.stream(annotation.params()).map(e -> ExpressionUtils.interpret(e, this.invocation)).toArray(String[]::new);
         return OperationBundle.description(name, (Object[]) params);
     }
