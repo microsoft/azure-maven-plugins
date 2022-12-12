@@ -99,19 +99,22 @@ public class AzureTelemeter {
         final Map<String, String> actionProperties = getActionProperties(op);
         final Optional<Operation> parent = Optional.ofNullable(op.getEffectiveParent());
         final Map<String, String> properties = new HashMap<>();
-        final String name = op.getId().replaceAll("\\(.+\\)", "(***)"); // e.g. `appservice.list_file.dir`
-        final String[] parts = name.split("\\."); // ["appservice|file", "list", "dir"]
-        if (parts.length > 1) {
-            final String[] compositeServiceName = parts[0].split("\\|"); // ["appservice", "file"]
-            final String mainServiceName = compositeServiceName[0]; // "appservice"
-            final String operationName = compositeServiceName.length > 1 ? parts[1] + "_" + compositeServiceName[1] : parts[1]; // "list_file"
-            properties.put(SERVICE_NAME, mainServiceName);
-            properties.put(OPERATION_NAME, operationName);
-        }
+        final String name = op.getId().replaceAll("\\(.+\\)", "(***)"); // e.g. `internal/appservice.list_file.dir`
+        final String[] parts = name.split("\\."); // ["internal/appservice", "list_file", "dir"]
         properties.put(OP_ID, op.getExecutionId());
         properties.put(OP_PARENT_ID, parent.map(Operation::getExecutionId).orElse("/"));
         properties.put(OP_NAME, name);
         properties.put(OP_TYPE, op.getType());
+        if (parts.length > 1) {
+            if (parts[0].contains("/")) {
+                final String[] typeAndService = parts[0].split("/"); // ["internal", "appservice"]
+                properties.put(OP_TYPE, typeAndService[0]); // override type with prefix
+                properties.put(SERVICE_NAME, typeAndService[1]);
+            } else {
+                properties.put(SERVICE_NAME, parts[0]);
+            }
+            properties.put(OPERATION_NAME, parts[1]); // "list_file"
+        }
         properties.putAll(actionProperties);
         if (op instanceof MethodOperation) {
             properties.putAll(getParameterProperties((MethodOperation) op));
