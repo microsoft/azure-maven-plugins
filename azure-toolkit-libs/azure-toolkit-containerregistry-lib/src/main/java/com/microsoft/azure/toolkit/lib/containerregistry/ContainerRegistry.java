@@ -13,6 +13,7 @@ import com.azure.resourcemanager.containerregistry.models.Registry;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.containerregistry.model.IContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.model.Sku;
 
 import javax.annotation.Nonnull;
@@ -21,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class ContainerRegistry extends AbstractAzResource<ContainerRegistry, AzureContainerRegistryServiceSubscription, Registry> {
+public class ContainerRegistry extends AbstractAzResource<ContainerRegistry, AzureContainerRegistryServiceSubscription, Registry> implements IContainerRegistry {
     protected ContainerRegistry(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AzureContainerRegistryModule module) {
         super(name, resourceGroupName, module);
     }
