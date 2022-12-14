@@ -23,22 +23,27 @@ import java.util.List;
 import java.util.Optional;
 
 public class ContainerRegistry extends AbstractAzResource<ContainerRegistry, AzureContainerRegistryServiceSubscription, Registry> implements IContainerRegistry {
+    private final RepositoryModule repositoryModule;
+
     protected ContainerRegistry(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AzureContainerRegistryModule module) {
         super(name, resourceGroupName, module);
+        this.repositoryModule = new RepositoryModule(this);
     }
 
     protected ContainerRegistry(@Nonnull ContainerRegistry registry) {
         super(registry);
+        this.repositoryModule = registry.repositoryModule;
     }
 
     protected ContainerRegistry(@Nonnull Registry registry, @Nonnull AzureContainerRegistryModule module) {
         super(registry.name(), registry.resourceGroupName(), module);
+        this.repositoryModule = new RepositoryModule(this);
     }
 
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.emptyList();
+        return Collections.singletonList(this.repositoryModule);
     }
 
     @Nonnull
