@@ -7,10 +7,13 @@ package com.microsoft.azure.toolkit.lib.containerapps.environment;
 
 import com.azure.resourcemanager.appcontainers.models.ManagedEnvironment;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerAppsServiceSubscription;
+import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -27,6 +30,10 @@ public class ContainerAppsEnvironment extends AbstractAzResource<ContainerAppsEn
 
     protected ContainerAppsEnvironment(@Nonnull com.azure.resourcemanager.appcontainers.models.ManagedEnvironment remote, @Nonnull ContainerAppsEnvironmentModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
+    }
+
+    public List<ContainerApp> listContainerApps() {
+        return Azure.az(AzureContainerApps.class).containerApps(this.getSubscriptionId()).listContainerAppsByEnvironment(this);
     }
 
     @Nonnull

@@ -51,6 +51,6 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
     @Nullable
     @Override
     public ContainerApp getOrigin() {
-        return null;
+        return this.origin;
     }
 }
