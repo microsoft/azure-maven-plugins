@@ -10,10 +10,14 @@ import com.azure.resourcemanager.appcontainers.ContainerAppsApiManager;
 import com.azure.resourcemanager.appcontainers.models.ContainerApps;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerAppsServiceSubscription;
+import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ContainerAppModule extends AbstractAzResourceModule<ContainerApp, AzureContainerAppsServiceSubscription, com.azure.resourcemanager.appcontainers.models.ContainerApp> {
@@ -64,6 +68,14 @@ public class ContainerAppModule extends AbstractAzResourceModule<ContainerApp, A
     protected ContainerApp newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         assert resourceGroupName != null : "'Resource group' is required.";
         return new ContainerApp(name, resourceGroupName, this);
+    }
+
+    public List<ContainerApp> listContainerAppsByEnvironment(@Nonnull final ContainerAppsEnvironment environment) {
+        return listContainerAppsByEnvironment(environment.getId());
+    }
+
+    public List<ContainerApp> listContainerAppsByEnvironment(@Nonnull final String environment) {
+        return list().stream().filter(app -> StringUtils.equalsIgnoreCase(app.getManagedEnvironmentId(), environment)).collect(Collectors.toList());
     }
 
     @Nullable
