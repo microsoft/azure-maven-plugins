@@ -103,9 +103,9 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         // drop old containers because we want to replace the old image
         final List<Container> containers = Collections.singletonList(new Container().withName(containerName).withImage(imageId).withEnv(config.getEnvironmentVariables()));
         update.withTemplate(origin.template().withContainers(containers));
-        update.apply();
+        final com.azure.resourcemanager.appcontainers.models.ContainerApp updated = update.apply();
         messager.info(AzureString.format("Image in Container App({0}) is successfully updated.", name));
-        return origin;
+        return updated;
     }
 
     // refer to https://github.com/microsoft/vscode-azurecontainerapps/main/src/commands/deployImage/deployImage.ts#L111
