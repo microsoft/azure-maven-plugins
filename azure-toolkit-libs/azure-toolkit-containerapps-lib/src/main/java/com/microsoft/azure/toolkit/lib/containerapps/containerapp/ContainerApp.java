@@ -5,6 +5,10 @@
 
 package com.microsoft.azure.toolkit.lib.containerapps.containerapp;
 
+import com.azure.resourcemanager.appcontainers.fluent.models.ContainerAppInner;
+import com.azure.resourcemanager.appcontainers.models.Container;
+import com.azure.resourcemanager.appcontainers.models.Template;
+import com.azure.resourcemanager.appcontainers.models.Volume;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -12,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerAppsServiceSubscription;
 import com.microsoft.azure.toolkit.lib.containerapps.model.RevisionMode;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -98,5 +103,28 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
     @Override
     public String loadStatus(@Nonnull com.azure.resourcemanager.appcontainers.models.ContainerApp remote) {
         return remote.provisioningState().toString();
+    }
+
+    // refer to https://github.com/microsoft/vscode-azurecontainerapps/main/src/commands/deployImage/deployImage.ts#L111
+    public boolean hasUnsupportedFeatures() {
+        final Optional<Template> opTemplate = this.remoteOptional(false)
+            .map(com.azure.resourcemanager.appcontainers.models.ContainerApp::innerModel).map(ContainerAppInner::template);
+        final List<Container> containers = opTemplate.map(Template::containers).filter(CollectionUtils::isNotEmpty).orElse(null);
+        final List<Volume> volumes = opTemplate.map(Template::volumes).orElse(null);
+        if (CollectionUtils.isNotEmpty(volumes)) {
+            return true;
+        } else if (CollectionUtils.isNotEmpty(containers)) {
+            if (containers.size() > 1) {
+                return true;
+            }
+            for (final Container container : containers) {
+                // NOTE: these are all arrays so if they are empty, this will still return true
+                // but these should be undefined if not being utilized
+                return CollectionUtils.isNotEmpty(container.probes()) ||
+                    CollectionUtils.isNotEmpty(container.volumeMounts()) ||
+                    CollectionUtils.isNotEmpty(container.args());
+            }
+        }
+        return false;
     }
 }
