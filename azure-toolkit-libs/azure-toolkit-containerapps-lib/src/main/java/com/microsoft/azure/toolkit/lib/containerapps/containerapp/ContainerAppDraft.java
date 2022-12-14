@@ -146,9 +146,12 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
 
     @Data
     public static class ImageConfig {
+        @Nullable
         private IContainerRegistry containerRegistry;
+        @Nonnull
         private String fullImageName;
-        private List<EnvironmentVar> environmentVariables;
+        @Nonnull
+        private List<EnvironmentVar> environmentVariables = new ArrayList<>();
 
         public String getSimpleImageName() {
             return fullImageName.substring(0, fullImageName.lastIndexOf(':')).substring(fullImageName.lastIndexOf('/') + 1);
