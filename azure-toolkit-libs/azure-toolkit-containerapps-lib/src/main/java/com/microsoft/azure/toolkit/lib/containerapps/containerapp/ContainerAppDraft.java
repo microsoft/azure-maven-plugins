@@ -5,13 +5,10 @@
 
 package com.microsoft.azure.toolkit.lib.containerapps.containerapp;
 
-import com.azure.resourcemanager.appcontainers.fluent.models.ContainerAppInner;
 import com.azure.resourcemanager.appcontainers.models.Container;
 import com.azure.resourcemanager.appcontainers.models.EnvironmentVar;
 import com.azure.resourcemanager.appcontainers.models.RegistryCredentials;
 import com.azure.resourcemanager.appcontainers.models.Secret;
-import com.azure.resourcemanager.appcontainers.models.Template;
-import com.azure.resourcemanager.appcontainers.models.Volume;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -22,7 +19,6 @@ import com.microsoft.azure.toolkit.lib.containerregistry.model.IContainerRegistr
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -108,28 +104,6 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         return updated;
     }
 
-    // refer to https://github.com/microsoft/vscode-azurecontainerapps/main/src/commands/deployImage/deployImage.ts#L111
-    public boolean hasUnsupportedFeatures(com.azure.resourcemanager.appcontainers.models.ContainerApp app) {
-        final Optional<Template> opTemplate = Optional.ofNullable(app.innerModel()).map(ContainerAppInner::template);
-        final List<Container> containers = opTemplate.map(Template::containers).filter(CollectionUtils::isNotEmpty).orElse(null);
-        final List<Volume> volumes = opTemplate.map(Template::volumes).orElse(null);
-        if (CollectionUtils.isNotEmpty(volumes)) {
-            return true;
-        } else if (CollectionUtils.isNotEmpty(containers)) {
-            if (containers.size() > 1) {
-                return true;
-            }
-            for (Container container : containers) {
-                // NOTE: these are all arrays so if they are empty, this will still return true
-                // but these should be undefined if not being utilized
-                return CollectionUtils.isNotEmpty(container.probes()) ||
-                    CollectionUtils.isNotEmpty(container.volumeMounts()) ||
-                    CollectionUtils.isNotEmpty(container.args());
-            }
-        }
-        return false;
-    }
-
     private static String getContainerNameForImage(String containerImageName) {
         return containerImageName.substring(containerImageName.lastIndexOf('/') + 1).replaceAll("[^0-9a-zA-Z-]", "-");
     }
@@ -144,7 +118,8 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         public ImageConfig imageConfig;
     }
 
-    @Data
+    @Setter
+    @Getter
     public static class ImageConfig {
         @Nullable
         private IContainerRegistry containerRegistry;
