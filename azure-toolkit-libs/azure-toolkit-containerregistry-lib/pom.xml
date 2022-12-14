@@ -102,5 +102,9 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-toolkit-auth-lib</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-containers-containerregistry</artifactId>
+        </dependency>
     </dependencies>
 </project>

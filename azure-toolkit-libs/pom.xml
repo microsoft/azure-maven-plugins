@@ -141,6 +141,7 @@
         <mongo-java-driver.version>3.12.11</mongo-java-driver.version>
         <azure-cosmos.version>4.38.0</azure-cosmos.version>
         <java-driver-core.version>4.15.0</java-driver-core.version>
+        <azure-containers-containerregistry.version>1.0.9</azure-containers-containerregistry.version>
     </properties>
 
     <repositories>
@@ -275,6 +276,11 @@
                 <groupId>com.azure</groupId>
                 <artifactId>azure-data-tables</artifactId>
                 <version>${azure-storage-tables.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-containers-containerregistry</artifactId>
+                <version>${azure-containers-containerregistry.version}</version>
             </dependency>
             <!-- azure resource management sdk -->
             <dependency>
