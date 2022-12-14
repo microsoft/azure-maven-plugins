@@ -23,6 +23,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -148,5 +149,13 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         private IContainerRegistry containerRegistry;
         private String fullImageName;
         private List<EnvironmentVar> environmentVariables;
+
+        public String getSimpleImageName() {
+            return fullImageName.substring(0, fullImageName.lastIndexOf(':')).substring(fullImageName.lastIndexOf('/') + 1);
+        }
+
+        public String getTag() {
+            return Optional.of(fullImageName.substring(fullImageName.lastIndexOf(':') + 1)).filter(StringUtils::isNotBlank).orElse("latest");
+        }
     }
 }
