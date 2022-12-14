@@ -54,7 +54,7 @@ public class ContainerAppModule extends AbstractAzResourceModule<ContainerApp, A
     @Nonnull
     @Override
     protected ContainerAppDraft newDraftForUpdate(@Nonnull ContainerApp containerApp) {
-        throw new UnsupportedOperationException("not support");
+        return new ContainerAppDraft(containerApp);
     }
 
     @Nonnull
