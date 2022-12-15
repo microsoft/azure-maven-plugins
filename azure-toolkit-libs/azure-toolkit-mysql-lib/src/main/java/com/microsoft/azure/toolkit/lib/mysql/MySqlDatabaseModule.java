@@ -5,9 +5,9 @@
 
 package com.microsoft.azure.toolkit.lib.mysql;
 
-import com.azure.resourcemanager.mysql.MySqlManager;
-import com.azure.resourcemanager.mysql.models.Database;
-import com.azure.resourcemanager.mysql.models.Databases;
+import com.azure.resourcemanager.mysqlflexibleserver.MySqlManager;
+import com.azure.resourcemanager.mysqlflexibleserver.models.Database;
+import com.azure.resourcemanager.mysqlflexibleserver.models.Databases;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;

@@ -8,14 +8,14 @@ import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.core.util.ExpandableStringEnum;
-import com.azure.resourcemanager.mysql.MySqlManager;
-import com.azure.resourcemanager.mysql.models.ServerVersion;
+import com.azure.resourcemanager.mysqlflexibleserver.MySqlManager;
+import com.azure.resourcemanager.mysqlflexibleserver.models.ServerVersion;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;

@@ -5,12 +5,12 @@
 
 package com.microsoft.azure.toolkit.lib.mysql;
 
-import com.azure.resourcemanager.mysql.MySqlManager;
-import com.azure.resourcemanager.mysql.models.PerformanceTierProperties;
-import com.azure.resourcemanager.mysql.models.Server;
-import com.azure.resourcemanager.mysql.models.ServerPropertiesForDefaultCreate;
-import com.azure.resourcemanager.mysql.models.ServerVersion;
-import com.azure.resourcemanager.mysql.models.Sku;
+import com.azure.resourcemanager.mysqlflexibleserver.MySqlManager;
+import com.azure.resourcemanager.mysqlflexibleserver.models.Server;
+import com.azure.resourcemanager.mysqlflexibleserver.models.ServerVersion;
+import com.azure.resourcemanager.mysqlflexibleserver.models.Sku;
+import com.azure.resourcemanager.mysqlflexibleserver.models.SkuCapability;
+import com.azure.resourcemanager.mysqlflexibleserver.models.SkuTier;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -21,12 +21,10 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 import lombok.Getter;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -64,11 +62,6 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
         this.setLocalMachineAccessAllowed(config.isLocalMachineAccessAllowed());
     }
 
-    private int getTierPriority(@Nonnull PerformanceTierProperties tier) {
-        return StringUtils.equals("Basic", tier.id()) ? 1 :
-            StringUtils.equals("GeneralPurpose", tier.id()) ? 2 : StringUtils.equals("MemoryOptimized", tier.id()) ? 3 : 4;
-    }
-
     @Nullable
     private ServerVersion validateServerVersion(String version) {
         if (StringUtils.isNotBlank(version)) {
@@ -87,22 +80,23 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
     public Server createResourceInAzure() {
         assert this.config != null;
         final MySqlManager manager = Objects.requireNonNull(this.getParent().getRemote());
+        final String region = Objects.requireNonNull(this.getRegion(), "'region' is required to create MySQL flexible server.").getName();
 
-        final ServerPropertiesForDefaultCreate parameters = new ServerPropertiesForDefaultCreate()
-            .withAdministratorLogin(this.getAdminName())
-            .withAdministratorLoginPassword(this.getAdminPassword())
-            .withVersion(validateServerVersion(this.getVersion()));
-        final List<PerformanceTierProperties> tiers = manager.locationBasedPerformanceTiers()
-            .list(this.getRegion().getName()).stream().collect(Collectors.toList());
-        final PerformanceTierProperties tier = tiers.stream().filter(e -> CollectionUtils.isNotEmpty(e.serviceLevelObjectives()))
-            .min(Comparator.comparingInt(this::getTierPriority))
-            .orElseThrow(() -> new AzureToolkitRuntimeException("MySQL is not available in this location for your subscription."));
-        final Sku sku = new Sku().withName(tier.serviceLevelObjectives().get(0).id());
+        final List<SkuCapability> skus = Objects.requireNonNull(manager).locationBasedCapabilities().list(region).stream()
+            .flatMap(c -> c.supportedFlexibleServerEditions().stream())
+            .flatMap(e -> e.supportedServerVersions().stream())
+            .filter(v -> StringUtils.equalsIgnoreCase(v.name(), this.getVersion()))
+            .flatMap(v -> v.supportedSkus().stream())
+            .collect(Collectors.toList());
+
+        final Sku sku = new Sku().withName(skus.get(0).name()).withTier(SkuTier.BURSTABLE);
         // create server
         final Server.DefinitionStages.WithCreate create = manager.servers().define(this.getName())
-            .withRegion(this.getRegion().getName())
+            .withRegion(region)
             .withExistingResourceGroup(this.getResourceGroupName())
-            .withProperties(parameters)
+            .withAdministratorLogin(this.getAdminName())
+            .withAdministratorLoginPassword(this.getAdminPassword())
+            .withVersion(validateServerVersion(this.getVersion()))
             .withSku(sku);
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating MySQL server ({0})...", this.getName()));

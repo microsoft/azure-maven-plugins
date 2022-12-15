@@ -5,9 +5,9 @@
 
 package com.microsoft.azure.toolkit.lib.mysql;
 
-import com.azure.resourcemanager.mysql.MySqlManager;
-import com.azure.resourcemanager.mysql.models.FirewallRule;
-import com.azure.resourcemanager.mysql.models.FirewallRules;
+import com.azure.resourcemanager.mysqlflexibleserver.MySqlManager;
+import com.azure.resourcemanager.mysqlflexibleserver.models.FirewallRule;
+import com.azure.resourcemanager.mysqlflexibleserver.models.FirewallRules;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
