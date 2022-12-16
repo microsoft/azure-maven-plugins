@@ -116,6 +116,12 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSub
 
     @Nullable
     @Override
+    public String getFullAdminName() {
+        return this.getAdminName();
+    }
+
+    @Nullable
+    @Override
     public String getFullyQualifiedDomainName() {
         return remoteOptional().map(Server::fullyQualifiedDomainName).orElse(null);
     }

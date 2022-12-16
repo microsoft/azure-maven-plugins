@@ -82,6 +82,6 @@ public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MyS
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "MySQL server";
+        return "MySQL flexible server";
     }
 }
