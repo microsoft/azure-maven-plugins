@@ -6,11 +6,13 @@
 package com.microsoft.azure.toolkit.lib.mysql;
 
 import com.azure.resourcemanager.mysqlflexibleserver.MySqlManager;
+import com.azure.resourcemanager.mysqlflexibleserver.models.EnableStatusEnum;
 import com.azure.resourcemanager.mysqlflexibleserver.models.Server;
 import com.azure.resourcemanager.mysqlflexibleserver.models.ServerVersion;
 import com.azure.resourcemanager.mysqlflexibleserver.models.Sku;
 import com.azure.resourcemanager.mysqlflexibleserver.models.SkuCapability;
 import com.azure.resourcemanager.mysqlflexibleserver.models.SkuTier;
+import com.azure.resourcemanager.mysqlflexibleserver.models.Storage;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -94,6 +96,8 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
         final Server.DefinitionStages.WithCreate create = manager.servers().define(this.getName())
             .withRegion(region)
             .withExistingResourceGroup(this.getResourceGroupName())
+            .withStorage(new Storage().withIops(360).withStorageSizeGB(20).withAutoGrow(EnableStatusEnum.ENABLED))
+            .withAvailabilityZone("3")
             .withAdministratorLogin(this.getAdminName())
             .withAdministratorLoginPassword(this.getAdminPassword())
             .withVersion(validateServerVersion(this.getVersion()))
