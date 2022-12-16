@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -244,6 +245,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         }
     }
 
+    @Nullable
     protected String getFunctionLibraryVersion() {
         final Set<Artifact> artifacts = project.getArtifacts();
         return artifacts.stream()
@@ -253,6 +255,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
                 .orElse(null);
     }
 
+    @Nullable
     protected JsonNode readHostJson() {
         // todo: add configuration for host.json location
         final File hostJson = getHostJsonFile();
@@ -264,10 +267,13 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         }
     }
 
+    @Nullable
     protected FunctionExtensionVersion getBundleVersion() {
-        final JsonNode hostJson = readHostJson();
-        final JsonNode at = hostJson.at("/extensionBundle/version");
-        return at.isMissingNode() ? null : FunctionUtils.parseFunctionExtensionVersionFromHostJson(at.asText());
+        return Optional.ofNullable(readHostJson())
+                .map(jsonNode -> jsonNode.at("/extensionBundle/version"))
+                .filter(jsonNode -> !jsonNode.isMissingNode())
+                .map(jsonNode -> FunctionUtils.parseFunctionExtensionVersionFromHostJson(jsonNode.asText()))
+                .orElse(null);
     }
 
     @Override
