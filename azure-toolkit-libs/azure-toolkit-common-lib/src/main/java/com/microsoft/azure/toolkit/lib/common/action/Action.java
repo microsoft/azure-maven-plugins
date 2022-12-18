@@ -16,7 +16,9 @@ import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
@@ -33,23 +35,28 @@ import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
+@SuppressWarnings("unused")
 @Accessors(chain = true)
 public class Action<D> extends OperationBase {
     public static final String SOURCE = "ACTION_SOURCE";
     public static final String RESOURCE_TYPE = "resourceType";
     public static final Id<Runnable> REQUIRE_AUTH = Id.of("common.requireAuth");
     public static final Id<Object> AUTHENTICATE = Id.of("account.authenticate");
-    public static final Id ANONYMOUS = Id.of("common.anonymous");
     @Nonnull
     private final List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
     @Nonnull
     private final Id<D> id;
+    @Nonnull
+    private Predicate<Object> enableWhen = o -> true;
+    private Function<D, String> iconProvider;
+    private Function<D, String> labelProvider;
+    private Function<D, AzureString> titleProvider;
+    @Nonnull
+    private final List<Function<D, String>> titleParamProviders = new ArrayList<>();
 
-    @Nullable
-    @Getter
-    private ActionView.Builder viewBuilder;
     @Setter
     @Getter
     private boolean authRequired = true;
@@ -61,53 +68,10 @@ public class Action<D> extends OperationBase {
      */
     @Setter
     @Getter
-    private Object shortcuts;
+    private Object shortcut;
 
-    public Action(@Nullable ActionView.Builder viewBuilder) {
-        this(ANONYMOUS, viewBuilder);
-    }
-
-    public Action(@Nonnull Consumer<D> handler) {
-        this(ANONYMOUS, handler);
-    }
-
-    public <E> Action(@Nonnull BiConsumer<D, E> handler) {
-        this(ANONYMOUS, handler);
-    }
-
-    public Action(@Nonnull Consumer<D> handler, @Nullable ActionView.Builder viewBuilder) {
-        this(ANONYMOUS, handler, viewBuilder);
-    }
-
-    public <E> Action(@Nonnull BiConsumer<D, E> handler, @Nullable ActionView.Builder viewBuilder) {
-        this(ANONYMOUS, handler, viewBuilder);
-    }
-
-    public Action(@Nonnull final Id<D> id, @Nullable ActionView.Builder viewBuilder) {
+    public Action(@Nonnull Id<D> id) {
         this.id = id;
-        this.viewBuilder = viewBuilder;
-    }
-
-    public Action(@Nonnull final Id<D> id, @Nonnull Consumer<D> handler) {
-        this.id = id;
-        this.registerHandler((d, e) -> true, (d, e) -> handler.accept(d));
-    }
-
-    public <E> Action(@Nonnull final Id<D> id, @Nonnull BiConsumer<D, E> handler) {
-        this.id = id;
-        this.registerHandler((d, e) -> true, handler);
-    }
-
-    public Action(@Nonnull final Id<D> id, @Nonnull Consumer<D> handler, @Nullable ActionView.Builder viewBuilder) {
-        this.id = id;
-        this.viewBuilder = viewBuilder;
-        this.registerHandler((d, e) -> true, (d, e) -> handler.accept(d));
-    }
-
-    public <E> Action(@Nonnull final Id<D> id, @Nonnull BiConsumer<D, E> handler, @Nullable ActionView.Builder viewBuilder) {
-        this.id = id;
-        this.viewBuilder = viewBuilder;
-        this.registerHandler((d, e) -> true, handler);
     }
 
     @Nonnull
@@ -117,12 +81,26 @@ public class Action<D> extends OperationBase {
     }
 
     @Nullable
-    public IView.Label getView(D source) {
-        return Objects.nonNull(this.viewBuilder) ? this.viewBuilder.toActionView(source) : null;
+    public IView.Label getView(D s) {
+        try {
+            if (this.enableWhen.test(s)) {
+                final String i = Optional.ofNullable(this.iconProvider).map(p -> p.apply(s)).orElse(null);
+                final AzureString t = Optional.ofNullable(this.titleProvider).map(p -> p.apply(s)).orElse(null);
+                return new View(this.labelProvider.apply(s), i, t, true);
+            }
+            return new View("", "", false);
+        } catch (final Exception e) {
+            e.printStackTrace();
+            return new View("", "", false);
+        }
     }
 
+    @Nullable
     @SuppressWarnings("unchecked")
     public BiConsumer<D, Object> getHandler(D source, Object e) {
+        if (!this.enableWhen.test(source)) {
+            return null;
+        }
         for (int i = this.handlers.size() - 1; i >= 0; i--) {
             final AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>> p = this.handlers.get(i);
             final BiPredicate<D, Object> condition = (BiPredicate<D, Object>) p.getKey();
@@ -139,18 +117,16 @@ public class Action<D> extends OperationBase {
         if (Objects.isNull(handler)) {
             return;
         }
-        final AzureString desc = Optional.ofNullable(getViewBuilder()).map(ActionView.Builder::title).map(t -> t.apply(source)).orElseGet(this::getDescription);
-        final Runnable runnable = () -> Operation.execute(desc, AzureOperation.Type.ACTION, () -> {
-            final AzureString title = Optional.ofNullable(this.viewBuilder).map(b -> b.title).map(t -> t.apply(source)).orElse(desc);
-            AzureTaskManager.getInstance().runInBackground(title, () -> handle(source, e, handler));
-        }, source);
+        final AzureString title = this.getTitle(source);
+        final Runnable operationBody = () -> AzureTaskManager.getInstance().runInBackground(title, () -> handle(source, e, handler));
+        final Runnable handlerBody = () -> Operation.execute(title, AzureOperation.Type.ACTION, operationBody, source);
         if (this.authRequired) {
             final Action<Runnable> requireAuth = AzureActionManager.getInstance().getAction(REQUIRE_AUTH);
             if (Objects.nonNull(requireAuth)) {
-                requireAuth.handle(runnable, e);
+                requireAuth.handle(handlerBody, e);
             }
         } else {
-            runnable.run();
+            handlerBody.run();
         }
     }
 
@@ -173,14 +149,6 @@ public class Action<D> extends OperationBase {
         this.handle(source, null);
     }
 
-    public void registerHandler(@Nonnull Predicate<D> condition, @Nonnull Consumer<D> handler) {
-        this.handlers.add(new AbstractMap.SimpleEntry<>((d, e) -> condition.test(d), (d, e) -> handler.accept(d)));
-    }
-
-    public <E> void registerHandler(@Nonnull BiPredicate<D, E> condition, @Nonnull BiConsumer<D, E> handler) {
-        this.handlers.add(new AbstractMap.SimpleEntry<>(condition, handler));
-    }
-
     @Override
     public Callable<?> getBody() {
         throw new AzureToolkitRuntimeException("'action.getBody()' is not supported");
@@ -192,10 +160,94 @@ public class Action<D> extends OperationBase {
         return AzureOperation.Type.ACTION.name();
     }
 
+    public AzureString getTitle(D source) {
+        if (Objects.nonNull(this.titleProvider)) {
+            return this.titleProvider.apply(source);
+        } else if (!this.titleParamProviders.isEmpty()) {
+            final Object[] params = this.titleParamProviders.stream().map(p -> p.apply(source)).toArray();
+            return OperationBundle.description(this.id.id, params);
+        }
+        return this.getDescription();
+    }
+
     @Nonnull
     @Override
     public AzureString getDescription() {
         return OperationBundle.description(this.id.id);
+    }
+
+    public Action<D> enableWhen(@Nonnull Predicate<Object> enableWhen) {
+        this.enableWhen = enableWhen;
+        return this;
+    }
+
+    public Action<D> withLabel(@Nonnull final String label) {
+        this.labelProvider = (any) -> label;
+        return this;
+    }
+
+    public Action<D> withLabel(@Nonnull final Function<D, String> labelProvider) {
+        this.labelProvider = labelProvider;
+        return this;
+    }
+
+    public Action<D> withIcon(@Nonnull final String icon) {
+        this.iconProvider = (any) -> icon;
+        return this;
+    }
+
+    public Action<D> withIcon(@Nonnull final Function<D, String> iconProvider) {
+        this.iconProvider = iconProvider;
+        return this;
+    }
+
+    public Action<D> withTitle(@Nonnull final AzureString title) {
+        this.titleProvider = (any) -> title;
+        return this;
+    }
+
+    public Action<D> withShortcut(@Nonnull final Object shortcut) {
+        this.shortcut = shortcut;
+        return this;
+    }
+
+    public Action<D> withHandler(@Nonnull Consumer<D> handler) {
+        this.handlers.add(new AbstractMap.SimpleEntry<>((d, e) -> true, (d, e) -> handler.accept(d)));
+        return this;
+    }
+
+    public <E> Action<D> withHandler(@Nonnull BiConsumer<D, E> handler) {
+        this.handlers.add(new AbstractMap.SimpleEntry<>((d, e) -> true, handler));
+        return this;
+    }
+
+    public Action<D> withHandler(@Nonnull Predicate<D> condition, @Nonnull Consumer<D> handler) {
+        this.handlers.add(new AbstractMap.SimpleEntry<>((d, e) -> condition.test(d), (d, e) -> handler.accept(d)));
+        return this;
+    }
+
+    public <E> Action<D> withHandler(@Nonnull BiPredicate<D, E> condition, @Nonnull BiConsumer<D, E> handler) {
+        this.handlers.add(new AbstractMap.SimpleEntry<>(condition, handler));
+        return this;
+    }
+
+    public Action<D> withAuthRequired(boolean authRequired) {
+        this.authRequired = authRequired;
+        return this;
+    }
+
+    public Action<D> withIdParam(@Nonnull final String titleParam) {
+        this.titleParamProviders.add((d) -> titleParam);
+        return this;
+    }
+
+    public Action<D> withIdParam(@Nonnull final Function<D, String> titleParamProvider) {
+        this.titleParamProviders.add(titleParamProvider);
+        return this;
+    }
+
+    public void register(AzureActionManager am) {
+        am.registerAction(this);
     }
 
     public static class Id<D> {
@@ -217,8 +269,31 @@ public class Action<D> extends OperationBase {
         }
     }
 
+    @Getter
+    @RequiredArgsConstructor
+    @AllArgsConstructor
+    public static class View implements IView.Label {
+        @Nonnull
+        private final String label;
+        private final String iconPath;
+        @Nullable
+        private AzureString title;
+        private final boolean enabled;
+
+        @Override
+        public String getDescription() {
+            return Optional.ofNullable(this.title).map(AzureString::toString).orElse(null);
+        }
+
+        @Override
+        public void dispose() {
+        }
+    }
+
     public static Action<Void> retryFromFailure(@Nonnull Runnable handler) {
-        return new Action<>(Id.of("common.retry"), (v) -> handler.run(), new ActionView.Builder("Retry"));
+        return new Action<>(Id.<Void>of("common.retry"))
+            .withHandler((v) -> handler.run())
+            .withLabel("Retry");
     }
 }
 
