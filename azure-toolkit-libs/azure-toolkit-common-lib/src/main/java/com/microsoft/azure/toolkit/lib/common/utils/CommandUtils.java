@@ -61,7 +61,7 @@ public class CommandUtils {
             log.error(CommandUtils.class.getName(), "exec", exception);
             throw exception;
         }
-        final String commandWithPath = isWindows() ? commandWithArgs : String.format("export PATH=$PATH:/usr/local/bin ; %s", commandWithArgs);
+        final String commandWithPath = isWindows() || isWSL() ? commandWithArgs : String.format("export PATH=$PATH:/usr/local/bin ; %s", commandWithArgs);
         return executeCommandAndGetOutput(starter, switcher, commandWithPath, new File(workingDirectory), env, mergeErrorStream);
     }
 
@@ -101,6 +101,10 @@ public class CommandUtils {
 
     public static boolean isWindows() {
         return SystemUtils.IS_OS_WINDOWS;
+    }
+
+    public static boolean isWSL() {
+        return SystemUtils.IS_OS_LINUX && System.getenv("WSL_DISTRO_NAME") != null;
     }
 
     private static String getSafeWorkingDirectory() {
