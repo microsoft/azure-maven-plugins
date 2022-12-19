@@ -21,6 +21,11 @@ public interface IDatabaseServer<T extends IDatabase> extends AzResourceBase {
     String getAdminName();
 
     @Nullable
+    default String getFullAdminName() {
+        return String.format("%s@%s", this.getAdminName(), this.getName());
+    }
+
+    @Nullable
     String getFullyQualifiedDomainName();
 
     boolean isAzureServiceAccessAllowed();

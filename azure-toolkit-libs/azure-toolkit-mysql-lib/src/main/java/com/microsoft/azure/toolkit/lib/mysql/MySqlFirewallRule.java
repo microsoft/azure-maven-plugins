@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.mysql;
 
-import com.azure.resourcemanager.mysql.models.FirewallRule;
+import com.azure.resourcemanager.mysqlflexibleserver.models.FirewallRule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;

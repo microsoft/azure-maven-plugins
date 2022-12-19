@@ -81,7 +81,7 @@
         <azure-arm-client-runtime.version>1.7.14</azure-arm-client-runtime.version>
         <azure-resourcemanager-applicationinsights.version>1.0.0-beta.5</azure-resourcemanager-applicationinsights.version>
         <azure-resourcemanager-appcontainers.version>1.0.0-beta.4</azure-resourcemanager-appcontainers.version>
-        <azure-resourcemanager-mysql.version>1.0.2</azure-resourcemanager-mysql.version>
+        <azure-resourcemanager-mysql.version>1.0.0-beta.2</azure-resourcemanager-mysql.version>
         <azure-resourcemanager-postgre.version>1.0.2</azure-resourcemanager-postgre.version>
         <azure-resourcemanager-loganalytics.version>1.0.0-beta.3</azure-resourcemanager-loganalytics.version>
         <azure-storage.version>8.6.6</azure-storage.version>
@@ -331,7 +331,7 @@
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
-                <artifactId>azure-resourcemanager-mysql</artifactId>
+                <artifactId>azure-resourcemanager-mysqlflexibleserver</artifactId>
                 <version>${azure-resourcemanager-mysql.version}</version>
             </dependency>
             <dependency>

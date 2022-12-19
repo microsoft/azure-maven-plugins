@@ -5,9 +5,9 @@
 
 package com.microsoft.azure.toolkit.lib.mysql;
 
-import com.azure.resourcemanager.mysql.MySqlManager;
-import com.azure.resourcemanager.mysql.models.Server;
-import com.azure.resourcemanager.mysql.models.Servers;
+import com.azure.resourcemanager.mysqlflexibleserver.MySqlManager;
+import com.azure.resourcemanager.mysqlflexibleserver.models.Server;
+import com.azure.resourcemanager.mysqlflexibleserver.models.Servers;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 @Slf4j
 public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MySqlServiceSubscription, Server> {
 
-    public static final String NAME = "servers";
+    public static final String NAME = "flexibleServers";
 
     public MySqlServerModule(@Nonnull MySqlServiceSubscription parent) {
         super(NAME, parent);
@@ -82,6 +82,6 @@ public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MyS
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "MySQL server";
+        return "MySQL flexible server";
     }
 }

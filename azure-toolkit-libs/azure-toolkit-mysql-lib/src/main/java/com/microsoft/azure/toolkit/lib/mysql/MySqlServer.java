@@ -6,10 +6,10 @@
 package com.microsoft.azure.toolkit.lib.mysql;
 
 import com.azure.core.util.ExpandableStringEnum;
-import com.azure.resourcemanager.mysql.models.Server;
-import com.azure.resourcemanager.mysql.models.Sku;
-import com.azure.resourcemanager.mysql.models.SslEnforcementEnum;
-import com.azure.resourcemanager.mysql.models.StorageProfile;
+import com.azure.resourcemanager.mysqlflexibleserver.models.Server;
+import com.azure.resourcemanager.mysqlflexibleserver.models.ServerRestartParameter;
+import com.azure.resourcemanager.mysqlflexibleserver.models.Sku;
+import com.azure.resourcemanager.mysqlflexibleserver.models.Storage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -83,7 +83,7 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSub
     @Nonnull
     @Override
     public String loadStatus(@Nonnull Server remote) {
-        return remote.userVisibleState().toString();
+        return remote.state().toString();
     }
 
     @AzureOperation(name = "resource.start_resource_in_azure.resource", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
@@ -98,7 +98,8 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSub
 
     @AzureOperation(name = "resource.restart_resource_in_azure.resource", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public void restart() {
-        this.doModify(() -> Objects.requireNonNull(this.getParent().getRemote()).servers().restart(this.getResourceGroupName(), this.getName()), Status.RESTARTING);
+        final ServerRestartParameter parameter = new ServerRestartParameter();
+        this.doModify(() -> Objects.requireNonNull(this.getParent().getRemote()).servers().restart(this.getResourceGroupName(), this.getName(), parameter), Status.RESTARTING);
     }
 
     @Nullable
@@ -111,6 +112,12 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSub
     @Override
     public String getAdminName() {
         return remoteOptional().map(Server::administratorLogin).orElse(null);
+    }
+
+    @Nullable
+    @Override
+    public String getFullAdminName() {
+        return this.getAdminName();
     }
 
     @Nullable
@@ -148,17 +155,8 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSub
         return remoteOptional().map(Server::sku).map(Sku::tier).map(ExpandableStringEnum::toString).orElse(null);
     }
 
-    public int getVCore() {
-        return remoteOptional().map(Server::sku).map(Sku::capacity).orElse(0);
-    }
-
     public int getStorageInMB() {
-        return remoteOptional().map(Server::storageProfile).map(StorageProfile::storageMB).orElse(0);
-    }
-
-    @Nullable
-    public String getSslEnforceStatus() {
-        return remoteOptional().map(Server::sslEnforcement).map(SslEnforcementEnum::name).orElse(null);
+        return remoteOptional().map(Server::storage).map(Storage::storageSizeGB).map(s -> s * 1024).orElse(0);
     }
 
     @Nonnull

@@ -5,10 +5,11 @@
 
 package com.microsoft.azure.toolkit.lib.mysql;
 
-import com.azure.resourcemanager.mysql.MySqlManager;
-import com.azure.resourcemanager.mysql.models.NameAvailability;
-import com.azure.resourcemanager.mysql.models.NameAvailabilityRequest;
-import com.azure.resourcemanager.mysql.models.PerformanceTierProperties;
+import com.azure.resourcemanager.mysqlflexibleserver.MySqlManager;
+import com.azure.resourcemanager.mysqlflexibleserver.models.CapabilityProperties;
+import com.azure.resourcemanager.mysqlflexibleserver.models.NameAvailability;
+import com.azure.resourcemanager.mysqlflexibleserver.models.NameAvailabilityRequest;
+import com.azure.resourcemanager.mysqlflexibleserver.models.StorageEditionCapability;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Availability;
@@ -56,16 +57,26 @@ public class MySqlServiceSubscription extends AbstractAzServiceSubscription<MySq
     }
 
     @Nonnull
-    public Availability checkNameAvailability(@Nonnull String name) {
-        final NameAvailabilityRequest request = new NameAvailabilityRequest().withName(name).withType(this.getParent().getName());
-        final NameAvailability result = Objects.requireNonNull(this.getRemote()).checkNameAvailabilities().execute(request);
+    public List<String> listSupportedVersions(String region) {
+        return Objects.requireNonNull(this.getRemote()).locationBasedCapabilities().list(region).stream()
+            .flatMap(c -> c.supportedFlexibleServerEditions().stream())
+            .flatMap(e -> e.supportedStorageEditions().stream())
+            .map(StorageEditionCapability::name)
+            .collect(Collectors.toList());
+//        return ServerVersion.values().stream().map(ExpandableStringEnum::toString).collect(Collectors.toList());
+    }
+
+    @Nonnull
+    public Availability checkNameAvailability(@Nonnull String location, @Nonnull String name) {
+        final NameAvailabilityRequest request = new NameAvailabilityRequest().withName(name).withType("Microsoft.DBforMySQL/flexibleServers");
+        final NameAvailability result = Objects.requireNonNull(this.getRemote()).checkNameAvailabilities().execute(location, request);
         return new Availability(result.nameAvailable(), result.reason(), result.message());
     }
 
     public boolean checkRegionAvailability(@Nonnull Region region) {
-        List<PerformanceTierProperties> tiers = Objects.requireNonNull(this.getRemote()).locationBasedPerformanceTiers()
+        List<CapabilityProperties> capabilityProperties = Objects.requireNonNull(this.getRemote()).locationBasedCapabilities()
             .list(region.getName()).stream().collect(Collectors.toList());
-        return tiers.stream().anyMatch(e -> CollectionUtils.isNotEmpty(e.serviceLevelObjectives()));
+        return capabilityProperties.stream().anyMatch(e -> CollectionUtils.isNotEmpty(e.supportedFlexibleServerEditions()));
     }
 }
 

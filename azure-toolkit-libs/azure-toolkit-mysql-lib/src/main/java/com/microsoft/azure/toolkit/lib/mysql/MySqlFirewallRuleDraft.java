@@ -5,8 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.mysql;
 
-import com.azure.resourcemanager.mysql.MySqlManager;
-import com.azure.resourcemanager.mysql.models.FirewallRule;
+import com.azure.resourcemanager.mysqlflexibleserver.MySqlManager;
+import com.azure.resourcemanager.mysqlflexibleserver.models.FirewallRule;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -49,7 +49,7 @@ public class MySqlFirewallRuleDraft extends MySqlFirewallRule implements AzResou
         final MySqlServer server = this.getParent();
         final MySqlManager manager = Objects.requireNonNull(server.getParent().getRemote());
         final FirewallRule.DefinitionStages.WithCreate withCreate = manager.firewallRules().define(this.getName())
-            .withExistingServer(this.getResourceGroupName(), server.getName())
+            .withExistingFlexibleServer(this.getResourceGroupName(), server.getName())
             .withStartIpAddress(this.getStartIpAddress())
             .withEndIpAddress(this.getEndIpAddress());
         final IAzureMessager messager = AzureMessager.getMessager();

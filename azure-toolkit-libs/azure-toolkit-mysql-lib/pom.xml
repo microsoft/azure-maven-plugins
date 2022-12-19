@@ -36,7 +36,7 @@
 
         <dependency>
             <groupId>com.azure.resourcemanager</groupId>
-            <artifactId>azure-resourcemanager-mysql</artifactId>
+            <artifactId>azure-resourcemanager-mysqlflexibleserver</artifactId>
         </dependency>
     </dependencies>
 
