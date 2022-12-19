@@ -14,11 +14,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import static com.microsoft.azure.toolkit.lib.common.utils.CommandUtils.resolveCommandPath;
 
 public abstract class FunctionCliResolver {
     private static final boolean isWindows = CommandUtils.isWindows();
@@ -90,28 +91,6 @@ public abstract class FunctionCliResolver {
         return null;
     }
 
-    private static List<String> resolveCommandPath(String command) {
-        final List<String> list = new ArrayList<>();
-        try {
-
-            final String output = CommandUtils.exec((isWindows ? "where " : "which ") + command);
-            if (StringUtils.isBlank(output)) {
-                return Collections.emptyList();
-            }
-
-            for (final String outputLine : output.split("[\\r\\n]")) {
-                final File file = new File(StringUtils.trim(outputLine));
-                if (!file.exists() || !file.isFile()) {
-                    continue;
-                }
-
-                list.add(file.getAbsolutePath());
-            }
-        } catch (IOException ignored) {
-            // ignore
-        }
-        return list;
-    }
 
     private static String getFuncFileName() {
         return isWindows ? "func.exe" : "func";
