@@ -11,6 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -20,8 +22,9 @@ import java.util.regex.Pattern;
 import static java.util.regex.Pattern.compile;
 
 public class AzureHtmlMessage extends AzureMessage {
-    static final Pattern URL_PATTERN = compile("\\s*https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)");
+    static final Pattern URL_PATTERN = compile("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)");
 
+    static final Pattern HREF_PATTERN = compile("<a href=(.*)>(.*)</a>");
     public AzureHtmlMessage(@Nonnull Type type, @Nonnull AzureString message) {
         super(type, message);
     }
@@ -71,13 +74,25 @@ public class AzureHtmlMessage extends AzureMessage {
     }
 
     private static String transformURLIntoLinks(String text) {
-        final Matcher m = URL_PATTERN.matcher(text);
-        final StringBuffer sb = new StringBuffer();
-        while (m.find()) {
-            final String found = m.group(0);
-            m.appendReplacement(sb, "<a href='" + found + "'>" + found + "</a>");
+        String[] nonHrefLinks = HREF_PATTERN.split(text);
+        final Matcher hrefMatcher = HREF_PATTERN.matcher(text);
+        final List<String> hrefLinks = new ArrayList<>();
+        while (hrefMatcher.find()) {
+            hrefLinks.add(hrefMatcher.group());
         }
-        m.appendTail(sb);
+        final StringBuffer sb = new StringBuffer();
+        // match http url only if it is not in <a href=xxx>xxx</a>
+        for (int i = 0; i < nonHrefLinks.length; i++) {
+            final Matcher m = URL_PATTERN.matcher(nonHrefLinks[i]);
+            while (m.find()) {
+                final String found = m.group(0);
+                m.appendReplacement(sb, "<a href='" + found + "'>" + found + "</a>");
+            }
+            m.appendTail(sb);
+            if (i < hrefLinks.size()) {
+                sb.append(hrefLinks.get(i));
+            }
+        }
         return sb.toString();
     }
 
