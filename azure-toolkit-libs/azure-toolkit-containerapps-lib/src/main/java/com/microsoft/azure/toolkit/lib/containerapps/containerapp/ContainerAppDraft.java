@@ -15,7 +15,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
-import com.microsoft.azure.toolkit.lib.containerregistry.model.IContainerRegistry;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -75,9 +74,8 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         final String name = this.getName();
         messager.info(AzureString.format("Start updating image in Container App({0})...", name));
         final com.azure.resourcemanager.appcontainers.models.ContainerApp.Update update = origin.update();
-        final IContainerRegistry iRegistry = config.getContainerRegistry();
-        if (Objects.nonNull(iRegistry) && (iRegistry instanceof ContainerRegistry)) { // update registries and secrets for ACR
-            final ContainerRegistry registry = (ContainerRegistry) iRegistry;
+        final ContainerRegistry registry = config.getContainerRegistry();
+        if (Objects.nonNull(registry)) { // update registries and secrets for ACR
             final String username = registry.getUserName();
             final String password = Optional.ofNullable(registry.getPrimaryCredential()).orElseGet(registry::getSecondaryCredential);
             final String passwordKey = Objects.equals(password, registry.getPrimaryCredential()) ? "password" : "password2";
@@ -122,7 +120,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
     @Getter
     public static class ImageConfig {
         @Nullable
-        private IContainerRegistry containerRegistry;
+        private ContainerRegistry containerRegistry;
         @Nonnull
         private String fullImageName;
         @Nonnull
