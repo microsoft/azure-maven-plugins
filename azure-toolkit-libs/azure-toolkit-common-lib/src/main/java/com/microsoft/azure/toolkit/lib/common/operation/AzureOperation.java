@@ -13,7 +13,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 public @interface AzureOperation {
-    String name();
+
+    /**
+     * alias for {@link #name()}
+     */
+    String value() default "";
+
+    String name() default "";
 
     /**
      * groovy expressions to compute the params dynamically.
