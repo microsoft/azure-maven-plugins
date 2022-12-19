@@ -7,12 +7,12 @@ package com.microsoft.azure.toolkit.lib.common.form;
 
 import com.microsoft.azure.toolkit.lib.common.DataStore;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.MutableTriple;
+import org.jetbrains.annotations.ApiStatus;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -128,6 +128,7 @@ public interface AzureFormInput<T> extends DataStore {
         return AzureValidationInfo.none(this);
     }
 
+    @ApiStatus.Internal
     default AzureValidationInfo validateInternal(T v) {
         if (this.isRequired() && ObjectUtils.isEmpty(v)) {
             final String message = StringUtils.isEmpty(this.getLabel()) ?
@@ -203,6 +204,7 @@ public interface AzureFormInput<T> extends DataStore {
     }
 
     @Nonnull
+    @ApiStatus.Internal
     default Mono<AzureValidationInfo> validateInternalAsync(final T value) {
         final Field<MutableTriple<T, Mono<AzureValidationInfo>, Disposable>> VALIDATING = Field.of(FIELD_VALIDATING);
         final MutableTriple<T, Mono<AzureValidationInfo>, Disposable> validating = MutableTriple.of(value, null, null);
@@ -274,16 +276,10 @@ public interface AzureFormInput<T> extends DataStore {
 
     @Deprecated
     default void setValidator(@Nonnull Validator validator) {
-        if (Objects.isNull(validator)) {
-            throw new AzureToolkitRuntimeException("'validator' can not be null.");
-        }
         this.set(FIELD_VALIDATORS, Arrays.asList(validator));
     }
 
     default void addValidator(@Nonnull Validator validator) {
-        if (Objects.isNull(validator)) {
-            throw new AzureToolkitRuntimeException("'validator' can not be null.");
-        }
         final Collection<Validator> validators = this.get(FIELD_VALIDATORS, new ArrayList<>());
         validators.add(validator);
     }

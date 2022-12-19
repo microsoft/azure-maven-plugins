@@ -5,13 +5,17 @@
 
 package com.microsoft.azure.toolkit.lib.common.form;
 
+import org.apache.commons.collections4.CollectionUtils;
 import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo.Type.SUCCESS;
 
 public interface AzureForm<T> extends AzureFormInput<T> {
     T getValue();
@@ -21,11 +25,7 @@ public interface AzureForm<T> extends AzureFormInput<T> {
     @Override
     @Nonnull
     default AzureValidationInfo validateInternal(T value) {
-        final List<AzureValidationInfo> infos = this.validateAllInputs();
-        assert infos.size() == this.getInputs().size() : "some inputs have no validation info.";
-        final AzureValidationInfo info = infos.stream()
-            .min(Comparator.comparing(AzureValidationInfo::getType))
-            .orElse(AzureValidationInfo.pending(this));
+        final AzureValidationInfo info = this.getValidationInfo();
         this.setValidationInfo(info);
         return info;
     }
@@ -39,9 +39,20 @@ public interface AzureForm<T> extends AzureFormInput<T> {
     }
 
     default List<AzureValidationInfo> getAllValidationInfos(final boolean revalidateIfNone) {
-        return this.getInputs().stream()
-            .map(input -> input.getValidationInfo(revalidateIfNone))
+        return this.getInputs().stream().map(input -> input.getValidationInfo(revalidateIfNone))
             .filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    @Override
+    default AzureValidationInfo getValidationInfo() {
+        return this.getInputs().stream().map(input -> input.getValidationInfo(true))
+            .filter(i -> i.getType() != SUCCESS)
+            .min(Comparator.comparing(AzureValidationInfo::getType))
+            .orElse(AzureValidationInfo.ok(this));
+    }
+
+    default boolean needValidation() {
+        return CollectionUtils.isNotEmpty(this.getInputs());
     }
 
     List<AzureFormInput<?>> getInputs();
