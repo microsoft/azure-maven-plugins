@@ -38,7 +38,7 @@ public class PostgreSqlDatabaseModule extends AbstractAzResourceModule<PostgreSq
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.load_resources_in_azure.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected Stream<Database> loadResourcesFromAzure() {
         // https://docs.microsoft.com/en-us/azure/postgresql/concepts-servers
         // azure_maintenance - This database is used to separate the processes that provide the managed service from user actions.
@@ -51,14 +51,14 @@ public class PostgreSqlDatabaseModule extends AbstractAzResourceModule<PostgreSq
 
     @Nullable
     @Override
-    @AzureOperation(name = "resource.load_resource_in_azure.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
     protected Database loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
         final PostgreSqlServer p = this.getParent();
         return Optional.ofNullable(this.getClient()).map(c -> c.get(p.getResourceGroupName(), p.getName(), name)).orElse(null);
     }
 
     @Override
-    @AzureOperation(name = "postgre.delete_database_in_azure.database", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/postgre.delete_database.database", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String id) {
         final PostgreSqlServer p = this.getParent();
         final ResourceId resourceId = ResourceId.fromString(id);

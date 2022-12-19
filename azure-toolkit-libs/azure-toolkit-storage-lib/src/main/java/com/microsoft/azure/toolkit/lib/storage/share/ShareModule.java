@@ -62,7 +62,7 @@ public class ShareModule extends AbstractAzResourceModule<Share, StorageAccount,
     }
 
     @Override
-    @AzureOperation(name = "storage.delete_share_in_azure.share", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/storage.delete_share.share", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         final ShareServiceClient client = this.getFileShareServiceClient();

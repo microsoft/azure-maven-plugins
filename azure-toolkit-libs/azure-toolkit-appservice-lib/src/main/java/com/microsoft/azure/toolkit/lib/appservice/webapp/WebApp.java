@@ -45,7 +45,7 @@ public class WebApp extends WebAppBase<WebApp, AppServiceServiceSubscription, co
         this.deploymentModule = new WebAppDeploymentSlotModule(this);
     }
 
-    @AzureOperation(name = "webapp.swap_slot_in_azure.app|slot", params = {"this.getName()", "slotName"}, type = Type.REQUEST)
+    @AzureOperation(name = "azure/webapp.swap_slot.app|slot", params = {"this.getName()", "slotName"}, type = Type.REQUEST)
     public void swap(String slotName) {
         this.doModify(() -> {
             Objects.requireNonNull(this.getFullRemote()).swap(slotName);

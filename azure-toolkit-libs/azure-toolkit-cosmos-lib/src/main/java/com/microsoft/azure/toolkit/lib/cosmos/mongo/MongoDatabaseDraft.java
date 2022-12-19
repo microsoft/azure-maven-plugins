@@ -42,7 +42,7 @@ public class MongoDatabaseDraft extends MongoDatabase implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "cosmos.create_mongo_database_in_azure.database", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/cosmos.create_mongo_database.database", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public MongoDBDatabaseGetResultsInner createResourceInAzure() {
         final CosmosDBManagementClient cosmosDBManagementClient = Objects.requireNonNull(getParent().getRemote()).manager().serviceClient();
         final MongoDBDatabaseCreateUpdateParameters parameters = new MongoDBDatabaseCreateUpdateParameters()
@@ -58,7 +58,7 @@ public class MongoDatabaseDraft extends MongoDatabase implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "cosmos.update_mongo_database_in_azure.database", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/cosmos.update_mongo_database.database", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public MongoDBDatabaseGetResultsInner updateResourceInAzure(@Nonnull MongoDBDatabaseGetResultsInner origin) {
         throw new UnsupportedOperationException("not support");
     }

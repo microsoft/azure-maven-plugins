@@ -78,7 +78,7 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
 
     @Nonnull
     @Override
-    @AzureOperation(name = "mysql.create_server_in_azure.server", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/mysql.create_server.server", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public Server createResourceInAzure() {
         assert this.config != null;
         final MySqlManager manager = Objects.requireNonNull(this.getParent().getRemote());
@@ -111,7 +111,7 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
 
     @Nonnull
     @Override
-    @AzureOperation(name = "mysql.update_server_in_azure.server", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/mysql.update_server.server", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
     public Server updateResourceInAzure(@Nonnull Server origin) {
         // TODO: update other properties
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
