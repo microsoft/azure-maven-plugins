@@ -16,7 +16,10 @@ import org.apache.commons.lang3.SystemUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,6 +34,29 @@ public class CommandUtils {
     private static final String LINUX_MAC_SWITCHER = "-c";
     private static final String DEFAULT_WINDOWS_SYSTEM_ROOT = System.getenv("SystemRoot");
     private static final String DEFAULT_MAC_LINUX_PATH = "/bin/";
+
+    public static List<String> resolveCommandPath(String command) {
+        final List<String> list = new ArrayList<>();
+        try {
+
+            final String output = CommandUtils.exec((isWindows() ? "where " : "which ") + command);
+            if (StringUtils.isBlank(output)) {
+                return Collections.emptyList();
+            }
+
+            for (final String outputLine : output.split("[\\r\\n]")) {
+                final File file = new File(StringUtils.trim(outputLine));
+                if (!file.exists() || !file.isFile()) {
+                    continue;
+                }
+
+                list.add(file.getAbsolutePath());
+            }
+        } catch (IOException ignored) {
+            // ignore
+        }
+        return list;
+    }
 
     public static String exec(final String commandWithArgs) throws IOException {
         return exec(commandWithArgs, new HashMap<>());
