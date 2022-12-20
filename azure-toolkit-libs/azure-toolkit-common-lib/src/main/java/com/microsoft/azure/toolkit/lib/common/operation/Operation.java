@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.operation;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -50,7 +51,7 @@ public interface Operation {
 
     @Nullable
     default Operation getActionParent() {
-        if (this.getType().equals(AzureOperation.Type.ACTION.name())) {
+        if (StringUtils.equalsAnyIgnoreCase(this.getType(), Type.USER, Type.PLATFORM)) {
             return this;
         }
         return Optional.ofNullable(this.getParent()).map(Operation::getActionParent).orElse(null);
@@ -62,17 +63,26 @@ public interface Operation {
     }
 
     @SneakyThrows
-    static void execute(@Nonnull final AzureString title, @Nonnull final AzureOperation.Type type, @Nonnull final Callable<?> body, @Nullable final Object source) {
+    static void execute(@Nonnull final AzureString title, @Nonnull final String type, @Nonnull final Callable<?> body, @Nullable final Object source) {
         final SimpleOperation operation = new SimpleOperation(title, body, type);
         AzureOperationAspect.execute(operation, source);
     }
 
     @SneakyThrows
-    static void execute(@Nonnull final AzureString title, @Nonnull final AzureOperation.Type type, @Nonnull final Runnable body, @Nullable final Object source) {
+    static void execute(@Nonnull final AzureString title, @Nonnull final String type, @Nonnull final Runnable body, @Nullable final Object source) {
         final SimpleOperation operation = new SimpleOperation(title, () -> {
             body.run();
             return null;
         }, type);
         AzureOperationAspect.execute(operation, source);
+    }
+
+    interface Type {
+        String USER = "user";
+        String PLATFORM = "platform";
+        String INTERNAL = "internal";
+        String AZURE = "azure";
+        String BOUNDARY = "boundary";
+        String UNKNOWN = "unknown";
     }
 }

@@ -16,7 +16,6 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationException;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationThreadContext;
@@ -172,7 +171,7 @@ public class AzureMessage implements IAzureMessage {
         final LinkedList<Operation> result = new LinkedList<>();
         while (Objects.nonNull(current)) {
             result.addFirst(current);
-            if (AzureOperation.Type.ACTION.name().equals(current.getType())) {
+            if (StringUtils.equalsAnyIgnoreCase(current.getType(), Operation.Type.USER, Operation.Type.PLATFORM)) {
                 break;
             }
             current = current.getParent();

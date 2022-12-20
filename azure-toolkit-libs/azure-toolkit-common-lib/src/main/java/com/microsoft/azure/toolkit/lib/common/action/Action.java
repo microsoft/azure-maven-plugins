@@ -9,7 +9,6 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBase;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
@@ -119,7 +118,7 @@ public class Action<D> extends OperationBase {
         }
         final AzureString title = this.getTitle(source);
         final Runnable operationBody = () -> AzureTaskManager.getInstance().runInBackground(title, () -> handle(source, e, handler));
-        final Runnable handlerBody = () -> Operation.execute(title, AzureOperation.Type.ACTION, operationBody, source);
+        final Runnable handlerBody = () -> Operation.execute(title, Type.USER, operationBody, source);
         if (this.authRequired) {
             final Action<Runnable> requireAuth = AzureActionManager.getInstance().getAction(REQUIRE_AUTH);
             if (Objects.nonNull(requireAuth)) {
@@ -157,7 +156,7 @@ public class Action<D> extends OperationBase {
     @Nonnull
     @Override
     public String getType() {
-        return AzureOperation.Type.ACTION.name();
+        return Type.USER;
     }
 
     public AzureString getTitle(D source) {

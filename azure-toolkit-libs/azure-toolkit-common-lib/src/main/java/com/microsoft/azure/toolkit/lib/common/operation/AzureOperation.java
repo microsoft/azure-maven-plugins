@@ -26,38 +26,4 @@ public @interface AzureOperation {
      * e.g. groovy expression: {@code "this.webapp.id()" }, {@code "subscriptionId" }
      */
     String[] params() default {};
-
-    enum Type {
-        DEFAULT,
-
-        /**
-         * user triggered action, achieved by leveraging services and tasks
-         * e.g. run configuration, download file
-         */
-        ACTION,
-
-        /**
-         * usually achieves certain biz goal(so it's biz related), similar to spring @Service, shared by actions and services
-         * e.g. start a webapp(specified by id), update setting of deployment slot.
-         */
-        SERVICE,
-
-        /**
-         * finer granularity, shared by services and actions, lies at the same layer as spring @Repository
-         * e.g. single io request, single db access, convert POJO to VO, ...
-         */
-        TASK,
-
-        /**
-         * a special type of task
-         */
-        REQUEST,
-    }
-
-    enum Target {
-        DEFAULT,
-        SYSTEM,
-        PLATFORM,
-        AZURE,
-    }
 }

@@ -21,7 +21,7 @@ public class SimpleOperation extends OperationBase {
     @Nonnull
     private final Callable<?> body;
     @Nonnull
-    private final AzureOperation.Type type;
+    private final String type;
 
     @Override
     public String toString() {
@@ -37,7 +37,7 @@ public class SimpleOperation extends OperationBase {
     @Nonnull
     @Override
     public String getType() {
-        return this.type.name();
+        return this.type;
     }
 
     @Nullable
