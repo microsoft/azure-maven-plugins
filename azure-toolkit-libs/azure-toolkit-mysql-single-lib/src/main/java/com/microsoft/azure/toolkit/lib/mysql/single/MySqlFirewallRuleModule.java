@@ -41,7 +41,7 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
 
     @Nonnull
     @Override
-    @AzureOperation(name = "resource.load_resources_in_azure.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
     protected Stream<FirewallRule> loadResourcesFromAzure() {
         final MySqlServer p = this.getParent();
         return Optional.ofNullable(this.getClient()).map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).stream()).orElse(Stream.empty());
@@ -49,14 +49,14 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
 
     @Nullable
     @Override
-    @AzureOperation(name = "resource.load_resource_in_azure.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"})
     protected FirewallRule loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
         final MySqlServer p = this.getParent();
         return Optional.ofNullable(this.getClient()).map(c -> c.get(p.getResourceGroupName(), p.getName(), name)).orElse(null);
     }
 
     @Override
-    @AzureOperation(name = "mysql.delete_firewall_rule_in_azure.rule", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/mysql.delete_firewall_rule.rule", params = {"nameFromResourceId(id)"})
     protected void deleteResourceFromAzure(@Nonnull String id) {
         final MySqlServer p = this.getParent();
         final ResourceId resourceId = ResourceId.fromString(id);
