@@ -72,24 +72,24 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         final IAzureMessager messager = AzureMessager.getMessager();
 
         final String name = this.getName();
-        messager.info(AzureString.format("Start updating image in Container App({0})...", name));
+        messager.info(AzureString.format("Start creating new revision for container app({0})...", name));
         final com.azure.resourcemanager.appcontainers.models.ContainerApp.Update update = origin.update();
         final ContainerRegistry registry = config.getContainerRegistry();
+        final List<Secret> secrets = origin.listSecrets().value().stream().map(s -> new Secret().withName(s.name()).withValue(s.value())).collect(Collectors.toList());
+        final List<RegistryCredentials> registries = Optional.ofNullable(origin.configuration().registries()).map(ArrayList::new).orElseGet(ArrayList::new);
         if (Objects.nonNull(registry)) { // update registries and secrets for ACR
             final String username = registry.getUserName();
             final String password = Optional.ofNullable(registry.getPrimaryCredential()).orElseGet(registry::getSecondaryCredential);
             final String passwordKey = Objects.equals(password, registry.getPrimaryCredential()) ? "password" : "password2";
             final String passwordName = String.format("%s-%s", registry.getName().toLowerCase(), passwordKey);
-            final List<Secret> secrets = origin.listSecrets().value().stream().map(s -> new Secret().withName(s.name()).withValue(s.value())).collect(Collectors.toList());
-            final List<RegistryCredentials> registries = Optional.ofNullable(origin.configuration().registries()).map(ArrayList::new).orElseGet(ArrayList::new);
             registries.removeIf(r -> r.server().equalsIgnoreCase(registry.getLoginServerUrl()));
             registries.add(new RegistryCredentials().withServer(registry.getLoginServerUrl()).withUsername(username).withPasswordSecretRef(passwordName));
             secrets.removeIf(s -> s.name().equalsIgnoreCase(passwordName));
             secrets.add(new Secret().withName(passwordName).withValue(password));
-            update.withConfiguration(origin.configuration()
-                .withRegistries(registries)
-                .withSecrets(secrets));
         }
+        update.withConfiguration(origin.configuration()
+            .withRegistries(registries)
+            .withSecrets(secrets));
 
         // update container/image
         final String imageId = config.getFullImageName();
@@ -98,7 +98,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         final List<Container> containers = Collections.singletonList(new Container().withName(containerName).withImage(imageId).withEnv(config.getEnvironmentVariables()));
         update.withTemplate(origin.template().withContainers(containers));
         final com.azure.resourcemanager.appcontainers.models.ContainerApp updated = update.apply();
-        messager.info(AzureString.format("Image in Container App({0}) is successfully updated.", name));
+        messager.success(AzureString.format("New revision ({0}) is successfully created for container app({1}).", updated.latestRevisionName(), name));
         return updated;
     }
 
