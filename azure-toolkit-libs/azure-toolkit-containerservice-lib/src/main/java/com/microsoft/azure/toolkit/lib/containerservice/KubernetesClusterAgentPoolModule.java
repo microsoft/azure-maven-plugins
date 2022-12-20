@@ -56,7 +56,7 @@ public class KubernetesClusterAgentPoolModule extends
     }
 
     @Override
-    @AzureOperation(name = "azure/kubernetes.delete_cluster.cluster", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/kubernetes.delete_cluster.cluster", params = {"nameFromResourceId(resourceId)"})
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final String name = ResourceId.fromString(resourceId).name();
         Optional.ofNullable(getClient()).ifPresent(cluster -> cluster.update().withoutAgentPool(name));

@@ -77,17 +77,17 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     }
 
     // MODIFY
-    @AzureOperation(name = "azure/resource.start_resource.resource", params = {"this.name()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/resource.start_resource.resource", params = {"this.name()"})
     public void start() {
         this.doModify(() -> Objects.requireNonNull(this.getActiveDeployment()).start(), Status.STARTING);
     }
 
-    @AzureOperation(name = "azure/resource.stop_resource.resource", params = {"this.name()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/resource.stop_resource.resource", params = {"this.name()"})
     public void stop() {
         this.doModify(() -> Objects.requireNonNull(this.getActiveDeployment()).stop(), Status.STOPPING);
     }
 
-    @AzureOperation(name = "azure/resource.restart_resource.resource", params = {"this.name()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/resource.restart_resource.resource", params = {"this.name()"})
     public void restart() {
         this.doModify(() -> Objects.requireNonNull(this.getActiveDeployment()).restart(), Status.RESTARTING);
     }

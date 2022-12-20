@@ -45,15 +45,9 @@ public class MethodOperation extends OperationBase {
 
     @Nonnull
     public String getType() {
-        final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
-        return annotation.type().name();
-    }
-
-    @Nonnull
-    @Override
-    public AzureOperation.Target getTarget() {
-        final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
-        return annotation.target();
+        final String id = this.getId();
+        final String[] parts = id.split("/");
+        return parts.length > 1 ? parts[0] : "unknown";
     }
 
     public AzureString getDescription() {

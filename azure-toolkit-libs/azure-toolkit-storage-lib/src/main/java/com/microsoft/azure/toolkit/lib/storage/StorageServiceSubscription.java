@@ -62,7 +62,7 @@ public class StorageServiceSubscription extends AbstractAzServiceSubscription<St
     }
 
     @Nonnull
-    @AzureOperation(name = "azure/storage.check_name.name", params = {"name"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/storage.check_name.name", params = {"name"})
     public Availability checkNameAvailability(@Nonnull String name) {
         CheckNameAvailabilityResult result = Objects.requireNonNull(this.getRemote()).storageAccounts().checkNameAvailability(name);
         return new Availability(result.isAvailable(),

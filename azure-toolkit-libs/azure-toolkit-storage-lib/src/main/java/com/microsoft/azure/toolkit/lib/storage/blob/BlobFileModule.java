@@ -50,7 +50,7 @@ public class BlobFileModule extends AbstractAzResourceModule<BlobFile, IBlobFile
     }
 
     @Override
-    @AzureOperation(name = "azure/storage.delete_blob.blob", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/storage.delete_blob.blob", params = {"nameFromResourceId(resourceId)"})
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final BlobFile file = this.get(resourceId);
         if (file != null) {

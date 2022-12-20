@@ -79,7 +79,7 @@ public class AzureAccount implements IAzureAccount {
         return account;
     }
 
-    @AzureOperation(name = "account.login.type", params = {"config.getType()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "internal/account.login.type", params = {"config.getType()"})
     public synchronized Account login(@Nonnull AuthConfiguration config, boolean enablePersistence) {
         // TODO: azure environment/cloud should be set from azure configuration before login.
         if (this.isLoggedIn()) {

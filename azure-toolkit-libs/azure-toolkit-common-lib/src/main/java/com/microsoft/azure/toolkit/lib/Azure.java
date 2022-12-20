@@ -56,7 +56,7 @@ public class Azure {
     }
 
     @Nullable
-    @AzureOperation(name = "resource.get.id", params = {"id"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "internal/resource.get.id", params = {"id"})
     public AbstractAzResource<?, ?, ?> getById(String id) {
         final ResourceId resourceId = ResourceId.fromString(id);
         final String provider = Optional.ofNullable(resourceId.providerNamespace()).orElse("Microsoft.Resources");
@@ -73,7 +73,7 @@ public class Azure {
     }
 
     @Nullable
-    @AzureOperation(name = "resource.get.id", params = {"id"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "internal/resource.get.id", params = {"id"})
     public AbstractAzResource<?, ?, ?> getOrInitById(String id) {
         final ResourceId resourceId = ResourceId.fromString(id);
         final String provider = Optional.ofNullable(resourceId.providerNamespace()).orElse("Microsoft.Resources");

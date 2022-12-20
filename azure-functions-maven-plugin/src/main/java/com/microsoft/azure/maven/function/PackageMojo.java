@@ -108,7 +108,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     protected boolean skipInstallExtensions;
 
     @Override
-    @AzureOperation(name = "functionapp.package", type = AzureOperation.Type.ACTION)
+    @AzureOperation("user/functionapp.package")
     protected void doExecute() throws AzureExecutionException {
         validateAppName();
         validateFunctionCompatibility();

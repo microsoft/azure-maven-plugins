@@ -63,7 +63,7 @@ public class RedisServiceSubscription extends AbstractAzServiceSubscription<Redi
     }
 
     @Nonnull
-    @AzureOperation(name = "azure/redis.check_name.redis", params = "name", type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/redis.check_name.redis", params = "name")
     public Availability checkNameAvailability(@Nonnull String name) {
         RedisClient redis = Objects.requireNonNull(this.getRemote()).serviceClient().getRedis();
         try {

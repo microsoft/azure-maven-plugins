@@ -53,7 +53,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionAppDeploy
     }
 
     @Override
-    @AzureOperation(name = "azure/function.enable_remote_debugging.slot", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/function.enable_remote_debugging.slot", params = {"this.getName()"})
     public void enableRemoteDebug() {
         final Map<String, String> appSettings = this.getAppSettings();
         final String debugPort = appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, getRemoteDebugPort());
@@ -65,7 +65,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionAppDeploy
     }
 
     @Override
-    @AzureOperation(name = "azure/function.disable_remote_debugging.slot", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/function.disable_remote_debugging.slot", params = {"this.getName()"})
     public void disableRemoteDebug() {
         final Map<String, String> appSettings = this.getAppSettings();
         final String javaOpts = this.getJavaOptsWithRemoteDebugDisabled(appSettings);

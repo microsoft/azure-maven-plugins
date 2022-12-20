@@ -49,7 +49,7 @@ public class ResourceDeploymentModule extends
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
     protected Stream<Deployment> loadResourcesFromAzure() {
         final Deployments deployments = Objects.requireNonNull(this.getClient());
         return deployments.listByResourceGroup(this.parent.getName()).stream();

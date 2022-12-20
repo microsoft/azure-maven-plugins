@@ -45,7 +45,7 @@ public class MicrosoftSqlFirewallRuleDraft extends MicrosoftSqlFirewallRule impl
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/sqlserver.create_firewall_rule.rule", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/sqlserver.create_firewall_rule.rule", params = {"this.getName()"})
     public SqlFirewallRule createResourceInAzure() {
         final SqlServer server = Objects.requireNonNull(this.getParent().getRemote());
         SqlFirewallRuleOperations.DefinitionStages.WithCreate withCreate = server.firewallRules().define(this.getName())
@@ -59,7 +59,7 @@ public class MicrosoftSqlFirewallRuleDraft extends MicrosoftSqlFirewallRule impl
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/sqlserver.update_firewall_rule.rule", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/sqlserver.update_firewall_rule.rule", params = {"this.getName()"})
     public SqlFirewallRule updateResourceInAzure(@Nonnull SqlFirewallRule origin) {
         final Optional<String> modifiedStartIp = Optional.ofNullable(this.getStartIpAddress()).filter(n -> !Objects.equals(n, super.getStartIpAddress()));
         final Optional<String> modifiedEndIp = Optional.ofNullable(this.getEndIpAddress()).filter(n -> !Objects.equals(n, super.getEndIpAddress()));

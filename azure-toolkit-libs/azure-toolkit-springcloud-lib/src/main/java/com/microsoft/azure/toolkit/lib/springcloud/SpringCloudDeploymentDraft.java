@@ -103,7 +103,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/springcloud.create_app_deployment.deployment", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/springcloud.create_app_deployment.deployment", params = {"this.getName()"})
     public SpringAppDeployment createResourceInAzure() {
         final String name = this.getName();
         final SpringApp app = Objects.requireNonNull(this.getParent().getRemote());
@@ -120,7 +120,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/springcloud.update_app_deployment.deployment", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/springcloud.update_app_deployment.deployment", params = {"this.getName()"})
     public SpringAppDeployment updateResourceInAzure(@Nonnull SpringAppDeployment deployment) {
         final SpringAppDeploymentImpl update = ((SpringAppDeploymentImpl) Objects.requireNonNull(deployment).update());
         if (modify(update)) {
@@ -134,7 +134,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     }
 
     @Nonnull
-    @AzureOperation(name = "azure/springcloud.scale_app_instances.deployment", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/springcloud.scale_app_instances.deployment", params = {"this.getName()"})
     SpringAppDeployment scaleDeploymentInAzure(@Nonnull SpringAppDeployment deployment) {
         final SpringAppDeployment.Update update = deployment.update();
         boolean modified = scale(deployment, update);

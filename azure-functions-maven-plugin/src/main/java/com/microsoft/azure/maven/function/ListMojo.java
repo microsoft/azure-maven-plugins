@@ -35,7 +35,7 @@ public class ListMojo extends AbstractFunctionMojo {
     protected static final String RESOURCES_FILE = "/resources.json";
 
     @Override
-    @AzureOperation(name = "functionapp.list", type = AzureOperation.Type.ACTION)
+    @AzureOperation("user/functionapp.list")
     protected void doExecute() throws AzureExecutionException {
         try {
             Log.info(TEMPLATES_START);

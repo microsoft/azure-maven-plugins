@@ -27,11 +27,6 @@ public interface Operation {
     @Nonnull
     String getType();
 
-    @Nonnull
-    default AzureOperation.Target getTarget() {
-        return AzureOperation.Target.DEFAULT;
-    }
-
     @Nullable
     AzureString getDescription();
 

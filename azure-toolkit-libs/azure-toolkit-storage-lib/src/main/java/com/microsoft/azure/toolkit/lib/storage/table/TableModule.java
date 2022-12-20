@@ -62,7 +62,7 @@ public class TableModule extends AbstractAzResourceModule<Table, StorageAccount,
     }
 
     @Override
-    @AzureOperation(name = "azure/storage.delete_table.table", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/storage.delete_table.table", params = {"nameFromResourceId(resourceId)"})
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         final TableServiceClient client = this.getTableServiceClient();

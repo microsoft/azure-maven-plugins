@@ -36,7 +36,7 @@ public class GenericResourceModule extends
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
     protected Stream<HasId> loadResourcesFromAzure() {
         final GenericResources resources = Objects.requireNonNull(this.getClient());
         return resources.listByResourceGroup(this.parent.getName()).stream()

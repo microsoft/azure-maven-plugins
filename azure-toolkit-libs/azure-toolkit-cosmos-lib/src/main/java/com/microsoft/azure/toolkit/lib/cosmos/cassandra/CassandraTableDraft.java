@@ -50,7 +50,7 @@ public class CassandraTableDraft extends CassandraTable implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/cosmos.create_cassandra_table.table", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/cosmos.create_cassandra_table.table", params = {"this.getName()"})
     public CassandraTableGetResultsInner createResourceInAzure() {
         final CassandraKeyspace keyspace = getParent();
         final CassandraCosmosDBAccount account = (CassandraCosmosDBAccount) keyspace.getParent();
@@ -82,7 +82,7 @@ public class CassandraTableDraft extends CassandraTable implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/cosmos.update_cassandra_table.table", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/cosmos.update_cassandra_table.table", params = {"this.getName()"})
     public CassandraTableGetResultsInner updateResourceInAzure(@Nonnull CassandraTableGetResultsInner origin) {
         throw new UnsupportedOperationException("not support");
     }

@@ -72,7 +72,7 @@ public class RunMojo extends AbstractFunctionMojo {
     //region Entry Point
 
     @Override
-    @AzureOperation(name = "functionapp.run", type = AzureOperation.Type.ACTION)
+    @AzureOperation("user/functionapp.run")
     protected void doExecute() throws AzureExecutionException {
         validateAppName();
 

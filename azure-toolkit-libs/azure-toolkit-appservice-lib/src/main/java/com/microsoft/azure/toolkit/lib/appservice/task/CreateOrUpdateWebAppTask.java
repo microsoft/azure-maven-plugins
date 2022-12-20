@@ -27,7 +27,6 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation.Type;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
@@ -96,7 +95,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         }
     }
 
-    @AzureOperation(name = "azure/webapp.create_app.app", params = {"this.config.appName()"}, type = Type.SERVICE)
+    @AzureOperation(name = "azure/webapp.create_app.app", params = {"this.config.appName()"})
     private WebApp create() {
         OperationContext.action().setTelemetryProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
         final Region region = this.config.region();
@@ -117,7 +116,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         return appDraft.createIfNotExist();
     }
 
-    @AzureOperation(name = "azure/webapp.update_app.app", params = {"this.config.appName()"}, type = Type.SERVICE)
+    @AzureOperation(name = "azure/webapp.update_app.app", params = {"this.config.appName()"})
     private WebApp update(final WebApp webApp) {
         final WebAppDraft draft = (WebAppDraft) webApp.update();
         final AppServicePlanConfig servicePlanConfig = config.getServicePlanConfig();
@@ -139,7 +138,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         return draft.updateIfExist();
     }
 
-    @AzureOperation(name = "webapp.create_slot.slot|app", params = {"this.config.deploymentSlotName()", "this.config.appName()"}, type = Type.SERVICE)
+    @AzureOperation(name = "internal/webapp.create_slot.slot|app", params = {"this.config.deploymentSlotName()", "this.config.appName()"})
     private WebAppDeploymentSlot createDeploymentSlot(final WebAppDeploymentSlotDraft draft) {
         draft.setRuntime(getRuntime(config.runtime()));
         draft.setDockerConfiguration(getDockerConfiguration(config.runtime()));
@@ -150,7 +149,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         return draft.commit();
     }
 
-    @AzureOperation(name = "webapp.update_slot.slot|app", params = {"this.config.deploymentSlotName()", "this.config.appName()"}, type = Type.SERVICE)
+    @AzureOperation(name = "internal/webapp.update_slot.slot|app", params = {"this.config.deploymentSlotName()", "this.config.appName()"})
     private WebAppDeploymentSlot updateDeploymentSlot(final WebAppDeploymentSlotDraft draft) {
         draft.setRuntime(getRuntime(config.runtime()));
         draft.setDockerConfiguration(getDockerConfiguration(config.runtime()));
@@ -190,7 +189,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     }
 
     @Override
-    @AzureOperation(name = "webapp.create_update_app.app", params = {"this.config.appName()"}, type = Type.SERVICE)
+    @AzureOperation(name = "internal/webapp.create_update_app.app", params = {"this.config.appName()"})
     public WebAppBase<?, ?, ?> doExecute() {
         Object result = null;
         for (final AzureTask<?> task : subTasks) {

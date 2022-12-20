@@ -60,13 +60,13 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
             .forEach(m -> preload((AzResourceModule) m));
     }
 
-    @AzureOperation(name = "resource.refresh_on_subscription_changed.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "auto/resource.refresh_on_subscription_changed.type", params = {"this.getResourceTypeName()"})
     private void refreshOnSubscriptionChanged() {
         this.clear();
         this.refresh();
     }
 
-    @AzureOperation(name = "resource.preload.type", params = {"module.getResourceTypeName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "auto/resource.preload.type", params = {"module.getResourceTypeName()"})
     private static void preload(AzResourceModule<?> module) {
         OperationContext.action().setTelemetryProperty("preloading", String.valueOf(true));
         module.list();
@@ -79,7 +79,7 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
     protected Stream<R> loadResourcesFromAzure() {
         return Azure.az(IAzureAccount.class).account().getSelectedSubscriptions().stream().parallel()
             .map(Subscription::getId).map(i -> loadResourceFromAzure(i, null));

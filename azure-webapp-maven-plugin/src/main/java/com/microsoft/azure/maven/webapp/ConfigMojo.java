@@ -95,7 +95,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebAppPomHandler pomHandler;
 
     @Override
-    @AzureOperation(name = "webapp.config", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/webapp.config")
     protected void doExecute() {
         if (!(Utils.isJarPackagingProject(this.project.getPackaging()) ||
                 Utils.isEarPackagingProject(this.project.getPackaging()) ||

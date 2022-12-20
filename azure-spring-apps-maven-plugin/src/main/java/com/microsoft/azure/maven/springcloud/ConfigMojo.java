@@ -103,7 +103,7 @@ public class ConfigMojo extends AbstractMojoBase {
     private boolean advancedOptions;
 
     @Override
-    @AzureOperation(name = "springcloud.config_mojo", type = AzureOperation.Type.ACTION)
+    @AzureOperation("user/springcloud.config_mojo")
     protected void doExecute() throws AzureExecutionException {
         if (!settings.isInteractiveMode()) {
             throw new UnsupportedOperationException("The goal 'config' must be run at interactive mode.");

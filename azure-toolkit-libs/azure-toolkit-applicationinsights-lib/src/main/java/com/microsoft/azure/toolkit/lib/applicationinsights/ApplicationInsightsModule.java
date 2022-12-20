@@ -28,21 +28,21 @@ public class ApplicationInsightsModule extends AbstractAzResourceModule<Applicat
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
     protected Stream<ApplicationInsightsComponent> loadResourcesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());
     }
 
     @Nullable
     @Override
-    @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"})
     protected ApplicationInsightsComponent loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
         assert StringUtils.isNoneBlank(resourceGroup) : "resource group can not be empty";
         return Optional.ofNullable(this.getClient()).map(c -> c.getByResourceGroup(resourceGroup, name)).orElse(null);
     }
 
     @Override
-    @AzureOperation(name = "azure/ai.delete_ai.ai", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/ai.delete_ai.ai", params = {"nameFromResourceId(resourceId)"})
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         Optional.ofNullable(this.getClient()).ifPresent(c -> c.deleteById(resourceId));
     }

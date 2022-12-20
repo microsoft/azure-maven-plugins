@@ -50,7 +50,7 @@ public class ShareFileDraft extends ShareFile implements StorageFile.Draft<Share
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/storage.create_share_file.file", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/storage.create_share_file.file", params = {"this.getName()"})
     public ShareFileItem createResourceInAzure() {
         final ShareFileModule module = (ShareFileModule) this.getModule();
         final ShareDirectoryClient client = module.getClient();
@@ -78,7 +78,7 @@ public class ShareFileDraft extends ShareFile implements StorageFile.Draft<Share
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/storage.update_share_file.file", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/storage.update_share_file.file", params = {"this.getName()"})
     public ShareFileItem updateResourceInAzure(@Nonnull ShareFileItem origin) {
         final ShareFileModule module = (ShareFileModule) this.getModule();
         final String name = origin.getName();

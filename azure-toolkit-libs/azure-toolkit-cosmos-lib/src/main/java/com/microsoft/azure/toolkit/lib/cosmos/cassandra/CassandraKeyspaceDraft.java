@@ -42,7 +42,7 @@ public class CassandraKeyspaceDraft extends CassandraKeyspace implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/cosmos.create_cassandra_keyspace.keyspace", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/cosmos.create_cassandra_keyspace.keyspace", params = {"this.getName()"})
     public CassandraKeyspaceGetResultsInner createResourceInAzure() {
         final CosmosDBManagementClient cosmosDBManagementClient = Objects.requireNonNull(getParent().getRemote()).manager().serviceClient();
         final CassandraKeyspaceCreateUpdateParameters parameters = new CassandraKeyspaceCreateUpdateParameters()
@@ -58,7 +58,7 @@ public class CassandraKeyspaceDraft extends CassandraKeyspace implements
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/cosmos.update_cassandra_keyspace.keyspace", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/cosmos.update_cassandra_keyspace.keyspace", params = {"this.getName()"})
     public CassandraKeyspaceGetResultsInner updateResourceInAzure(@Nonnull CassandraKeyspaceGetResultsInner origin) {
         throw new UnsupportedOperationException("not support");
     }

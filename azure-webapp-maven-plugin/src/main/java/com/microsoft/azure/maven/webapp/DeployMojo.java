@@ -70,7 +70,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected Long deploymentStatusMaxRefreshTimes;
 
     @Override
-    @AzureOperation(name = "webapp.deploy_app", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/webapp.deploy_app")
     protected void doExecute() throws AzureExecutionException {
         validateConfiguration(message -> AzureMessager.getMessager().error(message.getMessage()), true);
         // initialize library client

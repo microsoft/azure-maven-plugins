@@ -81,7 +81,7 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
     }
 
     @Override
-    @AzureOperation(name = "azure/cosmos.delete_mongo_table.table", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/cosmos.delete_mongo_table.table", params = {"nameFromResourceId(resourceId)"})
     protected void deleteResourceFromAzure(@NotNull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteMongoDBDatabase(id.resourceGroupName(), id.parent().name(), id.name()));

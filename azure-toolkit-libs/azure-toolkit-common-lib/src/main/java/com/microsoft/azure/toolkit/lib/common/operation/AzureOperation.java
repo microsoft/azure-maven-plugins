@@ -27,16 +27,6 @@ public @interface AzureOperation {
      */
     String[] params() default {};
 
-    /**
-     * groovy expressions to compute the props dynamically.
-     * e.g. groovy expression: {@code "this.buildProps()" }
-     */
-    String props() default "";
-
-    Type type() default Type.DEFAULT;
-
-    Target target() default Target.DEFAULT;
-
     enum Type {
         DEFAULT,
 

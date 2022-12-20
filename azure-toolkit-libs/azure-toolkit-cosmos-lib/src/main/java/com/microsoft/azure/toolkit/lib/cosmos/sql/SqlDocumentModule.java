@@ -39,7 +39,7 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
         super("documents", parent);
     }
 
-    @AzureOperation(name = "azure/cosmos.load_more_sql_documents", type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/cosmos.load_more_sql_documents")
     public void loadMoreDocuments() {
         if (hasMoreDocuments()) {
             final FeedResponse<ObjectNode> response = Objects.requireNonNull(iterator).next();
@@ -115,7 +115,7 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
     }
 
     @Override
-    @AzureOperation(name = "azure/cosmos.delete_sql_document.document", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/cosmos.delete_sql_document.document", params = {"nameFromResourceId(resourceId)"})
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         final ObjectNode node = loadResourceFromAzure(id.name(), id.resourceGroupName());

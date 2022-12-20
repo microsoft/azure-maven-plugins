@@ -73,7 +73,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebS
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/webapp.create_app.app", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/webapp.create_app.app", params = {"this.getName()"})
     public com.azure.resourcemanager.appservice.models.WebApp createResourceInAzure() {
         final String name = getName();
         final Runtime newRuntime = Objects.requireNonNull(getRuntime(), "'runtime' is required to create Azure Web App");
@@ -137,7 +137,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebS
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/webapp.update_app.app", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/webapp.update_app.app", params = {"this.getName()"})
     public com.azure.resourcemanager.appservice.models.WebApp updateResourceInAzure(@Nonnull WebSiteBase base) {
         com.azure.resourcemanager.appservice.models.WebApp remote = (com.azure.resourcemanager.appservice.models.WebApp) base;
         assert origin != null : "updating target is not specified.";

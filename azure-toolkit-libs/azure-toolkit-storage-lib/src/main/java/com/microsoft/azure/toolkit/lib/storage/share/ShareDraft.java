@@ -41,7 +41,7 @@ public class ShareDraft extends Share implements AzResource.Draft<Share, ShareCl
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/storage.create_share.share", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/storage.create_share.share", params = {"this.getName()"})
     public ShareClient createResourceInAzure() {
         final ShareModule module = (ShareModule) this.getModule();
         final ShareServiceClient client = module.getFileShareServiceClient();
@@ -57,7 +57,7 @@ public class ShareDraft extends Share implements AzResource.Draft<Share, ShareCl
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/storage.update_share.share", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/storage.update_share.share", params = {"this.getName()"})
     public ShareClient updateResourceInAzure(@Nonnull ShareClient origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

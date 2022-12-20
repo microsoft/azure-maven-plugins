@@ -122,7 +122,7 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
     }
 
     @Override
-    @AzureOperation(name = "azure/cosmos.load_more_mongo_documents", type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/cosmos.load_more_mongo_documents")
     public void loadMoreDocuments() {
         this.readDocuments(iterator).map(this::newResource).forEach(document -> this.addResourceToLocal(document.getId(), document, false));
         fireEvents.debounce();

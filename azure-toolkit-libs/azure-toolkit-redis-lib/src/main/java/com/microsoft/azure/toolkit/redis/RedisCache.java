@@ -113,7 +113,7 @@ public class RedisCache extends AbstractAzResource<RedisCache, RedisServiceSubsc
     }
 
     @Nonnull
-    @AzureOperation(name = "redis.get_jedis_pool.redis", params = {"this.getName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "redis.get_jedis_pool.redis", params = {"this.getName()"})
     public synchronized JedisPool getJedisPool() {
         if (Objects.isNull(this.jedisPool) || this.jedisPool.isClosed()) {
             final String hostName = this.getHostName();

@@ -62,7 +62,7 @@ public class BlobContainerModule extends AbstractAzResourceModule<BlobContainer,
     }
 
     @Override
-    @AzureOperation(name = "azure/storage.delete_blob_container.container", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/storage.delete_blob_container.container", params = {"nameFromResourceId(resourceId)"})
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         final BlobServiceClient client = this.getBlobServiceClient();

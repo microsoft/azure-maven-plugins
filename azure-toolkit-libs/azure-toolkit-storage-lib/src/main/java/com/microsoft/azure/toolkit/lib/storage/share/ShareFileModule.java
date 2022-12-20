@@ -45,7 +45,7 @@ public class ShareFileModule extends AbstractAzResourceModule<ShareFile, IShareF
     }
 
     @Override
-    @AzureOperation(name = "azure/storage.delete_share_file.file", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/storage.delete_share_file.file", params = {"nameFromResourceId(resourceId)"})
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ShareFile shareFile = this.get(resourceId);
         if (shareFile != null && shareFile.exists()) {

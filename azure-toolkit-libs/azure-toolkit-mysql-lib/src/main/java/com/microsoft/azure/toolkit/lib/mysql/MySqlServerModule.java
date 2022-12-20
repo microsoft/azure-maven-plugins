@@ -30,7 +30,7 @@ public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MyS
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
     protected Stream<Server> loadResourcesFromAzure() {
         log.debug("[{}]:loadResourcesFromAzure()", this.getName());
         return Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());
@@ -38,14 +38,14 @@ public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MyS
 
     @Nullable
     @Override
-    @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"})
     protected Server loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         assert StringUtils.isNoneBlank(resourceGroup) : "resource group can not be empty";
         return Optional.ofNullable(this.getClient()).map(c -> c.getByResourceGroup(resourceGroup, name)).orElse(null);
     }
 
     @Override
-    @AzureOperation(name = "azure/mysql.delete_server.server", params = {"nameFromResourceId(id)"}, type = AzureOperation.Type.REQUEST)
+    @AzureOperation(name = "azure/mysql.delete_server.server", params = {"nameFromResourceId(id)"})
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         Optional.ofNullable(this.getClient()).ifPresent(c -> c.deleteById(resourceId));
     }

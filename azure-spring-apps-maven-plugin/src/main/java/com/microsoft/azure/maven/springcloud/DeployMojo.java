@@ -65,7 +65,7 @@ public class DeployMojo extends AbstractMojoBase {
     private boolean prompt;
 
     @Override
-    @AzureOperation(name = "springcloud.deploy_mojo", type = AzureOperation.Type.ACTION)
+    @AzureOperation("user/springcloud.deploy_mojo")
     protected void doExecute() throws Throwable {
         // set up account and select subscription here in `deploy`, since in some cases, `config` will not need to sign in
         loginAzure();

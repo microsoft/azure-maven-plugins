@@ -89,7 +89,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected String deploymentType;
 
     @Override
-    @AzureOperation(name = "functionapp.deploy_app", type = AzureOperation.Type.ACTION)
+    @AzureOperation("user/functionapp.deploy_app")
     protected void doExecute() throws Throwable {
         doValidate();
         initAzureAppServiceClient();

@@ -142,7 +142,7 @@ public class AddMojo extends AbstractFunctionMojo {
     //region Entry Point
 
     @Override
-    @AzureOperation(name = "functionapp.add", type = AzureOperation.Type.ACTION)
+    @AzureOperation("user/functionapp.add")
     protected void doExecute() throws AzureExecutionException {
         try {
             final FunctionExtensionVersion bundleVersion = getBundleVersion();
