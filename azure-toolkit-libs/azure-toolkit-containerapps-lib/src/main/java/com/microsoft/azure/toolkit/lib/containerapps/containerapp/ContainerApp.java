@@ -6,17 +6,24 @@
 package com.microsoft.azure.toolkit.lib.containerapps.containerapp;
 
 import com.azure.resourcemanager.appcontainers.fluent.models.ContainerAppInner;
+import com.azure.resourcemanager.appcontainers.models.Configuration;
 import com.azure.resourcemanager.appcontainers.models.Container;
 import com.azure.resourcemanager.appcontainers.models.Template;
 import com.azure.resourcemanager.appcontainers.models.Volume;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerAppsServiceSubscription;
+import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
+import com.microsoft.azure.toolkit.lib.containerapps.model.IngressConfig;
 import com.microsoft.azure.toolkit.lib.containerapps.model.RevisionMode;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -47,17 +54,45 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
         return this.revisionModule;
     }
 
+    @Nullable
     public RevisionMode revisionModel() {
         return Optional.ofNullable(getRemote())
                 .map(remote -> remote.configuration())
-                .map(configuration -> configuration.activeRevisionsMode())
+                .map(Configuration::activeRevisionsMode)
                 .map(mode -> RevisionMode.fromString(mode.toString()))
-                .orElse(RevisionMode.UNKNOWN);
+                .orElse(null);
+    }
+
+    @Nullable
+    public IngressConfig getIngressConfig() {
+        return Optional.ofNullable(getRemote())
+                .map(remote -> remote.configuration())
+                .map(conf -> IngressConfig.fromIngress(conf.ingress())).orElse(null);
+    }
+
+    @Nullable
+    public RevisionMode getRevisionMode() {
+        return Optional.ofNullable(getRemote())
+                .map(remote -> remote.configuration())
+                .map(Configuration::activeRevisionsMode)
+                .map(arm -> RevisionMode.fromString(arm.toString())).orElse(null);
+    }
+
+    @Nullable
+    public Region getRegion() {
+        return Optional.ofNullable(getRemote()).map(remote -> Region.fromName(remote.region().name())).orElse(null);
     }
 
     @Nullable
     public String getLatestRevisionFqdn() {
         return Optional.ofNullable(getRemote()).map(remote -> remote.latestRevisionFqdn()).orElse(null);
+    }
+
+    @Nullable
+    public ContainerAppsEnvironment getManagedEnvironment() {
+        final String managedEnvironmentId = getManagedEnvironmentId();
+        return StringUtils.isEmpty(managedEnvironmentId) ? null :
+                Azure.az(AzureContainerApps.class).environments(this.getSubscriptionId()).get(managedEnvironmentId);
     }
 
     @Nullable
@@ -97,6 +132,11 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(this.revisionModule);
+    }
+
+    @Nullable
+    public String getProvisioningState() {
+        return Optional.ofNullable(getRemote()).map(remote -> remote.provisioningState().toString()).orElse(null);
     }
 
     @Nonnull
