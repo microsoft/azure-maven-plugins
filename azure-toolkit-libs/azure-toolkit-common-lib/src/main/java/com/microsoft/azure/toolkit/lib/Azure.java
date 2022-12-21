@@ -18,6 +18,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.stream.Collectors;
@@ -51,6 +52,11 @@ public class Azure {
     }
 
     @Nonnull
+    public static List<AzService> getServices(String provider) {
+        return ServiceManager.getServices().stream().filter(s -> StringUtils.equalsIgnoreCase(provider, s.getName())).collect(Collectors.toList());
+    }
+
+    @Nonnull
     public static <T extends AzService> List<T> getServices(Class<T> clazz) {
         return ServiceManager.getServices().stream().filter(clazz::isInstance).map(clazz::cast).collect(Collectors.toList());
     }
@@ -60,10 +66,15 @@ public class Azure {
     public AbstractAzResource<?, ?, ?> getById(String id) {
         final ResourceId resourceId = ResourceId.fromString(id);
         final String provider = Optional.ofNullable(resourceId.providerNamespace()).orElse("Microsoft.Resources");
-        final AzService service = getService(provider);
+        final List<AzService> services = getServices(provider);
         AbstractAzResource<?, ?, ?> result = null;
-        if (service instanceof AbstractAzService) {
-            result = service.getById(id);
+        for (AzService service : services) {
+            if (service instanceof AbstractAzService) {
+                result = service.getById(id);
+                if (Objects.nonNull(result)) {
+                    break;
+                }
+            }
         }
         if (result == null) {
             log.warn(String.format("fallback to AzureResources because no valid service provider for '%s' is found.", id));
@@ -77,10 +88,15 @@ public class Azure {
     public AbstractAzResource<?, ?, ?> getOrInitById(String id) {
         final ResourceId resourceId = ResourceId.fromString(id);
         final String provider = Optional.ofNullable(resourceId.providerNamespace()).orElse("Microsoft.Resources");
-        final AzService service = getService(provider);
+        final List<AzService> services = getServices(provider);
         AbstractAzResource<?, ?, ?> result = null;
-        if (service instanceof AbstractAzService) {
-            result = service.getOrInitById(id);
+        for (AzService service : services) {
+            if (service instanceof AbstractAzService) {
+                result = service.getOrInitById(id);
+                if (Objects.nonNull(result)) {
+                    break;
+                }
+            }
         }
         if (result == null) {
             log.warn(String.format("fallback to AzureResources because no valid service provider for '%s' is found.", id));
