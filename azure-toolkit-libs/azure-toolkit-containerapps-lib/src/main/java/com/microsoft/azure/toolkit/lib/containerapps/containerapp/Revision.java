@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -49,8 +50,28 @@ public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azu
     }
 
     @Nullable
+    public OffsetDateTime getCreatedTime(){
+        return Optional.ofNullable(getRemote()).map(remote -> remote.createdTime()).orElse(null);
+    }
+
+    @Nullable
+    public OffsetDateTime getLastActiveTime(){
+        return Optional.ofNullable(getRemote()).map(remote -> remote.lastActiveTime()).orElse(null);
+    }
+
+    @Nullable
     public String getFqdn() {
         return Optional.ofNullable(getRemote()).map(remote -> remote.fqdn()).orElse(null);
+    }
+
+    @Nullable
+    public String getProvisioningState() {
+        return Optional.ofNullable(getRemote()).map(remote -> remote.provisioningState().toString()).orElse(null);
+    }
+
+    @Nullable
+    public Integer getTrafficWeight() {
+        return Optional.ofNullable(getRemote()).map(remote -> remote.innerModel().trafficWeight()).orElse(null);
     }
 
     @Nonnull
