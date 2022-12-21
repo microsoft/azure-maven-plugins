@@ -1,5 +1,6 @@
 package com.microsoft.azure.toolkit.lib.applicationinsights.workspace;
 
+import com.azure.resourcemanager.loganalytics.LogAnalyticsManager;
 import com.azure.resourcemanager.loganalytics.models.Workspace;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -30,6 +31,19 @@ public class LogAnalyticsWorkspace extends AbstractAzResource<LogAnalyticsWorksp
     @Nullable
     public Region getRegion() {
         return Optional.ofNullable(getRemote()).map(workspace -> Region.fromName(workspace.regionName())).orElse(null);
+    }
+
+    @Nullable
+    public String getCustomerId() {
+        return Optional.ofNullable(getRemote()).map(Workspace::customerId).orElse(null);
+    }
+
+    @Nullable
+    public String getPrimarySharedKeys() {
+        final LogAnalyticsManager remote = this.getParent().getRemote();
+        return Optional.ofNullable(remote).map(LogAnalyticsManager::sharedKeysOperations)
+                .map(sharedKeysOperations -> sharedKeysOperations.getSharedKeys(this.getResourceGroupName(), this.getName()).primarySharedKey())
+                .orElse(null);
     }
 
     @Nonnull
