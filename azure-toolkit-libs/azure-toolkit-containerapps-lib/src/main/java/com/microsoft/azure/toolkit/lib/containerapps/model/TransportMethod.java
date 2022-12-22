@@ -5,37 +5,33 @@
 
 package com.microsoft.azure.toolkit.lib.containerapps.model;
 
-import com.azure.resourcemanager.appcontainers.models.ActiveRevisionsMode;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
 @Getter
 @AllArgsConstructor
 @EqualsAndHashCode
-public class RevisionMode {
-    public static final RevisionMode MULTIPLE = new RevisionMode("Multiple");
-    public static final RevisionMode SINGLE = new RevisionMode("Single");
+public class TransportMethod {
+    public static final TransportMethod AUTO = new TransportMethod("auto");
+    public static final TransportMethod HTTP = new TransportMethod("http");
+    public static final TransportMethod HTTP2 = new TransportMethod("http2");
+    public static final TransportMethod TCP = new TransportMethod("tcp");
 
     private String value;
 
-    public static List<RevisionMode> values() {
-        return Arrays.asList(MULTIPLE, SINGLE);
+    public static List<TransportMethod> values() {
+        return Arrays.asList(AUTO, HTTP, HTTP2, TCP);
     }
 
-    @Nullable
-    public static RevisionMode fromString(String input) {
+    public static TransportMethod fromString(String input) {
         return values().stream()
                 .filter(logLevel -> StringUtils.equalsIgnoreCase(input, logLevel.getValue()))
-                .findFirst().orElse(null);
-    }
-
-    public ActiveRevisionsMode toActiveRevisionMode() {
-        return ActiveRevisionsMode.fromString(this.value);
+                .findFirst()
+                .orElse(null);
     }
 }
