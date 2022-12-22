@@ -100,7 +100,15 @@
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-toolkit-applicationinsights-lib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-toolkit-auth-lib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-toolkit-containerregistry-lib</artifactId>
         </dependency>
     </dependencies>
 </project>
