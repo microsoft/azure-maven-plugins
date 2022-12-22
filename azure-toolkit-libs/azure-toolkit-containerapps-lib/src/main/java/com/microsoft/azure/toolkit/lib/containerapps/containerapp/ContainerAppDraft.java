@@ -65,22 +65,22 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
     @Override
     public com.azure.resourcemanager.appcontainers.models.ContainerApp createResourceInAzure() {
         final ContainerApps client = Objects.requireNonNull(((ContainerAppModule) getModule()).getClient());
-        final ImageConfig imageConfig = ensureConfig().getImageConfig();
+        final ImageConfig imageConfig = Objects.requireNonNull(ensureConfig().getImageConfig(), "Image is required to create Container app.");
         final Configuration configuration = new Configuration();
         Optional.ofNullable(ensureConfig().getRevisionMode()).ifPresent(mode ->
-                configuration.withActiveRevisionsMode(ActiveRevisionsMode.fromString(ensureConfig().getRevisionMode().getValue())));
+            configuration.withActiveRevisionsMode(ActiveRevisionsMode.fromString(ensureConfig().getRevisionMode().getValue())));
         configuration.withSecrets(Collections.singletonList(getSecret(imageConfig)));
         configuration.withRegistries(Collections.singletonList(getRegistryCredential(imageConfig)));
         configuration.withIngress(Optional.ofNullable(ensureConfig().getIngressConfig()).map(IngressConfig::toIngress).orElse(null));
         final Template template = new Template().withContainers(getContainers(imageConfig));
         AzureMessager.getMessager().info(AzureString.format("Start creating Azure Container App({0})...", this.getName()));
         final com.azure.resourcemanager.appcontainers.models.ContainerApp result = client.define(ensureConfig().getName())
-                .withRegion(com.azure.core.management.Region.fromName(ensureConfig().getRegion().getName()))
-                .withExistingResourceGroup(ensureConfig().getResourceGroupName())
-                .withManagedEnvironmentId(ensureConfig().getEnvironment().getId())
-                .withConfiguration(configuration)
-                .withTemplate(template)
-                .create();
+            .withRegion(com.azure.core.management.Region.fromName(ensureConfig().getRegion().getName()))
+            .withExistingResourceGroup(ensureConfig().getResourceGroupName())
+            .withManagedEnvironmentId(Objects.requireNonNull(ensureConfig().getEnvironment(), "Environment is required to create Container app.").getId())
+            .withConfiguration(configuration)
+            .withTemplate(template)
+            .create();
         AzureMessager.getMessager().success(AzureString.format("Azure Container App({0}) is successfully created.", this.getName()));
         return result;
     }
@@ -105,14 +105,14 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         final RevisionMode revisionMode = config.getRevisionMode();
 
         final boolean isImageModified = Objects.nonNull(imageConfig);
-        final boolean isIngressConfigModified = !Objects.equals(ingressConfig, super.getIngressConfig());
+        final boolean isIngressConfigModified = Objects.nonNull(ingressConfig) && !Objects.equals(ingressConfig, super.getIngressConfig());
         final boolean isRevisionModeModified = !Objects.equals(revisionMode, super.getRevisionMode());
         final boolean isModified = isImageModified || isIngressConfigModified || isRevisionModeModified;
         if (!isModified) {
             return origin;
         }
         final com.azure.resourcemanager.appcontainers.models.ContainerApp.Update update =
-                isImageModified ? this.updateImage(origin) : origin.update();
+            isImageModified ? this.updateImage(origin) : origin.update();
         final Configuration configuration = origin.configuration();
         if (isImageModified) {
             // clear registries & secrets configuration if image is not updated
@@ -134,7 +134,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
     @Nonnull
     @AzureOperation(name = "azure/aca.deploy_image.app", params = {"this.getName()"})
     private com.azure.resourcemanager.appcontainers.models.ContainerApp.Update updateImage(@Nonnull com.azure.resourcemanager.appcontainers.models.ContainerApp origin) {
-        final ImageConfig config = this.getConfig().getImageConfig();
+        final ImageConfig config = Objects.requireNonNull(this.getConfig().getImageConfig(), "image config is null.");
         final com.azure.resourcemanager.appcontainers.models.ContainerApp.Update update = origin.update();
         final ContainerRegistry registry = config.getContainerRegistry();
         final List<Secret> secrets = origin.listSecrets().value().stream().map(s -> new Secret().withName(s.name()).withValue(s.value())).collect(Collectors.toList());
@@ -150,12 +150,11 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
             });
         }
         update.withConfiguration(origin.configuration()
-                .withRegistries(registries)
-                .withSecrets(secrets));
+            .withRegistries(registries)
+            .withSecrets(secrets));
         // drop old containers because we want to replace the old image
         return update.withTemplate(origin.template().withContainers(getContainers(config)));
     }
-
 
     private static Secret getSecret(final ImageConfig config) {
         final ContainerRegistry registry = config.getContainerRegistry();
@@ -207,9 +206,12 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         private String name;
         private String resourceGroupName;
         private Region region;
+        @Nullable
         private ContainerAppsEnvironment environment;
         private RevisionMode revisionMode = RevisionMode.SINGLE;
+        @Nullable
         private ImageConfig imageConfig;
+        @Nullable
         private IngressConfig ingressConfig;
     }
 
