@@ -9,8 +9,10 @@ import com.azure.core.http.rest.PagedIterable;
 import com.azure.resourcemanager.appcontainers.ContainerAppsApiManager;
 import com.azure.resourcemanager.appcontainers.models.ManagedEnvironment;
 import com.azure.resourcemanager.appcontainers.models.ManagedEnvironments;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerAppsServiceSubscription;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -37,8 +39,9 @@ public class ContainerAppsEnvironmentModule extends AbstractAzResourceModule<Con
     }
 
     @Override
-    public void delete(@Nonnull String name, @Nullable String rgName) {
-        Optional.ofNullable(getClient()).ifPresent(client -> client.deleteByResourceGroup(rgName, name));
+    protected void deleteResourceFromAzure(@NotNull String resourceId) {
+        final ResourceId id = ResourceId.fromString(resourceId);
+        Optional.ofNullable(getClient()).ifPresent(client -> client.deleteByResourceGroup(id.resourceGroupName(), id.name()));
     }
 
     @Nonnull

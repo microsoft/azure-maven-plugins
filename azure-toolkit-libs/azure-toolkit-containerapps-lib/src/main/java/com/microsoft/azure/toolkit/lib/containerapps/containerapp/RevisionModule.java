@@ -35,11 +35,6 @@ public class RevisionModule extends AbstractAzResourceModule<Revision, Container
         return new Revision(name, resourceGroupName, this);
     }
 
-    @Override
-    public void delete(@Nonnull String name, @Nullable String rgName) {
-//        Optional.ofNullable(getClient()).ifPresent(client -> client.listRevisions());
-    }
-
     @Nonnull
     @Override
     protected Stream<com.azure.resourcemanager.appcontainers.models.Revision> loadResourcesFromAzure() {
