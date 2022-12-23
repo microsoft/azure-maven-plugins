@@ -108,7 +108,7 @@ public interface AzResourceBase {
         }
 
         public boolean isWaiting() {
-            return this.isWriting() || this == READING;
+            return this.isWriting() || this.isDeleting() || this == READING;
         }
 
         public boolean isUnknown() {
