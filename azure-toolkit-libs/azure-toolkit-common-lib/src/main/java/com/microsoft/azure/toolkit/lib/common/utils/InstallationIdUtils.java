@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -23,6 +24,7 @@ public class InstallationIdUtils {
         return isValidHash(hashMac) && !isDepreciatedHashMac(hashMac);
     }
 
+    @Nullable
     public static String getHashMac() {
         String mac = NetUtils.getMac();
         return StringUtils.isNotBlank(mac) ? hash(mac) : null;
@@ -39,8 +41,8 @@ public class InstallationIdUtils {
             md.update(bytes);
             byte[] bytesAfterDigest = md.digest();
             StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < bytesAfterDigest.length; i++) {
-                sb.append(Integer.toString((bytesAfterDigest[i] & 0xff) + 0x100, 16).substring(1));
+            for (byte b : bytesAfterDigest) {
+                sb.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
             }
             ret = sb.toString();
         } catch (NoSuchAlgorithmException ex) {
