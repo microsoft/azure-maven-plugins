@@ -6,11 +6,11 @@
 package com.microsoft.azure.toolkit.lib.containerapps.containerapp;
 
 import com.azure.resourcemanager.appcontainers.models.ContainerAppsRevisions;
+import com.azure.resourcemanager.appcontainers.models.RevisionHealthState;
 import com.azure.resourcemanager.appcontainers.models.RevisionProvisioningState;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 
 import javax.annotation.Nonnull;
@@ -50,12 +50,12 @@ public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azu
     }
 
     @Nullable
-    public OffsetDateTime getCreatedTime(){
+    public OffsetDateTime getCreatedTime() {
         return Optional.ofNullable(getRemote()).map(remote -> remote.createdTime()).orElse(null);
     }
 
     @Nullable
-    public OffsetDateTime getLastActiveTime(){
+    public OffsetDateTime getLastActiveTime() {
         return Optional.ofNullable(getRemote()).map(remote -> remote.lastActiveTime()).orElse(null);
     }
 
@@ -87,8 +87,15 @@ public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azu
     @Nonnull
     @Override
     public String loadStatus(@Nonnull com.azure.resourcemanager.appcontainers.models.Revision remote) {
-        return remote.provisioningState() == RevisionProvisioningState.PROVISIONED ?
-                remote.healthState().toString() : remote.provisioningState().toString();
+        final RevisionProvisioningState provisioningState = remote.provisioningState();
+        if (provisioningState == RevisionProvisioningState.PROVISIONED) {
+            final RevisionHealthState healthState = remote.healthState();
+            if (healthState == RevisionHealthState.HEALTHY && !remote.active()) {
+                return Status.STOPPED;
+            }
+            return healthState.toString();
+        }
+        return provisioningState.toString();
     }
 
     @Nullable
