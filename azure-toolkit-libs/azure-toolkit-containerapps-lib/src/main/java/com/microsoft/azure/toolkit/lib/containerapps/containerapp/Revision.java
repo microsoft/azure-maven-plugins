@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+@SuppressWarnings("unused")
 public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azure.resourcemanager.appcontainers.models.Revision> implements Deletable {
     protected Revision(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<Revision, ContainerApp, com.azure.resourcemanager.appcontainers.models.Revision> module) {
         super(name, resourceGroupName, module);
@@ -36,32 +37,41 @@ public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azu
 
     public void activate() {
         final ContainerApp parent = this.getParent();
-        this.doModify(() -> Objects.requireNonNull(getClient()).activateRevision(parent.getResourceGroupName(), parent.getName(), getName()), Status.ACTIVATING);
+        this.doModify(() -> {
+            Objects.requireNonNull(getClient()).activateRevision(parent.getResourceGroupName(), parent.getName(), getName());
+            this.getModule().refresh();
+        }, Status.ACTIVATING);
     }
 
     public void deactivate() {
         final ContainerApp parent = this.getParent();
-        this.doModify(() -> Objects.requireNonNull(getClient()).deactivateRevision(parent.getResourceGroupName(), parent.getName(), getName()), Status.DEACTIVATING);
+        this.doModify(() -> {
+            Objects.requireNonNull(getClient()).deactivateRevision(parent.getResourceGroupName(), parent.getName(), getName());
+            this.getModule().refresh();
+        }, Status.DEACTIVATING);
     }
 
     public void restart() {
         final ContainerApp parent = this.getParent();
-        this.doModify(() -> Objects.requireNonNull(getClient()).restartRevision(parent.getResourceGroupName(), parent.getName(), getName()), Status.RESTARTING);
+        this.doModify(() -> {
+            Objects.requireNonNull(getClient()).restartRevision(parent.getResourceGroupName(), parent.getName(), getName());
+            this.getModule().refresh();
+        }, Status.RESTARTING);
     }
 
     @Nullable
     public OffsetDateTime getCreatedTime() {
-        return Optional.ofNullable(getRemote()).map(remote -> remote.createdTime()).orElse(null);
+        return Optional.ofNullable(getRemote()).map(com.azure.resourcemanager.appcontainers.models.Revision::createdTime).orElse(null);
     }
 
     @Nullable
     public OffsetDateTime getLastActiveTime() {
-        return Optional.ofNullable(getRemote()).map(remote -> remote.lastActiveTime()).orElse(null);
+        return Optional.ofNullable(getRemote()).map(com.azure.resourcemanager.appcontainers.models.Revision::lastActiveTime).orElse(null);
     }
 
     @Nullable
     public String getFqdn() {
-        return Optional.ofNullable(getRemote()).map(remote -> remote.fqdn()).orElse(null);
+        return Optional.ofNullable(getRemote()).map(com.azure.resourcemanager.appcontainers.models.Revision::fqdn).orElse(null);
     }
 
     @Nullable
@@ -81,7 +91,7 @@ public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azu
     }
 
     public boolean isActive() {
-        return Optional.ofNullable(getRemote()).map(remote -> remote.active()).orElse(false);
+        return Optional.ofNullable(getRemote()).map(com.azure.resourcemanager.appcontainers.models.Revision::active).orElse(false);
     }
 
     @Nonnull

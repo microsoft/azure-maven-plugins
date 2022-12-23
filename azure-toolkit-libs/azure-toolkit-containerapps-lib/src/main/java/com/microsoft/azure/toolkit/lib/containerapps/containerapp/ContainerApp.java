@@ -14,7 +14,6 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
@@ -32,6 +31,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+@SuppressWarnings("unused")
 public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContainerAppsServiceSubscription, com.azure.resourcemanager.appcontainers.models.ContainerApp> implements Deletable {
     private final RevisionModule revisionModule;
 
@@ -57,7 +57,7 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
     @Nullable
     public RevisionMode revisionModel() {
         return Optional.ofNullable(getRemote())
-                .map(remote -> remote.configuration())
+                .map(com.azure.resourcemanager.appcontainers.models.ContainerApp::configuration)
                 .map(Configuration::activeRevisionsMode)
                 .map(mode -> RevisionMode.fromString(mode.toString()))
                 .orElse(null);
@@ -66,14 +66,14 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
     @Nullable
     public IngressConfig getIngressConfig() {
         return Optional.ofNullable(getRemote())
-                .map(remote -> remote.configuration())
+                .map(com.azure.resourcemanager.appcontainers.models.ContainerApp::configuration)
                 .map(conf -> IngressConfig.fromIngress(conf.ingress())).orElse(null);
     }
 
     @Nullable
     public RevisionMode getRevisionMode() {
         return Optional.ofNullable(getRemote())
-                .map(remote -> remote.configuration())
+                .map(com.azure.resourcemanager.appcontainers.models.ContainerApp::configuration)
                 .map(Configuration::activeRevisionsMode)
                 .map(arm -> RevisionMode.fromString(arm.toString())).orElse(null);
     }
@@ -85,7 +85,7 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
 
     @Nullable
     public String getLatestRevisionFqdn() {
-        return Optional.ofNullable(getRemote()).map(remote -> remote.latestRevisionFqdn()).orElse(null);
+        return Optional.ofNullable(getRemote()).map(com.azure.resourcemanager.appcontainers.models.ContainerApp::latestRevisionFqdn).orElse(null);
     }
 
     @Nullable
@@ -97,17 +97,17 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
 
     @Nullable
     public String getManagedEnvironmentId() {
-        return Optional.ofNullable(getRemote()).map(remote -> remote.managedEnvironmentId()).orElse(null);
+        return Optional.ofNullable(getRemote()).map(com.azure.resourcemanager.appcontainers.models.ContainerApp::managedEnvironmentId).orElse(null);
     }
 
     @Nullable
     public String getEnvironmentId() {
-        return Optional.ofNullable(getRemote()).map(remote -> remote.environmentId()).orElse(null);
+        return Optional.ofNullable(getRemote()).map(com.azure.resourcemanager.appcontainers.models.ContainerApp::environmentId).orElse(null);
     }
 
     @Nullable
     public String getLatestRevisionName() {
-        return Optional.ofNullable(getRemote()).map(remote -> remote.latestRevisionName()).orElse(null);
+        return Optional.ofNullable(getRemote()).map(com.azure.resourcemanager.appcontainers.models.ContainerApp::latestRevisionName).orElse(null);
     }
 
     @Nullable
