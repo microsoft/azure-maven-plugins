@@ -36,17 +36,17 @@ public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azu
 
     public void activate() {
         final ContainerApp parent = this.getParent();
-        this.doModify(() -> Objects.requireNonNull(getClient()).activateRevision(parent.getResourceGroupName(), parent.getName(), getName()), AzResource.Status.STARTING);
+        this.doModify(() -> Objects.requireNonNull(getClient()).activateRevision(parent.getResourceGroupName(), parent.getName(), getName()), Status.ACTIVATING);
     }
 
     public void deactivate() {
         final ContainerApp parent = this.getParent();
-        this.doModify(() -> Objects.requireNonNull(getClient()).deactivateRevision(parent.getResourceGroupName(), parent.getName(), getName()), AzResource.Status.STARTING);
+        this.doModify(() -> Objects.requireNonNull(getClient()).deactivateRevision(parent.getResourceGroupName(), parent.getName(), getName()), Status.DEACTIVATING);
     }
 
     public void restart() {
         final ContainerApp parent = this.getParent();
-        this.doModify(() -> Objects.requireNonNull(getClient()).restartRevision(parent.getResourceGroupName(), parent.getName(), getName()), AzResource.Status.STARTING);
+        this.doModify(() -> Objects.requireNonNull(getClient()).restartRevision(parent.getResourceGroupName(), parent.getName(), getName()), Status.RESTARTING);
     }
 
     @Nullable

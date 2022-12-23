@@ -47,7 +47,7 @@ public interface AzResourceBase {
         private static final HashSet<String> stoppedStatus = Sets.newHashSet("stopped", "deallocated", "deprovisioned");
         private static final HashSet<String> failedStatus = Sets.newHashSet("failed", "error", "unhealthy");
         private static final HashSet<String> writingStatus = Sets.newHashSet("writing", "pending", "processing", "updating",
-            "starting", "stopping", "restarting", "scaling", "deprovisioning", "provisioning");
+            "starting", "stopping", "activating", "deactivating", "restarting", "scaling", "deprovisioning", "provisioning");
         private static final HashSet<String> readingStatus = Sets.newHashSet("reading", "loading", "refreshing");
         private static final HashSet<String> deletingStatus = Sets.newHashSet("deleting");
         private static final HashSet<String> deletedStatus = Sets.newHashSet("deleted", "removed", "disconnected");

@@ -216,6 +216,8 @@ public interface AzResource
         String STARTING = "Starting";
         String RESTARTING = "Restarting";
         String STOPPING = "Stopping";
+        String ACTIVATING = "Activating";
+        String DEACTIVATING = "Deactivating";
 
         // stable states
         String DELETED = "Deleted";

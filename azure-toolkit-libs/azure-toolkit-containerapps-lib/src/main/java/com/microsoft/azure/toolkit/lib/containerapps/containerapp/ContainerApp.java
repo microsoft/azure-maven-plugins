@@ -117,15 +117,15 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
     }
 
     public void activate() {
-        this.doModify(() -> Objects.requireNonNull(getLatestRevision()).activate(), AzResource.Status.STARTING);
+        this.doModify(() -> Objects.requireNonNull(getLatestRevision()).activate(), Status.ACTIVATING);
     }
 
     public void deactivate() {
-        this.doModify(() -> Objects.requireNonNull(getLatestRevision()).deactivate(), AzResource.Status.STARTING);
+        this.doModify(() -> Objects.requireNonNull(getLatestRevision()).deactivate(), Status.DEACTIVATING);
     }
 
     public void restart() {
-        this.doModify(() -> Objects.requireNonNull(getLatestRevision()).restart(), AzResource.Status.STARTING);
+        this.doModify(() -> Objects.requireNonNull(getLatestRevision()).restart(), Status.RESTARTING);
     }
 
     @Nonnull
