@@ -79,6 +79,6 @@ public class ContainerAppsEnvironmentModule extends AbstractAzResourceModule<Con
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "Container Apps Environments";
+        return "Container Apps Environment";
     }
 }

@@ -71,6 +71,6 @@ public class RevisionModule extends AbstractAzResourceModule<Revision, Container
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "Revisions";
+        return "Revision";
     }
 }
