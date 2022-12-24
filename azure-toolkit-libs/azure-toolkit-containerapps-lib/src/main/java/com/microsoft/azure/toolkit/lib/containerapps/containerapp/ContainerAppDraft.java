@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
 import com.microsoft.azure.toolkit.lib.containerapps.model.IngressConfig;
 import com.microsoft.azure.toolkit.lib.containerapps.model.RevisionMode;
@@ -128,6 +129,9 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         messager.info(AzureString.format("Start updating Container App({0})...", getName()));
         final com.azure.resourcemanager.appcontainers.models.ContainerApp result = update.apply();
         messager.info(AzureString.format("Container App({0}) is successfully updated.", getName()));
+        if (isImageModified) {
+            AzureTaskManager.getInstance().runOnPooledThread(() -> this.getRevisionModule().refresh());
+        }
         return result;
     }
 
