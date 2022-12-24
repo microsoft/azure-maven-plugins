@@ -87,6 +87,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         log.debug("[{}]:refresh()", this.name);
         this.invalidateCache();
         AzureEventBus.emit("module.refreshed.module", this);
+        AzureEventBus.emit("resource.children_changed.resource", this.getParent());
     }
 
     protected void invalidateCache() {
