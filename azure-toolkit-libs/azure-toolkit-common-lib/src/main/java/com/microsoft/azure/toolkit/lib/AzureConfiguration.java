@@ -9,6 +9,8 @@ import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.annotation.Nullable;
+import javax.net.ssl.SSLContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -34,6 +36,7 @@ public class AzureConfiguration {
     private int httpProxyPort;
     private String proxyUsername;
     private String proxyPassword;
+    private SSLContext sslContext;
     private int cosmosBatchSize = 50;
     private List<String> documentsLabelFields = new ArrayList<>(DEFAULT_DOCUMENT_LABEL_FIELDS);
 
@@ -43,5 +46,10 @@ public class AzureConfiguration {
         this.setHttpProxyPort(proxy.getPort());
         this.setProxyUsername(proxy.getUsername());
         this.setProxyPassword(proxy.getPassword());
+    }
+
+    @Nullable
+    public void setSslContext(SSLContext sslContext) {
+        this.sslContext = sslContext;
     }
 }

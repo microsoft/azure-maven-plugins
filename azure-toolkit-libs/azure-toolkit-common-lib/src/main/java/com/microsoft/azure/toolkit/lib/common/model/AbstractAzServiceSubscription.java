@@ -21,6 +21,8 @@ import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.JdkSslContext;
 import io.netty.resolver.AddressResolverGroup;
 import io.netty.resolver.DefaultAddressResolverGroup;
 import io.netty.resolver.NoopAddressResolverGroup;
@@ -133,7 +135,8 @@ public abstract class AbstractAzServiceSubscription<T extends AbstractAzResource
             }
             reactor.netty.http.client.HttpClient nettyHttpClient =
                 reactor.netty.http.client.HttpClient.create()
-                    .resolver(resolverGroup);
+                        .secure(sslConfig -> Optional.ofNullable(config.getSslContext()).ifPresent(it -> sslConfig.sslContext(new JdkSslContext(it, true, ClientAuth.NONE))))
+                        .resolver(resolverGroup);
             NettyAsyncHttpClientBuilder builder = new NettyAsyncHttpClientBuilder(nettyHttpClient);
             Optional.ofNullable(proxyOptions).map(builder::proxy);
             defaultHttpClient = builder.build();
