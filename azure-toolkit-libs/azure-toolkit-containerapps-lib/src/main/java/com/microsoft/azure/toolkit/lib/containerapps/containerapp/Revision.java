@@ -12,6 +12,7 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,6 +36,7 @@ public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azu
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
     }
 
+    @AzureOperation(name = "azure/containerapps.activate_revision.revision", params = {"this.getName()"})
     public void activate() {
         final ContainerApp parent = this.getParent();
         this.doModify(() -> {
@@ -43,6 +45,7 @@ public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azu
         }, Status.ACTIVATING);
     }
 
+    @AzureOperation(name = "azure/containerapps.deactivate_revision.revision", params = {"this.getName()"})
     public void deactivate() {
         final ContainerApp parent = this.getParent();
         this.doModify(() -> {
@@ -51,6 +54,7 @@ public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azu
         }, Status.DEACTIVATING);
     }
 
+    @AzureOperation(name = "azure/containerapps.restart_revision.revision", params = {"this.getName()"})
     public void restart() {
         final ContainerApp parent = this.getParent();
         this.doModify(() -> {

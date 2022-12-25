@@ -9,6 +9,7 @@ import com.azure.resourcemanager.appcontainers.ContainerAppsApiManager;
 import com.azure.resourcemanager.appcontainers.models.ContainerAppsRevisions;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -37,6 +38,7 @@ public class RevisionModule extends AbstractAzResourceModule<Revision, Container
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
     protected Stream<com.azure.resourcemanager.appcontainers.models.Revision> loadResourcesFromAzure() {
         final ContainerApp parent = this.getParent();
         return getClient().listRevisions(parent.getResourceGroupName(), parent.getName()).stream();
@@ -44,6 +46,7 @@ public class RevisionModule extends AbstractAzResourceModule<Revision, Container
 
     @Nullable
     @Override
+    @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"})
     protected com.azure.resourcemanager.appcontainers.models.Revision loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         final ContainerApp parent = this.getParent();
         return getClient().getRevision(parent.getResourceGroupName(), parent.getName(), name);

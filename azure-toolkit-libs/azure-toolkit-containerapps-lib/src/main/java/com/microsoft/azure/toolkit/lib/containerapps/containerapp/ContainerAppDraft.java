@@ -64,6 +64,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/containerapps.create_app.app", params = {"this.getName()"})
     public com.azure.resourcemanager.appcontainers.models.ContainerApp createResourceInAzure() {
         final ContainerApps client = Objects.requireNonNull(((ContainerAppModule) getModule()).getClient());
         final ImageConfig imageConfig = Objects.requireNonNull(ensureConfig().getImageConfig(), "Image is required to create Container app.");
@@ -98,6 +99,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/containerapps.update_app.app", params = {"this.getName()"})
     public com.azure.resourcemanager.appcontainers.models.ContainerApp updateResourceInAzure(@Nonnull com.azure.resourcemanager.appcontainers.models.ContainerApp origin) {
         final IAzureMessager messager = AzureMessager.getMessager();
         final Config config = ensureConfig();
@@ -136,7 +138,6 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
     }
 
     @Nonnull
-    @AzureOperation(name = "azure/aca.deploy_image.app", params = {"this.getName()"})
     private com.azure.resourcemanager.appcontainers.models.ContainerApp.Update updateImage(@Nonnull com.azure.resourcemanager.appcontainers.models.ContainerApp origin) {
         final ImageConfig config = Objects.requireNonNull(this.getConfig().getImageConfig(), "image config is null.");
         final com.azure.resourcemanager.appcontainers.models.ContainerApp.Update update = origin.update();

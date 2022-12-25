@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -48,6 +49,7 @@ public class ContainerAppsEnvironmentDraft extends ContainerAppsEnvironment impl
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/containerapps.create_environment.env", params = {"this.getName()"})
     public ManagedEnvironment createResourceInAzure() {
         final IAzureMessager messager = AzureMessager.getMessager();
         final ManagedEnvironments client = Objects.requireNonNull(((ContainerAppsEnvironmentModule) getModule()).getClient());
