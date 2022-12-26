@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.containerapps.containerapp;
 import com.azure.resourcemanager.appcontainers.fluent.models.ContainerAppInner;
 import com.azure.resourcemanager.appcontainers.models.Configuration;
 import com.azure.resourcemanager.appcontainers.models.Container;
+import com.azure.resourcemanager.appcontainers.models.Ingress;
 import com.azure.resourcemanager.appcontainers.models.Template;
 import com.azure.resourcemanager.appcontainers.models.Volume;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
@@ -85,9 +86,15 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
         return Optional.ofNullable(getRemote()).map(remote -> Region.fromName(remote.region().name())).orElse(null);
     }
 
+    public boolean isIngressEnabled() {
+        return this.remoteOptional().map(com.azure.resourcemanager.appcontainers.models.ContainerApp::configuration)
+            .map(Configuration::ingress).isPresent();
+    }
+
     @Nullable
-    public String getLatestRevisionFqdn() {
-        return Optional.ofNullable(getRemote()).map(com.azure.resourcemanager.appcontainers.models.ContainerApp::latestRevisionFqdn).orElse(null);
+    public String getIngressFqdn() {
+        return this.remoteOptional().map(com.azure.resourcemanager.appcontainers.models.ContainerApp::configuration)
+            .map(Configuration::ingress).map(Ingress::fqdn).orElse(null);
     }
 
     @Nullable
