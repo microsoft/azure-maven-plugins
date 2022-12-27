@@ -9,7 +9,7 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceUtils;
 import com.google.common.collect.ImmutableMap;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.codehaus.groovy.runtime.MethodClosure;
@@ -21,9 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.logging.Level;
 
-@Log
+@Slf4j
 public class ExpressionUtils {
     private static final ImmutableMap<String, Boolean> valueMap = ImmutableMap.of("true", true, "false", false);
     private static final SimpleTemplateEngine engine = new SimpleTemplateEngine();
@@ -31,7 +30,7 @@ public class ExpressionUtils {
 
     public static boolean evaluate(@Nonnull final String expression, @Nonnull final MethodInvocation invocation, boolean defaultVal) {
         final String result = interpret(expression, invocation);
-        return valueMap.getOrDefault(Optional.ofNullable(result).map(String::toLowerCase).orElse(null), defaultVal);
+        return Boolean.TRUE.equals(valueMap.getOrDefault(Optional.ofNullable(result).map(String::toLowerCase).orElse(null), defaultVal));
     }
 
     public static String interpret(@Nonnull final String expression, @Nonnull final MethodInvocation invocation) {
@@ -48,7 +47,7 @@ public class ExpressionUtils {
             final Template tpl = engine.createTemplate(fixed);
             return tpl.make(bindings).toString();
         } catch (final Throwable e) { // swallow all exceptions during render
-            log.log(Level.SEVERE, String.format(INVALID_TEMPLATE, template, bindings), e);
+            log.warn(String.format(INVALID_TEMPLATE, template, bindings), e);
         }
         return template;
     }
