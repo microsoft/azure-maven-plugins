@@ -24,6 +24,12 @@ public class ContainerAppsEnvironment extends AbstractAzResource<ContainerAppsEn
         super(name, resourceGroupName, module);
     }
 
+    @Override
+    public void refresh() {
+        Azure.az(AzureContainerApps.class).containerApps(this.getSubscriptionId()).refresh();
+        super.refresh();
+    }
+
     protected ContainerAppsEnvironment(@Nonnull ContainerAppsEnvironment insight) {
         super(insight);
     }
