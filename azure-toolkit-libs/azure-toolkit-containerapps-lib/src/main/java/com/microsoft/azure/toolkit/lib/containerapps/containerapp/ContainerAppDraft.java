@@ -119,8 +119,10 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
             (ContainerAppImpl) (isImageModified ? this.updateImage(origin) : origin.update());
         final Configuration configuration = update.configuration();
         if (!isImageModified) {
-            // clear registries & secrets configuration if image is not updated
-            configuration.withRegistries(null).withSecrets(null);
+            // anytime you want to update the container app, you need to include the secrets but that is not retrieved by default
+            final List<Secret> secrets = origin.listSecrets().value().stream().map(s -> new Secret().withName(s.name()).withValue(s.value())).collect(Collectors.toList());
+            final List<RegistryCredentials> registries = Optional.ofNullable(origin.configuration().registries()).map(ArrayList::new).orElseGet(ArrayList::new);
+            configuration.withRegistries(registries).withSecrets(secrets);
         }
         if (isIngressConfigModified) {
             configuration.withIngress(ingressConfig.toIngress());
