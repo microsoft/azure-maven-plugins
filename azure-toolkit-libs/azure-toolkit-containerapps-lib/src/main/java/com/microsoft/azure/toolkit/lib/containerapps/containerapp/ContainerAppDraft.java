@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.containerapps.containerapp;
 
+import com.azure.resourcemanager.appcontainers.implementation.ContainerAppImpl;
 import com.azure.resourcemanager.appcontainers.models.ActiveRevisionsMode;
 import com.azure.resourcemanager.appcontainers.models.Configuration;
 import com.azure.resourcemanager.appcontainers.models.Container;
@@ -114,10 +115,10 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         if (!isModified) {
             return origin;
         }
-        final com.azure.resourcemanager.appcontainers.models.ContainerApp.Update update =
-            isImageModified ? this.updateImage(origin) : origin.update();
-        final Configuration configuration = origin.configuration();
-        if (isImageModified) {
+        final ContainerAppImpl update =
+            (ContainerAppImpl) (isImageModified ? this.updateImage(origin) : origin.update());
+        final Configuration configuration = update.configuration();
+        if (!isImageModified) {
             // clear registries & secrets configuration if image is not updated
             configuration.withRegistries(null).withSecrets(null);
         }
