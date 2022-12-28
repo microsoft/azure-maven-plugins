@@ -11,8 +11,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocument;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,7 +28,7 @@ public class SqlDocument extends AbstractAzResource<SqlDocument, SqlContainer, O
         super(name, Objects.requireNonNull(resourceGroup), module);
     }
 
-    public SqlDocument(@NotNull SqlDocument origin) {
+    public SqlDocument(@Nonnull SqlDocument origin) {
         super(origin);
     }
 

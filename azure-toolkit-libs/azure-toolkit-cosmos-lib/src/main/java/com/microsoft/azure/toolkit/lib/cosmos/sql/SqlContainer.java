@@ -85,7 +85,7 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
     public synchronized CosmosContainer getClient() {
         if (Objects.isNull(this.container)) {
             this.container = getDocumentClient();
-            this.containerResponse = container.read();
+            this.containerResponse = Optional.ofNullable(container).map(CosmosContainer::read).orElse(null);
         }
         return this.container;
     }
@@ -95,7 +95,7 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
         super.updateAdditionalProperties(newRemote, oldRemote);
         if (Objects.nonNull(newRemote)) {
             this.container = getDocumentClient();
-            this.containerResponse = container.read();
+            this.containerResponse = Optional.ofNullable(container).map(CosmosContainer::read).orElse(null);
         } else {
             this.container = null;
             this.containerResponse = null;
