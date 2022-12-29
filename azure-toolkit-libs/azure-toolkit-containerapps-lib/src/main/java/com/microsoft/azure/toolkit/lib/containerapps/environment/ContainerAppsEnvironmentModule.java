@@ -29,7 +29,7 @@ public class ContainerAppsEnvironmentModule extends AbstractAzResourceModule<Con
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"name", "this.getResourceTypeName()"})
+    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
     protected Stream<ManagedEnvironment> loadResourcesFromAzure() {
         return Optional.ofNullable(getClient()).map(ManagedEnvironments::list).map(PagedIterable::stream).orElse(Stream.empty());
     }

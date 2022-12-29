@@ -120,6 +120,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     public void invalidateCache() {
+        log.debug("[{}:{}]:invalidateCache->subModules.invalidateCache()", this.module.getName(), this.getName());
+        this.getSubModules().forEach(AbstractAzResourceModule::invalidateCache);
         log.debug("[{}]:invalidateCache()", this.name);
         if (this.lock.tryLock()) {
             try {
@@ -129,8 +131,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
                 this.lock.unlock();
             }
         }
-        log.debug("[{}:{}]:invalidateCache->subModules.invalidateCache()", this.module.getName(), this.getName());
-        this.getSubModules().forEach(AbstractAzResourceModule::invalidateCache);
     }
 
     @Nullable

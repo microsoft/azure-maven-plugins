@@ -39,6 +39,7 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageSe
     private final ShareModule shareModule;
     private final QueueModule queueModule;
     private final TableModule tableModule;
+    private final List<AbstractAzResourceModule<?, ?, ?>> subModules = new ArrayList<>();
 
     protected StorageAccount(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull StorageAccountModule module) {
         super(name, resourceGroupName, module);
@@ -69,21 +70,23 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageSe
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        final ArrayList<AbstractAzResourceModule<?, ?, ?>> modules = new ArrayList<>();
+    public synchronized List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
+        if (!this.subModules.isEmpty()) {
+            return this.subModules;
+        }
         if (this.canHaveBlobs()) {
-            modules.add(this.blobContainerModule);
+            this.subModules.add(this.blobContainerModule);
         }
         if (this.canHaveShares()) {
-            modules.add(this.shareModule);
+            this.subModules.add(this.shareModule);
         }
         if (this.canHaveQueues()) {
-            modules.add(this.queueModule);
+            this.subModules.add(this.queueModule);
         }
         if (this.canHaveTables()) {
-            modules.add(this.tableModule);
+            this.subModules.add(this.tableModule);
         }
-        return modules;
+        return this.subModules;
     }
 
     @Nonnull

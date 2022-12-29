@@ -131,10 +131,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
             .response((resp, cont) -> resp.status().code() == 200 ? cont.asString(Charsets.UTF_8) : Mono.empty());
     }
 
-    @AzureOperation(
-        name = "internal/springcloud.wait_until_deployment_ready.deployment|app",
-        params = {"this.getName()", "this.getParent().getName()"}
-    )
+    @AzureOperation(name = "internal/springcloud.wait_until_deployment_ready.deployment|app", params = {"this.getName()", "this.getParent().getName()"})
     public boolean waitUntilReady(int timeoutInSeconds) {
         AzureMessager.getMessager().info("Getting deployment status...");
         final SpringCloudDeployment deployment = Utils.pollUntil(() -> {

@@ -169,14 +169,14 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         final Sets.SetView<String> added = Sets.difference(loadedResources.keySet(), localResources);
         log.debug("[{}]:reload().added={}", this.name, added);
         log.debug("[{}]:reload.deleted->deleteResourceFromLocal", this.name);
-        deleted.forEach(id -> this.resources.get(id).ifPresent(r -> {
+        deleted.forEach(id -> this.resources.getOrDefault(id, Optional.empty()).ifPresent(r -> {
             r.deleteFromCache();
             r.setRemote(null);
         }));
 
         final AzureTaskManager m = AzureTaskManager.getInstance();
         log.debug("[{}]:reload.refreshed->resource.setRemote", this.name);
-        refreshed.forEach(id -> this.resources.get(id).ifPresent(r -> m.runOnPooledThread(() -> r.setRemote(loadedResources.get(id)))));
+        refreshed.forEach(id -> this.resources.getOrDefault(id, Optional.empty()).ifPresent(r -> m.runOnPooledThread(() -> r.setRemote(loadedResources.get(id)))));
         log.debug("[{}]:reload.added->addResourceToLocal", this.name);
         added.forEach(id -> {
             final R remote = loadedResources.get(id);
@@ -235,7 +235,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             }
         }
         log.debug("[{}]:get({}, {})->this.resources.get({})", this.name, id, resourceGroup, name);
-        return this.resources.get(id).orElse(null);
+        return this.resources.getOrDefault(id, Optional.empty()).orElse(null);
     }
 
     @Nullable
