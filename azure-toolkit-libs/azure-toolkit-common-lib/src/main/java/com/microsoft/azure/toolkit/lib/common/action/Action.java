@@ -21,11 +21,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.PropertyKey;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -53,7 +53,7 @@ public class Action<D> extends OperationBase implements Cloneable {
     private Function<D, String> labelProvider;
     private Function<D, AzureString> titleProvider;
     @Nonnull
-    private List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
+    private List<Pair<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
     @Nonnull
     private List<Function<D, String>> titleParamProviders = new ArrayList<>();
 
@@ -109,7 +109,7 @@ public class Action<D> extends OperationBase implements Cloneable {
             return null;
         }
         for (int i = this.handlers.size() - 1; i >= 0; i--) {
-            final AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>> p = this.handlers.get(i);
+            final Pair<BiPredicate<D, ?>, BiConsumer<D, ?>> p = this.handlers.get(i);
             final BiPredicate<D, Object> condition = (BiPredicate<D, Object>) p.getKey();
             final BiConsumer<D, Object> handler = (BiConsumer<D, Object>) p.getValue();
             if (condition.test(source, e)) {
@@ -228,22 +228,22 @@ public class Action<D> extends OperationBase implements Cloneable {
     }
 
     public Action<D> withHandler(@Nonnull Consumer<D> handler) {
-        this.handlers.add(new AbstractMap.SimpleEntry<>((d, e) -> true, (d, e) -> handler.accept(d)));
+        this.handlers.add(Pair.of((d, e) -> true, (d, e) -> handler.accept(d)));
         return this;
     }
 
     public <E> Action<D> withHandler(@Nonnull BiConsumer<D, E> handler) {
-        this.handlers.add(new AbstractMap.SimpleEntry<>((d, e) -> true, handler));
+        this.handlers.add(Pair.of((d, e) -> true, handler));
         return this;
     }
 
     public Action<D> withHandler(@Nonnull Predicate<D> condition, @Nonnull Consumer<D> handler) {
-        this.handlers.add(new AbstractMap.SimpleEntry<>((d, e) -> condition.test(d), (d, e) -> handler.accept(d)));
+        this.handlers.add(Pair.of((d, e) -> condition.test(d), (d, e) -> handler.accept(d)));
         return this;
     }
 
     public <E> Action<D> withHandler(@Nonnull BiPredicate<D, E> condition, @Nonnull BiConsumer<D, E> handler) {
-        this.handlers.add(new AbstractMap.SimpleEntry<>(condition, handler));
+        this.handlers.add(Pair.of(condition, handler));
         return this;
     }
 
