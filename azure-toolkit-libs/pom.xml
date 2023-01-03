@@ -87,6 +87,7 @@
         <azure-resourcemanager-mysql.version>1.0.2</azure-resourcemanager-mysql.version>
         <azure-resourcemanager-postgre.version>1.0.2</azure-resourcemanager-postgre.version>
         <azure-resourcemanager-loganalytics.version>1.0.0-beta.3</azure-resourcemanager-loganalytics.version>
+        <azure-monitor-query.version>1.0.10</azure-monitor-query.version>
         <azure-storage.version>8.6.6</azure-storage.version>
         <azure-storage-blob.version>12.19.1</azure-storage-blob.version>
         <azure-storage-file-share.version>12.15.1</azure-storage-file-share.version>
@@ -264,6 +265,11 @@
                 <artifactId>azure-toolkit-containerapps-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-monitor-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
             <!-- azure data management sdk -->
             <dependency>
                 <groupId>com.azure</groupId>
@@ -322,6 +328,11 @@
                 <groupId>com.azure</groupId>
                 <artifactId>azure-core-http-netty</artifactId>
                 <version>${azure-core-http-netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-monitor-query</artifactId>
+                <version>${azure-monitor-query.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>

@@ -1,5 +1,10 @@
 package com.microsoft.azure.toolkit.lib.monitor;
 
+import com.azure.core.http.rest.Response;
+import com.azure.core.util.Context;
+import com.azure.monitor.query.models.LogsQueryOptions;
+import com.azure.monitor.query.models.LogsQueryResult;
+import com.azure.monitor.query.models.LogsTable;
 import com.azure.resourcemanager.loganalytics.LogAnalyticsManager;
 import com.azure.resourcemanager.loganalytics.models.Workspace;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
@@ -10,9 +15,8 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.time.Duration;
+import java.util.*;
 
 public class LogAnalyticsWorkspace extends AbstractAzResource<LogAnalyticsWorkspace, LogAnalyticsServiceWorkspaceSubscription, Workspace> implements Deletable {
 
@@ -56,5 +60,11 @@ public class LogAnalyticsWorkspace extends AbstractAzResource<LogAnalyticsWorksp
     @Override
     public String loadStatus(@Nonnull Workspace remote) {
         return remote.provisioningState().toString();
+    }
+
+    public LogsTable executeQuery(String queryString) {
+        LogsQueryOptions options = new LogsQueryOptions().setServerTimeout(Duration.ofSeconds(10));
+        Response<LogsQueryResult> response = getParent().getLosQueryClient().queryWorkspaceWithResponse(getRemote().customerId(), queryString, null, options, Context.NONE);
+        return response.getValue().getTable();
     }
 }

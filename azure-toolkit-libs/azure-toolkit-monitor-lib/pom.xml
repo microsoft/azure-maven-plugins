@@ -4,7 +4,7 @@
 <parent>
     <artifactId>azure-toolkit-libs</artifactId>
     <groupId>com.microsoft.azure</groupId>
-    <version>0.28.0-SNAPSHOT</version>
+    <version>0.29.0-SNAPSHOT</version>
 </parent>
 <modelVersion>4.0.0</modelVersion>
 
@@ -99,6 +99,10 @@
     <dependency>
         <groupId>com.azure.resourcemanager</groupId>
         <artifactId>azure-resourcemanager-loganalytics</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>com.azure</groupId>
+        <artifactId>azure-monitor-query</artifactId>
     </dependency>
     <dependency>
         <groupId>com.microsoft.azure</groupId>
