@@ -42,7 +42,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -126,8 +125,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             }
         }
         log.debug("[{}]:list->this.resources.values()", this.name);
-        return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
-            .sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
+        return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
     }
 
     private void reloadResources() {
@@ -297,8 +295,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     public List<T> listCachedResources() { // getResources
-        return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
-            .sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
+        return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
     }
 
     @Nonnull
