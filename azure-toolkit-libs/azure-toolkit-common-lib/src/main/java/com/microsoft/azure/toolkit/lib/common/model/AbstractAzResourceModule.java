@@ -33,7 +33,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpStatus;
@@ -44,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -76,7 +76,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @ToString.Include
     private final AtomicLong syncTimeRef = new AtomicLong(-1);
     @Nonnull
-    private final Map<String, Optional<T>> resources = Collections.synchronizedMap(new CaseInsensitiveMap<>());
+    private final Map<String, Optional<T>> resources = Collections.synchronizedMap(new LinkedHashMap<>());
 
     @Nonnull
     protected final Debouncer fireEvents = new TailingDebouncer(this::fireChildrenChangedEvent, 300);
@@ -278,7 +278,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public T getOrTemp(@Nonnull String name, @Nullable String rgName) {
         final String resourceGroup = normalizeResourceGroupName(name, rgName);
         log.debug("[{}]:getOrTemp({}, {})", this.name, name, rgName);
-        final String id = this.toResourceId(name, resourceGroup);
+        final String id = this.toResourceId(name, resourceGroup).toLowerCase();
         return this.resources.getOrDefault(id, Optional.empty()).orElseGet(() -> this.newResource(name, resourceGroup));
     }
 
@@ -286,7 +286,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public T getOrInit(@Nonnull String name, @Nullable String rgName) {
         final String resourceGroup = normalizeResourceGroupName(name, rgName);
         log.debug("[{}]:getOrDraft({}, {})", this.name, name, rgName);
-        final String id = this.toResourceId(name, resourceGroup);
+        final String id = this.toResourceId(name, resourceGroup).toLowerCase();
         return this.resources.getOrDefault(id, Optional.empty()).orElseGet(() -> {
             final T resource = this.newResource(name, resourceGroup);
             log.debug("[{}]:get({}, {})->addResourceToLocal({}, resource)", this.name, id, resourceGroup, name);
