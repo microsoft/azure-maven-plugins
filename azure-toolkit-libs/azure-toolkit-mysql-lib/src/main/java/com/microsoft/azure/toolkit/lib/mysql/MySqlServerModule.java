@@ -5,7 +5,9 @@
 
 package com.microsoft.azure.toolkit.lib.mysql;
 
+import com.azure.core.http.rest.Page;
 import com.azure.resourcemanager.mysqlflexibleserver.MySqlManager;
+import com.azure.resourcemanager.mysqlflexibleserver.models.FirewallRule;
 import com.azure.resourcemanager.mysqlflexibleserver.models.Server;
 import com.azure.resourcemanager.mysqlflexibleserver.models.Servers;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -15,6 +17,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -26,6 +30,14 @@ public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MyS
 
     public MySqlServerModule(@Nonnull MySqlServiceSubscription parent) {
         super(NAME, parent);
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends Page<Server>> loadResourcePagesFromAzure() {
+        return Optional.ofNullable(getClient())
+            .map(c -> c.list().iterableByPage(PAGE_SIZE).iterator())
+            .orElse(Collections.emptyIterator());
     }
 
     @Nonnull

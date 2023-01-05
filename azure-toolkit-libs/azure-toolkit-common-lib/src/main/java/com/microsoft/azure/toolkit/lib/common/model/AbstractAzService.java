@@ -5,18 +5,22 @@
 
 package com.microsoft.azure.toolkit.lib.common.model;
 
+import com.azure.core.http.rest.Page;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -75,6 +79,12 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
     @Nonnull
     public T forSubscription(@Nonnull String subscriptionId) {
         return Objects.requireNonNull(this.get(subscriptionId, null));
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends Page<R>> loadResourcePagesFromAzure() {
+        return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
     }
 
     @Nonnull

@@ -5,16 +5,20 @@
 
 package com.microsoft.azure.toolkit.lib.storage.share;
 
+import com.azure.core.http.rest.Page;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.storage.file.share.ShareClient;
 import com.azure.storage.file.share.ShareServiceClient;
 import com.azure.storage.file.share.ShareServiceClientBuilder;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -40,6 +44,18 @@ public class ShareModule extends AbstractAzResourceModule<Share, StorageAccount,
             this.client = new ShareServiceClientBuilder().connectionString(connectionString).buildClient();
         }
         return this.client;
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends Page<ShareClient>> loadResourcePagesFromAzure() {
+        if (!this.parent.exists()) {
+            return Collections.emptyIterator();
+        }
+        final ShareServiceClient client = this.getFileShareServiceClient();
+        return Objects.requireNonNull(client).listShares().streamByPage(PAGE_SIZE)
+            .map(p -> new ItemPage<>(p.getValue().stream().map(c -> client.getShareClient(c.getName()))))
+            .iterator();
     }
 
     @Nonnull

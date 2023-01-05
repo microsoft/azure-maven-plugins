@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.containerregistry;
 
+import com.azure.core.http.rest.Page;
 import com.azure.core.http.rest.PagedIterable;
 import com.azure.resourcemanager.containerregistry.ContainerRegistryManager;
 import com.azure.resourcemanager.containerregistry.models.Registries;
@@ -14,6 +15,8 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -24,6 +27,12 @@ public class AzureContainerRegistryModule extends AbstractAzResourceModule<Conta
 
     public AzureContainerRegistryModule(@Nonnull AzureContainerRegistryServiceSubscription parent) {
         super(NAME, parent);
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends Page<Registry>> loadResourcePagesFromAzure() {
+        return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(PAGE_SIZE).iterator()).orElse(Collections.emptyIterator());
     }
 
     @Nonnull

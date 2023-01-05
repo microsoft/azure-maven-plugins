@@ -1,5 +1,6 @@
 package com.microsoft.azure.toolkit.lib.applicationinsights.workspace;
 
+import com.azure.core.http.rest.Page;
 import com.azure.resourcemanager.loganalytics.LogAnalyticsManager;
 import com.azure.resourcemanager.loganalytics.models.Workspace;
 import com.azure.resourcemanager.loganalytics.models.Workspaces;
@@ -9,6 +10,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -22,10 +25,15 @@ public class LogAnalyticsWorkspaceModule extends AbstractAzResourceModule<LogAna
 
     @Nonnull
     @Override
+    protected Iterator<? extends Page<Workspace>> loadResourcePagesFromAzure() {
+        return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(PAGE_SIZE).iterator()).orElse(Collections.emptyIterator());
+    }
+
+    @Nonnull
+    @Override
     @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
     protected Stream<Workspace> loadResourcesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(workspaces -> workspaces.list().stream()).orElse(Stream.empty());
-
     }
 
     @Nullable

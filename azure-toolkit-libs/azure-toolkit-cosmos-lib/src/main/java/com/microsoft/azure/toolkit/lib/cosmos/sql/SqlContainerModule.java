@@ -4,6 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.cosmos.sql;
 
+import com.azure.core.http.rest.Page;
 import com.azure.resourcemanager.cosmos.fluent.SqlResourcesClient;
 import com.azure.resourcemanager.cosmos.fluent.models.SqlContainerGetResultsInner;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
@@ -14,6 +15,9 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -35,6 +39,18 @@ public class SqlContainerModule extends AbstractAzResourceModule<SqlContainer, S
     @Override
     protected SqlContainer newResource(@NotNull String name, @Nullable String resourceGroupName) {
         return new SqlContainer(name, Objects.requireNonNull(resourceGroupName), this);
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends Page<SqlContainerGetResultsInner>> loadResourcePagesFromAzure() {
+        return Optional.ofNullable(getClient()).map(client -> {
+            try {
+                return client.listSqlContainers(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).iterableByPage(PAGE_SIZE).iterator();
+            } catch (final RuntimeException e) {
+                return null;
+            }
+        }).orElse(Collections.emptyIterator());
     }
 
     @NotNull

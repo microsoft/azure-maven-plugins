@@ -78,8 +78,8 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
         final String partitionKeyValue = split.length > 1 ? split[1] : StringUtils.EMPTY;
         final PartitionKey partitionKey = StringUtils.equals(partitionKeyValue, NONE) ? PartitionKey.NONE : new PartitionKey(partitionKeyValue);
         return Optional.ofNullable(getClient())
-                .map(client -> doLoadDocument(client, partitionKey, id))
-                .orElse(null);
+            .map(client -> doLoadDocument(client, partitionKey, id))
+            .orElse(null);
     }
 
     @Nullable
@@ -148,8 +148,8 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
     @Nullable
     public static String getSqlDocumentPartitionValue(@Nonnull final ObjectNode node, @Nullable final String partitionKey) {
         return Optional.ofNullable(partitionKey)
-                .map(node::at)
-                .filter(n -> !n.isMissingNode())
-                .map(JsonNode::asText).orElse(null);
+            .map(node::at)
+            .filter(n -> !n.isMissingNode())
+            .map(JsonNode::asText).orElse(null);
     }
 }

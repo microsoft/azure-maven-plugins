@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.storage.blob;
 
+import com.azure.core.http.rest.Page;
 import com.azure.core.http.rest.PagedIterable;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.models.BlobItem;
@@ -17,6 +18,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -33,6 +36,14 @@ public class BlobFileModule extends AbstractAzResourceModule<BlobFile, IBlobFile
     @Override
     protected BlobContainerClient getClient() {
         return this.parent.getClient();
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends Page<BlobItem>> loadResourcePagesFromAzure() {
+        return Optional.ofNullable(this.getClient())
+            .map(c -> c.listBlobsByHierarchy(this.parent.getPath()).iterableByPage(PAGE_SIZE).iterator())
+            .orElse(Collections.emptyIterator());
     }
 
     @Nonnull

@@ -5,16 +5,20 @@
 
 package com.microsoft.azure.toolkit.lib.storage.blob;
 
+import com.azure.core.http.rest.Page;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -40,6 +44,18 @@ public class BlobContainerModule extends AbstractAzResourceModule<BlobContainer,
             this.client = new BlobServiceClientBuilder().connectionString(connectionString).buildClient();
         }
         return this.client;
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends Page<BlobContainerClient>> loadResourcePagesFromAzure() {
+        if (!this.parent.exists()) {
+            return Collections.emptyIterator();
+        }
+        final BlobServiceClient client = this.getBlobServiceClient();
+        return Objects.requireNonNull(client).listBlobContainers().streamByPage(PAGE_SIZE)
+            .map(p -> new ItemPage<>(p.getValue().stream().map(c -> client.getBlobContainerClient(c.getName()))))
+            .iterator();
     }
 
     @Nonnull

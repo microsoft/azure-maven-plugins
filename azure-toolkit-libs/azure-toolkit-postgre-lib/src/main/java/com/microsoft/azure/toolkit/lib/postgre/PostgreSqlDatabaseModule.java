@@ -5,15 +5,20 @@
 
 package com.microsoft.azure.toolkit.lib.postgre;
 
+import com.azure.core.http.rest.Page;
 import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.postgresql.models.Database;
 import com.azure.resourcemanager.postgresql.models.Databases;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -34,6 +39,18 @@ public class PostgreSqlDatabaseModule extends AbstractAzResourceModule<PostgreSq
     @Override
     protected PostgreSqlDatabase newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         return new PostgreSqlDatabase(name, this);
+    }
+
+    @NotNull
+    @Override
+    protected Iterator<? extends Page<Database>> loadResourcePagesFromAzure() {
+        final PostgreSqlServer server = this.getParent();
+        return Optional.ofNullable(this.getClient())
+            .map(c -> c.listByServer(server.getResourceGroupName(), server.getName())
+                .streamByPage(PAGE_SIZE)
+                .map(p -> new ItemPage<>(p.getValue().stream().filter(d -> !"azure_maintenance".equals(d.name()))))
+                .iterator())
+            .orElse(Collections.emptyIterator());
     }
 
     @Nonnull

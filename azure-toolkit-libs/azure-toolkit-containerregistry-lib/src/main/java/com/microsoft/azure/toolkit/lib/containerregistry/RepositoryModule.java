@@ -9,15 +9,20 @@ import com.azure.containers.containerregistry.ContainerRegistryClient;
 import com.azure.containers.containerregistry.ContainerRegistryClientBuilder;
 import com.azure.containers.containerregistry.ContainerRepository;
 import com.azure.containers.containerregistry.models.ContainerRegistryAudience;
+import com.azure.core.http.rest.Page;
 import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class RepositoryModule extends AbstractAzResourceModule<Repository, ContainerRegistry, ContainerRepository> {
@@ -47,6 +52,18 @@ public class RepositoryModule extends AbstractAzResourceModule<Repository, Conta
                 .buildClient();
         }
         return this.client;
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends Page<ContainerRepository>> loadResourcePagesFromAzure() {
+        if (!this.parent.exists()) {
+            return Collections.emptyIterator();
+        }
+        return Optional.ofNullable(this.getClient())
+            .map(c -> c.listRepositoryNames().streamByPage(PAGE_SIZE)
+                .map(p -> new ItemPage<>(p.getValue().stream().map(client::getRepository))).iterator())
+            .orElse(Collections.emptyIterator());
     }
 
     @Nonnull

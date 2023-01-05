@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.postgre;
 
+import com.azure.core.http.rest.Page;
 import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.postgresql.models.Server;
 import com.azure.resourcemanager.postgresql.models.Servers;
@@ -14,6 +15,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -24,6 +27,14 @@ public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlS
 
     public PostgreSqlServerModule(@Nonnull PostgreSqlServiceSubscription parent) {
         super(NAME, parent);
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends Page<Server>> loadResourcePagesFromAzure() {
+        return Optional.ofNullable(getClient())
+            .map(c -> c.list().iterableByPage(PAGE_SIZE).iterator())
+            .orElse(Collections.emptyIterator());
     }
 
     @Nonnull

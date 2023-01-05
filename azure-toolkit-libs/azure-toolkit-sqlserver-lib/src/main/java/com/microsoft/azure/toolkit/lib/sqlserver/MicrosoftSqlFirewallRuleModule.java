@@ -5,12 +5,14 @@
 
 package com.microsoft.azure.toolkit.lib.sqlserver;
 
+import com.azure.core.http.rest.Page;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.models.SqlFirewallRule;
 import com.azure.resourcemanager.sql.models.SqlFirewallRuleOperations;
 import com.azure.resourcemanager.sql.models.SqlServer;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -39,6 +43,12 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
     @Override
     protected MicrosoftSqlFirewallRule newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         return new MicrosoftSqlFirewallRule(name, this);
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends Page<SqlFirewallRule>> loadResourcePagesFromAzure() {
+        return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
     }
 
     @Nonnull

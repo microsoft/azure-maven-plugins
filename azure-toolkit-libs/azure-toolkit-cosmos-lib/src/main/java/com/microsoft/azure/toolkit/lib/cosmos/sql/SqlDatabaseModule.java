@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.cosmos.sql;
 
+import com.azure.core.http.rest.Page;
 import com.azure.resourcemanager.cosmos.fluent.SqlResourcesClient;
 import com.azure.resourcemanager.cosmos.fluent.models.SqlDatabaseGetResultsInner;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
@@ -14,6 +15,9 @@ import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -43,6 +47,18 @@ public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, Cos
         return new SqlDatabase(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
+    @Nonnull
+    @Override
+    protected Iterator<? extends Page<SqlDatabaseGetResultsInner>> loadResourcePagesFromAzure() {
+        return Optional.ofNullable(getClient()).map(client -> {
+            try {
+                return client.listSqlDatabases(parent.getResourceGroupName(), parent.getName()).iterableByPage(PAGE_SIZE).iterator();
+            } catch (final RuntimeException e) {
+                return null;
+            }
+        }).orElse(Collections.emptyIterator());
+    }
+
     @NotNull
     @Override
     protected Stream<SqlDatabaseGetResultsInner> loadResourcesFromAzure() {
@@ -59,12 +75,12 @@ public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, Cos
     @Override
     protected SqlDatabaseGetResultsInner loadResourceFromAzure(@NotNull String name, @Nullable String resourceGroup) {
         return Optional.ofNullable(getClient()).map(client -> {
-                    try {
-                        return client.getSqlDatabase(parent.getResourceGroupName(), parent.getName(), name);
-                    } catch (RuntimeException e) {
-                        return null;
-                    }
+                try {
+                    return client.getSqlDatabase(parent.getResourceGroupName(), parent.getName(), name);
+                } catch (RuntimeException e) {
+                    return null;
                 }
+            }
         ).orElse(null);
     }
 
