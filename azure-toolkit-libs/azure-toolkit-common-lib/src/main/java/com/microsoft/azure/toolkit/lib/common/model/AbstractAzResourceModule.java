@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.azure.core.exception.HttpResponseException;
+import com.azure.core.http.rest.Page;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingById;
 import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingByName;
@@ -19,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
@@ -42,6 +44,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +65,7 @@ import static com.microsoft.azure.toolkit.lib.common.model.AzResource.RESOURCE_G
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P, R>, P extends AzResource, R>
     implements AzResourceModule<T> {
+    public static final int PAGE_SIZE = Azure.az().config().getPageSize();
     @Getter
     @Nonnull
     @ToString.Include
@@ -80,6 +84,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nonnull
     protected final Debouncer fireEvents = new TailingDebouncer(this::fireChildrenChangedEvent, 300);
     private final Lock lock = new ReentrantLock();
+    private Iterator<? extends Page<R>> pages;
 
     @Override
     public void refresh() {
@@ -133,7 +138,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         this.syncTimeRef.set(0);
         try {
             log.debug("[{}]:reloadResources->loadResourcesFromAzure()", this.name);
-            final Map<String, R> loadedResources = this.loadResourcesFromAzure()
+            this.pages = this.loadResourcePagesFromAzure();
+            final Page<R> page = pages.hasNext() ? pages.next() : new ItemPage<>(this.loadResourcesFromAzure());
+            final Map<String, R> loadedResources = page.getElements().stream()
                 .collect(Collectors.toMap(r -> this.newResource(r).getId().toLowerCase(), r -> r));
             log.debug("[{}]:reloadResources->setResources(xxx)", this.name);
             this.setResources(loadedResources);
@@ -151,6 +158,32 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 throw e;
             }
         }
+    }
+
+    public void loadMoreResources() {
+        log.debug("[{}]:loadMoreResources()", this.name);
+        try {
+            this.lock.lock();
+            if (Objects.isNull(this.pages)) {
+                this.reloadResources();
+            } else if (this.pages.hasNext()) {
+                final Page<R> page = this.pages.next();
+                final Map<String, R> loadedResources = page.getElements().stream()
+                    .collect(Collectors.toMap(r -> this.newResource(r).getId().toLowerCase(), r -> r));
+                log.debug("[{}]:loadMoreResources->addResources(xxx)", this.name);
+                this.addResources(loadedResources);
+                fireEvents.debounce();
+            }
+        } catch (Exception e) {
+            AzureMessager.getMessager().error(e);
+            throw e;
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    public boolean hasMoreResources() {
+        return this.pages.hasNext();
     }
 
     private void setResources(Map<String, R> loadedResources) {
@@ -180,6 +213,17 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             final R remote = loadedResources.get(id);
             final T resource = this.newResource(remote);
             m.runOnPooledThread(() -> resource.setRemote(remote));
+            this.addResourceToLocal(id, resource, true);
+        });
+        this.syncTimeRef.set(System.currentTimeMillis());
+    }
+
+    private void addResources(Map<String, R> loadedResources) {
+        final Set<String> added = loadedResources.keySet();
+        log.debug("[{}]:reload().added={}", this.name, added);
+        loadedResources.forEach((id, remote) -> {
+            final T resource = this.newResource(remote);
+            AzureTaskManager.getInstance().runOnPooledThread(() -> resource.setRemote(remote));
             this.addResourceToLocal(id, resource, true);
         });
         this.syncTimeRef.set(System.currentTimeMillis());
@@ -464,6 +508,23 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             throw new AzureToolkitRuntimeException("not supported");
         }
         return Stream.empty();
+    }
+
+    @Nonnull
+    @AzureOperation(name = "azure/resource.load_resources_by_pages.type", params = {"this.getResourceTypeName()"})
+    protected Iterator<? extends Page<R>> loadResourcePagesFromAzure() {
+        log.debug("[{}]:loadPagedResourcesFromAzure()", this.getName());
+        final Object client = this.getClient();
+        if (!this.parent.exists()) {
+            return Collections.emptyIterator();
+        } else if (client instanceof SupportsListing) {
+            log.debug("[{}]:loadPagedResourcesFromAzure->client.list()", this.name);
+            return this.<SupportsListing<R>>cast(client).list().iterableByPage(PAGE_SIZE).iterator();
+        } else if (client != null) {
+            log.debug("[{}]:loadPagedResourcesFromAzure->NOT Supported", this.name);
+            throw new AzureToolkitRuntimeException("not supported");
+        }
+        return Collections.emptyIterator();
     }
 
     @Nullable
