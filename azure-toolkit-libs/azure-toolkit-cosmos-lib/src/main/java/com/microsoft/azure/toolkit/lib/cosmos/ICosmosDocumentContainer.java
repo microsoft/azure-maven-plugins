@@ -11,6 +11,4 @@ import javax.annotation.Nonnull;
 
 public interface ICosmosDocumentContainer<T extends ICosmosDocument> extends AzResource {
     T importDocument(@Nonnull final ObjectNode node);
-
-    ICosmosDocumentModule<T> getDocumentModule();
 }
