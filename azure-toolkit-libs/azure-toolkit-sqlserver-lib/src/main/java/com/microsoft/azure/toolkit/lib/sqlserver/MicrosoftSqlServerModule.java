@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.sqlserver;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.sql.SqlServerManager;
 import com.azure.resourcemanager.sql.models.SqlServer;
 import com.azure.resourcemanager.sql.models.SqlServers;
@@ -33,7 +33,7 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<SqlServer>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, SqlServer>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient())
             .map(c -> c.list().iterableByPage(PAGE_SIZE).iterator())
             .orElse(Collections.emptyIterator());

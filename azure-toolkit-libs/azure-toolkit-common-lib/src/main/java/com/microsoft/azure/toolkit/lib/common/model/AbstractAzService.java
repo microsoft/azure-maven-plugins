@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.model;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -83,7 +83,7 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<R>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, R>> loadResourcePagesFromAzure() {
         return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
     }
 

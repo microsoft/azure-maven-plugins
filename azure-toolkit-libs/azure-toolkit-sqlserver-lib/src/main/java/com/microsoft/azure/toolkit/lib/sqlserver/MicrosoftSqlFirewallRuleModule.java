@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.sqlserver;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.models.SqlFirewallRule;
 import com.azure.resourcemanager.sql.models.SqlFirewallRuleOperations;
@@ -47,7 +47,7 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<SqlFirewallRule>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, SqlFirewallRule>> loadResourcePagesFromAzure() {
         return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
     }
 

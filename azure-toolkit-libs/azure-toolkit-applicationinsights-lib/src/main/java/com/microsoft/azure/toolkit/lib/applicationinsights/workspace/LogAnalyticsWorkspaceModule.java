@@ -1,6 +1,6 @@
 package com.microsoft.azure.toolkit.lib.applicationinsights.workspace;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.loganalytics.LogAnalyticsManager;
 import com.azure.resourcemanager.loganalytics.models.Workspace;
 import com.azure.resourcemanager.loganalytics.models.Workspaces;
@@ -25,7 +25,7 @@ public class LogAnalyticsWorkspaceModule extends AbstractAzResourceModule<LogAna
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<Workspace>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, Workspace>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(PAGE_SIZE).iterator()).orElse(Collections.emptyIterator());
     }
 

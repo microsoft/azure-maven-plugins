@@ -5,8 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.containerregistry;
 
-import com.azure.core.http.rest.Page;
 import com.azure.core.http.rest.PagedIterable;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.containerregistry.ContainerRegistryManager;
 import com.azure.resourcemanager.containerregistry.models.Registries;
 import com.azure.resourcemanager.containerregistry.models.Registry;
@@ -31,7 +31,7 @@ public class AzureContainerRegistryModule extends AbstractAzResourceModule<Conta
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<Registry>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, Registry>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(PAGE_SIZE).iterator()).orElse(Collections.emptyIterator());
     }
 

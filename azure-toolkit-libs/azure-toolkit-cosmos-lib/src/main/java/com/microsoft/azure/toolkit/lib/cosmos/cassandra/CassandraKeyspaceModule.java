@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.cosmos.cassandra;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.cosmos.fluent.CassandraResourcesClient;
 import com.azure.resourcemanager.cosmos.fluent.models.CassandraKeyspaceGetResultsInner;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
@@ -49,7 +49,7 @@ public class CassandraKeyspaceModule extends AbstractAzResourceModule<CassandraK
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<CassandraKeyspaceGetResultsInner>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, CassandraKeyspaceGetResultsInner>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
                 return client.listCassandraKeyspaces(parent.getResourceGroupName(), parent.getName()).iterableByPage(PAGE_SIZE).iterator();

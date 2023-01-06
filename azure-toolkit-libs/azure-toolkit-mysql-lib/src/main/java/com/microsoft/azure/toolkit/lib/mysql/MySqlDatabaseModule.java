@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.mysql;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.mysqlflexibleserver.MySqlManager;
 import com.azure.resourcemanager.mysqlflexibleserver.models.Database;
 import com.azure.resourcemanager.mysqlflexibleserver.models.Databases;
@@ -41,7 +41,7 @@ public class MySqlDatabaseModule extends AbstractAzResourceModule<MySqlDatabase,
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<Database>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, Database>> loadResourcePagesFromAzure() {
         final MySqlServer p = this.getParent();
         return Optional.ofNullable(getClient())
             .map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).iterableByPage(PAGE_SIZE).iterator())

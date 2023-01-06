@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.storage.share;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.storage.file.share.ShareClient;
 import com.azure.storage.file.share.ShareServiceClient;
@@ -48,7 +48,7 @@ public class ShareModule extends AbstractAzResourceModule<Share, StorageAccount,
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<ShareClient>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, ShareClient>> loadResourcePagesFromAzure() {
         if (!this.parent.exists()) {
             return Collections.emptyIterator();
         }

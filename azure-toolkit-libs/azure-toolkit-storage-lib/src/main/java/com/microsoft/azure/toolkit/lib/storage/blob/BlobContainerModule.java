@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.storage.blob;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
@@ -48,7 +48,7 @@ public class BlobContainerModule extends AbstractAzResourceModule<BlobContainer,
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<BlobContainerClient>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, BlobContainerClient>> loadResourcePagesFromAzure() {
         if (!this.parent.exists()) {
             return Collections.emptyIterator();
         }

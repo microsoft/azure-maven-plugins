@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.resource;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
@@ -39,7 +39,7 @@ public class GenericResourceModule extends
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<HasId>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, HasId>> loadResourcePagesFromAzure() {
         final GenericResources resources = Objects.requireNonNull(this.getClient());
         return resources.listByResourceGroup(this.parent.getName()).streamByPage(PAGE_SIZE)
             .map(p -> new ItemPage<>(p.getValue().stream().filter(r -> Objects.isNull(ResourceId.fromString(r.id()).parent())).map(a -> (HasId) a)))

@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.containerapps.containerapp;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.appcontainers.ContainerAppsApiManager;
 import com.azure.resourcemanager.appcontainers.models.ContainerAppsRevisions;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -41,7 +41,7 @@ public class RevisionModule extends AbstractAzResourceModule<Revision, Container
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<com.azure.resourcemanager.appcontainers.models.Revision>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, com.azure.resourcemanager.appcontainers.models.Revision>> loadResourcePagesFromAzure() {
         final ContainerApp parent = this.getParent();
         return Optional.ofNullable(this.getClient()).map(c -> c.listRevisions(parent.getResourceGroupName(), parent.getName()).iterableByPage(PAGE_SIZE).iterator())
             .orElse(Collections.emptyIterator());

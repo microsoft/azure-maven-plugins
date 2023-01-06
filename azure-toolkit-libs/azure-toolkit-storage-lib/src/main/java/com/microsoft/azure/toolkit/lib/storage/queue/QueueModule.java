@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.storage.queue;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.storage.queue.QueueClient;
 import com.azure.storage.queue.QueueServiceClient;
@@ -48,7 +48,7 @@ public class QueueModule extends AbstractAzResourceModule<Queue, StorageAccount,
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<QueueClient>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, QueueClient>> loadResourcePagesFromAzure() {
         if (!this.parent.exists()) {
             return Collections.emptyIterator();
         }

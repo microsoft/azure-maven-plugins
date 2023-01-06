@@ -4,7 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.cosmos.sql;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.cosmos.fluent.SqlResourcesClient;
 import com.azure.resourcemanager.cosmos.fluent.models.SqlContainerGetResultsInner;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
@@ -43,7 +43,7 @@ public class SqlContainerModule extends AbstractAzResourceModule<SqlContainer, S
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<SqlContainerGetResultsInner>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, SqlContainerGetResultsInner>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
                 return client.listSqlContainers(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).iterableByPage(PAGE_SIZE).iterator();

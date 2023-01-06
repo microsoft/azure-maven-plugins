@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.storage.table;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.data.tables.TableClient;
 import com.azure.data.tables.TableServiceClient;
 import com.azure.data.tables.TableServiceClientBuilder;
@@ -48,7 +48,7 @@ public class TableModule extends AbstractAzResourceModule<Table, StorageAccount,
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<TableClient>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, TableClient>> loadResourcePagesFromAzure() {
         if (!this.parent.exists()) {
             return Collections.emptyIterator();
         }

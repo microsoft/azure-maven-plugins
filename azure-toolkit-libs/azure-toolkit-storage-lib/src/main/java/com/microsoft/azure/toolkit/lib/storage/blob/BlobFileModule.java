@@ -5,8 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.storage.blob;
 
-import com.azure.core.http.rest.Page;
 import com.azure.core.http.rest.PagedIterable;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.models.BlobItem;
 import com.azure.storage.blob.specialized.BlobClientBase;
@@ -40,7 +40,7 @@ public class BlobFileModule extends AbstractAzResourceModule<BlobFile, IBlobFile
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<BlobItem>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, BlobItem>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(this.getClient())
             .map(c -> c.listBlobsByHierarchy(this.parent.getPath()).iterableByPage(PAGE_SIZE).iterator())
             .orElse(Collections.emptyIterator());

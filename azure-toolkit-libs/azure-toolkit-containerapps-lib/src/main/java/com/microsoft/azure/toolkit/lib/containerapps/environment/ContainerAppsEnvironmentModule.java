@@ -5,8 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.containerapps.environment;
 
-import com.azure.core.http.rest.Page;
 import com.azure.core.http.rest.PagedIterable;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.appcontainers.ContainerAppsApiManager;
 import com.azure.resourcemanager.appcontainers.models.ManagedEnvironment;
 import com.azure.resourcemanager.appcontainers.models.ManagedEnvironments;
@@ -32,7 +32,7 @@ public class ContainerAppsEnvironmentModule extends AbstractAzResourceModule<Con
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<ManagedEnvironment>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, ManagedEnvironment>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(PAGE_SIZE).iterator()).orElse(Collections.emptyIterator());
     }
 

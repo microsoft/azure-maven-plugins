@@ -4,9 +4,8 @@
  */
 package com.microsoft.azure.toolkit.lib.cosmos.mongo;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.cosmos.fluent.MongoDBResourcesClient;
-import com.azure.resourcemanager.cosmos.fluent.models.CassandraTableGetResultsInner;
 import com.azure.resourcemanager.cosmos.fluent.models.MongoDBCollectionGetResultsInner;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -44,7 +43,7 @@ public class MongoCollectionModule extends AbstractAzResourceModule<MongoCollect
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<MongoDBCollectionGetResultsInner>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, MongoDBCollectionGetResultsInner>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
                 return client.listMongoDBCollections(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).iterableByPage(PAGE_SIZE).iterator();

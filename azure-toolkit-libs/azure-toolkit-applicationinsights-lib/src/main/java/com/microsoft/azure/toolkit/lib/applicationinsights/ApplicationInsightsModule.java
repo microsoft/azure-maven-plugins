@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.applicationinsights;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.applicationinsights.ApplicationInsightsManager;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsComponent;
 import com.azure.resourcemanager.applicationinsights.models.Components;
@@ -31,7 +31,7 @@ public class ApplicationInsightsModule extends AbstractAzResourceModule<Applicat
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<ApplicationInsightsComponent>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, ApplicationInsightsComponent>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(PAGE_SIZE).iterator()).orElse(Collections.emptyIterator());
     }
 

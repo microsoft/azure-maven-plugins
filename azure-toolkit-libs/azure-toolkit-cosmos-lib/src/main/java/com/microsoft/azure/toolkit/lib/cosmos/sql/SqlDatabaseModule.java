@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.cosmos.sql;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.cosmos.fluent.SqlResourcesClient;
 import com.azure.resourcemanager.cosmos.fluent.models.SqlDatabaseGetResultsInner;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
@@ -49,7 +49,7 @@ public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, Cos
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<SqlDatabaseGetResultsInner>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, SqlDatabaseGetResultsInner>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
                 return client.listSqlDatabases(parent.getResourceGroupName(), parent.getName()).iterableByPage(PAGE_SIZE).iterator();

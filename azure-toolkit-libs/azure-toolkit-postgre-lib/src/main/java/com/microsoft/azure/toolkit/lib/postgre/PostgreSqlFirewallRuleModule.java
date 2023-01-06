@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.postgre;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.postgresql.models.FirewallRule;
 import com.azure.resourcemanager.postgresql.models.FirewallRules;
@@ -44,7 +44,7 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<FirewallRule>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, FirewallRule>> loadResourcePagesFromAzure() {
         final PostgreSqlServer p = this.getParent();
         return Optional.ofNullable(getClient())
             .map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).iterableByPage(PAGE_SIZE).iterator())

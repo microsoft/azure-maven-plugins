@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.sqlserver;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.models.SqlDatabase;
 import com.azure.resourcemanager.sql.models.SqlDatabaseOperations;
@@ -42,7 +42,7 @@ public class MicrosoftSqlDatabaseModule extends AbstractAzResourceModule<Microso
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<SqlDatabase>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, SqlDatabase>> loadResourcePagesFromAzure() {
         return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
     }
 

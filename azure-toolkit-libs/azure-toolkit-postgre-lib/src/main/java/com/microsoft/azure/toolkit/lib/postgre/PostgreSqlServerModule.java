@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.postgre;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.postgresql.models.Server;
 import com.azure.resourcemanager.postgresql.models.Servers;
@@ -31,7 +31,7 @@ public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlS
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<Server>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, Server>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient())
             .map(c -> c.list().iterableByPage(PAGE_SIZE).iterator())
             .orElse(Collections.emptyIterator());

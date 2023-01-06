@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.resource;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.models.Deployment;
 import com.azure.resourcemanager.resources.models.Deployments;
@@ -52,7 +52,7 @@ public class ResourceDeploymentModule extends
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<Deployment>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, Deployment>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(c -> c.listByResourceGroup(this.parent.getName()).iterableByPage(PAGE_SIZE).iterator()).orElse(Collections.emptyIterator());
     }
 

@@ -9,8 +9,8 @@ import com.azure.containers.containerregistry.ContainerRegistryClient;
 import com.azure.containers.containerregistry.ContainerRegistryClientBuilder;
 import com.azure.containers.containerregistry.ContainerRepository;
 import com.azure.containers.containerregistry.models.ContainerRegistryAudience;
-import com.azure.core.http.rest.Page;
 import com.azure.core.management.AzureEnvironment;
+import com.azure.core.util.paging.ContinuablePage;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
@@ -56,7 +56,7 @@ public class RepositoryModule extends AbstractAzResourceModule<Repository, Conta
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<ContainerRepository>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, ContainerRepository>> loadResourcePagesFromAzure() {
         if (!this.parent.exists()) {
             return Collections.emptyIterator();
         }

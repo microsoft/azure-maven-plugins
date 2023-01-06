@@ -5,9 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.mysql;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.mysqlflexibleserver.MySqlManager;
-import com.azure.resourcemanager.mysqlflexibleserver.models.Database;
 import com.azure.resourcemanager.mysqlflexibleserver.models.FirewallRule;
 import com.azure.resourcemanager.mysqlflexibleserver.models.FirewallRules;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
@@ -45,7 +44,7 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<FirewallRule>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, FirewallRule>> loadResourcePagesFromAzure() {
         final MySqlServer p = this.getParent();
         return Optional.ofNullable(getClient())
             .map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).iterableByPage(PAGE_SIZE).iterator())

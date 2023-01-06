@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.azure.core.exception.HttpResponseException;
 import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingById;
 import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingByName;
@@ -84,9 +85,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private final Map<String, Optional<T>> resources = Collections.synchronizedMap(new LinkedHashMap<>());
 
     @Nonnull
-    protected final Debouncer fireEvents = new TailingDebouncer(this::fireChildrenChangedEvent, 300);
+    private final Debouncer fireEvents = new TailingDebouncer(this::fireChildrenChangedEvent, 300);
     private final Lock lock = new ReentrantLock();
-    private Iterator<? extends Page<R>> pages;
+    private Iterator<? extends ContinuablePage<String, R>> pages;
 
     @Override
     public void refresh() {
@@ -141,7 +142,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         try {
             log.debug("[{}]:reloadResources->loadResourcesFromAzure()", this.name);
             this.pages = this.loadResourcePagesFromAzure();
-            final Page<R> page = pages.hasNext() ? pages.next() : new ItemPage<>(this.loadResourcesFromAzure());
+            final ContinuablePage<String, R> page = pages.hasNext() ? pages.next() : new ItemPage<>(this.loadResourcesFromAzure());
             final Map<String, R> loadedResources = page.getElements().stream()
                 .collect(Collectors.toMap(r -> this.newResource(r).getId().toLowerCase(), r -> r));
             log.debug("[{}]:reloadResources->setResources(xxx)", this.name);
@@ -169,7 +170,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             if (Objects.isNull(this.pages)) {
                 this.reloadResources();
             } else if (this.pages.hasNext()) {
-                final Page<R> page = this.pages.next();
+                final ContinuablePage<String, R> page = this.pages.next();
                 final Map<String, R> loadedResources = page.getElements().stream()
                     .collect(Collectors.toMap(r -> this.newResource(r).getId().toLowerCase(), r -> r));
                 log.debug("[{}]:loadMoreResources->addResources(xxx)", this.name);
@@ -518,7 +519,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     @AzureOperation(name = "azure/resource.load_resources_by_pages.type", params = {"this.getResourceTypeName()"})
-    protected Iterator<? extends Page<R>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, R>> loadResourcePagesFromAzure() {
         log.debug("[{}]:loadPagedResourcesFromAzure()", this.getName());
         final Object client = this.getClient();
         if (!this.parent.exists()) {

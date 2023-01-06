@@ -4,9 +4,8 @@
  */
 package com.microsoft.azure.toolkit.lib.cosmos.cassandra;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.cosmos.fluent.CassandraResourcesClient;
-import com.azure.resourcemanager.cosmos.fluent.models.CassandraKeyspaceGetResultsInner;
 import com.azure.resourcemanager.cosmos.fluent.models.CassandraTableGetResultsInner;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -44,7 +43,7 @@ public class CassandraTableModule extends AbstractAzResourceModule<CassandraTabl
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<CassandraTableGetResultsInner>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, CassandraTableGetResultsInner>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
                 return client.listCassandraTables(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).iterableByPage(PAGE_SIZE).iterator();

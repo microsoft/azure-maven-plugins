@@ -1,6 +1,6 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -34,9 +34,8 @@ public class SpringCloudAppInstanceModule extends AbstractAzResourceModule<Sprin
         return deploymentInstanceList.stream().filter(instance -> name.equals(instance.name())).findAny().orElse(null);
     }
 
-    @NotNull
     @Override
-    protected Iterator<? extends Page<DeploymentInstance>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, DeploymentInstance>> loadResourcePagesFromAzure() {
         return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
     }
 

@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.cosmos.mongo;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.cosmos.fluent.MongoDBResourcesClient;
 import com.azure.resourcemanager.cosmos.fluent.models.MongoDBDatabaseGetResultsInner;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
@@ -49,7 +49,7 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
 
     @Nonnull
     @Override
-    protected Iterator<? extends Page<MongoDBDatabaseGetResultsInner>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, MongoDBDatabaseGetResultsInner>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
                 return client.listMongoDBDatabases(parent.getResourceGroupName(), parent.getName()).iterableByPage(PAGE_SIZE).iterator();

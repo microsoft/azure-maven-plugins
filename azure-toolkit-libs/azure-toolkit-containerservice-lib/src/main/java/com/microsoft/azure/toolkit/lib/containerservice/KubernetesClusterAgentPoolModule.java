@@ -5,12 +5,11 @@
 
 package com.microsoft.azure.toolkit.lib.containerservice;
 
-import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -47,9 +46,8 @@ public class KubernetesClusterAgentPoolModule extends
         return "Node pool";
     }
 
-    @NotNull
     @Override
-    protected Iterator<? extends Page<com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool>> loadResourcePagesFromAzure() {
         return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
     }
 
