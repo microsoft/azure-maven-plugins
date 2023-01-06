@@ -185,7 +185,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     public boolean hasMoreResources() {
-        return this.pages.hasNext();
+        return Objects.nonNull(this.pages) && this.pages.hasNext();
     }
 
     private void setResources(Map<String, R> loadedResources) {
