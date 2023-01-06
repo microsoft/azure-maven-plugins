@@ -37,6 +37,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
@@ -44,6 +45,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -209,23 +211,28 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         log.debug("[{}]:reload.refreshed->resource.setRemote", this.name);
         refreshed.forEach(id -> this.resources.getOrDefault(id, Optional.empty()).ifPresent(r -> m.runOnPooledThread(() -> r.setRemote(loadedResources.get(id)))));
         log.debug("[{}]:reload.added->addResourceToLocal", this.name);
-        added.forEach(id -> {
-            final R remote = loadedResources.get(id);
-            final T resource = this.newResource(remote);
-            m.runOnPooledThread(() -> resource.setRemote(remote));
-            this.addResourceToLocal(id, resource, true);
-        });
+        added.stream().map(loadedResources::get).map(r -> Pair.of(r, this.newResource(r)))
+            .sorted(Comparator.comparing(p -> p.getValue().getName())) // sort by name when adding into cache
+            .forEach(p -> {
+                final R remote = p.getKey();
+                final T resource = p.getValue();
+                m.runOnPooledThread(() -> resource.setRemote(remote));
+                this.addResourceToLocal(resource.getId(), resource, true);
+            });
         this.syncTimeRef.set(System.currentTimeMillis());
     }
 
     private void addResources(Map<String, R> loadedResources) {
         final Set<String> added = loadedResources.keySet();
         log.debug("[{}]:reload().added={}", this.name, added);
-        loadedResources.forEach((id, remote) -> {
-            final T resource = this.newResource(remote);
-            AzureTaskManager.getInstance().runOnPooledThread(() -> resource.setRemote(remote));
-            this.addResourceToLocal(id, resource, true);
-        });
+        loadedResources.values().stream().map(r -> Pair.of(r, this.newResource(r)))
+            .sorted(Comparator.comparing(p -> p.getValue().getName())) // sort by name when adding into cache
+            .forEach(p -> {
+                final R remote = p.getKey();
+                final T resource = p.getValue();
+                AzureTaskManager.getInstance().runOnPooledThread(() -> resource.setRemote(remote));
+                this.addResourceToLocal(resource.getId(), resource, true);
+            });
         this.syncTimeRef.set(System.currentTimeMillis());
     }
 
@@ -482,8 +489,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private void fireChildrenChangedEvent() {
         log.debug("[{}]:fireChildrenChangedEvent()", this.name);
         if (this.getParent() instanceof AbstractAzServiceSubscription) {
-            @SuppressWarnings("unchecked")
-            final AzResourceModule<P> service = (AzResourceModule<P>) this.getParent().getModule();
+            @SuppressWarnings("unchecked") final AzResourceModule<P> service = (AzResourceModule<P>) this.getParent().getModule();
             AzureEventBus.emit("service.children_changed.service", service);
         }
         if (this instanceof AzService) {
