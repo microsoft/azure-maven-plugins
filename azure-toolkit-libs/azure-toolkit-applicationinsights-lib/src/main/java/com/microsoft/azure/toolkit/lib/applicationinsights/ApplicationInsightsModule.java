@@ -32,7 +32,7 @@ public class ApplicationInsightsModule extends AbstractAzResourceModule<Applicat
     @Nonnull
     @Override
     protected Iterator<? extends ContinuablePage<String, ApplicationInsightsComponent>> loadResourcePagesFromAzure() {
-        return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(PAGE_SIZE).iterator()).orElse(Collections.emptyIterator());
+        return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(getPageSize()).iterator()).orElse(Collections.emptyIterator());
     }
 
     @Nonnull

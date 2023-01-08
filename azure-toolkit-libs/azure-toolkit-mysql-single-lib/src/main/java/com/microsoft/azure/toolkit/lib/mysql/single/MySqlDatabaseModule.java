@@ -44,7 +44,7 @@ public class MySqlDatabaseModule extends AbstractAzResourceModule<MySqlDatabase,
     protected Iterator<? extends ContinuablePage<String, Database>> loadResourcePagesFromAzure() {
         final MySqlServer p = this.getParent();
         return Optional.ofNullable(getClient())
-            .map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).iterableByPage(PAGE_SIZE).iterator())
+            .map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).iterableByPage(getPageSize()).iterator())
             .orElse(Collections.emptyIterator());
     }
 

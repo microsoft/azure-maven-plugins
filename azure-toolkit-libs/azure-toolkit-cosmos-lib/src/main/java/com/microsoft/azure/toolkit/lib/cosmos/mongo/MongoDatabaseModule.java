@@ -52,7 +52,7 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
     protected Iterator<? extends ContinuablePage<String, MongoDBDatabaseGetResultsInner>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
-                return client.listMongoDBDatabases(parent.getResourceGroupName(), parent.getName()).iterableByPage(PAGE_SIZE).iterator();
+                return client.listMongoDBDatabases(parent.getResourceGroupName(), parent.getName()).iterableByPage(getPageSize()).iterator();
             } catch (final RuntimeException e) {
                 return null;
             }

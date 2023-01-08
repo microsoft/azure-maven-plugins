@@ -53,7 +53,7 @@ public class TableModule extends AbstractAzResourceModule<Table, StorageAccount,
             return Collections.emptyIterator();
         }
         final TableServiceClient client = this.getTableServiceClient();
-        return Objects.requireNonNull(client).listTables().streamByPage(PAGE_SIZE)
+        return Objects.requireNonNull(client).listTables().streamByPage(getPageSize())
             .map(p -> new ItemPage<>(p.getValue().stream().map(c -> client.getTableClient(c.getName()))))
             .iterator();
     }

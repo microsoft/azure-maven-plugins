@@ -52,7 +52,7 @@ public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, Cos
     protected Iterator<? extends ContinuablePage<String, SqlDatabaseGetResultsInner>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
-                return client.listSqlDatabases(parent.getResourceGroupName(), parent.getName()).iterableByPage(PAGE_SIZE).iterator();
+                return client.listSqlDatabases(parent.getResourceGroupName(), parent.getName()).iterableByPage(getPageSize()).iterator();
             } catch (final RuntimeException e) {
                 return null;
             }

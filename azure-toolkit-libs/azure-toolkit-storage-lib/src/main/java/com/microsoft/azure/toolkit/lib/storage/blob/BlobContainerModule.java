@@ -53,7 +53,7 @@ public class BlobContainerModule extends AbstractAzResourceModule<BlobContainer,
             return Collections.emptyIterator();
         }
         final BlobServiceClient client = this.getBlobServiceClient();
-        return Objects.requireNonNull(client).listBlobContainers().streamByPage(PAGE_SIZE)
+        return Objects.requireNonNull(client).listBlobContainers().streamByPage(getPageSize())
             .map(p -> new ItemPage<>(p.getValue().stream().map(c -> client.getBlobContainerClient(c.getName()))))
             .iterator();
     }

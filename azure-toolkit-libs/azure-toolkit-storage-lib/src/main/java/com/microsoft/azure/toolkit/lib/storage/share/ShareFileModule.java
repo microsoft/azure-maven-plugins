@@ -39,7 +39,7 @@ public class ShareFileModule extends AbstractAzResourceModule<ShareFile, IShareF
     @Override
     protected Iterator<? extends ContinuablePage<String, ShareFileItem>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(ShareDirectoryClient::listFilesAndDirectories)
-            .map(p -> p.streamByPage(PAGE_SIZE).iterator())
+            .map(p -> p.streamByPage(getPageSize()).iterator())
             .orElse(Collections.emptyIterator());
     }
 

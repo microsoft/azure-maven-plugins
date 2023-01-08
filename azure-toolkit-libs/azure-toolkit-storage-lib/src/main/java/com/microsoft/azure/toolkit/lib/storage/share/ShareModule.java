@@ -53,7 +53,7 @@ public class ShareModule extends AbstractAzResourceModule<Share, StorageAccount,
             return Collections.emptyIterator();
         }
         final ShareServiceClient client = this.getFileShareServiceClient();
-        return Objects.requireNonNull(client).listShares().streamByPage(PAGE_SIZE)
+        return Objects.requireNonNull(client).listShares().streamByPage(getPageSize())
             .map(p -> new ItemPage<>(p.getValue().stream().map(c -> client.getShareClient(c.getName()))))
             .iterator();
     }

@@ -41,7 +41,7 @@ public class GenericResourceModule extends
     @Override
     protected Iterator<? extends ContinuablePage<String, HasId>> loadResourcePagesFromAzure() {
         final GenericResources resources = Objects.requireNonNull(this.getClient());
-        return resources.listByResourceGroup(this.parent.getName()).streamByPage(PAGE_SIZE)
+        return resources.listByResourceGroup(this.parent.getName()).streamByPage(getPageSize())
             .map(p -> new ItemPage<>(p.getValue().stream().filter(r -> Objects.isNull(ResourceId.fromString(r.id()).parent())).map(a -> (HasId) a)))
             .iterator();
     }

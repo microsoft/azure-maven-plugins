@@ -53,7 +53,7 @@ public class QueueModule extends AbstractAzResourceModule<Queue, StorageAccount,
             return Collections.emptyIterator();
         }
         final QueueServiceClient client = this.getQueueServiceClient();
-        return Objects.requireNonNull(client).listQueues().streamByPage(PAGE_SIZE)
+        return Objects.requireNonNull(client).listQueues().streamByPage(getPageSize())
             .map(p -> new ItemPage<>(p.getValue().stream().map(s -> client.getQueueClient(s.getName()))))
             .iterator();
     }

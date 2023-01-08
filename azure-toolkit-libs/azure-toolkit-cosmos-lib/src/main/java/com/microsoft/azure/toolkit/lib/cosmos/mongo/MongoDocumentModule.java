@@ -56,7 +56,7 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
         if (client == null) {
             return Collections.emptyIterator();
         }
-        final MongoCursor<Document> itemsIterator = client.find().batchSize(PAGE_SIZE).iterator();
+        final MongoCursor<Document> itemsIterator = client.find().batchSize(getPageSize()).iterator();
         return new Iterator<Page<Document>>() {
             @Override
             public boolean hasNext() {
@@ -78,7 +78,7 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
             return Stream.empty();
         }
         final List<Document> result = new ArrayList<>();
-        for (int i = 0; i < PAGE_SIZE && iterator.hasNext(); i++) {
+        for (int i = 0; i < getPageSize() && iterator.hasNext(); i++) {
             result.add(iterator.next());
         }
         return result.stream();

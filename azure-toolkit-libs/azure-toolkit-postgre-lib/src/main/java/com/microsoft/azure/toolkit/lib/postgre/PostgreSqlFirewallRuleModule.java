@@ -47,7 +47,7 @@ public class PostgreSqlFirewallRuleModule extends AbstractAzResourceModule<Postg
     protected Iterator<? extends ContinuablePage<String, FirewallRule>> loadResourcePagesFromAzure() {
         final PostgreSqlServer p = this.getParent();
         return Optional.ofNullable(getClient())
-            .map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).iterableByPage(PAGE_SIZE).iterator())
+            .map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).iterableByPage(getPageSize()).iterator())
             .orElse(Collections.emptyIterator());
     }
 

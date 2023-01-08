@@ -43,7 +43,7 @@ public class RevisionModule extends AbstractAzResourceModule<Revision, Container
     @Override
     protected Iterator<? extends ContinuablePage<String, com.azure.resourcemanager.appcontainers.models.Revision>> loadResourcePagesFromAzure() {
         final ContainerApp parent = this.getParent();
-        return Optional.ofNullable(this.getClient()).map(c -> c.listRevisions(parent.getResourceGroupName(), parent.getName()).iterableByPage(PAGE_SIZE).iterator())
+        return Optional.ofNullable(this.getClient()).map(c -> c.listRevisions(parent.getResourceGroupName(), parent.getName()).iterableByPage(getPageSize()).iterator())
             .orElse(Collections.emptyIterator());
     }
 

@@ -46,7 +46,7 @@ public class CassandraTableModule extends AbstractAzResourceModule<CassandraTabl
     protected Iterator<? extends ContinuablePage<String, CassandraTableGetResultsInner>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
-                return client.listCassandraTables(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).iterableByPage(PAGE_SIZE).iterator();
+                return client.listCassandraTables(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).iterableByPage(getPageSize()).iterator();
             } catch (final RuntimeException e) {
                 return null;
             }

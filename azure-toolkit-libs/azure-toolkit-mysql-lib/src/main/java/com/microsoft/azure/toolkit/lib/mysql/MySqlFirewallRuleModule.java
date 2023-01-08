@@ -47,7 +47,7 @@ public class MySqlFirewallRuleModule extends AbstractAzResourceModule<MySqlFirew
     protected Iterator<? extends ContinuablePage<String, FirewallRule>> loadResourcePagesFromAzure() {
         final MySqlServer p = this.getParent();
         return Optional.ofNullable(getClient())
-            .map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).iterableByPage(PAGE_SIZE).iterator())
+            .map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).iterableByPage(getPageSize()).iterator())
             .orElse(Collections.emptyIterator());
     }
 

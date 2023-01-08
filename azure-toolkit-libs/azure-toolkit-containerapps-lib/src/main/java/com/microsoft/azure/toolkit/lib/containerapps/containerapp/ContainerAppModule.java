@@ -35,7 +35,7 @@ public class ContainerAppModule extends AbstractAzResourceModule<ContainerApp, A
     @Nonnull
     @Override
     protected Iterator<? extends ContinuablePage<String, com.azure.resourcemanager.appcontainers.models.ContainerApp>> loadResourcePagesFromAzure() {
-        return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(PAGE_SIZE).iterator()).orElse(Collections.emptyIterator());
+        return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(getPageSize()).iterator()).orElse(Collections.emptyIterator());
     }
 
     @Nonnull

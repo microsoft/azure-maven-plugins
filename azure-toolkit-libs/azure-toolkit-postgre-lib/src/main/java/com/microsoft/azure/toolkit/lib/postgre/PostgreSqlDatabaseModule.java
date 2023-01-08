@@ -45,7 +45,7 @@ public class PostgreSqlDatabaseModule extends AbstractAzResourceModule<PostgreSq
         final PostgreSqlServer server = this.getParent();
         return Optional.ofNullable(this.getClient())
             .map(c -> c.listByServer(server.getResourceGroupName(), server.getName())
-                .streamByPage(PAGE_SIZE)
+                .streamByPage(getPageSize())
                 .map(p -> new ItemPage<>(p.getValue().stream().filter(d -> !"azure_maintenance".equals(d.name()))))
                 .iterator())
             .orElse(Collections.emptyIterator());

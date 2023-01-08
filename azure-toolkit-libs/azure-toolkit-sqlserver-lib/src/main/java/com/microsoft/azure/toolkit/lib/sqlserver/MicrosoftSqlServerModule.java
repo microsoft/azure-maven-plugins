@@ -35,7 +35,7 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
     @Override
     protected Iterator<? extends ContinuablePage<String, SqlServer>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient())
-            .map(c -> c.list().iterableByPage(PAGE_SIZE).iterator())
+            .map(c -> c.list().iterableByPage(getPageSize()).iterator())
             .orElse(Collections.emptyIterator());
     }
 

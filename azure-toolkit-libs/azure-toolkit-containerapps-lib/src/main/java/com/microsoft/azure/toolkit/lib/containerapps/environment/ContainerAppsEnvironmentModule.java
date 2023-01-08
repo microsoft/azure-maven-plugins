@@ -33,7 +33,7 @@ public class ContainerAppsEnvironmentModule extends AbstractAzResourceModule<Con
     @Nonnull
     @Override
     protected Iterator<? extends ContinuablePage<String, ManagedEnvironment>> loadResourcePagesFromAzure() {
-        return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(PAGE_SIZE).iterator()).orElse(Collections.emptyIterator());
+        return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(getPageSize()).iterator()).orElse(Collections.emptyIterator());
     }
 
     @Nonnull

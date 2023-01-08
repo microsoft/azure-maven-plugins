@@ -33,7 +33,7 @@ public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlS
     @Override
     protected Iterator<? extends ContinuablePage<String, Server>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient())
-            .map(c -> c.list().iterableByPage(PAGE_SIZE).iterator())
+            .map(c -> c.list().iterableByPage(getPageSize()).iterator())
             .orElse(Collections.emptyIterator());
     }
 

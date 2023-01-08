@@ -52,7 +52,7 @@ public class CassandraKeyspaceModule extends AbstractAzResourceModule<CassandraK
     protected Iterator<? extends ContinuablePage<String, CassandraKeyspaceGetResultsInner>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
-                return client.listCassandraKeyspaces(parent.getResourceGroupName(), parent.getName()).iterableByPage(PAGE_SIZE).iterator();
+                return client.listCassandraKeyspaces(parent.getResourceGroupName(), parent.getName()).iterableByPage(getPageSize()).iterator();
             } catch (final RuntimeException e) {
                 return null;
             }

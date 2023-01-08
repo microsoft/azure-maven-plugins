@@ -42,7 +42,7 @@ public class BlobFileModule extends AbstractAzResourceModule<BlobFile, IBlobFile
     @Override
     protected Iterator<? extends ContinuablePage<String, BlobItem>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(this.getClient())
-            .map(c -> c.listBlobsByHierarchy(this.parent.getPath()).iterableByPage(PAGE_SIZE).iterator())
+            .map(c -> c.listBlobsByHierarchy(this.parent.getPath()).iterableByPage(getPageSize()).iterator())
             .orElse(Collections.emptyIterator());
     }
 

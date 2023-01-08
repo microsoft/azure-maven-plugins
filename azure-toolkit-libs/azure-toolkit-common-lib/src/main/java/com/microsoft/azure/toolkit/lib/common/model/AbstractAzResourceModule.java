@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.azure.core.exception.HttpResponseException;
-import com.azure.core.http.rest.Page;
 import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingById;
@@ -68,7 +67,6 @@ import static com.microsoft.azure.toolkit.lib.common.model.AzResource.RESOURCE_G
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P, R>, P extends AzResource, R>
     implements AzResourceModule<T> {
-    public static final int PAGE_SIZE = Azure.az().config().getPageSize();
     @Getter
     @Nonnull
     @ToString.Include
@@ -526,7 +524,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             return Collections.emptyIterator();
         } else if (client instanceof SupportsListing) {
             log.debug("[{}]:loadPagedResourcesFromAzure->client.list()", this.name);
-            return this.<SupportsListing<R>>cast(client).list().iterableByPage(PAGE_SIZE).iterator();
+            return this.<SupportsListing<R>>cast(client).list().iterableByPage(getPageSize()).iterator();
         } else if (client != null) {
             log.debug("[{}]:loadPagedResourcesFromAzure->NOT Supported", this.name);
             throw new AzureToolkitRuntimeException("not supported");
@@ -623,5 +621,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     protected <D> D cast(@Nonnull Object origin) {
         //noinspection unchecked
         return (D) origin;
+    }
+
+    public static int getPageSize() {
+        return Azure.az().config().getPageSize();
     }
 }

@@ -46,7 +46,7 @@ public class MongoCollectionModule extends AbstractAzResourceModule<MongoCollect
     protected Iterator<? extends ContinuablePage<String, MongoDBCollectionGetResultsInner>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
-                return client.listMongoDBCollections(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).iterableByPage(PAGE_SIZE).iterator();
+                return client.listMongoDBCollections(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).iterableByPage(getPageSize()).iterator();
             } catch (final RuntimeException e) {
                 return null;
             }

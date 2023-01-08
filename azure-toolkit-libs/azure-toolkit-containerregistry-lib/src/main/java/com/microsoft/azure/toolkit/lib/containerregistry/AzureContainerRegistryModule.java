@@ -32,7 +32,7 @@ public class AzureContainerRegistryModule extends AbstractAzResourceModule<Conta
     @Nonnull
     @Override
     protected Iterator<? extends ContinuablePage<String, Registry>> loadResourcePagesFromAzure() {
-        return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(PAGE_SIZE).iterator()).orElse(Collections.emptyIterator());
+        return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(getPageSize()).iterator()).orElse(Collections.emptyIterator());
     }
 
     @Nonnull

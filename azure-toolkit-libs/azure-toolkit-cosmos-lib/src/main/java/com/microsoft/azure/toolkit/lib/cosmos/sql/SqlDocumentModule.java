@@ -44,7 +44,7 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
             return Collections.emptyIterator();
         }
         return client.queryItems("select * from c", new CosmosQueryRequestOptions(), ObjectNode.class)
-            .iterableByPage(PAGE_SIZE).iterator();
+            .iterableByPage(getPageSize()).iterator();
     }
 
     @Nullable

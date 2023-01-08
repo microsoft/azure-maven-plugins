@@ -37,8 +37,7 @@ public class AzureConfiguration {
     private String proxyUsername;
     private String proxyPassword;
     private SSLContext sslContext;
-    private int cosmosBatchSize = 50;
-    private int pageSize = 99;
+    private int pageSize = 2;
     private List<String> documentsLabelFields = new ArrayList<>(DEFAULT_DOCUMENT_LABEL_FIELDS);
 
     public void setProxyInfo(ProxyInfo proxy) {
@@ -49,7 +48,6 @@ public class AzureConfiguration {
         this.setProxyPassword(proxy.getPassword());
     }
 
-    @Nullable
     public void setSslContext(SSLContext sslContext) {
         this.sslContext = sslContext;
     }

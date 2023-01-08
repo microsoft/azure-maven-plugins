@@ -26,7 +26,7 @@ public class LogAnalyticsWorkspaceModule extends AbstractAzResourceModule<LogAna
     @Nonnull
     @Override
     protected Iterator<? extends ContinuablePage<String, Workspace>> loadResourcePagesFromAzure() {
-        return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(PAGE_SIZE).iterator()).orElse(Collections.emptyIterator());
+        return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(getPageSize()).iterator()).orElse(Collections.emptyIterator());
     }
 
     @Nonnull

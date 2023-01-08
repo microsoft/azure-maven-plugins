@@ -53,7 +53,7 @@ public class ResourceDeploymentModule extends
     @Nonnull
     @Override
     protected Iterator<? extends ContinuablePage<String, Deployment>> loadResourcePagesFromAzure() {
-        return Optional.ofNullable(this.getClient()).map(c -> c.listByResourceGroup(this.parent.getName()).iterableByPage(PAGE_SIZE).iterator()).orElse(Collections.emptyIterator());
+        return Optional.ofNullable(this.getClient()).map(c -> c.listByResourceGroup(this.parent.getName()).iterableByPage(getPageSize()).iterator()).orElse(Collections.emptyIterator());
     }
 
     @Nonnull

@@ -46,7 +46,7 @@ public class SqlContainerModule extends AbstractAzResourceModule<SqlContainer, S
     protected Iterator<? extends ContinuablePage<String, SqlContainerGetResultsInner>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
-                return client.listSqlContainers(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).iterableByPage(PAGE_SIZE).iterator();
+                return client.listSqlContainers(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).iterableByPage(getPageSize()).iterator();
             } catch (final RuntimeException e) {
                 return null;
             }

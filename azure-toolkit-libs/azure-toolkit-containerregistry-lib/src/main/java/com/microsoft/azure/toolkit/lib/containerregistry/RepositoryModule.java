@@ -61,7 +61,7 @@ public class RepositoryModule extends AbstractAzResourceModule<Repository, Conta
             return Collections.emptyIterator();
         }
         return Optional.ofNullable(this.getClient())
-            .map(c -> c.listRepositoryNames().streamByPage(PAGE_SIZE)
+            .map(c -> c.listRepositoryNames().streamByPage(getPageSize())
                 .map(p -> new ItemPage<>(p.getValue().stream().map(client::getRepository))).iterator())
             .orElse(Collections.emptyIterator());
     }
