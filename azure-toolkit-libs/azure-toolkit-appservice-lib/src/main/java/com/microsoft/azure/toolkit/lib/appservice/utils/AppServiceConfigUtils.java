@@ -22,7 +22,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
 
-import static com.microsoft.azure.toolkit.lib.common.utils.Utils.mergeObjects;
+import static com.microsoft.azure.toolkit.lib.common.utils.Utils.copyProperties;
 import static com.microsoft.azure.toolkit.lib.common.utils.Utils.selectFirstOptionIfCurrentInvalid;
 
 public class AppServiceConfigUtils {
@@ -83,7 +83,7 @@ public class AppServiceConfigUtils {
 
     public static void mergeAppServiceConfig(AppServiceConfig to, AppServiceConfig from) {
         try {
-            mergeObjects(to, from);
+            copyProperties(to, from, true);
         } catch (IllegalAccessException e) {
             throw new AzureToolkitRuntimeException("Cannot copy object for class AppServiceConfig.", e);
         }
@@ -95,7 +95,7 @@ public class AppServiceConfigUtils {
 
     private static void mergeRuntime(RuntimeConfig to, RuntimeConfig from) {
         try {
-            mergeObjects(to, from);
+            copyProperties(to, from, true);
         } catch (IllegalAccessException e) {
             throw new AzureToolkitRuntimeException("Cannot copy object for class RuntimeConfig.", e);
         }

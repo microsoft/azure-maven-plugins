@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -183,11 +184,14 @@ public class Utils {
         return options.contains(value) ? value : options.get(0);
     }
 
-    public static <T> void mergeObjects(T to, T from) throws IllegalAccessException {
+    public static <T> void copyProperties(T to, T from, boolean whenNotSet) throws IllegalAccessException {
         for (Field field : FieldUtils.getAllFields(from.getClass())) {
-            if (FieldUtils.readField(field, to, true) == null) {
+            if (Modifier.isFinal(field.getModifiers()) || Modifier.isStatic(field.getModifiers())) {
+                continue;
+            }
+            if (!whenNotSet || FieldUtils.readField(field, to, true) == null) {
                 final Object value = FieldUtils.readField(field, from, true);
-                if (value != null) {
+                if ((value instanceof String && StringUtils.isNotBlank((CharSequence) value)) || value != null) {
                     FieldUtils.writeField(field, to, value, true);
                 }
             }
