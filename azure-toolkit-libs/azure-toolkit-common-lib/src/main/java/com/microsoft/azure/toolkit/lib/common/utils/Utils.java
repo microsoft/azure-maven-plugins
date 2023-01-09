@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.CommandExecuteException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 
@@ -189,10 +190,15 @@ public class Utils {
             if (Modifier.isFinal(field.getModifiers()) || Modifier.isStatic(field.getModifiers())) {
                 continue;
             }
-            if (!whenNotSet || FieldUtils.readField(field, to, true) == null) {
-                final Object value = FieldUtils.readField(field, from, true);
-                if ((value instanceof String && StringUtils.isNotBlank((CharSequence) value)) || value != null) {
-                    FieldUtils.writeField(field, to, value, true);
+            final Object fromValue = FieldUtils.readField(field, from, true);
+            final Object toValue = FieldUtils.readField(field, to, true);
+            final Class<?> type = field.getType();
+            final boolean isCustomObject = !(type.getName().startsWith("java") || type.isPrimitive() || type.isEnum() || type.isAssignableFrom(String.class) || type.isArray());
+            if (isCustomObject && ObjectUtils.allNotNull(fromValue, toValue)) {
+                copyProperties(toValue, fromValue, whenNotSet);
+            } else {
+                if ((!whenNotSet || toValue == null) && fromValue != null) {
+                    FieldUtils.writeField(field, to, fromValue, true);
                 }
             }
         }
