@@ -6,6 +6,8 @@
 package com.microsoft.azure.maven.function;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
+import com.fasterxml.jackson.dataformat.javaprop.JavaPropsSchema;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
@@ -36,9 +38,11 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.fromAppService;
 import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.mergeAppServiceConfig;
 
@@ -91,12 +95,24 @@ public class DeployMojo extends AbstractFunctionMojo {
     @Override
     @AzureOperation("user/functionapp.deploy_app")
     protected void doExecute() throws Throwable {
+        this.mergeCommandLineConfig();
         doValidate();
         initAzureAppServiceClient();
 
         final FunctionAppBase<?, ?, ?> target = createOrUpdateResource(getParser().parseConfig());
         deployArtifact(target);
         updateTelemetryProperties();
+    }
+
+    private void mergeCommandLineConfig() {
+        try {
+            final JavaPropsMapper mapper = new JavaPropsMapper();
+            mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+            final DeployMojo commandLineConfig = mapper.readSystemPropertiesAs(JavaPropsSchema.emptySchema(), DeployMojo.class);
+            Utils.copyProperties(this, commandLineConfig, false);
+        } catch (IOException | IllegalAccessException e) {
+            throw new AzureToolkitRuntimeException("failed to merge command line configuration", e);
+        }
     }
 
     protected void doValidate() throws AzureExecutionException {

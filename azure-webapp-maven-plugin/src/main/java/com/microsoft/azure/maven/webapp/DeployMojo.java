@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
@@ -86,14 +87,14 @@ public class DeployMojo extends AbstractWebAppMojo {
         updateTelemetryProperties();
     }
 
-    private void mergeCommandLineConfig() throws AzureExecutionException {
+    private void mergeCommandLineConfig() {
         try {
             final JavaPropsMapper mapper = new JavaPropsMapper();
             mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
             final DeployMojo commandLineConfig = mapper.readSystemPropertiesAs(JavaPropsSchema.emptySchema(), DeployMojo.class);
             Utils.copyProperties(this, commandLineConfig, false);
         } catch (IOException | IllegalAccessException e) {
-            throw new AzureExecutionException("failed to merge command line configuration", e);
+            throw new AzureToolkitRuntimeException("failed to merge command line configuration", e);
         }
     }
 
