@@ -5,6 +5,8 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
+import com.fasterxml.jackson.dataformat.javaprop.JavaPropsSchema;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.task.DeployExternalResourcesTask;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -32,10 +34,12 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.fromAppService;
 import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.mergeAppServiceConfig;
 
@@ -72,6 +76,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     @Override
     @AzureOperation(name = "user/webapp.deploy_app")
     protected void doExecute() throws AzureExecutionException {
+        mergeCommandLineConfig();
         validateConfiguration(message -> AzureMessager.getMessager().error(message.getMessage()), true);
         // initialize library client
         az = initAzureAppServiceClient();
@@ -79,6 +84,17 @@ public class DeployMojo extends AbstractWebAppMojo {
         deployExternalResources(target, getConfigParser().getExternalArtifacts());
         deploy(target, getConfigParser().getArtifacts());
         updateTelemetryProperties();
+    }
+
+    private void mergeCommandLineConfig() throws AzureExecutionException {
+        try {
+            final JavaPropsMapper mapper = new JavaPropsMapper();
+            mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+            final DeployMojo commandLineConfig = mapper.readSystemPropertiesAs(JavaPropsSchema.emptySchema(), DeployMojo.class);
+            Utils.copyProperties(this, commandLineConfig, false);
+        } catch (IOException | IllegalAccessException e) {
+            throw new AzureExecutionException("failed to merge command line configuration", e);
+        }
     }
 
     private WebAppBase<?, ?, ?> createOrUpdateResource() throws AzureExecutionException {
