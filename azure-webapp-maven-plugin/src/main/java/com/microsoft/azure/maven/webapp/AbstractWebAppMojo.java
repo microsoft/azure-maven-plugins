@@ -208,7 +208,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     @JsonIgnore
     @Getter
-    protected ConfigParser configParser = new ConfigParser(this);
+    protected final ConfigParser configParser = new ConfigParser(this);
 
     //endregion
 
