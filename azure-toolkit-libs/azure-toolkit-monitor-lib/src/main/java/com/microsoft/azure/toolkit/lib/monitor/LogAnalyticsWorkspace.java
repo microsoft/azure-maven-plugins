@@ -6,6 +6,7 @@ import com.azure.monitor.query.models.LogsQueryOptions;
 import com.azure.monitor.query.models.LogsQueryResult;
 import com.azure.monitor.query.models.LogsTable;
 import com.azure.resourcemanager.loganalytics.LogAnalyticsManager;
+import com.azure.resourcemanager.loganalytics.models.Column;
 import com.azure.resourcemanager.loganalytics.models.Workspace;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -17,6 +18,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class LogAnalyticsWorkspace extends AbstractAzResource<LogAnalyticsWorkspace, LogAnalyticsServiceWorkspaceSubscription, Workspace> implements Deletable {
 
@@ -66,5 +68,13 @@ public class LogAnalyticsWorkspace extends AbstractAzResource<LogAnalyticsWorksp
         LogsQueryOptions options = new LogsQueryOptions().setServerTimeout(Duration.ofSeconds(10));
         Response<LogsQueryResult> response = getParent().getLosQueryClient().queryWorkspaceWithResponse(getRemote().customerId(), queryString, null, options, Context.NONE);
         return response.getValue().getTable();
+    }
+
+    public List<String> getTableColumnNames(String tableName) {
+        LogAnalyticsManager manager = getParent().getRemote();
+        if (Objects.isNull(manager)) {
+            return new ArrayList<>();
+        }
+        return manager.tables().getById(tableName).schema().standardColumns().stream().map(Column::name).collect(Collectors.toList());
     }
 }
