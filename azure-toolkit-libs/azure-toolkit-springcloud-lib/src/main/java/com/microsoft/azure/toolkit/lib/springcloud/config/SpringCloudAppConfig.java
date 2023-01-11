@@ -39,7 +39,7 @@ public class SpringCloudAppConfig {
     @Builder.Default
     private Boolean isPublic = false;
     @Builder.Default
-    private String runtimeVersion = RuntimeVersion.JAVA_8.toString();
+    private String runtimeVersion = RuntimeVersion.JAVA_11.toString();
     @Nullable
     private String activeDeploymentName;
     private SpringCloudDeploymentConfig deployment;
