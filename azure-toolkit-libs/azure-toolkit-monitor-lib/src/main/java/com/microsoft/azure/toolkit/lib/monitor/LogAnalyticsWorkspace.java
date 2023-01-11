@@ -75,6 +75,7 @@ public class LogAnalyticsWorkspace extends AbstractAzResource<LogAnalyticsWorksp
         if (Objects.isNull(manager)) {
             return new ArrayList<>();
         }
-        return manager.tables().getById(tableName).schema().standardColumns().stream().map(Column::name).collect(Collectors.toList());
+        return manager.tables().get(getResourceGroupName(), getName(), tableName).schema().standardColumns()
+                .stream().map(Column::name).collect(Collectors.toList());
     }
 }
