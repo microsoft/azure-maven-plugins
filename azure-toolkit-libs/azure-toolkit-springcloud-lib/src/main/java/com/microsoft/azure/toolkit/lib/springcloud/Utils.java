@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import rx.Observable;
 import rx.schedulers.Schedulers;
@@ -19,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 public class Utils {
-    private static final int POLLING_INTERVAL = 1;
+    private static final int POLLING_INTERVAL = 5;
 
 //    protected static final List<String> DEPLOYMENT_PROCESSING_STATUS =
 //            Arrays.asList(DeploymentResourceStatus.COMPILING.toString(), DeploymentResourceStatus.ALLOCATING.toString(), DeploymentResourceStatus.UPGRADING.toString());
@@ -33,17 +32,9 @@ public class Utils {
             return false;
         }
         // refer to https://learn.microsoft.com/en-us/azure/spring-apps/concept-app-status
-        final boolean isInstanceRunning = instances.stream().anyMatch(instance ->
+        // Eureka isn't applicable to enterprise tier.
+        return instances.stream().anyMatch(instance ->
             StringUtils.equalsIgnoreCase(instance.getStatus(), "running"));
-        if (deployment.getParent().getParent().isEnterpriseTier()) {
-            // refer to https://learn.microsoft.com/en-us/azure/spring-apps/concept-app-status
-            // Eureka isn't applicable to enterprise tier.
-            return isInstanceRunning;
-        }
-        final String finalDiscoverStatus = BooleanUtils.isTrue(deployment.isActive()) ? "UP" : "OUT_OF_SERVICE";
-        final boolean isInstanceDiscoverable = instances.stream().anyMatch(instance ->
-            StringUtils.equalsIgnoreCase(instance.getDiscoveryStatus(), finalDiscoverStatus));
-        return isInstanceRunning && isInstanceDiscoverable;
     }
 
     /**
