@@ -112,8 +112,6 @@
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-toolkit-monitor-lib</artifactId>
-            <version>0.29.0-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>
