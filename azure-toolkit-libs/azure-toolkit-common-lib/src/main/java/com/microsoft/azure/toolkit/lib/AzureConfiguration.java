@@ -36,9 +36,11 @@ public class AzureConfiguration {
     private int httpProxyPort;
     private String proxyUsername;
     private String proxyPassword;
+    @Nullable
     private SSLContext sslContext;
     private int pageSize = 2;
     private List<String> documentsLabelFields = new ArrayList<>(DEFAULT_DOCUMENT_LABEL_FIELDS);
+    private int monitorQueryRowNumber = 200;
 
     public void setProxyInfo(ProxyInfo proxy) {
         this.setProxySource(proxy.getSource());
@@ -46,9 +48,5 @@ public class AzureConfiguration {
         this.setHttpProxyPort(proxy.getPort());
         this.setProxyUsername(proxy.getUsername());
         this.setProxyPassword(proxy.getPassword());
-    }
-
-    public void setSslContext(SSLContext sslContext) {
-        this.sslContext = sslContext;
     }
 }
