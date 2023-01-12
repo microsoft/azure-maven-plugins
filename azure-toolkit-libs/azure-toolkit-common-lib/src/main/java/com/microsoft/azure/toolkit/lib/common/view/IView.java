@@ -29,6 +29,10 @@ public interface IView {
             return true;
         }
 
+        default boolean isVisible() {
+            return true;
+        }
+
         default void refresh() {
         }
 

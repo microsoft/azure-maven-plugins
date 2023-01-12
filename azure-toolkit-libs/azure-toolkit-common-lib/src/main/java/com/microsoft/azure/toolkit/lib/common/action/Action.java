@@ -49,7 +49,8 @@ public class Action<D> extends OperationBase {
     @Nonnull
     private final Id<D> id;
     @Nonnull
-    private Predicate<Object> enableWhen = o -> true;
+    private Predicate<D> enableWhen = o -> true;
+    private Predicate<Object> visibleWhen = o -> true;
     private Function<D, String> iconProvider;
     private Function<D, String> labelProvider;
     private Function<D, AzureString> titleProvider;
@@ -79,25 +80,28 @@ public class Action<D> extends OperationBase {
         return this.id.id;
     }
 
-    @Nullable
+    @Nonnull
     public IView.Label getView(D s) {
         try {
-            if (this.enableWhen.test(s)) {
-                final String i = Optional.ofNullable(this.iconProvider).map(p -> p.apply(s)).orElse(null);
-                final AzureString t = Optional.ofNullable(this.titleProvider).map(p -> p.apply(s)).orElse(null);
-                return new View(this.labelProvider.apply(s), i, t, true);
+            final boolean visible = this.visibleWhen.test(s);
+            if (visible) {
+                final String label = this.labelProvider.apply(s);
+                final String icon = Optional.ofNullable(this.iconProvider).map(p -> p.apply(s)).orElse(null);
+                final boolean enabled = this.enableWhen.test(s);
+                final AzureString title = this.getTitle(s);
+                return new View(label, icon, enabled, title);
             }
-            return new View("", "", false);
+            return View.INVISIBLE;
         } catch (final Exception e) {
             e.printStackTrace();
-            return new View("", "", false);
+            return View.INVISIBLE;
         }
     }
 
     @Nullable
     @SuppressWarnings("unchecked")
     public BiConsumer<D, Object> getHandler(D source, Object e) {
-        if (!this.enableWhen.test(source)) {
+        if (!this.visibleWhen.test(source) && !this.enableWhen.test(source)) {
             return null;
         }
         for (int i = this.handlers.size() - 1; i >= 0; i--) {
@@ -175,8 +179,13 @@ public class Action<D> extends OperationBase {
         return OperationBundle.description(this.id.id);
     }
 
-    public Action<D> enableWhen(@Nonnull Predicate<Object> enableWhen) {
+    public Action<D> enableWhen(@Nonnull Predicate<D> enableWhen) {
         this.enableWhen = enableWhen;
+        return this;
+    }
+
+    public Action<D> visibleWhen(@Nonnull Predicate<Object> visibleWhen) {
+        this.visibleWhen = visibleWhen;
         return this;
     }
 
@@ -272,12 +281,18 @@ public class Action<D> extends OperationBase {
     @RequiredArgsConstructor
     @AllArgsConstructor
     public static class View implements IView.Label {
+        public static View INVISIBLE = new View("", "", false, false, null);
         @Nonnull
         private final String label;
         private final String iconPath;
+        private final boolean enabled;
+        private boolean visible = true;
         @Nullable
         private AzureString title;
-        private final boolean enabled;
+
+        public View(@Nonnull String label, String iconPath, boolean enabled, @Nullable AzureString title) {
+            this(label, iconPath, enabled, true, title);
+        }
 
         @Override
         public String getDescription() {
