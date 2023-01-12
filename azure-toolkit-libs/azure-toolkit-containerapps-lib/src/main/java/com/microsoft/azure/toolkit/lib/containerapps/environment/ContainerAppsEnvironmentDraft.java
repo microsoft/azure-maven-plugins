@@ -14,16 +14,20 @@ import com.microsoft.azure.toolkit.lib.applicationinsights.workspace.LogAnalytic
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -48,6 +52,12 @@ public class ContainerAppsEnvironmentDraft extends ContainerAppsEnvironment impl
     @Override
     public void reset() {
         this.config = null;
+    }
+
+    @Nullable
+    @Override
+    public Region getRegion() {
+        return Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion);
     }
 
     @Nonnull

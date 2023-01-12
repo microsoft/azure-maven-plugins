@@ -110,6 +110,29 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         return Optional.ofNullable(config).map(Config::getRevisionMode).orElse(super.getRevisionMode());
     }
 
+    @Nullable
+    @Override
+    public ContainerAppsEnvironment getManagedEnvironment() {
+        return Optional.ofNullable(config).map(Config::getEnvironment).orElseGet(super::getManagedEnvironment);
+    }
+
+    @Nullable
+    @Override
+    public String getManagedEnvironmentId() {
+        return Optional.ofNullable(config).map(Config::getEnvironment).map(ContainerAppsEnvironment::getId).orElseGet(super::getManagedEnvironmentId);
+    }
+
+    @Nullable
+    @Override
+    public Region getRegion() {
+        return Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion);
+    }
+
+    @Override
+    public boolean isIngressEnabled() {
+        return Optional.ofNullable(config).map(Config::getIngressConfig).map(IngressConfig::isEnableIngress).orElseGet(super::isIngressEnabled);
+    }
+
     @Nonnull
     @Override
     @AzureOperation(name = "azure/containerapps.update_app.app", params = {"this.getName()"})
