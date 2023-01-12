@@ -32,6 +32,7 @@ import javax.annotation.Nonnull;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -135,8 +136,10 @@ public abstract class AbstractAzServiceSubscription<T extends AbstractAzResource
             }
             reactor.netty.http.client.HttpClient nettyHttpClient =
                 reactor.netty.http.client.HttpClient.create()
-                        .secure(sslConfig -> Optional.ofNullable(config.getSslContext()).ifPresent(it -> sslConfig.sslContext(new JdkSslContext(it, true, ClientAuth.NONE))))
                         .resolver(resolverGroup);
+            if (Objects.nonNull(config.getSslContext())) {
+                nettyHttpClient = nettyHttpClient.secure(sslConfig -> sslConfig.sslContext(new JdkSslContext(config.getSslContext(), true, ClientAuth.NONE)));
+            }
             NettyAsyncHttpClientBuilder builder = new NettyAsyncHttpClientBuilder(nettyHttpClient);
             Optional.ofNullable(proxyOptions).map(builder::proxy);
             defaultHttpClient = builder.build();
