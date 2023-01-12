@@ -10,6 +10,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscriptio
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 @Getter
@@ -18,6 +19,7 @@ public class LogAnalyticsServiceWorkspaceSubscription extends AbstractAzServiceS
     private final String subscriptionId;
     @Nonnull
     private final LogAnalyticsWorkspaceModule logAnalyticsWorkspaceModule;
+    @Nullable
     private final LogsQueryClient logsQueryClient;
 
     protected LogAnalyticsServiceWorkspaceSubscription(@Nonnull String subscriptionId, @Nonnull AzureLogAnalyticsWorkspace service) {

@@ -1,9 +1,8 @@
 package com.microsoft.azure.toolkit.lib.monitor;
 
-import com.azure.core.http.rest.Response;
 import com.azure.core.util.Context;
+import com.azure.monitor.query.LogsQueryClient;
 import com.azure.monitor.query.models.LogsQueryOptions;
-import com.azure.monitor.query.models.LogsQueryResult;
 import com.azure.monitor.query.models.LogsTable;
 import com.azure.resourcemanager.loganalytics.LogAnalyticsManager;
 import com.azure.resourcemanager.loganalytics.models.Column;
@@ -64,14 +63,19 @@ public class LogAnalyticsWorkspace extends AbstractAzResource<LogAnalyticsWorksp
         return remote.provisioningState().toString();
     }
 
+    @Nullable
     public LogsTable executeQuery(String queryString) {
-        LogsQueryOptions options = new LogsQueryOptions().setServerTimeout(Duration.ofSeconds(10));
-        Response<LogsQueryResult> response = getParent().getLosQueryClient().queryWorkspaceWithResponse(getRemote().customerId(), queryString, null, options, Context.NONE);
-        return response.getValue().getTable();
+        final LogsQueryOptions options = new LogsQueryOptions().setServerTimeout(Duration.ofSeconds(10));
+        final String workspaceId = getCustomerId();
+        final LogsQueryClient client = getParent().getLosQueryClient();
+        if (Objects.nonNull(workspaceId) && Objects.nonNull(client)) {
+            return client.queryWorkspaceWithResponse(workspaceId, queryString, null, options, Context.NONE).getValue().getTable();
+        }
+        return null;
     }
 
     public List<String> getTableColumnNames(String tableName) {
-        LogAnalyticsManager manager = getParent().getRemote();
+        final LogAnalyticsManager manager = getParent().getRemote();
         if (Objects.isNull(manager)) {
             return new ArrayList<>();
         }
