@@ -70,6 +70,17 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
         };
     }
 
+    @Nonnull
+    @Override
+    protected Stream<Document> loadResourcesFromAzure() {
+        final com.mongodb.client.MongoCollection<Document> client = getClient();
+        if (client == null) {
+            return Stream.empty();
+        }
+        final MongoCursor<Document> iterator = client.find().batchSize(getPageSize()).iterator();
+        return readDocuments(iterator);
+    }
+
     private Stream<Document> readDocuments(final MongoCursor<Document> iterator) {
         if (iterator == null || !iterator.hasNext()) {
             if (Objects.nonNull(iterator)) {
