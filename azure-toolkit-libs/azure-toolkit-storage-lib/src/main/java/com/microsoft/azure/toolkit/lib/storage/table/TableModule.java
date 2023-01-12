@@ -5,16 +5,20 @@
 
 package com.microsoft.azure.toolkit.lib.storage.table;
 
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.data.tables.TableClient;
 import com.azure.data.tables.TableServiceClient;
 import com.azure.data.tables.TableServiceClientBuilder;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -40,6 +44,18 @@ public class TableModule extends AbstractAzResourceModule<Table, StorageAccount,
             this.client = new TableServiceClientBuilder().connectionString(connectionString).buildClient();
         }
         return this.client;
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends ContinuablePage<String, TableClient>> loadResourcePagesFromAzure() {
+        if (!this.parent.exists()) {
+            return Collections.emptyIterator();
+        }
+        final TableServiceClient client = this.getTableServiceClient();
+        return Objects.requireNonNull(client).listTables().streamByPage(getPageSize())
+            .map(p -> new ItemPage<>(p.getValue().stream().map(c -> client.getTableClient(c.getName()))))
+            .iterator();
     }
 
     @Nonnull

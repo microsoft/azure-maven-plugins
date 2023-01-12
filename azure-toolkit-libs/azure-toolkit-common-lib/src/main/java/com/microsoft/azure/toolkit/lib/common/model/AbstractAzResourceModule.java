@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.azure.core.exception.HttpResponseException;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingById;
 import com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingByName;
@@ -19,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
@@ -33,9 +35,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
@@ -44,6 +46,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -76,11 +80,12 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @ToString.Include
     private final AtomicLong syncTimeRef = new AtomicLong(-1);
     @Nonnull
-    private final Map<String, Optional<T>> resources = Collections.synchronizedMap(new CaseInsensitiveMap<>());
+    private final Map<String, Optional<T>> resources = Collections.synchronizedMap(new LinkedHashMap<>());
 
     @Nonnull
-    protected final Debouncer fireEvents = new TailingDebouncer(this::fireChildrenChangedEvent, 300);
+    private final Debouncer fireEvents = new TailingDebouncer(this::fireChildrenChangedEvent, 300);
     private final Lock lock = new ReentrantLock();
+    private Iterator<? extends ContinuablePage<String, R>> pages;
 
     @Override
     public void refresh() {
@@ -126,8 +131,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             }
         }
         log.debug("[{}]:list->this.resources.values()", this.name);
-        return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
-            .sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
+        return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
     }
 
     private void reloadResources() {
@@ -135,7 +139,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         this.syncTimeRef.set(0);
         try {
             log.debug("[{}]:reloadResources->loadResourcesFromAzure()", this.name);
-            final Map<String, R> loadedResources = this.loadResourcesFromAzure()
+            this.pages = this.loadResourcePagesFromAzure();
+            final ContinuablePage<String, R> page = pages.hasNext() ? pages.next() : new ItemPage<>(this.loadResourcesFromAzure());
+            final Map<String, R> loadedResources = page.getElements().stream()
                 .collect(Collectors.toMap(r -> this.newResource(r).getId().toLowerCase(), r -> r));
             log.debug("[{}]:reloadResources->setResources(xxx)", this.name);
             this.setResources(loadedResources);
@@ -153,6 +159,32 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 throw e;
             }
         }
+    }
+
+    public void loadMoreResources() {
+        log.debug("[{}]:loadMoreResources()", this.name);
+        try {
+            this.lock.lock();
+            if (Objects.isNull(this.pages)) {
+                this.reloadResources();
+            } else if (this.pages.hasNext()) {
+                final ContinuablePage<String, R> page = this.pages.next();
+                final Map<String, R> loadedResources = page.getElements().stream()
+                    .collect(Collectors.toMap(r -> this.newResource(r).getId().toLowerCase(), r -> r));
+                log.debug("[{}]:loadMoreResources->addResources(xxx)", this.name);
+                this.addResources(loadedResources);
+                fireEvents.debounce();
+            }
+        } catch (Exception e) {
+            AzureMessager.getMessager().error(e);
+            throw e;
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    public boolean hasMoreResources() {
+        return Objects.nonNull(this.pages) && this.pages.hasNext();
     }
 
     private void setResources(Map<String, R> loadedResources) {
@@ -178,12 +210,28 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         log.debug("[{}]:reload.refreshed->resource.setRemote", this.name);
         refreshed.forEach(id -> this.resources.getOrDefault(id, Optional.empty()).ifPresent(r -> m.runOnPooledThread(() -> r.setRemote(loadedResources.get(id)))));
         log.debug("[{}]:reload.added->addResourceToLocal", this.name);
-        added.forEach(id -> {
-            final R remote = loadedResources.get(id);
-            final T resource = this.newResource(remote);
-            m.runOnPooledThread(() -> resource.setRemote(remote));
-            this.addResourceToLocal(id, resource, true);
-        });
+        added.stream().map(loadedResources::get).map(r -> Pair.of(r, this.newResource(r)))
+            .sorted(Comparator.comparing(p -> p.getValue().getName())) // sort by name when adding into cache
+            .forEach(p -> {
+                final R remote = p.getKey();
+                final T resource = p.getValue();
+                m.runOnPooledThread(() -> resource.setRemote(remote));
+                this.addResourceToLocal(resource.getId(), resource, true);
+            });
+        this.syncTimeRef.set(System.currentTimeMillis());
+    }
+
+    private void addResources(Map<String, R> loadedResources) {
+        final Set<String> added = loadedResources.keySet();
+        log.debug("[{}]:reload().added={}", this.name, added);
+        loadedResources.values().stream().map(r -> Pair.of(r, this.newResource(r)))
+            .sorted(Comparator.comparing(p -> p.getValue().getName())) // sort by name when adding into cache
+            .forEach(p -> {
+                final R remote = p.getKey();
+                final T resource = p.getValue();
+                AzureTaskManager.getInstance().runOnPooledThread(() -> resource.setRemote(remote));
+                this.addResourceToLocal(resource.getId(), resource, true);
+            });
         this.syncTimeRef.set(System.currentTimeMillis());
     }
 
@@ -278,7 +326,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public T getOrTemp(@Nonnull String name, @Nullable String rgName) {
         final String resourceGroup = normalizeResourceGroupName(name, rgName);
         log.debug("[{}]:getOrTemp({}, {})", this.name, name, rgName);
-        final String id = this.toResourceId(name, resourceGroup);
+        final String id = this.toResourceId(name, resourceGroup).toLowerCase();
         return this.resources.getOrDefault(id, Optional.empty()).orElseGet(() -> this.newResource(name, resourceGroup));
     }
 
@@ -286,7 +334,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     public T getOrInit(@Nonnull String name, @Nullable String rgName) {
         final String resourceGroup = normalizeResourceGroupName(name, rgName);
         log.debug("[{}]:getOrDraft({}, {})", this.name, name, rgName);
-        final String id = this.toResourceId(name, resourceGroup);
+        final String id = this.toResourceId(name, resourceGroup).toLowerCase();
         return this.resources.getOrDefault(id, Optional.empty()).orElseGet(() -> {
             final T resource = this.newResource(name, resourceGroup);
             log.debug("[{}]:get({}, {})->addResourceToLocal({}, resource)", this.name, id, resourceGroup, name);
@@ -297,8 +345,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     @Nonnull
     public List<T> listCachedResources() { // getResources
-        return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get)
-            .sorted(Comparator.comparing(AbstractAzResource::getName)).collect(Collectors.toList());
+        return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
     }
 
     @Nonnull
@@ -441,8 +488,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private void fireChildrenChangedEvent() {
         log.debug("[{}]:fireChildrenChangedEvent()", this.name);
         if (this.getParent() instanceof AbstractAzServiceSubscription) {
-            @SuppressWarnings("unchecked")
-            final AzResourceModule<P> service = (AzResourceModule<P>) this.getParent().getModule();
+            @SuppressWarnings("unchecked") final AzResourceModule<P> service = (AzResourceModule<P>) this.getParent().getModule();
             AzureEventBus.emit("service.children_changed.service", service);
         }
         if (this instanceof AzService) {
@@ -467,6 +513,23 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             throw new AzureToolkitRuntimeException("not supported");
         }
         return Stream.empty();
+    }
+
+    @Nonnull
+    @AzureOperation(name = "azure/resource.load_resources_by_pages.type", params = {"this.getResourceTypeName()"})
+    protected Iterator<? extends ContinuablePage<String, R>> loadResourcePagesFromAzure() {
+        log.debug("[{}]:loadPagedResourcesFromAzure()", this.getName());
+        final Object client = this.getClient();
+        if (!this.parent.exists()) {
+            return Collections.emptyIterator();
+        } else if (client instanceof SupportsListing) {
+            log.debug("[{}]:loadPagedResourcesFromAzure->client.list()", this.name);
+            return this.<SupportsListing<R>>cast(client).list().iterableByPage(getPageSize()).iterator();
+        } else if (client != null) {
+            log.debug("[{}]:loadPagedResourcesFromAzure->NOT Supported", this.name);
+            throw new AzureToolkitRuntimeException("not supported");
+        }
+        return Collections.emptyIterator();
     }
 
     @Nullable
@@ -558,5 +621,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     protected <D> D cast(@Nonnull Object origin) {
         //noinspection unchecked
         return (D) origin;
+    }
+
+    public static int getPageSize() {
+        return Azure.az().config().getPageSize();
     }
 }

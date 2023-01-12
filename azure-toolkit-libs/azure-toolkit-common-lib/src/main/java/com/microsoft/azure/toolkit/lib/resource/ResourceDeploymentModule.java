@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.resource;
 
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.models.Deployment;
 import com.azure.resourcemanager.resources.models.Deployments;
@@ -15,6 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -45,6 +48,12 @@ public class ResourceDeploymentModule extends
     @Override
     protected ResourceDeploymentDraft newDraftForUpdate(@Nonnull ResourceDeployment origin) {
         return new ResourceDeploymentDraft(origin);
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends ContinuablePage<String, Deployment>> loadResourcePagesFromAzure() {
+        return Optional.ofNullable(this.getClient()).map(c -> c.listByResourceGroup(this.parent.getName()).iterableByPage(getPageSize()).iterator()).orElse(Collections.emptyIterator());
     }
 
     @Nonnull

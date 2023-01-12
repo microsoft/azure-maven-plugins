@@ -52,6 +52,10 @@ public class AzureEventBus {
         AzureEventBus.emit(type, new SimpleEvent(type, source));
     }
 
+    public static void emit(@Nonnull final String type, @Nullable final Object source, @Nullable final Object payload) {
+        AzureEventBus.emit(type, new SimpleEvent(type, source, payload));
+    }
+
     public static <T> void emit(@Nonnull final String type, @Nonnull AzureEvent event) {
         getBus(type).post(event);
     }

@@ -4,6 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.cosmos.mongo;
 
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.cosmos.fluent.MongoDBResourcesClient;
 import com.azure.resourcemanager.cosmos.fluent.models.MongoDBCollectionGetResultsInner;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
@@ -14,6 +15,9 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -35,6 +39,18 @@ public class MongoCollectionModule extends AbstractAzResourceModule<MongoCollect
     @Override
     protected MongoCollection newResource(@NotNull String name, @Nullable String resourceGroupName) {
         return new MongoCollection(name, Objects.requireNonNull(resourceGroupName), this);
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends ContinuablePage<String, MongoDBCollectionGetResultsInner>> loadResourcePagesFromAzure() {
+        return Optional.ofNullable(getClient()).map(client -> {
+            try {
+                return client.listMongoDBCollections(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).iterableByPage(getPageSize()).iterator();
+            } catch (final RuntimeException e) {
+                return null;
+            }
+        }).orElse(Collections.emptyIterator());
     }
 
     @NotNull

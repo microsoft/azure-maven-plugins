@@ -5,12 +5,12 @@
 
 package com.microsoft.azure.toolkit.lib.cosmos.mongo;
 
+import com.azure.core.http.rest.Page;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentModule;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.mongodb.client.MongoCursor;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
@@ -19,18 +19,16 @@ import org.bson.types.ObjectId;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument, MongoCollection, Document>
-        implements ICosmosDocumentModule<MongoDocument> {
+public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument, MongoCollection, Document> {
 
     public static final String MONGO_ID_KEY = "_id";
-    @Nullable
-    private MongoCursor<Document> iterator;
 
     public MongoDocumentModule(@Nonnull MongoCollection parent) {
         super("documents", parent);
@@ -53,23 +51,45 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
 
     @Nonnull
     @Override
+    protected Iterator<? extends ContinuablePage<String, Document>> loadResourcePagesFromAzure() {
+        final com.mongodb.client.MongoCollection<Document> client = getClient();
+        if (client == null) {
+            return Collections.emptyIterator();
+        }
+        final MongoCursor<Document> itemsIterator = client.find().batchSize(getPageSize()).iterator();
+        return new Iterator<Page<Document>>() {
+            @Override
+            public boolean hasNext() {
+                return itemsIterator.hasNext();
+            }
+
+            @Override
+            public Page<Document> next() {
+                return new ItemPage<>(readDocuments(itemsIterator));
+            }
+        };
+    }
+
+    @Nonnull
+    @Override
     protected Stream<Document> loadResourcesFromAzure() {
         final com.mongodb.client.MongoCollection<Document> client = getClient();
-        final int cosmosBatchSize = Azure.az().config().getCosmosBatchSize();
         if (client == null) {
             return Stream.empty();
         }
-        iterator = client.find().batchSize(cosmosBatchSize).iterator();
+        final MongoCursor<Document> iterator = client.find().batchSize(getPageSize()).iterator();
         return readDocuments(iterator);
     }
 
     private Stream<Document> readDocuments(final MongoCursor<Document> iterator) {
         if (iterator == null || !iterator.hasNext()) {
+            if (Objects.nonNull(iterator)) {
+                iterator.close();
+            }
             return Stream.empty();
         }
-        final int cosmosBatchSize = Azure.az().config().getCosmosBatchSize();
         final List<Document> result = new ArrayList<>();
-        for (int i = 0; i < cosmosBatchSize && iterator.hasNext(); i++) {
+        for (int i = 0; i < getPageSize() && iterator.hasNext(); i++) {
             result.add(iterator.next());
         }
         return result.stream();
@@ -80,7 +100,7 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
     protected Document loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         final Object documentId = getDocumentIdFromName(name);
         return Optional.ofNullable(getClient())
-                .map(client -> client.find(new Document(MONGO_ID_KEY, documentId)).first()).orElse(null);
+            .map(client -> client.find(new Document(MONGO_ID_KEY, documentId)).first()).orElse(null);
     }
 
     @Nonnull
@@ -104,27 +124,15 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
 
     private Object getDocumentIdFromName(final String name) {
         return this.list().stream()
-                .filter(document -> document.getDocumentId() != null && StringUtils.equals(name, document.getDocumentId().toString()))
-                .findFirst()
-                .map(MongoDocument::getDocumentId)
-                .orElseGet(() -> new ObjectId(name));
+            .filter(document -> document.getDocumentId() != null && StringUtils.equals(name, document.getDocumentId().toString()))
+            .findFirst()
+            .map(MongoDocument::getDocumentId)
+            .orElseGet(() -> new ObjectId(name));
     }
 
     @Nullable
     @Override
     protected com.mongodb.client.MongoCollection<Document> getClient() {
         return getParent().getClient();
-    }
-
-    @Override
-    public boolean hasMoreDocuments() {
-        return Optional.ofNullable(iterator).map(Iterator::hasNext).orElse(false);
-    }
-
-    @Override
-    @AzureOperation(name = "azure/cosmos.load_more_mongo_documents")
-    public void loadMoreDocuments() {
-        this.readDocuments(iterator).map(this::newResource).forEach(document -> this.addResourceToLocal(document.getId(), document, false));
-        fireEvents.debounce();
     }
 }

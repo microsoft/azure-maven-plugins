@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.applicationinsights;
 
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.applicationinsights.ApplicationInsightsManager;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsComponent;
 import com.azure.resourcemanager.applicationinsights.models.Components;
@@ -14,6 +15,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -24,6 +27,12 @@ public class ApplicationInsightsModule extends AbstractAzResourceModule<Applicat
 
     public ApplicationInsightsModule(@Nonnull ApplicationInsightsServiceSubscription parent) {
         super(NAME, parent);
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends ContinuablePage<String, ApplicationInsightsComponent>> loadResourcePagesFromAzure() {
+        return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(getPageSize()).iterator()).orElse(Collections.emptyIterator());
     }
 
     @Nonnull

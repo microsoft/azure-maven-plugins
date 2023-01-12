@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.cosmos.sql;
 
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.CosmosQueryRequestOptions;
@@ -13,58 +14,37 @@ import com.azure.cosmos.models.PartitionKey;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentModule;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, SqlContainer, ObjectNode> implements ICosmosDocumentModule<SqlDocument> {
+public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, SqlContainer, ObjectNode> {
 
     public static final String DELIMITER = "#";
     public static final String ID = "id";
     public static final String NONE = "$$$none$$$";
-    @Nullable
-    private Iterator<FeedResponse<ObjectNode>> iterator;
 
     public SqlDocumentModule(@Nonnull SqlContainer parent) {
         super("documents", parent);
     }
 
-    @AzureOperation(name = "azure/cosmos.load_more_sql_documents")
-    public void loadMoreDocuments() {
-        if (hasMoreDocuments()) {
-            final FeedResponse<ObjectNode> response = Objects.requireNonNull(iterator).next();
-            response.getElements().stream()
-                .map(this::newResource)
-                .forEach(document -> addResourceToLocal(document.getId(), document, true));
-            fireEvents.debounce();
-        }
-    }
-
-    public boolean hasMoreDocuments() {
-        return Optional.ofNullable(iterator).map(Iterator::hasNext).orElse(false);
-    }
-
-    @Nonnull
     @Override
-    protected Stream<ObjectNode> loadResourcesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, ObjectNode>> loadResourcePagesFromAzure() {
         final CosmosContainer client = getClient();
         if (client == null) {
-            return Stream.empty();
+            return Collections.emptyIterator();
         }
-        final int cosmosBatchSize = Azure.az().config().getCosmosBatchSize();
-        this.iterator = client.queryItems("select * from c", new CosmosQueryRequestOptions(), ObjectNode.class)
-            .iterableByPage(cosmosBatchSize).iterator();
-        return iterator.hasNext() ? iterator.next().getElements().stream() : Stream.empty();
+        return client.queryItems("select * from c", new CosmosQueryRequestOptions(), ObjectNode.class)
+            .iterableByPage(getPageSize()).iterator();
     }
 
     @Nullable
@@ -78,8 +58,8 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
         final String partitionKeyValue = split.length > 1 ? split[1] : StringUtils.EMPTY;
         final PartitionKey partitionKey = StringUtils.equals(partitionKeyValue, NONE) ? PartitionKey.NONE : new PartitionKey(partitionKeyValue);
         return Optional.ofNullable(getClient())
-                .map(client -> doLoadDocument(client, partitionKey, id))
-                .orElse(null);
+            .map(client -> doLoadDocument(client, partitionKey, id))
+            .orElse(null);
     }
 
     @Nullable
@@ -148,8 +128,8 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
     @Nullable
     public static String getSqlDocumentPartitionValue(@Nonnull final ObjectNode node, @Nullable final String partitionKey) {
         return Optional.ofNullable(partitionKey)
-                .map(node::at)
-                .filter(n -> !n.isMissingNode())
-                .map(JsonNode::asText).orElse(null);
+            .map(node::at)
+            .filter(n -> !n.isMissingNode())
+            .map(JsonNode::asText).orElse(null);
     }
 }

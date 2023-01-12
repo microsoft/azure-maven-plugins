@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.containerapps.containerapp;
 
 import com.azure.core.http.rest.PagedIterable;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.appcontainers.ContainerAppsApiManager;
 import com.azure.resourcemanager.appcontainers.models.ContainerApps;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
@@ -17,6 +18,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,6 +30,12 @@ public class ContainerAppModule extends AbstractAzResourceModule<ContainerApp, A
 
     public ContainerAppModule(@Nonnull AzureContainerAppsServiceSubscription parent) {
         super(NAME, parent);
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends ContinuablePage<String, com.azure.resourcemanager.appcontainers.models.ContainerApp>> loadResourcePagesFromAzure() {
+        return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(getPageSize()).iterator()).orElse(Collections.emptyIterator());
     }
 
     @Nonnull

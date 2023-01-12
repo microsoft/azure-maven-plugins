@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.cosmos.mongo;
 
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.cosmos.fluent.MongoDBResourcesClient;
 import com.azure.resourcemanager.cosmos.fluent.models.MongoDBDatabaseGetResultsInner;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
@@ -14,6 +15,9 @@ import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -43,17 +47,28 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
         return new MongoDatabase(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
+    @Nonnull
+    @Override
+    protected Iterator<? extends ContinuablePage<String, MongoDBDatabaseGetResultsInner>> loadResourcePagesFromAzure() {
+        return Optional.ofNullable(getClient()).map(client -> {
+            try {
+                return client.listMongoDBDatabases(parent.getResourceGroupName(), parent.getName()).iterableByPage(getPageSize()).iterator();
+            } catch (final RuntimeException e) {
+                return null;
+            }
+        }).orElse(Collections.emptyIterator());
+    }
+
     @NotNull
     @Override
     protected Stream<MongoDBDatabaseGetResultsInner> loadResourcesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
-                    try {
-                        return client.listMongoDBDatabases(parent.getResourceGroupName(), parent.getName()).stream();
-                    } catch (final RuntimeException e) {
-                        return null;
-                    }
-                }
-        ).orElse(Stream.empty());
+            try {
+                return client.listMongoDBDatabases(parent.getResourceGroupName(), parent.getName()).stream();
+            } catch (final RuntimeException e) {
+                return null;
+            }
+        }).orElse(Stream.empty());
     }
 
     @Nullable

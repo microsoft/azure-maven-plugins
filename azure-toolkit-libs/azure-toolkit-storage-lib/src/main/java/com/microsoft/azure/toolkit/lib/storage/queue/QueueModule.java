@@ -5,16 +5,20 @@
 
 package com.microsoft.azure.toolkit.lib.storage.queue;
 
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.storage.queue.QueueClient;
 import com.azure.storage.queue.QueueServiceClient;
 import com.azure.storage.queue.QueueServiceClientBuilder;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -40,6 +44,18 @@ public class QueueModule extends AbstractAzResourceModule<Queue, StorageAccount,
             this.client = new QueueServiceClientBuilder().connectionString(connectionString).buildClient();
         }
         return this.client;
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends ContinuablePage<String, QueueClient>> loadResourcePagesFromAzure() {
+        if (!this.parent.exists()) {
+            return Collections.emptyIterator();
+        }
+        final QueueServiceClient client = this.getQueueServiceClient();
+        return Objects.requireNonNull(client).listQueues().streamByPage(getPageSize())
+            .map(p -> new ItemPage<>(p.getValue().stream().map(s -> client.getQueueClient(s.getName()))))
+            .iterator();
     }
 
     @Nonnull

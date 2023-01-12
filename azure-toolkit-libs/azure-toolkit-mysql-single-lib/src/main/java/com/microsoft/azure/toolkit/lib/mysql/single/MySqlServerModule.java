@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.mysql.single;
 
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.mysql.MySqlManager;
 import com.azure.resourcemanager.mysql.models.Server;
 import com.azure.resourcemanager.mysql.models.Servers;
@@ -15,6 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -26,6 +29,14 @@ public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MyS
 
     public MySqlServerModule(@Nonnull MySqlServiceSubscription parent) {
         super(NAME, parent);
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends ContinuablePage<String, Server>> loadResourcePagesFromAzure() {
+        return Optional.ofNullable(getClient())
+            .map(c -> c.list().iterableByPage(getPageSize()).iterator())
+            .orElse(Collections.emptyIterator());
     }
 
     @Nonnull

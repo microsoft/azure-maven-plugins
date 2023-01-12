@@ -5,16 +5,19 @@
 
 package com.microsoft.azure.toolkit.lib.resource;
 
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
 import com.azure.resourcemanager.resources.models.GenericResources;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -32,6 +35,15 @@ public class GenericResourceModule extends
     @Override
     public GenericResources getClient() {
         return Optional.ofNullable(this.parent.getParent().getRemote()).map(ResourceManager::genericResources).orElse(null);
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends ContinuablePage<String, HasId>> loadResourcePagesFromAzure() {
+        final GenericResources resources = Objects.requireNonNull(this.getClient());
+        return resources.listByResourceGroup(this.parent.getName()).streamByPage(getPageSize())
+            .map(p -> new ItemPage<>(p.getValue().stream().filter(r -> Objects.isNull(ResourceId.fromString(r.id()).parent())).map(a -> (HasId) a)))
+            .iterator();
     }
 
     @Nonnull

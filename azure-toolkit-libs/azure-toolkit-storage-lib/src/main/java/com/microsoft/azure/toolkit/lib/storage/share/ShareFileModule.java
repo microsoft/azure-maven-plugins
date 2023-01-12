@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.storage.share;
 
 import com.azure.core.http.rest.PagedIterable;
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.storage.file.share.ShareDirectoryClient;
 import com.azure.storage.file.share.models.ShareFileItem;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -14,6 +15,8 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -30,6 +33,14 @@ public class ShareFileModule extends AbstractAzResourceModule<ShareFile, IShareF
     @Override
     protected ShareDirectoryClient getClient() {
         return (ShareDirectoryClient) this.parent.getClient();
+    }
+
+    @Nonnull
+    @Override
+    protected Iterator<? extends ContinuablePage<String, ShareFileItem>> loadResourcePagesFromAzure() {
+        return Optional.ofNullable(this.getClient()).map(ShareDirectoryClient::listFilesAndDirectories)
+            .map(p -> p.streamByPage(getPageSize()).iterator())
+            .orElse(Collections.emptyIterator());
     }
 
     @Nonnull
