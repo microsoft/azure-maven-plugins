@@ -10,17 +10,24 @@ import com.azure.resourcemanager.appcontainers.models.LogAnalyticsConfiguration;
 import com.azure.resourcemanager.appcontainers.models.ManagedEnvironment;
 import com.azure.resourcemanager.appcontainers.models.ManagedEnvironments;
 import com.microsoft.azure.toolkit.lib.applicationinsights.workspace.LogAnalyticsWorkspace;
+import com.microsoft.azure.toolkit.lib.applicationinsights.workspace.LogAnalyticsWorkspaceDraft;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -47,6 +54,12 @@ public class ContainerAppsEnvironmentDraft extends ContainerAppsEnvironment impl
         this.config = null;
     }
 
+    @Nullable
+    @Override
+    public Region getRegion() {
+        return Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion);
+    }
+
     @Nonnull
     @Override
     @AzureOperation(name = "azure/containerapps.create_environment.env", params = {"this.getName()"})
@@ -57,17 +70,20 @@ public class ContainerAppsEnvironmentDraft extends ContainerAppsEnvironment impl
         final AppLogsConfiguration appLogsConfiguration = new AppLogsConfiguration();
         final LogAnalyticsWorkspace logAnalyticsWorkspace = config.getLogAnalyticsWorkspace();
         if (Objects.nonNull(logAnalyticsWorkspace)) {
+            if (logAnalyticsWorkspace.isDraftForCreating() && !logAnalyticsWorkspace.exists()) {
+                ((LogAnalyticsWorkspaceDraft) logAnalyticsWorkspace).commit();
+            }
             final LogAnalyticsConfiguration analyticsConfiguration = new LogAnalyticsConfiguration()
                     .withCustomerId(logAnalyticsWorkspace.getCustomerId())
                     .withSharedKey(logAnalyticsWorkspace.getPrimarySharedKeys());
             appLogsConfiguration.withDestination("log-analytics").withLogAnalyticsConfiguration(analyticsConfiguration);
         }
-        messager.info(AzureString.format("Start updating image in Container App({0})...", getName()));
+        messager.info(AzureString.format("Start creating Azure Container Apps Environment({0})...", this.getName()));
         final ManagedEnvironment managedEnvironment = client.define(config.getName())
                 .withRegion(com.azure.core.management.Region.fromName(config.getRegion().getName()))
-                .withExistingResourceGroup(config.getResourceGroupName())
+                .withExistingResourceGroup(Objects.requireNonNull(config.getResourceGroup(), "Resource Group is required to create Container app.").getResourceGroupName())
                 .withAppLogsConfiguration(appLogsConfiguration).create();
-        messager.info(AzureString.format("Image in Container App({0}) is successfully updated.", getName()));
+        messager.success(AzureString.format("Azure Container Apps Environment({0}) is successfully created.", this.getName()));
         return managedEnvironment;
     }
 
@@ -91,7 +107,8 @@ public class ContainerAppsEnvironmentDraft extends ContainerAppsEnvironment impl
     @Data
     public static class Config {
         private String name;
-        private String resourceGroupName;
+        private Subscription subscription;
+        private ResourceGroup resourceGroup;
         private Region region;
         private LogAnalyticsWorkspace logAnalyticsWorkspace;
     }

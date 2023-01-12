@@ -19,14 +19,20 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
+import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironmentDraft;
 import com.microsoft.azure.toolkit.lib.containerapps.model.IngressConfig;
 import com.microsoft.azure.toolkit.lib.containerapps.model.RevisionMode;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -68,19 +74,25 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
     @AzureOperation(name = "azure/containerapps.create_app.app", params = {"this.getName()"})
     public com.azure.resourcemanager.appcontainers.models.ContainerApp createResourceInAzure() {
         final ContainerApps client = Objects.requireNonNull(((ContainerAppModule) getModule()).getClient());
+
+        final ContainerAppsEnvironment containerAppsEnvironment = Objects.requireNonNull(ensureConfig().getEnvironment(),
+                "Environment is required to create Container app.");
+        if (containerAppsEnvironment.isDraftForCreating()) {
+            ((ContainerAppsEnvironmentDraft) containerAppsEnvironment).commit();
+        }
         final ImageConfig imageConfig = Objects.requireNonNull(ensureConfig().getImageConfig(), "Image is required to create Container app.");
         final Configuration configuration = new Configuration();
         Optional.ofNullable(ensureConfig().getRevisionMode()).ifPresent(mode ->
             configuration.withActiveRevisionsMode(ActiveRevisionsMode.fromString(ensureConfig().getRevisionMode().getValue())));
-        configuration.withSecrets(Collections.singletonList(getSecret(imageConfig)));
-        configuration.withRegistries(Collections.singletonList(getRegistryCredential(imageConfig)));
+        configuration.withSecrets(Optional.ofNullable(getSecret(imageConfig)).map(Collections::singletonList).orElse(Collections.emptyList()));
+        configuration.withRegistries(Optional.ofNullable(getRegistryCredential(imageConfig)).map(Collections::singletonList).orElse(Collections.emptyList()));
         configuration.withIngress(Optional.ofNullable(ensureConfig().getIngressConfig()).map(IngressConfig::toIngress).orElse(null));
         final Template template = new Template().withContainers(getContainers(imageConfig));
         AzureMessager.getMessager().info(AzureString.format("Start creating Azure Container App({0})...", this.getName()));
         final com.azure.resourcemanager.appcontainers.models.ContainerApp result = client.define(ensureConfig().getName())
             .withRegion(com.azure.core.management.Region.fromName(ensureConfig().getRegion().getName()))
-            .withExistingResourceGroup(ensureConfig().getResourceGroupName())
-            .withManagedEnvironmentId(Objects.requireNonNull(ensureConfig().getEnvironment(), "Environment is required to create Container app.").getId())
+            .withExistingResourceGroup(Objects.requireNonNull(ensureConfig().getResourceGroup(), "Resource Group is required to create Container app.").getResourceGroupName())
+            .withManagedEnvironmentId(containerAppsEnvironment.getId())
             .withConfiguration(configuration)
             .withTemplate(template)
             .create();
@@ -96,6 +108,29 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
     @Nullable
     public RevisionMode getRevisionMode() {
         return Optional.ofNullable(config).map(Config::getRevisionMode).orElse(super.getRevisionMode());
+    }
+
+    @Nullable
+    @Override
+    public ContainerAppsEnvironment getManagedEnvironment() {
+        return Optional.ofNullable(config).map(Config::getEnvironment).orElseGet(super::getManagedEnvironment);
+    }
+
+    @Nullable
+    @Override
+    public String getManagedEnvironmentId() {
+        return Optional.ofNullable(config).map(Config::getEnvironment).map(ContainerAppsEnvironment::getId).orElseGet(super::getManagedEnvironmentId);
+    }
+
+    @Nullable
+    @Override
+    public Region getRegion() {
+        return Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion);
+    }
+
+    @Override
+    public boolean isIngressEnabled() {
+        return Optional.ofNullable(config).map(Config::getIngressConfig).map(IngressConfig::isEnableIngress).orElseGet(super::isIngressEnabled);
     }
 
     @Nonnull
@@ -212,7 +247,8 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
     @Data
     public static class Config {
         private String name;
-        private String resourceGroupName;
+        private Subscription subscription;
+        private ResourceGroup resourceGroup;
         private Region region;
         @Nullable
         private ContainerAppsEnvironment environment;
@@ -225,6 +261,9 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
 
     @Setter
     @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class ImageConfig {
         @Nullable
         private ContainerRegistry containerRegistry;
