@@ -21,11 +21,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.PropertyKey;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -39,13 +39,11 @@ import java.util.function.Predicate;
 
 @SuppressWarnings("unused")
 @Accessors(chain = true)
-public class Action<D> extends OperationBase {
+public class Action<D> extends OperationBase implements Cloneable {
     public static final String SOURCE = "ACTION_SOURCE";
     public static final String RESOURCE_TYPE = "resourceType";
     public static final Id<Runnable> REQUIRE_AUTH = Id.of("common.requireAuth");
     public static final Id<Object> AUTHENTICATE = Id.of("account.authenticate");
-    @Nonnull
-    private final List<AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
     @Nonnull
     private final Id<D> id;
     @Nonnull
@@ -55,7 +53,11 @@ public class Action<D> extends OperationBase {
     private Function<D, String> labelProvider;
     private Function<D, AzureString> titleProvider;
     @Nonnull
-    private final List<Function<D, String>> titleParamProviders = new ArrayList<>();
+    private List<Pair<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
+    @Nonnull
+    private List<Function<D, String>> titleParamProviders = new ArrayList<>();
+
+    private D source;
 
     @Setter
     @Getter
@@ -82,13 +84,14 @@ public class Action<D> extends OperationBase {
 
     @Nonnull
     public IView.Label getView(D s) {
+        final D source = Optional.ofNullable(this.source).orElse(s);
         try {
-            final boolean visible = this.visibleWhen.test(s);
+            final boolean visible = this.visibleWhen.test(source);
             if (visible) {
-                final String label = this.labelProvider.apply(s);
-                final String icon = Optional.ofNullable(this.iconProvider).map(p -> p.apply(s)).orElse(null);
-                final boolean enabled = this.enableWhen.test(s);
-                final AzureString title = this.getTitle(s);
+                final String label = this.labelProvider.apply(source);
+                final String icon = Optional.ofNullable(this.iconProvider).map(p -> p.apply(source)).orElse(null);
+                final boolean enabled = this.enableWhen.test(source);
+                final AzureString title = this.getTitle(source);
                 return new View(label, icon, enabled, title);
             }
             return View.INVISIBLE;
@@ -100,12 +103,13 @@ public class Action<D> extends OperationBase {
 
     @Nullable
     @SuppressWarnings("unchecked")
-    public BiConsumer<D, Object> getHandler(D source, Object e) {
+    public BiConsumer<D, Object> getHandler(D s, Object e) {
+        final D source = Optional.ofNullable(this.source).orElse(s);
         if (!this.visibleWhen.test(source) && !this.enableWhen.test(source)) {
             return null;
         }
         for (int i = this.handlers.size() - 1; i >= 0; i--) {
-            final AbstractMap.SimpleEntry<BiPredicate<D, ?>, BiConsumer<D, ?>> p = this.handlers.get(i);
+            final Pair<BiPredicate<D, ?>, BiConsumer<D, ?>> p = this.handlers.get(i);
             final BiPredicate<D, Object> condition = (BiPredicate<D, Object>) p.getKey();
             final BiConsumer<D, Object> handler = (BiConsumer<D, Object>) p.getValue();
             if (condition.test(source, e)) {
@@ -115,7 +119,8 @@ public class Action<D> extends OperationBase {
         return null;
     }
 
-    public void handle(D source, Object e) {
+    public void handle(D s, Object e) {
+        final D source = Optional.ofNullable(this.source).orElse(s);
         final BiConsumer<D, Object> handler = this.getHandler(source, e);
         if (Objects.isNull(handler)) {
             return;
@@ -133,7 +138,8 @@ public class Action<D> extends OperationBase {
         }
     }
 
-    protected void handle(D source, Object e, BiConsumer<D, Object> handler) {
+    private void handle(D s, Object e, BiConsumer<D, Object> handler) {
+        final D source = Optional.ofNullable(this.source).orElse(s);
         if (source instanceof AzResource) {
             final AzResource resource = (AzResource) source;
             final OperationContext context = OperationContext.action();
@@ -148,7 +154,8 @@ public class Action<D> extends OperationBase {
         handler.accept(source, e);
     }
 
-    public void handle(D source) {
+    public void handle(D s) {
+        final D source = Optional.ofNullable(this.source).orElse(s);
         this.handle(source, null);
     }
 
@@ -163,7 +170,8 @@ public class Action<D> extends OperationBase {
         return Type.USER;
     }
 
-    public AzureString getTitle(D source) {
+    public AzureString getTitle(D s) {
+        final D source = Optional.ofNullable(this.source).orElse(s);
         if (Objects.nonNull(this.titleProvider)) {
             return this.titleProvider.apply(source);
         } else if (!this.titleParamProviders.isEmpty()) {
@@ -220,22 +228,22 @@ public class Action<D> extends OperationBase {
     }
 
     public Action<D> withHandler(@Nonnull Consumer<D> handler) {
-        this.handlers.add(new AbstractMap.SimpleEntry<>((d, e) -> true, (d, e) -> handler.accept(d)));
+        this.handlers.add(Pair.of((d, e) -> true, (d, e) -> handler.accept(d)));
         return this;
     }
 
     public <E> Action<D> withHandler(@Nonnull BiConsumer<D, E> handler) {
-        this.handlers.add(new AbstractMap.SimpleEntry<>((d, e) -> true, handler));
+        this.handlers.add(Pair.of((d, e) -> true, handler));
         return this;
     }
 
     public Action<D> withHandler(@Nonnull Predicate<D> condition, @Nonnull Consumer<D> handler) {
-        this.handlers.add(new AbstractMap.SimpleEntry<>((d, e) -> condition.test(d), (d, e) -> handler.accept(d)));
+        this.handlers.add(Pair.of((d, e) -> condition.test(d), (d, e) -> handler.accept(d)));
         return this;
     }
 
     public <E> Action<D> withHandler(@Nonnull BiPredicate<D, E> condition, @Nonnull BiConsumer<D, E> handler) {
-        this.handlers.add(new AbstractMap.SimpleEntry<>(condition, handler));
+        this.handlers.add(Pair.of(condition, handler));
         return this;
     }
 
@@ -254,8 +262,26 @@ public class Action<D> extends OperationBase {
         return this;
     }
 
+    public Action<D> bind(D source) {
+        try {
+            // noinspection unchecked
+            final Action<D> clone = (Action<D>) this.clone();
+            clone.handlers = new ArrayList<>(this.handlers);
+            clone.titleParamProviders = new ArrayList<>(this.titleParamProviders);
+            clone.source = source;
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void register(AzureActionManager am) {
         am.registerAction(this);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Action {id:'%s', bindTo: %s}", this.getId(), this.source);
     }
 
     public static class Id<D> {
