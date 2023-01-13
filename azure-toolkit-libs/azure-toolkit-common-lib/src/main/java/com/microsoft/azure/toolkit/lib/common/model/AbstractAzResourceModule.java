@@ -525,11 +525,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         } else if (client instanceof SupportsListing) {
             log.debug("[{}]:loadPagedResourcesFromAzure->client.list()", this.name);
             return this.<SupportsListing<R>>cast(client).list().iterableByPage(getPageSize()).iterator();
-        } else if (client != null) {
+        } else {
             log.debug("[{}]:loadPagedResourcesFromAzure->NOT Supported", this.name);
-            throw new AzureToolkitRuntimeException("not supported");
+            return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
         }
-        return Collections.emptyIterator();
     }
 
     @Nullable
