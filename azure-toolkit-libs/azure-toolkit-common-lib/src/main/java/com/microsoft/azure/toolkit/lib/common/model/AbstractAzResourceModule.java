@@ -516,7 +516,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
-    @AzureOperation(name = "azure/resource.load_resources_by_pages.type", params = {"this.getResourceTypeName()"})
+    @AzureOperation(name = "azure/resource.load_resources_by_page.type", params = {"this.getResourceTypeName()"})
     protected Iterator<? extends ContinuablePage<String, R>> loadResourcePagesFromAzure() {
         log.debug("[{}]:loadPagedResourcesFromAzure()", this.getName());
         final Object client = this.getClient();
