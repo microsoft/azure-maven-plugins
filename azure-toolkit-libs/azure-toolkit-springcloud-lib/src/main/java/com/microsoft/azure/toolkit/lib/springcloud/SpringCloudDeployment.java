@@ -7,10 +7,13 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.core.util.ExpandableStringEnum;
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
+import com.azure.resourcemanager.appplatform.fluent.AppPlatformManagementClient;
+import com.azure.resourcemanager.appplatform.fluent.models.RemoteDebuggingInner;
 import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
-import com.azure.resourcemanager.appplatform.models.RemoteDebuggingPayload;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
+import com.azure.resourcemanager.resources.fluentcore.arm.models.HasManager;
 import com.google.common.base.Charsets;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -36,6 +39,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+@SuppressWarnings("unused")
 public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment> {
     @Nonnull
     private final SpringCloudAppInstanceModule instanceModule;
@@ -93,10 +97,14 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
 
     @Override
     protected void updateAdditionalProperties(SpringAppDeployment newRemote, SpringAppDeployment oldRemote) {
-        final AppPlatformManager manager = this.getParent().getParent().getRemote().manager();
-        final String clusterName = this.getParent().getParent().getName();
-        final String appName = this.getParent().getName();
-        this.remoteDebuggingEnabled = manager.serviceClient().getDeployments().getRemoteDebuggingConfig(this.getResourceGroupName(), clusterName, appName, getName()).enabled();
+        final SpringCloudApp app = this.getParent();
+        final SpringCloudCluster cluster = app.getParent();
+        this.remoteDebuggingEnabled = Optional.ofNullable(cluster.getRemote())
+            .map(HasManager::manager)
+            .map(AppPlatformManager::serviceClient)
+            .map(AppPlatformManagementClient::getDeployments)
+            .map(c -> c.getRemoteDebuggingConfig(this.getResourceGroupName(), cluster.getName(), app.getName(), this.getName()))
+            .map(RemoteDebuggingInner::enabled).orElse(false);
     }
 
     @Nonnull
@@ -192,10 +200,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
 
     @Nullable
     public Integer getInstanceNum() {
-        if (Objects.nonNull(this.getRemote())) {
-            return this.getRemote().instances().size();
-        }
-        return null;
+        return this.remoteOptional().map(SpringAppDeployment::instances).map(List::size).orElse(null);
     }
 
     @Nonnull
@@ -214,19 +219,24 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
 
     @AzureOperation(name = "azure/springcloud.enable_remote_debugging.deployment", params = {"this.getName()"})
     public void enableRemoteDebugging(int port) {
-        AppPlatformManager manager = this.getParent().getParent().getRemote().manager();
-        final RemoteDebuggingPayload payload = new RemoteDebuggingPayload().withPort(port);
-        final String clusterName = this.getParent().getParent().getName();
-        final String appName = this.getParent().getName();
-        doModify(() -> manager.serviceClient().getDeployments().enableRemoteDebugging(this.getResourceGroupName(), clusterName, appName, getName(), payload), Status.UPDATING);
+        final SpringCloudApp app = this.getParent();
+        final SpringCloudCluster cluster = app.getParent();
+        Optional.ofNullable(cluster.getRemote())
+            .map(HasManager::manager)
+            .map(AppPlatformManager::serviceClient)
+            .map(AppPlatformManagementClient::getDeployments)
+            .ifPresent(c -> doModify(() -> c.enableRemoteDebugging(this.getResourceGroupName(), cluster.getName(), app.getName(), this.getName()), Status.UPDATING));
     }
 
     @AzureOperation(name = "azure/springcloud.disable_remote_debugging.deployment", params = {"this.getName()"})
     public void disableRemoteDebugging() {
-        AppPlatformManager manager = this.getParent().getParent().getRemote().manager();
-        final String clusterName = this.getParent().getParent().getName();
-        final String appName = this.getParent().getName();
-        doModify(() -> manager.serviceClient().getDeployments().disableRemoteDebugging(this.getResourceGroupName(), clusterName, appName, getName()), Status.UPDATING);
+        final SpringCloudApp app = this.getParent();
+        final SpringCloudCluster cluster = app.getParent();
+        Optional.ofNullable(cluster.getRemote())
+            .map(HasManager::manager)
+            .map(AppPlatformManager::serviceClient)
+            .map(AppPlatformManagementClient::getDeployments)
+            .ifPresent(c -> doModify(() -> c.disableRemoteDebugging(this.getResourceGroupName(), cluster.getName(), app.getName(), this.getName()), Status.UPDATING));
     }
 
     public boolean isRemoteDebuggingEnabled() {
@@ -234,9 +244,14 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     }
 
     public int getRemoteDebuggingPort() {
-        AppPlatformManager manager = this.getParent().getParent().getRemote().manager();
-        final String clusterName = this.getParent().getParent().getName();
-        final String appName = this.getParent().getName();
-        return manager.serviceClient().getDeployments().getRemoteDebuggingConfig(this.getResourceGroupName(), clusterName, appName, getName()).port();
+        final SpringCloudApp app = this.getParent();
+        final SpringCloudCluster cluster = app.getParent();
+        return Optional.ofNullable(cluster.getRemote())
+            .map(HasManager::manager)
+            .map(AppPlatformManager::serviceClient)
+            .map(AppPlatformManagementClient::getDeployments)
+            .map(c -> c.getRemoteDebuggingConfig(this.getResourceGroupName(), cluster.getName(), app.getName(), this.getName()))
+            .map(RemoteDebuggingInner::port)
+            .orElseThrow(() -> new AzureToolkitRuntimeException("Failed to get remote debugging port."));
     }
 }
