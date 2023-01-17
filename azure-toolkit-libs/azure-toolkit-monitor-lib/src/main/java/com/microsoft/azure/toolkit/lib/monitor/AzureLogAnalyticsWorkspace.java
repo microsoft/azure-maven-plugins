@@ -1,4 +1,4 @@
-package com.microsoft.azure.toolkit.lib.applicationinsights.workspace;
+package com.microsoft.azure.toolkit.lib.monitor;
 
 import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpLogOptions;

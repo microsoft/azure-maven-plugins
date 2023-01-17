@@ -1,4 +1,4 @@
-package com.microsoft.azure.toolkit.lib.applicationinsights.workspace;
+package com.microsoft.azure.toolkit.lib.monitor;
 
 import com.azure.resourcemanager.loganalytics.LogAnalyticsManager;
 import com.azure.resourcemanager.loganalytics.models.Workspace;
