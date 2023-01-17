@@ -48,7 +48,7 @@ import java.util.regex.Pattern;
 public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     implements AzResource.Draft<SpringCloudDeployment, SpringAppDeployment>, InvocationHandler {
 
-    public static final RuntimeVersion DEFAULT_RUNTIME_VERSION = RuntimeVersion.JAVA_8;
+    public static final RuntimeVersion DEFAULT_RUNTIME_VERSION = RuntimeVersion.JAVA_11;
     private static final String RUNTIME_VERSION_PATTERN = "[Jj]ava((\\s)?|_)(8|11|17)$";
 
     @Nonnull
