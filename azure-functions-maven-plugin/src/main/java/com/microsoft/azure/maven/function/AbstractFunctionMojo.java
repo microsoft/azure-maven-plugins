@@ -171,7 +171,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     protected String localSettingsJson;
 
     @Getter
-    protected ConfigParser parser = new ConfigParser(this);
+    protected final ConfigParser parser = new ConfigParser(this);
 
     //endregion
 

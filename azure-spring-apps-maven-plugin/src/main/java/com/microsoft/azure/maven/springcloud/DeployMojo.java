@@ -5,6 +5,8 @@
 
 package com.microsoft.azure.maven.springcloud;
 
+import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
+import com.fasterxml.jackson.dataformat.javaprop.JavaPropsSchema;
 import com.microsoft.azure.maven.prompt.DefaultPrompter;
 import com.microsoft.azure.maven.prompt.IPrompter;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
@@ -33,6 +35,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
 /**
  * Deploy your project to target Azure Spring app. If target app doesn't exist, it will be created.
@@ -67,6 +71,7 @@ public class DeployMojo extends AbstractMojoBase {
     @Override
     @AzureOperation("user/springcloud.deploy_mojo")
     protected void doExecute() throws Throwable {
+        this.mergeCommandLineConfig();
         // set up account and select subscription here in `deploy`, since in some cases, `config` will not need to sign in
         loginAzure();
         selectSubscription();
@@ -92,6 +97,17 @@ public class DeployMojo extends AbstractMojoBase {
         }
         printStatus(deployment);
         printPublicUrl(deployment.getParent());
+    }
+
+    private void mergeCommandLineConfig() {
+        try {
+            final JavaPropsMapper mapper = new JavaPropsMapper();
+            mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+            final DeployMojo commandLineConfig = mapper.readSystemPropertiesAs(JavaPropsSchema.emptySchema(), DeployMojo.class);
+            com.microsoft.azure.toolkit.lib.common.utils.Utils.copyProperties(this, commandLineConfig, false);
+        } catch (IOException | IllegalAccessException e) {
+            throw new AzureToolkitRuntimeException("failed to merge command line configuration", e);
+        }
     }
 
     protected boolean confirm(List<AzureTask<?>> tasks) throws MojoFailureException {

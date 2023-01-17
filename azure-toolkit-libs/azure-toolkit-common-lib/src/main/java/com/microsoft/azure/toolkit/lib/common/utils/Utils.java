@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.CommandExecuteException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 
@@ -21,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -183,12 +185,20 @@ public class Utils {
         return options.contains(value) ? value : options.get(0);
     }
 
-    public static <T> void mergeObjects(T to, T from) throws IllegalAccessException {
+    public static <T> void copyProperties(T to, T from, boolean whenNotSet) throws IllegalAccessException {
         for (Field field : FieldUtils.getAllFields(from.getClass())) {
-            if (FieldUtils.readField(field, to, true) == null) {
-                final Object value = FieldUtils.readField(field, from, true);
-                if (value != null) {
-                    FieldUtils.writeField(field, to, value, true);
+            if (Modifier.isFinal(field.getModifiers()) || Modifier.isStatic(field.getModifiers())) {
+                continue;
+            }
+            final Object fromValue = FieldUtils.readField(field, from, true);
+            final Object toValue = FieldUtils.readField(field, to, true);
+            final Class<?> type = field.getType();
+            final boolean isCustomObject = !(type.getName().startsWith("java") || type.isPrimitive() || type.isEnum() || type.isAssignableFrom(String.class) || type.isArray());
+            if (isCustomObject && ObjectUtils.allNotNull(fromValue, toValue)) {
+                copyProperties(toValue, fromValue, whenNotSet);
+            } else {
+                if ((!whenNotSet || toValue == null) && fromValue != null) {
+                    FieldUtils.writeField(field, to, fromValue, true);
                 }
             }
         }
