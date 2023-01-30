@@ -15,6 +15,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.settings.Settings;
 
+import javax.annotation.Nullable;
+import java.util.Objects;
+
 public abstract class AbstractMojoBase extends AbstractAzureMojo {
     private static final String PROXY = "proxy";
     public static final String TELEMETRY_KEY_PUBLIC = "public";
@@ -102,6 +105,9 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     @Parameter(defaultValue = "${settings}", readonly = true)
     protected Settings settings;
 
+    @Nullable
+    private SpringCloudAppConfig configuration;
+
     protected void initTelemetryProxy() {
         super.initTelemetryProxy();
         final SpringCloudAppConfig configuration = this.getConfiguration();
@@ -126,8 +132,11 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
         telemetryProxy.addDefaultProperty(TELEMETRY_KEY_SUBSCRIPTION_ID, configuration.getSubscriptionId());
     }
 
-    public SpringCloudAppConfig getConfiguration() {
-        final ConfigurationParser parser = ConfigurationParser.getInstance();
-        return parser.parse(this);
+    public synchronized SpringCloudAppConfig getConfiguration() {
+        if (Objects.isNull(this.configuration)) {
+            final ConfigurationParser parser = ConfigurationParser.getInstance();
+            this.configuration = parser.parse(this);
+        }
+        return this.configuration;
     }
 }
