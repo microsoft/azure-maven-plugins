@@ -25,9 +25,11 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.auth.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo;
@@ -366,7 +368,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         final AzureEnvironment env = account.getEnvironment();
         final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
         if (env != AzureEnvironment.AZURE && env != configEnv) {
-            Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
+            AzureMessager.getMessager().info(AzureString.format(USING_AZURE_ENVIRONMENT, environmentName));
         }
         printCredentialDescription(account);
         telemetryProxy.addDefaultProperty(AUTH_TYPE, account.getType().toString());
@@ -419,25 +421,26 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
 
     private static void promptAzureEnvironment(AzureEnvironment env) {
         if (env != null && env != AzureEnvironment.AZURE) {
-            Log.prompt(String.format("Auth environment: %s", TextUtils.cyan(AzureEnvironmentUtils.azureEnvironmentToString(env))));
+            AzureMessager.getMessager().info(AzureString.format("Auth environment: %s", AzureEnvironmentUtils.azureEnvironmentToString(env)));
         }
     }
 
     protected static void printCredentialDescription(Account account) {
-        final boolean skipType = account.getType() == AuthType.OAUTH2 || account.getType() == AuthType.DEVICE_CODE;
-        if (skipType) {
-            if (CollectionUtils.isNotEmpty(account.getSubscriptions())) {
-                final List<Subscription> selectedSubscriptions = account.getSelectedSubscriptions();
-                if (selectedSubscriptions != null && selectedSubscriptions.size() == 1) {
-                    Log.prompt(String.format("Default subscription: %s(%s)%n", TextUtils.cyan(selectedSubscriptions.get(0).getName()),
-                        TextUtils.cyan(selectedSubscriptions.get(0).getId())));
-                }
+        final IAzureMessager messager = AzureMessager.getMessager();
+        final AuthType type = account.getType();
+        final String username = account.getUsername();
+        if (type != null) {
+            messager.info(AzureString.format("Auth type: %s", type.toString()));
+        }
+        if (account.isLoggedIn()) {
+            final List<Subscription> selectedSubscriptions = account.getSelectedSubscriptions();
+            if (CollectionUtils.isNotEmpty(selectedSubscriptions) && selectedSubscriptions.size() == 1) {
+                messager.info(AzureString.format("Default subscription: %s(%s)", selectedSubscriptions.get(0).getName(),
+                    selectedSubscriptions.get(0).getId()));
             }
-            if (StringUtils.isNotEmpty(account.getUsername())) {
-                Log.prompt(String.format("Username: %s%n", TextUtils.cyan(account.getUsername())));
-            }
-        } else {
-            Log.prompt(account.toString());
+        }
+        if (StringUtils.isNotEmpty(username)) {
+            messager.info(AzureString.format("Username: %s", username.trim()));
         }
     }
 

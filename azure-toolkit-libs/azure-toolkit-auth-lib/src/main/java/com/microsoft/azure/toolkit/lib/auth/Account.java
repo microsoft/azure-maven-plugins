@@ -270,15 +270,13 @@ public abstract class Account implements IAccount {
         }
         if (this.isLoggedIn()) {
             final List<Subscription> selectedSubscriptions = getSelectedSubscriptions();
-            if (CollectionUtils.isNotEmpty(selectedSubscriptions)) {
-                if (selectedSubscriptions.size() == 1) {
-                    details.add(String.format("Default subscription: %s(%s)", TextUtils.cyan(selectedSubscriptions.get(0).getName()),
-                        TextUtils.cyan(selectedSubscriptions.get(0).getId())));
-                }
+            if (CollectionUtils.isNotEmpty(selectedSubscriptions) && selectedSubscriptions.size() == 1) {
+                details.add(String.format("Default subscription: %s(%s)", TextUtils.cyan(selectedSubscriptions.get(0).getName()),
+                    TextUtils.cyan(selectedSubscriptions.get(0).getId())));
             }
         }
         if (StringUtils.isNotEmpty(username)) {
-            details.add(String.format("Username: %s", TextUtils.cyan(username)));
+            details.add(String.format("Username: %s", TextUtils.cyan(username.trim())));
         }
 
         return StringUtils.join(details.toArray(), "\n");
