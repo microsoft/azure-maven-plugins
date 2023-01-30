@@ -16,14 +16,10 @@ import lombok.Setter;
 import javax.annotation.Nullable;
 import java.util.Objects;
 
-/**
- * @deprecated use {@link com.microsoft.azure.toolkit.lib.storage.StorageAccountDraft} instead.
- */
 @Getter
 @Setter
 @Builder
 @EqualsAndHashCode
-@Deprecated
 public class StorageAccountConfig {
 
     private String name;

@@ -23,14 +23,10 @@ import org.jetbrains.annotations.Contract;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * @deprecated use {@link com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft} instead.
- */
 @Builder
 @Getter
 @Setter
@@ -38,7 +34,6 @@ import java.util.Optional;
 @AllArgsConstructor
 @Slf4j
 @EqualsAndHashCode
-@Deprecated
 public class SpringCloudDeploymentConfig {
 
     @Nullable
