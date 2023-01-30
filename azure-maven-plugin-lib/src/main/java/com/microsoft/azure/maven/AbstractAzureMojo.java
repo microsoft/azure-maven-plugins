@@ -539,11 +539,11 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     protected void onMojoError(final Throwable exception) throws MojoExecutionException {
         trackMojoFailure(exception);
 
-        final String message = StringUtils.isEmpty(exception.getMessage()) ? exception.toString() : exception.getMessage();
         if (isFailsOnError()) {
+            final String message = StringUtils.isEmpty(exception.getMessage()) ? exception.toString() : exception.getMessage();
             throw new MojoExecutionException(message, exception);
         } else {
-            Log.error(message);
+            AzureMessager.getMessager().error(exception);
         }
     }
 
