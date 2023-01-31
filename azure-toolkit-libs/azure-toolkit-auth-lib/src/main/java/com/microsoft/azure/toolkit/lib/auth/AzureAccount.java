@@ -55,11 +55,11 @@ public class AzureAccount implements IAzureAccount {
     }
 
     public Account login(@Nonnull AuthType type) {
-        return login(new AuthConfiguration(type), true);
+        return login(new AuthConfiguration(type), Azure.az().config().isAuthPersistenceEnabled());
     }
 
     public Account login(@Nonnull AuthConfiguration config) {
-        return login(config, true);
+        return login(config, Azure.az().config().isAuthPersistenceEnabled());
     }
 
     public Account login(@Nonnull Account account) {

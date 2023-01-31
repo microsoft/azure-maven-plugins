@@ -41,6 +41,7 @@ public class AzureConfiguration {
     private int pageSize = 2;
     private List<String> documentsLabelFields = new ArrayList<>(DEFAULT_DOCUMENT_LABEL_FIELDS);
     private int monitorQueryRowNumber = 200;
+    private boolean authPersistenceEnabled = true;
 
     public void setProxyInfo(ProxyInfo proxy) {
         this.setProxySource(proxy.getSource());
