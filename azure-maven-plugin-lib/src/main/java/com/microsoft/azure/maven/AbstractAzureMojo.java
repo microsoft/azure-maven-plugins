@@ -150,7 +150,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     @JsonProperty
     @Parameter
     @Getter
-    protected String subscriptionId = "";
+    protected String subscriptionId = null;
 
     /**
      * Boolean flag to turn on/off telemetry within current Maven plugin.
