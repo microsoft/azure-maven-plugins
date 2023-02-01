@@ -38,7 +38,7 @@ public class AzureConfiguration {
     private String proxyPassword;
     @Nullable
     private SSLContext sslContext;
-    private int pageSize = 2;
+    private int pageSize = 99;
     private List<String> documentsLabelFields = new ArrayList<>(DEFAULT_DOCUMENT_LABEL_FIELDS);
     private int monitorQueryRowNumber = 200;
     private boolean authPersistenceEnabled = true;
