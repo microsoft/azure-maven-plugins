@@ -23,6 +23,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentC
 import com.microsoft.azure.toolkit.lib.springcloud.task.DeploySpringCloudAppTask;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -60,13 +61,13 @@ public class DeployMojo extends AbstractMojoBase {
      * Boolean flag to control whether to wait the deployment status to be ready after deployment
      */
     @Parameter(property = "noWait")
-    private boolean noWait;
+    private Boolean noWait;
 
     /**
      * Boolean flag to control whether to prompt the tasks before deployment
      */
     @Parameter(property = "prompt")
-    private boolean prompt;
+    private Boolean prompt;
 
     @Override
     @AzureOperation("user/springcloud.deploy_mojo")
@@ -84,13 +85,13 @@ public class DeployMojo extends AbstractMojoBase {
         final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig);
 
         final List<AzureTask<?>> tasks = task.getSubTasks();
-        final boolean shouldSkipConfirm = !prompt || (this.settings != null && !this.settings.isInteractiveMode());
+        final boolean shouldSkipConfirm = !BooleanUtils.isTrue(prompt) || (this.settings != null && !this.settings.isInteractiveMode());
         if (!shouldSkipConfirm && !this.confirm(tasks)) {
             log.warn("Deployment is cancelled!");
             return;
         }
         final SpringCloudDeployment deployment = task.doExecute();
-        if (!noWait && Optional.of(deploymentConfig).map(SpringCloudDeploymentConfig::getArtifact).map(IArtifact::getFile).isPresent()) {
+        if (!BooleanUtils.isTrue(noWait) && Optional.of(deploymentConfig).map(SpringCloudDeploymentConfig::getArtifact).map(IArtifact::getFile).isPresent()) {
             if (!deployment.waitUntilReady(GET_STATUS_TIMEOUT)) {
                 log.warn(GET_DEPLOYMENT_STATUS_TIMEOUT);
             }
@@ -127,7 +128,7 @@ public class DeployMojo extends AbstractMojoBase {
         }
         log.info("Getting public url of app({})...", TextUtils.cyan(app.name()));
         String publicUrl = app.getApplicationUrl();
-        if (!noWait && StringUtils.isEmpty(publicUrl)) {
+        if (!BooleanUtils.isTrue(noWait) && StringUtils.isEmpty(publicUrl)) {
             publicUrl = Utils.pollUntil(() -> {
                 app.refresh();
                 return app.getApplicationUrl();

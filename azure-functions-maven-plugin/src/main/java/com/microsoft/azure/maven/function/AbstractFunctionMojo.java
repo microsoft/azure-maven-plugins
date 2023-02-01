@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.legacy.function.configurations.RuntimeCon
 import com.microsoft.azure.toolkit.lib.legacy.function.utils.FunctionUtils;
 import lombok.Getter;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -77,7 +78,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      * @since 0.1.0
      */
     @Parameter(property = "functions.skip", defaultValue = "false")
-    protected boolean skip;
+    protected Boolean skip;
 
     /**
      * Region for function app
@@ -150,7 +151,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      * @since 1.6.0
      */
     @Parameter(property = "functions.disableAppInsights", defaultValue = "false")
-    protected boolean disableAppInsights;
+    protected Boolean disableAppInsights;
 
     /**
      * Path for host.json file
@@ -183,7 +184,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     @Override
     protected boolean isSkipMojo() {
-        return skip;
+        return BooleanUtils.isTrue(skip);
     }
 
     public String getFinalName() {
@@ -199,7 +200,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     }
 
     public boolean isDisableAppInsights() {
-        return disableAppInsights;
+        return BooleanUtils.isTrue(disableAppInsights);
     }
 
     public RuntimeConfiguration getRuntimeConfiguration() {

@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterModule;
 import lombok.Lombok;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.PluginParameterExpressionEvaluator;
@@ -58,7 +59,7 @@ public class ConfigMojo extends AbstractMojoBase {
     private static final List<String> APP_PROPERTIES = Arrays.asList("appName", "isPublic");
     private static final List<String> DEPLOYMENT_PROPERTIES = Arrays.asList("cpu", "memoryInGB", "instanceCount", "jvmOptions", "runtimeVersion");
 
-    private boolean parentMode;
+    private Boolean parentMode; // this is not a mojo parameter
 
     /**
      * The prompt wrapper to get user input for each property.
@@ -100,7 +101,7 @@ public class ConfigMojo extends AbstractMojoBase {
      * Boolean flag to control whether to prompt the advanced options
      */
     @Parameter(property = "advancedOptions")
-    private boolean advancedOptions;
+    private Boolean advancedOptions;
 
     @Override
     @AzureOperation("user/springcloud.config_mojo")
@@ -121,7 +122,7 @@ public class ConfigMojo extends AbstractMojoBase {
         appSettings = new AppRawConfig();
         deploymentSettings = new AppDeploymentRawConfig();
         parentMode = MavenConfigUtils.isPomPackaging(this.project);
-        if (parentMode && advancedOptions) {
+        if (parentMode && BooleanUtils.isTrue(advancedOptions)) {
             throw new UnsupportedOperationException("The \"advancedOptions\" mode is not supported at parent folder.");
         }
         final ExpressionEvaluator expressionEvaluator = new PluginParameterExpressionEvaluator(session, mojoExecution);
@@ -229,7 +230,7 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private boolean autoUseDefault() {
-        return !advancedOptions || parentMode;
+        return !BooleanUtils.isTrue(advancedOptions) || parentMode;
     }
 
     private void confirmAndSave() throws IOException {
