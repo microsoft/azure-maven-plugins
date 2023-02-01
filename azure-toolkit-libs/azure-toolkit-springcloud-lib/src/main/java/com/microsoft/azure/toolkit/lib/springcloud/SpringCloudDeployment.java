@@ -10,6 +10,7 @@ import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.azure.resourcemanager.appplatform.fluent.AppPlatformManagementClient;
 import com.azure.resourcemanager.appplatform.fluent.models.RemoteDebuggingInner;
 import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
+import com.azure.resourcemanager.appplatform.models.RemoteDebuggingPayload;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasManager;
 import com.google.common.base.Charsets;
@@ -221,11 +222,12 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     public void enableRemoteDebugging(int port) {
         final SpringCloudApp app = this.getParent();
         final SpringCloudCluster cluster = app.getParent();
+        final RemoteDebuggingPayload payload = new RemoteDebuggingPayload().withPort(port);
         Optional.ofNullable(cluster.getRemote())
             .map(HasManager::manager)
             .map(AppPlatformManager::serviceClient)
             .map(AppPlatformManagementClient::getDeployments)
-            .ifPresent(c -> doModify(() -> c.enableRemoteDebugging(this.getResourceGroupName(), cluster.getName(), app.getName(), this.getName()), Status.UPDATING));
+            .ifPresent(c -> doModify(() -> c.enableRemoteDebugging(this.getResourceGroupName(), cluster.getName(), app.getName(), this.getName(), payload), Status.UPDATING));
     }
 
     @AzureOperation(name = "azure/springcloud.disable_remote_debugging.deployment", params = {"this.getName()"})
