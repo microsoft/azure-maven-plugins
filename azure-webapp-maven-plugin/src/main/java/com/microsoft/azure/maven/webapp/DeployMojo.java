@@ -27,6 +27,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Getter;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -99,7 +100,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private WebAppBase<?, ?, ?> createOrUpdateResource() throws AzureExecutionException {
-        final boolean skipCreate = skipAzureResourceCreate || skipCreateAzureResource;
+        final boolean skipCreate = skipAzureResourceCreate || BooleanUtils.isTrue(skipCreateAzureResource);
         final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
         final WebApp app = Azure.az(AzureWebApp.class).webApps(appServiceConfig.subscriptionId())
                 .getOrDraft(appServiceConfig.appName(), appServiceConfig.resourceGroup());
@@ -134,7 +135,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deploy(WebAppBase<?, ?, ?> target, List<WebAppArtifact> artifacts) {
-        final DeployWebAppTask deployWebAppTask = new DeployWebAppTask(target, artifacts, this.isRestartSite(), this.getWaitDeploymentComplete());
+        final DeployWebAppTask deployWebAppTask = new DeployWebAppTask(target, artifacts, this.getRestartSite(), this.getWaitDeploymentComplete());
         Optional.ofNullable(this.getDeploymentStatusRefreshInterval()).ifPresent(deployWebAppTask::setDeploymentStatusRefreshInterval);
         Optional.ofNullable(this.getDeploymentStatusMaxRefreshTimes()).ifPresent(deployWebAppTask::setDeploymentStatusMaxRefreshTimes);
         deployWebAppTask.doExecute();

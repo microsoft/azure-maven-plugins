@@ -29,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreTool
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreToolsHandlerImpl;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -105,7 +106,7 @@ public class PackageMojo extends AbstractFunctionMojo {
      * Boolean flag to skip extension installation
      */
     @Parameter(property = "functions.skipInstallExtensions", defaultValue = "false")
-    protected boolean skipInstallExtensions;
+    protected Boolean skipInstallExtensions;
 
     @Override
     @AzureOperation("user/functionapp.package")
@@ -382,7 +383,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     protected boolean isInstallingExtensionNeeded(Set<BindingEnum> bindingTypes) {
-        if (skipInstallExtensions) {
+        if (BooleanUtils.isTrue(skipInstallExtensions)) {
             Log.info(SKIP_INSTALL_EXTENSIONS_FLAG);
             return false;
         }

@@ -25,6 +25,7 @@ import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DockerImageType;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -72,7 +73,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     @JsonProperty
     @Deprecated
     @Parameter(property = "webapp.stopAppDuringDeployment", defaultValue = "false")
-    protected boolean stopAppDuringDeployment;
+    protected Boolean stopAppDuringDeployment;
 
     /**
      * Boolean flag to control whether to restart site after deployment. By default the value is true.
@@ -81,7 +82,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     @Getter
     @JsonProperty
     @Parameter(property = "webapp.stopAppDuringDeployment", defaultValue = "true")
-    protected boolean restartSite;
+    protected Boolean restartSite;
 
     /**
      * Boolean flag to skip the execution of maven plugin for azure webapp
@@ -89,7 +90,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      */
     @JsonProperty
     @Parameter(property = "webapp.skip", defaultValue = "false")
-    protected boolean skip;
+    protected Boolean skip;
 
     /**
      * Boolean flag to skip the resource creation, will throw exception if target resource does not exist in this case
@@ -97,7 +98,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      */
     @JsonIgnore
     @Parameter(property = "azure.resource.create.skip", defaultValue = "false")
-    protected boolean skipAzureResourceCreate;
+    protected Boolean skipAzureResourceCreate;
 
     /**
      * Boolean flag to skip the resource creation, will throw exception if target resource does not exist in this case
@@ -105,7 +106,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      */
     @JsonIgnore
     @Parameter(property = "skipCreateAzureResource")
-    protected boolean skipCreateAzureResource;
+    protected Boolean skipCreateAzureResource;
 
     /**
      * Region for web app
@@ -296,7 +297,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
                 .map(StringUtils::isNotEmpty).orElse(false);
         map.put(DEPLOY_TO_SLOT_KEY, String.valueOf(isDeployToSlot));
 
-        map.put(SKIP_CREATE_RESOURCE_KEY, String.valueOf(skipAzureResourceCreate || skipCreateAzureResource));
+        map.put(SKIP_CREATE_RESOURCE_KEY, String.valueOf(skipAzureResourceCreate || BooleanUtils.isTrue(skipCreateAzureResource)));
         return map;
     }
 
