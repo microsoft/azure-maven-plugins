@@ -17,12 +17,13 @@ import java.util.List;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class TransportMethod {
-    public static final TransportMethod AUTO = new TransportMethod("auto");
-    public static final TransportMethod HTTP = new TransportMethod("http");
-    public static final TransportMethod HTTP2 = new TransportMethod("http2");
-    public static final TransportMethod TCP = new TransportMethod("tcp");
+    public static final TransportMethod AUTO = new TransportMethod("auto", "Auto");
+    public static final TransportMethod HTTP = new TransportMethod("http", "HTTP/1");
+    public static final TransportMethod HTTP2 = new TransportMethod("http2", "HTTP/2");
+    public static final TransportMethod TCP = new TransportMethod("tcp", "TCP");
 
     private String value;
+    private String displayName;
 
     public static List<TransportMethod> values() {
         return Arrays.asList(AUTO, HTTP, HTTP2, TCP);
