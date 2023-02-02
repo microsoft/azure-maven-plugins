@@ -321,6 +321,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             } catch (InterruptedException e) {
                 // swallow this exception
             }
+            ProxyManager.getInstance().resetProxy();
             ApacheSenderFactory.INSTANCE.create().close();
         }
     }

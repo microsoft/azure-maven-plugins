@@ -30,6 +30,7 @@ public class ProxyManager {
     // isSystemProxyUnset shows whether user specify the proxy through -Djava.net.useSystemProxies
     // see: https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html
     private static final boolean isSystemProxyUnset = StringUtils.isBlank(System.getProperty(PROPERTY_USE_SYSTEM_PROXY));
+    private final ProxySelector defaultProxySelector = ProxySelector.getDefault();
 
     public boolean isProxyEnabled() {
         return StringUtils.isNotBlank(Azure.az().config().getProxySource());
@@ -93,6 +94,10 @@ public class ProxyManager {
                 }
             }
         }
+    }
+
+    public void resetProxy() {
+        ProxySelector.setDefault(this.defaultProxySelector);
     }
 
     private ProxyInfo getSystemProxy() {
