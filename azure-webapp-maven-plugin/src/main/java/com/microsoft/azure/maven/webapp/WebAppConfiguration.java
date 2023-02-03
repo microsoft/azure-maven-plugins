@@ -93,4 +93,10 @@ public class WebAppConfiguration {
     public String getWebContainerOrDefault() {
         return Objects.toString(ObjectUtils.firstNonNull(webContainer, DEFAULT_CONTAINER));
     }
+
+    public static abstract class WebAppConfigurationBuilder<
+        C extends WebAppConfiguration,
+        B extends WebAppConfiguration.WebAppConfigurationBuilder<C, B>
+        > {
+    }
 }
