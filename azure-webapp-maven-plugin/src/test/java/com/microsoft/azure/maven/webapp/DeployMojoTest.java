@@ -73,7 +73,7 @@ public class DeployMojoTest {
 
         assertEquals(1, mojo.getDeployment().getResources().size());
 
-        assertFalse(mojo.isStopAppDuringDeployment());
+        assertFalse(mojo.getStopAppDuringDeployment());
     }
 
     @Test

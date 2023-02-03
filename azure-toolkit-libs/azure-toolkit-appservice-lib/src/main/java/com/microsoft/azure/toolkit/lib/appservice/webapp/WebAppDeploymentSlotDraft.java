@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.webapp;
 
 import com.azure.core.management.exception.ManagementException;
+import com.azure.core.util.Context;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
 import com.azure.resourcemanager.appservice.models.WebApp;
@@ -39,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDraft.CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS;
@@ -117,9 +119,13 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
         }
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Web App deployment slot ({0})...", name));
-        // As we can not update runtime for deployment slot during creation, so call update resource here
-        DeploymentSlot slot = (DeploymentSlot) Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
+        // workaround to resolve slot creation exception could not be caught by azure operation
+        // todo: add unified error handling for reactor
+        final Consumer<Throwable> throwableConsumer = error -> messager.error(error);
+        final Context context = new Context("reactor.onErrorDropped.local", throwableConsumer);
+        DeploymentSlot slot = (DeploymentSlot) Objects.requireNonNull(this.doModify(() -> withCreate.create(context), Status.CREATING));
         final Runtime runtime = this.getRuntime();
+        // As we can not update runtime for deployment slot during creation, so call update resource here
         final boolean isRuntimeModified = (Objects.nonNull(runtime) && !Objects.equals(runtime, getParent().getRuntime())) || Objects.nonNull(this.getDockerConfiguration());
         if (isRuntimeModified) {
             final DeploymentSlot slotToUpdate = slot;

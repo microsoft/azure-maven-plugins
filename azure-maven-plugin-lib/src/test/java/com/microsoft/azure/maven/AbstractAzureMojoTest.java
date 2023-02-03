@@ -110,7 +110,7 @@ public class AbstractAzureMojoTest {
 
     @Test
     public void isTelemetryAllowed() throws Exception {
-        assertFalse(mojo.isAllowTelemetry());
+        assertFalse(mojo.getAllowTelemetry());
     }
 
     @Test

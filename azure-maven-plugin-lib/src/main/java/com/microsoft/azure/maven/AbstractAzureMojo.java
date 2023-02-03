@@ -45,6 +45,7 @@ import com.microsoft.azure.toolkit.maven.common.task.MavenAzureTaskManager;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.maven.execution.MavenExecutionRequest;
@@ -149,7 +150,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     @JsonProperty
     @Parameter
     @Getter
-    protected String subscriptionId = "";
+    protected String subscriptionId = null;
 
     /**
      * Boolean flag to turn on/off telemetry within current Maven plugin.
@@ -158,7 +159,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     @Getter
     @JsonProperty
     @Parameter(property = "allowTelemetry", defaultValue = "true")
-    protected boolean allowTelemetry;
+    protected Boolean allowTelemetry;
 
     /**
      * Boolean flag to control whether throwing exception from current Maven plugin when meeting any error.<p>
@@ -168,7 +169,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     @Getter
     @JsonProperty
     @Parameter(property = "failsOnError", defaultValue = "true")
-    protected boolean failsOnError;
+    protected Boolean failsOnError;
 
     /**
      * Deprecated, please set the authentication type in `auth`
@@ -181,7 +182,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
 
     /**
      * Configuration for maven plugin authentication
-     *
      * Parameters for authentication
      * <ul>
      *     <li> type: specify which authentication method to use, default to be `auto`:
@@ -321,6 +321,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             } catch (InterruptedException e) {
                 // swallow this exception
             }
+            ProxyManager.getInstance().resetProxy();
             ApacheSenderFactory.INSTANCE.create().close();
         }
     }
@@ -340,7 +341,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     }
 
     public String getUserAgent() {
-        return isAllowTelemetry() ? String.format("%s/%s %s:%s %s:%s", getPluginName(), getPluginVersion(),
+        return BooleanUtils.isNotFalse(allowTelemetry) ? String.format("%s/%s %s:%s %s:%s", getPluginName(), getPluginVersion(),
             INSTALLATION_ID_KEY, getInstallationId(), SESSION_ID_KEY, getSessionId())
             : String.format("%s/%s", getPluginName(), getPluginVersion());
     }
@@ -449,7 +450,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         telemetryProxy = new AzureTelemetryClient(properties);
         AzureTelemeter.setClient(telemetryProxy);
         AzureTelemeter.setEventNamePrefix("AzurePlugin.Maven");
-        if (!isAllowTelemetry()) {
+        if (!BooleanUtils.isNotFalse(allowTelemetry)) {
             telemetryProxy.trackEvent(TELEMETRY_NOT_ALLOWED);
             telemetryProxy.disable();
         }
@@ -539,7 +540,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     protected void onMojoError(final Throwable exception) throws MojoExecutionException {
         trackMojoFailure(exception);
 
-        if (isFailsOnError()) {
+        if (BooleanUtils.isNotFalse(failsOnError)) {
             final String message = StringUtils.isEmpty(exception.getMessage()) ? exception.toString() : exception.getMessage();
             throw new MojoExecutionException(message, exception);
         } else {
