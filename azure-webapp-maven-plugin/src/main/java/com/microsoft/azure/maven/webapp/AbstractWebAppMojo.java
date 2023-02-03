@@ -58,7 +58,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     /**
      * Pricing for web app <p>
      * Supported values : F1, D1, B1, B2, B3, S1, S2, S3, P1V2, P2V2, P3V2, P1V3, P2V3, P3V3
-     * @Since 0.1.0
+     * @since 0.1.0
      */
     @JsonProperty
     @Parameter(property = "webapp.pricingTier")
@@ -66,8 +66,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     /**
      * Boolean flag to control whether stop web app during deployment.
-     * @Deprecated Please use `restartSite` instead.
-     * @Since 0.1.0
+     * @deprecated Please use `restartSite` instead.
+     * @since 0.1.0
      */
     @Getter
     @JsonProperty
@@ -77,7 +77,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     /**
      * Boolean flag to control whether to restart site after deployment. By default the value is true.
-     * @Since 2.8.0
+     * @since 2.8.0
      */
     @Getter
     @JsonProperty

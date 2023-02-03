@@ -53,7 +53,7 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     /**
      * Boolean flag to control whether to wait deployment complete in app service with deployment status API.
-     * @Since 2.8.0
+     * @since 2.8.0
      */
     @Getter
     @Parameter(property = "webapp.waitDeploymentComplete")
@@ -61,7 +61,7 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     /**
      *  The interval in seconds to check deployment status.
-     *  @Since 2.8.0
+     *  @since 2.8.0
      */
     @Getter
     @Parameter(property = "webapp.deploymentStatusRefreshInterval")
@@ -69,7 +69,7 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     /**
      *  The max retry times to check deployment status
-     *  @Since 2.8.0
+     *  @since 2.8.0
      */
     @Getter
     @Parameter(property = "webapp.deploymentStatusMaxRefreshTimes")
