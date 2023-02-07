@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.proxy;
 
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
+import org.jetbrains.annotations.Nullable;
 
 @SuperBuilder
 @Getter
@@ -16,4 +17,6 @@ public class ProxyInfo {
     private int port;
     private String username;
     private String password;
+    @Nullable
+    private String nonProxyHosts;
 }

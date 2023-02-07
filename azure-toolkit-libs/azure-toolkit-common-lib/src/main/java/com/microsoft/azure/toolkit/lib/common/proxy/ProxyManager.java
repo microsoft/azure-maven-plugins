@@ -24,6 +24,11 @@ import java.net.SocketAddress;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.StringJoiner;
+import java.util.regex.Pattern;
+
+import static java.util.regex.Pattern.quote;
 
 public class ProxyManager {
     private static final String PROPERTY_USE_SYSTEM_PROXY = "java.net.useSystemProxies";
@@ -68,6 +73,18 @@ public class ProxyManager {
                 ProxySelector.setDefault(new ProxySelector() {
                     @Override
                     public List<Proxy> select(URI uri) {
+                        if (uri == null) {
+                            throw new IllegalArgumentException("URI can't be null.");
+                        }
+                        String protocol = uri.getScheme();
+                        String host = uri.getHost();
+                        if (protocol == null || host == null) {
+                            throw new IllegalArgumentException("protocol = "+protocol+" host = "+host);
+                        }
+                        if (shouldNotUseProxyFor(toPattern(Optional.ofNullable(config.getNonProxyHosts()).orElse(StringUtils.EMPTY)),
+                                host.toLowerCase())) {
+                            return Collections.singletonList(Proxy.NO_PROXY);
+                        }
                         return Collections.singletonList(proxy);
                     }
 
@@ -118,13 +135,16 @@ public class ProxyManager {
         final String proxyPort = System.getProperty(prefix + ".proxyPort");
         final String proxyUser = System.getProperty(prefix + ".proxyUser");
         final String proxyPassword = System.getProperty(prefix + ".proxyPassword");
+        final String nonProxyHosts = System.getProperty(prefix + ".nonProxyHosts");
 
         if (StringUtils.isNoneBlank(proxyHost, proxyPort) && NumberUtils.isCreatable(proxyPort)) {
             return ProxyInfo.builder().source(String.format("${%s}", prefix + ".proxyHost"))
                 .host(proxyHost)
                 .port(Integer.parseInt(proxyPort))
                 .username(proxyUser)
-                .password(proxyPassword).build();
+                .password(proxyPassword)
+                .nonProxyHosts(nonProxyHosts)
+                .build();
         }
         return null;
     }
@@ -147,6 +167,60 @@ public class ProxyManager {
             return ProxyInfo.builder().source("system").host(address.getHostName()).port(address.getPort()).build();
         }
         return null;
+    }
+
+    /**
+     * refer to {@link sun.net.spi.DefaultProxySelector}
+     * @return {@code true} if given this pattern for non-proxy hosts and this
+     *         urlhost the proxy should NOT be used to access this urlhost
+     */
+    private static boolean shouldNotUseProxyFor(Pattern pattern, String urlhost) {
+        if (pattern == null || urlhost.isEmpty()) {
+            return false;
+        }
+        boolean matches = pattern.matcher(urlhost).matches();
+        return matches;
+    }
+
+    /**
+     * refer to {@link sun.net.spi.DefaultProxySelector}
+     * @param mask non-null mask
+     * @return {@link java.util.regex.Pattern} corresponding to this mask
+     *         or {@code null} in case mask should not match anything
+     */
+    private static Pattern toPattern(String mask) {
+        boolean disjunctionEmpty = true;
+        StringJoiner joiner = new StringJoiner("|");
+        for (String disjunct : mask.split("\\|")) {
+            if (disjunct.isEmpty()) {
+                continue;
+            }
+            disjunctionEmpty = false;
+            String regex = disjunctToRegex(disjunct.toLowerCase());
+            joiner.add(regex);
+        }
+        return disjunctionEmpty ? null : Pattern.compile(joiner.toString());
+    }
+
+    /**
+     * refer to {@link sun.net.spi.DefaultProxySelector}
+     * @param disjunct non-null mask disjunct
+     * @return java regex string corresponding to this mask
+     */
+    private static String disjunctToRegex(String disjunct) {
+        String regex;
+        if ("*".equals(disjunct)) {
+            regex = ".*";
+        } else if (disjunct.startsWith("*") && disjunct.endsWith("*")) {
+            regex = ".*" + quote(disjunct.substring(1, disjunct.length() - 1)) + ".*";
+        } else if (disjunct.startsWith("*")) {
+            regex = ".*" + quote(disjunct.substring(1));
+        } else if (disjunct.endsWith("*")) {
+            regex = quote(disjunct.substring(0, disjunct.length() - 1)) + ".*";
+        } else {
+            regex = quote(disjunct);
+        }
+        return regex;
     }
 
 }
