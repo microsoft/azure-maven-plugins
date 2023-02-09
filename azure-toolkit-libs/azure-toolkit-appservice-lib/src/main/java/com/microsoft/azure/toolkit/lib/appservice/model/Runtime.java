@@ -13,12 +13,7 @@ import lombok.Setter;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -69,6 +64,12 @@ public class Runtime {
             WINDOWS_JAVA8_TOMCAT9, WINDOWS_JAVA8_TOMCAT85, WINDOWS_JAVA8_TOMCAT10, WINDOWS_JAVA11_TOMCAT9, WINDOWS_JAVA11_TOMCAT85, WINDOWS_JAVA11_TOMCAT10,
             WINDOWS_JAVA17_TOMCAT10, LINUX_JAVA8, LINUX_JAVA11, LINUX_JAVA17, LINUX_JAVA8_TOMCAT9, LINUX_JAVA8_TOMCAT85, LINUX_JAVA8_TOMCAT10,
             LINUX_JAVA11_JBOSS7, LINUX_JAVA8_JBOSS7, LINUX_JAVA11_TOMCAT9, LINUX_JAVA11_TOMCAT85, LINUX_JAVA11_TOMCAT10, LINUX_JAVA17_TOMCAT10));
+    public static final String WEBAPP_RUNTIME_WINDOWS_JAVA11 = "Windows Java 11";
+    public static final String WEBAPP_RUNTIME_WINDOWS_JAVA17 = "Windows Java 17";
+    public static final String WEBAPP_RUNTIME_LINUX_JAVA8 = "Linux Java 8";
+    public static final String WEBAPP_RUNTIME_LINUX_JAVA11 = "Linux Java 11";
+    public static final String WEBAPP_RUNTIME_LINUX_JAVA17 = "Linux Java 17";
+    public static final String WEBAPP_RUNTIME_WINDOWS_JAVA8 = "Windows Java 8";
     public static final List<Runtime> FUNCTION_APP_RUNTIME = Collections.unmodifiableList(Arrays.asList(FUNCTION_LINUX_JAVA8, FUNCTION_LINUX_JAVA11, FUNCTION_LINUX_JAVA17,
             FUNCTION_WINDOWS_JAVA8, FUNCTION_WINDOWS_JAVA11, FUNCTION_WINDOWS_JAVA17));
     private static final List<Runtime> values =
@@ -77,6 +78,17 @@ public class Runtime {
     private OperatingSystem operatingSystem;
     private WebContainer webContainer;
     private JavaVersion javaVersion;
+
+    public static LinkedHashMap<String, List<Runtime>> getWebappRuntimeMap() {
+        final LinkedHashMap<String, List<Runtime>> result = new LinkedHashMap<>();
+        result.put(WEBAPP_RUNTIME_WINDOWS_JAVA8, Collections.unmodifiableList(Arrays.asList(WINDOWS_JAVA8, WINDOWS_JAVA8_TOMCAT10, WINDOWS_JAVA8_TOMCAT9, WINDOWS_JAVA8_TOMCAT85)));
+        result.put(WEBAPP_RUNTIME_WINDOWS_JAVA11, Collections.unmodifiableList(Arrays.asList(WINDOWS_JAVA11, WINDOWS_JAVA11_TOMCAT10, WINDOWS_JAVA11_TOMCAT9, WINDOWS_JAVA11_TOMCAT85)));
+        result.put(WEBAPP_RUNTIME_WINDOWS_JAVA17, Collections.unmodifiableList(Arrays.asList(WINDOWS_JAVA17, WINDOWS_JAVA17_TOMCAT10)));
+        result.put(WEBAPP_RUNTIME_LINUX_JAVA8, Collections.unmodifiableList(Arrays.asList(LINUX_JAVA8, LINUX_JAVA8_JBOSS7, LINUX_JAVA8_TOMCAT10, LINUX_JAVA8_TOMCAT9, LINUX_JAVA8_TOMCAT85)));
+        result.put(WEBAPP_RUNTIME_LINUX_JAVA11, Collections.unmodifiableList(Arrays.asList(LINUX_JAVA11, LINUX_JAVA11_JBOSS7, LINUX_JAVA11_TOMCAT10, LINUX_JAVA11_TOMCAT9, LINUX_JAVA11_TOMCAT85)));
+        result.put(WEBAPP_RUNTIME_LINUX_JAVA17, Collections.unmodifiableList(Arrays.asList(LINUX_JAVA17, LINUX_JAVA17_TOMCAT10)));
+        return result;
+    }
 
     public static Runtime getRuntime(OperatingSystem operatingSystem, WebContainer webContainer, JavaVersion javaVersion) {
         final Runtime standardRuntime = values().stream()
