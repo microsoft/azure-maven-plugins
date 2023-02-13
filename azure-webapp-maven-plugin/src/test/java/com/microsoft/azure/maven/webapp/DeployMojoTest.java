@@ -6,6 +6,7 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
@@ -73,7 +74,7 @@ public class DeployMojoTest {
 
         assertEquals(1, mojo.getDeployment().getResources().size());
 
-        assertFalse(mojo.getStopAppDuringDeployment());
+        assertFalse(BooleanUtils.isTrue(mojo.getStopAppDuringDeployment()));
     }
 
     @Test
