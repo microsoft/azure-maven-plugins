@@ -8,6 +8,8 @@ package com.microsoft.azure.toolkit.lib.springcloud.task;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
@@ -80,7 +82,20 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         tasks.add(new AzureTask<Void>(MODIFY_DEPLOYMENT_TITLE, () -> {
             final SpringCloudDeploymentDraft draft = app.deployments().updateOrCreate(deploymentName, resourceGroup);
             draft.setConfig(config.getDeployment());
-            this.deployment = draft.commit();
+            try {
+                this.deployment = draft.commit();
+                final IAzureMessager messager = AzureMessager.getMessager();
+                this.deployment.getInstances().forEach(springCloudAppInstance -> {
+                    final String instanceName = springCloudAppInstance.getName();
+                    this.deployment.streamLogs(instanceName, 0, 200, 0, true).subscribe(s -> {
+                        // remove empty line
+                        final String adjusted = s.replaceAll("(?m)^[ \t]*\r?\n", "").replaceAll("\n", "\n\t");
+                        messager.info(String.format("\t%s", adjusted));
+                    });
+                });
+            } catch (final Exception e) {
+                throw new AzureToolkitRuntimeException(e);
+            }
         }));
         tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, () -> {
             final SpringCloudAppDraft draft = (SpringCloudAppDraft) app.update();
