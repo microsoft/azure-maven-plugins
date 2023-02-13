@@ -297,7 +297,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
                 .map(StringUtils::isNotEmpty).orElse(false);
         map.put(DEPLOY_TO_SLOT_KEY, String.valueOf(isDeployToSlot));
 
-        map.put(SKIP_CREATE_RESOURCE_KEY, String.valueOf(skipAzureResourceCreate || BooleanUtils.isTrue(skipCreateAzureResource)));
+        map.put(SKIP_CREATE_RESOURCE_KEY, String.valueOf(BooleanUtils.isTrue(skipCreateAzureResource)));
         return map;
     }
 
