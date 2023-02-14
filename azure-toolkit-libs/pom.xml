@@ -53,6 +53,7 @@
         <module>azure-toolkit-containerapps-lib</module>
         <module>azure-toolkit-mysql-single-lib</module>
         <module>azure-toolkit-monitor-lib</module>
+        <module>azure-toolkit-eventhubs-lib</module>
     </modules>
 
     <properties>
@@ -87,6 +88,7 @@
         <azure-resourcemanager-mysql.version>1.0.2</azure-resourcemanager-mysql.version>
         <azure-resourcemanager-postgre.version>1.0.2</azure-resourcemanager-postgre.version>
         <azure-resourcemanager-loganalytics.version>1.0.0-beta.3</azure-resourcemanager-loganalytics.version>
+        <azure-resourcemanager-eventhubs.version>2.23.0</azure-resourcemanager-eventhubs.version>
         <azure-monitor-query.version>1.0.10</azure-monitor-query.version>
         <azure-storage.version>8.6.6</azure-storage.version>
         <azure-storage-blob.version>12.19.1</azure-storage-blob.version>
@@ -270,6 +272,11 @@
                 <artifactId>azure-toolkit-monitor-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-eventhubs-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
             <!-- azure data management sdk -->
             <dependency>
                 <groupId>com.azure</groupId>
@@ -413,6 +420,11 @@
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-loganalytics</artifactId>
                 <version>${azure-resourcemanager-loganalytics.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-eventhubs</artifactId>
+                <version>${azure-resourcemanager-eventhubs.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.rest</groupId>
