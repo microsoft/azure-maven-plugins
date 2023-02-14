@@ -32,8 +32,6 @@ public class EventHubsNamespace extends AbstractAzResource<EventHubsNamespace, E
     @NotNull
     @Override
     public String loadStatus(@NotNull EventHubNamespace remote) {
-        final String status = remote.innerModel().status();
-        getRemote().listEventHubs().forEach(eventHub -> eventHub.innerModel().status());
         return remote.provisioningState();
     }
 }
