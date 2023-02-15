@@ -1,15 +1,18 @@
 package com.microsoft.azure.toolkit.lib.eventhubs;
 
+import com.azure.resourcemanager.eventhubs.EventHubsManager;
 import com.azure.resourcemanager.eventhubs.models.EventHubNamespace;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
-import java.util.Collections;
-import java.util.List;
+import javax.annotation.Nullable;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class EventHubsNamespace extends AbstractAzResource<EventHubsNamespace, EventHubsNamespaceSubscription, EventHubNamespace> implements Deletable {
     @Nonnull
@@ -43,5 +46,24 @@ public class EventHubsNamespace extends AbstractAzResource<EventHubsNamespace, E
 
     public List<EventHubsInstance> getInstances() {
         return this.instanceModule.list();
+    }
+
+    @Nullable
+    public String getConnectionString() {
+        final List<String> connectionStrings = Optional.ofNullable(getRemote()).map(eventHubNamespace -> eventHubNamespace.listAuthorizationRules().stream()
+                .map(eventHubNamespaceAuthorizationRule -> eventHubNamespaceAuthorizationRule.getKeys().primaryConnectionString())
+                .collect(Collectors.toList()))
+                .orElse(new ArrayList<>());
+        final EventHubsManager manager = getParent().getRemote();
+        if (connectionStrings.size() > 0) {
+            return connectionStrings.get(0);
+        }
+        if (Objects.isNull(manager)) {
+            return null;
+        }
+        return manager.namespaceAuthorizationRules().define(String.format("policy-%s", Utils.getTimestamp()))
+                .withExistingNamespace(getResourceGroupName(), getName())
+                .withSendAndListenAccess()
+                .create().getKeys().primaryConnectionString();
     }
 }
