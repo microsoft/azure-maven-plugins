@@ -1,15 +1,17 @@
 package com.microsoft.azure.toolkit.lib.eventhubs;
 
 import com.azure.resourcemanager.eventhubs.models.EventHubNamespace;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 
-public class EventHubsNamespace extends AbstractAzResource<EventHubsNamespace, EventHubsNamespaceSubscription, EventHubNamespace> {
+public class EventHubsNamespace extends AbstractAzResource<EventHubsNamespace, EventHubsNamespaceSubscription, EventHubNamespace> implements Deletable {
     @Nonnull
     private final EventHubsInstanceModule instanceModule;
     protected EventHubsNamespace(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull EventHubsNamespaceModule module) {
@@ -23,7 +25,7 @@ public class EventHubsNamespace extends AbstractAzResource<EventHubsNamespace, E
     }
 
     protected EventHubsNamespace(@Nonnull EventHubNamespace remote, @Nonnull EventHubsNamespaceModule module) {
-        super(remote.name(), module);
+        super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
         this.instanceModule = new EventHubsInstanceModule(this);
     }
 

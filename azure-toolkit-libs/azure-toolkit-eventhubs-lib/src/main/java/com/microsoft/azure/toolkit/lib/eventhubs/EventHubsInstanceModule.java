@@ -1,6 +1,7 @@
 package com.microsoft.azure.toolkit.lib.eventhubs;
 
 import com.azure.core.util.paging.ContinuablePage;
+import com.azure.resourcemanager.eventhubs.EventHubsManager;
 import com.azure.resourcemanager.eventhubs.models.EventHub;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
@@ -45,6 +46,12 @@ public class EventHubsInstanceModule  extends AbstractAzResourceModule<EventHubs
     protected Stream<EventHub> loadResourcesFromAzure() {
         List<EventHub> eventHubList = Optional.ofNullable(this.getClient()).orElse(Collections.emptyList());
         return eventHubList.stream();
+    }
+
+    @Override
+    protected void deleteResourceFromAzure(@Nonnull String resourceId) {
+        Optional.ofNullable(this.parent.getParent().getRemote()).map(EventHubsManager::eventHubs)
+                .ifPresent(client -> client.deleteById(resourceId));
     }
 
     @Nonnull

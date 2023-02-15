@@ -1,10 +1,13 @@
 package com.microsoft.azure.toolkit.lib.eventhubs;
 
+import com.azure.resourcemanager.eventhubs.EventHubsManager;
+import com.azure.resourcemanager.eventhubs.fluent.EventHubManagementClient;
 import com.azure.resourcemanager.eventhubs.fluent.models.EventhubInner;
 import com.azure.resourcemanager.eventhubs.models.EntityStatus;
 import com.azure.resourcemanager.eventhubs.models.EventHub;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -13,7 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, EventHubsNamespace, EventHub> {
+public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, EventHubsNamespace, EventHub> implements Deletable {
     @Nullable
     private EntityStatus status;
     protected EventHubsInstance(@Nonnull String name, @Nonnull EventHubsInstanceModule module) {
@@ -52,5 +55,26 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
 
     public boolean isSendDisabled() {
         return Objects.equals(this.status, EntityStatus.SEND_DISABLED);
+    }
+
+    public void active() {
+        updateStatus(EntityStatus.ACTIVE);
+    }
+
+    public void disable() {
+        updateStatus(EntityStatus.DISABLED);
+    }
+
+    public void disableSending() {
+        updateStatus(EntityStatus.SEND_DISABLED);
+    }
+
+    private void updateStatus(EntityStatus status) {
+        final EventhubInner inner = new EventhubInner();
+        final EventHubsNamespace namespace = this.getParent();
+        Optional.ofNullable(namespace.getParent().getRemote())
+                .map(EventHubsManager::serviceClient)
+                .map(EventHubManagementClient::getEventHubs)
+                .ifPresent(c -> doModify(() -> c.createOrUpdate(getResourceGroupName(), namespace.getName(), getName(), inner.withStatus(status)), Status.UPDATING));
     }
 }
