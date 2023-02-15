@@ -39,6 +39,8 @@ public class TemplateTriggerTypeDeserializer extends StdDeserializer<String> {
                     return bindingsNode.get(i).get("type").asText();
                 }
             }
+            // if there is no in trigger, return the first binding
+            return bindingsNode.get(0).get("type").asText();
         } catch (IOException e) {
             // swallow it
         }

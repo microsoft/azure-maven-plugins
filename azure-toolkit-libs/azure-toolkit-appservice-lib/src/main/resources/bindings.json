@@ -476,6 +476,31 @@
           "help": "$cosmosDBIn_createLeaseContainerIfNotExists_help"
         }
       ]
+    },
+    {
+      "type": "sql",
+      "displayName": "$sql_displayName",
+      "direction": "out",
+      "enabledInTryMode": false,
+      "settings": [
+        {
+          "name": "table",
+          "value": "string",
+          "defaultValue": "[dbo].[table1]",
+          "required": true,
+          "label": "$sql_table_label",
+          "help": "$sql_label_help"
+        },
+        {
+          "name": "SqlConnectionString",
+          "value": "string",
+          "defaultValue": "",
+          "required": true,
+          "resource": "Sql",
+          "label": "$sql_connection_label",
+          "help": "$sql_connection_help"
+        }
+      ]
     }
   ]
 }
