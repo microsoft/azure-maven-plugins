@@ -70,7 +70,7 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
     }
 
     private void updateStatus(EntityStatus status) {
-        final EventhubInner inner = new EventhubInner();
+        final EventhubInner inner = remoteOptional().map(EventHub::innerModel).orElse(new EventhubInner());
         final EventHubsNamespace namespace = this.getParent();
         Optional.ofNullable(namespace.getParent().getRemote())
                 .map(EventHubsManager::serviceClient)
