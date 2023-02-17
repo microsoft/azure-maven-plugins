@@ -6,16 +6,20 @@
 package com.microsoft.azure.toolkit.lib.legacy.function.template;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.toolkit.lib.legacy.function.utils.FunctionUtils;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,6 +34,11 @@ public class FunctionTemplate {
 
     @JsonDeserialize(using = TemplateTriggerTypeDeserializer.class)
     private String function;
+
+    @JsonIgnore
+    @Getter
+    @Setter
+    private BindingTemplate binding;
 
     @JsonGetter
     public TemplateMetadata getMetadata() {
@@ -77,5 +86,13 @@ public class FunctionTemplate {
 
     public String getTriggerType() {
         return this.function;
+    }
+
+    public String generateContent(final Map<String, String> parameters) {
+        String templateContent = Objects.requireNonNull(getFiles().get("function.java"), String.format("failed to load template of binding %s", getFunction()));
+        for (final Map.Entry<String, String> entry : parameters.entrySet()) {
+            templateContent = templateContent.replace(String.format("$%s$", entry.getKey()), entry.getValue());
+        }
+        return templateContent;
     }
 }

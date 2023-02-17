@@ -16,7 +16,9 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TemplateMetadata {
     private String name;
-
+    private String description;
+    private String defaultFunctionName;
+    private String language;
     private List<String> userPrompt;
 
     @JsonGetter
