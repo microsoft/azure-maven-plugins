@@ -13,11 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
-import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
+import com.microsoft.azure.toolkit.lib.springcloud.*;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.Getter;
@@ -26,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Getter
@@ -81,20 +78,16 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         }
         tasks.add(new AzureTask<Void>(MODIFY_DEPLOYMENT_TITLE, () -> {
             final SpringCloudDeploymentDraft draft = app.deployments().updateOrCreate(deploymentName, resourceGroup);
+            final IAzureMessager messager = AzureMessager.getMessager();
             draft.setConfig(config.getDeployment());
             try {
                 this.deployment = draft.commit();
-                final IAzureMessager messager = AzureMessager.getMessager();
-                this.deployment.getInstances().forEach(springCloudAppInstance -> {
-                    final String instanceName = springCloudAppInstance.getName();
-                    this.deployment.streamLogs(instanceName, 0, 200, 0, true).subscribe(s -> {
-                        // remove empty line
-                        final String adjusted = s.replaceAll("(?m)^[ \t]*\r?\n", "").replaceAll("\n", "\n\t");
-                        messager.info(String.format("\t%s", adjusted));
-                    });
-                });
             } catch (final Exception e) {
-                throw new AzureToolkitRuntimeException(e);
+                app.refresh();
+                this.deployment = app.getActiveDeployment();
+                messager.error(e);
+            } finally {
+                showStreamLog();
             }
         }));
         tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, () -> {
@@ -113,5 +106,17 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
             t.getBody().call();
         }
         return this.deployment;
+    }
+
+    private void showStreamLog() {
+        if (Objects.isNull(this.deployment)) {
+            return;
+        }
+        final IAzureMessager messager = AzureMessager.getMessager();
+        this.deployment.getInstances().forEach(springCloudAppInstance -> {
+            final String instanceName = springCloudAppInstance.getName();
+            this.deployment.streamLogs(instanceName, 0, 200, 0, true)
+                    .subscribe(messager::info);
+        });
     }
 }
