@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionExtensionVersion;
+import com.microsoft.azure.toolkit.lib.legacy.function.template.BindingConfiguration;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.BindingTemplate;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.BindingsTemplate;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.FunctionTemplate;
@@ -52,10 +53,18 @@ public class FunctionUtils {
 
     @Nullable
     public static BindingTemplate loadBindingTemplate(String type) {
-        return Optional.ofNullable(loadBindingsTemplate()).map(templates -> templates.getBindingTemplateByName(type)).orElse(null);
+        return loadBindingTemplate(new BindingConfiguration(type, "in"));
     }
 
     @Nullable
+    public static BindingTemplate loadBindingTemplate(@Nonnull final BindingConfiguration conf) {
+        return Optional.ofNullable(loadBindingsTemplate())
+                .map(template -> template.getBindingTemplate(conf))
+                .orElse(null);
+    }
+
+    @Nullable
+    @Cacheable(value = "function-bindings")
     public static BindingsTemplate loadBindingsTemplate() {
         try (final InputStream is = FunctionUtils.class.getResourceAsStream("/bindings.json")) {
             final String bindingsJsonStr = IOUtils.toString(Objects.requireNonNull(is), StandardCharsets.UTF_8);
@@ -78,7 +87,7 @@ public class FunctionUtils {
             final List<FunctionTemplate> result = Optional.ofNullable(templates)
                     .map(FunctionTemplates::getTemplates).orElse(Collections.emptyList());
             result.forEach(template -> Optional.ofNullable(bindings).map(binding ->
-                    binding.getBindingTemplateByName(template.getTriggerType())).ifPresent(template::setBinding));
+                    binding.getBindingTemplate(template.getBindingConfiguration())).ifPresent(template::setBinding));
             return result;
         } catch (Exception e) {
             throw new AzureToolkitRuntimeException(LOAD_TEMPLATES_FAIL, e);

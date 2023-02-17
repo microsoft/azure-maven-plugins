@@ -9,6 +9,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionExtensionVersion;
+import com.microsoft.azure.toolkit.lib.legacy.function.template.BindingConfiguration;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.BindingTemplate;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.FunctionSettingTemplate;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.FunctionTemplate;
@@ -150,7 +151,7 @@ public class AddMojo extends AbstractFunctionMojo {
 
             final FunctionTemplate template = getFunctionTemplate(templates);
 
-            final BindingTemplate bindingTemplate = FunctionUtils.loadBindingTemplate(template.getTriggerType());
+            final BindingTemplate bindingTemplate = FunctionUtils.loadBindingTemplate(template.getBindingConfiguration());
             final Map params = prepareRequiredParameters(template, bindingTemplate);
 
             final String newFunctionClass = substituteParametersInTemplate(template, params);
@@ -197,7 +198,7 @@ public class AddMojo extends AbstractFunctionMojo {
                     this::setFunctionTemplate);
         }
         final FunctionTemplate result = findTemplateByName(templates, getFunctionTemplate());
-        getTelemetryProxy().addDefaultProperty(TRIGGER_TYPE, result.getTriggerType());
+        getTelemetryProxy().addDefaultProperty(TRIGGER_TYPE, Optional.ofNullable(result.getBindingConfiguration()).map(BindingConfiguration::getType).orElse(null));
         return result;
     }
 

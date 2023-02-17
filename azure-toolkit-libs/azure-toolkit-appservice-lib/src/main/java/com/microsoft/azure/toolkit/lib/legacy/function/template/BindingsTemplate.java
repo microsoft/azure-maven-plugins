@@ -9,7 +9,9 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -62,9 +64,10 @@ public class BindingsTemplate {
         this.bindings = bindings;
     }
 
-    public BindingTemplate getBindingTemplateByName(String triggerType) {
+    public BindingTemplate getBindingTemplate(@Nonnull final BindingConfiguration conf) {
         return Arrays.stream(this.bindings)
-            .filter(binding -> binding.getType().equals(triggerType))
+            .filter(binding -> StringUtils.equalsIgnoreCase(binding.getType(), conf.getType()) &&
+                    StringUtils.equalsIgnoreCase(binding.getDirection(), conf.getDirection()))
             .findFirst()
             .orElse(null);
     }
