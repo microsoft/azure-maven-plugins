@@ -92,12 +92,17 @@
     "cosmosDBIn_leaseContainerName_help": "Name of the container to store the leases.",
     "cosmosDBIn_createLeaseContainerIfNotExists_label": "Create lease container if it does not exist",
     "cosmosDBIn_createLeaseContainerIfNotExists_help": "Checks for existence and automatically creates the leases container.",
-    "SqlOutputBinding_description": "A function that takes a list of rows and upserts them into the user table",
     "SqlInputBinding_description": "A function that takes a SQL query to run on a provided table or view and returns the output of the query",
-    "sql_displayName": "Sql",
-    "sql_table_label": "Table",
-    "sql_label_help": "This is the table for the SQL binding.",
-    "sql_connection_label": "Connection string setting name",
-    "sql_connection_help": "The name of the app setting containing your SQL connection string."
+    "sql_input_displayName": "SQL input binding",
+    "sql_input_object_label": "Table or View",
+    "sql_input_object_help": "This is the table or view name for the SQL input binding.",
+    "sql_input_connection_label": "Connection string setting name",
+    "sql_input_connection_help": "The name of the app setting containing your SQL connection string.",
+    "SqlOutputBinding_description": "A function that takes a list of rows and upserts them into the user table",
+    "sql_output_displayName": "SQL output binding",
+    "sql_output_table_label": "Table",
+    "sql_output_table_help": "This is the table for the SQL output binding.",
+    "sql_output_connection_label": "Connection string setting name",
+    "sql_output_connection_help": "The name of the app setting containing your SQL connection string."
   }
 }

@@ -429,7 +429,7 @@
         "defaultFunctionName": "SqlInputBindingJava",
         "language": "Java",
         "userPrompt": [
-          "table",
+          "object",
           "SqlConnectionString"
         ]
       },
@@ -447,7 +447,7 @@
         ]
       },
       "files": {
-        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.HttpMethod;\nimport com.microsoft.azure.functions.HttpRequestMessage;\nimport com.microsoft.azure.functions.HttpResponseMessage;\nimport com.microsoft.azure.functions.HttpStatus;\nimport com.microsoft.azure.functions.annotation.AuthorizationLevel;\nimport com.microsoft.azure.functions.annotation.FunctionName;\nimport com.microsoft.azure.functions.annotation.HttpTrigger;\nimport com.microsoft.azure.functions.sql.annotation.SQLInput;\n\nimport java.util.Optional;\n\npublic class $className$ {\n    // Visit https://aka.ms/sqlbindingsinput to learn how to use this input binding\n    // Please add com.microsoft.azure.functions:azure-functions-java-library-sql and com.fasterxml.jackson.core:jackson-databind to your project dependencies\n    @FunctionName(\"$functionName$\")\n    public HttpResponseMessage run(\n            @HttpTrigger(\n                name = \"req\",\n                methods = {HttpMethod.GET},\n                authLevel = AuthorizationLevel.FUNCTION,\n                route = \"\")\n                HttpRequestMessage<Optional<String>> request,\n            @SQLInput(\n                name = \"result\",\n                commandText = \"SELECT * FROM $table$\",\n                commandType = \"Text\",\n                connectionStringSetting = \"$SqlConnectionString$\")\n                Object[] result) {\n\n        return request.createResponseBuilder(HttpStatus.OK).header(\"Content-Type\", \"application/json\").body(result).build();\n    }\n}"
+        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.HttpMethod;\nimport com.microsoft.azure.functions.HttpRequestMessage;\nimport com.microsoft.azure.functions.HttpResponseMessage;\nimport com.microsoft.azure.functions.HttpStatus;\nimport com.microsoft.azure.functions.annotation.AuthorizationLevel;\nimport com.microsoft.azure.functions.annotation.FunctionName;\nimport com.microsoft.azure.functions.annotation.HttpTrigger;\nimport com.microsoft.azure.functions.sql.annotation.SQLInput;\n\nimport java.util.Optional;\n\npublic class $className$ {\n    // Visit https://aka.ms/sqlbindingsinput to learn how to use this input binding\n    // Please add com.microsoft.azure.functions:azure-functions-java-library-sql and com.fasterxml.jackson.core:jackson-databind to your project dependencies\n    @FunctionName(\"$functionName$\")\n    public HttpResponseMessage run(\n            @HttpTrigger(\n                name = \"req\",\n                methods = {HttpMethod.GET},\n                authLevel = AuthorizationLevel.FUNCTION,\n                route = \"\")\n                HttpRequestMessage<Optional<String>> request,\n            @SQLInput(\n                name = \"result\",\n                commandText = \"SELECT * FROM $object$\",\n                commandType = \"Text\",\n                connectionStringSetting = \"$SqlConnectionString$\")\n                Object[] result) {\n\n        return request.createResponseBuilder(HttpStatus.OK).header(\"Content-Type\", \"application/json\").body(result).build();\n    }\n}"
       }
     }
   ]
