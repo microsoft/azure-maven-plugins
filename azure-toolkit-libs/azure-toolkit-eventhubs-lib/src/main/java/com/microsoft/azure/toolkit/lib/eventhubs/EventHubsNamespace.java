@@ -32,7 +32,7 @@ public class EventHubsNamespace extends AbstractAzResource<EventHubsNamespace, E
     @NotNull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.emptyList();
+        return Collections.singletonList(instanceModule);
     }
 
     @NotNull
