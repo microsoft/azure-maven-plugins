@@ -1,24 +1,33 @@
 package com.microsoft.azure.toolkit.lib.eventhubs;
 
+import com.azure.messaging.eventhubs.*;
 import com.azure.resourcemanager.eventhubs.EventHubsManager;
 import com.azure.resourcemanager.eventhubs.fluent.EventHubManagementClient;
 import com.azure.resourcemanager.eventhubs.fluent.models.EventhubInner;
+import com.azure.resourcemanager.eventhubs.models.AccessRights;
 import com.azure.resourcemanager.eventhubs.models.EntityStatus;
 import com.azure.resourcemanager.eventhubs.models.EventHub;
+import com.azure.resourcemanager.eventhubs.models.EventHubAuthorizationRule;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, EventHubsNamespace, EventHub> implements Deletable {
     @Nullable
     private EntityStatus status;
+    @Nullable
+    private EventHubConsumerAsyncClient consumerAsyncClient;
+    private IAzureMessager messager;
     protected EventHubsInstance(@Nonnull String name, @Nonnull EventHubsInstanceModule module) {
         super(name, module);
     }
@@ -69,6 +78,55 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
         updateStatus(EntityStatus.SEND_DISABLED);
     }
 
+    public boolean isListening() {
+        return Objects.nonNull(this.consumerAsyncClient);
+    }
+
+    public void publishEvents(String message) {
+        final IAzureMessager messager = AzureMessager.getMessager();
+        try (final EventHubProducerClient producer = new EventHubClientBuilder()
+                .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.SEND)))
+                .buildProducerClient()) {
+            EventDataBatch eventDataBatch = producer.createBatch();
+            final EventData eventData =  new EventData(message);
+            if (!eventDataBatch.tryAdd(eventData)) {
+                producer.send(eventDataBatch);
+                eventDataBatch = producer.createBatch();
+                if (!eventDataBatch.tryAdd(eventData)) {
+                    throw new AzureToolkitRuntimeException("Event is too large for an empty batch. Max size: "
+                            + eventDataBatch.getMaxSizeInBytes());
+                }
+            }
+            if (eventDataBatch.getCount() > 0) {
+                producer.send(eventDataBatch);
+                messager.info(String.format("Successfully send message to event hub %s", getName()));
+            }
+        } catch (final Exception e) {
+            throw new AzureToolkitRuntimeException(e);
+        }
+    }
+
+    public void startListening() {
+        messager = AzureMessager.getMessager();
+        messager.info(String.format("Start listening to event hub %s ...", getName()));
+        this.consumerAsyncClient = new EventHubClientBuilder()
+                .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.LISTEN)))
+                .consumerGroup(EventHubClientBuilder.DEFAULT_CONSUMER_GROUP_NAME)
+                .buildAsyncConsumerClient();
+        this.consumerAsyncClient.receive().subscribe(partitionEvent ->
+                messager.info("Message Received: " + partitionEvent.getData().getBodyAsString()));
+    }
+
+    public void stopListening() {
+        if (Objects.isNull(this.consumerAsyncClient)) {
+            return;
+        }
+        this.consumerAsyncClient.close();
+        this.consumerAsyncClient = null;
+        Optional.ofNullable(messager).ifPresent(m ->
+                m.info(String.format("Stop listening to event hub %s ", getName())));
+    }
+
     private void updateStatus(EntityStatus status) {
         final EventhubInner inner = remoteOptional().map(EventHub::innerModel).orElse(new EventhubInner());
         final EventHubsNamespace namespace = this.getParent();
@@ -76,5 +134,25 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
                 .map(EventHubsManager::serviceClient)
                 .map(EventHubManagementClient::getEventHubs)
                 .ifPresent(c -> doModify(() -> c.createOrUpdate(getResourceGroupName(), namespace.getName(), getName(), inner.withStatus(status)), Status.UPDATING));
+    }
+
+    private String getOrCreateConnectionString(List<AccessRights> accessRights) {
+        final List<EventHubAuthorizationRule> connectionStrings = Optional.ofNullable(getRemote())
+                .map(eventHubInstance -> eventHubInstance.listAuthorizationRules().stream()
+                        .filter(rule -> new HashSet<>(rule.rights()).containsAll(accessRights))
+                        .collect(Collectors.toList()))
+                .orElse(new ArrayList<>());
+        final EventHubsManager manager = getParent().getParent().getRemote();
+        if (connectionStrings.size() > 0) {
+            return connectionStrings.get(0).getKeys().primaryConnectionString();
+        }
+        if (Objects.isNull(manager)) {
+            return null;
+        }
+        final String accessRightsStr = StringUtils.join(accessRights, ",");
+        return manager.eventHubAuthorizationRules().define(String.format("policy-%s-%s", accessRightsStr, Utils.getTimestamp()))
+                .withExistingEventHub(getResourceGroupName(), getParent().getName(), getName())
+                .withSendAndListenAccess()
+                .create().getKeys().primaryConnectionString();
     }
 }
