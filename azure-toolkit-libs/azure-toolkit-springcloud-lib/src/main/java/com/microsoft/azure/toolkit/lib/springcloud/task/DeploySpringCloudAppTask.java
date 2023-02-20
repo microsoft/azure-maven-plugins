@@ -5,6 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud.task;
 
+import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
+import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -20,10 +22,9 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Getter
 public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
@@ -113,10 +114,23 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
             return;
         }
         final IAzureMessager messager = AzureMessager.getMessager();
-        this.deployment.getInstances().forEach(springCloudAppInstance -> {
-            final String instanceName = springCloudAppInstance.getName();
-            this.deployment.streamLogs(instanceName, 0, 200, 0, true)
-                    .subscribe(messager::info);
-        });
+        final List<DeploymentInstance> instanceList = Optional.ofNullable(this.deployment.getRemote())
+                .map(SpringAppDeployment::instances).orElse(Collections.emptyList());
+        if (instanceList.size() == 0) {
+            return;
+        }
+        String instanceName = instanceList.get(0).name();
+        final DateTimeFormatter formatter =
+                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH);
+        LocalDateTime startTime = LocalDateTime.parse(instanceList.get(0).startTime(), formatter);
+        for (final DeploymentInstance instance : instanceList) {
+            LocalDateTime curTime = LocalDateTime.parse(instance.startTime(), formatter);
+            if (curTime.isAfter(startTime)) {
+                instanceName = instance.name();
+                startTime = curTime;
+            }
+        }
+        this.deployment.streamLogs(instanceName, 0, 500, 0, true)
+                .subscribe(messager::info);
     }
 }
