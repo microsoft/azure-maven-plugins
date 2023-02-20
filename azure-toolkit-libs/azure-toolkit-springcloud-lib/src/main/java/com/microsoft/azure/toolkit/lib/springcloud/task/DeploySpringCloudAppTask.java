@@ -22,8 +22,6 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Getter
@@ -120,14 +118,11 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
             return;
         }
         String instanceName = instanceList.get(0).name();
-        final DateTimeFormatter formatter =
-                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH);
-        LocalDateTime startTime = LocalDateTime.parse(instanceList.get(0).startTime(), formatter);
+        String startTime = instanceList.get(0).startTime();
         for (final DeploymentInstance instance : instanceList) {
-            LocalDateTime curTime = LocalDateTime.parse(instance.startTime(), formatter);
-            if (curTime.isAfter(startTime)) {
+            if (instance.startTime().compareTo(startTime) > 0) {
                 instanceName = instance.name();
-                startTime = curTime;
+                startTime = instance.startTime();
             }
         }
         this.deployment.streamLogs(instanceName, 0, 500, 0, true)
