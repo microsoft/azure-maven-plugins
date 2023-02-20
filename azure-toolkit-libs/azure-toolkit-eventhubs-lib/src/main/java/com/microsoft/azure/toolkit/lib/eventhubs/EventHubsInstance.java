@@ -5,6 +5,7 @@
 package com.microsoft.azure.toolkit.lib.eventhubs;
 
 import com.azure.messaging.eventhubs.*;
+import com.azure.messaging.eventhubs.models.EventPosition;
 import com.azure.resourcemanager.eventhubs.EventHubsManager;
 import com.azure.resourcemanager.eventhubs.fluent.EventHubManagementClient;
 import com.azure.resourcemanager.eventhubs.fluent.models.EventhubInner;
@@ -113,12 +114,17 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
     public void startListening() {
         messager = AzureMessager.getMessager();
         messager.info(String.format("Start listening to event hub %s ...", getName()));
-        this.consumerAsyncClient = new EventHubClientBuilder()
-                .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.LISTEN)))
-                .consumerGroup(EventHubClientBuilder.DEFAULT_CONSUMER_GROUP_NAME)
-                .buildAsyncConsumerClient();
-        this.consumerAsyncClient.receive().subscribe(partitionEvent ->
-                messager.info("Message Received: " + partitionEvent.getData().getBodyAsString()));
+        remoteOptional().ifPresent(remote -> remote.listConsumerGroups().forEach(eventHubConsumerGroup ->
+                remote.partitionIds().forEach(partitionId -> {
+                    this.consumerAsyncClient = new EventHubClientBuilder()
+                        .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.LISTEN)))
+                        .consumerGroup(eventHubConsumerGroup.name())
+                        .buildAsyncConsumerClient();
+                    messager.info(String.format("Created receiver for partition %s and consumerGroup %s", partitionId, eventHubConsumerGroup.name()));
+                    Optional.ofNullable(this.consumerAsyncClient).ifPresent(client -> client.receiveFromPartition(partitionId, EventPosition.latest())
+                            .subscribe(partitionEvent -> messager.info(String.format("Message Received from partition %s and consumerGroup %s: %s",
+                                    partitionId, eventHubConsumerGroup.name(), partitionEvent.getData().getBodyAsString()))));
+                })));
     }
 
     public void stopListening() {
@@ -140,7 +146,7 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
                 .ifPresent(c -> doModify(() -> c.createOrUpdate(getResourceGroupName(), namespace.getName(), getName(), inner.withStatus(status)), Status.UPDATING));
     }
 
-    private String getOrCreateConnectionString(List<AccessRights> accessRights) {
+    public String getOrCreateConnectionString(List<AccessRights> accessRights) {
         final List<EventHubAuthorizationRule> connectionStrings = Optional.ofNullable(getRemote())
                 .map(eventHubInstance -> eventHubInstance.listAuthorizationRules().stream()
                         .filter(rule -> new HashSet<>(rule.rights()).containsAll(accessRights))
