@@ -137,6 +137,10 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
                 m.info(String.format("Stop listening to event hub %s ", getName())));
     }
 
+    public String getOrCreateListenConnectionString() {
+        return getOrCreateConnectionString(Collections.singletonList(AccessRights.LISTEN));
+    }
+
     private void updateStatus(EntityStatus status) {
         final EventhubInner inner = remoteOptional().map(EventHub::innerModel).orElse(new EventhubInner());
         final EventHubsNamespace namespace = this.getParent();
@@ -146,7 +150,8 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
                 .ifPresent(c -> doModify(() -> c.createOrUpdate(getResourceGroupName(), namespace.getName(), getName(), inner.withStatus(status)), Status.UPDATING));
     }
 
-    public String getOrCreateConnectionString(List<AccessRights> accessRights) {
+    @Nullable
+    private String getOrCreateConnectionString(List<AccessRights> accessRights) {
         final List<EventHubAuthorizationRule> connectionStrings = Optional.ofNullable(getRemote())
                 .map(eventHubInstance -> eventHubInstance.listAuthorizationRules().stream()
                         .filter(rule -> new HashSet<>(rule.rights()).containsAll(accessRights))
@@ -159,10 +164,18 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
         if (Objects.isNull(manager)) {
             return null;
         }
-        final String accessRightsStr = StringUtils.join(accessRights, ",");
-        return manager.eventHubAuthorizationRules().define(String.format("policy-%s-%s", accessRightsStr, Utils.getTimestamp()))
-                .withExistingEventHub(getResourceGroupName(), getParent().getName(), getName())
-                .withSendAndListenAccess()
-                .create().getKeys().primaryConnectionString();
+        final String accessRightsStr = StringUtils.join(accessRights, "-");
+        final EventHubAuthorizationRule.DefinitionStages.WithAccessPolicy policy = manager.eventHubAuthorizationRules()
+                .define(String.format("policy-%s-%s", accessRightsStr, Utils.getTimestamp()))
+                .withExistingEventHub(getResourceGroupName(), getParent().getName(), getName());
+        EventHubAuthorizationRule.DefinitionStages.WithCreate withCreate = policy.withListenAccess();
+        if (accessRights.contains(AccessRights.MANAGE)) {
+            withCreate = policy.withManageAccess();
+        } else if (accessRights.contains(AccessRights.SEND) && accessRights.contains(AccessRights.LISTEN)) {
+            withCreate = policy.withSendAndListenAccess();
+        } else if (accessRights.contains(AccessRights.SEND)) {
+            withCreate = policy.withSendAccess();
+        }
+        return withCreate.create().getKeys().primaryConnectionString();
     }
 }
