@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.legacy.function.template;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingEnum;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.toolkit.lib.legacy.function.utils.FunctionUtils;
 import lombok.Data;
@@ -16,7 +15,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -49,23 +47,18 @@ public class FunctionTemplate {
 
     @Nullable
     public BindingConfiguration getBindingConfiguration() {
-        return isTrigger() ? getTrigger() :
-                Optional.ofNullable(function).map(Function::getBindings).map(bindings -> bindings.get(0)).orElse(null);
+        return isTriggerTemplate() ? getTrigger() : Optional.ofNullable(function)
+                .map(Function::getBindings).filter(CollectionUtils::isNotEmpty).map(bindings -> bindings.get(0)).orElse(null);
     }
 
-    public boolean isTrigger() {
+    public boolean isTriggerTemplate() {
         return Objects.nonNull(getTrigger());
     }
 
     @Nullable
     public BindingConfiguration getTrigger() {
         final List<BindingConfiguration> bindings = Optional.ofNullable(function).map(Function::getBindings).orElse(Collections.emptyList());
-        // return trigger or the first binding
-        return bindings.stream()
-                .filter(binding -> StringUtils.equalsIgnoreCase(binding.getDirection(), BindingEnum.Direction.IN.name()) &&
-                        StringUtils.containsIgnoreCase(binding.getType(), "trigger"))
-                .findFirst()
-                .orElse(null);
+        return bindings.stream().filter(BindingConfiguration::isTrigger).findFirst().orElse(null);
     }
 
     @Nullable

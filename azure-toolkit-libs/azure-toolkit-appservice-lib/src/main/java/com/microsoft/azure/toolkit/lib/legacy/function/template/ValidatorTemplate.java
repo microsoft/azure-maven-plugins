@@ -5,35 +5,19 @@
 
 package com.microsoft.azure.toolkit.lib.legacy.function.template;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonSetter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 // This is the json template class correspond to (bindings.json).bindings.settings.validators
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ValidatorTemplate {
     private String expression;
     private String errorText;
-
-    @JsonGetter
-    public String getExpression() {
-        return expression;
-    }
-
-    @JsonSetter
-    public void setExpression(String expression) {
-        this.expression = expression;
-    }
-
-    @JsonGetter
-    public String getErrorText() {
-        return errorText;
-    }
-
-    @JsonSetter
-    public void setErrorText(String errorText) {
-        this.errorText = errorText;
-    }
 }

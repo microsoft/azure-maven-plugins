@@ -5,10 +5,12 @@
 
 package com.microsoft.azure.toolkit.lib.legacy.function.template;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -16,59 +18,24 @@ import java.util.Arrays;
 import java.util.Map;
 
 // This is the json template class correspond to bindings.json
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BindingsTemplate {
+    @JsonProperty("$schema")
     private String schema;
     private String contentVersion;
     private Map<String, String> variables;
     private BindingTemplate[] bindings;
 
-    @JsonGetter(value = "$schema")
-    public String getSchema() {
-        return schema;
-    }
-
-    @JsonGetter
-    public String getContentVersion() {
-        return contentVersion;
-    }
-
-    @JsonGetter
-    public Map<String, String> getVariables() {
-        return variables;
-    }
-
-    @JsonGetter
-    public BindingTemplate[] getBindings() {
-        return bindings;
-    }
-
-    @JsonSetter(value = "$schema")
-    public void setSchema(String schema) {
-        this.schema = schema;
-    }
-
-    @JsonSetter
-    public void setContentVersion(String contentVersion) {
-        this.contentVersion = contentVersion;
-    }
-
-    @JsonSetter
-    public void setVariables(Map<String, String> variables) {
-        this.variables = variables;
-    }
-
-    @JsonSetter
-    public void setBindings(BindingTemplate[] bindings) {
-        this.bindings = bindings;
-    }
-
     public BindingTemplate getBindingTemplate(@Nonnull final BindingConfiguration conf) {
         return Arrays.stream(this.bindings)
-            .filter(binding -> StringUtils.equalsIgnoreCase(binding.getType(), conf.getType()) &&
-                    StringUtils.equalsIgnoreCase(binding.getDirection(), conf.getDirection()))
-            .findFirst()
-            .orElse(null);
+                .filter(binding -> StringUtils.equalsIgnoreCase(binding.getType(), conf.getType()) &&
+                        (conf.isTrigger() && StringUtils.equalsIgnoreCase(binding.getDirection(), "trigger") ||
+                                StringUtils.equalsIgnoreCase(binding.getDirection(), conf.getDirection())))
+                .findFirst()
+                .orElse(null);
     }
 }
