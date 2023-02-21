@@ -89,8 +89,7 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
         return Objects.nonNull(this.consumerAsyncClient);
     }
 
-    public void publishEvents(String message) {
-        final IAzureMessager messager = AzureMessager.getMessager();
+    public boolean sendMessage(String message) {
         try (final EventHubProducerClient producer = new EventHubClientBuilder()
                 .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.SEND)))
                 .buildProducerClient()) {
@@ -106,26 +105,28 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
             }
             if (eventDataBatch.getCount() > 0) {
                 producer.send(eventDataBatch);
-                messager.info(String.format("Successfully send message to event hub %s", getName()));
+                return true;
             }
         } catch (final Exception e) {
             throw new AzureToolkitRuntimeException(e);
         }
+        return false;
     }
 
     public void startListening() {
-        messager = AzureMessager.getMessager();
-        messager.info(String.format("Start listening to event hub %s ...", getName()));
         final AzureConfiguration config = Azure.az().config();
         final String consumerGroupName = config.getEventHubsConsumerGroup();
+        messager = AzureMessager.getMessager();
+        messager.info(String.format("Start listening to event hub %s for consumerGroup %s...", getName(), consumerGroupName));
+        messager.info("You can change default consumer group in Azure Settings");
         remoteOptional().ifPresent(remote -> remote.partitionIds().forEach(partitionId -> {
             this.consumerAsyncClient = new EventHubClientBuilder()
                     .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.LISTEN)))
                     .consumerGroup(consumerGroupName)
                     .buildAsyncConsumerClient();
-            messager.info(String.format("Created receiver for partition %s and consumerGroup %s", partitionId, consumerGroupName));
+            messager.info(String.format("Created receiver for partition %s", partitionId));
             Optional.ofNullable(this.consumerAsyncClient).ifPresent(client -> client.receiveFromPartition(partitionId, EventPosition.latest())
-                    .subscribe(partitionEvent -> messager.info(String.format("Message Received from partition %s: %s",
+                    .subscribe(partitionEvent -> messager.success(String.format("Message Received from partition %s: %s",
                             partitionId, partitionEvent.getData().getBodyAsString()))));
         }));
     }
