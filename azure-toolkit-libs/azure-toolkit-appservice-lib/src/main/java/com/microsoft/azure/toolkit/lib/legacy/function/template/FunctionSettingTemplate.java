@@ -5,21 +5,33 @@
 
 package com.microsoft.azure.toolkit.lib.legacy.function.template;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 // This is the json template class correspond to (bindings.json).bindings.settings
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FunctionSettingTemplate {
     private String name;
     private String value;
+    private String resource;
     private String defaultValue;
     private boolean required;
     private String label;
     private String help;
+    @JsonProperty(value = "emum")
+    private SettingEnum[] settingEnum;
     private ValidatorTemplate[] validators;
 
     @JsonGetter
@@ -92,11 +104,38 @@ public class FunctionSettingTemplate {
         this.validators = validators;
     }
 
+    @JsonGetter
+    public SettingEnum[] getEnum() {
+        return settingEnum;
+    }
+
+    @JsonGetter
+    public String getResource() {
+        return resource;
+    }
+
+    @JsonSetter
+    public void setResource(String resource) {
+        this.resource = resource;
+    }
+
+    @JsonSetter
+    public void setEnum(SettingEnum[] settingEnum) {
+        this.settingEnum = settingEnum;
+    }
+
     public String getSettingRegex() {
         return (validators != null && validators.length > 0) ? validators[0].getExpression() : null;
     }
 
     public String getErrorText() {
         return (validators != null && validators.length > 0) ? validators[0].getErrorText() : null;
+    }
+
+    @Data
+    @JsonAutoDetect
+    public static class SettingEnum {
+        private String value;
+        private String display;
     }
 }
