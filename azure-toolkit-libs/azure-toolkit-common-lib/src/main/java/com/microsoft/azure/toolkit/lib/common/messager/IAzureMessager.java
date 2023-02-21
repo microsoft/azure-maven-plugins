@@ -96,6 +96,24 @@ public interface IAzureMessager {
         this.show(this.buildMessage(IAzureMessage.Type.ERROR, AzureString.fromString(message), title, actions, throwable));
     }
 
+    /**
+     * @param actions array of action id or
+     *                {@link com.microsoft.azure.toolkit.lib.common.action.Action} or
+     *                {@link com.microsoft.azure.toolkit.lib.common.action.Action.Id}
+     */
+    default void debug(@Nonnull String message, String title, Object... actions) {
+        this.show(this.buildMessage(IAzureMessage.Type.DEBUG, AzureString.fromString(message), title, actions, null));
+    }
+
+    /**
+     * @param actions array of action id or
+     *                {@link com.microsoft.azure.toolkit.lib.common.action.Action} or
+     *                {@link com.microsoft.azure.toolkit.lib.common.action.Action.Id}
+     */
+    default void debug(@Nonnull AzureString message, String title, Object... actions) {
+        this.show(this.buildMessage(IAzureMessage.Type.DEBUG, message, title, actions, null));
+    }
+
     default boolean confirm(@Nonnull String message, String title) {
         return this.show(this.buildMessage(IAzureMessage.Type.CONFIRM, AzureString.fromString(message), title, null, null));
     }
@@ -162,6 +180,14 @@ public interface IAzureMessager {
 
     default void error(@Nonnull Throwable throwable) {
         this.error(throwable, null);
+    }
+
+    default void debug(@Nonnull String message) {
+        this.debug(message, null);
+    }
+
+    default void debug(@Nonnull AzureString message) {
+        this.debug(message, null);
     }
 
     default IAzureMessage buildMessage(@Nonnull IAzureMessage.Type type, @Nonnull AzureString content,

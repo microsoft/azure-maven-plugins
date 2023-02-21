@@ -117,6 +117,6 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final String instanceName = instanceList.stream().max(Comparator.comparing(DeploymentInstance::startTime))
                 .map(DeploymentInstance::name).orElse(null);
         Optional.ofNullable(instanceName).ifPresent(i ->
-                this.deployment.streamLogs(i, 0, 500, 0, true).subscribe(messager::info));
+                this.deployment.streamLogs(i, 0, 500, 0, true).subscribe(messager::debug));
     }
 }
