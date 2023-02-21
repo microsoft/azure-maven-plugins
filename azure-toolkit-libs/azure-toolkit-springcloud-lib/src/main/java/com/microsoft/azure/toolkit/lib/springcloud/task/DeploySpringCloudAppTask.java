@@ -114,18 +114,9 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final IAzureMessager messager = AzureMessager.getMessager();
         final List<DeploymentInstance> instanceList = Optional.ofNullable(this.deployment.getRemote())
                 .map(SpringAppDeployment::instances).orElse(Collections.emptyList());
-        if (instanceList.size() == 0) {
-            return;
-        }
-        String instanceName = instanceList.get(0).name();
-        String startTime = instanceList.get(0).startTime();
-        for (final DeploymentInstance instance : instanceList) {
-            if (instance.startTime().compareTo(startTime) > 0) {
-                instanceName = instance.name();
-                startTime = instance.startTime();
-            }
-        }
-        this.deployment.streamLogs(instanceName, 0, 500, 0, true)
-                .subscribe(messager::info);
+        final String instanceName = instanceList.stream().max(Comparator.comparing(DeploymentInstance::startTime))
+                .map(DeploymentInstance::name).orElse(null);
+        Optional.ofNullable(instanceName).ifPresent(i ->
+                this.deployment.streamLogs(i, 0, 500, 0, true).subscribe(messager::info));
     }
 }
