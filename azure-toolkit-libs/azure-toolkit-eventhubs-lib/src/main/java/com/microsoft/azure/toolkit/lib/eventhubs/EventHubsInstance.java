@@ -150,20 +150,17 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
                 .ifPresent(c -> doModify(() -> c.createOrUpdate(getResourceGroupName(), namespace.getName(), getName(), inner.withStatus(status)), Status.UPDATING));
     }
 
-    @Nullable
     private String getOrCreateConnectionString(List<AccessRights> accessRights) {
         final List<EventHubAuthorizationRule> connectionStrings = Optional.ofNullable(getRemote())
                 .map(eventHubInstance -> eventHubInstance.listAuthorizationRules().stream()
                         .filter(rule -> new HashSet<>(rule.rights()).containsAll(accessRights))
                         .collect(Collectors.toList()))
                 .orElse(new ArrayList<>());
-        final EventHubsManager manager = getParent().getParent().getRemote();
         if (connectionStrings.size() > 0) {
             return connectionStrings.get(0).getKeys().primaryConnectionString();
         }
-        if (Objects.isNull(manager)) {
-            return null;
-        }
+        final EventHubsManager manager = getParent().getParent().getRemote();
+        assert manager != null : "resource not found";
         final String accessRightsStr = StringUtils.join(accessRights, "-");
         final EventHubAuthorizationRule.DefinitionStages.WithAccessPolicy policy = manager.eventHubAuthorizationRules()
                 .define(String.format("policy-%s-%s", accessRightsStr, Utils.getTimestamp()))
