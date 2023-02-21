@@ -42,6 +42,7 @@ public class AzureConfiguration {
     private List<String> documentsLabelFields = new ArrayList<>(DEFAULT_DOCUMENT_LABEL_FIELDS);
     private int monitorQueryRowNumber = 200;
     private boolean authPersistenceEnabled = true;
+    private String eventHubsConsumerGroup = "$Default";
 
     public void setProxyInfo(ProxyInfo proxy) {
         this.setProxySource(proxy.getSource());
