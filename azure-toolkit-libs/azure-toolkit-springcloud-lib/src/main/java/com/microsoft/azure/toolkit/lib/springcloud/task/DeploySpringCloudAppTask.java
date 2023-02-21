@@ -20,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.Disposable;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -32,6 +33,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     @Nonnull
     private final List<AzureTask<?>> subTasks;
     private SpringCloudDeployment deployment;
+    private Disposable streamingLogDisposable;
 
     public DeploySpringCloudAppTask(SpringCloudAppConfig appConfig) {
         this.config = appConfig;
@@ -85,16 +87,16 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
                 app.refresh();
                 this.deployment = app.getActiveDeployment();
                 messager.error(e);
-            } finally {
-                showStreamLog();
             }
         }));
+        tasks.add(new AzureTask<Void>(this::startStreamingLog));
         tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, () -> {
             final SpringCloudAppDraft draft = (SpringCloudAppDraft) app.update();
             draft.setConfig(config);
             draft.updateIfExist();
         }));
         tasks.add(new AzureTask<Void>(app::reset));
+        tasks.add(new AzureTask<Void>(this::stopStreamingLog));
         return tasks;
     }
 
@@ -107,7 +109,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         return this.deployment;
     }
 
-    private void showStreamLog() {
+    private void startStreamingLog() {
         if (Objects.isNull(this.deployment)) {
             return;
         }
@@ -117,6 +119,10 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final String instanceName = instanceList.stream().max(Comparator.comparing(DeploymentInstance::startTime))
                 .map(DeploymentInstance::name).orElse(null);
         Optional.ofNullable(instanceName).ifPresent(i ->
-                this.deployment.streamLogs(i, 0, 500, 0, true).subscribe(messager::debug));
+                this.streamingLogDisposable = this.deployment.streamLogs(i, 0, 500, 0, true).subscribe(messager::debug));
+    }
+
+    private void stopStreamingLog() {
+        Optional.ofNullable(streamingLogDisposable).ifPresent(Disposable::dispose);
     }
 }
