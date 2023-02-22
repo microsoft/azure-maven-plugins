@@ -29,7 +29,7 @@ public class FunctionSettingTemplate {
     private boolean required;
     private String label;
     private String help;
-    @JsonProperty(value = "emum")
+    @JsonProperty("enum")
     private SettingEnum[] settingEnum;
     private ValidatorTemplate[] validators;
 
