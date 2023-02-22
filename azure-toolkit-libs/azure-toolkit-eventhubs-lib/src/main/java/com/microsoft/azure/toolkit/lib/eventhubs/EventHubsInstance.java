@@ -23,6 +23,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.Disposable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -34,6 +35,8 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
     private EntityStatus status;
     @Nullable
     private EventHubConsumerAsyncClient consumerAsyncClient;
+    private final List<Disposable> receivers = new ArrayList<>();
+    @Nullable
     private IAzureMessager messager;
     protected EventHubsInstance(@Nonnull String name, @Nonnull EventHubsInstanceModule module) {
         super(name, module);
@@ -117,28 +120,27 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
         final AzureConfiguration config = Azure.az().config();
         final String consumerGroupName = config.getEventHubsConsumerGroup();
         messager = AzureMessager.getMessager();
-        messager.info(String.format("Start listening to event hub %s for consumerGroup %s...", getName(), consumerGroupName));
+        messager.info(String.format("Start listening to event hub [%s] for consumerGroup [%s]...", getName(), consumerGroupName));
         messager.info("You can change default consumer group in Azure Settings");
         remoteOptional().ifPresent(remote -> remote.partitionIds().forEach(partitionId -> {
             this.consumerAsyncClient = new EventHubClientBuilder()
                     .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.LISTEN)))
                     .consumerGroup(consumerGroupName)
                     .buildAsyncConsumerClient();
-            messager.info(String.format("Created receiver for partition %s", partitionId));
-            Optional.ofNullable(this.consumerAsyncClient).ifPresent(client -> client.receiveFromPartition(partitionId, EventPosition.latest())
-                    .subscribe(partitionEvent -> messager.success(String.format("Message Received from partition %s: %s",
-                            partitionId, partitionEvent.getData().getBodyAsString()))));
+            messager.info(String.format("Created receiver for partition [%s]", partitionId));
+            Optional.ofNullable(this.consumerAsyncClient).ifPresent(client ->
+                    receivers.add(client.receiveFromPartition(partitionId, EventPosition.latest())
+                            .subscribe(partitionEvent -> messager.success(String.format("Message Received from partition [%s]: \"%s\"",
+                                    partitionId, partitionEvent.getData().getBodyAsString())))));
         }));
     }
 
     public void stopListening() {
-        if (Objects.isNull(this.consumerAsyncClient)) {
-            return;
-        }
-        this.consumerAsyncClient.close();
+        Optional.ofNullable(consumerAsyncClient).ifPresent(EventHubConsumerAsyncClient::close);
+        Optional.ofNullable(messager).ifPresent(m -> m.info(String.format("Stop listening to event hub [%s]", getName())));
         this.consumerAsyncClient = null;
-        Optional.ofNullable(messager).ifPresent(m ->
-                m.info(String.format("Stop listening to event hub %s ", getName())));
+        this.receivers.forEach(Disposable::dispose);
+        this.receivers.clear();
     }
 
     public String getOrCreateListenConnectionString() {
