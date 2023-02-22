@@ -30,6 +30,8 @@ public enum BindingEnum {
     ServiceBusQueueOutput("serviceBus", Direction.OUT),
     ServiceBusTopicTrigger("serviceBusTrigger", Direction.IN),
     ServiceBusTopicOutput("serviceBus", Direction.OUT),
+    SqlInput("sql", Direction.IN),
+    SqlOutput("sql", Direction.OUT),
     TableInput("table", Direction.IN, true),
     TableOutput("table", Direction.OUT, true),
     TimerTrigger("timerTrigger", Direction.IN),
