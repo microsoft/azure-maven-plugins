@@ -43,8 +43,8 @@ public interface AzResourceBase {
     enum FormalStatus {
         RUNNING, STOPPED, FAILED, DELETED, UNKNOWN, WRITING, READING, CREATING, DELETING;
 
-        private static final HashSet<String> runningStatus = Sets.newHashSet("running", "success", "succeeded", "ready", "ok", "healthy");
-        private static final HashSet<String> stoppedStatus = Sets.newHashSet("stopped", "deallocated", "deprovisioned");
+        private static final HashSet<String> runningStatus = Sets.newHashSet("running", "success", "succeeded", "ready", "ok", "healthy", "active", "senddisabled");
+        private static final HashSet<String> stoppedStatus = Sets.newHashSet("stopped", "deallocated", "deprovisioned", "disabled");
         private static final HashSet<String> failedStatus = Sets.newHashSet("failed", "error", "unhealthy");
         private static final HashSet<String> writingStatus = Sets.newHashSet("writing", "pending", "processing", "updating",
             "starting", "stopping", "activating", "deactivating", "restarting", "scaling", "deprovisioning", "provisioning");
