@@ -77,7 +77,7 @@ public interface IAzureMessage {
     }
 
     enum Type {
-        INFO, WARNING, SUCCESS, ERROR, ALERT, CONFIRM
+        INFO, WARNING, SUCCESS, ERROR, ALERT, CONFIRM, DEBUG
     }
 
     interface ValueDecorator {
