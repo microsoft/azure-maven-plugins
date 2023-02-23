@@ -15,6 +15,7 @@ import com.azure.resourcemanager.eventhubs.models.EventHub;
 import com.azure.resourcemanager.eventhubs.models.EventHubAuthorizationRule;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -166,7 +167,9 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
             return connectionStrings.get(0).getKeys().primaryConnectionString();
         }
         final EventHubsManager manager = getParent().getParent().getRemote();
-        assert manager != null : "resource not found";
+        if (Objects.isNull(manager)) {
+            throw new AzureToolkitRuntimeException(AzureString.format("resource ({0}) not found", getName()).toString());
+        }
         final String accessRightsStr = StringUtils.join(accessRights, "-");
         final EventHubAuthorizationRule.DefinitionStages.WithAccessPolicy policy = manager.eventHubAuthorizationRules()
                 .define(String.format("policy-%s-%s", accessRightsStr, Utils.getTimestamp()))
