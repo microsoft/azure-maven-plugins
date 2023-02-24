@@ -15,9 +15,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -67,12 +72,33 @@ public class FunctionTemplate {
         return Optional.ofNullable(getBindingConfiguration()).map(BindingConfiguration::getType).orElse(null);
     }
 
+    @Nonnull
     public String generateContent(final Map<String, String> parameters) {
         String templateContent = Objects.requireNonNull(getFiles().get("function.java"), String.format("failed to load template of binding %s", getFunction()));
         for (final Map.Entry<String, String> entry : parameters.entrySet()) {
             templateContent = templateContent.replace(String.format("$%s$", entry.getKey()), entry.getValue());
         }
         return templateContent;
+    }
+
+    @Nonnull
+    public String generateDefaultContent(@Nonnull final String packageName, @Nonnull final String className) {
+        final List<String> prompts = Optional.ofNullable(getMetadata().getUserPrompt()).orElse(Collections.emptyList());
+        final FunctionSettingTemplate[] settings = Optional.ofNullable(getBinding()).map(BindingTemplate::getSettings).orElse(null);
+        final Map<String, String> parameters = new HashMap<>();
+        parameters.put("packageName", packageName);
+        parameters.put("className", className);
+        prompts.forEach(parameter -> {
+            final FunctionSettingTemplate settingTemplate = settings == null ? null : Arrays.stream(settings).filter(template ->
+                    StringUtils.equals(template.getName(), parameter)).findFirst().orElse(null);
+            parameters.put(parameter, Optional.ofNullable(settingTemplate.getDefaultValue()).filter(StringUtils::isNotEmpty).orElse("<value>"));
+        });
+        return this.generateContent(parameters);
+    }
+
+    @Nullable
+    public String getName() {
+        return Optional.ofNullable(this.getMetadata()).map(TemplateMetadata::getName).orElse(null);
     }
 
     @Data
