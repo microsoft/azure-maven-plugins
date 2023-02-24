@@ -79,17 +79,17 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         }
         tasks.add(new AzureTask<Void>(MODIFY_DEPLOYMENT_TITLE, () -> {
             final SpringCloudDeploymentDraft draft = app.deployments().updateOrCreate(deploymentName, resourceGroup);
-            final IAzureMessager messager = AzureMessager.getMessager();
             draft.setConfig(config.getDeployment());
             try {
                 this.deployment = draft.commit();
             } catch (final Exception e) {
                 app.refresh();
                 this.deployment = app.getActiveDeployment();
-                messager.error(e);
+                throw new AzureToolkitRuntimeException(e);
+            } finally {
+                startStreamingLog();
             }
         }));
-        tasks.add(new AzureTask<Void>(this::startStreamingLog));
         tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, () -> {
             final SpringCloudAppDraft draft = (SpringCloudAppDraft) app.update();
             draft.setConfig(config);

@@ -15,6 +15,7 @@ import com.azure.resourcemanager.eventhubs.models.EventHub;
 import com.azure.resourcemanager.eventhubs.models.EventHubAuthorizationRule;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -120,24 +121,26 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
         final AzureConfiguration config = Azure.az().config();
         final String consumerGroupName = config.getEventHubsConsumerGroup();
         messager = AzureMessager.getMessager();
-        messager.info(String.format("Start listening to event hub [%s] for consumerGroup [%s]...", getName(), consumerGroupName));
-        messager.info("You can change default consumer group in Azure Settings");
+        messager.info(AzureString.format("Start listening to event hub ({0}) for consumerGroup ({1})...\n", getName(), consumerGroupName));
+        messager.info("You can change default consumer group in Azure Settings\n");
         remoteOptional().ifPresent(remote -> remote.partitionIds().forEach(partitionId -> {
             this.consumerAsyncClient = new EventHubClientBuilder()
                     .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.LISTEN)))
                     .consumerGroup(consumerGroupName)
                     .buildAsyncConsumerClient();
-            messager.info(String.format("Created receiver for partition [%s]", partitionId));
+            messager.info(AzureString.format("Created receiver for partition ({0})\n", partitionId));
             Optional.ofNullable(this.consumerAsyncClient).ifPresent(client ->
                     receivers.add(client.receiveFromPartition(partitionId, EventPosition.latest())
-                            .subscribe(partitionEvent -> messager.success(String.format("Message Received from partition [%s]: \"%s\"",
-                                    partitionId, partitionEvent.getData().getBodyAsString())))));
+                            .subscribe(partitionEvent -> {
+                                messager.debug(AzureString.format("Message Received from partition (%s): ", partitionId));
+                                messager.success(AzureString.format("\"%s\"\n", partitionEvent.getData().getBodyAsString()));
+                            })));
         }));
     }
 
     public void stopListening() {
         Optional.ofNullable(consumerAsyncClient).ifPresent(EventHubConsumerAsyncClient::close);
-        Optional.ofNullable(messager).ifPresent(m -> m.info(String.format("Stop listening to event hub [%s]", getName())));
+        Optional.ofNullable(messager).ifPresent(m -> m.info(AzureString.format("Stop listening to event hub ({0})\n", getName())));
         this.consumerAsyncClient = null;
         this.receivers.forEach(Disposable::dispose);
         this.receivers.clear();
@@ -166,7 +169,9 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
             return connectionStrings.get(0).getKeys().primaryConnectionString();
         }
         final EventHubsManager manager = getParent().getParent().getRemote();
-        assert manager != null : "resource not found";
+        if (Objects.isNull(manager)) {
+            throw new AzureToolkitRuntimeException(AzureString.format("resource ({0}) not found", getName()).toString());
+        }
         final String accessRightsStr = StringUtils.join(accessRights, "-");
         final EventHubAuthorizationRule.DefinitionStages.WithAccessPolicy policy = manager.eventHubAuthorizationRules()
                 .define(String.format("policy-%s-%s", accessRightsStr, Utils.getTimestamp()))
