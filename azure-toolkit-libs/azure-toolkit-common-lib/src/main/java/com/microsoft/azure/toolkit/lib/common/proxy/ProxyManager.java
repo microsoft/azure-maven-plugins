@@ -170,7 +170,7 @@ public class ProxyManager {
     }
 
     /**
-     * refer to {@link sun.net.spi.DefaultProxySelector}
+     * refer sun.net.spi.DefaultProxySelector
      * @return {@code true} if given this pattern for non-proxy hosts and this
      *         urlhost the proxy should NOT be used to access this urlhost
      */
@@ -183,7 +183,7 @@ public class ProxyManager {
     }
 
     /**
-     * refer to {@link sun.net.spi.DefaultProxySelector}
+     * refer to sun.net.spi.DefaultProxySelector
      * @param mask non-null mask
      * @return {@link java.util.regex.Pattern} corresponding to this mask
      *         or {@code null} in case mask should not match anything
@@ -203,7 +203,7 @@ public class ProxyManager {
     }
 
     /**
-     * refer to {@link sun.net.spi.DefaultProxySelector}
+     * refer to sun.net.spi.DefaultProxySelector
      * @param disjunct non-null mask disjunct
      * @return java regex string corresponding to this mask
      */
