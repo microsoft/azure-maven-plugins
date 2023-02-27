@@ -88,6 +88,7 @@ public class FunctionTemplate {
         final Map<String, String> parameters = new HashMap<>();
         parameters.put("packageName", packageName);
         parameters.put("className", className);
+        parameters.put("functionName", className);
         prompts.forEach(parameter -> {
             final FunctionSettingTemplate settingTemplate = settings == null ? null : Arrays.stream(settings).filter(template ->
                     StringUtils.equals(template.getName(), parameter)).findFirst().orElse(null);
