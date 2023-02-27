@@ -117,7 +117,7 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
         return false;
     }
 
-    public void startListening() {
+    public synchronized void startListening() {
         final AzureConfiguration config = Azure.az().config();
         final String consumerGroupName = config.getEventHubsConsumerGroup();
         messager = AzureMessager.getMessager();
@@ -138,7 +138,7 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
         }));
     }
 
-    public void stopListening() {
+    public synchronized void stopListening() {
         Optional.ofNullable(consumerAsyncClient).ifPresent(EventHubConsumerAsyncClient::close);
         Optional.ofNullable(messager).ifPresent(m -> m.info(AzureString.format("Stop listening to event hub ({0})\n", getName())));
         this.consumerAsyncClient = null;
