@@ -132,8 +132,8 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
             Optional.ofNullable(this.consumerAsyncClient).ifPresent(client ->
                     receivers.add(client.receiveFromPartition(partitionId, EventPosition.latest())
                             .subscribe(partitionEvent -> {
-                                messager.debug(AzureString.format("Message Received from partition (%s): ", partitionId));
-                                messager.success(AzureString.format("\"%s\"\n", partitionEvent.getData().getBodyAsString()));
+                                messager.info(AzureString.format("Message Received from partition (%s): ", partitionId));
+                                messager.debug(AzureString.format("\"%s\"\n", partitionEvent.getData().getBodyAsString()));
                             })));
         }));
     }
