@@ -28,7 +28,17 @@ public interface AzResourceBase {
     String getResourceGroupName();
 
     @Nonnull
-    String getStatus();
+    default String getStatus() {
+        return getStatus(false);
+    }
+
+    /**
+     * @param immediately true to get status immediately from cache and refresh
+     *                    status asynchronously if needed;
+     *                    false to wait for status refresh synchronously if needed.
+     */
+    @Nonnull
+    String getStatus(boolean immediately);
 
     @Nonnull
     Subscription getSubscription();
@@ -37,7 +47,17 @@ public interface AzResourceBase {
     String getPortalUrl();
 
     default FormalStatus getFormalStatus() {
-        return StringUtils.isBlank(this.getStatus()) ? FormalStatus.UNKNOWN : FormalStatus.dummyFormalize(this.getStatus());
+        return getFormalStatus(false);
+    }
+
+    /**
+     * @param immediately true to get status immediately from cache and refresh
+     *                    status asynchronously if needed;
+     *                    false to wait for status refresh synchronously if needed.
+     */
+    default FormalStatus getFormalStatus(boolean immediately) {
+        final String status = this.getStatus(immediately);
+        return StringUtils.isBlank(status) ? FormalStatus.UNKNOWN : FormalStatus.dummyFormalize(status);
     }
 
     enum FormalStatus {

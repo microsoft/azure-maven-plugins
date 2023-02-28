@@ -194,6 +194,6 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
 
     @Override
     public boolean isStoppable() {
-        return StringUtils.equalsIgnoreCase(this.getStatus(), "Ready");
+        return StringUtils.equalsIgnoreCase(this.getStatus(true), "Ready");
     }
 }

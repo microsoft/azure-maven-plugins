@@ -35,9 +35,6 @@ public interface IDatabaseServer<T extends IDatabase> extends AzResourceBase {
     @Nullable
     String getVersion();
 
-    @Nonnull
-    String getStatus();
-
     @Nullable
     String getType();
 
