@@ -15,11 +15,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FunctionTemplate {
+    public static final String VALUE = "<value>";
     private String id;
     private TemplateMetadata metadata;
     private List<String> bundle;
@@ -48,6 +49,10 @@ public class FunctionTemplate {
 
     public Set<FunctionExtensionVersion> getSupportedExtensionVersions() {
         return CollectionUtils.isEmpty(this.bundle) ? null : bundle.stream().map(FunctionUtils::parseFunctionExtensionVersion).collect(Collectors.toSet());
+    }
+
+    public boolean isBundleSupported(final FunctionExtensionVersion version){
+        return CollectionUtils.isEmpty(this.bundle) || bundle.contains(version.getVersion());
     }
 
     @Nullable
@@ -92,9 +97,23 @@ public class FunctionTemplate {
         prompts.forEach(parameter -> {
             final FunctionSettingTemplate settingTemplate = settings == null ? null : Arrays.stream(settings).filter(template ->
                     StringUtils.equals(template.getName(), parameter)).findFirst().orElse(null);
-            parameters.put(parameter, Optional.ofNullable(settingTemplate.getDefaultValue()).filter(StringUtils::isNotEmpty).orElse("<value>"));
+            parameters.put(parameter, Optional.ofNullable(settingTemplate).map(this::getParameterDefaultValue).orElse(VALUE));
         });
         return this.generateContent(parameters);
+    }
+
+    private String getParameterDefaultValue(@Nonnull final FunctionSettingTemplate template) {
+        if (StringUtils.isNotEmpty(template.getDefaultValue())) {
+            return template.getDefaultValue();
+        }
+        switch (template.getValue()) {
+            case "boolean":
+                return Boolean.FALSE.toString();
+            case "enum":
+                return Optional.ofNullable(template.getSettingEnum()).filter(ArrayUtils::isNotEmpty).map(array -> array[0].getValue()).orElse(VALUE);
+            default:
+                return VALUE;
+        }
     }
 
     @Nullable
