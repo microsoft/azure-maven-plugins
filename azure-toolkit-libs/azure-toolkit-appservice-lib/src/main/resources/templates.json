@@ -405,6 +405,7 @@
           "SqlConnectionString"
         ]
       },
+      "bundle":["~4"],
       "function": {
         "disabled": false,
         "bindings": [
@@ -433,6 +434,7 @@
           "SqlConnectionString"
         ]
       },
+      "bundle":["~4"],
       "function": {
         "disabled": false,
         "bindings": [
