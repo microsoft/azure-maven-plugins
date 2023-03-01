@@ -82,7 +82,7 @@ public class DeployMojo extends AbstractMojoBase {
         final SpringCloudDeploymentConfig deploymentConfig = appConfig.getDeployment();
         Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getArtifact).map(IArtifact::getFile)
                 .orElseThrow(() -> new AzureToolkitRuntimeException("No artifact is specified to deploy."));
-        final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig);
+        final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig, true);
 
         final List<AzureTask<?>> tasks = task.getSubTasks();
         final boolean shouldSkipConfirm = !BooleanUtils.isTrue(prompt) || (this.settings != null && !this.settings.isInteractiveMode());
