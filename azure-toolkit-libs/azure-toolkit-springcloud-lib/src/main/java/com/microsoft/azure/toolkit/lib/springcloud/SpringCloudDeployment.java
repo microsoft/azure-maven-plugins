@@ -102,17 +102,17 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     @Nonnull
     @SneakyThrows
     public Flux<String> streamLogs(final String instance) {
-        return streamLogs(instance, 10);
+        return streamLogs(instance, 0, 10, 0, true);
     }
 
     @Nonnull
     @SneakyThrows
-    public Flux<String> streamLogs(final String instance, int tailLines) {
+    public Flux<String> streamLogs(final String instance, int sinceSeconds, int tailLines, int limitBytes, boolean follow) {
         final String endpoint = this.getParent().getLogStreamingEndpoint(instance);
         if (Objects.isNull(endpoint)) {
             return Flux.empty();
         }
-        final URL url = new URL(String.format("%s?tailLines=%s&follow=true", endpoint, tailLines));
+        final URL url = new URL(String.format("%s?tailLines=%s&follow=%s&sinceSeconds=%s&limitBytes=%s", endpoint, tailLines, follow, sinceSeconds, limitBytes));
         final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         final String password = this.getParent().getParent().getTestKey();
