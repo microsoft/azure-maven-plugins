@@ -119,9 +119,9 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final String instanceName = instanceList.stream().max(Comparator.comparing(DeploymentInstance::startTime))
                 .map(DeploymentInstance::name).orElse(null);
         Optional.ofNullable(instanceName).ifPresent(i -> {
+            messager.info(String.format("Starting app(%s) and opening streaming log of instance(%s)...", this.config.getAppName(), instanceName));
             messager.debug("###############START STREAMING LOG##################");
-            messager.debug(String.format("Starting app(%s) and opening streaming log of instance(%s)...", this.config.getAppName(), instanceName));
-            this.streamingLogDisposable = this.deployment.streamLogs(i, 0, 500, 0, true).subscribe(messager::debug);
+            this.streamingLogDisposable = this.deployment.streamLogs(i, 500).subscribe(messager::debug);
         });
     }
 

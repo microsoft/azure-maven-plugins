@@ -102,32 +102,19 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     @Nonnull
     @SneakyThrows
     public Flux<String> streamLogs(final String instance) {
-        return streamLogs(instance, 0, 10, 0, true);
+        return streamLogs(instance, 10);
     }
 
     @Nonnull
     @SneakyThrows
-    public Flux<String> streamLogs(final String instance, int sinceSeconds, int tailLines, int limitBytes, boolean follow) {
+    public Flux<String> streamLogs(final String instance, int tailLines) {
         final String endpoint = this.getParent().getLogStreamingEndpoint(instance);
         if (Objects.isNull(endpoint)) {
             return Flux.empty();
         }
-        final URL url = new URL(endpoint);
+        final URL url = new URL(String.format("%s?tailLines=%s&follow=true", endpoint, tailLines));
         final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
-        connection.setRequestProperty("Content-Type",
-                "application/x-www-form-urlencoded");
-        connection.setRequestProperty("Content-Language", "en-US");
-        connection.setRequestProperty("follow", String.valueOf(follow));
-        if (sinceSeconds > 0) {
-            connection.setRequestProperty("sinceSeconds", String.valueOf(sinceSeconds));
-        }
-        if (tailLines > 0) {
-            connection.setRequestProperty("tailLines", String.valueOf(tailLines));
-        }
-        if (limitBytes > 0) {
-            connection.setRequestProperty("limitBytes", String.valueOf(limitBytes));
-        }
         final String password = this.getParent().getParent().getTestKey();
         final String userPass = "primary:" + password;
         final String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userPass.getBytes()));
