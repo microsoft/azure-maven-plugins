@@ -77,7 +77,7 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
         return Objects.equals(this.status, EntityStatus.SEND_DISABLED);
     }
 
-    public void active() {
+    public void activate() {
         updateStatus(EntityStatus.ACTIVE);
     }
 
