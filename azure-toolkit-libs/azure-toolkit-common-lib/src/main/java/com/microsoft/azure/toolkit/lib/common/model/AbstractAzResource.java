@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
@@ -339,10 +340,14 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     @Nonnull
-    public String getStatus() {
+    public String getStatus(boolean immediately) {
         if (this.syncTimeRef.get() == -1) {
             log.debug("[{}:{}]:getStatus->getStatusSync()", this.module.getName(), this.getName());
-            this.getRemote();
+            if (immediately) {
+                AzureTaskManager.getInstance().runOnPooledThread(this::getRemote);
+            } else {
+                this.getRemote();
+            }
         }
         return this.statusRef.get();
     }

@@ -60,9 +60,6 @@ public interface AzResource
     void delete();
 
     @Nonnull
-    String getStatus();
-
-    @Nonnull
     default Subscription getSubscription() {
         try {
             return Azure.az(IAzureAccount.class).account().getSubscription(this.getSubscriptionId());
@@ -130,6 +127,12 @@ public interface AzResource
         @Nonnull
         @Override
         public String loadStatus(@Nonnull Void remote) {
+            return Status.UNKNOWN;
+        }
+
+        @Nonnull
+        @Override
+        public String getStatus(boolean immediately) {
             return Status.UNKNOWN;
         }
 
