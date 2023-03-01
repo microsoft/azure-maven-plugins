@@ -13,32 +13,23 @@ import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.RemoteDebuggingPayload;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasManager;
-import com.google.common.base.Charsets;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import io.netty.handler.codec.http.HttpHeaders;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.utils.URIBuilder;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.netty.http.client.HttpClient;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Consumer;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment> {
@@ -111,33 +102,38 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     @Nonnull
     @SneakyThrows
     public Flux<String> streamLogs(final String instance) {
-        return streamLogs(instance, 0, 10, 0, true);
+        return streamLogs(instance, 10);
     }
 
     @Nonnull
     @SneakyThrows
-    public Flux<String> streamLogs(final String instance, int sinceSeconds, int tailLines, int limitBytes, boolean follow) {
-        final HttpClient client = HttpClient.create().keepAlive(true);
-        final URIBuilder endpoint = new URIBuilder(this.getParent().getLogStreamingEndpoint(instance));
-        endpoint.addParameter("follow", String.valueOf(follow));
-        if (sinceSeconds > 0) {
-            endpoint.addParameter("sinceSeconds", String.valueOf(sinceSeconds));
+    public Flux<String> streamLogs(final String instance, int tailLines) {
+        final String endpoint = this.getParent().getLogStreamingEndpoint(instance);
+        if (Objects.isNull(endpoint)) {
+            return Flux.empty();
         }
-        if (tailLines > 0) {
-            endpoint.addParameter("tailLines", String.valueOf(tailLines));
-        }
-        if (limitBytes > 0) {
-            endpoint.addParameter("limitBytes", String.valueOf(limitBytes));
-        }
+        final URL url = new URL(String.format("%s?tailLines=%s&follow=true", endpoint, tailLines));
+        final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
         final String password = this.getParent().getParent().getTestKey();
         final String userPass = "primary:" + password;
         final String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userPass.getBytes()));
-        final Consumer<? super HttpHeaders> headerBuilder = header -> header.set("Authorization", basicAuth);
-        return client.headers(headerBuilder)
-            .responseTimeout(Duration.of(10, ChronoUnit.MINUTES))
-            .get()
-            .uri(endpoint.build())
-            .response((resp, cont) -> resp.status().code() == 200 ? cont.asString(Charsets.UTF_8) : Mono.empty());
+        connection.setRequestProperty("Authorization", basicAuth);
+        connection.setUseCaches(false);
+        connection.setDoOutput(true);
+        return Flux.create((fluxSink) -> {
+            try {
+                final InputStream is = connection.getInputStream();
+                BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+                String line;
+                while ((line = rd.readLine()) != null) {
+                    fluxSink.next(line);
+                }
+                rd.close();
+            } catch (final Exception e) {
+                throw new AzureToolkitRuntimeException(e);
+            }
+        });
     }
 
     @AzureOperation(name = "internal/springcloud.wait_until_deployment_ready.deployment|app", params = {"this.getName()", "this.getParent().getName()"})
