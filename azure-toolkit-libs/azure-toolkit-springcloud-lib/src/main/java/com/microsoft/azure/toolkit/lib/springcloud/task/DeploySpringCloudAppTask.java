@@ -34,10 +34,16 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     private final List<AzureTask<?>> subTasks;
     private SpringCloudDeployment deployment;
     private Disposable streamingLogDisposable;
+    private final boolean streamingLogEnabled;
 
     public DeploySpringCloudAppTask(SpringCloudAppConfig appConfig) {
+        this(appConfig, false);
+    }
+
+    public DeploySpringCloudAppTask(SpringCloudAppConfig appConfig, boolean streamingLogEnabled) {
         this.config = appConfig;
         this.subTasks = this.initTasks();
+        this.streamingLogEnabled = streamingLogEnabled;
     }
 
     @Nonnull
@@ -110,7 +116,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     }
 
     private void startStreamingLog() {
-        if (Objects.isNull(this.deployment)) {
+        if (Objects.isNull(this.deployment) || !streamingLogEnabled) {
             return;
         }
         final IAzureMessager messager = AzureMessager.getMessager();
@@ -126,7 +132,9 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     }
 
     private void stopStreamingLog() {
-        AzureMessager.getMessager().debug("###############STREAMING LOG END##################");
-        Optional.ofNullable(streamingLogDisposable).ifPresent(Disposable::dispose);
+        Optional.ofNullable(streamingLogDisposable).ifPresent(d -> {
+            AzureMessager.getMessager().debug("###############STREAMING LOG END##################");
+            d.dispose();
+        });
     }
 }
