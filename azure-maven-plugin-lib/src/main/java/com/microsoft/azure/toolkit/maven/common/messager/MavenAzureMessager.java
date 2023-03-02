@@ -27,7 +27,7 @@ public class MavenAzureMessager implements IAzureMessager, IAzureMessage.ValueDe
                 log.error(message.getContent(), ((Throwable) message.getPayload()));
                 return true;
             case DEBUG:
-                log.debug(message.getContent());
+                System.out.println(message.getContent());
                 return true;
             case INFO:
             case SUCCESS:

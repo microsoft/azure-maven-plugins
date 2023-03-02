@@ -82,9 +82,9 @@ public class GenericResource extends AbstractAzResource<GenericResource, Resourc
 
     @Nonnull
     @Override
-    public String getStatus() {
+    public String getStatus(boolean immediately) {
         final AbstractAzResource<?, ?, ?> concrete = this.toConcreteResource();
-        return concrete instanceof GenericResource ? Status.UNKNOWN : concrete.getStatus();
+        return concrete instanceof GenericResource ? Status.UNKNOWN : concrete.getStatus(immediately);
     }
 
     @Override

@@ -498,6 +498,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         AzureEventBus.emit("module.children_changed.module", this);
     }
 
+    /**
+     * @deprecated implement/use {@link #loadResourcePagesFromAzure()} instead.
+     */
+    @Deprecated
     @Nonnull
     @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
     protected Stream<R> loadResourcesFromAzure() {

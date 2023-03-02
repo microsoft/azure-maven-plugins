@@ -14,11 +14,11 @@ public interface Startable extends AzResourceBase {
     void restart();
 
     default boolean isStartable() {
-        return this.getFormalStatus().isStopped();
+        return this.getFormalStatus(true).isStopped();
     }
 
     default boolean isStoppable() {
-        return this.getFormalStatus().isRunning();
+        return this.getFormalStatus(true).isRunning();
     }
 
     default boolean isRestartable() {

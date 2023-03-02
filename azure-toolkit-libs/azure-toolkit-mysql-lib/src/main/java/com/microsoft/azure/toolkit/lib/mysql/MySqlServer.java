@@ -191,11 +191,11 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSub
 
     @Override
     public boolean isStoppable() {
-        return StringUtils.equalsIgnoreCase(this.getStatus(), "Ready");
+        return StringUtils.equalsIgnoreCase(this.getStatus(true), "Ready");
     }
 
     @Override
     public boolean isStartable() {
-        return StringUtils.equalsIgnoreCase(this.getStatus(), "Stopped");
+        return StringUtils.equalsIgnoreCase(this.getStatus(true), "Stopped");
     }
 }
