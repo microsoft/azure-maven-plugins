@@ -12,6 +12,11 @@ This repository contains all Maven plugins for Microsoft Azure services.
 * [Contributing](#Contributing)
 * [Telemetry](#Telemetry)
 
+## Related repository: azure-maven-archetypes
+
+You may be also interested in the [Azure Maven Archetypes](https://github.com/microsoft/azure-maven-archetypes). These plugins are very closely related to the archetypes, and both kinds of artifacts work together to give you Java your way on Azure.
+
+
 For more information on authentication, common configurations, CI CD, and general plugin documentation, [see the Wiki](https://github.com/microsoft/azure-maven-plugins/wiki).
 
 ## Plugins
