@@ -5,12 +5,15 @@
 
 package com.microsoft.azure.toolkit.lib.postgre;
 
-import com.azure.resourcemanager.postgresql.PostgreSqlManager;
-import com.azure.resourcemanager.postgresql.models.PerformanceTierProperties;
-import com.azure.resourcemanager.postgresql.models.Server;
-import com.azure.resourcemanager.postgresql.models.ServerPropertiesForDefaultCreate;
-import com.azure.resourcemanager.postgresql.models.ServerVersion;
-import com.azure.resourcemanager.postgresql.models.Sku;
+import com.azure.resourcemanager.postgresqlflexibleserver.PostgreSqlManager;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.AuthConfig;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.PasswordAuthEnum;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Server;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.ServerVersion;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Sku;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.SkuTier;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Storage;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.VcoreCapability;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -21,12 +24,10 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 import lombok.Getter;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -64,11 +65,6 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
         this.setLocalMachineAccessAllowed(config.isLocalMachineAccessAllowed());
     }
 
-    private int getTierPriority(@Nonnull PerformanceTierProperties tier) {
-        return StringUtils.equals("Basic", tier.id()) ? 1 :
-            StringUtils.equals("GeneralPurpose", tier.id()) ? 2 : StringUtils.equals("MemoryOptimized", tier.id()) ? 3 : 4;
-    }
-
     @Nullable
     private ServerVersion validateServerVersion(String version) {
         if (StringUtils.isNotBlank(version)) {
@@ -87,28 +83,30 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
     public Server createResourceInAzure() {
         assert this.config != null;
         final PostgreSqlManager manager = Objects.requireNonNull(this.getParent().getRemote());
+        final String region = Objects.requireNonNull(this.getRegion(), "'region' is required to create PostgreSQL flexible server.").getName();
 
-        final ServerPropertiesForDefaultCreate parameters = new ServerPropertiesForDefaultCreate()
-            .withAdministratorLogin(this.getAdminName())
-            .withAdministratorLoginPassword(this.getAdminPassword())
-            .withVersion(validateServerVersion(this.getVersion()));
-        final List<PerformanceTierProperties> tiers = manager.locationBasedPerformanceTiers()
-            .list(this.getRegion().getName()).stream().collect(Collectors.toList());
-        final PerformanceTierProperties tier = tiers.stream().filter(e -> CollectionUtils.isNotEmpty(e.serviceLevelObjectives()))
-            .min(Comparator.comparingInt(this::getTierPriority))
-            .orElseThrow(() -> new AzureToolkitRuntimeException("PostgreSQL is not available in this location for your subscription."));
-        final Sku sku = new Sku().withName(tier.serviceLevelObjectives().get(0).id());
+        final List<VcoreCapability> capabilities = Objects.requireNonNull(manager).locationBasedCapabilities().execute(region).stream()
+            .flatMap(c -> c.supportedFlexibleServerEditions().stream())
+            .flatMap(e -> e.supportedServerVersions().stream())
+            .filter(v -> StringUtils.equalsIgnoreCase(v.name(), this.getVersion()))
+            .flatMap(v -> v.supportedVcores().stream())
+            .collect(Collectors.toList());
+
+        final Sku sku = new Sku().withName(capabilities.get(0).name()).withTier(SkuTier.BURSTABLE);
         // create server
         final Server.DefinitionStages.WithCreate create = manager.servers().define(this.getName())
-            .withRegion(this.getRegion().getName())
+            .withRegion(region)
             .withExistingResourceGroup(this.getResourceGroupName())
-            .withProperties(parameters)
+            .withStorage(new Storage().withStorageSizeGB(32))
+            .withAdministratorLogin(this.getAdminName())
+            .withAdministratorLoginPassword(this.getAdminPassword())
+            .withVersion(validateServerVersion(this.getVersion()))
             .withSku(sku);
         final IAzureMessager messager = AzureMessager.getMessager();
-        messager.info(AzureString.format("Start creating PostgreSQL server ({0})...", this.getName()));
+        messager.info(AzureString.format("Start creating PostgreSQL flexible server ({0})...", this.getName()));
         final Server remote = this.doModify(() -> create.create(), Status.CREATING);
-        messager.success(AzureString.format("PostgreSQL server({0}) is successfully created.", this.getName()));
-        return this.updateResourceInAzure(Objects.requireNonNull(remote));
+        messager.success(AzureString.format("PostgreSQL flexible server({0}) is successfully created.", this.getName()));
+        return this.updateResourceInAzure(remote);
     }
 
     @Nonnull

@@ -6,9 +6,9 @@
 package com.microsoft.azure.toolkit.lib.postgre;
 
 import com.azure.core.util.paging.ContinuablePage;
-import com.azure.resourcemanager.postgresql.PostgreSqlManager;
-import com.azure.resourcemanager.postgresql.models.FirewallRule;
-import com.azure.resourcemanager.postgresql.models.FirewallRules;
+import com.azure.resourcemanager.postgresqlflexibleserver.PostgreSqlManager;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.FirewallRule;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.FirewallRules;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;

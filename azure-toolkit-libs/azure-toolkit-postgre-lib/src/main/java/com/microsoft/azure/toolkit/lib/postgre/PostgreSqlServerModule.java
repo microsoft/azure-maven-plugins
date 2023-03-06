@@ -6,9 +6,9 @@
 package com.microsoft.azure.toolkit.lib.postgre;
 
 import com.azure.core.util.paging.ContinuablePage;
-import com.azure.resourcemanager.postgresql.PostgreSqlManager;
-import com.azure.resourcemanager.postgresql.models.Server;
-import com.azure.resourcemanager.postgresql.models.Servers;
+import com.azure.resourcemanager.postgresqlflexibleserver.PostgreSqlManager;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Server;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Servers;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.lang3.StringUtils;
@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlServer, PostgreSqlServiceSubscription, Server> {
 
-    public static final String NAME = "servers";
+    public static final String NAME = "flexibleServers";
 
     public PostgreSqlServerModule(@Nonnull PostgreSqlServiceSubscription parent) {
         super(NAME, parent);
@@ -92,6 +92,6 @@ public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlS
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "PostgreSQL server";
+        return "PostgreSQL flexible server";
     }
 }

@@ -358,6 +358,11 @@
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-postgresqlflexibleserver</artifactId>
+                <version>${azure-resourcemanager-postgresqlflexibleserver.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-mysql</artifactId>
                 <version>${azure-resourcemanager-mysql.version}</version>
             </dependency>

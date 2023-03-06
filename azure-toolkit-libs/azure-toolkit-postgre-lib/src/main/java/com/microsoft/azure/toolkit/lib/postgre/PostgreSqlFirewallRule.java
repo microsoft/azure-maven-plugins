@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.postgre;
 
-import com.azure.resourcemanager.postgresql.models.FirewallRule;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.FirewallRule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;

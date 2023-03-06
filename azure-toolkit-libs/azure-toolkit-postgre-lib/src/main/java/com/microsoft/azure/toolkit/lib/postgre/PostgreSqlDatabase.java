@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.postgre;
 
-import com.azure.resourcemanager.postgresql.models.Database;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Database;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
