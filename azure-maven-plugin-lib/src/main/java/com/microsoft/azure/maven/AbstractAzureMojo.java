@@ -46,7 +46,6 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.maven.execution.MavenExecutionRequest;
@@ -65,6 +64,7 @@ import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.beryx.textio.TextTerminal;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
@@ -76,12 +76,14 @@ import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -110,6 +112,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     protected static final String SUBSCRIPTION_TEMPLATE = "Subscription: %s(%s)";
     protected static final String USING_AZURE_ENVIRONMENT = "Using Azure environment: %s.";
     protected static final String SUBSCRIPTION_NOT_FOUND = "Subscription %s was not found in current account.";
+    protected static final String COMPILE_LEVEL_NOT_SUPPORTED = "Your project compile level (%s) is higher than the supported values in Azure, " +
+            "please lower the compile level in case any compatibility issues and errors. Here are the supported runtimes: %s";
+    protected static final String FAILED_TO_GET_VALID_RUNTIMES = "Failed to get valid runtime based on project compile level, fall back to all values";
 
     private static final String AZURE_ENVIRONMENT = "azureEnvironment";
     private static final String PROXY = "proxy";
@@ -623,29 +628,54 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
 
     @Nullable
     protected String getCompileLevel() {
-        return Optional.ofNullable(getCompileLevelFromCompilerPlugin())
-                .filter(StringUtils::isNotEmpty)
-                .orElseGet(this::getCompileLevelFromProperties);
+        // order compile, target
+        final String rawLevel = Stream.of("compile", "target").map(this::getCompilerPluginConfigurationByName)
+                .filter(StringUtils::isNotEmpty).findFirst().orElse(null);
+        return StringUtils.startsWithIgnoreCase(rawLevel, "1.") ? StringUtils.substring(rawLevel, 2) : rawLevel;
+    }
+
+    @Nonnull
+    protected <T> List<T> getValidRuntimes(final List<T> runtimes, final Function<T, Integer> levelGetter) {
+        try {
+            final String compileLevel = getCompileLevel();
+            final Integer level = Integer.valueOf(compileLevel);
+            final List<T> result = runtimes.stream()
+                    .filter(t -> levelGetter.apply(t) >= level)
+                    .sorted(Comparator.comparing(levelGetter))
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(result)) {
+                final String supportedRuntimes = runtimes.stream().map(Object::toString).collect(Collectors.joining(","));
+                AzureMessager.getMessager().warning(AzureString.format(COMPILE_LEVEL_NOT_SUPPORTED, compileLevel, supportedRuntimes));
+                return runtimes;
+            } else {
+                return result;
+            }
+        } catch (RuntimeException e) {
+            getLog().debug(FAILED_TO_GET_VALID_RUNTIMES, e);
+            return runtimes;
+        }
     }
 
     @Nullable
-    private String getCompileLevelFromCompilerPlugin() {
+    private String getCompilerPluginConfigurationByName(final String propertyName) {
         return Optional.ofNullable(project)
                 .map(p -> p.getPlugin(Plugin.constructKey("org.apache.maven.plugins", "maven-compiler-plugin")))
                 .map(Plugin::getConfiguration)
                 .filter(object -> object instanceof Xpp3Dom)
                 .map(Xpp3Dom.class::cast)
-                .map(configuration -> ObjectUtils.firstNonNull(configuration.getChild("release"), configuration.getChild("target")))
+                .map(configuration -> configuration.getChild(propertyName))
                 .map(Xpp3Dom::getValue)
-                .filter(StringUtils::isNotBlank).orElse(null);
+                .filter(StringUtils::isNotBlank)
+                .orElseGet(() -> getMavenPropertyByName("maven.compiler." + propertyName));
     }
 
     @Nullable
-    private String getCompileLevelFromProperties() {
-        return Stream.of("maven.compiler.release", "maven.compiler.target", "maven.compiler.source", "java.version")
-                .map(key -> Optional.ofNullable(project).map(MavenProject::getProperties).map(properties -> properties.getProperty(key)).orElse(null))
-                .filter(StringUtils::isNotEmpty)
-                .findFirst().orElse(null);
+    private String getMavenPropertyByName(@Nonnull final String name) {
+        return Optional.ofNullable(project)
+                .map(MavenProject::getProperties)
+                .map(properties -> properties.getProperty(name))
+                .filter(StringUtils::isNotBlank)
+                .orElse(null);
     }
 
     protected interface RunnableWithException {
