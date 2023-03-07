@@ -59,6 +59,17 @@ public class ConfigMojo extends AbstractMojoBase {
     private static final List<String> APP_PROPERTIES = Arrays.asList("appName", "isPublic");
     private static final List<String> DEPLOYMENT_PROPERTIES = Arrays.asList("cpu", "memoryInGB", "instanceCount", "jvmOptions", "runtimeVersion");
 
+    private static final String JAVA_8 = "Java 8";
+    private static final String JAVA_11 = "Java 11";
+    private static final String JAVA_17 = "Java 17";
+    private static final Map<String, Integer> JAVA_RUNTIMES = new LinkedHashMap<String, Integer>() {
+        {
+            put(JAVA_8, 8);
+            put(JAVA_11, 11);
+            put(JAVA_17, 17);
+        }
+    };
+
     private Boolean parentMode; // this is not a mojo parameter
 
     /**
@@ -160,13 +171,13 @@ public class ConfigMojo extends AbstractMojoBase {
 
     private void configCommon() throws IOException, InvalidConfigurationException {
         configureAppName();
+        if (this.notEnterpriseTier()) {
+            configureJavaVersion();
+        }
         configurePublic();
         configureInstanceCount();
         configureCpu();
         configureMemory();
-        if (this.notEnterpriseTier()) {
-            configureJavaVersion();
-        }
         configureJvmOptions();
     }
 
@@ -210,7 +221,11 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private void configureJavaVersion() throws IOException, InvalidConfigurationException {
-        this.deploymentSettings.setRuntimeVersion(this.wrapper.handle("configure-java-version", false));
+        final List<String> validRuntimes = getValidRuntimes(new ArrayList<>(JAVA_RUNTIMES.keySet()), JAVA_RUNTIMES::get);
+        assert CollectionUtils.isNotEmpty(validRuntimes) : "No valid runtime found for current project.";
+        this.wrapper.putCommonVariable("runtimes", validRuntimes);
+        final String defaultRuntime = validRuntimes.contains(JAVA_11) ? JAVA_11 : validRuntimes.get(0);
+        this.deploymentSettings.setRuntimeVersion(this.wrapper.handleSelectOne("configure-java-version", validRuntimes, defaultRuntime, t -> t));
     }
 
     private void configureJvmOptions() throws IOException, InvalidConfigurationException {

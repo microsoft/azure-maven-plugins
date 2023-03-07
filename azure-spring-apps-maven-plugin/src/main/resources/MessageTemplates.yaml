@@ -87,7 +87,15 @@ property:         jvmOptions
 
 ---
 id:               configure-java-version
-promote:          "Input runtime Java version{{(schema.default) ? '(***' ~ schema.default ~ '***)' : ''}}:"
+promote:
+    header: "Runtimes:"
+    many: "Select runtime for deployment:"
+message:
+  auto_select:    "There is only one valid runtime (***{{ runtimes[0] }}***) for your project, will use it automatically."
+  select_none:    "You have not selected any runtime, 'config' will terminate."
+required:         true
+auto_select:      true
+default_index:    0
 resource:         Deployment
 property:         runtimeVersion
 
