@@ -185,16 +185,17 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
     }
 
     private void startStreamingLog() {
-        if (target.isLogStreamingEnabled()) {
+        if (!target.isLogStreamingEnabled()) {
             return;
         }
         final OperatingSystem operatingSystem = Optional.ofNullable(target.getRuntime()).map(Runtime::getOperatingSystem).orElse(null);
         if (operatingSystem == OperatingSystem.LINUX) {
             return;
         }
-        target.refresh();
         messager.debug("###############STREAMING LOG BEGIN##################");
-        subscription = target.streamAllLogsAsync().subscribe(messager::debug);
+        subscription = target.streamAllLogsAsync()
+                .doFinally((type) -> messager.debug("###############STREAMING LOG END##################"))
+                .subscribe(messager::debug);
         try {
             TimeUnit.MINUTES.sleep(1);
         } catch (final Exception ignored) {
@@ -206,7 +207,6 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
     private void stopStreamingLog() {
         if (subscription != null && !subscription.isDisposed()) {
             subscription.dispose();
-            messager.debug("###############STREAMING LOG END##################");
         }
     }
 }

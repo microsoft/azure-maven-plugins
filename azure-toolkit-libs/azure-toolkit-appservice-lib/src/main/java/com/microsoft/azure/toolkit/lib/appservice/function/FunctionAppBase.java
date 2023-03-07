@@ -184,6 +184,6 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
         final OperatingSystem operatingSystem = Optional.ofNullable(getRuntime()).map(Runtime::getOperatingSystem).orElse(null);
         final boolean isEnableApplicationLog = Optional.ofNullable(getDiagnosticConfig())
                 .map(DiagnosticConfig::isEnableApplicationLog).orElse(false);
-        return operatingSystem != OperatingSystem.LINUX && !isEnableApplicationLog;
+        return operatingSystem == OperatingSystem.LINUX || isEnableApplicationLog;
     }
 }

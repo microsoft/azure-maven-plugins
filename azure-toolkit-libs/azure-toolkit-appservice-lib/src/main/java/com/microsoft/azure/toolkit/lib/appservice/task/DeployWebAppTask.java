@@ -160,11 +160,13 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     }
 
     private void startStreamingLog() {
-        if (webApp.isLogStreamingEnabled()) {
+        if (!webApp.isLogStreamingEnabled()) {
             return;
         }
         this.messager.debug("###############STREAMING LOG BEGIN##################");
-        this.subscription = this.webApp.streamAllLogsAsync().subscribe(messager::debug);
+        this.subscription = this.webApp.streamAllLogsAsync()
+                .doFinally((type) -> messager.debug("###############STREAMING LOG END##################"))
+                .subscribe(messager::debug);
         try {
             TimeUnit.MINUTES.sleep(1);
         } catch (final Exception ignored) {
@@ -176,8 +178,6 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private void stopStreamingLog() {
         if (subscription != null && !subscription.isDisposed()) {
             subscription.dispose();
-            messager.debug("###############STREAMING LOG END##################");
         }
     }
-
 }
