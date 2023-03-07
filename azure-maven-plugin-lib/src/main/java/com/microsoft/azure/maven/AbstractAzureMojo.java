@@ -46,10 +46,12 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
@@ -61,7 +63,9 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.beryx.textio.TextTerminal;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -79,6 +83,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Base abstract class for all Azure Mojos.
@@ -614,6 +619,33 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         for (final String line : messageArray) {
             Log.info(line);
         }
+    }
+
+    @Nullable
+    protected String getCompileLevel() {
+        return Optional.ofNullable(getCompileLevelFromCompilerPlugin())
+                .filter(StringUtils::isNotEmpty)
+                .orElseGet(this::getCompileLevelFromProperties);
+    }
+
+    @Nullable
+    private String getCompileLevelFromCompilerPlugin() {
+        return Optional.ofNullable(project)
+                .map(p -> p.getPlugin(Plugin.constructKey("org.apache.maven.plugins", "maven-compiler-plugin")))
+                .map(Plugin::getConfiguration)
+                .filter(object -> object instanceof Xpp3Dom)
+                .map(Xpp3Dom.class::cast)
+                .map(configuration -> ObjectUtils.firstNonNull(configuration.getChild("release"), configuration.getChild("target")))
+                .map(Xpp3Dom::getValue)
+                .filter(StringUtils::isNotBlank).orElse(null);
+    }
+
+    @Nullable
+    private String getCompileLevelFromProperties() {
+        return Stream.of("maven.compiler.release", "maven.compiler.target", "maven.compiler.source", "java.version")
+                .map(key -> Optional.ofNullable(project).map(MavenProject::getProperties).map(properties -> properties.getProperty(key)).orElse(null))
+                .filter(StringUtils::isNotEmpty)
+                .findFirst().orElse(null);
     }
 
     protected interface RunnableWithException {
