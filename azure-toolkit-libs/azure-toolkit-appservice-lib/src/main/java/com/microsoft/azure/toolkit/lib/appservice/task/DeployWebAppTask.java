@@ -5,12 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.task;
 
-import com.microsoft.azure.toolkit.lib.appservice.model.CsmDeploymentStatus;
-import com.microsoft.azure.toolkit.lib.appservice.model.DeployOptions;
-import com.microsoft.azure.toolkit.lib.appservice.model.DeploymentBuildStatus;
-import com.microsoft.azure.toolkit.lib.appservice.model.ErrorEntity;
-import com.microsoft.azure.toolkit.lib.appservice.model.KuduDeploymentResult;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
+import com.microsoft.azure.toolkit.lib.appservice.model.*;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -23,6 +18,7 @@ import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -30,6 +26,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -48,6 +45,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private final boolean restartSite;
     private final Boolean waitDeploymentComplete;
     private final IAzureMessager messager;
+    private Disposable subscription;
 
     @Setter
     private long deploymentStatusRefreshInterval = DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL;
@@ -80,6 +78,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         this.messager.info(String.format(DEPLOY_START, webApp.getName()));
         deployArtifacts();
         this.messager.info(String.format(DEPLOY_FINISH, webApp.getHostName()));
+        startStreamingLog();
         startAppService(webApp);
         return webApp;
     }
@@ -157,6 +156,27 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
             AzureMessager.getMessager().info(START_APP);
             target.start();
             AzureMessager.getMessager().info(START_APP_DONE);
+        }
+    }
+
+    private void startStreamingLog() {
+        if (webApp.isLogStreamingEnabled()) {
+            return;
+        }
+        this.messager.debug("###############STREAMING LOG BEGIN##################");
+        this.subscription = this.webApp.streamAllLogsAsync().subscribe(messager::debug);
+        try {
+            TimeUnit.MINUTES.sleep(1);
+        } catch (final Exception ignored) {
+        } finally {
+            stopStreamingLog();
+        }
+    }
+
+    private void stopStreamingLog() {
+        if (subscription != null && !subscription.isDisposed()) {
+            subscription.dispose();
+            messager.debug("###############STREAMING LOG END##################");
         }
     }
 

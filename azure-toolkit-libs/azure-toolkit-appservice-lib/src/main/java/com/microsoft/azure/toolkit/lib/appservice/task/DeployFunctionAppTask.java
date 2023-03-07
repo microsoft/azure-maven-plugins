@@ -9,6 +9,8 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -18,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.zeroturnaround.zip.ZipUtil;
+import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.retry.Retry;
@@ -31,6 +34,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.ANONYMOUS;
@@ -63,6 +67,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
     private final File stagingDirectory;
     private final FunctionDeployType deployType;
     private final IAzureMessager messager;
+    private Disposable subscription;
 
     public DeployFunctionAppTask(@Nonnull FunctionAppBase<?, ?, ?> target, @Nonnull File stagingFolder, @Nullable FunctionDeployType deployType) {
         this(target, stagingFolder, deployType, AzureMessager.getMessager());
@@ -88,6 +93,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
             return target;
         }
         deployArtifact();
+        startStreamingLog();
         if (target instanceof FunctionApp) {
             listHTTPTriggerUrls((FunctionApp) target);
         }
@@ -176,5 +182,31 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
                     .orElseThrow(() -> new AzureToolkitRuntimeException(NO_TRIGGERS_FOUNDED));
             }).subscribeOn(Schedulers.boundedElastic())
             .retryWhen(Retry.fixedDelay(LIST_TRIGGERS_MAX_RETRY - 1, Duration.ofSeconds(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS))).block();
+    }
+
+    private void startStreamingLog() {
+        if (target.isLogStreamingEnabled()) {
+            return;
+        }
+        final OperatingSystem operatingSystem = Optional.ofNullable(target.getRuntime()).map(Runtime::getOperatingSystem).orElse(null);
+        if (operatingSystem == OperatingSystem.LINUX) {
+            return;
+        }
+        target.refresh();
+        messager.debug("###############STREAMING LOG BEGIN##################");
+        subscription = target.streamAllLogsAsync().subscribe(messager::debug);
+        try {
+            TimeUnit.MINUTES.sleep(1);
+        } catch (final Exception ignored) {
+        } finally {
+            stopStreamingLog();
+        }
+    }
+
+    private void stopStreamingLog() {
+        if (subscription != null && !subscription.isDisposed()) {
+            subscription.dispose();
+            messager.debug("###############STREAMING LOG END##################");
+        }
     }
 }

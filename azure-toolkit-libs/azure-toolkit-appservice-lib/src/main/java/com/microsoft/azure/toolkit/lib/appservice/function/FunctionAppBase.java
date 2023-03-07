@@ -17,9 +17,7 @@ import com.microsoft.azure.toolkit.lib.appservice.deploy.RunFromZipFunctionDeplo
 import com.microsoft.azure.toolkit.lib.appservice.deploy.ZIPFunctionDeployHandler;
 import com.microsoft.azure.toolkit.lib.appservice.file.AzureFunctionsAdminClient;
 import com.microsoft.azure.toolkit.lib.appservice.file.IFileClient;
-import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
-import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
-import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.appservice.model.*;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -179,5 +177,13 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
         final boolean appSettingsEnabled = appSettings.containsKey(HTTP_PLATFORM_DEBUG_PORT) &&
                 StringUtils.equalsIgnoreCase(appSettings.get(JAVA_OPTS), getJavaOptsWithRemoteDebugEnabled(appSettings, appSettings.get(HTTP_PLATFORM_DEBUG_PORT)));
         return configEnabled && appSettingsEnabled;
+    }
+
+    @Override
+    public boolean isLogStreamingEnabled() {
+        final OperatingSystem operatingSystem = Optional.ofNullable(getRuntime()).map(Runtime::getOperatingSystem).orElse(null);
+        final boolean isEnableApplicationLog = Optional.ofNullable(getDiagnosticConfig())
+                .map(DiagnosticConfig::isEnableApplicationLog).orElse(false);
+        return operatingSystem != OperatingSystem.LINUX && !isEnableApplicationLog;
     }
 }
