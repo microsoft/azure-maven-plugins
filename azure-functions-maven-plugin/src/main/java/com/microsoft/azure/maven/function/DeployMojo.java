@@ -22,7 +22,6 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -30,9 +29,7 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -96,10 +93,11 @@ public class DeployMojo extends AbstractFunctionMojo {
     @AzureOperation("user/functionapp.deploy_app")
     protected void doExecute() throws Throwable {
         this.mergeCommandLineConfig();
-        doValidate();
+        final FunctionAppConfig functionAppConfig = getParser().parseConfig();
+        doValidate(functionAppConfig);
         initAzureAppServiceClient();
 
-        final FunctionAppBase<?, ?, ?> target = createOrUpdateResource(getParser().parseConfig());
+        final FunctionAppBase<?, ?, ?> target = createOrUpdateResource(functionAppConfig);
         deployArtifact(target);
         updateTelemetryProperties();
     }
@@ -115,10 +113,11 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected void doValidate() throws AzureExecutionException {
+    protected void doValidate(FunctionAppConfig functionAppConfig) throws AzureExecutionException {
         validateParameters();
         validateFunctionCompatibility();
-        validateArtifactCompileVersion();
+        final String javaVersion = Optional.ofNullable(functionAppConfig.runtime()).map(RuntimeConfig::javaVersion).map(JavaVersion::getValue).orElse(StringUtils.EMPTY);
+        validateArtifactCompileVersion(javaVersion, getArtifactToDeploy(), failOnRuntimeValidationError);
         validateApplicationInsightsConfiguration();
     }
 
@@ -177,9 +176,9 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     protected FunctionAppBase<?, ?, ?> createOrUpdateResource(final FunctionAppConfig config) throws Throwable {
-        FunctionApp app = Azure.az(AzureFunctions.class).functionApps(config.subscriptionId()).updateOrCreate(config.appName(), config.resourceGroup());
+        final FunctionApp app = Azure.az(AzureFunctions.class).functionApps(config.subscriptionId()).updateOrCreate(config.appName(), config.resourceGroup());
         final boolean newFunctionApp = !app.exists();
-        AppServiceConfig defaultConfig = !newFunctionApp ? fromAppService(app, app.getAppServicePlan()) : buildDefaultConfig(config.subscriptionId(),
+        final AppServiceConfig defaultConfig = !newFunctionApp ? fromAppService(app, app.getAppServicePlan()) : buildDefaultConfig(config.subscriptionId(),
             config.resourceGroup(), config.appName());
         mergeAppServiceConfig(config, defaultConfig);
         if (!newFunctionApp && !config.disableAppInsights() && StringUtils.isEmpty(config.appInsightsKey())) {
@@ -190,46 +189,13 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     private AppServiceConfig buildDefaultConfig(String subscriptionId, String resourceGroup, String appName) {
-        ComparableVersion javaVersionForProject = null;
-        final String outputFileName = project.getBuild().getFinalName() + "." + project.getPackaging();
-        File outputFile = new File(project.getBuild().getDirectory(), outputFileName);
-        if (outputFile.exists() && StringUtils.equalsIgnoreCase("jar", FilenameUtils.getExtension(outputFile.getName()))) {
-            try {
-                javaVersionForProject = new ComparableVersion(Utils.getArtifactCompileVersion(outputFile));
-            } catch (Exception e) {
-                // it is acceptable that java version from jar file cannot be retrieved
-            }
-        }
-
-        javaVersionForProject = ObjectUtils.firstNonNull(javaVersionForProject, new ComparableVersion(System.getProperty("java.version")));
-        // get java version according to project java version
-        JavaVersion javaVersion = javaVersionForProject.compareTo(new ComparableVersion("9")) < 0 ? JavaVersion.JAVA_8 : JavaVersion.JAVA_11;
-        return AppServiceConfigUtils.buildDefaultFunctionConfig(subscriptionId, resourceGroup, appName, javaVersion);
+        return AppServiceConfigUtils.buildDefaultFunctionConfig(subscriptionId, resourceGroup, appName, JavaVersion.JAVA_8);
     }
 
     private void deployArtifact(final FunctionAppBase<?, ?, ?> target) {
         final File file = new File(getDeploymentStagingDirectoryPath());
         final FunctionDeployType type = StringUtils.isEmpty(deploymentType) ? null : FunctionDeployType.fromString(deploymentType);
         new DeployFunctionAppTask(target, file, type).doExecute();
-    }
-
-    protected void validateArtifactCompileVersion() throws AzureExecutionException {
-        final RuntimeConfig runtimeConfig = getParser().getRuntimeConfig();
-        if (runtimeConfig.os() == OperatingSystem.DOCKER) {
-            return;
-        }
-        final JavaVersion javaVersion = Optional.ofNullable(runtimeConfig.javaVersion()).orElse(CreateOrUpdateFunctionAppTask.DEFAULT_FUNCTION_JAVA_VERSION);
-        final ComparableVersion runtimeVersion = new ComparableVersion(javaVersion.getValue());
-        final ComparableVersion artifactVersion = new ComparableVersion(Utils.getArtifactCompileVersion(getArtifactToDeploy()));
-        if (runtimeVersion.compareTo(artifactVersion) >= 0) {
-            return;
-        }
-        if (javaVersion.isExpandedValue()) {
-            AzureMessager.getMessager().warning(AzureString.format(ARTIFACT_INCOMPATIBLE_WARNING, artifactVersion.toString(), runtimeVersion.toString()));
-        } else {
-            final String errorMessage = AzureString.format(ARTIFACT_INCOMPATIBLE_ERROR, artifactVersion.toString(), runtimeVersion.toString()).toString();
-            throw new AzureExecutionException(errorMessage);
-        }
     }
 
     private File getArtifactToDeploy() throws AzureExecutionException {

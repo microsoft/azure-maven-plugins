@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateWebAppTask;
@@ -27,16 +28,15 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Getter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -79,13 +79,30 @@ public class DeployMojo extends AbstractWebAppMojo {
     @AzureOperation(name = "user/webapp.deploy_app")
     protected void doExecute() throws AzureExecutionException {
         mergeCommandLineConfig();
-        validateConfiguration(message -> AzureMessager.getMessager().error(message.getMessage()), true);
+        doValidate();
         // initialize library client
         az = initAzureAppServiceClient();
         final WebAppBase<?, ?, ?> target = createOrUpdateResource();
         deployExternalResources(target, getConfigParser().getExternalArtifacts());
         deploy(target, getConfigParser().getArtifacts());
         updateTelemetryProperties();
+    }
+
+    private void doValidate() throws AzureExecutionException {
+        validateConfiguration(message -> AzureMessager.getMessager().error(message.getMessage()), true);
+        validateArtifactCompileVersion();
+    }
+
+    private void validateArtifactCompileVersion() throws AzureExecutionException {
+        final Runtime runtime = getConfigParser().getRuntime();
+        final List<WebAppArtifact> artifacts = Optional.ofNullable(getConfigParser().getArtifacts())
+                .orElse(Collections.emptyList());
+        if (Objects.isNull(runtime) || runtime.isDocker() || CollectionUtils.isEmpty(artifacts)) {
+            return;
+        }
+        final String javaVersion = Optional.ofNullable(runtime.getJavaVersion()).map(JavaVersion::getValue).orElse(StringUtils.EMPTY);
+        artifacts.stream().map(WebAppArtifact::getFile).filter(Objects::nonNull)
+                .forEach(artifact -> validateArtifactCompileVersion(javaVersion, artifact, failOnRuntimeValidationError));
     }
 
     private void mergeCommandLineConfig() {
@@ -117,21 +134,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private AppServiceConfig buildDefaultConfig(String subscriptionId, String resourceGroup, String appName) {
-        ComparableVersion javaVersionForProject = null;
-        final String outputFileName = project.getBuild().getFinalName() + "." + project.getPackaging();
-        File outputFile = new File(project.getBuild().getDirectory(), outputFileName);
-        if (outputFile.exists() && StringUtils.equalsIgnoreCase("jar", project.getPackaging())) {
-            try {
-                javaVersionForProject = new ComparableVersion(Utils.getArtifactCompileVersion(outputFile));
-            } catch (Exception e) {
-                // it is acceptable that java version from jar file cannot be retrieved
-            }
-        }
-
-        javaVersionForProject = ObjectUtils.firstNonNull(javaVersionForProject, new ComparableVersion(System.getProperty("java.version")));
-        // get java version according to project java version
-        JavaVersion javaVersion = javaVersionForProject.compareTo(new ComparableVersion("9")) < 0 ? JavaVersion.JAVA_8 : JavaVersion.JAVA_11;
-        return AppServiceConfigUtils.buildDefaultWebAppConfig(subscriptionId, resourceGroup, appName, this.project.getPackaging(), javaVersion);
+        return AppServiceConfigUtils.buildDefaultWebAppConfig(subscriptionId, resourceGroup, appName, this.project.getPackaging(), JavaVersion.JAVA_17);
     }
 
     private void deploy(WebAppBase<?, ?, ?> target, List<WebAppArtifact> artifacts) {
