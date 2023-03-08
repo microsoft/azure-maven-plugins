@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.utils.PollUtils;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
@@ -139,11 +140,11 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     @AzureOperation(name = "internal/springcloud.wait_until_deployment_ready.deployment|app", params = {"this.getName()", "this.getParent().getName()"})
     public boolean waitUntilReady(int timeoutInSeconds) {
         AzureMessager.getMessager().info("Getting deployment status...");
-        final SpringCloudDeployment deployment = Utils.pollUntil(() -> {
+        final String testEndPoint = PollUtils.pollUntil(() -> {
             this.invalidateCache();
-            return this;
-        }, Utils::isDeploymentDone, timeoutInSeconds);
-        return Utils.isDeploymentDone(deployment);
+            return this.getParent().getTestUrl();
+        }, PollUtils::isEndPointReady, timeoutInSeconds);
+        return PollUtils.isEndPointReady(testEndPoint);
     }
 
     @Nullable

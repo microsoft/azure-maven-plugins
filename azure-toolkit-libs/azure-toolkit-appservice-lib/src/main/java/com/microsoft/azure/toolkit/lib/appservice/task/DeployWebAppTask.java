@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
+import com.microsoft.azure.toolkit.lib.common.utils.PollUtils;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -37,8 +38,11 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
     private static final String START_APP = "Starting Web App after deploying artifacts...";
     private static final String START_APP_DONE = "Successfully started Web App.";
+    private static final String GET_APP_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
+            "opening streaming log to provide more info.";
     private static final int DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL = 10;
     private static final int DEFAULT_DEPLOYMENT_STATUS_MAX_REFRESH_TIMES = 20;
+    private static final int TIMEOUT_IN_SECONDS = 60;
 
     private final WebAppBase<?, ?, ?> webApp;
     private final List<WebAppArtifact> artifacts;
@@ -78,8 +82,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         this.messager.info(String.format(DEPLOY_START, webApp.getName()));
         deployArtifacts();
         this.messager.info(String.format(DEPLOY_FINISH, webApp.getHostName()));
-        startStreamingLog();
-        startAppService(webApp);
+        startAppService();
         return webApp;
     }
 
@@ -151,12 +154,20 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         return deploymentStatus;
     }
 
-    private static void startAppService(WebAppBase<?, ?, ?> target) {
-        if (!target.getFormalStatus().isRunning()) {
-            AzureMessager.getMessager().info(START_APP);
-            target.start();
-            AzureMessager.getMessager().info(START_APP_DONE);
+    private void startAppService() {
+        messager.info(START_APP);
+        if (checkIfAppReady()) {
+            messager.info(START_APP_DONE);
+            return;
         }
+        messager.warning(GET_APP_STATUS_TIMEOUT);
+        startStreamingLog();
+    }
+
+    private boolean checkIfAppReady() {
+        final String endpoint = PollUtils.pollUntil(() -> "https://" + webApp.getHostName(),
+                PollUtils::isEndPointReady, TIMEOUT_IN_SECONDS);
+        return PollUtils.isEndPointReady(endpoint);
     }
 
     private void startStreamingLog() {
@@ -168,7 +179,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
                 .doFinally((type) -> messager.debug("###############STREAMING LOG END##################"))
                 .subscribe(messager::debug);
         try {
-            TimeUnit.MINUTES.sleep(1);
+            TimeUnit.MINUTES.sleep(5);
         } catch (final Exception ignored) {
         } finally {
             stopStreamingLog();
