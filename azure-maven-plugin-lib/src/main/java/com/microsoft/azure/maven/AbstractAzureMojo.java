@@ -27,6 +27,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -39,6 +40,7 @@ import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetryClient;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.maven.common.action.MavenActionManager;
 import com.microsoft.azure.toolkit.maven.common.messager.MavenAzureMessager;
 import com.microsoft.azure.toolkit.maven.common.task.MavenAzureTaskManager;
@@ -118,6 +120,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
 
     private static final String AZURE_ENVIRONMENT = "azureEnvironment";
     private static final String PROXY = "proxy";
+    public static final String INVALID_ARTIFACT = "The compile level of the artifact '%s' is '%s', which is higher than the runtime compile level '%s'. " +
+            "Please recompile the artifact with a lower compile level or switch to higher Java runtime.";
 
     //region Properties
 
@@ -261,6 +265,13 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     @Parameter(property = "auth")
     protected MavenAuthConfiguration auth;
 
+    /**
+     * Boolean flag to control whether throwing exception when runtime validation failed
+     */
+    @JsonProperty
+    @Parameter(property = "skipRuntimeValidation", defaultValue = "true")
+    protected boolean failOnRuntimeValidationError;
+
     @Component
     @JsonIgnore
     protected SettingsDecrypter settingsDecrypter;
@@ -280,7 +291,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     @Getter
     @JsonIgnore
     private final String installationId = Optional.ofNullable(InstallationIdUtils.getHashMac()).orElse("");
-
 
     //region Entry Point
 
@@ -623,6 +633,20 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         final String[] messageArray = messages.split("\\n");
         for (final String line : messageArray) {
             Log.info(line);
+        }
+    }
+
+    public static void validateArtifactCompileVersion(final String runtimeJavaVersion, final File artifact, final boolean failOnValidation) {
+        final int runtimeVersion = Utils.getJavaMajorVersion(runtimeJavaVersion);
+        final int artifactCompileVersion = Utils.getArtifactCompileVersion(artifact);
+        if (runtimeVersion < 0 || artifactCompileVersion < 0 || artifactCompileVersion <= runtimeVersion) {
+            return;
+        }
+        final AzureString errorMessage = AzureString.format(INVALID_ARTIFACT, artifact.getAbsolutePath(), artifactCompileVersion, runtimeVersion);
+        if (failOnValidation) {
+            throw new AzureToolkitRuntimeException(errorMessage.getString());
+        } else {
+            AzureMessager.getMessager().warning(errorMessage);
         }
     }
 

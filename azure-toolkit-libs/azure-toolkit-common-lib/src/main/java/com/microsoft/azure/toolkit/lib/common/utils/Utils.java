@@ -7,9 +7,11 @@ package com.microsoft.azure.toolkit.lib.common.utils;
 
 import com.azure.resourcemanager.resources.fluentcore.utils.ResourceNamer;
 import com.google.common.base.Preconditions;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.exception.CommandExecuteException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -26,13 +28,7 @@ import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -58,11 +54,25 @@ public class Utils {
         return DATE_FORMAT.format(new Date());
     }
 
-    public static String getArtifactCompileVersion(File artifact) throws AzureExecutionException {
+    public static int getJavaMajorVersion(final String javaVersion) {
+        try {
+            final String runtimeJavaMajorVersion = StringUtils.startsWith(javaVersion, "1.") ?
+                    StringUtils.substring(javaVersion, 2, 3) : StringUtils.split(javaVersion, ".")[0];
+            return Integer.valueOf(runtimeJavaMajorVersion);
+        } catch (RuntimeException e) {
+            return -1;
+        }
+    }
+
+    public static int getArtifactCompileVersion(File artifact) {
         try (JarFile jarFile = new JarFile(artifact)) {
-            final JarEntry jarEntry = jarFile.stream().filter(entry -> StringUtils.endsWith(entry.getName(), ".class"))
-                    .findFirst()
-                    .orElseThrow(() -> new AzureExecutionException("Failed to parse artifact compile version, no class file founded in target artifact"));
+            final JarEntry jarEntry = jarFile.stream()
+                    .filter(entry -> StringUtils.endsWith(entry.getName(), ".class"))
+                    .findFirst().orElse(null);
+            if (Objects.isNull(jarEntry)) {
+                AzureMessager.getMessager().warning("Failed to parse artifact compile version, no class file founded in target artifact");
+                return -1;
+            }
             // Read compile version from class file
             // Refers https://en.wikipedia.org/wiki/Java_class_file#General_layout
             final InputStream stream = jarFile.getInputStream(jarEntry);
@@ -70,10 +80,10 @@ public class Utils {
             stream.skip(6);
             stream.read(version);
             stream.close();
-            final int majorVersion = new BigInteger(version).intValueExact() - 44;
-            return majorVersion > 8 ? String.valueOf(majorVersion) : String.format("1.%d", majorVersion);
+            return new BigInteger(version).intValueExact() - 44;
         } catch (IOException e) {
-            throw new AzureExecutionException("Failed to parse artifact compile version.", e);
+            AzureMessager.getMessager().warning(String.format("Failed to parse artifact compile version: %s", e.getMessage()));
+            return -1;
         }
     }
 
