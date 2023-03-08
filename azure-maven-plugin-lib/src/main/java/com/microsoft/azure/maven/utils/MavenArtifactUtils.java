@@ -84,7 +84,7 @@ public class MavenArtifactUtils {
         }
         final List<File> executableJars = files.stream().filter(MavenArtifactUtils::isExecutableJar).collect(Collectors.toList());
         if (executableJars.isEmpty()) {
-            throw new MojoExecutionException(ARTIFACT_NOT_SUPPORTED);
+            return null;
         }
         // Throw exception when there are multi runnable artifacts
         if (executableJars.size() > 1) {
