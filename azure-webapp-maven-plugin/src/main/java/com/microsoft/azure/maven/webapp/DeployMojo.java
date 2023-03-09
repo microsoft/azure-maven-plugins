@@ -102,7 +102,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         }
         final String javaVersion = Optional.ofNullable(runtime.getJavaVersion()).map(JavaVersion::getValue).orElse(StringUtils.EMPTY);
         artifacts.stream().map(WebAppArtifact::getFile).filter(Objects::nonNull)
-                .forEach(artifact -> validateArtifactCompileVersion(javaVersion, artifact, failOnRuntimeValidationError));
+                .forEach(artifact -> validateArtifactCompileVersion(javaVersion, artifact, getFailsOnRuntimeValidation()));
     }
 
     private void mergeCommandLineConfig() {
