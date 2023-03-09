@@ -114,14 +114,15 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     protected static final String SUBSCRIPTION_TEMPLATE = "Subscription: %s(%s)";
     protected static final String USING_AZURE_ENVIRONMENT = "Using Azure environment: %s.";
     protected static final String SUBSCRIPTION_NOT_FOUND = "Subscription %s was not found in current account.";
-    protected static final String COMPILE_LEVEL_NOT_SUPPORTED = "Your project compile level (%s) is higher than the supported values in Azure, " +
-            "please lower the compile level in case any compatibility issues and errors. Here are the supported runtimes: %s";
+    protected static final String COMPILE_LEVEL_NOT_SUPPORTED = "Your project's compile level (%s) is not compatible with any of the supported runtime versions of Azure. " +
+            "The supported runtime versions include %s. Please reset the compile level to a compatible version in case any compatibility issues and errors.";
     protected static final String FAILED_TO_GET_VALID_RUNTIMES = "Failed to get valid runtime based on project compile level, fall back to all values";
 
     private static final String AZURE_ENVIRONMENT = "azureEnvironment";
     private static final String PROXY = "proxy";
-    public static final String INVALID_ARTIFACT = "The compile level of the artifact '%s' is '%s', which is higher than the runtime compile level '%s'. " +
-            "Please recompile the artifact with a lower compile level or switch to higher Java runtime.";
+    private static final String INVALID_ARTIFACT = "The artifact's compile level (%s) is incompatible with runtime '%s'. " +
+            "Please recompile the artifact with a lower level or switch to a higher Java runtime.";
+    private static final String SKIP_VALIDATION_MESSAGE = "To skip this validation, set failsOnRuntimeValidation to false in the command line or pom.xml";
 
     //region Properties
 
@@ -183,7 +184,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     @Getter
     @JsonProperty
     @Parameter(property = "failsOnError", defaultValue = "true")
-    protected Boolean failsOnError;
+    protected boolean failsOnError;
 
     /**
      * Deprecated, please set the authentication type in `auth`
@@ -269,8 +270,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
      * Boolean flag to control whether throwing exception when runtime validation failed
      */
     @JsonProperty
-    @Parameter(property = "skipRuntimeValidation", defaultValue = "true")
-    protected boolean failOnRuntimeValidationError;
+    @Getter
+    @Parameter(property = "failsOnRuntimeValidation", defaultValue = "true")
+    protected Boolean failsOnRuntimeValidation;
 
     @Component
     @JsonIgnore
@@ -644,7 +646,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         }
         final AzureString errorMessage = AzureString.format(INVALID_ARTIFACT, artifact.getAbsolutePath(), artifactCompileVersion, runtimeVersion);
         if (failOnValidation) {
-            throw new AzureToolkitRuntimeException(errorMessage.getString());
+            throw new AzureToolkitRuntimeException(errorMessage.getString() + StringUtils.LF + SKIP_VALIDATION_MESSAGE);
         } else {
             AzureMessager.getMessager().warning(errorMessage);
         }
