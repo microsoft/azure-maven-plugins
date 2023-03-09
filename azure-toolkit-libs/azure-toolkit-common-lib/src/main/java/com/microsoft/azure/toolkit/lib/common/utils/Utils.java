@@ -7,8 +7,6 @@ package com.microsoft.azure.toolkit.lib.common.utils;
 
 import com.azure.resourcemanager.resources.fluentcore.utils.ResourceNamer;
 import com.google.common.base.Preconditions;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.exception.CommandExecuteException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -28,12 +26,20 @@ import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
 public class Utils {
@@ -66,7 +72,12 @@ public class Utils {
 
     public static int getArtifactCompileVersion(File artifact) {
         try (JarFile jarFile = new JarFile(artifact)) {
-            final JarEntry jarEntry = jarFile.stream()
+            final Manifest manifest = jarFile.getManifest();
+            final String startClass = manifest.getMainAttributes().getValue("Start-Class");
+            final String mainClass = manifest.getMainAttributes().getValue("Main-Class");
+            final String target = StringUtils.isNotBlank(startClass) ? getJarEntryName("BOOT-INF/classes/" + startClass) :
+                    StringUtils.isNotBlank(mainClass) ? getJarEntryName(mainClass) : null;
+            final JarEntry jarEntry = StringUtils.isNotBlank(target) ? jarFile.getJarEntry(target) : jarFile.stream()
                     .filter(entry -> StringUtils.endsWith(entry.getName(), ".class"))
                     .findFirst().orElse(null);
             if (Objects.isNull(jarEntry)) {
@@ -85,6 +96,12 @@ public class Utils {
             AzureMessager.getMessager().warning(String.format("Failed to parse artifact compile version: %s", e.getMessage()));
             return -1;
         }
+    }
+
+    @Nonnull
+    private static String getJarEntryName(@Nonnull final String className){
+        final String fullName = StringUtils.replace(className, ".", "/");
+        return fullName + ".class";
     }
 
     public static boolean isGUID(String input) {
