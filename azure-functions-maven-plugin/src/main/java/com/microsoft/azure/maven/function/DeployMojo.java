@@ -117,7 +117,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         validateParameters();
         validateFunctionCompatibility();
         final String javaVersion = Optional.ofNullable(functionAppConfig.runtime()).map(RuntimeConfig::javaVersion).map(JavaVersion::getValue).orElse(StringUtils.EMPTY);
-        validateArtifactCompileVersion(javaVersion, getArtifactToDeploy(), getFailsOnRuntimeValidation());
+        validateArtifactCompileVersion(javaVersion, getArtifactToDeploy(), getFailsOnRuntimeValidationError());
         validateApplicationInsightsConfiguration();
     }
 

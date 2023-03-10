@@ -85,7 +85,7 @@ public class DeployMojo extends AbstractMojoBase {
                 .orElseThrow(() -> new AzureToolkitRuntimeException("No artifact is specified to deploy."));
         final String javaVersion = Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getJavaVersion)
                 .map(version -> StringUtils.removeStart(version, "Java_")).orElse(StringUtils.EMPTY);
-        validateArtifactCompileVersion(javaVersion, file, getFailsOnRuntimeValidation());
+        validateArtifactCompileVersion(javaVersion, file, getFailsOnRuntimeValidationError());
         final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig, true);
 
         final List<AzureTask<?>> tasks = task.getSubTasks();
