@@ -93,11 +93,11 @@ public class DeployMojo extends AbstractFunctionMojo {
     @AzureOperation("user/functionapp.deploy_app")
     protected void doExecute() throws Throwable {
         this.mergeCommandLineConfig();
-        final FunctionAppConfig functionAppConfig = getParser().parseConfig();
-        doValidate(functionAppConfig);
+        final ConfigParser parser = getParser();
+        doValidate(parser.getRuntimeConfig());
         initAzureAppServiceClient();
 
-        final FunctionAppBase<?, ?, ?> target = createOrUpdateResource(functionAppConfig);
+        final FunctionAppBase<?, ?, ?> target = createOrUpdateResource(parser.parseConfig());
         deployArtifact(target);
         updateTelemetryProperties();
     }
@@ -113,10 +113,10 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected void doValidate(FunctionAppConfig functionAppConfig) throws AzureExecutionException {
+    protected void doValidate(final RuntimeConfig runtimeConfig) throws AzureExecutionException {
         validateParameters();
         validateFunctionCompatibility();
-        final String javaVersion = Optional.ofNullable(functionAppConfig.runtime()).map(RuntimeConfig::javaVersion).map(JavaVersion::getValue).orElse(StringUtils.EMPTY);
+        final String javaVersion = Optional.ofNullable(runtimeConfig).map(RuntimeConfig::javaVersion).map(JavaVersion::getValue).orElse(StringUtils.EMPTY);
         validateArtifactCompileVersion(javaVersion, getArtifactToDeploy(), getFailsOnRuntimeValidationError());
         validateApplicationInsightsConfiguration();
     }
