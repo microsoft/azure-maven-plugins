@@ -27,7 +27,6 @@ public class EventHubsNamespaceSubscription extends AbstractAzServiceSubscriptio
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.eventHubsNamespaceModule = new EventHubsNamespaceModule(this);
-        getSubscription();
     }
 
     protected EventHubsNamespaceSubscription(@Nonnull EventHubsManager manager, @Nonnull AzureEventHubsNamespace service) {

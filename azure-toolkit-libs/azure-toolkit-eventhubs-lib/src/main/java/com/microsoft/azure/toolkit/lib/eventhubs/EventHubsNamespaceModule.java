@@ -48,7 +48,7 @@ public class EventHubsNamespaceModule extends AbstractAzResourceModule<EventHubs
     }
 
     @Override
-    @AzureOperation(name = "azure/workspace.delete_log_analytics_workspace.workspace", params = {"nameFromResourceId(resourceId)"})
+    @AzureOperation(name = "azure/eventhubs.delete_event_hubs_namespace.eventhubs", params = {"nameFromResourceId(resourceId)"})
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         Optional.ofNullable(this.getClient()).ifPresent(eventHubNamespaces -> eventHubNamespaces.deleteById(resourceId));
     }

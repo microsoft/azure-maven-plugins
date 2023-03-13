@@ -54,6 +54,7 @@
         <module>azure-toolkit-mysql-single-lib</module>
         <module>azure-toolkit-monitor-lib</module>
         <module>azure-toolkit-eventhubs-lib</module>
+        <module>azure-toolkit-servicebus-lib</module>
     </modules>
 
     <properties>
