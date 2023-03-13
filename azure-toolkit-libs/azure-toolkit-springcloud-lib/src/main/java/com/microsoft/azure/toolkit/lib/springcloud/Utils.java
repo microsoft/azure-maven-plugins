@@ -1,34 +1,40 @@
-package com.microsoft.azure.toolkit.lib.common.utils;
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ */
 
-import org.apache.http.HttpStatus;
+package com.microsoft.azure.toolkit.lib.springcloud;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Objects;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
-public class PollUtils {
+public class Utils {
     private static final int POLLING_INTERVAL = 5;
 
-    public static boolean isEndPointReady(@Nullable String endPoint) {
-        if (Objects.isNull(endPoint)) {
+//    protected static final List<String> DEPLOYMENT_PROCESSING_STATUS =
+//            Arrays.asList(DeploymentResourceStatus.COMPILING.toString(), DeploymentResourceStatus.ALLOCATING.toString(), DeploymentResourceStatus.UPGRADING.toString());
+
+    public static boolean isDeploymentDone(@Nullable SpringCloudDeployment deployment) {
+        if (deployment == null) {
             return false;
         }
-        try {
-            final HttpURLConnection cont=(HttpURLConnection) new URL(endPoint).openConnection();
-            final int responseCode = cont.getResponseCode();
-            cont.disconnect();
-            return Objects.equals(responseCode, HttpStatus.SC_OK);
-        } catch (final Exception ignored) {
-
+        final List<SpringCloudAppInstance> instances = deployment.getInstances();
+        if (CollectionUtils.isEmpty(instances)) {
+            return false;
         }
-        return false;
+        // refer to https://learn.microsoft.com/en-us/azure/spring-apps/concept-app-status
+        // Eureka isn't applicable to enterprise tier.
+        return instances.stream().anyMatch(instance ->
+            StringUtils.equalsIgnoreCase(instance.getStatus(), "running"));
     }
 
     /**
@@ -41,7 +47,7 @@ public class PollUtils {
      * @return the first resource which fit the predicate or the last result before timeout
      */
     public static <T> T pollUntil(Callable<T> callable, @Nonnull Predicate<T> predicate, int timeOutInSeconds) {
-        return pollUntil(callable, predicate, timeOutInSeconds, POLLING_INTERVAL);
+        return Utils.pollUntil(callable, predicate, timeOutInSeconds, POLLING_INTERVAL);
     }
 
     /**
@@ -56,10 +62,10 @@ public class PollUtils {
     public static <T> T pollUntil(Callable<T> callable, @Nonnull Predicate<T> predicate, int timeOutInSeconds, int pollingInterval) {
         final long timeout = System.currentTimeMillis() + timeOutInSeconds * 1000L;
         return Observable.interval(pollingInterval, TimeUnit.SECONDS)
-                .timeout(timeOutInSeconds, TimeUnit.SECONDS)
-                .flatMap(aLong -> Observable.fromCallable(callable))
-                .subscribeOn(Schedulers.io())
-                .takeUntil(resource -> predicate.test(resource) || System.currentTimeMillis() > timeout)
-                .toBlocking().last();
+            .timeout(timeOutInSeconds, TimeUnit.SECONDS)
+            .flatMap(aLong -> Observable.fromCallable(callable))
+            .subscribeOn(Schedulers.io())
+            .takeUntil(resource -> predicate.test(resource) || System.currentTimeMillis() > timeout)
+            .toBlocking().last();
     }
 }
