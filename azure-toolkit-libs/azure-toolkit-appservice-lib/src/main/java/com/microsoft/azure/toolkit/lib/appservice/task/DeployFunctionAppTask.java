@@ -68,17 +68,20 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
     private final FunctionDeployType deployType;
     private final IAzureMessager messager;
     private Disposable subscription;
+    private final boolean streamingLogEnabled;
 
     public DeployFunctionAppTask(@Nonnull FunctionAppBase<?, ?, ?> target, @Nonnull File stagingFolder, @Nullable FunctionDeployType deployType) {
-        this(target, stagingFolder, deployType, AzureMessager.getMessager());
+        this(target, stagingFolder, deployType, AzureMessager.getMessager(), false);
     }
 
     public DeployFunctionAppTask(@Nonnull FunctionAppBase<?, ?, ?> target, @Nonnull File stagingFolder,
-                                 @Nullable FunctionDeployType deployType, @Nonnull IAzureMessager messager) {
+                                 @Nullable FunctionDeployType deployType, @Nonnull IAzureMessager messager,
+                                 boolean streamingLogEnabled) {
         this.target = target;
         this.stagingDirectory = stagingFolder;
         this.deployType = deployType;
         this.messager = messager;
+        this.streamingLogEnabled = streamingLogEnabled;
     }
 
     @Override
@@ -93,7 +96,6 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
             return target;
         }
         deployArtifact();
-        startStreamingLog();
         if (target instanceof FunctionApp) {
             listHTTPTriggerUrls((FunctionApp) target);
         }
@@ -152,6 +154,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
         } catch (final RuntimeException | InterruptedException e) {
             // show warning instead of exception for list triggers
             messager.warning(FAILED_TO_LIST_TRIGGERS);
+            startStreamingLog();
         }
     }
 
@@ -185,7 +188,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
     }
 
     private void startStreamingLog() {
-        if (!target.isLogStreamingEnabled()) {
+        if (!target.isLogStreamingEnabled() || !streamingLogEnabled) {
             return;
         }
         final OperatingSystem operatingSystem = Optional.ofNullable(target.getRuntime()).map(Runtime::getOperatingSystem).orElse(null);

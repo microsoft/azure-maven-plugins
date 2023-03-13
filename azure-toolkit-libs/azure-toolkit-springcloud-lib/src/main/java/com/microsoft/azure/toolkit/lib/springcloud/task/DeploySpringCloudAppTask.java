@@ -35,15 +35,21 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     private SpringCloudDeployment deployment;
     private Disposable streamingLogDisposable;
     private final boolean streamingLogEnabled;
+    private final boolean waitDeploymentComplete;
+    private static final int TIMEOUT_IN_SECONDS = 60;
+    private static final String GET_APP_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
+            "you can check the app status from Azure Portal.";
+    private static final String START_APP = "Starting Web App after deploying artifacts...";
 
     public DeploySpringCloudAppTask(SpringCloudAppConfig appConfig) {
-        this(appConfig, false);
+        this(appConfig, false, false);
     }
 
-    public DeploySpringCloudAppTask(SpringCloudAppConfig appConfig, boolean streamingLogEnabled) {
+    public DeploySpringCloudAppTask(SpringCloudAppConfig appConfig, boolean streamingLogEnabled, boolean waitDeploymentComplete) {
         this.config = appConfig;
         this.subTasks = this.initTasks();
         this.streamingLogEnabled = streamingLogEnabled;
+        this.waitDeploymentComplete = waitDeploymentComplete;
     }
 
     @Nonnull
@@ -86,16 +92,13 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         tasks.add(new AzureTask<Void>(MODIFY_DEPLOYMENT_TITLE, () -> {
             final SpringCloudDeploymentDraft draft = app.deployments().updateOrCreate(deploymentName, resourceGroup);
             draft.setConfig(config.getDeployment());
-            boolean followStreamingLog = false;
             try {
                 this.deployment = draft.commit();
             } catch (final Exception e) {
-                followStreamingLog = true;
                 app.refresh();
                 this.deployment = app.getActiveDeployment();
+                startStreamingLog(true);
                 throw new AzureToolkitRuntimeException(e);
-            } finally {
-                startStreamingLog(followStreamingLog);
             }
         }));
         tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, () -> {
@@ -104,7 +107,9 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
             draft.updateIfExist();
         }));
         tasks.add(new AzureTask<Void>(app::reset));
-        tasks.add(new AzureTask<Void>(this::stopStreamingLog));
+        if (this.waitDeploymentComplete) {
+            tasks.add(new AzureTask<Void>(this::startAppService));
+        }
         return tasks;
     }
 
@@ -127,19 +132,19 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final String instanceName = instanceList.stream().max(Comparator.comparing(DeploymentInstance::startTime))
                 .map(DeploymentInstance::name).orElse(null);
         Optional.ofNullable(instanceName).ifPresent(i -> {
-            messager.info(AzureString.format("Starting app({0}) and opening streaming log of instance({1})...", this.config.getAppName(), instanceName));
+            messager.info(AzureString.format("Opening streaming log of instance({1})...", instanceName));
             messager.debug("###############STREAMING LOG BEGIN##################");
             this.streamingLogDisposable = this.deployment.streamLogs(i, 300, 500, 1024 * 1024, follow)
+                    .doFinally(type -> messager.debug("###############STREAMING LOG END##################"))
                     .subscribe(messager::debug);
         });
     }
 
-    private void stopStreamingLog() {
-        Optional.ofNullable(streamingLogDisposable).ifPresent(d -> {
-            if (!d.isDisposed()) {
-                AzureMessager.getMessager().debug("###############STREAMING LOG END##################");
-                d.dispose();
-            }
-        });
+    private void startAppService() {
+        AzureMessager.getMessager().info(START_APP);
+        if (!deployment.waitUntilReady(TIMEOUT_IN_SECONDS)) {
+            AzureMessager.getMessager().warning(GET_APP_STATUS_TIMEOUT);
+            startStreamingLog(false);
+        }
     }
 }

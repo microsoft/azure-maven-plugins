@@ -43,6 +43,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private final WebAppBase<?, ?, ?> webApp;
     private final List<WebAppArtifact> artifacts;
     private final boolean restartSite;
+    private final boolean streamingLogEnabled;
     private final Boolean waitDeploymentComplete;
     private final IAzureMessager messager;
     private Disposable subscription;
@@ -57,14 +58,15 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     }
 
     public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts, boolean restartSite) {
-        this(webApp, artifacts, restartSite, null);
+        this(webApp, artifacts, restartSite, null, false);
     }
 
-    public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts, boolean restartSite, Boolean waitDeploymentComplete) {
+    public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts, boolean restartSite, Boolean waitDeploymentComplete, boolean streamingLogEnabled) {
         this.webApp = webApp;
         this.artifacts = artifacts;
         this.restartSite = restartSite;
         this.waitDeploymentComplete = waitDeploymentComplete;
+        this.streamingLogEnabled = streamingLogEnabled;
         this.messager = AzureMessager.getMessager();
     }
 
@@ -78,7 +80,6 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         this.messager.info(String.format(DEPLOY_START, webApp.getName()));
         deployArtifacts();
         this.messager.info(String.format(DEPLOY_FINISH, webApp.getHostName()));
-        startStreamingLog();
         startAppService(webApp);
         return webApp;
     }
@@ -129,13 +130,16 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         final DeploymentBuildStatus buildStatus = status.getStatus();
         if (buildStatus.isTimeout()) {
             this.messager.warning("Resource deployed, but failed to get the deployment status as timeout");
+            startStreamingLog();
         } else if (buildStatus.isRunning()) {
             this.messager.warning("Resource deployed, but the deployment is still in process in Azure");
+            startStreamingLog();
         } else if (buildStatus.isFailed()) {
             final String errorMessages = CollectionUtils.isNotEmpty(status.getErrors()) ?
                     status.getErrors().stream().map(ErrorEntity::getMessage).collect(Collectors.joining(StringUtils.LF)) : StringUtils.EMPTY;
             final String failedInstancesLogs = CollectionUtils.isEmpty(status.getFailedInstancesLogs()) ?
                     StringUtils.join(status.getFailedInstancesLogs(), StringUtils.LF) : StringUtils.EMPTY;
+            startStreamingLog();
             throw new AzureToolkitRuntimeException(String.format("Failed to deploy the artifact to %s. %s %s", target.getName(), errorMessages, failedInstancesLogs));
         }
     }
@@ -160,9 +164,10 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     }
 
     private void startStreamingLog() {
-        if (!webApp.isLogStreamingEnabled()) {
+        if (!webApp.isLogStreamingEnabled() || !streamingLogEnabled) {
             return;
         }
+        this.messager.info(AzureString.format("Opening streaming log of app({1})...", webApp.getName()));
         this.messager.debug("###############STREAMING LOG BEGIN##################");
         this.subscription = this.webApp.streamAllLogsAsync()
                 .doFinally((type) -> messager.debug("###############STREAMING LOG END##################"))
