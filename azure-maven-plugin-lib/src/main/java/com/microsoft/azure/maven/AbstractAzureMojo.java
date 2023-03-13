@@ -656,7 +656,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     protected String getCompileLevel() {
         // order compile, target
         // refers https://github.com/apache/maven-compiler-plugin/blob/maven-compiler-plugin-3.11.0/src/main/java/org/apache/maven/plugin/compiler/AbstractCompilerMojo.java#L1286-L1291
-        final String rawLevel = Stream.of("compile", "target").map(this::getCompilerPluginConfigurationByName)
+        final String rawLevel = Stream.of("release", "target").map(this::getCompilerPluginConfigurationByName)
                 .filter(StringUtils::isNotEmpty).findFirst().orElse(null);
         // refers https://github.com/apache/maven-compiler-plugin/blob/maven-compiler-plugin-3.11.0/src/main/java/org/apache/maven/plugin/compiler/AbstractCompilerMojo.java#L1293-L1295
         return StringUtils.startsWithIgnoreCase(rawLevel, "1.") ? StringUtils.substring(rawLevel, 2) : rawLevel;
