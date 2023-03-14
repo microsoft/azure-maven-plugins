@@ -236,7 +236,7 @@ public abstract class AppServiceAppBase<
         return kuduManager;
     }
 
-    public boolean isLogStreamingEnabled() {
+    public boolean isEnableWebServerLogging() {
         return false;
     }
 }

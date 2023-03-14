@@ -33,8 +33,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     @Nonnull
     private final List<AzureTask<?>> subTasks;
     private SpringCloudDeployment deployment;
-    private Disposable streamingLogDisposable;
-    private final boolean streamingLogEnabled;
+    private final boolean startStreamingLog;
     private final boolean waitDeploymentComplete;
     private static final int TIMEOUT_IN_SECONDS = 60;
     private static final String GET_APP_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
@@ -45,10 +44,10 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         this(appConfig, false, false);
     }
 
-    public DeploySpringCloudAppTask(SpringCloudAppConfig appConfig, boolean streamingLogEnabled, boolean waitDeploymentComplete) {
+    public DeploySpringCloudAppTask(SpringCloudAppConfig appConfig, boolean startStreamingLog, boolean waitDeploymentComplete) {
         this.config = appConfig;
         this.subTasks = this.initTasks();
-        this.streamingLogEnabled = streamingLogEnabled;
+        this.startStreamingLog = startStreamingLog;
         this.waitDeploymentComplete = waitDeploymentComplete;
     }
 
@@ -123,7 +122,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     }
 
     private void startStreamingLog(boolean follow) {
-        if (Objects.isNull(this.deployment) || !streamingLogEnabled) {
+        if (Objects.isNull(this.deployment) || !startStreamingLog) {
             return;
         }
         final IAzureMessager messager = AzureMessager.getMessager();
@@ -134,7 +133,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         Optional.ofNullable(instanceName).ifPresent(i -> {
             messager.info(AzureString.format("Opening streaming log of instance({1})...", instanceName));
             messager.debug("###############STREAMING LOG BEGIN##################");
-            this.streamingLogDisposable = this.deployment.streamLogs(i, 300, 500, 1024 * 1024, follow)
+            this.deployment.streamLogs(i, 300, 500, 1024 * 1024, follow)
                     .doFinally(type -> messager.debug("###############STREAMING LOG END##################"))
                     .subscribe(messager::debug);
         });

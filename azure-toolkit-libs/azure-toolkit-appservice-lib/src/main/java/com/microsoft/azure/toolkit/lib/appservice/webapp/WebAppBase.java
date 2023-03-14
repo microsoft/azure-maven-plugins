@@ -90,7 +90,7 @@ public abstract class WebAppBase<T extends WebAppBase<T, P, F>, P extends Abstra
     }
 
     @Override
-    public boolean isLogStreamingEnabled() {
+    public boolean isEnableWebServerLogging() {
         return Optional.ofNullable(getDiagnosticConfig()).map(DiagnosticConfig::isEnableWebServerLogging).orElse(false);
     }
 
