@@ -210,7 +210,7 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private void configureJavaVersion() throws IOException, InvalidConfigurationException {
-        this.deploymentSettings.setRuntimeVersion(this.wrapper.handle("configure-java-version", autoUseDefault()));
+        this.deploymentSettings.setRuntimeVersion(this.wrapper.handle("configure-java-version", false));
     }
 
     private void configureJvmOptions() throws IOException, InvalidConfigurationException {
@@ -238,6 +238,9 @@ public class ConfigMojo extends AbstractMojoBase {
         changesToConfirm.put("Subscription id", this.subscriptionId);
         changesToConfirm.put("Resource group name", this.appSettings.getResourceGroup());
         changesToConfirm.put("Azure Spring Apps name", this.appSettings.getClusterName());
+        if (this.notEnterpriseTier()) {
+            changesToConfirm.put("Runtime Java version", this.deploymentSettings.getRuntimeVersion());
+        }
         if (this.parentMode) {
             changesToConfirm.put("App " + English.plural("name", this.appNameByProject.size()),
                 String.join(",", appNameByProject.values()));
@@ -253,9 +256,6 @@ public class ConfigMojo extends AbstractMojoBase {
             changesToConfirm.put("CPU count", this.deploymentSettings.getCpu());
             changesToConfirm.put("Memory size(GB)", this.deploymentSettings.getMemoryInGB());
             changesToConfirm.put("JVM options", this.deploymentSettings.getJvmOptions());
-            if (this.notEnterpriseTier()) {
-                changesToConfirm.put("Runtime Java version", this.deploymentSettings.getRuntimeVersion());
-            }
             this.wrapper.confirmChanges(changesToConfirm, this::saveConfigurationToPom);
         }
     }
