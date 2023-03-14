@@ -105,7 +105,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         if (!webApp.isEnableWebServerLogging() || !startStreamingLog) {
             return;
         }
-        this.messager.info(AzureString.format("Opening streaming log of app({1})...", webApp.getName()));
+        this.messager.info(AzureString.format("Opening streaming log of app({0})...", webApp.getName()));
         this.messager.debug("###############STREAMING LOG BEGIN##################");
         this.subscription = this.webApp.streamAllLogsAsync()
                 .doFinally((type) -> messager.debug("###############STREAMING LOG END##################"))

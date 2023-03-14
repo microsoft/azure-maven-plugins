@@ -86,7 +86,7 @@ public class DeployMojo extends AbstractMojoBase {
         final String javaVersion = Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getJavaVersion)
                 .map(version -> StringUtils.removeStart(version, "Java_")).orElse(StringUtils.EMPTY);
         validateArtifactCompileVersion(javaVersion, file, getFailsOnRuntimeValidationError());
-        final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig, true);
+        final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig, true, true);
 
         final List<AzureTask<?>> tasks = task.getSubTasks();
         final boolean shouldSkipConfirm = !BooleanUtils.isTrue(prompt) || (this.settings != null && !this.settings.isInteractiveMode());
