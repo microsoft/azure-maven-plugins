@@ -138,7 +138,6 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
 
     @AzureOperation(name = "internal/springcloud.wait_until_deployment_ready.deployment|app", params = {"this.getName()", "this.getParent().getName()"})
     public boolean waitUntilReady(int timeoutInSeconds) {
-        AzureMessager.getMessager().info("Getting deployment status...");
         final SpringCloudDeployment deployment = Utils.pollUntil(() -> {
             this.invalidateCache();
             return this;
