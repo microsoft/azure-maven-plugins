@@ -4,6 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.utils;
 
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.appservice.fluent.models.SiteLogsConfigInner;
 import com.azure.resourcemanager.appservice.models.ApplicationLogsConfig;
 import com.azure.resourcemanager.appservice.models.FileSystemApplicationLogsConfig;
@@ -17,6 +18,7 @@ import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.azure.resourcemanager.appservice.models.WebAppDiagnosticLogs;
 import com.azure.resourcemanager.resources.fluentcore.model.HasInnerModel;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.model.CsmDeploymentStatus;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployOptions;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeploymentBuildStatus;
@@ -30,11 +32,19 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import reactor.util.retry.Retry;
 
 import javax.annotation.Nonnull;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -43,10 +53,27 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.ANONYMOUS;
+
 public class AppServiceUtils {
     private static final String SCRIPT_FILE = "scriptFile";
     private static final String ENTRY_POINT = "entryPoint";
     private static final String BINDINGS = "bindings";
+    private static final String SYNC_TRIGGERS = "Syncing triggers and fetching function information";
+    private static final String UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS = "Some http trigger urls cannot be displayed " +
+            "because they are non-anonymous. To access the non-anonymous triggers, please refer to https://aka.ms/azure-functions-key.";
+    private static final String HTTP_TRIGGER_URLS = "HTTP Trigger Urls:";
+    private static final String NO_ANONYMOUS_HTTP_TRIGGER = "No anonymous HTTP Triggers found in deployed function app, skip list triggers.";
+    private static final String AUTH_LEVEL = "authLevel";
+    private static final String HTTP_TRIGGER = "httpTrigger";
+    private static final int SYNC_FUNCTION_MAX_ATTEMPTS = 5;
+    private static final int SYNC_FUNCTION_DELAY = 1;
+    private static final String LIST_TRIGGERS = "Querying triggers...";
+    private static final String LIST_TRIGGERS_WITH_RETRY = "Querying triggers (Attempt {0}/{1})...";
+    private static final String NO_TRIGGERS_FOUNDED = "No triggers found in deployed function app, " +
+            "please try recompile the project by `mvn clean package` and deploy again.";
+    private static final int LIST_TRIGGERS_MAX_RETRY = 5;
+    private static final int LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS = 10;
 
     public static Runtime getRuntimeFromAppService(WebAppBase webAppBase) {
         if (StringUtils.startsWithIgnoreCase(webAppBase.linuxFxVersion(), "docker")) {
@@ -338,5 +365,56 @@ public class AppServiceUtils {
                 .parameters(entity.parameters())
                 .target(entity.target())
                 .build();
+    }
+
+    public static void listHTTPTriggerUrls(FunctionApp target) throws Exception {
+        final IAzureMessager messager = AzureMessager.getMessager();
+        syncTriggers(target);
+        final List<FunctionEntity> triggers = listFunctions(target);
+        final List<FunctionEntity> httpFunction = triggers.stream()
+                .filter(function -> function.getTrigger() != null &&
+                        StringUtils.equalsIgnoreCase(function.getTrigger().getType(), HTTP_TRIGGER))
+                .collect(Collectors.toList());
+        final List<FunctionEntity> anonymousTriggers = httpFunction.stream()
+                .filter(bindingResource -> bindingResource.getTrigger() != null &&
+                        StringUtils.equalsIgnoreCase(bindingResource.getTrigger().getProperty(AUTH_LEVEL), ANONYMOUS))
+                .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(httpFunction) || CollectionUtils.isEmpty(anonymousTriggers)) {
+            messager.info(NO_ANONYMOUS_HTTP_TRIGGER);
+            return;
+        }
+        messager.info(HTTP_TRIGGER_URLS);
+        anonymousTriggers.forEach(trigger -> messager.info(String.format("\t %s : %s", trigger.getName(), trigger.getTriggerUrl())));
+        if (anonymousTriggers.size() < httpFunction.size()) {
+            messager.info(UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS);
+        }
+    }
+
+    // Refers https://github.com/Azure/azure-functions-core-tools/blob/3.0.3568/src/Azure.Functions.Cli/Actions/AzureActions/PublishFunctionAppAction.cs#L452
+    private static void syncTriggers(final FunctionApp functionApp) throws InterruptedException {
+        AzureMessager.getMessager().info(SYNC_TRIGGERS);
+        Thread.sleep(5 * 1000);
+        Mono.fromRunnable(() -> {
+                    try {
+                        functionApp.syncTriggers();
+                    } catch (ManagementException e) {
+                        if (e.getResponse().getStatusCode() != 200) { // Java SDK throw exception with 200 response, swallow exception in this case
+                            throw e;
+                        }
+                    }
+                }).subscribeOn(Schedulers.boundedElastic())
+                .retryWhen(Retry.fixedDelay(SYNC_FUNCTION_MAX_ATTEMPTS - 1, Duration.ofSeconds(SYNC_FUNCTION_DELAY))).block();
+    }
+
+    private static List<FunctionEntity> listFunctions(final FunctionApp functionApp) {
+        final int[] count = {0};
+        return Mono.fromCallable(() -> {
+                    final AzureString message = count[0]++ == 0 ? AzureString.fromString(LIST_TRIGGERS) : AzureString.format(LIST_TRIGGERS_WITH_RETRY, count[0], LIST_TRIGGERS_MAX_RETRY);
+                    AzureMessager.getMessager().info(message);
+                    return Optional.of(functionApp.listFunctions())
+                            .filter(CollectionUtils::isNotEmpty)
+                            .orElseThrow(() -> new AzureToolkitRuntimeException(NO_TRIGGERS_FOUNDED));
+                }).subscribeOn(Schedulers.boundedElastic())
+                .retryWhen(Retry.fixedDelay(LIST_TRIGGERS_MAX_RETRY - 1, Duration.ofSeconds(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS))).block();
     }
 }
