@@ -208,6 +208,12 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         return Optional.ofNullable(activeDeployment).orElseGet(super::getActiveDeployment);
     }
 
+    @Nullable
+    @Override
+    public SpringCloudDeployment getCachedActiveDeployment() {
+        return Optional.ofNullable(activeDeployment).orElseGet(super::getCachedActiveDeployment);
+    }
+
     @Nonnull
     public SpringCloudDeploymentDraft updateOrCreateActiveDeployment() {
         final String activeDeploymentName = Optional.ofNullable(this.getActiveDeploymentName()).orElse("default");

@@ -111,6 +111,11 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     }
 
     @Nullable
+    public SpringCloudDeployment getCachedActiveDeployment() {
+        return this.activeDeployment;
+    }
+
+    @Nullable
     public String getApplicationUrl() {
         final String url = Optional.ofNullable(this.getRemote()).map(SpringApp::url).orElse(null);
         return StringUtils.isBlank(url) || url.equalsIgnoreCase("None") ? null : url;
