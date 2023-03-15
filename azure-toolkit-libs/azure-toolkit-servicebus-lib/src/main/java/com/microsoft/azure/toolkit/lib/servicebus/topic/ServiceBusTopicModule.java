@@ -1,9 +1,10 @@
-package com.microsoft.azure.toolkit.lib.servicebus;
+package com.microsoft.azure.toolkit.lib.servicebus.topic;
 
 import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.servicebus.models.Topic;
 import com.azure.resourcemanager.servicebus.models.Topics;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.servicebus.ServiceBusNamespace;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

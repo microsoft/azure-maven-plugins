@@ -4,6 +4,8 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.servicebus.queue.ServiceBusQueueModule;
+import com.microsoft.azure.toolkit.lib.servicebus.topic.ServiceBusTopicModule;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
