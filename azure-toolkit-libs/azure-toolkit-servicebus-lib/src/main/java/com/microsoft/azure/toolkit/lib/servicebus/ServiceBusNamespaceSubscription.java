@@ -5,7 +5,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -18,7 +17,7 @@ public class ServiceBusNamespaceSubscription extends AbstractAzServiceSubscripti
     @Nonnull
     private final ServiceBusNamespaceModule serviceBusNamespaceModule;
 
-    protected ServiceBusNamespaceSubscription(@NotNull String subscriptionId, @NotNull AzureServiceBusNamespace service) {
+    protected ServiceBusNamespaceSubscription(@Nonnull String subscriptionId, @Nonnull AzureServiceBusNamespace service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.serviceBusNamespaceModule = new ServiceBusNamespaceModule(this);
@@ -28,14 +27,14 @@ public class ServiceBusNamespaceSubscription extends AbstractAzServiceSubscripti
         this(manager.serviceClient().getSubscriptionId(), service);
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 
     @Override
-    public List<Region> listSupportedRegions(@NotNull String resourceType) {
+    public List<Region> listSupportedRegions(@Nonnull String resourceType) {
         return super.listSupportedRegions(this.serviceBusNamespaceModule.getName());
     }
 }

@@ -6,10 +6,9 @@ import com.azure.resourcemanager.servicebus.models.ServiceBusNamespaces;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Optional;
@@ -21,7 +20,7 @@ public class ServiceBusNamespaceModule extends AbstractAzResourceModule<ServiceB
         super(NAME, parent);
     }
 
-    @NotNull
+    @Nonnull
     @Override
     protected Iterator<? extends ContinuablePage<String, com.azure.resourcemanager.servicebus.models.ServiceBusNamespace>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(getPageSize()).iterator()).orElse(Collections.emptyIterator());
@@ -30,26 +29,26 @@ public class ServiceBusNamespaceModule extends AbstractAzResourceModule<ServiceB
     @Nullable
     @Override
     @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"})
-    protected com.azure.resourcemanager.servicebus.models.ServiceBusNamespace loadResourceFromAzure(@NotNull String name, @Nullable String resourceGroup) {
+    protected com.azure.resourcemanager.servicebus.models.ServiceBusNamespace loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         assert StringUtils.isNoneBlank(resourceGroup) : "resource group can not be empty";
         return Optional.ofNullable(this.getClient()).map(serviceBusNamespaces -> serviceBusNamespaces.getByResourceGroup(resourceGroup, name)).orElse(null);
     }
 
     @Override
     @AzureOperation(name = "azure/servicebus.delete_service_bus_namespace.servicebus", params = {"nameFromResourceId(resourceId)"})
-    protected void deleteResourceFromAzure(@NotNull String resourceId) {
+    protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         Optional.ofNullable(this.getClient()).ifPresent(serviceBusNamespaces -> serviceBusNamespaces.deleteById(resourceId));
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected ServiceBusNamespace newResource(@NotNull com.azure.resourcemanager.servicebus.models.ServiceBusNamespace remote) {
+    protected ServiceBusNamespace newResource(@Nonnull com.azure.resourcemanager.servicebus.models.ServiceBusNamespace remote) {
         return new ServiceBusNamespace(remote, this);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected ServiceBusNamespace newResource(@NotNull String name, @Nullable String resourceGroupName) {
+    protected ServiceBusNamespace newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         return null;
     }
 

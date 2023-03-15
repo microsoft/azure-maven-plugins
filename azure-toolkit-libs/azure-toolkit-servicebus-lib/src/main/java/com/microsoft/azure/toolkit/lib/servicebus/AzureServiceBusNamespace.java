@@ -13,7 +13,6 @@ import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -24,9 +23,9 @@ public class AzureServiceBusNamespace extends AbstractAzService<ServiceBusNamesp
         super("Microsoft.ServiceBus");
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected ServiceBusNamespaceSubscription newResource(@NotNull ServiceBusManager serviceBusManager) {
+    protected ServiceBusNamespaceSubscription newResource(@Nonnull ServiceBusManager serviceBusManager) {
         return new ServiceBusNamespaceSubscription(serviceBusManager.serviceClient().getSubscriptionId(), this);
     }
 
