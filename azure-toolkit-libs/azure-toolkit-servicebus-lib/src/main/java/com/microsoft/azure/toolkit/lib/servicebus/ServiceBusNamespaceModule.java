@@ -11,6 +11,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Optional;
 
 public class ServiceBusNamespaceModule extends AbstractAzResourceModule<ServiceBusNamespace, ServiceBusNamespaceSubscription, com.azure.resourcemanager.servicebus.models.ServiceBusNamespace> {
@@ -49,7 +50,7 @@ public class ServiceBusNamespaceModule extends AbstractAzResourceModule<ServiceB
     @Nonnull
     @Override
     protected ServiceBusNamespace newResource(@Nonnull String name, @Nullable String resourceGroupName) {
-        return null;
+        return new ServiceBusNamespace(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
     @Nullable
