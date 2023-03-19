@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ */
+
 package com.microsoft.azure.toolkit.lib.servicebus.model;
 
 import com.azure.messaging.servicebus.*;
@@ -14,6 +19,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public abstract class ServiceBusInstance<
@@ -48,6 +54,9 @@ public abstract class ServiceBusInstance<
 
     public abstract void sendMessage(String message);
     public abstract void startReceivingMessage();
+    public boolean isListening() {
+        return Objects.nonNull(this.processorClient);
+    }
     public synchronized void stopReceivingMessage() {
         Optional.ofNullable(processorClient).ifPresent(c -> {
             c.close();
@@ -55,14 +64,12 @@ public abstract class ServiceBusInstance<
         });
         this.processorClient = null;
     }
-
     protected void processMessage(ServiceBusReceivedMessageContext context) {
         ServiceBusReceivedMessage message = context.getMessage();
         AzureMessager.getMessager().info(AzureString.format("Message received. Session: %s, Sequence #: %s. Contents: ", message.getMessageId(),
                 message.getSequenceNumber()));
         AzureMessager.getMessager().debug(AzureString.format("\"%s\"\n",message.getBody()));
     }
-
     protected void processError(ServiceBusErrorContext context) {
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.error(AzureString.format("Error when receiving messages from Service Bus namespace: '%s'. Entity: '%s'\n",
