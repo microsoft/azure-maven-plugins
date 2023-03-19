@@ -100,7 +100,10 @@
         <dependency>
             <groupId>com.azure.resourcemanager</groupId>
             <artifactId>azure-resourcemanager-servicebus</artifactId>
-            <version>2.24.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-messaging-servicebus</artifactId>
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>

@@ -1,15 +1,19 @@
 package com.microsoft.azure.toolkit.lib.servicebus.queue;
 
+import com.azure.messaging.servicebus.*;
+import com.azure.messaging.servicebus.models.ServiceBusReceiveMode;
 import com.azure.resourcemanager.servicebus.ServiceBusManager;
 import com.azure.resourcemanager.servicebus.fluent.ServiceBusManagementClient;
 import com.azure.resourcemanager.servicebus.fluent.models.SBAuthorizationRuleInner;
 import com.azure.resourcemanager.servicebus.fluent.models.SBQueueInner;
-import com.azure.resourcemanager.servicebus.models.*;
+import com.azure.resourcemanager.servicebus.models.AccessRights;
+import com.azure.resourcemanager.servicebus.models.EntityStatus;
 import com.azure.resourcemanager.servicebus.models.Queue;
+import com.azure.resourcemanager.servicebus.models.QueueAuthorizationRule;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.servicebus.ServiceBusNamespace;
 import com.microsoft.azure.toolkit.lib.servicebus.model.ServiceBusInstance;
 import org.apache.commons.lang3.StringUtils;
@@ -19,9 +23,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ServiceBusQueue extends AbstractAzResource<ServiceBusQueue, ServiceBusNamespace, Queue> implements ServiceBusInstance {
-    @Nullable
-    private EntityStatus entityStatus;
+public class ServiceBusQueue extends ServiceBusInstance<ServiceBusQueue, ServiceBusNamespace, Queue> {
     protected ServiceBusQueue(@Nonnull String name, @Nonnull ServiceBusQueueModule module) {
         super(name, module);
     }
@@ -38,19 +40,8 @@ public class ServiceBusQueue extends AbstractAzResource<ServiceBusQueue, Service
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.emptyList();
-    }
-
-    @Nonnull
-    @Override
     public String loadStatus(@Nonnull Queue remote) {
         return remote.innerModel().status().toString();
-    }
-
-    @Override
-    public String getOrCreateListenConnectionString() {
-        return getOrCreateConnectionString(Collections.singletonList(AccessRights.LISTEN));
     }
 
     @Override
@@ -61,16 +52,43 @@ public class ServiceBusQueue extends AbstractAzResource<ServiceBusQueue, Service
                 .map(ServiceBusManager::serviceClient)
                 .map(ServiceBusManagementClient::getQueues)
                 .ifPresent(c -> doModify(() -> c.createOrUpdate(getResourceGroupName(), namespace.getName(), getName(), inner.withStatus(status)), Status.UPDATING));
-
     }
 
     @Override
-    @Nullable
-    public EntityStatus getEntityStatus() {
-        return this.entityStatus;
+    public void sendMessage(String message) {
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Sending message to Service Bus Queue (%s)...\n", getName()));
+        try (final ServiceBusSenderClient senderClient = new ServiceBusClientBuilder()
+                .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.SEND)))
+                .sender()
+                .queueName(getName())
+                .buildClient()) {
+            senderClient.sendMessage(new ServiceBusMessage(message));
+            messager.info("Successfully send message ");
+            messager.debug(AzureString.format("\"%s\"", message));
+            messager.info(AzureString.format(" to Service Bus Queue (%s)\n", getName()));
+        } catch (final Exception e) {
+            messager.error(AzureString.format("Failed to send message to Service Bus Queue (%s): %s", getName(), e));
+        }
     }
 
-    private String getOrCreateConnectionString(List<AccessRights> accessRights) {
+    @Override
+    public synchronized void startReceivingMessage() {
+        AzureMessager.getMessager().info(AzureString.format("Start receiving message from Service Bus Queue ({0})\n", getName()));
+        this.processorClient = new ServiceBusClientBuilder()
+                .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.LISTEN)))
+                .processor()
+                .queueName(getName())
+                .receiveMode(ServiceBusReceiveMode.PEEK_LOCK)
+                .processMessage(this::processMessage)
+                .processError(this::processError)
+                .disableAutoComplete()  // Complete - causes the message to be deleted from the queue or topic.
+                .buildProcessorClient();
+        processorClient.start();
+    }
+
+    @Override
+    protected String getOrCreateConnectionString(List<AccessRights> accessRights) {
         final List<QueueAuthorizationRule> connectionStrings = Optional.ofNullable(getRemote())
                 .map(queue -> queue.authorizationRules().list().stream()
                         .filter(rule -> new HashSet<>(rule.rights()).containsAll(accessRights))

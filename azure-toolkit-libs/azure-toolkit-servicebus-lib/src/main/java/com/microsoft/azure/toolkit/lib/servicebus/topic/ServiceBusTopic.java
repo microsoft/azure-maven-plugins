@@ -1,5 +1,7 @@
 package com.microsoft.azure.toolkit.lib.servicebus.topic;
 
+import com.azure.messaging.servicebus.*;
+import com.azure.messaging.servicebus.models.ServiceBusReceiveMode;
 import com.azure.resourcemanager.servicebus.ServiceBusManager;
 import com.azure.resourcemanager.servicebus.fluent.ServiceBusManagementClient;
 import com.azure.resourcemanager.servicebus.fluent.models.SBAuthorizationRuleInner;
@@ -7,8 +9,8 @@ import com.azure.resourcemanager.servicebus.fluent.models.SBTopicInner;
 import com.azure.resourcemanager.servicebus.models.*;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.servicebus.ServiceBusNamespace;
 import com.microsoft.azure.toolkit.lib.servicebus.model.ServiceBusInstance;
 import org.apache.commons.lang3.StringUtils;
@@ -18,10 +20,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ServiceBusTopic extends AbstractAzResource<ServiceBusTopic, ServiceBusNamespace, Topic> implements ServiceBusInstance {
-    @Nullable
-    private EntityStatus entityStatus;
-
+public class ServiceBusTopic extends ServiceBusInstance<ServiceBusTopic, ServiceBusNamespace, Topic> {
     protected ServiceBusTopic(@Nonnull String name, @Nonnull ServiceBusTopicModule module) {
         super(name, module);
     }
@@ -38,19 +37,8 @@ public class ServiceBusTopic extends AbstractAzResource<ServiceBusTopic, Service
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.emptyList();
-    }
-
-    @Nonnull
-    @Override
     public String loadStatus(@Nonnull Topic remote) {
         return remote.innerModel().status().toString();
-    }
-
-    @Override
-    public String getOrCreateListenConnectionString() {
-        return getOrCreateConnectionString(Collections.singletonList(AccessRights.LISTEN));
     }
 
     @Override
@@ -64,12 +52,40 @@ public class ServiceBusTopic extends AbstractAzResource<ServiceBusTopic, Service
     }
 
     @Override
-    @Nullable
-    public EntityStatus getEntityStatus() {
-        return this.entityStatus;
+    public void sendMessage(String message) {
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Sending message to Service Bus Topic (%s)...\n", getName()));
+        try (final ServiceBusSenderClient senderClient = new ServiceBusClientBuilder()
+                .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.SEND)))
+                .sender()
+                .topicName(getName())
+                .buildClient()) {
+            senderClient.sendMessage(new ServiceBusMessage(message));
+            messager.info("Successfully send message ");
+            messager.debug(AzureString.format("\"%s\"", message));
+            messager.info(AzureString.format(" to Service Bus Topic (%s)\n", getName()));
+        } catch (final Exception e) {
+            messager.error(AzureString.format("Failed to send message to Service Bus Topic (%s): %s", getName(), e));
+        }
     }
 
-    private String getOrCreateConnectionString(List<AccessRights> accessRights) {
+    @Override
+    public synchronized void startReceivingMessage() {
+        AzureMessager.getMessager().info(AzureString.format("Start receiving message from Service Bus Topic ({0})\n", getName()));
+        this.processorClient = new ServiceBusClientBuilder()
+                .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.LISTEN)))
+                .processor()
+                .topicName(getName())
+                .receiveMode(ServiceBusReceiveMode.PEEK_LOCK)
+                .processMessage(this::processMessage)
+                .processError(this::processError)
+                .disableAutoComplete()  // Complete - causes the message to be deleted from the queue or topic.
+                .buildProcessorClient();
+        processorClient.start();
+    }
+
+    @Override
+    protected String getOrCreateConnectionString(List<AccessRights> accessRights) {
         final List<TopicAuthorizationRule> connectionStrings = Optional.ofNullable(getRemote())
                 .map(topic -> topic.authorizationRules().list().stream()
                         .filter(rule -> new HashSet<>(rule.rights()).containsAll(accessRights))
