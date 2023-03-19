@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.resource.message.ISenderReceiver;
 import com.microsoft.azure.toolkit.lib.servicebus.ServiceBusNamespace;
 
 import javax.annotation.Nonnull;
@@ -24,7 +25,7 @@ import java.util.Optional;
 
 public abstract class ServiceBusInstance<
         T extends ServiceBusInstance<T, P, F>, P, F>
-        extends AbstractAzResource<T, ServiceBusNamespace, F> {
+        extends AbstractAzResource<T, ServiceBusNamespace, F> implements ISenderReceiver {
     @Nullable
     protected EntityStatus entityStatus;
 
@@ -52,11 +53,21 @@ public abstract class ServiceBusInstance<
     }
     public abstract void updateStatus(EntityStatus status);
 
+    @Override
     public abstract void sendMessage(String message);
+    @Override
     public abstract void startReceivingMessage();
+    @Override
     public boolean isListening() {
         return Objects.nonNull(this.processorClient);
     }
+
+    @Override
+    public boolean isSendEnabled() {
+        return getFormalStatus().isRunning() && getEntityStatus() != EntityStatus.SEND_DISABLED;
+    }
+
+    @Override
     public synchronized void stopReceivingMessage() {
         Optional.ofNullable(processorClient).ifPresent(c -> {
             c.close();
