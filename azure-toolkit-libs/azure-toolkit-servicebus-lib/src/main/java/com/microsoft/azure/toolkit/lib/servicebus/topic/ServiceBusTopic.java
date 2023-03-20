@@ -76,7 +76,8 @@ public class ServiceBusTopic extends ServiceBusInstance<ServiceBusTopic, Service
 
     @Override
     public synchronized void startReceivingMessage() {
-        AzureMessager.getMessager().info(AzureString.format("Start receiving message from Service Bus Topic ({0})\n", getName()));
+        messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Start receiving message from Service Bus Topic ({0})\n", getName()));
         this.processorClient = new ServiceBusClientBuilder()
                 .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.LISTEN)))
                 .processor()

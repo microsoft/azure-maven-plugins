@@ -102,7 +102,7 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
     @Override
     public synchronized void stopReceivingMessage() {
         Optional.ofNullable(consumerAsyncClient).ifPresent(EventHubConsumerAsyncClient::close);
-        Optional.ofNullable(messager).ifPresent(m -> m.info(AzureString.format("Stop listening to event hub ({0})\n", getName())));
+        Optional.ofNullable(messager).orElse(AzureMessager.getMessager()).info(AzureString.format("Stop listening to event hub ({0})\n", getName()));
         this.consumerAsyncClient = null;
         this.receivers.forEach(Disposable::dispose);
         this.receivers.clear();

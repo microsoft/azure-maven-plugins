@@ -28,9 +28,10 @@ public abstract class ServiceBusInstance<
         extends AbstractAzResource<T, ServiceBusNamespace, F> implements ISenderReceiver {
     @Nullable
     protected EntityStatus entityStatus;
-
     @Nullable
     protected ServiceBusProcessorClient processorClient;
+    @Nullable
+    protected IAzureMessager messager;
 
     protected ServiceBusInstance(@Nonnull String name, @Nonnull AbstractAzResourceModule<T, ServiceBusNamespace, F> module) {
         super(name, module);
@@ -71,15 +72,18 @@ public abstract class ServiceBusInstance<
     public synchronized void stopReceivingMessage() {
         Optional.ofNullable(processorClient).ifPresent(c -> {
             c.close();
-            AzureMessager.getMessager().info(AzureString.format("Stop receiving message from Service Bus Queue ({0})\n", getName()));
+            Optional.ofNullable(messager).orElse(AzureMessager.getMessager())
+                    .info(AzureString.format("Stop receiving message from {0} ({1})\n", getResourceTypeName(), getName()));
         });
         this.processorClient = null;
     }
     protected void processMessage(ServiceBusReceivedMessageContext context) {
         ServiceBusReceivedMessage message = context.getMessage();
-        AzureMessager.getMessager().info(AzureString.format("Message received. Session: %s, Sequence #: %s. Contents: ", message.getMessageId(),
-                message.getSequenceNumber()));
-        AzureMessager.getMessager().debug(AzureString.format("\"%s\"\n",message.getBody()));
+        Optional.ofNullable(messager).orElse(AzureMessager.getMessager())
+                .info(AzureString.format("Message received. Session: %s, Sequence #: %s. Contents: ",
+                        message.getMessageId(), message.getSequenceNumber()));
+        Optional.ofNullable(messager).orElse(AzureMessager.getMessager())
+                .debug(AzureString.format("\"%s\"\n",message.getBody()));
     }
     protected void processError(ServiceBusErrorContext context) {
         final IAzureMessager messager = AzureMessager.getMessager();
