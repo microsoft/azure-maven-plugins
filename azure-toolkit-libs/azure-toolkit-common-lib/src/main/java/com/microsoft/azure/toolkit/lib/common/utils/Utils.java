@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.common.utils;
 
 import com.azure.resourcemanager.resources.fluentcore.utils.ResourceNamer;
 import com.google.common.base.Preconditions;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.exception.CommandExecuteException;
 import org.apache.commons.collections4.CollectionUtils;
@@ -31,6 +30,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,6 +38,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
 public class Utils {
@@ -58,11 +59,32 @@ public class Utils {
         return DATE_FORMAT.format(new Date());
     }
 
-    public static String getArtifactCompileVersion(File artifact) throws AzureExecutionException {
+    public static int getJavaMajorVersion(final String javaVersion) {
+        final String runtimeJavaMajorVersion = StringUtils.startsWith(javaVersion, "1.") ?
+                StringUtils.substring(javaVersion, 2, 3) : StringUtils.split(javaVersion, ".")[0];
+        return Integer.parseInt(runtimeJavaMajorVersion);
+    }
+
+    /**
+     * Get artifact compile version based on class file
+     * For spring artifact, will check compile level of Start-Class, for others will check Main-Class.
+     * If none of above exists, will check compile level of first class in artifact
+     *
+     * @throws AzureToolkitRuntimeException If there is no class file in target artifact or meet IOException when read target artifact
+     */
+    public static int getArtifactCompileVersion(@Nonnull final File artifact) throws AzureToolkitRuntimeException {
         try (JarFile jarFile = new JarFile(artifact)) {
-            final JarEntry jarEntry = jarFile.stream().filter(entry -> StringUtils.endsWith(entry.getName(), ".class"))
-                    .findFirst()
-                    .orElseThrow(() -> new AzureExecutionException("Failed to parse artifact compile version, no class file founded in target artifact"));
+            final Manifest manifest = jarFile.getManifest();
+            final String startClass = manifest.getMainAttributes().getValue("Start-Class");
+            final String mainClass = manifest.getMainAttributes().getValue("Main-Class");
+            final String target = StringUtils.isNotBlank(startClass) ? getJarEntryName("BOOT-INF/classes/" + startClass) :
+                    StringUtils.isNotBlank(mainClass) ? getJarEntryName(mainClass) : null;
+            final JarEntry jarEntry = StringUtils.isNotBlank(target) ? jarFile.getJarEntry(target) : jarFile.stream()
+                    .filter(entry -> StringUtils.endsWith(entry.getName(), ".class"))
+                    .findFirst().orElse(null);
+            if (Objects.isNull(jarEntry)) {
+                throw new AzureToolkitRuntimeException("Failed to parse artifact compile version, no class file founded in target artifact");
+            }
             // Read compile version from class file
             // Refers https://en.wikipedia.org/wiki/Java_class_file#General_layout
             final InputStream stream = jarFile.getInputStream(jarEntry);
@@ -70,11 +92,16 @@ public class Utils {
             stream.skip(6);
             stream.read(version);
             stream.close();
-            final int majorVersion = new BigInteger(version).intValueExact() - 44;
-            return majorVersion > 8 ? String.valueOf(majorVersion) : String.format("1.%d", majorVersion);
+            return new BigInteger(version).intValueExact() - 44;
         } catch (IOException e) {
-            throw new AzureExecutionException("Failed to parse artifact compile version.", e);
+            throw new AzureToolkitRuntimeException("Failed to parse artifact compile version, no class file founded in target artifact", e);
         }
+    }
+
+    @Nonnull
+    private static String getJarEntryName(@Nonnull final String className){
+        final String fullName = StringUtils.replace(className, ".", "/");
+        return fullName + ".class";
     }
 
     public static boolean isGUID(String input) {

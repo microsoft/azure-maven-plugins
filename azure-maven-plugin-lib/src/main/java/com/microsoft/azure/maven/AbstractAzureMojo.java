@@ -27,6 +27,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -39,6 +40,7 @@ import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetryClient;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.maven.common.action.MavenActionManager;
 import com.microsoft.azure.toolkit.maven.common.messager.MavenAzureMessager;
 import com.microsoft.azure.toolkit.maven.common.task.MavenAzureTaskManager;
@@ -50,6 +52,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
@@ -61,7 +64,10 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.beryx.textio.TextTerminal;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -72,13 +78,16 @@ import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Base abstract class for all Azure Mojos.
@@ -105,9 +114,15 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     protected static final String SUBSCRIPTION_TEMPLATE = "Subscription: %s(%s)";
     protected static final String USING_AZURE_ENVIRONMENT = "Using Azure environment: %s.";
     protected static final String SUBSCRIPTION_NOT_FOUND = "Subscription %s was not found in current account.";
+    protected static final String COMPILE_LEVEL_NOT_SUPPORTED = "Your project's compile level (%s) is not compatible with any of the supported runtimes of Azure. " +
+            "The supported runtimes include %s. Please reset the compile level to a compatible version in case any compatibility issues.";
+    protected static final String FAILED_TO_GET_VALID_RUNTIMES = "Failed to get valid runtime based on project's compile level, fall back to all values";
 
     private static final String AZURE_ENVIRONMENT = "azureEnvironment";
     private static final String PROXY = "proxy";
+    private static final String INVALID_ARTIFACT = "The artifact's compile level (%s) is not compatible with runtime '%s'. " +
+            "Please rebuild the artifact with a lower level or switch to a higher Java runtime.";
+    private static final String SKIP_VALIDATION_MESSAGE = "To skip this validation, set 'failsOnRuntimeValidationError' to 'false' in the command line or pom.xml";
 
     //region Properties
 
@@ -251,6 +266,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     @Parameter(property = "auth")
     protected MavenAuthConfiguration auth;
 
+    /**
+     * Boolean flag to control whether throwing exception when runtime validation failed
+     */
+    @JsonProperty
+    @Getter
+    @Parameter(property = "failsOnRuntimeValidationError", defaultValue = "true")
+    protected Boolean failsOnRuntimeValidationError;
+
     @Component
     @JsonIgnore
     protected SettingsDecrypter settingsDecrypter;
@@ -270,7 +293,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     @Getter
     @JsonIgnore
     private final String installationId = Optional.ofNullable(InstallationIdUtils.getHashMac()).orElse("");
-
 
     //region Entry Point
 
@@ -614,6 +636,81 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         for (final String line : messageArray) {
             Log.info(line);
         }
+    }
+
+    public static void validateArtifactCompileVersion(final String runtimeJavaVersion, final File artifact, final boolean failOnValidation) throws AzureToolkitRuntimeException {
+        final int runtimeVersion;
+        final int artifactCompileVersion;
+        try {
+            runtimeVersion = Utils.getJavaMajorVersion(runtimeJavaVersion);
+            artifactCompileVersion = Utils.getArtifactCompileVersion(artifact);
+        } catch (RuntimeException e) {
+            AzureMessager.getMessager().warning("Failed to get version of your artifact, skip artifact compatibility test");
+            return;
+        }
+        if (artifactCompileVersion <= runtimeVersion) {
+            return;
+        }
+        final AzureString errorMessage = AzureString.format(INVALID_ARTIFACT, artifactCompileVersion, runtimeVersion);
+        if (failOnValidation) {
+            throw new AzureToolkitRuntimeException(errorMessage.getString() + System.lineSeparator() + SKIP_VALIDATION_MESSAGE);
+        } else {
+            AzureMessager.getMessager().warning(errorMessage);
+        }
+    }
+
+    @Nullable
+    protected String getCompileLevel() {
+        // order compile, target
+        // refers https://github.com/apache/maven-compiler-plugin/blob/maven-compiler-plugin-3.11.0/src/main/java/org/apache/maven/plugin/compiler/AbstractCompilerMojo.java#L1286-L1291
+        final String rawLevel = Stream.of("release", "target").map(this::getCompilerPluginConfigurationByName)
+                .filter(StringUtils::isNotEmpty).findFirst().orElse(null);
+        // refers https://github.com/apache/maven-compiler-plugin/blob/maven-compiler-plugin-3.11.0/src/main/java/org/apache/maven/plugin/compiler/AbstractCompilerMojo.java#L1293-L1295
+        return StringUtils.startsWithIgnoreCase(rawLevel, "1.") ? StringUtils.substring(rawLevel, 2) : rawLevel;
+    }
+
+    @Nonnull
+    protected <T> List<T> getValidRuntimes(final List<T> runtimes, final Function<T, Integer> levelGetter) {
+        try {
+            final String compileLevel = getCompileLevel();
+            final Integer level = Integer.valueOf(compileLevel);
+            final List<T> result = runtimes.stream()
+                    .filter(t -> levelGetter.apply(t) >= level)
+                    .sorted(Comparator.comparing(levelGetter))
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(result)) {
+                final String supportedRuntimes = runtimes.stream().map(Object::toString).collect(Collectors.joining(","));
+                AzureMessager.getMessager().warning(AzureString.format(COMPILE_LEVEL_NOT_SUPPORTED, compileLevel, supportedRuntimes));
+                return runtimes;
+            } else {
+                return result;
+            }
+        } catch (RuntimeException e) {
+            getLog().debug(FAILED_TO_GET_VALID_RUNTIMES, e);
+            return runtimes;
+        }
+    }
+
+    @Nullable
+    private String getCompilerPluginConfigurationByName(final String propertyName) {
+        return Optional.ofNullable(project)
+                .map(p -> p.getPlugin(Plugin.constructKey("org.apache.maven.plugins", "maven-compiler-plugin")))
+                .map(Plugin::getConfiguration)
+                .filter(object -> object instanceof Xpp3Dom)
+                .map(Xpp3Dom.class::cast)
+                .map(configuration -> configuration.getChild(propertyName))
+                .map(Xpp3Dom::getValue)
+                .filter(StringUtils::isNotBlank)
+                .orElseGet(() -> getMavenPropertyByName("maven.compiler." + propertyName));
+    }
+
+    @Nullable
+    private String getMavenPropertyByName(@Nonnull final String name) {
+        return Optional.ofNullable(project)
+                .map(MavenProject::getProperties)
+                .map(properties -> properties.getProperty(name))
+                .filter(StringUtils::isNotBlank)
+                .orElse(null);
     }
 
     protected interface RunnableWithException {

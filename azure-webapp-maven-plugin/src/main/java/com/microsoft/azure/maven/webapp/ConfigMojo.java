@@ -49,12 +49,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.microsoft.azure.maven.webapp.utils.Utils.findStringInCollectionIgnoreCase;
 import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.fromAppService;
@@ -90,7 +90,13 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private static final List<String> WEB_APP_PROPERTIES = Arrays.asList("resourceGroup", "appName", "runtime", "deployment", "region",
             "appServicePlanResourceGroup", "appServicePlanName", "deploymentSlot");
-
+    private static final Map<String, Integer> JAVA_RUNTIMES = new LinkedHashMap<String, Integer>() {
+        {
+            put(JavaVersion.JAVA_8.toString(), 8);
+            put(JavaVersion.JAVA_11.toString(), 11);
+            put(JavaVersion.JAVA_17.toString(), 17);
+        }
+    };
     private MavenPluginQueryer queryer;
     private WebAppPomHandler pomHandler;
 
@@ -375,11 +381,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebContainer getRuntimeConfigurationForWindowsOrLinux(OperatingSystem os,
                                                                   WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder,
                                                                   WebAppConfiguration configuration) {
-        String defaultJavaVersion = Objects.toString(configuration.getJavaVersionOrDefault());
         final List<String> validJavaVersions = getValidJavaVersions();
+        String defaultJavaVersion = ObjectUtils.firstNonNull(configuration.getJavaVersion(), WebAppConfiguration.DEFAULT_JAVA_VERSION.toString());
         if (!validJavaVersions.contains(defaultJavaVersion)) {
             Log.warn(String.format("'%s' is not supported.", defaultJavaVersion));
-            defaultJavaVersion = WebAppConfiguration.DEFAULT_JAVA_VERSION.toString();
+            defaultJavaVersion = validJavaVersions.get(0);
         }
 
         final String javaVersionInput = queryer.assureInputFromUser(JAVA_VERSION, defaultJavaVersion,
@@ -448,8 +454,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return result;
     }
 
-    public static List<String> getValidJavaVersions() {
-        return Stream.of(JavaVersion.JAVA_8, JavaVersion.JAVA_11, JavaVersion.JAVA_17).map(Object::toString).collect(Collectors.toList());
+    public List<String> getValidJavaVersions() {
+        return getValidRuntimes(new ArrayList<>(JAVA_RUNTIMES.keySet()), JAVA_RUNTIMES::get);
     }
 
     private String getDefaultValue(String defaultValue, String fallBack, String pattern) {

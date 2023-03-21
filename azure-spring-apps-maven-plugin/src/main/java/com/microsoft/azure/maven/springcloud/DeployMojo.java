@@ -32,6 +32,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
@@ -80,8 +81,11 @@ public class DeployMojo extends AbstractMojoBase {
         // Init spring clients, and prompt users to confirm
         final SpringCloudAppConfig appConfig = this.getConfiguration();
         final SpringCloudDeploymentConfig deploymentConfig = appConfig.getDeployment();
-        Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getArtifact).map(IArtifact::getFile)
+        final File file = Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getArtifact).map(IArtifact::getFile)
                 .orElseThrow(() -> new AzureToolkitRuntimeException("No artifact is specified to deploy."));
+        final String javaVersion = Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getJavaVersion)
+                .map(version -> StringUtils.removeStart(version, "Java_")).orElse(StringUtils.EMPTY);
+        validateArtifactCompileVersion(javaVersion, file, getFailsOnRuntimeValidationError());
         final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig, true);
 
         final List<AzureTask<?>> tasks = task.getSubTasks();
