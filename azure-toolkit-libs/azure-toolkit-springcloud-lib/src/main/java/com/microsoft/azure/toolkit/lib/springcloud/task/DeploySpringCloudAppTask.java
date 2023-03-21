@@ -132,6 +132,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         Optional.ofNullable(instanceName).ifPresent(i -> {
             messager.info(AzureString.format("Opening streaming log of instance({0})...", instanceName));
             messager.debug("###############STREAMING LOG BEGIN##################");
+            // refer to https://github.com/Azure/azure-cli-extensions/blob/main/src/spring/azext_spring/app.py#app_tail_log_internal
             this.deployment.streamLogs(i, 300, 500, 1024 * 1024, follow)
                     .doFinally(type -> messager.debug("###############STREAMING LOG END##################"))
                     .subscribe(messager::debug);
