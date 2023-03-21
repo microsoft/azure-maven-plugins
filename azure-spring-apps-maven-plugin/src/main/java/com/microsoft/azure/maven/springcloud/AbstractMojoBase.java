@@ -123,7 +123,7 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
         telemetryProxy.addDefaultProperty(TELEMETRY_KEY_AUTH_METHOD, TELEMETRY_VALUE_AUTH_POM_CONFIGURATION);
 
         telemetryProxy.addDefaultProperty(TELEMETRY_KEY_PUBLIC, String.valueOf(configuration.isPublic()));
-        telemetryProxy.addDefaultProperty(TELEMETRY_KEY_RUNTIME_VERSION, configuration.getRuntimeVersion());
+        telemetryProxy.addDefaultProperty(TELEMETRY_KEY_RUNTIME_VERSION, configuration.getDeployment().getRuntimeVersion());
         telemetryProxy.addDefaultProperty(TELEMETRY_KEY_CPU, String.valueOf(configuration.getDeployment().getCpu()));
         telemetryProxy.addDefaultProperty(TELEMETRY_KEY_MEMORY, String.valueOf(configuration.getDeployment().getMemoryInGB()));
         telemetryProxy.addDefaultProperty(TELEMETRY_KEY_INSTANCE_COUNT, String.valueOf(configuration.getDeployment().getInstanceCount()));

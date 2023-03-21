@@ -49,6 +49,12 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     }
 
     @Override
+    public void invalidateCache() {
+        super.invalidateCache();
+        this.activeDeployment = null;
+    }
+
+    @Override
     protected void updateAdditionalProperties(final SpringApp newRemote, final SpringApp oldRemote) {
         super.updateAdditionalProperties(newRemote, oldRemote);
         this.activeDeployment = Optional.ofNullable(newRemote).map(SpringApp::activeDeploymentName)
@@ -80,16 +86,19 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     @AzureOperation(name = "azure/resource.start_resource.resource", params = {"this.name()"})
     public void start() {
         this.doModify(() -> Objects.requireNonNull(this.getActiveDeployment()).start(), Status.STARTING);
+        this.refresh();
     }
 
     @AzureOperation(name = "azure/resource.stop_resource.resource", params = {"this.name()"})
     public void stop() {
         this.doModify(() -> Objects.requireNonNull(this.getActiveDeployment()).stop(), Status.STOPPING);
+        this.refresh();
     }
 
     @AzureOperation(name = "azure/resource.restart_resource.resource", params = {"this.name()"})
     public void restart() {
         this.doModify(() -> Objects.requireNonNull(this.getActiveDeployment()).restart(), Status.RESTARTING);
+        this.refresh();
     }
 
     // READ
@@ -108,6 +117,11 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     @Nullable
     public SpringCloudDeployment getActiveDeployment() {
         return this.remoteOptional(true).map(r -> this.activeDeployment).orElse(null);
+    }
+
+    @Nullable
+    public SpringCloudDeployment getCachedActiveDeployment() {
+        return this.activeDeployment;
     }
 
     @Nullable
