@@ -46,16 +46,16 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
     private final boolean openStreamingLogOnFailure;
 
     public DeployFunctionAppTask(@Nonnull FunctionAppBase<?, ?, ?> target, @Nonnull File stagingFolder, @Nullable FunctionDeployType deployType) {
-        this(target, stagingFolder, deployType, AzureMessager.getMessager(), false);
+        this(target, stagingFolder, deployType, false);
     }
 
     public DeployFunctionAppTask(@Nonnull FunctionAppBase<?, ?, ?> target, @Nonnull File stagingFolder,
-                                 @Nullable FunctionDeployType deployType, @Nonnull IAzureMessager messager,
+                                 @Nullable FunctionDeployType deployType,
                                  boolean openStreamingLogOnFailure) {
         this.target = target;
         this.stagingDirectory = stagingFolder;
         this.deployType = deployType;
-        this.messager = messager;
+        this.messager = AzureMessager.getMessager();
         this.openStreamingLogOnFailure = openStreamingLogOnFailure;
     }
 
