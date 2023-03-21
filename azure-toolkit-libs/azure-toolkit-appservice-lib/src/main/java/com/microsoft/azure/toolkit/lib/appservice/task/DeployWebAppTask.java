@@ -5,8 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.task;
 
-import com.microsoft.azure.toolkit.lib.appservice.model.DeployOptions;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
+import com.microsoft.azure.toolkit.lib.appservice.model.*;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -15,12 +14,18 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
-import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import reactor.core.Disposable;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
@@ -40,11 +45,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private final Boolean waitDeploymentComplete;
     private final IAzureMessager messager;
     private Disposable subscription;
-
-    @Setter
-    private long deploymentStatusRefreshInterval = DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL;
-    @Setter
-    private long deploymentStatusMaxRefreshTimes = DEFAULT_DEPLOYMENT_STATUS_MAX_REFRESH_TIMES;
+    private AtomicReference<KuduDeploymentResult> deploymentResultAtomicReference = new AtomicReference<>();
 
     public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts) {
         this(webApp, artifacts, false);
@@ -85,12 +86,67 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         final List<WebAppArtifact> artifactsOneDeploy = this.artifacts.stream()
                 .filter(artifact -> artifact.getDeployType() != null)
                 .collect(Collectors.toList());
-        artifactsOneDeploy.forEach(resource -> webApp.pushDeploy(resource.getDeployType(), resource.getFile(),
-                DeployOptions.builder().path(resource.getPath()).restartSite(restartSite).trackDeployment(true).build()));
-        if (BooleanUtils.isTrue(waitDeploymentComplete) && !webApp.waitUntilReady(DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL, DEFAULT_DEPLOYMENT_STATUS_MAX_REFRESH_TIMES)) {
+        artifactsOneDeploy.forEach(resource -> deploymentResultAtomicReference.set(webApp.pushDeploy(resource.getDeployType(), resource.getFile(),
+                DeployOptions.builder().path(resource.getPath()).restartSite(restartSite).trackDeployment(true).build())));
+        if (BooleanUtils.isTrue(waitDeploymentComplete) && !waitUntilDeploymentReady(DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL, DEFAULT_DEPLOYMENT_STATUS_MAX_REFRESH_TIMES)) {
             startStreamingLog();
         }
         OperationContext.action().setTelemetryProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
+    }
+
+    public boolean waitUntilDeploymentReady(int deploymentStatusRefreshInterval, int deploymentStatusMaxRefreshTimes) {
+        if (!isTrackDeploymentStatusSupported()) {
+            return false;
+        }
+        final KuduDeploymentResult kuduDeploymentResult = deploymentResultAtomicReference.get();
+        if (kuduDeploymentResult == null) {
+            return false;
+        }
+        final CsmDeploymentStatus status = Mono.fromCallable(() -> getDeploymentStatus(webApp, kuduDeploymentResult))
+                .delayElement(Duration.ofSeconds(deploymentStatusRefreshInterval))
+                .subscribeOn(Schedulers.boundedElastic())
+                .repeat(deploymentStatusMaxRefreshTimes)
+                .takeUntil(csmDeploymentStatus -> !csmDeploymentStatus.getStatus().isRunning())
+                .blockLast();
+        final DeploymentBuildStatus buildStatus = status.getStatus();
+        if (buildStatus.isSucceed()) {
+            return true;
+        }
+        if (buildStatus.isTimeout()) {
+            AzureMessager.getMessager().warning("Resource deployed, but failed to get the deployment status as timeout");
+        } else if (buildStatus.isRunning()) {
+            AzureMessager.getMessager().warning("Resource deployed, but the deployment is still in process in Azure");
+        } else if (buildStatus.isFailed()) {
+            final String errorMessages = CollectionUtils.isNotEmpty(status.getErrors()) ?
+                    status.getErrors().stream().map(ErrorEntity::getMessage).collect(Collectors.joining(StringUtils.LF)) : StringUtils.EMPTY;
+            final String failedInstancesLogs = CollectionUtils.isEmpty(status.getFailedInstancesLogs()) ?
+                    StringUtils.join(status.getFailedInstancesLogs(), StringUtils.LF) : StringUtils.EMPTY;
+            throw new AzureToolkitRuntimeException(String.format("Failed to start app %s. %s %s", webApp.getName(), errorMessages, failedInstancesLogs));
+        }
+        return false;
+    }
+
+    private boolean isTrackDeploymentStatusSupported() {
+        if (webApp.getFormalStatus().isStopped()) {
+            messager.info("Skip waiting deployment status for stopped web app.");
+            return false;
+        }
+        if (webApp.getRuntime().isWindows() && BooleanUtils.isTrue(this.waitDeploymentComplete)) {
+            messager.warning("`waitDeploymentComplete` is not supported in Windows runtime, skip waiting for deployment status.");
+            return false;
+        }
+        return webApp.getRuntime().isLinux();
+    }
+
+    private CsmDeploymentStatus getDeploymentStatus(final WebAppBase<?, ?, ?> target, final KuduDeploymentResult result) {
+        final CsmDeploymentStatus deploymentStatus = target.getDeploymentStatus(result.getDeploymentId());
+        if (Objects.isNull(deploymentStatus)) {
+            return null;
+        }
+        final String statusMessage = String.format("Deployment Status: %s; Successful Instance Count: %s; In-progress Instance Count: %s; Failed Instance Count: %s",
+                deploymentStatus.getStatus().getValue(), deploymentStatus.getNumberOfInstancesSuccessful(), deploymentStatus.getNumberOfInstancesInProgress(), deploymentStatus.getNumberOfInstancesFailed());
+        this.messager.info(statusMessage);
+        return deploymentStatus;
     }
 
     private static void startAppService(WebAppBase<?, ?, ?> target) {

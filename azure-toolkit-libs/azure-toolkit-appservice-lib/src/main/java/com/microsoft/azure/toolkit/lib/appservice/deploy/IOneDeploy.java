@@ -32,7 +32,7 @@ public interface IOneDeploy {
 
     void deploy(DeployType deployType, File targetFile, DeployOptions deployOptions);
 
-    void pushDeploy(DeployType var1, File var2, DeployOptions var3);
+    KuduDeploymentResult pushDeploy(DeployType var1, File var2, DeployOptions var3);
 
     CsmDeploymentStatus getDeploymentStatus(String var1);
 
