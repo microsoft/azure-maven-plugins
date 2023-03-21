@@ -35,7 +35,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
     private static final String RUNNING = "Running";
     private static final String LOCAL_SETTINGS_FILE = "local.settings.json";
     private static final String DEPLOY_START = "Starting deployment...";
-    private static final String DEPLOY_FINISH = "Deployment done, you may access your resource through %s";
+    private static final String DEPLOY_FINISH = "Deployment succeed";
     private static final String SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE = "Skip deployment for docker app service";
     private static final String FAILED_TO_LIST_TRIGGERS = "Deployment succeeded, but failed to list http trigger urls.";
     private final FunctionAppBase<?, ?, ?> target;
@@ -97,7 +97,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
         if (!StringUtils.equalsIgnoreCase(target.getStatus(), RUNNING)) {
             target.start();
         }
-        messager.info(String.format(DEPLOY_FINISH, target.getHostName()));
+        messager.info(String.format(DEPLOY_FINISH));
     }
 
     private File packageStagingDirectory() {
