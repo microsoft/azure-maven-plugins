@@ -180,7 +180,7 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
     }
 
     @Override
-    public boolean isEnableWebServerLogging() {
+    public boolean isStreamingLogSupported() {
         final OperatingSystem operatingSystem = Optional.ofNullable(getRuntime()).map(Runtime::getOperatingSystem).orElse(null);
         final boolean isEnableApplicationLog = Optional.ofNullable(getDiagnosticConfig())
                 .map(DiagnosticConfig::isEnableApplicationLog).orElse(false);

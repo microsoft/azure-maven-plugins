@@ -102,7 +102,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     }
 
     private void startStreamingLog() {
-        if (!webApp.isEnableWebServerLogging() || !openStreamingLogOnFailure) {
+        if (!webApp.isStreamingLogSupported() || !openStreamingLogOnFailure) {
             return;
         }
         this.messager.info(AzureString.format("Opening streaming log of app({0})...", webApp.getName()));

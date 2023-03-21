@@ -114,7 +114,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
 
 
     private void startStreamingLog() {
-        if (!target.isEnableWebServerLogging() || !openStreamingLogOnFailure) {
+        if (!target.isStreamingLogSupported() || !openStreamingLogOnFailure) {
             return;
         }
         final OperatingSystem operatingSystem = Optional.ofNullable(target.getRuntime()).map(Runtime::getOperatingSystem).orElse(null);
