@@ -3,9 +3,9 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.postgre;
+package com.microsoft.azure.toolkit.lib.postgre.single;
 
-import com.azure.resourcemanager.postgresqlflexibleserver.models.FirewallRule;
+import com.azure.resourcemanager.postgresql.models.FirewallRule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;

@@ -3,10 +3,10 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.postgre;
+package com.microsoft.azure.toolkit.lib.postgre.single;
 
-import com.azure.resourcemanager.postgresqlflexibleserver.PostgreSqlManager;
-import com.azure.resourcemanager.postgresqlflexibleserver.models.FirewallRule;
+import com.azure.resourcemanager.postgresql.PostgreSqlManager;
+import com.azure.resourcemanager.postgresql.models.FirewallRule;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -49,7 +49,7 @@ public class PostgreSqlFirewallRuleDraft extends PostgreSqlFirewallRule implemen
         final PostgreSqlServer server = this.getParent();
         final PostgreSqlManager manager = Objects.requireNonNull(server.getParent().getRemote());
         final FirewallRule.DefinitionStages.WithCreate withCreate = manager.firewallRules().define(this.getName())
-            .withExistingFlexibleServer(this.getResourceGroupName(), server.getName())
+            .withExistingServer(this.getResourceGroupName(), server.getName())
             .withStartIpAddress(this.getStartIpAddress())
             .withEndIpAddress(this.getEndIpAddress());
         final IAzureMessager messager = AzureMessager.getMessager();

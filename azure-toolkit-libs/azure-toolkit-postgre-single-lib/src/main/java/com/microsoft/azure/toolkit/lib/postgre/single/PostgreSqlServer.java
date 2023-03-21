@@ -3,12 +3,13 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.postgre;
+package com.microsoft.azure.toolkit.lib.postgre.single;
 
 import com.azure.core.util.ExpandableStringEnum;
-import com.azure.resourcemanager.postgresqlflexibleserver.models.Server;
-import com.azure.resourcemanager.postgresqlflexibleserver.models.Sku;
-import com.azure.resourcemanager.postgresqlflexibleserver.models.Storage;
+import com.azure.resourcemanager.postgresql.models.Server;
+import com.azure.resourcemanager.postgresql.models.Sku;
+import com.azure.resourcemanager.postgresql.models.SslEnforcementEnum;
+import com.azure.resourcemanager.postgresql.models.StorageProfile;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -83,7 +84,7 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
     @Nonnull
     @Override
     public String loadStatus(@Nonnull Server remote) {
-        return remote.state().toString();
+        return remote.userVisibleState().toString();
     }
 
     @Override
@@ -111,12 +112,6 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
     @Override
     public String getAdminName() {
         return remoteOptional().map(Server::administratorLogin).orElse(null);
-    }
-
-    @Nullable
-    @Override
-    public String getFullAdminName() {
-        return this.getAdminName();
     }
 
     @Nullable
@@ -154,8 +149,17 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
         return remoteOptional().map(Server::sku).map(Sku::tier).map(ExpandableStringEnum::toString).orElse(null);
     }
 
+    public int getVCore() {
+        return remoteOptional().map(Server::sku).map(Sku::capacity).orElse(0);
+    }
+
     public int getStorageInMB() {
-        return remoteOptional().map(Server::storage).map(Storage::storageSizeGB).map(s -> s * 1024).orElse(0);
+        return remoteOptional().map(Server::storageProfile).map(StorageProfile::storageMB).orElse(0);
+    }
+
+    @Nullable
+    public String getSslEnforceStatus() {
+        return remoteOptional().map(Server::sslEnforcement).map(SslEnforcementEnum::name).orElse(null);
     }
 
     @Nonnull

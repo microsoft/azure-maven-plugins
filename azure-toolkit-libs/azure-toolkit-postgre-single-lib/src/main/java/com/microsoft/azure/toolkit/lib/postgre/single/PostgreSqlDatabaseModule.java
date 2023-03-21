@@ -3,12 +3,12 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.postgre;
+package com.microsoft.azure.toolkit.lib.postgre.single;
 
 import com.azure.core.util.paging.ContinuablePage;
-import com.azure.resourcemanager.postgresqlflexibleserver.PostgreSqlManager;
-import com.azure.resourcemanager.postgresqlflexibleserver.models.Database;
-import com.azure.resourcemanager.postgresqlflexibleserver.models.Databases;
+import com.azure.resourcemanager.postgresql.PostgreSqlManager;
+import com.azure.resourcemanager.postgresql.models.Database;
+import com.azure.resourcemanager.postgresql.models.Databases;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;

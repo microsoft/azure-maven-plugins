@@ -42,6 +42,7 @@
         <module>azure-toolkit-sqlserver-lib</module>
         <module>azure-toolkit-mysql-lib</module>
         <module>azure-toolkit-postgre-lib</module>
+        <module>azure-toolkit-postgre-single-lib</module>
         <module>azure-toolkit-applicationinsights-lib</module>
         <module>azure-toolkit-storage-lib</module>
         <module>azure-toolkit-database-lib</module>
@@ -85,6 +86,7 @@
         <azure-resourcemanager-applicationinsights.version>1.0.0-beta.5</azure-resourcemanager-applicationinsights.version>
         <azure-resourcemanager-appcontainers.version>1.0.0-beta.4</azure-resourcemanager-appcontainers.version>
         <azure-resourcemanager-mysqlflexibleserver.version>1.0.0-beta.2</azure-resourcemanager-mysqlflexibleserver.version>
+        <azure-resourcemanager-postgresqlflexibleserver.version>1.0.0-beta.5</azure-resourcemanager-postgresqlflexibleserver.version>
         <azure-resourcemanager-mysql.version>1.0.2</azure-resourcemanager-mysql.version>
         <azure-resourcemanager-postgre.version>1.0.2</azure-resourcemanager-postgre.version>
         <azure-resourcemanager-loganalytics.version>1.0.0-beta.3</azure-resourcemanager-loganalytics.version>
@@ -227,6 +229,11 @@
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-postgre-single-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-compute-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
@@ -348,6 +355,11 @@
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-mysqlflexibleserver</artifactId>
                 <version>${azure-resourcemanager-mysqlflexibleserver.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-postgresqlflexibleserver</artifactId>
+                <version>${azure-resourcemanager-postgresqlflexibleserver.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
