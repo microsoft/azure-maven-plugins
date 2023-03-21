@@ -93,10 +93,10 @@ public class DeployMojo extends AbstractFunctionMojo {
     @AzureOperation("user/functionapp.deploy_app")
     protected void doExecute() throws Throwable {
         this.mergeCommandLineConfig();
-        final ConfigParser parser = getParser();
-        doValidate(parser.getRuntimeConfig());
+        doValidate();
         initAzureAppServiceClient();
 
+        final ConfigParser parser = getParser();
         final FunctionAppBase<?, ?, ?> target = createOrUpdateResource(parser.parseConfig());
         deployArtifact(target);
         updateTelemetryProperties();
@@ -113,12 +113,17 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected void doValidate(final RuntimeConfig runtimeConfig) throws AzureExecutionException {
+    protected void doValidate() throws AzureExecutionException {
         validateParameters();
         validateFunctionCompatibility();
+        validateArtifactCompileVersion();
+        validateApplicationInsightsConfiguration();
+    }
+
+    private void validateArtifactCompileVersion() throws AzureExecutionException {
+        final RuntimeConfig runtimeConfig = getParser().getRuntimeConfig();
         final String javaVersion = Optional.ofNullable(runtimeConfig).map(RuntimeConfig::javaVersion).map(JavaVersion::getValue).orElse(StringUtils.EMPTY);
         validateArtifactCompileVersion(javaVersion, getArtifactToDeploy(), getFailsOnRuntimeValidationError());
-        validateApplicationInsightsConfiguration();
     }
 
     // todo: Extract validator for all maven toolkits
