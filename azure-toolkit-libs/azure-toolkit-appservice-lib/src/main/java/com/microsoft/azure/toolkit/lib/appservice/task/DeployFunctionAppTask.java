@@ -43,7 +43,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
     private final FunctionDeployType deployType;
     private final IAzureMessager messager;
     private Disposable subscription;
-    private final boolean startStreamingLog;
+    private final boolean openStreamingLogOnFailure;
 
     public DeployFunctionAppTask(@Nonnull FunctionAppBase<?, ?, ?> target, @Nonnull File stagingFolder, @Nullable FunctionDeployType deployType) {
         this(target, stagingFolder, deployType, AzureMessager.getMessager(), false);
@@ -51,12 +51,12 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
 
     public DeployFunctionAppTask(@Nonnull FunctionAppBase<?, ?, ?> target, @Nonnull File stagingFolder,
                                  @Nullable FunctionDeployType deployType, @Nonnull IAzureMessager messager,
-                                 boolean startStreamingLog) {
+                                 boolean openStreamingLogOnFailure) {
         this.target = target;
         this.stagingDirectory = stagingFolder;
         this.deployType = deployType;
         this.messager = messager;
-        this.startStreamingLog = startStreamingLog;
+        this.openStreamingLogOnFailure = openStreamingLogOnFailure;
     }
 
     @Override
@@ -71,7 +71,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
             return target;
         }
         deployArtifact();
-        if (target instanceof FunctionApp && startStreamingLog) {
+        if (target instanceof FunctionApp && openStreamingLogOnFailure) {
             try {
                 AppServiceUtils.listHTTPTriggerUrls((FunctionApp) target);
             } catch (final Exception e) {
@@ -114,7 +114,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
 
 
     private void startStreamingLog() {
-        if (!target.isEnableWebServerLogging() || !startStreamingLog) {
+        if (!target.isEnableWebServerLogging() || !openStreamingLogOnFailure) {
             return;
         }
         final OperatingSystem operatingSystem = Optional.ofNullable(target.getRuntime()).map(Runtime::getOperatingSystem).orElse(null);

@@ -20,7 +20,6 @@ import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import reactor.core.Disposable;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -33,7 +32,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     @Nonnull
     private final List<AzureTask<?>> subTasks;
     private SpringCloudDeployment deployment;
-    private final boolean startStreamingLog;
+    private final boolean openStreamingLogOnFailure;
     private final boolean waitDeploymentComplete;
     private static final int TIMEOUT_IN_SECONDS = 60;
     private static final String GET_APP_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
@@ -44,10 +43,10 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         this(appConfig, false, false);
     }
 
-    public DeploySpringCloudAppTask(SpringCloudAppConfig appConfig, boolean startStreamingLog, boolean waitDeploymentComplete) {
+    public DeploySpringCloudAppTask(SpringCloudAppConfig appConfig, boolean openStreamingLogOnFailure, boolean waitDeploymentComplete) {
         this.config = appConfig;
         this.subTasks = this.initTasks();
-        this.startStreamingLog = startStreamingLog;
+        this.openStreamingLogOnFailure = openStreamingLogOnFailure;
         this.waitDeploymentComplete = waitDeploymentComplete;
     }
 
@@ -122,7 +121,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     }
 
     private void startStreamingLog(boolean follow) {
-        if (Objects.isNull(this.deployment) || !startStreamingLog) {
+        if (Objects.isNull(this.deployment) || !openStreamingLogOnFailure) {
             return;
         }
         final IAzureMessager messager = AzureMessager.getMessager();

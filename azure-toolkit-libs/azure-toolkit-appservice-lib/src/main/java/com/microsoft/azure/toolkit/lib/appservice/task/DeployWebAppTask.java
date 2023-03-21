@@ -36,7 +36,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private final WebAppBase<?, ?, ?> webApp;
     private final List<WebAppArtifact> artifacts;
     private final boolean restartSite;
-    private final boolean startStreamingLog;
+    private final boolean openStreamingLogOnFailure;
     private final Boolean waitDeploymentComplete;
     private final IAzureMessager messager;
     private Disposable subscription;
@@ -54,12 +54,12 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         this(webApp, artifacts, restartSite, null, false);
     }
 
-    public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts, boolean restartSite, Boolean waitDeploymentComplete, boolean startStreamingLog) {
+    public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts, boolean restartSite, Boolean waitDeploymentComplete, boolean openStreamingLogOnFailure) {
         this.webApp = webApp;
         this.artifacts = artifacts;
         this.restartSite = restartSite;
         this.waitDeploymentComplete = waitDeploymentComplete;
-        this.startStreamingLog = startStreamingLog;
+        this.openStreamingLogOnFailure = openStreamingLogOnFailure;
         this.messager = AzureMessager.getMessager();
     }
 
@@ -102,7 +102,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     }
 
     private void startStreamingLog() {
-        if (!webApp.isEnableWebServerLogging() || !startStreamingLog) {
+        if (!webApp.isEnableWebServerLogging() || !openStreamingLogOnFailure) {
             return;
         }
         this.messager.info(AzureString.format("Opening streaming log of app({0})...", webApp.getName()));
