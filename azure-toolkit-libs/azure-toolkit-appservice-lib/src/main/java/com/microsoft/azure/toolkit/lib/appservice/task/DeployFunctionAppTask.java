@@ -117,10 +117,6 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
         if (!target.isStreamingLogSupported() || !openStreamingLogOnFailure) {
             return;
         }
-        final OperatingSystem operatingSystem = Optional.ofNullable(target.getRuntime()).map(Runtime::getOperatingSystem).orElse(null);
-        if (operatingSystem == OperatingSystem.LINUX) {
-            return;
-        }
         messager.debug("###############STREAMING LOG BEGIN##################");
         subscription = target.streamAllLogsAsync()
                 .doFinally((type) -> messager.debug("###############STREAMING LOG END##################"))
