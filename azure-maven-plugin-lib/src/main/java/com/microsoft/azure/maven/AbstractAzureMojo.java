@@ -116,13 +116,13 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     protected static final String SUBSCRIPTION_NOT_FOUND = "Subscription %s was not found in current account.";
     protected static final String COMPILE_LEVEL_NOT_SUPPORTED = "Your project's compile level (%s) is not compatible with any of the supported runtimes of Azure. " +
             "The supported runtimes include %s. Please reset the compile level to a compatible version in case any compatibility issues.";
-    protected static final String FAILED_TO_GET_VALID_RUNTIMES = "Failed to get valid runtime based on project compile level, fall back to all values";
+    protected static final String FAILED_TO_GET_VALID_RUNTIMES = "Failed to get valid runtime based on project's compile level, fall back to all values";
 
     private static final String AZURE_ENVIRONMENT = "azureEnvironment";
     private static final String PROXY = "proxy";
-    private static final String INVALID_ARTIFACT = "The artifact's compile level (%s) is incompatible with runtime '%s'. " +
+    private static final String INVALID_ARTIFACT = "The artifact's compile level (%s) is not compatible with runtime '%s'. " +
             "Please rebuild the artifact with a lower level or switch to a higher Java runtime.";
-    private static final String SKIP_VALIDATION_MESSAGE = "To skip this validation, set failsOnRuntimeValidationError to false in the command line or pom.xml";
+    private static final String SKIP_VALIDATION_MESSAGE = "To skip this validation, set 'failsOnRuntimeValidationError' to 'false' in the command line or pom.xml";
 
     //region Properties
 
