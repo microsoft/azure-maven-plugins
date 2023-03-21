@@ -184,7 +184,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     @Getter
     @JsonProperty
     @Parameter(property = "failsOnError", defaultValue = "true")
-    protected boolean failsOnError;
+    protected Boolean failsOnError;
 
     /**
      * Deprecated, please set the authentication type in `auth`
@@ -646,7 +646,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         }
         final AzureString errorMessage = AzureString.format(INVALID_ARTIFACT, artifactCompileVersion, runtimeVersion);
         if (failOnValidation) {
-            throw new AzureToolkitRuntimeException(errorMessage.getString() + StringUtils.LF + SKIP_VALIDATION_MESSAGE);
+            throw new AzureToolkitRuntimeException(errorMessage.getString() + System.lineSeparator() + SKIP_VALIDATION_MESSAGE);
         } else {
             AzureMessager.getMessager().warning(errorMessage);
         }
