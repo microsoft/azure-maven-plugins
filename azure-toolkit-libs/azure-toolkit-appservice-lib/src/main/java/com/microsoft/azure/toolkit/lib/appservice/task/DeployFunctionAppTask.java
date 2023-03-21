@@ -73,7 +73,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
         deployArtifact();
         if (target instanceof FunctionApp && openStreamingLogOnFailure) {
             try {
-                AppServiceUtils.listHTTPTriggerUrls((FunctionApp) target);
+                ((FunctionApp) target).listHTTPTriggerUrls();
             } catch (final Exception e) {
                 // show warning instead of exception for list triggers
                 messager.warning(FAILED_TO_LIST_TRIGGERS);
