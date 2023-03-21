@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
@@ -177,7 +178,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         } catch (NoClassDefFoundError e) {
             // fallback to reflect through artifact url, for shaded project(fat jar)
             Log.debug("ClassPath to resolve: " + getArtifactUrl());
-            functions = handler.findFunctions(Arrays.asList(getArtifactUrl()));
+            functions = handler.findFunctions(Collections.singletonList(getArtifactUrl()));
         }
         Log.info(functions.size() + FOUND_FUNCTIONS);
         return functions;
@@ -207,7 +208,7 @@ public class PackageMojo extends AbstractFunctionMojo {
             try {
                 urlList.add(f.toURI().toURL());
             } catch (MalformedURLException e) {
-                Log.debug("Failed to get URL for file: " + f.toString());
+                Log.debug("Failed to get URL for file: " + f);
             }
         }
         return urlList;
@@ -335,8 +336,8 @@ public class PackageMojo extends AbstractFunctionMojo {
         }
         final Set<Artifact> artifacts = project.getArtifacts();
         final String libraryToExclude = artifacts.stream()
-                .filter(artifact -> StringUtils.equalsAnyIgnoreCase(artifact.getArtifactId(), AZURE_FUNCTIONS_JAVA_CORE_LIBRARY))
-                .map(Artifact::getArtifactId).findFirst().orElse(AZURE_FUNCTIONS_JAVA_LIBRARY);
+                .map(Artifact::getArtifactId)
+                .filter(artifactId -> StringUtils.equalsAnyIgnoreCase(artifactId, AZURE_FUNCTIONS_JAVA_CORE_LIBRARY)).findFirst().orElse(AZURE_FUNCTIONS_JAVA_LIBRARY);
         for (final Artifact artifact : artifacts) {
             if (!StringUtils.equalsIgnoreCase(artifact.getArtifactId(), libraryToExclude)) {
                 copyFileToDirectory(artifact.getFile(), libFolder);
@@ -406,9 +407,13 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
     // end region
 
-    protected void promptCompileInfo() throws AzureExecutionException {
-        Log.info(String.format("Java home : %s", System.getenv("JAVA_HOME")));
-        Log.info(String.format("Artifact compile version : %s", Utils.getArtifactCompileVersion(getArtifactFile())));
+    protected void promptCompileInfo() {
+        try {
+            Log.info(String.format("Java home : %s", System.getenv("JAVA_HOME")));
+            Log.info(String.format("Artifact compile version : %s", Utils.getArtifactCompileVersion(getArtifactFile())));
+        } catch (AzureExecutionException | AzureToolkitRuntimeException e) {
+            // swallow exception when prompt compile info
+        }
     }
 
     private File getArtifactFile() throws AzureExecutionException {

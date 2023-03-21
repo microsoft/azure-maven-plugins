@@ -9,7 +9,6 @@ import com.azure.resourcemanager.resources.fluentcore.utils.ResourceNamer;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.exception.CommandExecuteException;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -61,16 +60,19 @@ public class Utils {
     }
 
     public static int getJavaMajorVersion(final String javaVersion) {
-        try {
-            final String runtimeJavaMajorVersion = StringUtils.startsWith(javaVersion, "1.") ?
-                    StringUtils.substring(javaVersion, 2, 3) : StringUtils.split(javaVersion, ".")[0];
-            return Integer.valueOf(runtimeJavaMajorVersion);
-        } catch (RuntimeException e) {
-            return -1;
-        }
+        final String runtimeJavaMajorVersion = StringUtils.startsWith(javaVersion, "1.") ?
+                StringUtils.substring(javaVersion, 2, 3) : StringUtils.split(javaVersion, ".")[0];
+        return Integer.parseInt(runtimeJavaMajorVersion);
     }
 
-    public static int getArtifactCompileVersion(File artifact) {
+    /**
+     * Get artifact compile version based on class file
+     * For spring artifact, will check compile level of Start-Class, for others will check Main-Class.
+     * If none of above exists, will check compile level of first class in artifact
+     *
+     * @throws AzureToolkitRuntimeException If there is no class file in target artifact or meet IOException when read target artifact
+     */
+    public static int getArtifactCompileVersion(@Nonnull final File artifact) throws AzureToolkitRuntimeException {
         try (JarFile jarFile = new JarFile(artifact)) {
             final Manifest manifest = jarFile.getManifest();
             final String startClass = manifest.getMainAttributes().getValue("Start-Class");
@@ -81,8 +83,7 @@ public class Utils {
                     .filter(entry -> StringUtils.endsWith(entry.getName(), ".class"))
                     .findFirst().orElse(null);
             if (Objects.isNull(jarEntry)) {
-                AzureMessager.getMessager().warning("Failed to parse artifact compile version, no class file founded in target artifact");
-                return -1;
+                throw new AzureToolkitRuntimeException("Failed to parse artifact compile version, no class file founded in target artifact");
             }
             // Read compile version from class file
             // Refers https://en.wikipedia.org/wiki/Java_class_file#General_layout
@@ -93,8 +94,7 @@ public class Utils {
             stream.close();
             return new BigInteger(version).intValueExact() - 44;
         } catch (IOException e) {
-            AzureMessager.getMessager().warning(String.format("Failed to parse artifact compile version: %s", e.getMessage()));
-            return -1;
+            throw new AzureToolkitRuntimeException("Failed to parse artifact compile version, no class file founded in target artifact", e);
         }
     }
 

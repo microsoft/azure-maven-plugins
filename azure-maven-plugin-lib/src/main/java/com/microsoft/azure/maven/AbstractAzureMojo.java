@@ -638,10 +638,17 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         }
     }
 
-    public static void validateArtifactCompileVersion(final String runtimeJavaVersion, final File artifact, final boolean failOnValidation) {
-        final int runtimeVersion = Utils.getJavaMajorVersion(runtimeJavaVersion);
-        final int artifactCompileVersion = Utils.getArtifactCompileVersion(artifact);
-        if (runtimeVersion < 0 || artifactCompileVersion < 0 || artifactCompileVersion <= runtimeVersion) {
+    public static void validateArtifactCompileVersion(final String runtimeJavaVersion, final File artifact, final boolean failOnValidation) throws AzureToolkitRuntimeException {
+        final int runtimeVersion;
+        final int artifactCompileVersion;
+        try {
+            runtimeVersion = Utils.getJavaMajorVersion(runtimeJavaVersion);
+            artifactCompileVersion = Utils.getArtifactCompileVersion(artifact);
+        } catch (RuntimeException e) {
+            AzureMessager.getMessager().warning("Failed to get version of your artifact, skip artifact compatibility test");
+            return;
+        }
+        if (artifactCompileVersion <= runtimeVersion) {
             return;
         }
         final AzureString errorMessage = AzureString.format(INVALID_ARTIFACT, artifactCompileVersion, runtimeVersion);
