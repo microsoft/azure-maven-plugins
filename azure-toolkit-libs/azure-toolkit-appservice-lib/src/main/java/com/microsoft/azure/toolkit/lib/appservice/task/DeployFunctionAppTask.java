@@ -133,7 +133,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
         }
     }
 
-    private void stopStreamingLog() {
+    private synchronized void stopStreamingLog() {
         if (subscription != null && !subscription.isDisposed()) {
             subscription.dispose();
         }

@@ -118,7 +118,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         }
     }
 
-    private void stopStreamingLog() {
+    private synchronized void stopStreamingLog() {
         if (subscription != null && !subscription.isDisposed()) {
             subscription.dispose();
         }
