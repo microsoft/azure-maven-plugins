@@ -106,7 +106,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         }));
         tasks.add(new AzureTask<Void>(app::reset));
         if (this.waitDeploymentComplete) {
-            tasks.add(new AzureTask<Void>(this::startAppService));
+            tasks.add(new AzureTask<Void>(this::startApp));
         }
         return tasks;
     }
@@ -138,7 +138,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         });
     }
 
-    private void startAppService() {
+    private void startApp() {
         AzureMessager.getMessager().info(START_APP);
         if (!deployment.waitUntilReady(TIMEOUT_IN_SECONDS)) {
             AzureMessager.getMessager().warning(GET_APP_STATUS_TIMEOUT);
