@@ -168,11 +168,13 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
             messager.info(NO_ANONYMOUS_HTTP_TRIGGER);
             return;
         }
-        messager.info(HTTP_TRIGGER_URLS);
-        anonymousTriggers.forEach(trigger -> messager.info(String.format("\t %s : %s", trigger.getName(), trigger.getTriggerUrl())));
+        final StringBuilder builder = new StringBuilder();
+        builder.append(HTTP_TRIGGER_URLS).append(System.lineSeparator());
+        anonymousTriggers.forEach(trigger -> builder.append(String.format("\t %s : %s", trigger.getName(), trigger.getTriggerUrl())).append(System.lineSeparator()));
         if (anonymousTriggers.size() < httpFunction.size()) {
-            messager.info(UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS);
+            builder.append(UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS);
         }
+        messager.info(builder.toString());
     }
 
     // Refers https://github.com/Azure/azure-functions-core-tools/blob/3.0.3568/src/Azure.Functions.Cli/Actions/AzureActions/PublishFunctionAppAction.cs#L452
