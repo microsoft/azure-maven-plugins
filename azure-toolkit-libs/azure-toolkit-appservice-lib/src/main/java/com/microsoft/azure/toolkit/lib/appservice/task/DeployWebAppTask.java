@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
+import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +47,11 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private final IAzureMessager messager;
     private Disposable subscription;
     private AtomicReference<KuduDeploymentResult> deploymentResultAtomicReference = new AtomicReference<>();
+    @Setter
+    private long deploymentStatusRefreshInterval = DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL;
+    @Setter
+    private long deploymentStatusMaxRefreshTimes = DEFAULT_DEPLOYMENT_STATUS_MAX_REFRESH_TIMES;
+
 
     public DeployWebAppTask(WebAppBase<?, ?, ?> webApp, List<WebAppArtifact> artifacts) {
         this(webApp, artifacts, false);
@@ -88,13 +94,13 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
                 .collect(Collectors.toList());
         artifactsOneDeploy.forEach(resource -> deploymentResultAtomicReference.set(webApp.pushDeploy(resource.getDeployType(), resource.getFile(),
                 DeployOptions.builder().path(resource.getPath()).restartSite(restartSite).trackDeployment(true).build())));
-        if (BooleanUtils.isTrue(waitDeploymentComplete) && !waitUntilDeploymentReady(DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL, DEFAULT_DEPLOYMENT_STATUS_MAX_REFRESH_TIMES)) {
+        if (BooleanUtils.isTrue(waitDeploymentComplete) && !waitUntilDeploymentReady(this.deploymentStatusRefreshInterval, this.deploymentStatusMaxRefreshTimes)) {
             startStreamingLog();
         }
         OperationContext.action().setTelemetryProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
     }
 
-    public boolean waitUntilDeploymentReady(int deploymentStatusRefreshInterval, int deploymentStatusMaxRefreshTimes) {
+    public boolean waitUntilDeploymentReady(long deploymentStatusRefreshInterval, long deploymentStatusMaxRefreshTimes) {
         if (!isTrackDeploymentStatusSupported()) {
             return false;
         }
