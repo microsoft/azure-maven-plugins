@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.springcloud.config;
 
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -34,8 +33,6 @@ public class SpringCloudAppConfig {
     private String resourceGroup;
     @Builder.Default
     private Boolean isPublic = false;
-    @Builder.Default
-    private String runtimeVersion = SpringCloudDeploymentDraft.DEFAULT_RUNTIME_VERSION.toString();
     @Nullable
     private String activeDeploymentName;
     private SpringCloudDeploymentConfig deployment;

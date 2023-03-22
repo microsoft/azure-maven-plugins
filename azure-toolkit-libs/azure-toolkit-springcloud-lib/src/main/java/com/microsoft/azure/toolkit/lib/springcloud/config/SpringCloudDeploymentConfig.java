@@ -42,6 +42,7 @@ public class SpringCloudDeploymentConfig {
     @Nullable
     @Builder.Default
     private Double memoryInGB = 1.0;
+    @Nullable
     private Integer instanceCount;
     private String deploymentName;
     @Nullable

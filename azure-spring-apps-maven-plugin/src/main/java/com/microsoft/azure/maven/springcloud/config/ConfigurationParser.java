@@ -28,7 +28,6 @@ public class ConfigurationParser {
             .resourceGroup(springMojo.getResourceGroup())
             .clusterName(springMojo.getClusterName())
             .deployment(config)
-            .runtimeVersion(config.getRuntimeVersion())
             .isPublic(springMojo.getIsPublic())
             .subscriptionId(springMojo.getSubscriptionId())
             .build();
