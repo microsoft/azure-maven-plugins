@@ -23,6 +23,8 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import com.microsoft.azure.toolkit.lib.resource.message.ISenderReceiver;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.Disposable;
 
@@ -31,9 +33,10 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, EventHubsNamespace, EventHub> implements Deletable {
+public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, EventHubsNamespace, EventHub> implements Deletable, ISenderReceiver {
     @Nullable
-    private EntityStatus status;
+    @Getter
+    private EntityStatus entityStatus;
     @Nullable
     private EventHubConsumerAsyncClient consumerAsyncClient;
     private final List<Disposable> receivers = new ArrayList<>();
@@ -50,7 +53,7 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
     @Override
     protected void updateAdditionalProperties(@Nullable EventHub newRemote, @Nullable EventHub oldRemote) {
         super.updateAdditionalProperties(newRemote, oldRemote);
-        this.status = Optional.ofNullable(newRemote).map(EventHub::innerModel).map(EventhubInner::status).orElse(null);
+        this.entityStatus = Optional.ofNullable(newRemote).map(EventHub::innerModel).map(EventhubInner::status).orElse(null);
     }
 
     @Nonnull
@@ -65,59 +68,17 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
         return remote.innerModel().status().toString();
     }
 
-    public boolean isActive() {
-        return Objects.equals(this.status, EntityStatus.ACTIVE);
+    public void updateStatus(EntityStatus status) {
+        final EventhubInner inner = remoteOptional().map(EventHub::innerModel).orElse(new EventhubInner());
+        final EventHubsNamespace namespace = this.getParent();
+        Optional.ofNullable(namespace.getParent().getRemote())
+                .map(EventHubsManager::serviceClient)
+                .map(EventHubManagementClient::getEventHubs)
+                .ifPresent(c -> doModify(() -> c.createOrUpdate(getResourceGroupName(), namespace.getName(), getName(), inner.withStatus(status)), Status.UPDATING));
     }
 
-    public boolean isDisabled() {
-        return Objects.equals(this.status, EntityStatus.DISABLED);
-    }
-
-    public boolean isSendDisabled() {
-        return Objects.equals(this.status, EntityStatus.SEND_DISABLED);
-    }
-
-    public void activate() {
-        updateStatus(EntityStatus.ACTIVE);
-    }
-
-    public void disable() {
-        updateStatus(EntityStatus.DISABLED);
-    }
-
-    public void disableSending() {
-        updateStatus(EntityStatus.SEND_DISABLED);
-    }
-
-    public boolean isListening() {
-        return Objects.nonNull(this.consumerAsyncClient);
-    }
-
-    public boolean sendMessage(String message) {
-        try (final EventHubProducerClient producer = new EventHubClientBuilder()
-                .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.SEND)))
-                .buildProducerClient()) {
-            EventDataBatch eventDataBatch = producer.createBatch();
-            final EventData eventData =  new EventData(message);
-            if (!eventDataBatch.tryAdd(eventData)) {
-                producer.send(eventDataBatch);
-                eventDataBatch = producer.createBatch();
-                if (!eventDataBatch.tryAdd(eventData)) {
-                    throw new AzureToolkitRuntimeException("Event is too large for an empty batch. Max size: "
-                            + eventDataBatch.getMaxSizeInBytes());
-                }
-            }
-            if (eventDataBatch.getCount() > 0) {
-                producer.send(eventDataBatch);
-                return true;
-            }
-        } catch (final Exception e) {
-            throw new AzureToolkitRuntimeException(e);
-        }
-        return false;
-    }
-
-    public synchronized void startListening() {
+    @Override
+    public synchronized void startReceivingMessage() {
         final AzureConfiguration config = Azure.az().config();
         final String consumerGroupName = config.getEventHubsConsumerGroup();
         messager = AzureMessager.getMessager();
@@ -138,25 +99,56 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
         }));
     }
 
-    public synchronized void stopListening() {
+    @Override
+    public synchronized void stopReceivingMessage() {
         Optional.ofNullable(consumerAsyncClient).ifPresent(EventHubConsumerAsyncClient::close);
-        Optional.ofNullable(messager).ifPresent(m -> m.info(AzureString.format("Stop listening to event hub ({0})\n", getName())));
+        Optional.ofNullable(messager).orElse(AzureMessager.getMessager()).info(AzureString.format("Stop listening to event hub ({0})\n", getName()));
         this.consumerAsyncClient = null;
         this.receivers.forEach(Disposable::dispose);
         this.receivers.clear();
     }
 
-    public String getOrCreateListenConnectionString() {
-        return getOrCreateConnectionString(Collections.singletonList(AccessRights.LISTEN));
+    @Override
+    public boolean isListening() {
+        return Objects.nonNull(this.consumerAsyncClient);
     }
 
-    private void updateStatus(EntityStatus status) {
-        final EventhubInner inner = remoteOptional().map(EventHub::innerModel).orElse(new EventhubInner());
-        final EventHubsNamespace namespace = this.getParent();
-        Optional.ofNullable(namespace.getParent().getRemote())
-                .map(EventHubsManager::serviceClient)
-                .map(EventHubManagementClient::getEventHubs)
-                .ifPresent(c -> doModify(() -> c.createOrUpdate(getResourceGroupName(), namespace.getName(), getName(), inner.withStatus(status)), Status.UPDATING));
+    @Override
+    public boolean isSendEnabled() {
+        return getFormalStatus().isRunning() && getEntityStatus() != EntityStatus.SEND_DISABLED;
+    }
+
+    @Override
+    public void sendMessage(String message) {
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Sending message to Event Hub (%s)...\n", getName()));
+        try (final EventHubProducerClient producer = new EventHubClientBuilder()
+                .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.SEND)))
+                .buildProducerClient()) {
+            EventDataBatch eventDataBatch = producer.createBatch();
+            final EventData eventData =  new EventData(message);
+            if (!eventDataBatch.tryAdd(eventData)) {
+                producer.send(eventDataBatch);
+                eventDataBatch = producer.createBatch();
+                if (!eventDataBatch.tryAdd(eventData)) {
+                    final String reason = "Event is too large for an empty batch. Max size: "
+                            + eventDataBatch.getMaxSizeInBytes();
+                    messager.error(AzureString.format("Failed to send message to Event Hub (%s): %s", getName(), reason));
+                }
+            }
+            if (eventDataBatch.getCount() > 0) {
+                producer.send(eventDataBatch);
+                messager.info("Successfully send message ");
+                messager.debug(AzureString.format("\"%s\"", message));
+                messager.info(AzureString.format(" to Event Hub (%s)\n", getName()));
+            }
+        } catch (final Exception e) {
+            messager.error(AzureString.format("Failed to send message to Event Hub (%s): %s", getName(), e));
+        }
+    }
+
+    public String getOrCreateListenConnectionString() {
+        return getOrCreateConnectionString(Collections.singletonList(AccessRights.LISTEN));
     }
 
     private String getOrCreateConnectionString(List<AccessRights> accessRights) {
