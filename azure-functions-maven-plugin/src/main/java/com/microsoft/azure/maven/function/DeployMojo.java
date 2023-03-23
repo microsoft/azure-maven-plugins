@@ -200,7 +200,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     private void deployArtifact(final FunctionAppBase<?, ?, ?> target) {
         final File file = new File(getDeploymentStagingDirectoryPath());
         final FunctionDeployType type = StringUtils.isEmpty(deploymentType) ? null : FunctionDeployType.fromString(deploymentType);
-        new DeployFunctionAppTask(target, file, type).doExecute();
+        new DeployFunctionAppTask(target, file, type, true).doExecute();
     }
 
     private File getArtifactToDeploy() throws AzureExecutionException {

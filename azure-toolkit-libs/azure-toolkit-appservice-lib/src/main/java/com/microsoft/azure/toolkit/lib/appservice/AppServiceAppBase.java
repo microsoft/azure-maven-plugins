@@ -235,4 +235,8 @@ public abstract class AppServiceAppBase<
         }
         return kuduManager;
     }
+
+    public boolean isStreamingLogSupported() {
+        return false;
+    }
 }

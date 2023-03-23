@@ -9,10 +9,7 @@ import com.azure.resourcemanager.appservice.models.SupportsOneDeploy;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.deploy.IOneDeploy;
-import com.microsoft.azure.toolkit.lib.appservice.model.CsmDeploymentStatus;
-import com.microsoft.azure.toolkit.lib.appservice.model.DeployOptions;
-import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
-import com.microsoft.azure.toolkit.lib.appservice.model.KuduDeploymentResult;
+import com.microsoft.azure.toolkit.lib.appservice.model.*;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -24,6 +21,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Objects;
+import java.util.Optional;
 
 public abstract class WebAppBase<T extends WebAppBase<T, P, F>, P extends AbstractAzResource<P, ?, ?>, F extends com.azure.resourcemanager.appservice.models.WebAppBase>
     extends AppServiceAppBase<T, P, F> implements IOneDeploy {
@@ -82,5 +80,10 @@ public abstract class WebAppBase<T extends WebAppBase<T, P, F>, P extends Abstra
         } else {
             return null;
         }
+    }
+
+    @Override
+    public boolean isStreamingLogSupported() {
+        return Optional.ofNullable(getDiagnosticConfig()).map(DiagnosticConfig::isEnableWebServerLogging).orElse(false);
     }
 }
