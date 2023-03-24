@@ -36,12 +36,12 @@ public class AzureTelemeter {
     public static final String OP_PARENT_ID = "op_parentId";
 
     public static final String ERROR_CODE = "error.error_code";
-    public static final String ERROR_MSG = "error.error_message";
+    public static final String ERROR_MSG = "error.error_msg";
     public static final String ERROR_ROOT_MSG = "error.root_error_message";
     public static final String ERROR_TYPE = "error.error_type";
     public static final String ERROR_CLASSNAME = "error.error_class_name";
     public static final String ERROR_ROOT_CLASSNAME = "error.root_error_class_name";
-    public static final String ERROR_STACKTRACE = "error.error_stack";
+    public static final String ERROR_STACKTRACE = "error.error_stack_trace";
     @Getter
     @Setter
     @Nullable
