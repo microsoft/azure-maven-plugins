@@ -32,14 +32,16 @@ public class AzureTelemetryClient {
             "(file://)?([a-zA-Z]:(\\\\\\\\|\\\\|/)|(\\\\\\\\|\\\\|/))?([\\w-._]+(\\\\\\\\|\\\\|/))+[\\w-._]*";
     private static final Pattern FILE_PATH_PATTERN = Pattern.compile(FILE_PATH_REGEX);
     // refers https://github.com/microsoft/vscode-extension-telemetry/blob/v0.6.2/src/common/baseTelemetryReporter.ts#L241
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("@[a-zA-Z0-9-.]+");
-    private static final Pattern SECRET_PATTERN = Pattern.compile("(key|token|sig|signature|password|pwd|android:value|sv)[^a-zA-Z0-9]", Pattern.CASE_INSENSITIVE);
-    private static final Pattern TOKEN_REGEX = Pattern.compile("xox[pbaors]-[a-zA-Z0-9]+-[a-zA-Z0-9-]+?", Pattern.CASE_INSENSITIVE);
+    private static final Pattern GOOGLE_API_KEY = Pattern.compile("AIza[a-zA-Z0-9_\\\\-]{35}");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-]+");
+    private static final Pattern SECRET_PATTERN = Pattern.compile("(key|token|sig|secret|signature|password|passwd|pwd|android:value)[^a-zA-Z0-9]", Pattern.CASE_INSENSITIVE);
+    private static final Pattern TOKEN_REGEX = Pattern.compile("xox[pbar]-[a-zA-Z0-9]", Pattern.CASE_INSENSITIVE);
 
     private static final Map<Pattern, String> PATTERN_MAP = new HashMap<Pattern, String>() {{
-        put(EMAIL_PATTERN, "<REDACTED: email>");
-        put(SECRET_PATTERN, "<REDACTED: secret>");
-        put(TOKEN_REGEX, "<REDACTED: token>");
+        put(EMAIL_PATTERN, "<REDACTED: Email>");
+        put(SECRET_PATTERN, "<REDACTED: Generic Secret>");
+        put(TOKEN_REGEX, "<REDACTED: Slack Toke>");
+        put(GOOGLE_API_KEY, "<REDACTED: Google API Key>");
     }};
 
     private final TelemetryClient client;
@@ -115,12 +117,7 @@ public class AzureTelemetryClient {
         return merged;
     }
 
-    private void initDefaultProperties() {
-        this.addDefaultProperty(ARCH_KEY, System.getProperty("os.arch"));
-        this.addDefaultProperty(JDK_KEY, System.getProperty("java.version"));
-    }
-
-    private static void anonymizePersonallyIdentifiableInformation(final Map<String, String> properties) {
+    protected static void anonymizePersonallyIdentifiableInformation(final Map<String, String> properties) {
         properties.replaceAll((key, value) -> {
             if (StringUtils.isBlank(value) || StringUtils.equalsAnyIgnoreCase(key, SYSTEM_PROPERTIES)) {
                 return value;
@@ -135,5 +132,10 @@ public class AzureTelemetryClient {
                 return input;
             }).collect(Collectors.joining(StringUtils.LF));
         });
+    }
+
+    private void initDefaultProperties() {
+        this.addDefaultProperty(ARCH_KEY, System.getProperty("os.arch"));
+        this.addDefaultProperty(JDK_KEY, System.getProperty("java.version"));
     }
 }
