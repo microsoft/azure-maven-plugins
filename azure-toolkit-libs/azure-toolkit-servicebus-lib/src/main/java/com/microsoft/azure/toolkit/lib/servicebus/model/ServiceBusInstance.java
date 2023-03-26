@@ -65,7 +65,7 @@ public abstract class ServiceBusInstance<
 
     @Override
     public boolean isSendEnabled() {
-        return getFormalStatus().isRunning() && getEntityStatus() != EntityStatus.SEND_DISABLED;
+        return getEntityStatus() != EntityStatus.SEND_DISABLED;
     }
 
     @Override
