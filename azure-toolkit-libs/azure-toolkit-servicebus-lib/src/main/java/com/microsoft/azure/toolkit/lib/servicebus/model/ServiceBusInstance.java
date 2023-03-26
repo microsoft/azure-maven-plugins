@@ -73,7 +73,7 @@ public abstract class ServiceBusInstance<
         Optional.ofNullable(processorClient).ifPresent(c -> {
             c.close();
             Optional.ofNullable(messager).orElse(AzureMessager.getMessager())
-                    .info(AzureString.format("Stop receiving message from {0} ({1})\n", getResourceTypeName(), getName()));
+                    .info(AzureString.format("Stop listening to {0} ({1})\n", getResourceTypeName(), getName()));
         });
         this.processorClient = null;
     }
