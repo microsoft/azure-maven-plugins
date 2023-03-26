@@ -6,10 +6,11 @@
 package com.microsoft.azure.maven.springcloud;
 
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
+import groovy.lang.MissingPropertyException;
 import groovy.text.SimpleTemplateEngine;
 import lombok.extern.java.Log;
+import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -17,7 +18,8 @@ import java.util.logging.Level;
 @Log
 public class TemplateUtils {
     private static final SimpleTemplateEngine engine = new SimpleTemplateEngine();
-    private static final String INVALID_TEMPLATE = "error occurs when evaluate template(%s) with bindings(%s)";
+    private static final String INVALID_TEMPLATE = "error occurs when evaluating template(%s) with bindings(%s)";
+    private static final String MISSING_PROPERTY = "some properties are missing when evaluating template(%s) with bindings(%s)";
 
     /**
      * Evaluate the template expression to boolean using a variable map.
@@ -57,12 +59,13 @@ public class TemplateUtils {
 
     public static String evalPlainText(String expr, Map<String, Object> variableMap) {
         String text = expr.contains(".") ? evalInline(expr, variableMap) :
-                Objects.toString(variableMap.get(expr), null);
+            Objects.toString(variableMap.get(expr), null);
         int evalCount = 0;
         while (text != null && text.contains("${")) {
+            final String prev = text;
             text = eval(text, variableMap);
             evalCount++;
-            if (evalCount > 5) {
+            if (StringUtils.equals(prev, text) || evalCount > 5) {
                 break;
             }
         }
@@ -72,8 +75,10 @@ public class TemplateUtils {
     private static String eval(String template, Map<String, Object> bindings) {
         try {
             return engine.createTemplate(template).make(bindings).toString();
-        } catch (ClassNotFoundException | IOException e) {
-            log.log(Level.SEVERE, String.format(INVALID_TEMPLATE, template, bindings), e);
+        } catch (MissingPropertyException e) {
+            log.log(Level.WARNING, String.format(MISSING_PROPERTY, template, bindings));
+        } catch (Exception e) {
+            log.log(Level.WARNING, String.format(INVALID_TEMPLATE, template, bindings), e);
         }
         return template;
     }
