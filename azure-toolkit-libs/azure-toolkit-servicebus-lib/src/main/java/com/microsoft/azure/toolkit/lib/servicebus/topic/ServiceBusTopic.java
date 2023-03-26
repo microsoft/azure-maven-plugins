@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.servicebus.ServiceBusNamespace;
 import com.microsoft.azure.toolkit.lib.servicebus.model.ServiceBusInstance;
 import org.apache.commons.lang3.StringUtils;
@@ -25,7 +26,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ServiceBusTopic extends ServiceBusInstance<ServiceBusTopic, ServiceBusNamespace, Topic> {
+public class ServiceBusTopic extends ServiceBusInstance<ServiceBusTopic, ServiceBusNamespace, Topic> implements Deletable {
     protected ServiceBusTopic(@Nonnull String name, @Nonnull ServiceBusTopicModule module) {
         super(name, module);
     }

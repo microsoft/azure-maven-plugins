@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.servicebus.ServiceBusNamespace;
 import com.microsoft.azure.toolkit.lib.servicebus.model.ServiceBusInstance;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +29,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ServiceBusQueue extends ServiceBusInstance<ServiceBusQueue, ServiceBusNamespace, Queue> {
+public class ServiceBusQueue extends ServiceBusInstance<ServiceBusQueue, ServiceBusNamespace, Queue> implements Deletable {
     protected ServiceBusQueue(@Nonnull String name, @Nonnull ServiceBusQueueModule module) {
         super(name, module);
     }
