@@ -17,6 +17,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.servicebus.ServiceBusNamespace;
 import com.microsoft.azure.toolkit.lib.servicebus.model.ServiceBusInstance;
 import org.apache.commons.lang3.StringUtils;
@@ -83,6 +84,7 @@ public class ServiceBusTopic extends ServiceBusInstance<ServiceBusTopic, Service
                 .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.LISTEN)))
                 .processor()
                 .topicName(getName())
+                .subscriptionName(getOrCreateSubscription().name())
                 .receiveMode(ServiceBusReceiveMode.PEEK_LOCK)
                 .processMessage(this::processMessage)
                 .processError(this::processError)
@@ -110,5 +112,20 @@ public class ServiceBusTopic extends ServiceBusInstance<ServiceBusTopic, Service
                 getName(), accessRightsStr, new SBAuthorizationRuleInner().withRights(accessRights));
         return manager.serviceClient().getTopics().listKeys(getResourceGroupName(), getParent().getName(),
                 getName(), accessRightsStr).primaryConnectionString();
+    }
+
+    private ServiceBusSubscription getOrCreateSubscription() {
+        final Topic remoteTopic = this.getRemote();
+        if (Objects.isNull(remoteTopic)) {
+            throw new AzureToolkitRuntimeException(AzureString.format("resource ({0}) not found", getName()).toString());
+        }
+        final int subscriptionCount = remoteTopic.subscriptionCount();
+        if (subscriptionCount > 0) {
+            return remoteTopic.subscriptions().list().stream().collect(Collectors.toList()).get(0);
+        }
+        final String subName = String.format("sub-%s", Utils.getTimestamp());
+        return remoteTopic.subscriptions().define(subName)
+                .withMessageMovedToDeadLetterSubscriptionOnMaxDeliveryCount(10)
+                .create();
     }
 }
