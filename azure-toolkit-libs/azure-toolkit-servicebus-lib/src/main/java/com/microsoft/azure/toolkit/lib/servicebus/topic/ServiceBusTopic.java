@@ -67,8 +67,8 @@ public class ServiceBusTopic extends ServiceBusInstance<ServiceBusTopic, Service
                 .topicName(getName())
                 .buildClient()) {
             senderClient.sendMessage(new ServiceBusMessage(message));
-            messager.info("Successfully send message ");
-            messager.debug(AzureString.format("\"%s\"", message));
+            messager.info("Successfully sent message ");
+            messager.success(AzureString.format("\"%s\"", message));
             messager.info(AzureString.format(" to Service Bus Topic (%s)\n", getName()));
         } catch (final Exception e) {
             messager.error(AzureString.format("Failed to send message to Service Bus Topic (%s): %s", getName(), e));
