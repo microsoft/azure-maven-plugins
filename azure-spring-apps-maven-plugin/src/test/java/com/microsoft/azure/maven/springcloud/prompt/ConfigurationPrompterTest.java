@@ -38,6 +38,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
+@SuppressWarnings("unchecked")
 public class ConfigurationPrompterTest {
     private ConfigurationPrompter wrapper;
     private BufferedReader reader;
@@ -68,8 +69,8 @@ public class ConfigurationPrompterTest {
         final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
         final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
                 new Map.Entry[] { new DefaultMapEntry<>("id", "testId1"),
-                    new DefaultMapEntry<>("promote", "Input the {{global_property1}} value(***{{default}}***):"),
-                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default", "defaultValueForUnitTest"),
+                    new DefaultMapEntry<>("promote", "Input the ${global_property1} value(***${default_val}***):"),
+                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default_val", "defaultValueForUnitTest"),
                     new DefaultMapEntry<>("property", "appName"), new DefaultMapEntry<>("required", true), });
         templates.put("testId1", map);
         wrapper.putCommonVariable("global_property1", "value1");
@@ -106,14 +107,14 @@ public class ConfigurationPrompterTest {
         final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
         final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
                 new Map.Entry[] { new DefaultMapEntry<>("id", "testId1"),
-                    new DefaultMapEntry<>("promote", "Input the {{global_property1}} value(***{{default}}***):"),
-                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default", "${public}"),
+                    new DefaultMapEntry<>("promote", "Input the ${global_property1} value(***${default_val}***):"),
+                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default_val", "{{public}}"),
                     new DefaultMapEntry<>("property", "isPublic"), new DefaultMapEntry<>("required", true), });
         templates.put("testId1", map);
-        when(mockEval.evaluate("${public}")).thenReturn("true");
+        when(mockEval.evaluate("{{public}}")).thenReturn("true");
         // test for default value;
         when(reader.readLine()).thenReturn("");
-        assertEquals("${public}", wrapper.handle("testId1", false));
+        assertEquals("{{public}}", wrapper.handle("testId1", false));
     }
 
     @Test
@@ -121,8 +122,8 @@ public class ConfigurationPrompterTest {
         final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
         final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
                 new Map.Entry[] { new DefaultMapEntry<>("id", "testId1"),
-                    new DefaultMapEntry<>("promote", "Input the {{global_property1}} value(***{{default}}***):"),
-                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default", "true"),
+                    new DefaultMapEntry<>("promote", "Input the ${global_property1} value(***${default_val}***):"),
+                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default_val", "true"),
                     new DefaultMapEntry<>("property", "isPublic"), new DefaultMapEntry<>("required", true), });
         templates.put("testId1", map);
         wrapper.putCommonVariable("global_property1", "value1");
@@ -205,8 +206,8 @@ public class ConfigurationPrompterTest {
         final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
         final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
                 new Map.Entry[] { new DefaultMapEntry<>("id", "testId1"),
-                    new DefaultMapEntry<>("promote", "Input the {{global_property1}} value(***{{default}}***):"),
-                    new DefaultMapEntry<>("default", "false"),
+                    new DefaultMapEntry<>("promote", "Input the ${global_property1} value(***${default_val}***):"),
+                    new DefaultMapEntry<>("default_val", "false"),
                     new DefaultMapEntry<>("required", false), });
         templates.put("testId1", map);
 
@@ -246,8 +247,8 @@ public class ConfigurationPrompterTest {
         final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
         final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
                 new Map.Entry[] { new DefaultMapEntry<>("id", "testId1"),
-                    new DefaultMapEntry<>("promote", "Input the {{global_property1}} value(***{{default}}***):"),
-                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default", "false"),
+                    new DefaultMapEntry<>("promote", "Input the ${global_property1} value(***${default_val}***):"),
+                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default_val", "false"),
                     new DefaultMapEntry<>("property", "isPublic"), new DefaultMapEntry<>("required", true), });
         templates.put("testId1", map);
         // test for default value;
@@ -290,8 +291,8 @@ public class ConfigurationPrompterTest {
         final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
         final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
                 new Map.Entry[] { new DefaultMapEntry<>("id", "testId1"),
-                    new DefaultMapEntry<>("promote", "Input the {{global_property1}} value(***{{default}}***):"),
-                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default", "false"),
+                    new DefaultMapEntry<>("promote", "Input the ${global_property1} value(***${default_val}***):"),
+                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default_val", "false"),
                     new DefaultMapEntry<>("property", "isPublic"), new DefaultMapEntry<>("required", false), });
         templates.put("testId1", map);
         when(reader.readLine()).thenReturn("Y").thenReturn("N");
@@ -315,8 +316,8 @@ public class ConfigurationPrompterTest {
         final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
         final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
                 new Map.Entry[] { new DefaultMapEntry<>("id", "testId1"),
-                    new DefaultMapEntry<>("promote", "Input the {{global_property1}} value(***{{default}}***):"),
-                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default", "false"),
+                    new DefaultMapEntry<>("promote", "Input the ${global_property1} value(***${default_val}***):"),
+                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default_val", "false"),
                     new DefaultMapEntry<>("property", "isPublic"), new DefaultMapEntry<>("required", true), });
         templates.put("testId1", map);
         when(reader.readLine()).thenReturn("1");
@@ -345,8 +346,8 @@ public class ConfigurationPrompterTest {
         final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
         final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
                 new Map.Entry[] { new DefaultMapEntry<>("id", "testId1"),
-                    new DefaultMapEntry<>("promote", "Input the {{global_property1}} value(***{{default}}***):"),
-                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default", "false"),
+                    new DefaultMapEntry<>("promote", "Input the ${global_property1} value(***${default_val}***):"),
+                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default_val", "false"),
                     new DefaultMapEntry<>("property", "isPublic"), new DefaultMapEntry<>("required", true), });
         templates.put("testId1", map);
         when(reader.readLine()).thenReturn("Y");
@@ -381,8 +382,8 @@ public class ConfigurationPrompterTest {
         final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
         final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
                 new Map.Entry[] { new DefaultMapEntry<>("id", "testId1"),
-                    new DefaultMapEntry<>("promote", "Input the {{global_property1}} value(***{{default}}***):"),
-                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default", "defaultValueForUnitTest"),
+                    new DefaultMapEntry<>("promote", "Input the ${global_property1} value(***${default_val}***):"),
+                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default_val", "defaultValueForUnitTest"),
                     new DefaultMapEntry<>("property", "appName"), new DefaultMapEntry<>("required", true), });
         templates.put("testId1", map);
         wrapper.putCommonVariable("global_property1", "value1");
@@ -421,8 +422,8 @@ public class ConfigurationPrompterTest {
         final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
         final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
                 new Map.Entry[] { new DefaultMapEntry<>("id", "testId1"),
-                    new DefaultMapEntry<>("promote", "Input the value(***{{default}}***):"),
-                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default", "!@#*$(*~"),
+                    new DefaultMapEntry<>("promote", "Input the value(***${default_val}***):"),
+                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default_val", "!@#*$(*~"),
                     new DefaultMapEntry<>("property", "appName"), new DefaultMapEntry<>("required", true), });
         wrapper.putCommonVariable("global_property1", "Value1");
         templates.put("testId1", map);
@@ -432,16 +433,16 @@ public class ConfigurationPrompterTest {
         } catch (InvalidConfigurationException ex) {
             // expected
         }
-        map.put("default", "{{global_property1|lower}}");
+        map.put("default_val", "${global_property1.toLowerCase()}");
         assertEquals("value1", wrapper.handle("testId1", true));
 
-        map.put("default", null);
+        map.put("default_val", null);
         assertNull(wrapper.handle("testId1", true));
     }
 
     @Test
     public void testClose() throws Exception {
-        final IPrompter prompt = mock(IPrompter.class);
+        IPrompter prompt = mock(IPrompter.class);
         Mockito.doThrow(IOException.class).when(prompt).close();
         FieldUtils.writeField(wrapper, "prompt", prompt, true);
         try {
@@ -450,7 +451,7 @@ public class ConfigurationPrompterTest {
         } catch (IOException ex) {
             // expected
         }
-        Mockito.verify(prompt);
+        prompt = Mockito.verify(prompt);
         prompt.close();
     }
 }
