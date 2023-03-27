@@ -35,7 +35,7 @@ public class ServiceBusNamespaceSubscription extends AbstractAzServiceSubscripti
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.emptyList();
+        return Collections.singletonList(serviceBusNamespaceModule);
     }
 
     @Override

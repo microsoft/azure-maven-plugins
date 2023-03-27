@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.servicebus.ServiceBusNamespace;
 import com.microsoft.azure.toolkit.lib.servicebus.model.ServiceBusInstance;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +29,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ServiceBusQueue extends ServiceBusInstance<ServiceBusQueue, ServiceBusNamespace, Queue> {
+public class ServiceBusQueue extends ServiceBusInstance<ServiceBusQueue, ServiceBusNamespace, Queue> implements Deletable {
     protected ServiceBusQueue(@Nonnull String name, @Nonnull ServiceBusQueueModule module) {
         super(name, module);
     }
@@ -69,8 +70,8 @@ public class ServiceBusQueue extends ServiceBusInstance<ServiceBusQueue, Service
                 .queueName(getName())
                 .buildClient()) {
             senderClient.sendMessage(new ServiceBusMessage(message));
-            messager.info("Successfully send message ");
-            messager.debug(AzureString.format("\"%s\"", message));
+            messager.info("Successfully sent message ");
+            messager.success(AzureString.format("\"%s\"", message));
             messager.info(AzureString.format(" to Service Bus Queue (%s)\n", getName()));
         } catch (final Exception e) {
             messager.error(AzureString.format("Failed to send message to Service Bus Queue (%s): %s", getName(), e));
@@ -80,7 +81,7 @@ public class ServiceBusQueue extends ServiceBusInstance<ServiceBusQueue, Service
     @Override
     public synchronized void startReceivingMessage() {
         messager = AzureMessager.getMessager();
-        messager.info(AzureString.format("Start receiving message from Service Bus Queue ({0})\n", getName()));
+        messager.info(AzureString.format("Start listening to Service Bus Queue ({0})\n", getName()));
         this.processorClient = new ServiceBusClientBuilder()
                 .connectionString(getOrCreateConnectionString(Collections.singletonList(AccessRights.LISTEN)))
                 .processor()

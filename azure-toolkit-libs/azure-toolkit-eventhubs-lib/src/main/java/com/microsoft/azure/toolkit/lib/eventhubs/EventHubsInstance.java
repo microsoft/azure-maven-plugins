@@ -138,8 +138,8 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
             }
             if (eventDataBatch.getCount() > 0) {
                 producer.send(eventDataBatch);
-                messager.info("Successfully send message ");
-                messager.debug(AzureString.format("\"%s\"", message));
+                messager.info("Successfully sent message ");
+                messager.success(AzureString.format("\"%s\"", message));
                 messager.info(AzureString.format(" to Event Hub (%s)\n", getName()));
             }
         } catch (final Exception e) {
