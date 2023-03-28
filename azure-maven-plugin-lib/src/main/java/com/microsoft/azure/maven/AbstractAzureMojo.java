@@ -28,7 +28,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.logger.LoggerFactory;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -42,6 +42,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.maven.common.action.MavenActionManager;
+import com.microsoft.azure.toolkit.maven.common.logger.MavenLogger;
 import com.microsoft.azure.toolkit.maven.common.messager.MavenAzureMessager;
 import com.microsoft.azure.toolkit.maven.common.task.MavenAzureTaskManager;
 import lombok.Getter;
@@ -299,6 +300,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException {
         try {
+            LoggerFactory.register(new MavenLogger.Factory(this));
             MavenActionManager.register();
             AzureTaskManager.register(new MavenAzureTaskManager());
             AzureMessager.setDefaultMessager(new MavenAzureMessager());
