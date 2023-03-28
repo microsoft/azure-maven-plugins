@@ -25,6 +25,7 @@ import reactor.core.scheduler.Schedulers;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -94,7 +95,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
                 .collect(Collectors.toList());
         artifactsOneDeploy.forEach(resource -> deploymentResultAtomicReference.set(webApp.pushDeploy(resource.getDeployType(), resource.getFile(),
                 DeployOptions.builder().path(resource.getPath()).restartSite(restartSite).trackDeployment(true).build())));
-        if (BooleanUtils.isTrue(waitDeploymentComplete) && !waitUntilDeploymentReady(this.deploymentStatusRefreshInterval, this.deploymentStatusMaxRefreshTimes)) {
+        if (!waitUntilDeploymentReady(this.deploymentStatusRefreshInterval, this.deploymentStatusMaxRefreshTimes)) {
             startStreamingLog();
         }
         OperationContext.action().setTelemetryProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
@@ -133,15 +134,15 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     }
 
     private boolean isTrackDeploymentStatusSupported() {
-        if (webApp.getFormalStatus().isStopped()) {
+        if (BooleanUtils.isTrue(this.waitDeploymentComplete) && webApp.getFormalStatus().isStopped()) {
             messager.info("Skip waiting deployment status for stopped web app.");
             return false;
         }
-        if (webApp.getRuntime().isWindows() && BooleanUtils.isTrue(this.waitDeploymentComplete)) {
+        if (BooleanUtils.isTrue(this.waitDeploymentComplete) && webApp.getRuntime().isWindows()) {
             messager.warning("`waitDeploymentComplete` is not supported in Windows runtime, skip waiting for deployment status.");
             return false;
         }
-        return webApp.getRuntime().isLinux();
+        return Optional.ofNullable(this.waitDeploymentComplete).orElse(webApp.getRuntime().isLinux());
     }
 
     private CsmDeploymentStatus getDeploymentStatus(final WebAppBase<?, ?, ?> target, final KuduDeploymentResult result) {
