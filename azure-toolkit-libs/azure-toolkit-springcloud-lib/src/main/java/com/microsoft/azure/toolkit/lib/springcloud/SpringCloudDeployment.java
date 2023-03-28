@@ -9,6 +9,7 @@ import com.azure.core.util.ExpandableStringEnum;
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.azure.resourcemanager.appplatform.fluent.AppPlatformManagementClient;
 import com.azure.resourcemanager.appplatform.fluent.models.RemoteDebuggingInner;
+import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
 import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.RemoteDebuggingPayload;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
@@ -250,5 +251,19 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
             .map(c -> c.getRemoteDebuggingConfig(this.getResourceGroupName(), cluster.getName(), app.getName(), this.getName()))
             .map(RemoteDebuggingInner::port)
             .orElseThrow(() -> new AzureToolkitRuntimeException("Failed to get remote debugging port."));
+    }
+
+    @Nullable
+    public SpringCloudAppInstance getLatestInstance() {
+        return getInstances().stream().max((o1, o2) -> {
+            final DeploymentInstance remote1 = o1.getRemote();
+            final DeploymentInstance remote2 = o2.getRemote();
+            if (Objects.isNull(remote1)) {
+                return -1;
+            } else if (Objects.isNull(remote2)) {
+                return 1;
+            }
+            return StringUtils.compare(remote1.startTime(), remote2.startTime());
+        }).orElse(null);
     }
 }
