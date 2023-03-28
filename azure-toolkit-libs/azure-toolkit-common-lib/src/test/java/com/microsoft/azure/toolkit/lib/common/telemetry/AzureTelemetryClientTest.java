@@ -15,10 +15,10 @@ public class AzureTelemetryClientTest extends AzureTelemetryClient {
     @Test
     public void anonymizePersonallyIdentifiableInformation() {
         final Map<String, String> map = new HashMap<String, String>() {{
-            put("fake-password", "pwd=FAKE");
+            put("fake-password", "pwd=FAKE"); // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="fake credential for test case")]
             put("fake-email", "no-reply@example.com");
             put("fake-token", "token=FAKE");
-            put("fake-slack-token", "xoxp-FAKE");
+            put("fake-slack-token", "xoxp-FAKE"); // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="fake credential for test case")]
             put("fake-path", "/Users/username/.AzureToolkitforIntelliJ/extensions");
         }};
         AzureTelemetryClientTest.anonymizePersonallyIdentifiableInformation(map);
