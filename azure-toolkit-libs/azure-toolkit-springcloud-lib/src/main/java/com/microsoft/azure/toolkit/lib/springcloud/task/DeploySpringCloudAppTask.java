@@ -5,8 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud.task;
 
-import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
-import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -20,9 +18,12 @@ import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.Disposable;
+import reactor.core.scheduler.Schedulers;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Getter
 public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
@@ -129,9 +130,18 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
             messager.info(AzureString.format("Opening streaming log of instance({0})...", i.getName()));
             messager.debug("###############STREAMING LOG BEGIN##################");
             // refer to https://github.com/Azure/azure-cli-extensions/blob/main/src/spring/azext_spring/app.py#app_tail_log_internal
-            this.deployment.streamLogs(i.getName(), 300, 500, 1024 * 1024, follow)
+            final Disposable disposable = this.deployment.streamLogs(i.getName(), 300, 500, 1024 * 1024, follow)
                     .doFinally(type -> messager.debug("###############STREAMING LOG END##################"))
+                    .subscribeOn(Schedulers.boundedElastic())
                     .subscribe(messager::debug);
+            try {
+                TimeUnit.MINUTES.sleep(2);
+            } catch (final Exception ignored) {
+            } finally {
+                if (!disposable.isDisposed()) {
+                    disposable.dispose();
+                }
+            }
         });
     }
 
