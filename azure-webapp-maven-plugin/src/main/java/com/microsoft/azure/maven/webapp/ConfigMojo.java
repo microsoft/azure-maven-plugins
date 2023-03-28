@@ -384,7 +384,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final List<String> validJavaVersions = getValidJavaVersions();
         String defaultJavaVersion = ObjectUtils.firstNonNull(configuration.getJavaVersion(), WebAppConfiguration.DEFAULT_JAVA_VERSION.toString());
         if (!validJavaVersions.contains(defaultJavaVersion)) {
-            Log.warn(String.format("'%s' is not supported.", defaultJavaVersion));
+            Log.warn(String.format("'%s' is not supported for your artifact, supported values are %s.", defaultJavaVersion, String.join(", ", validJavaVersions)));
             defaultJavaVersion = validJavaVersions.get(0);
         }
 

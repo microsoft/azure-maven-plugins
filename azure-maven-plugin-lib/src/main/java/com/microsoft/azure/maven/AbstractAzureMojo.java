@@ -645,7 +645,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             runtimeVersion = Utils.getJavaMajorVersion(runtimeJavaVersion);
             artifactCompileVersion = Utils.getArtifactCompileVersion(artifact);
         } catch (RuntimeException e) {
-            AzureMessager.getMessager().warning("Failed to get version of your artifact, skip artifact compatibility test");
+            AzureMessager.getMessager().info("Failed to get version of your artifact, skip artifact compatibility test");
             return;
         }
         if (artifactCompileVersion <= runtimeVersion) {
@@ -679,7 +679,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
                     .sorted(Comparator.comparing(levelGetter))
                     .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(result)) {
-                final String supportedRuntimes = runtimes.stream().map(Object::toString).collect(Collectors.joining(","));
+                final String supportedRuntimes = runtimes.stream().map(Object::toString).collect(Collectors.joining(", "));
                 AzureMessager.getMessager().warning(AzureString.format(COMPILE_LEVEL_NOT_SUPPORTED, compileLevel, supportedRuntimes));
                 return runtimes;
             } else {
