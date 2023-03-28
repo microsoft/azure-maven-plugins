@@ -115,7 +115,7 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
 
     @Override
     public boolean isSendEnabled() {
-        return getFormalStatus().isRunning() && getEntityStatus() != EntityStatus.SEND_DISABLED;
+        return getEntityStatus() != EntityStatus.SEND_DISABLED && getEntityStatus() != EntityStatus.DISABLED;
     }
 
     @Override
