@@ -15,7 +15,11 @@ import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
-import com.microsoft.azure.toolkit.lib.springcloud.*;
+import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.Getter;
@@ -25,9 +29,11 @@ import reactor.core.scheduler.Schedulers;
 
 import javax.annotation.Nonnull;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 @Getter
 public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
@@ -136,8 +142,8 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
             final CountDownLatch latch = new CountDownLatch(1);
             final Debouncer fireEvents = new TailingDebouncer(() -> {
                 stopStreamingLog();
-                latch.countDown();}, Long.valueOf(Duration.ofSeconds(15).toMillis()).intValue());
-            fireEvents.debounce();
+                latch.countDown();
+            }, Long.valueOf(Duration.ofSeconds(15).toMillis()).intValue());
             // refer to https://github.com/Azure/azure-cli-extensions/blob/main/src/spring/azext_spring/app.py#app_tail_log_internal
             disposable = this.deployment.streamLogs(i.getName(), 300, 500, 1024 * 1024, follow)
                     .doFinally(type -> messager.debug("###############STREAMING LOG END##################"))
@@ -146,6 +152,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
                         messager.debug(s);
                         fireEvents.debounce();
                     });
+            fireEvents.debounce();
             try {
                 latch.await();
             } catch (final InterruptedException e) {
