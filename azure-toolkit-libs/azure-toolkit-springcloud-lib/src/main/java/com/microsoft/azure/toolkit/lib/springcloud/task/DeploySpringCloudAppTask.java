@@ -13,6 +13,8 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
+import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
+import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import com.microsoft.azure.toolkit.lib.springcloud.*;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
@@ -22,7 +24,9 @@ import reactor.core.Disposable;
 import reactor.core.scheduler.Schedulers;
 
 import javax.annotation.Nonnull;
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 @Getter
@@ -39,7 +43,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     private static final String GET_APP_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
             "you can check the app status from Azure Portal.";
     private static final String START_APP = "Starting Web App after deploying artifacts...";
-
+    private Disposable disposable;
     public DeploySpringCloudAppTask(SpringCloudAppConfig appConfig) {
         this(appConfig, false, false);
     }
@@ -129,20 +133,33 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         Optional.ofNullable(this.deployment.getLatestInstance()).ifPresent(i -> {
             messager.info(AzureString.format("Opening streaming log of instance({0})...", i.getName()));
             messager.debug("###############STREAMING LOG BEGIN##################");
+            final CountDownLatch latch = new CountDownLatch(1);
+            final Debouncer fireEvents = new TailingDebouncer(() -> {
+                stopStreamingLog();
+                latch.countDown();}, Long.valueOf(Duration.ofSeconds(15).toMillis()).intValue());
+            fireEvents.debounce();
             // refer to https://github.com/Azure/azure-cli-extensions/blob/main/src/spring/azext_spring/app.py#app_tail_log_internal
-            final Disposable disposable = this.deployment.streamLogs(i.getName(), 300, 500, 1024 * 1024, follow)
+            disposable = this.deployment.streamLogs(i.getName(), 300, 500, 1024 * 1024, follow)
                     .doFinally(type -> messager.debug("###############STREAMING LOG END##################"))
                     .subscribeOn(Schedulers.boundedElastic())
-                    .subscribe(messager::debug);
+                    .subscribe((s) -> {
+                        messager.debug(s);
+                        fireEvents.debounce();
+                    });
             try {
-                TimeUnit.MINUTES.sleep(2);
-            } catch (final Exception ignored) {
+                latch.await();
+            } catch (final InterruptedException e) {
+                stopStreamingLog();
             } finally {
-                if (!disposable.isDisposed()) {
-                    disposable.dispose();
-                }
+                latch.countDown();
             }
         });
+    }
+
+    private void stopStreamingLog() {
+        if (!disposable.isDisposed()) {
+            disposable.dispose();
+        }
     }
 
     private void startApp() {
