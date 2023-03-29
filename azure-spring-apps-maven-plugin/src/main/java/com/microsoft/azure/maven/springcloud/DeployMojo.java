@@ -10,12 +10,15 @@ import com.fasterxml.jackson.dataformat.javaprop.JavaPropsSchema;
 import com.microsoft.azure.maven.prompt.DefaultPrompter;
 import com.microsoft.azure.maven.prompt.IPrompter;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import com.microsoft.azure.toolkit.lib.springcloud.Utils;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
@@ -85,7 +88,11 @@ public class DeployMojo extends AbstractMojoBase {
                 .orElseThrow(() -> new AzureToolkitRuntimeException("No artifact is specified to deploy."));
         final String javaVersion = Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getJavaVersion)
                 .map(version -> StringUtils.removeStart(version, "Java_")).orElse(StringUtils.EMPTY);
-        validateArtifactCompileVersion(javaVersion, file, getFailsOnRuntimeValidationError());
+        final SpringCloudCluster springCloudCluster = Azure.az(AzureSpringCloud.class).clusters(appConfig.getSubscriptionId()).get(appConfig.getClusterName(), appConfig.getResourceGroup());
+        final boolean skipCompileVersionValidation = Optional.ofNullable(springCloudCluster).map(SpringCloudCluster::isEnterpriseTier).orElse(false);
+        if (!skipCompileVersionValidation) {
+            validateArtifactCompileVersion(javaVersion, file, getFailsOnRuntimeValidationError());
+        }
         final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig, true, true);
 
         final List<AzureTask<?>> tasks = task.getSubTasks();
