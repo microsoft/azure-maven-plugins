@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,6 +32,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,6 +42,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Utils {
     private static final boolean isWindows = System.getProperty("os.name").contains("Windows");
@@ -49,6 +52,11 @@ public class Utils {
     private static final String EAR = "ear";
     private static final String SUBSCRIPTIONS = "subscriptions";
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyMMddHHmmss");
+    private static final String MAIN_CLASS = "Main-Class";
+    private static final String CLASS = ".class";
+    private static final String SPRING_BOOT_CLASSES = "Spring-Boot-Classes";
+    private static final String START_CLASS = "Start-Class";
+    private static final String DEFAULT_SPRING_BOOT_CLASSES = "BOOT-INF/classes/";
 
     public static String generateRandomResourceName(@Nonnull final String prefix, final int maxLength) {
         final String name = String.format("%s-%s", prefix, Utils.getTimestamp());
@@ -75,26 +83,39 @@ public class Utils {
     public static int getArtifactCompileVersion(@Nonnull final File artifact) throws AzureToolkitRuntimeException {
         try (JarFile jarFile = new JarFile(artifact)) {
             final Manifest manifest = jarFile.getManifest();
-            final String startClass = manifest.getMainAttributes().getValue("Start-Class");
-            final String mainClass = manifest.getMainAttributes().getValue("Main-Class");
-            final String target = StringUtils.isNotBlank(startClass) ? getJarEntryName("BOOT-INF/classes/" + startClass) :
-                    StringUtils.isNotBlank(mainClass) ? getJarEntryName(mainClass) : null;
-            final JarEntry jarEntry = StringUtils.isNotBlank(target) ? jarFile.getJarEntry(target) : jarFile.stream()
-                    .filter(entry -> StringUtils.endsWith(entry.getName(), ".class"))
-                    .findFirst().orElse(null);
-            if (Objects.isNull(jarEntry)) {
-                throw new AzureToolkitRuntimeException("Failed to parse artifact compile version, no class file founded in target artifact");
-            }
-            // Read compile version from class file
-            // Refers https://en.wikipedia.org/wiki/Java_class_file#General_layout
-            final InputStream stream = jarFile.getInputStream(jarEntry);
+            final JarEntry userEntry = getUserEntry(jarFile, manifest);
+            final JarEntry springStartEntry = getSpringStartEntry(jarFile, manifest);
+            return Stream.of(userEntry, springStartEntry).filter(Objects::nonNull).mapToInt(entry -> getJarEntryJavaVersion(jarFile, entry)).max()
+                    .orElseThrow(() -> new AzureToolkitRuntimeException("Failed to parse artifact compile version, no valid class file founded in target artifact"));
+        } catch (IOException e) {
+            throw new AzureToolkitRuntimeException("Failed to parse artifact compile version, no class file founded in target artifact", e);
+        }
+    }
+
+    @Nullable
+    private static JarEntry getSpringStartEntry(@Nonnull final JarFile jarFile, @Nonnull final Manifest manifest) {
+        final String startClass = manifest.getMainAttributes().getValue(START_CLASS);
+        final String springBootClasses = Optional.ofNullable(manifest.getMainAttributes().getValue(SPRING_BOOT_CLASSES)).orElse(DEFAULT_SPRING_BOOT_CLASSES);
+        return jarFile.getJarEntry(getJarEntryName(springBootClasses + startClass));
+    }
+
+    @Nullable
+    private static JarEntry getUserEntry(@Nonnull final JarFile jarFile, @Nonnull final Manifest manifest) {
+        return Optional.ofNullable(manifest.getMainAttributes().getValue(MAIN_CLASS)).map(Utils::getJarEntryName).map(jarFile::getJarEntry)
+                .orElseGet(() -> jarFile.stream().filter(entry -> StringUtils.endsWith(entry.getName(), CLASS)).findFirst().orElse(null));
+    }
+
+    private static int getJarEntryJavaVersion(@Nonnull final JarFile jarFile, @Nonnull final JarEntry jarEntry) {
+        // Read compile version from class file
+        // Refers https://en.wikipedia.org/wiki/Java_class_file#General_layout
+        try (final InputStream stream = jarFile.getInputStream(jarEntry)) {
             final byte[] version = new byte[2];
             stream.skip(6);
             stream.read(version);
             stream.close();
             return new BigInteger(version).intValueExact() - 44;
         } catch (IOException e) {
-            throw new AzureToolkitRuntimeException("Failed to parse artifact compile version, no class file founded in target artifact", e);
+            throw new AzureToolkitRuntimeException(String.format("Failed to parse compile version of entry %s", jarEntry.getName()), e);
         }
     }
 
