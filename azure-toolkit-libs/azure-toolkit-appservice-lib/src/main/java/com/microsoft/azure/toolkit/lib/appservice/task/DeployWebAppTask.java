@@ -18,7 +18,6 @@ import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -26,7 +25,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -46,7 +44,6 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private final boolean openStreamingLogOnFailure;
     private final Boolean waitDeploymentComplete;
     private final IAzureMessager messager;
-    private Disposable subscription;
     private AtomicReference<KuduDeploymentResult> deploymentResultAtomicReference = new AtomicReference<>();
     @Setter
     private long deploymentStatusRefreshInterval = DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL;
@@ -95,8 +92,8 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
                 .collect(Collectors.toList());
         artifactsOneDeploy.forEach(resource -> deploymentResultAtomicReference.set(webApp.pushDeploy(resource.getDeployType(), resource.getFile(),
                 DeployOptions.builder().path(resource.getPath()).restartSite(restartSite).trackDeployment(true).build())));
-        if (!waitUntilDeploymentReady(this.deploymentStatusRefreshInterval, this.deploymentStatusMaxRefreshTimes)) {
-            startStreamingLog();
+        if (!waitUntilDeploymentReady(this.deploymentStatusRefreshInterval, this.deploymentStatusMaxRefreshTimes) && openStreamingLogOnFailure) {
+            new StreamingLogTask(webApp).doExecute();
         }
         OperationContext.action().setTelemetryProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
     }
@@ -161,29 +158,6 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
             AzureMessager.getMessager().info(START_APP);
             target.start();
             AzureMessager.getMessager().info(START_APP_DONE);
-        }
-    }
-
-    private void startStreamingLog() {
-        if (!webApp.isStreamingLogSupported() || !openStreamingLogOnFailure) {
-            return;
-        }
-        this.messager.info(AzureString.format("Opening streaming log of app({0})...", webApp.getName()));
-        this.messager.debug("###############STREAMING LOG BEGIN##################");
-        this.subscription = this.webApp.streamAllLogsAsync()
-                .doFinally((type) -> messager.debug("###############STREAMING LOG END##################"))
-                .subscribe(messager::debug);
-        try {
-            TimeUnit.MINUTES.sleep(1);
-        } catch (final Exception ignored) {
-        } finally {
-            stopStreamingLog();
-        }
-    }
-
-    private synchronized void stopStreamingLog() {
-        if (subscription != null && !subscription.isDisposed()) {
-            subscription.dispose();
         }
     }
 }
