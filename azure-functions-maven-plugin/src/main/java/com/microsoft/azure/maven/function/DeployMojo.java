@@ -21,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask;
+import com.microsoft.azure.toolkit.lib.appservice.task.StreamingLogTask;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -97,8 +98,15 @@ public class DeployMojo extends AbstractFunctionMojo {
         initAzureAppServiceClient();
 
         final ConfigParser parser = getParser();
-        final FunctionAppBase<?, ?, ?> target = createOrUpdateResource(parser.parseConfig());
-        deployArtifact(target);
+        final FunctionAppConfig config = parser.parseConfig();
+        final FunctionApp app = Azure.az(AzureFunctions.class).functionApps(config.subscriptionId()).updateOrCreate(config.appName(), config.resourceGroup());
+        try {
+            final FunctionAppBase<?, ?, ?> target = createOrUpdateResource(app);
+            deployArtifact(target);
+        } catch (final Exception e) {
+            new StreamingLogTask(app).execute();
+            throw new AzureToolkitRuntimeException(e);
+        }
         updateTelemetryProperties();
     }
 
@@ -180,8 +188,8 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected FunctionAppBase<?, ?, ?> createOrUpdateResource(final FunctionAppConfig config) throws Throwable {
-        final FunctionApp app = Azure.az(AzureFunctions.class).functionApps(config.subscriptionId()).updateOrCreate(config.appName(), config.resourceGroup());
+    protected FunctionAppBase<?, ?, ?> createOrUpdateResource(final FunctionApp app) throws Throwable {
+        final FunctionAppConfig config = parser.parseConfig();
         final boolean newFunctionApp = !app.exists();
         final AppServiceConfig defaultConfig = !newFunctionApp ? fromAppService(app, app.getAppServicePlan()) : buildDefaultConfig(config.subscriptionId(),
             config.resourceGroup(), config.appName());
