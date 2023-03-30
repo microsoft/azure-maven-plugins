@@ -76,7 +76,7 @@ public class TemplateUtils {
         try {
             return engine.createTemplate(template).make(bindings).toString();
         } catch (MissingPropertyException e) {
-            log.log(Level.WARNING, String.format(MISSING_PROPERTY, template, bindings));
+            log.log(Level.FINE, String.format(MISSING_PROPERTY, template, bindings));
         } catch (Exception e) {
             log.log(Level.WARNING, String.format(INVALID_TEMPLATE, template, bindings), e);
         }
