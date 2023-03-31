@@ -10,7 +10,9 @@
         <version>1.28.0</version>
     </parent>
 
+    <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-maven-plugin-lib</artifactId>
+    <version>1.28.0</version>
     <name>Azure Maven Plugin Library</name>
     <description>Common library for Azure Maven Plugins</description>
     <url>https://github.com/microsoft/azure-maven-plugins</url>

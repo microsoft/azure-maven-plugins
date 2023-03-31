@@ -9,7 +9,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-cosmos-lib</artifactId>
+    <version>0.31.0</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
