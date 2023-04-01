@@ -5,8 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud.task;
 
-import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
-import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -15,14 +13,27 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
-import com.microsoft.azure.toolkit.lib.springcloud.*;
+import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
+import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
+import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.Disposable;
+import reactor.core.scheduler.Schedulers;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 
 @Getter
 public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
@@ -38,7 +49,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     private static final String GET_APP_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
             "you can check the app status from Azure Portal.";
     private static final String START_APP = "Starting Web App after deploying artifacts...";
-
+    private Disposable disposable;
     public DeploySpringCloudAppTask(SpringCloudAppConfig appConfig) {
         this(appConfig, false, false);
     }
@@ -125,18 +136,37 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
             return;
         }
         final IAzureMessager messager = AzureMessager.getMessager();
-        final List<DeploymentInstance> instanceList = Optional.ofNullable(this.deployment.getRemote())
-                .map(SpringAppDeployment::instances).orElse(Collections.emptyList());
-        final String instanceName = instanceList.stream().max(Comparator.comparing(DeploymentInstance::startTime))
-                .map(DeploymentInstance::name).orElse(null);
-        Optional.ofNullable(instanceName).ifPresent(i -> {
-            messager.info(AzureString.format("Opening streaming log of instance({0})...", instanceName));
+        Optional.ofNullable(this.deployment.getLatestInstance()).ifPresent(i -> {
+            messager.info(AzureString.format("Opening streaming log of instance({0})...", i.getName()));
             messager.debug("###############STREAMING LOG BEGIN##################");
+            final CountDownLatch latch = new CountDownLatch(1);
+            final Debouncer fireEvents = new TailingDebouncer(() -> {
+                stopStreamingLog();
+                latch.countDown();
+            }, Long.valueOf(Duration.ofSeconds(15).toMillis()).intValue());
             // refer to https://github.com/Azure/azure-cli-extensions/blob/main/src/spring/azext_spring/app.py#app_tail_log_internal
-            this.deployment.streamLogs(i, 300, 500, 1024 * 1024, follow)
+            disposable = this.deployment.streamLogs(i.getName(), 300, 500, 1024 * 1024, follow)
                     .doFinally(type -> messager.debug("###############STREAMING LOG END##################"))
-                    .subscribe(messager::debug);
+                    .subscribeOn(Schedulers.boundedElastic())
+                    .subscribe((s) -> {
+                        messager.debug(s);
+                        fireEvents.debounce();
+                    });
+            fireEvents.debounce();
+            try {
+                latch.await();
+            } catch (final InterruptedException e) {
+                stopStreamingLog();
+            } finally {
+                latch.countDown();
+            }
         });
+    }
+
+    private void stopStreamingLog() {
+        if (!disposable.isDisposed()) {
+            disposable.dispose();
+        }
     }
 
     private void startApp() {

@@ -385,6 +385,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             // this will notify azure explorer to show a draft resource first
             log.debug("[{}]:create->addResourceToLocal({})", this.name, resource);
             this.addResourceToLocal(resource.getId(), resource);
+            AzureEventBus.emit("resource.creation_started.resource", resource);
             log.debug("[{}]:create->doModify(draft.createResourceInAzure({}))", this.name, resource);
             try {
                 resource.doModify(draft::createResourceInAzure, AzResource.Status.CREATING);

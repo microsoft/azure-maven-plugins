@@ -14,7 +14,6 @@ import com.azure.resourcemanager.appplatform.models.RemoteDebuggingPayload;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -250,5 +249,11 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
             .map(c -> c.getRemoteDebuggingConfig(this.getResourceGroupName(), cluster.getName(), app.getName(), this.getName()))
             .map(RemoteDebuggingInner::port)
             .orElseThrow(() -> new AzureToolkitRuntimeException("Failed to get remote debugging port."));
+    }
+
+    @Nullable
+    public SpringCloudAppInstance getLatestInstance() {
+        return getInstances().stream().filter(springCloudAppInstance -> Objects.nonNull(springCloudAppInstance.getRemote()))
+                .max(Comparator.comparing(instance -> instance.getRemote().startTime())).orElse(null);
     }
 }

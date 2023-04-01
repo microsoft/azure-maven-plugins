@@ -150,11 +150,6 @@ public class ConfigurationPrompter {
                 return options;
             } else {
                 if (!this.prompt.promoteYesNo(TemplateUtils.evalText("promote.one", variables), defaultSelected, false)) {
-                    // user cancels
-                    final String warningMessage = TemplateUtils.evalText("message.select_none", variables);
-                    if (StringUtils.isNotBlank(warningMessage)) {
-                        log.warn(warningMessage);
-                    }
                     return Collections.emptyList();
                 }
                 return options;
