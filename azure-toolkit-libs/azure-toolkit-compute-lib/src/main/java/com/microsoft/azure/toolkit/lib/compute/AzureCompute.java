@@ -24,7 +24,7 @@ import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VirtualMachineModu
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VmImage;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VmImagePublisher;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VmSize;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,7 +35,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Slf4j
+@CustomLog
 public class AzureCompute extends AbstractAzService<ComputeServiceSubscription, ComputeManager> {
     private static final List<VmImage> linuxImages =
         Arrays.stream(KnownLinuxVirtualMachineImage.values()).map(VmImage::new).collect(Collectors.toList());

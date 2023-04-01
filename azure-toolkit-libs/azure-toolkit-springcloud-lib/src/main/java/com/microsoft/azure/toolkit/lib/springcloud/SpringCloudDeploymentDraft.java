@@ -18,10 +18,10 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
+import lombok.CustomLog;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Delegate;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -44,7 +44,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Slf4j
+@CustomLog
 public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     implements AzResource.Draft<SpringCloudDeployment, SpringAppDeployment>, InvocationHandler {
 
@@ -200,7 +200,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             return Objects.equals(v, "17") ? RuntimeVersion.JAVA_17 :
                 Objects.equals(v, "11") ? RuntimeVersion.JAVA_11 : RuntimeVersion.JAVA_8;
         } else {
-            log.warn("{} is not a valid runtime version, supported values are 'Java 8', 'Java 11' and 'Java 17', using Java 8 in this deployment.", fixedRuntimeVersion);
+            log.warn(String.format("%s is not a valid runtime version, supported values are 'Java 8', 'Java 11' and 'Java 17', using Java 8 in this deployment.", fixedRuntimeVersion));
             return DEFAULT_RUNTIME_VERSION;
         }
     }

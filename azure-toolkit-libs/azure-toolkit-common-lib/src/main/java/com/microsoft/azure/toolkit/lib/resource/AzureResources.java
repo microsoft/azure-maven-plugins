@@ -9,14 +9,14 @@ import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
-@Slf4j
+@CustomLog
 public class AzureResources extends AbstractAzService<ResourcesServiceSubscription, ResourceManager> {
 
     public AzureResources() {

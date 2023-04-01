@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.artifact;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 
@@ -21,7 +21,7 @@ import java.nio.file.Paths;
 /**
  * Utility class to upload directory to FTP server
  */
-@Slf4j
+@CustomLog
 public class FTPUploader {
     public static final String UPLOAD_START = "Uploading files to FTP server: ";
     public static final String UPLOAD_SUCCESS = "Successfully uploaded files to FTP server: ";

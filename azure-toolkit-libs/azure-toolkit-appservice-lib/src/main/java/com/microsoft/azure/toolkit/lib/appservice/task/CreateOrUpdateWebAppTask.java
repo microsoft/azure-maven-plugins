@@ -30,8 +30,8 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
+import lombok.CustomLog;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -42,7 +42,7 @@ import java.util.Objects;
 
 import static com.microsoft.azure.toolkit.lib.appservice.utils.Utils.throwForbidCreateResourceWarning;
 
-@Slf4j
+@CustomLog
 public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private static final String CREATE_NEW_WEB_APP = "createNewWebApp";
     private static final String WEBAPP_NOT_EXIST_FOR_SLOT = "Target Web App does not exist. Please make sure the Web App name is correct.";

@@ -14,16 +14,14 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
+import lombok.CustomLog;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
-@Slf4j
+@CustomLog
 public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceServiceSubscription, WebSiteBase> {
 
     public static final String NAME = "sites";
@@ -67,14 +65,14 @@ public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceSer
         return "Web app";
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public WebApp update(@NotNull AzResource.Draft<WebApp, ?> d) {
+    public WebApp update(@Nonnull AzResource.Draft<WebApp, ?> d) {
         final AzResource.Draft<FunctionApp, WebSiteBase> draft = this.cast(d);
-        log.debug("[{}]:update(draft:{})", this.getName(), draft);
+        log.debug(String.format("[%s]:update(draft:%s)", this.getName(), draft));
         final WebApp resource = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.nonNull(resource) && Objects.nonNull(resource.getRemote())) {
-            log.debug("[{}]:update->doModify(draft.updateResourceInAzure({}))", this.getName(), resource.getRemote());
+            log.debug(String.format("[%s]:update->doModify(draft.updateResourceInAzure(%s))", this.getName(), resource.getRemote()));
             resource.doModify(() -> draft.updateResourceInAzure(Objects.requireNonNull(resource.getFullRemote())), AzResource.Status.UPDATING);
             return resource;
         }

@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.maven.springcloud.TemplateUtils;
 
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
+import lombok.CustomLog;
 import lombok.Lombok;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,17 +37,16 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+@CustomLog
 public class ConfigurationPrompter {
     private final ExpressionEvaluator expressionEvaluator;
     private IPrompter prompt;
     private Map<String, Map<String, Object>> templates;
     private Map<String, Object> commonVariables;
     private SchemaValidator validator;
-    private final Log log;
 
-    public ConfigurationPrompter(ExpressionEvaluator expressionEvaluator, Log log) {
+    public ConfigurationPrompter(ExpressionEvaluator expressionEvaluator) {
         this.expressionEvaluator = expressionEvaluator;
-        this.log = log;
     }
 
     public void initialize() throws IOException, InvalidConfigurationException {

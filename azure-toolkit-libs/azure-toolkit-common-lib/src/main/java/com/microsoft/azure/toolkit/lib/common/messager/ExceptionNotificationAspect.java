@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.messager;
 
-import lombok.extern.java.Log;
+import lombok.CustomLog;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
@@ -16,7 +16,7 @@ import java.lang.reflect.Method;
 import java.util.stream.Stream;
 
 @Aspect
-@Log
+@CustomLog
 public final class ExceptionNotificationAspect {
 
     @Pointcut("execution(@com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification * *..*.*(..))")

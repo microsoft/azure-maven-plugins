@@ -9,7 +9,7 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceUtils;
 import com.google.common.collect.ImmutableMap;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.codehaus.groovy.runtime.MethodClosure;
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Slf4j
+@CustomLog
 public class ExpressionUtils {
     private static final ImmutableMap<String, Boolean> valueMap = ImmutableMap.of("true", true, "false", false);
     private static final SimpleTemplateEngine engine = new SimpleTemplateEngine();

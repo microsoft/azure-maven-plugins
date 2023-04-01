@@ -23,6 +23,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterModule;
+import lombok.CustomLog;
 import lombok.Lombok;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
@@ -53,6 +54,7 @@ import java.util.stream.Collectors;
 /**
  * Generate configuration for spring apps maven plugin or init the configuration from existing Azure Spring app instance.
  */
+@CustomLog
 @Mojo(name = "config", requiresDirectInvocation = true, aggregator = true)
 public class ConfigMojo extends AbstractMojoBase {
     private static final String DEPLOYMENT_TAG = "deployment";
@@ -127,7 +129,7 @@ public class ConfigMojo extends AbstractMojoBase {
                             this.project.getPackaging()));
         }
         if (isProjectConfigured(this.project)) {
-            getLog().warn(String.format("Project (%s) is already configured and won't be affected by this command.", this.project.getName()));
+            log.warn(String.format("Project (%s) is already configured and won't be affected by this command.", this.project.getName()));
             return;
         }
         appSettings = new AppRawConfig();
@@ -138,7 +140,7 @@ public class ConfigMojo extends AbstractMojoBase {
         }
         final ExpressionEvaluator expressionEvaluator = new PluginParameterExpressionEvaluator(session, mojoExecution);
         try {
-            this.wrapper = new ConfigurationPrompter(expressionEvaluator, getLog());
+            this.wrapper = new ConfigurationPrompter(expressionEvaluator);
             this.wrapper.initialize();
             this.wrapper.putCommonVariable("project", this.project);
 
@@ -201,13 +203,13 @@ public class ConfigMojo extends AbstractMojoBase {
             }
             this.wrapper.putCommonVariable("projects", targetProjects);
             if (!configuredProjects.isEmpty()) {
-                getLog().warn(String.format("The following child %s %s already configured: ", English.plural("module", configuredProjects.size()),
+                log.warn(String.format("The following child %s %s already configured: ", English.plural("module", configuredProjects.size()),
                         configuredProjects.size() > 1 ? "are" : "is"));
                 for (final MavenProject proj : configuredProjects) {
                     System.out.println("    " + TextUtils.yellow(proj.getName()));
                 }
             } else if (targetProjects.isEmpty()) {
-                getLog().warn("There are no projects in current folder with package 'jar'.");
+                log.warn("There are no projects in current folder with package 'jar'.");
                 return;
             }
 
@@ -346,7 +348,7 @@ public class ConfigMojo extends AbstractMojoBase {
                 this.appSettings.setClusterName(cluster.getName());
                 return;
             }
-            getLog().warn(String.format("Cannot find Azure Spring Apps with name: %s in resource group: %s.",
+            log.warn(String.format("Cannot find Azure Spring Apps with name: %s in resource group: %s.",
                 TextUtils.yellow(this.clusterName), TextUtils.yellow(this.resourceGroup)));
         }
         final List<SpringCloudCluster> clusters = az.list();
@@ -355,7 +357,7 @@ public class ConfigMojo extends AbstractMojoBase {
         if (targetAppCluster != null) {
             this.appSettings.setResourceGroup(targetAppCluster.getResourceGroupName());
             this.appSettings.setClusterName(targetAppCluster.getName());
-            getLog().info(String.format("Using Azure Spring Apps: %s", TextUtils.blue(targetAppCluster.name())));
+            log.info(String.format("Using Azure Spring Apps: %s", TextUtils.blue(targetAppCluster.name())));
         }
     }
 

@@ -24,9 +24,9 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
+import lombok.CustomLog;
 import lombok.Data;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 import static com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDraft.CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS;
 import static com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDraft.UNSUPPORTED_OPERATING_SYSTEM;
 
-@Slf4j
+@CustomLog
 public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
     implements AzResource.Draft<FunctionAppDeploymentSlot, WebSiteBase> {
     private static final String CREATE_NEW_DEPLOYMENT_SLOT = "createNewDeploymentSlot";

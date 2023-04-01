@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.cache;
 
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
-import lombok.extern.java.Log;
+import lombok.CustomLog;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
@@ -21,30 +21,30 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 
-@Log
+@CustomLog
 public class Preloader {
 
     private static final String INVALID_PRELOAD_METHOD = "@Preload annotated method(%s.%s) should have (no args or only varargs) " +
             "and must be (static or in a singleton class)";
 
     public static Collection<Method> load() {
-        log.fine("Start Scanning for @Preload");
+        log.debug("Start Scanning for @Preload");
         final Set<Method> methods = getPreloadingMethods();
-        log.fine(String.format("Found %d @Preload annotated methods.", methods.size()));
-        log.fine("End Scanning for @Preload");
-        log.fine("Start Preloading");
+        log.debug(String.format("Found %d @Preload annotated methods.", methods.size()));
+        log.debug("End Scanning for @Preload");
+        log.debug("Start Preloading");
         methods.forEach((m) -> {
             Object instance = null;
-            // TODO: maybe support predefined variables, e.g. selected subscriptions
+            // TODO: maybe support prededebugd variables, e.g. selected subscriptions
             if ((m.getParameterCount() == 0 || m.isVarArgs()) && (Modifier.isStatic(m.getModifiers()) || Objects.nonNull(instance = getSingleton(m)))) {
-                log.fine(String.format("preloading [%s]", m.getName()));
+                log.debug(String.format("preloading [%s]", m.getName()));
                 invoke(m, instance);
-                log.fine(String.format("preloaded [%s]", m.getName()));
+                log.debug(String.format("preloaded [%s]", m.getName()));
             } else {
-                log.warning(String.format(INVALID_PRELOAD_METHOD, m.getDeclaringClass().getSimpleName(), m.getName()));
+                log.warn(String.format(INVALID_PRELOAD_METHOD, m.getDeclaringClass().getSimpleName(), m.getName()));
             }
         });
-        log.fine("End Preloading");
+        log.debug("End Preloading");
         return methods;
     }
 

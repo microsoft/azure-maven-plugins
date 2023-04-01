@@ -15,7 +15,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.database.entity.IFirewallRule;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -25,7 +25,7 @@ import java.util.Iterator;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-@Slf4j
+@CustomLog
 public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<MicrosoftSqlFirewallRule, MicrosoftSqlServer, SqlFirewallRule> {
     public static final String NAME = "firewallRules";
 

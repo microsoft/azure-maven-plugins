@@ -22,10 +22,10 @@ import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import com.microsoft.azure.toolkit.lib.resource.GenericResourceModule;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
+import lombok.CustomLog;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpStatus;
@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Slf4j
+@CustomLog
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, P extends AzResource, R> implements AzResource {
@@ -115,15 +115,15 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @Override
     public void refresh() {
-        log.debug("[{}:{}]:refresh()", this.module.getName(), this.getName());
+        log.debug(String.format("[%s:%s]:refresh()", this.module.getName(), this.getName()));
         this.invalidateCache();
         AzureEventBus.emit("resource.refreshed.resource", this);
     }
 
     public void invalidateCache() {
-        log.debug("[{}:{}]:invalidateCache->subModules.invalidateCache()", this.module.getName(), this.getName());
+        log.debug(String.format("[%s:%s]:invalidateCache->subModules.invalidateCache()", this.module.getName(), this.getName()));
         this.getSubModules().forEach(AbstractAzResourceModule::invalidateCache);
-        log.debug("[{}]:invalidateCache()", this.name);
+        log.debug(String.format("[%s]:invalidateCache()", this.name));
         if (this.lock.tryLock()) {
             try {
                 // this.remoteRef.set(null); will make a newly created resource behave as a "draft for creating"(since isDraftForCreating() will return true)
@@ -136,10 +136,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @Nullable
     public final R getRemote(boolean... sync) {
-        log.debug("[{}:{}]:getRemote()", this.module.getName(), this.getName());
+        log.debug(String.format("[%s:%s]:getRemote()", this.module.getName(), this.getName()));
         Azure.az(IAzureAccount.class).account();
         if (this.isDraftForCreating()) {
-            log.debug("[{}:{}]:getRemote->this.isDraftForCreating()=true", this.module.getName(), this.getName());
+            log.debug(String.format("[%s:%s]:getRemote->this.isDraftForCreating()=true", this.module.getName(), this.getName()));
             return null;
         }
         if (sync.length > 0 && sync[0]) {
@@ -163,7 +163,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             try {
                 this.lock.lock();
                 if (this.syncTimeRef.get() != 0 && System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) { // -1 or too old.
-                    log.debug("[{}:{}]:getRemote->reloadRemote()", this.module.getName(), this.getName());
+                    log.debug(String.format("[%s:%s]:getRemote->reloadRemote()", this.module.getName(), this.getName()));
                     this.reloadRemote();
                 }
             } finally {
@@ -175,12 +175,12 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @AzureOperation(name = "azure/resource.reload_resource.resource|type", params = {"this.getName()", "this.getResourceTypeName()"})
     private void reloadRemote() {
-        log.debug("[{}:{}]:reloadRemote()", this.module.getName(), this.getName());
+        log.debug(String.format("[%s:%s]:reloadRemote()", this.module.getName(), this.getName()));
         this.doModify(() -> {
-            log.debug("[{}:{}]:reloadRemote->this.refreshRemote()", this.module.getName(), this.getName());
+            log.debug(String.format("[%s:%s]:reloadRemote->this.refreshRemote()", this.module.getName(), this.getName()));
             final R oldRemote = this.remoteRef.get();
             final R refreshed = Objects.nonNull(oldRemote) ? this.refreshRemote(oldRemote) : null;
-            log.debug("[{}:{}]:reloadRemote->this.loadRemote()", this.module.getName(), this.getName());
+            log.debug(String.format("[%s:%s]:reloadRemote->this.loadRemote()", this.module.getName(), this.getName()));
             final R remote = Objects.nonNull(refreshed) ? refreshed : this.loadRemote();
             if (Objects.isNull(remote)) {
                 this.deleteFromCache();
@@ -191,24 +191,24 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     protected void setRemote(@Nullable R newRemote) {
         final R oldRemote = this.remoteRef.get();
-        log.debug("[{}:{}]:setRemote({})", this.module.getName(), this.getName(), newRemote);
+        log.debug(String.format("[%s:%s]:setRemote(%s)", this.module.getName(), this.getName(), newRemote));
         if (oldRemote == null || newRemote == null) {
-            log.debug("[{}:{}]:setRemote->subModules.invalidateCache()", this.module.getName(), this.getName());
+            log.debug(String.format("[%s:%s]:setRemote->subModules.invalidateCache()", this.module.getName(), this.getName()));
             this.getSubModules().forEach(AbstractAzResourceModule::invalidateCache);
         }
         if (this.lock.tryLock()) {
             try {
-                log.debug("[{}:{}]:setRemote->this.remoteRef.set({})", this.module.getName(), this.getName(), newRemote);
+                log.debug(String.format("[%s:%s]:setRemote->this.remoteRef.set(%s)", this.module.getName(), this.getName(), newRemote));
                 this.remoteRef.set(newRemote);
                 this.syncTimeRef.set(System.currentTimeMillis());
                 if (Objects.nonNull(newRemote)) {
-                    log.debug("[{}:{}]:setRemote->setStatus(LOADING)", this.module.getName(), this.getName());
+                    log.debug(String.format("[%s:%s]:setRemote->setStatus(LOADING)", this.module.getName(), this.getName()));
                     this.setStatus(Status.LOADING);
-                    log.debug("[{}:{}]:setRemote->this.loadStatus", this.module.getName(), this.getName());
+                    log.debug(String.format("[%s:%s]:setRemote->this.loadStatus", this.module.getName(), this.getName()));
                     this.updateAdditionalProperties(newRemote, oldRemote);
                     Optional.of(newRemote).map(this::loadStatus).ifPresent(this::setStatus);
                 } else {
-                    log.debug("[{}:{}]:setRemote->this.setStatus(DISCONNECTED)", this.module.getName(), this.getName());
+                    log.debug(String.format("[%s:%s]:setRemote->this.setStatus(DISCONNECTED)", this.module.getName(), this.getName()));
                     this.updateAdditionalProperties(null, oldRemote);
                     this.setStatus(Status.DELETED);
                     this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(r -> r.setRemote(null));
@@ -225,11 +225,11 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @Nullable
     protected final R loadRemote() {
-        log.debug("[{}:{}]:loadRemote()", this.module.getName(), this.getName());
+        log.debug(String.format("[%s:%s]:loadRemote()", this.module.getName(), this.getName()));
         try {
             return this.getModule().loadResourceFromAzure(this.getName(), this.getResourceGroupName());
         } catch (Exception e) {
-            log.debug("[{}:{}]:loadRemote()=EXCEPTION", this.module.getName(), this.getName(), e);
+            log.debug(String.format("[%s:%s]:loadRemote()=EXCEPTION", this.module.getName(), this.getName()), e);
             final Throwable cause = e instanceof HttpResponseException ? e : ExceptionUtils.getRootCause(e);
             if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND == ((HttpResponseException) cause).getResponse().getStatusCode()) {
                 return null;
@@ -246,7 +246,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         try {
             return this.refreshRemoteFromAzure(remote);
         } catch (Exception e) {
-            log.debug("[{}:{}]:refreshRemoteFromAzure()=EXCEPTION", this.module.getName(), this.getName(), e);
+            log.debug(String.format("[%s:%s]:refreshRemoteFromAzure()=EXCEPTION", this.module.getName(), this.getName()), e);
             final Throwable cause = e instanceof HttpResponseException ? e : ExceptionUtils.getRootCause(e);
             if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND == ((HttpResponseException) cause).getResponse().getStatusCode()) {
                 return null;
@@ -260,27 +260,27 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
      */
     @Nullable
     protected R refreshRemoteFromAzure(@Nonnull R remote) {
-        log.debug("[{}:{}]:refreshRemoteFromAzure()", this.module.getName(), this.getName());
+        log.debug(String.format("[%s:%s]:refreshRemoteFromAzure()", this.module.getName(), this.getName()));
         if (remote instanceof Refreshable) {
-            log.debug("[{}:{}]:refreshRemoteFromAzure->remote.refresh()", this.module.getName(), this.getName());
+            log.debug(String.format("[%s:%s]:refreshRemoteFromAzure->remote.refresh()", this.module.getName(), this.getName()));
             // noinspection unchecked
             return ((Refreshable<R>) remote).refresh();
         } else {
-            log.debug("[{}:{}]:refreshRemoteFromAzure->reloadRemote()", this.module.getName(), this.getName());
+            log.debug(String.format("[%s:%s]:refreshRemoteFromAzure->reloadRemote()", this.module.getName(), this.getName()));
             return this.loadRemote();
         }
     }
 
     @Nonnull
     public AzResource.Draft<T, R> update() {
-        log.debug("[{}:{}]:update()", this.module.getName(), this.getName());
-        log.debug("[{}:{}]:update->module.update(this)", this.module.getName(), this.getName());
+        log.debug(String.format("[%s:%s]:update()", this.module.getName(), this.getName()));
+        log.debug(String.format("[%s:%s]:update->module.update(this)", this.module.getName(), this.getName()));
         return this.getModule().update(this.<T>cast(this));
     }
 
     @Override
     public void delete() {
-        log.debug("[{}:{}]:delete()", this.module.getName(), this.getName());
+        log.debug(String.format("[%s:%s]:delete()", this.module.getName(), this.getName()));
         this.doModify(() -> {
             if (this.exists()) {
                 this.deleteFromAzure();
@@ -292,13 +292,13 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     private void deleteFromAzure() {
         // TODO: set status should also cover its child
-        log.debug("[{}:{}]:delete->module.deleteResourceFromAzure({})", this.module.getName(), this.getName(), this.getId());
+        log.debug(String.format("[%s:%s]:delete->module.deleteResourceFromAzure(%s)", this.module.getName(), this.getName(), this.getId()));
         try {
             this.getModule().deleteResourceFromAzure(this.getId());
         } catch (Exception e) {
             final Throwable cause = e instanceof HttpResponseException ? e : ExceptionUtils.getRootCause(e);
             if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND == ((HttpResponseException) cause).getResponse().getStatusCode()) {
-                log.debug("[{}]:delete()->deleteResourceFromAzure()=SC_NOT_FOUND", this.name, e);
+                log.debug(String.format("[%s]:delete()->deleteResourceFromAzure()=SC_NOT_FOUND", this.name), e);
             } else {
                 this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(r -> r.setStatus(Status.UNKNOWN));
                 throw e;
@@ -307,9 +307,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     public void deleteFromCache() {
-        log.debug("[{}:{}]:delete->this.setStatus(DELETED)", this.module.getName(), this.getName());
+        log.debug(String.format("[%s:%s]:delete->this.setStatus(DELETED)", this.module.getName(), this.getName()));
         this.setStatus(Status.DELETED);
-        log.debug("[{}:{}]:delete->module.deleteResourceFromLocal({})", this.module.getName(), this.getName(), this.getName());
+        log.debug(String.format("[%s:%s]:delete->module.deleteResourceFromLocal(%s)", this.module.getName(), this.getName(), this.getName()));
         this.getModule().deleteResourceFromLocal(this.getId());
         final ResourceId id = ResourceId.fromString(this.getId());
         final ResourceGroup resourceGroup = this.getResourceGroup();
@@ -326,7 +326,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     public void setStatus(@Nonnull String status) {
         synchronized (this.statusRef) {
-            log.debug("[{}:{}]:setStatus({})", this.module.getName(), this.getName(), status);
+            log.debug(String.format("[%s:%s]:setStatus(%s)", this.module.getName(), this.getName(), status));
             // TODO: state engine to manage status, e.g. DRAFT -> CREATING
             final String oldStatus = this.statusRef.get();
             if (!Objects.equals(oldStatus, status)) {
@@ -342,7 +342,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nonnull
     public String getStatus(boolean immediately) {
         if (this.syncTimeRef.get() == -1) {
-            log.debug("[{}:{}]:getStatus->getStatusSync()", this.module.getName(), this.getName());
+            log.debug(String.format("[%s:%s]:getStatus->getStatusSync()", this.module.getName(), this.getName()));
             if (immediately) {
                 AzureTaskManager.getInstance().runOnPooledThread(this::getRemote);
             } else {
@@ -357,11 +357,11 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             try {
                 this.syncTimeRef.set(0);
                 this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
-                log.debug("[{}:{}]:doModify->body.run()", this.module.getName(), this.getName());
+                log.debug(String.format("[%s:%s]:doModify->body.run()", this.module.getName(), this.getName()));
                 body.run();
-                log.debug("[{}:{}]:doModify->refreshRemote()", this.module.getName(), this.getName());
+                log.debug(String.format("[%s:%s]:doModify->refreshRemote()", this.module.getName(), this.getName()));
                 final R refreshed = Optional.ofNullable(this.remoteRef.get()).map(this::refreshRemote).orElse(null);
-                log.debug("[{}:{}]:doModify->setRemote({})", this.module.getName(), this.getName(), this.remoteRef.get());
+                log.debug(String.format("[%s:%s]:doModify->setRemote(%s)", this.module.getName(), this.getName(), this.remoteRef.get()));
                 this.setRemote(refreshed);
             } catch (Throwable t) {
                 final Throwable cause = t instanceof HttpResponseException ? t : ExceptionUtils.getRootCause(t);
@@ -389,9 +389,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         try {
             this.syncTimeRef.set(0);
             this.setStatus(Optional.ofNullable(status).orElse(Status.PENDING));
-            log.debug("[{}:{}]:doModify->body.call()", this.module.getName(), this.getName());
+            log.debug(String.format("[%s:%s]:doModify->body.call()", this.module.getName(), this.getName()));
             final R remote = body.call();
-            log.debug("[{}:{}]:doModify->setRemote({})", this.module.getName(), this.getName(), remote);
+            log.debug(String.format("[%s:%s]:doModify->setRemote(%s)", this.module.getName(), this.getName(), remote));
             this.setRemote(remote);
             return remote;
         } catch (Throwable t) {
@@ -410,7 +410,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     private void fireStatusChangedEvent() {
-        log.debug("[{}]:fireStatusChangedEvent()", this.getName());
+        log.debug(String.format("[%s]:fireStatusChangedEvent()", this.getName()));
         AzureEventBus.emit("resource.status_changed.resource", this);
     }
 

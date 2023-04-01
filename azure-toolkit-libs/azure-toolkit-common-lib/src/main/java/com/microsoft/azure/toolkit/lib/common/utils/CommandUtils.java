@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.common.utils;
 
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
@@ -26,7 +26,7 @@ import java.util.Map;
  * copied from: https://github.com/microsoft/azure-tools-for-java/blob/
  * 0efe5e430305369e17dadc214c256cbb4a906372/Utils/azuretools-core/src/com/microsoft/azuretools/utils/CommandUtils.java
  */
-@Slf4j
+@CustomLog
 public class CommandUtils {
     private static final String WINDOWS_STARTER = "cmd.exe";
     private static final String LINUX_MAC_STARTER = "/bin/sh";
@@ -84,7 +84,7 @@ public class CommandUtils {
         final String workingDirectory = StringUtils.firstNonBlank(cwd, getSafeWorkingDirectory());
         if (StringUtils.isEmpty(workingDirectory)) {
             final IllegalStateException exception = new IllegalStateException("A Safe Working directory could not be found to execute command from.");
-            log.error(CommandUtils.class.getName(), "exec", exception);
+            log.error(exception);
             throw exception;
         }
         final String commandWithPath = isWindows() || isWSL() ? commandWithArgs : String.format("export PATH=$PATH:/usr/local/bin ; %s", commandWithArgs);

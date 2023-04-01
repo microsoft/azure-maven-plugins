@@ -45,6 +45,7 @@ import com.microsoft.azure.toolkit.maven.common.action.MavenActionManager;
 import com.microsoft.azure.toolkit.maven.common.logger.MavenLogger;
 import com.microsoft.azure.toolkit.maven.common.messager.MavenAzureMessager;
 import com.microsoft.azure.toolkit.maven.common.task.MavenAzureTaskManager;
+import lombok.CustomLog;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
@@ -93,6 +94,7 @@ import java.util.stream.Stream;
 /**
  * Base abstract class for all Azure Mojos.
  */
+@CustomLog
 public abstract class AbstractAzureMojo extends AbstractMojo {
     public static final String PLUGIN_NAME_KEY = "pluginName";
     public static final String PLUGIN_VERSION_KEY = "pluginVersion";
@@ -104,25 +106,25 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     private static final String TELEMETRY_NOT_ALLOWED = "TelemetryNotAllowed";
     private static final String JVM_UP_TIME = "jvmUpTime";
     private static final String CONFIGURATION_PATH = Paths.get(System.getProperty("user.home"),
-            ".azure", "mavenplugins.properties").toString();
+        ".azure", "mavenplugins.properties").toString();
     private static final String FIRST_RUN_KEY = "first.run";
     private static final String PRIVACY_STATEMENT = "\nData/Telemetry\n" +
-            "---------\n" +
-            "This project collects usage data and sends it to Microsoft to help improve our products and services.\n" +
-            "Read Microsoft's privacy statement to learn more: https://privacy.microsoft.com/en-us/privacystatement." +
-            "\n\nYou can change your telemetry configuration through 'allowTelemetry' property.\n" +
-            "For more information, please go to https://aka.ms/azure-maven-config.\n";
+        "---------\n" +
+        "This project collects usage data and sends it to Microsoft to help improve our products and services.\n" +
+        "Read Microsoft's privacy statement to learn more: https://privacy.microsoft.com/en-us/privacystatement." +
+        "\n\nYou can change your telemetry configuration through 'allowTelemetry' property.\n" +
+        "For more information, please go to https://aka.ms/azure-maven-config.\n";
     protected static final String SUBSCRIPTION_TEMPLATE = "Subscription: %s(%s)";
     protected static final String USING_AZURE_ENVIRONMENT = "Using Azure environment: %s.";
     protected static final String SUBSCRIPTION_NOT_FOUND = "Subscription %s was not found in current account.";
     protected static final String COMPILE_LEVEL_NOT_SUPPORTED = "Your project's compile level (%s) is not compatible with any of the supported runtimes of Azure. " +
-            "The supported runtimes include %s. Please reset the compile level to a compatible version in case any compatibility issues.";
+        "The supported runtimes include %s. Please reset the compile level to a compatible version in case any compatibility issues.";
     protected static final String FAILED_TO_GET_VALID_RUNTIMES = "Failed to get valid runtime based on project's compile level, fall back to all values";
 
     private static final String AZURE_ENVIRONMENT = "azureEnvironment";
     private static final String PROXY = "proxy";
     private static final String INVALID_ARTIFACT = "The artifact's compile level (%s) is not compatible with runtime '%s'. " +
-            "Please rebuild the artifact with a lower level or switch to a higher Java runtime.";
+        "Please rebuild the artifact with a lower level or switch to a higher Java runtime.";
     private static final String SKIP_VALIDATION_MESSAGE = "To skip this validation, set 'failsOnRuntimeValidationError' to 'false' in the command line or pom.xml";
 
     //region Properties
@@ -161,6 +163,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
 
     /**
      * Azure subscription id. Required only if there are more than one subscription in your account
+     *
      * @since 0.1.0
      */
     @JsonProperty
@@ -170,6 +173,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
 
     /**
      * Boolean flag to turn on/off telemetry within current Maven plugin.
+     *
      * @since 0.1.0
      */
     @Getter
@@ -180,6 +184,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     /**
      * Boolean flag to control whether throwing exception from current Maven plugin when meeting any error.<p>
      * If set to true, the exception from current Maven plugin will fail the current Maven run.
+     *
      * @since 0.1.0
      */
     @Getter
@@ -189,6 +194,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
 
     /**
      * Deprecated, please set the authentication type in `auth`
+     *
      * @since 1.2.13
      */
     @JsonProperty
@@ -324,7 +330,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             }
 
             if (isSkipMojo()) {
-                Log.info("Skip execution.");
+                log.info("Skip execution.");
                 onSkipped();
             } else {
                 beforeMojoExecution();
@@ -414,7 +420,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             throw new AzureExecutionException("Cannot find any subscriptions in current account.");
         }
         if (subscriptions.length == 1) {
-            Log.info(String.format("There is only one subscription '%s' in your account, will use it automatically.",
+            log.info(String.format("There is only one subscription '%s' in your account, will use it automatically.",
                 TextUtils.blue(SubscriptionOption.getSubscriptionName(subscriptions[0]))));
             return subscriptions[0].getId();
         }
@@ -440,7 +446,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         checkSubscription(subscriptions, targetSubscriptionId);
         account.setSelectedSubscriptions(Collections.singletonList(targetSubscriptionId));
         final Subscription subscription = account.getSubscription(targetSubscriptionId);
-        Log.info(String.format(SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.getName()), TextUtils.cyan(subscription.getId())));
+        log.info(String.format(SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.getName()), TextUtils.cyan(subscription.getId())));
         this.subscriptionId = targetSubscriptionId;
     }
 
@@ -607,7 +613,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             }
         } catch (Exception e) {
             // catch exceptions here to avoid blocking mojo execution.
-            Log.debug(e.getMessage());
+            log.debug(e.getMessage());
         }
         return true;
     }
@@ -618,25 +624,25 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             prop.store(output, "Azure Maven Plugin configurations");
         } catch (Exception e) {
             // catch exceptions here to avoid blocking mojo execution.
-            Log.debug(e.getMessage());
+            log.debug(e.getMessage());
         }
     }
 
     protected static class DefaultUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
         @Override
         public void uncaughtException(Thread t, Throwable e) {
-            Log.debug("uncaughtException: " + e);
+            log.debug("uncaughtException: " + e);
         }
     }
 
     //endregion
 
-    //region Logging
+    //region logging
 
     public void infoWithMultipleLines(final String messages) {
         final String[] messageArray = messages.split("\\n");
         for (final String line : messageArray) {
-            Log.info(line);
+            log.info(line);
         }
     }
 
@@ -666,7 +672,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         // order compile, target
         // refers https://github.com/apache/maven-compiler-plugin/blob/maven-compiler-plugin-3.11.0/src/main/java/org/apache/maven/plugin/compiler/AbstractCompilerMojo.java#L1286-L1291
         final String rawLevel = Stream.of("release", "target").map(this::getCompilerPluginConfigurationByName)
-                .filter(StringUtils::isNotEmpty).findFirst().orElse(null);
+            .filter(StringUtils::isNotEmpty).findFirst().orElse(null);
         // refers https://github.com/apache/maven-compiler-plugin/blob/maven-compiler-plugin-3.11.0/src/main/java/org/apache/maven/plugin/compiler/AbstractCompilerMojo.java#L1293-L1295
         return StringUtils.startsWithIgnoreCase(rawLevel, "1.") ? StringUtils.substring(rawLevel, 2) : rawLevel;
     }
@@ -677,9 +683,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             final String compileLevel = getCompileLevel();
             final Integer level = Integer.valueOf(compileLevel);
             final List<T> result = runtimes.stream()
-                    .filter(t -> levelGetter.apply(t) >= level)
-                    .sorted(Comparator.comparing(levelGetter))
-                    .collect(Collectors.toList());
+                .filter(t -> levelGetter.apply(t) >= level)
+                .sorted(Comparator.comparing(levelGetter))
+                .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(result)) {
                 final String supportedRuntimes = runtimes.stream().map(Object::toString).collect(Collectors.joining(", "));
                 AzureMessager.getMessager().warning(AzureString.format(COMPILE_LEVEL_NOT_SUPPORTED, compileLevel, supportedRuntimes));
@@ -688,7 +694,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
                 return result;
             }
         } catch (RuntimeException e) {
-            getLog().debug(FAILED_TO_GET_VALID_RUNTIMES, e);
+            log.debug(FAILED_TO_GET_VALID_RUNTIMES, e);
             return runtimes;
         }
     }
@@ -696,23 +702,23 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     @Nullable
     private String getCompilerPluginConfigurationByName(final String propertyName) {
         return Optional.ofNullable(project)
-                .map(p -> p.getPlugin(Plugin.constructKey("org.apache.maven.plugins", "maven-compiler-plugin")))
-                .map(Plugin::getConfiguration)
-                .filter(object -> object instanceof Xpp3Dom)
-                .map(Xpp3Dom.class::cast)
-                .map(configuration -> configuration.getChild(propertyName))
-                .map(Xpp3Dom::getValue)
-                .filter(StringUtils::isNotBlank)
-                .orElseGet(() -> getMavenPropertyByName("maven.compiler." + propertyName));
+            .map(p -> p.getPlugin(Plugin.constructKey("org.apache.maven.plugins", "maven-compiler-plugin")))
+            .map(Plugin::getConfiguration)
+            .filter(object -> object instanceof Xpp3Dom)
+            .map(Xpp3Dom.class::cast)
+            .map(configuration -> configuration.getChild(propertyName))
+            .map(Xpp3Dom::getValue)
+            .filter(StringUtils::isNotBlank)
+            .orElseGet(() -> getMavenPropertyByName("maven.compiler." + propertyName));
     }
 
     @Nullable
     private String getMavenPropertyByName(@Nonnull final String name) {
         return Optional.ofNullable(project)
-                .map(MavenProject::getProperties)
-                .map(properties -> properties.getProperty(name))
-                .filter(StringUtils::isNotBlank)
-                .orElse(null);
+            .map(MavenProject::getProperties)
+            .map(properties -> properties.getProperty(name))
+            .filter(StringUtils::isNotBlank)
+            .orElse(null);
     }
 
     protected interface RunnableWithException {
@@ -750,6 +756,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
 
     protected void updateTelemetryProperties() {
         Optional.ofNullable(OperationContext.action().getTelemetryProperties()).ifPresent(properties ->
-                properties.forEach((key, value) -> telemetryProxy.addDefaultProperty(key, value)));
+            properties.forEach((key, value) -> telemetryProxy.addDefaultProperty(key, value)));
     }
 }

@@ -17,12 +17,12 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.network.networksecuritygroup.NetworkSecurityGroupModule;
 import com.microsoft.azure.toolkit.lib.network.publicipaddress.PublicIpAddressModule;
 import com.microsoft.azure.toolkit.lib.network.virtualnetwork.NetworkModule;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
-@Slf4j
+@CustomLog
 public class AzureNetwork extends AbstractAzService<NetworkServiceSubscription, NetworkManager> {
     public AzureNetwork() {
         super("Microsoft.Network");

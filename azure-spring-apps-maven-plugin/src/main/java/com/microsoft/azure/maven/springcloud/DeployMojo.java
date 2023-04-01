@@ -24,8 +24,8 @@ import com.microsoft.azure.toolkit.lib.springcloud.Utils;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.task.DeploySpringCloudAppTask;
+import lombok.CustomLog;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -47,7 +47,7 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKN
  * Deploy your project to target Azure Spring app. If target app doesn't exist, it will be created.
  */
 @Mojo(name = "deploy")
-@Slf4j
+@CustomLog
 public class DeployMojo extends AbstractMojoBase {
 
     private static final int GET_URL_TIMEOUT = 60;
@@ -55,9 +55,9 @@ public class DeployMojo extends AbstractMojoBase {
     private static final String PROJECT_SKIP = "Packaging type is pom, taking no actions.";
     private static final String PROJECT_NO_CONFIGURATION = "Configuration does not exist, taking no actions.";
     private static final String PROJECT_NOT_SUPPORT = "`azure-spring-apps:deploy` does not support maven project with " +
-            "packaging %s, only jar is supported";
+        "packaging %s, only jar is supported";
     private static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
-            "you can check the app status from Azure Portal.";
+        "you can check the app status from Azure Portal.";
     private static final String CONFIRM_PROMPT_START = "`azure-spring-apps:deploy` will perform the following tasks";
     private static final String CONFIRM_PROMPT_CONFIRM = "Perform the above tasks? (Y/n):";
 
@@ -85,7 +85,7 @@ public class DeployMojo extends AbstractMojoBase {
         final SpringCloudAppConfig appConfig = this.getConfiguration();
         final SpringCloudDeploymentConfig deploymentConfig = appConfig.getDeployment();
         final File file = Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getArtifact).map(IArtifact::getFile)
-                .orElseThrow(() -> new AzureToolkitRuntimeException("No artifact is specified to deploy."));
+            .orElseThrow(() -> new AzureToolkitRuntimeException("No artifact is specified to deploy."));
         final String javaVersion = Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getJavaVersion)
                 .map(version -> StringUtils.removeStart(version, "Java_")).orElse(StringUtils.EMPTY);
         final SpringCloudCluster springCloudCluster = Azure.az(AzureSpringCloud.class).clusters(appConfig.getSubscriptionId()).get(appConfig.getClusterName(), appConfig.getResourceGroup());
@@ -137,7 +137,7 @@ public class DeployMojo extends AbstractMojoBase {
         if (!app.isPublicEndpointEnabled()) {
             return;
         }
-        log.info("Getting public url of app({})...", TextUtils.cyan(app.name()));
+        log.info(String.format("Getting public url of app(%s)...", TextUtils.cyan(app.getName())));
         String publicUrl = app.getApplicationUrl();
         if (!BooleanUtils.isTrue(noWait) && StringUtils.isEmpty(publicUrl)) {
             publicUrl = Utils.pollUntil(() -> {
@@ -148,15 +148,15 @@ public class DeployMojo extends AbstractMojoBase {
         if (StringUtils.isEmpty(publicUrl)) {
             log.warn("Failed to get application url");
         } else {
-            log.info("Application url: {}", TextUtils.cyan(publicUrl));
+            log.info(String.format("Application url: %s", TextUtils.cyan(publicUrl)));
         }
     }
 
     protected void printStatus(SpringCloudDeployment deployment) {
-        log.info("Deployment Status: {}", color(deployment.getStatus()));
+        log.info(String.format("Deployment Status: %s", color(deployment.getStatus())));
         deployment.getInstances().forEach(instance ->
-                log.info(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s",
-                        instance.getName(), color(instance.getStatus()), instance.getRemote().reason(), instance.getDiscoveryStatus())));
+            log.info(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s",
+                instance.getName(), color(instance.getStatus()), instance.getRemote().reason(), instance.getDiscoveryStatus())));
     }
 
     private static String color(String status) {

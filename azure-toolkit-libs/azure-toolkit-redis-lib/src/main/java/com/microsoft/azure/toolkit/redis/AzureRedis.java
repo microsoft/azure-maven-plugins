@@ -14,12 +14,12 @@ import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
-@Slf4j
+@CustomLog
 public class AzureRedis extends AbstractAzService<RedisServiceSubscription, RedisManager> {
     public AzureRedis() {
         super("Microsoft.Cache");

@@ -7,9 +7,9 @@ package com.microsoft.azure.toolkit.lib.common.operation;
 
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import lombok.CustomLog;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -18,7 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Slf4j
+@CustomLog
 public class OperationContext {
     private static final OperationContext NULL = new OperationContext(null);
     @Nullable
@@ -91,7 +91,7 @@ public class OperationContext {
     @Nonnull
     private static OperationContext getNull(@Nullable Operation operation) {
         final String op = Optional.ofNullable(operation).map(Operation::getId).orElse(null);
-        log.warn("default to NULL OperationContext, because operation or its action operation is null:{}", op);
+        log.warn(String.format("default to NULL OperationContext, because operation or its action operation is null:%s", op));
         return NULL;
     }
 }

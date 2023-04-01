@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.legacy.function.handlers;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.function.utils.CommandUtils;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -20,7 +20,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-@Slf4j
+@CustomLog
 public class CommandHandlerImpl implements CommandHandler {
     @Override
     public void runCommandWithReturnCodeCheck(final String command,
