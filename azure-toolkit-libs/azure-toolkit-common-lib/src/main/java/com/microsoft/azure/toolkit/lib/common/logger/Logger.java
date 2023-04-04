@@ -11,11 +11,17 @@ import javax.annotation.Nullable;
 public interface Logger {
     boolean isDebugEnabled();
 
-    boolean isInfoEnabled();
+    default boolean isInfoEnabled() {
+        return true;
+    }
 
-    boolean isWarnEnabled();
+    default boolean isWarnEnabled() {
+        return true;
+    }
 
-    boolean isErrorEnabled();
+    default boolean isErrorEnabled() {
+        return true;
+    }
 
     default void debug(String message) {
         debug(message, (Throwable) null);
