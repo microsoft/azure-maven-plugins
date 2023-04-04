@@ -40,7 +40,7 @@ public class RunMojo extends AbstractFunctionMojo {
     private static final ComparableVersion MINIMUM_JAVA_9_SUPPORTED_VERSION = new ComparableVersion("3.0.2630");
     private static final ComparableVersion MINIMUM_JAVA_9_SUPPORTED_VERSION_V2 = new ComparableVersion("2.7.2628");
     private static final String FUNC_VERSION_CMD = "func -v";
-    private static final String FUNCTION_CORE_TOOLS_OUT_OF_DATE = "Local function core tools didn't support java 9 or higher runtime, " +
+    private static final String FUNCTION_CORE_TOOLS_OUT_OF_DATE = "Local function core tools doesn't support java 9 or higher runtime, " +
             "to update it, see: https://aka.ms/azfunc-install.";
 
     /**
