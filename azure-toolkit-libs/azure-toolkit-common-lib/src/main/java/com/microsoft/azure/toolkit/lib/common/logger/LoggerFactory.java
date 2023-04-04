@@ -21,11 +21,6 @@ public abstract class LoggerFactory {
                 LoggerFactory.instance = factory;
             }
         }
-        if (Objects.isNull(LoggerFactory.instance)) {
-            System.out.println("###################################################");
-            System.out.println("no LoggerFactory registered.");
-            System.out.println("###################################################");
-        }
         return LoggerFactory.instance;
     }
 

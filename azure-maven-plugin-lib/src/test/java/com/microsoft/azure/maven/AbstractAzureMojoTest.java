@@ -5,8 +5,6 @@
 
 package com.microsoft.azure.maven;
 
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
@@ -25,14 +23,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.io.File;
 import java.util.Map;
 
-import static com.microsoft.azure.maven.AbstractAzureMojo.INSTALLATION_ID_KEY;
-import static com.microsoft.azure.maven.AbstractAzureMojo.PLUGIN_NAME_KEY;
-import static com.microsoft.azure.maven.AbstractAzureMojo.PLUGIN_VERSION_KEY;
-import static com.microsoft.azure.maven.AbstractAzureMojo.SESSION_ID_KEY;
-import static com.microsoft.azure.maven.AbstractAzureMojo.SUBSCRIPTION_ID_KEY;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static com.microsoft.azure.maven.AbstractAzureMojo.*;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.doReturn;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -62,13 +54,13 @@ public class AbstractAzureMojoTest {
     @InjectMocks
     private AbstractAzureMojo mojo = new AbstractAzureMojo() {
         @Override
-        protected void doExecute() throws AzureExecutionException {
+        protected void doExecute() {
         }
     };
 
     @Before
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         doReturn(PLUGIN_NAME).when(plugin).getArtifactId();
         doReturn(PLUGIN_VERSION).when(plugin).getVersion();
         doReturn("target").when(buildDirectory).getAbsolutePath();
@@ -79,22 +71,22 @@ public class AbstractAzureMojoTest {
     }
 
     @Test
-    public void getProject() throws Exception {
+    public void getProject() {
         assertEquals(project, mojo.getProject());
     }
 
     @Test
-    public void getSession() throws Exception {
+    public void getSession() {
         assertEquals(session, mojo.getSession());
     }
 
     @Test
-    public void getMavenResourcesFiltering() throws Exception {
+    public void getMavenResourcesFiltering() {
         assertEquals(filtering, mojo.getMavenResourcesFiltering());
     }
 
     @Test
-    public void getBuildDirectoryAbsolutePath() throws Exception {
+    public void getBuildDirectoryAbsolutePath() {
         assertEquals("target", mojo.getBuildDirectoryAbsolutePath());
     }
 
@@ -104,12 +96,12 @@ public class AbstractAzureMojoTest {
     }
 
     @Test
-    public void getSubscriptionId() throws Exception {
+    public void getSubscriptionId() {
         assertEquals(SUBSCRIPTION_ID, mojo.getSubscriptionId());
     }
 
     @Test
-    public void isTelemetryAllowed() throws Exception {
+    public void isTelemetryAllowed() {
         assertFalse(mojo.getAllowTelemetry());
     }
 
@@ -133,12 +125,7 @@ public class AbstractAzureMojoTest {
     }
 
     @Test
-    public void execute() throws Exception {
-        mojo.execute();
-    }
-
-    @Test
-    public void processException() throws Exception {
+    public void processException() {
         final String message = "test exception message";
         String actualMessage = null;
         try {
@@ -150,8 +137,8 @@ public class AbstractAzureMojoTest {
     }
 
     @Test
-    public void getTelemetryProperties() throws Exception {
-        final Map map = mojo.getTelemetryProperties();
+    public void getTelemetryProperties() {
+        final Map<String, String> map = mojo.getTelemetryProperties();
 
         assertEquals(5, map.size());
         assertTrue(map.containsKey(INSTALLATION_ID_KEY));

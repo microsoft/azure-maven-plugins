@@ -125,7 +125,6 @@
         <mockito.version>3.10.0</mockito.version>
         <rxjava.version>1.3.8</rxjava.version>
         <snakeyaml.version>1.33</snakeyaml.version>
-        <slf4j-api.version>1.7.36</slf4j-api.version>
         <spring-test.version>5.3.20</spring-test.version>
         <jsr305.version>3.0.2</jsr305.version>
         <free-port-finder.version>1.1.1</free-port-finder.version>
@@ -683,11 +682,6 @@
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt</artifactId>
                 <version>${jjwt.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>junit</groupId>
