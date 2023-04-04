@@ -5,8 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.common.logger;
 
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.ServiceLoader;
@@ -24,7 +22,9 @@ public abstract class LoggerFactory {
             }
         }
         if (Objects.isNull(LoggerFactory.instance)) {
-            throw new AzureToolkitRuntimeException("no LoggerFactory registered.");
+            System.out.println("###################################################");
+            System.out.println("no LoggerFactory registered.");
+            System.out.println("###################################################");
         }
         return LoggerFactory.instance;
     }
