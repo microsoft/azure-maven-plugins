@@ -29,7 +29,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -37,7 +36,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Optional;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
@@ -131,7 +129,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     private void validateArtifactCompileVersion() throws AzureExecutionException {
         final RuntimeConfig runtimeConfig = getParser().getRuntimeConfig();
         final String javaVersion = Optional.ofNullable(runtimeConfig).map(RuntimeConfig::javaVersion).map(JavaVersion::getValue).orElse(StringUtils.EMPTY);
-        validateArtifactCompileVersion(javaVersion, getArtifactToDeploy(), getFailsOnRuntimeValidationError());
+        validateArtifactCompileVersion(javaVersion, getArtifact(), getFailsOnRuntimeValidationError());
     }
 
     // todo: Extract validator for all maven toolkits
@@ -209,14 +207,6 @@ public class DeployMojo extends AbstractFunctionMojo {
         final File file = new File(getDeploymentStagingDirectoryPath());
         final FunctionDeployType type = StringUtils.isEmpty(deploymentType) ? null : FunctionDeployType.fromString(deploymentType);
         new DeployFunctionAppTask(target, file, type, true).doExecute();
-    }
-
-    private File getArtifactToDeploy() throws AzureExecutionException {
-        final File stagingFolder = new File(getDeploymentStagingDirectoryPath());
-        return Arrays.stream(Optional.ofNullable(stagingFolder.listFiles()).orElse(new File[0]))
-                .filter(jar -> StringUtils.equals(FilenameUtils.getBaseName(jar.getName()), this.getFinalName()))
-                .findFirst()
-                .orElseThrow(() -> new AzureExecutionException(String.format(NO_ARTIFACT_FOUNDED, this.getFinalName(), stagingFolder)));
     }
 
     private void validateApplicationInsightsConfiguration() throws AzureExecutionException {
