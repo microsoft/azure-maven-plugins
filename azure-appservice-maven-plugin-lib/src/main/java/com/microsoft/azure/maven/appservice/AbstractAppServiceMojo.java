@@ -17,11 +17,11 @@ import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.IOException;
@@ -34,6 +34,7 @@ import java.util.Properties;
 /**
  * Base abstract class for all Azure App Service Mojos.
  */
+@Slf4j
 public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     protected static final String MAVEN_PLUGIN_POSTFIX = "-maven-plugin";
 
@@ -169,7 +170,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         final List<Subscription> subscriptions = Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
         final Subscription subscription = subscriptions.get(0);
         if (subscription != null) {
-            Log.info(String.format(AbstractAzureMojo.SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.getName()), TextUtils.cyan(subscription.getId())));
+            log.info(String.format(AbstractAzureMojo.SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.getName()), TextUtils.cyan(subscription.getId())));
         }
     }
 }

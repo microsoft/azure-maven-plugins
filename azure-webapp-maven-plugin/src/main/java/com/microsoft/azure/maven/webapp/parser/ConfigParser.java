@@ -24,10 +24,10 @@ import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.ExpandableParameter;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +44,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class ConfigParser {
 
     private static final String EXPANDABLE_PRICING_TIER_WARNING = "'%s' may not be a valid pricing tier, " +
@@ -81,7 +82,7 @@ public class ConfigParser {
         final Runtime runtime = getRuntime();
         final OperatingSystem os = Optional.ofNullable(runtime).map(Runtime::getOperatingSystem).orElse(null);
         if (os == null) {
-            Log.debug("No runtime related config is specified. It will cause error if creating a new web app.");
+            log.debug("No runtime related config is specified. It will cause error if creating a new web app.");
         } else {
             switch (os) {
                 case WINDOWS:
@@ -93,7 +94,7 @@ public class ConfigParser {
                     builder = builder.image(runtimeConfig.getImage()).serverId(runtimeConfig.getServerId()).registryUrl(runtimeConfig.getRegistryUrl());
                     break;
                 default:
-                    Log.debug("Invalid operating system from the configuration.");
+                    log.debug("Invalid operating system from the configuration.");
             }
         }
         return builder.appName(getAppName())
@@ -280,7 +281,7 @@ public class ConfigParser {
         }
 
         if (artifacts.isEmpty()) {
-            Log.warn(String.format("Cannot find any files defined by resource(%s)", StringUtils.firstNonBlank(resource.toString())));
+            log.warn(String.format("Cannot find any files defined by resource(%s)", StringUtils.firstNonBlank(resource.toString())));
         }
         if (type.ignorePath() && StringUtils.isNotBlank(resource.getTargetPath())) {
             throw new AzureToolkitRuntimeException(String.format("'<targetPath>' is not allowed for deployable type('%s').", type));

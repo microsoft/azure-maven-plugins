@@ -8,14 +8,13 @@ package com.microsoft.azure.maven.springcloud;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import groovy.lang.MissingPropertyException;
 import groovy.text.SimpleTemplateEngine;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.logging.Level;
 
-@Log
+@Slf4j
 public class TemplateUtils {
     private static final SimpleTemplateEngine engine = new SimpleTemplateEngine();
     private static final String INVALID_TEMPLATE = "error occurs when evaluating template(%s) with bindings(%s)";
@@ -76,9 +75,9 @@ public class TemplateUtils {
         try {
             return engine.createTemplate(template).make(bindings).toString();
         } catch (MissingPropertyException e) {
-            log.log(Level.FINE, String.format(MISSING_PROPERTY, template, bindings));
+            log.debug(String.format(MISSING_PROPERTY, template, bindings));
         } catch (Exception e) {
-            log.log(Level.WARNING, String.format(INVALID_TEMPLATE, template, bindings), e);
+            log.warn(String.format(INVALID_TEMPLATE, template, bindings), e);
         }
         return template;
     }

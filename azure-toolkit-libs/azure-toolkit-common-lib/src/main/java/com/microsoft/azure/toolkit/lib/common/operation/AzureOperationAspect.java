@@ -9,7 +9,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.utils.aspect.MethodInvocation;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
@@ -21,7 +21,7 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 
 @Aspect
-@Log
+@Slf4j
 public final class AzureOperationAspect {
 
     @Pointcut("execution(@com.microsoft.azure.toolkit.lib.common.operation.AzureOperation * *..*.*(..))")

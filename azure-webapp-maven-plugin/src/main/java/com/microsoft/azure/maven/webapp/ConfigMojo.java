@@ -28,7 +28,6 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -37,6 +36,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
@@ -62,6 +62,7 @@ import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigU
 /**
  * Generate configuration for web app maven plugin or init the configuration from existing app service instance.
  */
+@Slf4j
 @Mojo(name = "config")
 public class ConfigMojo extends AbstractWebAppMojo {
     private static final String WEB_CONTAINER = "webContainer";
@@ -117,7 +118,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             final WebAppConfiguration configuration = pomHandler.getConfiguration() == null ? null :
                     getWebAppConfiguration();
             if (!isV2Configuration(configuration)) {
-                Log.warn(CONFIG_ONLY_SUPPORT_V2);
+                log.warn(CONFIG_ONLY_SUPPORT_V2);
             } else {
                 config(configuration);
             }
@@ -167,7 +168,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 result = updateConfiguration(configuration.toBuilder().build());
             }
         } while (!confirmConfiguration(result));
-        Log.info(SAVING_TO_POM);
+        log.info(SAVING_TO_POM);
         pomHandler.updatePluginConfiguration(result, configuration, this.project, plugin);
     }
 
@@ -245,7 +246,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             case "Application":
                 return getWebAppConfiguration(configuration);
             case "Runtime":
-                Log.warn(CHANGE_OS_WARNING);
+                log.warn(CHANGE_OS_WARNING);
                 return getRuntimeConfiguration(configuration, false);
             case "DeploymentSlot":
                 return getSlotConfiguration(configuration);
@@ -285,7 +286,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         if (availablePriceList.stream().noneMatch(price -> StringUtils.equalsIgnoreCase(price, currentPricingTier))) {
             defaultPricingTier = defaultPricingTierFromRuntime.toString();
             if (StringUtils.isNotBlank(currentPricingTier)) {
-                Log.warn(String.format(PRICE_TIER_NOT_AVAIL, currentPricingTier, defaultPricingTier));
+                log.warn(String.format(PRICE_TIER_NOT_AVAIL, currentPricingTier, defaultPricingTier));
             }
         }
 
@@ -356,7 +357,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             String defaultPricingTier = ObjectUtils.firstNonNull(configuration.getPricingTier(), defaultPricingTierEnu.getSize());
             final List<String> availablePriceList = getAvailablePricingTierList(osEnu, webContainer);
             if (!availablePriceList.contains(defaultPricingTier)) {
-                Log.warn(String.format("'%s' is not supported in current os('%s') and runtime('%s')", defaultPricingTier, os, webContainer));
+                log.warn(String.format("'%s' is not supported in current os('%s') and runtime('%s')", defaultPricingTier, os, webContainer));
                 defaultPricingTier = defaultPricingTierEnu.getSize();
             }
             final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier, availablePriceList,
@@ -384,7 +385,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final List<String> validJavaVersions = getValidJavaVersions();
         String defaultJavaVersion = ObjectUtils.firstNonNull(configuration.getJavaVersion(), WebAppConfiguration.DEFAULT_JAVA_VERSION.toString());
         if (!validJavaVersions.contains(defaultJavaVersion)) {
-            Log.warn(String.format("'%s' is not supported for your artifact, supported values are %s.", defaultJavaVersion, String.join(", ", validJavaVersions)));
+            log.warn(String.format("'%s' is not supported for your artifact, supported values are %s.", defaultJavaVersion, String.join(", ", validJavaVersions)));
             defaultJavaVersion = validJavaVersions.get(0);
         }
 
@@ -403,7 +404,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final List<String> validWebContainers = getAvailableWebContainer(os, javaVersion,
                 Utils.isJarPackagingProject(this.project.getPackaging()));
         if (!validWebContainers.contains(webContainerOrDefault)) {
-            Log.warn(String.format("'%s' is not supported.", webContainerOrDefault));
+            log.warn(String.format("'%s' is not supported.", webContainerOrDefault));
             final String defaultWebContainer = WebAppConfiguration.DEFAULT_CONTAINER.toString();
             webContainerOrDefault = validWebContainers.contains(defaultWebContainer) ? defaultWebContainer : validWebContainers.get(0);
         }
@@ -483,14 +484,14 @@ public class ConfigMojo extends AbstractWebAppMojo {
             // get user selected sub id to persistent it in pom.xml
             this.subscriptionId = defaultSubs.getId();
             // load configuration to detecting java or docker
-            Log.info(LONG_LOADING_HINT);
+            log.info(LONG_LOADING_HINT);
             final List<WebAppOption> webAppOptionList = az.list().stream().flatMap(m -> m.webApps().list().stream())
                     .map(WebAppOption::new)
                     .collect(Collectors.toList());
 
             // check empty: first time
             if (webAppOptionList.isEmpty()) {
-                Log.warn(NO_JAVA_WEB_APPS);
+                log.warn(NO_JAVA_WEB_APPS);
                 return null;
             }
             final boolean isContainer = !Utils.isJarPackagingProject(this.project.getPackaging());
@@ -521,7 +522,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final List<WebAppOption> options = new ArrayList<>();
         // check empty: second time
         if (javaOrDockerWebapps.isEmpty()) {
-            Log.warn(NO_JAVA_WEB_APPS);
+            log.warn(NO_JAVA_WEB_APPS);
             return null;
         }
         options.addAll(javaOrDockerWebapps);

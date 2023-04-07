@@ -14,9 +14,7 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -67,9 +65,9 @@ public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceSer
         return "Web app";
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public WebApp update(@NotNull AzResource.Draft<WebApp, ?> d) {
+    public WebApp update(@Nonnull AzResource.Draft<WebApp, ?> d) {
         final AzResource.Draft<FunctionApp, WebSiteBase> draft = this.cast(d);
         log.debug("[{}]:update(draft:{})", this.getName(), draft);
         final WebApp resource = this.get(draft.getName(), draft.getResourceGroupName());

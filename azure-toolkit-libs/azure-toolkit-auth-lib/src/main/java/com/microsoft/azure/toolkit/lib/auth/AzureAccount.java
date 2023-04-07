@@ -18,13 +18,13 @@ import com.microsoft.azure.toolkit.lib.auth.serviceprincipal.ServicePrincipalAcc
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription.getResourceManager;
 
+@Slf4j
 public class AzureAccount implements IAzureAccount {
     @Nullable
     private AtomicReference<Account> accountRef;
@@ -68,7 +69,7 @@ public class AzureAccount implements IAzureAccount {
             return this.account();
         }
         if (account.getType() == AuthType.OAUTH2 || account.getType() == AuthType.DEVICE_CODE) {
-            Log.prompt(String.format("Auth type: %s", TextUtils.cyan(account.getType().name())));
+            log.info(String.format("Auth type: %s", TextUtils.cyan(account.getType().name())));
         }
         this.accountRef = new AtomicReference<>();
         AzureEventBus.emit("account.logging_in.type", account.getType());
@@ -116,7 +117,7 @@ public class AzureAccount implements IAzureAccount {
         }
         account.setPersistenceEnabled(enablePersistence);
         if (account.getType() == AuthType.OAUTH2 || account.getType() == AuthType.DEVICE_CODE) {
-            Log.prompt(String.format("Auth type: %s", TextUtils.cyan(account.getType().name())));
+            log.info(String.format("Auth type: %s", TextUtils.cyan(account.getType().name())));
         }
         this.accountRef = new AtomicReference<>();
         AzureEventBus.emit("account.logging_in.type", account.getType());

@@ -16,10 +16,10 @@ import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.maven.springcloud.TemplateUtils;
 
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
+import lombok.extern.slf4j.Slf4j;
 import lombok.Lombok;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluator;
 import org.yaml.snakeyaml.Yaml;
@@ -36,17 +36,16 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+@Slf4j
 public class ConfigurationPrompter {
     private final ExpressionEvaluator expressionEvaluator;
     private IPrompter prompt;
     private Map<String, Map<String, Object>> templates;
     private Map<String, Object> commonVariables;
     private SchemaValidator validator;
-    private final Log log;
 
-    public ConfigurationPrompter(ExpressionEvaluator expressionEvaluator, Log log) {
+    public ConfigurationPrompter(ExpressionEvaluator expressionEvaluator) {
         this.expressionEvaluator = expressionEvaluator;
-        this.log = log;
     }
 
     public void initialize() throws IOException, InvalidConfigurationException {

@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.lib.common.operation;
 
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import lombok.extern.slf4j.Slf4j;
 import lombok.Getter;
-import lombok.extern.java.Log;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
@@ -17,7 +17,7 @@ import java.io.InterruptedIOException;
 import java.util.Objects;
 import java.util.Optional;
 
-@Log
+@Slf4j
 public class OperationThreadContext {
     private static final ThreadLocal<OperationThreadContext> context = new ThreadLocal<>();
 
@@ -57,7 +57,7 @@ public class OperationThreadContext {
 
     synchronized void pushOperation(final Operation operation) {
         if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {
-            log.fine(String.format("orphan context[%s] is setup", this));
+            log.debug(String.format("orphan context[%s] is setup", this));
         }
         operation.setParent(this.operation);
         this.operation = operation;
@@ -70,7 +70,7 @@ public class OperationThreadContext {
         this.operation = popped.getParent();
         if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {
             OperationThreadContext.context.remove();
-            log.fine(String.format("orphan context[%s] is disposed", this));
+            log.debug(String.format("orphan context[%s] is disposed", this));
         }
         return popped;
     }

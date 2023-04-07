@@ -13,9 +13,7 @@ import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -64,9 +62,9 @@ public class FunctionAppModule extends AbstractAzResourceModule<FunctionApp, App
         return "Function app";
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public FunctionApp update(@NotNull AzResource.Draft<FunctionApp, ?> d) {
+    public FunctionApp update(@Nonnull AzResource.Draft<FunctionApp, ?> d) {
         final AzResource.Draft<FunctionApp, WebSiteBase> draft = this.cast(d);
         log.debug("[{}]:update(draft:{})", this.getName(), draft);
         final FunctionApp resource = this.get(draft.getName(), draft.getResourceGroupName());

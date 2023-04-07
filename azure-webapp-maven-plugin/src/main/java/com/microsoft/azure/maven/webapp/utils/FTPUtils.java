@@ -4,20 +4,20 @@
  */
 package com.microsoft.azure.maven.webapp.utils;
 
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Stack;
 
 // Todo: Merge this class with FTPUploader in lib to reduce duplicate
+@Slf4j
 public class FTPUtils {
 
     public static final String REPLY_MESSAGE = "Reply Message : %s";
@@ -36,17 +36,17 @@ public class FTPUtils {
 
     public static void uploadFile(final FTPClient ftpClient, final String sourceFilePath,
                                   final String targetFilePath) throws IOException {
-        Log.info(String.format(UPLOADING_RESOURCE, sourceFilePath, targetFilePath));
+        log.info(String.format(UPLOADING_RESOURCE, sourceFilePath, targetFilePath));
         final File sourceFile = new File(sourceFilePath);
         changeDirectoryWithCreate(ftpClient, targetFilePath);
-        try (final InputStream is = new FileInputStream(sourceFile)) {
+        try (final InputStream is = Files.newInputStream(sourceFile.toPath())) {
             ftpClient.storeFile(sourceFile.getName(), is);
             final int replyCode = ftpClient.getReplyCode();
             final String replyMessage = ftpClient.getReplyString();
             if (isCommandFailed(replyCode)) {
                 throw new IOException(FAILED_TO_UPLOAD_RESOURCE + sourceFilePath);
             } else {
-                Log.info(String.format(REPLY_MESSAGE, replyMessage));
+                log.info(String.format(REPLY_MESSAGE, replyMessage));
             }
         }
     }
