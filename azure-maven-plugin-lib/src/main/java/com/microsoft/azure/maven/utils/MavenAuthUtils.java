@@ -74,8 +74,16 @@ public class MavenAuthUtils {
         return authConfiguration;
     }
 
+    /**
+     * disable unexpected logs from azure identity
+     */
     public static void disableIdentityLogs() {
+        // add breakpoint on `org.slf4j.Logger.error` to track the logged errors.
         putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.azure.identity", "off");
+        putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.azure.identity.implementation", "off");
+        putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.msal4j", "off");
+        putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.azure.core.http.policy", "off");
+        putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.azure.core.implementation", "off");
         putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.adal4j", "off");
         putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.azure.core.credential", "off");
         putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.msal4jextensions", "off");
