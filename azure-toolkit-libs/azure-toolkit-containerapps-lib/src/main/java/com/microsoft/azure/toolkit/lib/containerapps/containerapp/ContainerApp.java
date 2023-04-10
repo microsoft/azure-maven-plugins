@@ -5,14 +5,16 @@
 
 package com.microsoft.azure.toolkit.lib.containerapps.containerapp;
 
+import com.azure.core.credential.AccessToken;
+import com.azure.core.credential.TokenRequestContext;
+import com.azure.identity.implementation.util.ScopeUtil;
 import com.azure.resourcemanager.appcontainers.fluent.models.ContainerAppInner;
-import com.azure.resourcemanager.appcontainers.models.Configuration;
-import com.azure.resourcemanager.appcontainers.models.Container;
-import com.azure.resourcemanager.appcontainers.models.Ingress;
-import com.azure.resourcemanager.appcontainers.models.Template;
-import com.azure.resourcemanager.appcontainers.models.Volume;
+import com.azure.resourcemanager.appcontainers.models.*;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -27,13 +29,21 @@ import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
+import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.util.*;
 
 @SuppressWarnings("unused")
-public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContainerAppsServiceSubscription, com.azure.resourcemanager.appcontainers.models.ContainerApp> implements Deletable, ServiceLinkerConsumer {
+public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContainerAppsServiceSubscription, com.azure.resourcemanager.appcontainers.models.ContainerApp> implements Deletable, ServiceLinkerConsumer  {
+    public static final String LOG_TYPE_CONSOLE = "console";
+    public static final String LOG_TYPE_SYSTEM = "system";
     @Getter
     private final RevisionModule revisionModule;
     private final ServiceLinkerModule linkerModule;
@@ -178,6 +188,71 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
             }
         }
         return false;
+    }
+
+    public List<Revision> getRevisionList() {
+        return revisionModule.list();
+    }
+
+    // refer to https://github.com/Azure/azure-cli-extensions/blob/main/src/containerapp/azext_containerapp/custom.py
+    public Flux<String> streamingLogs(String logType, String revisionName, String replicaName, String containerName,
+                                      boolean follow, int tailLines) {
+        final String endPoint = getLogStreamingEndpoint(logType, revisionName, replicaName, containerName);
+        final String basicAuth = "Bearer " + getToken();
+        try {
+            final URIBuilder uriBuilder = new URIBuilder(endPoint);
+            uriBuilder.addParameter("follow", String.valueOf(follow));
+            if (tailLines > 0 && tailLines <= 300) {
+                uriBuilder.addParameter("tailLines", String.valueOf(tailLines));
+            }
+            final HttpURLConnection connection = (HttpURLConnection) uriBuilder.build().toURL().openConnection();
+            connection.setRequestProperty("Authorization", basicAuth);
+            connection.setReadTimeout(600000);
+            connection.setConnectTimeout(3000);
+            connection.setRequestMethod("GET");
+            connection.connect();
+            return Flux.create((fluxSink) -> {
+                try {
+                    final InputStream is = connection.getInputStream();
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+                    String line;
+                    while ((line = rd.readLine()) != null) {
+                        fluxSink.next(line);
+                    }
+                    rd.close();
+                } catch (final Exception e) {
+                    throw new AzureToolkitRuntimeException(e);
+                }
+            });
+        } catch (final Exception e) {
+            throw new AzureToolkitRuntimeException(e);
+        }
+    }
+
+    @Nullable
+    private String getLogStreamingEndpoint(String logType, String revisionName, String replicaName, String containerName) {
+        final com.azure.resourcemanager.appcontainers.models.ContainerApp remoteApp = this.getRemote();
+        if (Objects.isNull(remoteApp)) {
+            return null;
+        }
+        final String eventStreamEndpoint = remoteApp.eventStreamEndpoint();
+        final String baseUrl = eventStreamEndpoint.substring(0, eventStreamEndpoint.indexOf("/subscriptions/"));
+        if (Objects.equals(LOG_TYPE_CONSOLE, logType)) {
+            return String.format("%s/subscriptions/%s/resourceGroups/%s/containerApps/%s/revisions/%s/replicas/%s/containers/%s/logstream",
+                    baseUrl, getSubscriptionId(), getResourceGroupName(), getName(), revisionName, replicaName, containerName);
+        } else if (Objects.equals(LOG_TYPE_SYSTEM, logType)) {
+            return String.format("%s/subscriptions/%s/resourceGroups/%s/containerApps/%s/eventstream",
+                    baseUrl, getSubscriptionId(), getResourceGroupName(), getName());
+        }
+        return null;
+    }
+
+    @Nullable
+    private String getToken() {
+        final Account account = Azure.az(AzureAccount.class).account();
+        final String[] scopes = ScopeUtil.resourceToScopes(account.getEnvironment().getManagementEndpoint());
+        final TokenRequestContext request = new TokenRequestContext().addScopes(scopes);
+        return Optional.ofNullable(account.getTokenCredential(getSubscriptionId()).getToken(request).block()).map(AccessToken::getToken).orElse(null);
     }
 
     @Override
