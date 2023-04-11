@@ -5,15 +5,11 @@
 
 package com.microsoft.azure.toolkit.lib.containerapps.containerapp;
 
-import com.azure.core.credential.AccessToken;
-import com.azure.core.credential.TokenRequestContext;
-import com.azure.identity.implementation.util.ScopeUtil;
+import com.azure.resourcemanager.appcontainers.ContainerAppsApiManager;
 import com.azure.resourcemanager.appcontainers.fluent.models.ContainerAppInner;
 import com.azure.resourcemanager.appcontainers.models.*;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.auth.Account;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -38,7 +34,10 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @SuppressWarnings("unused")
 public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContainerAppsServiceSubscription, com.azure.resourcemanager.appcontainers.models.ContainerApp> implements Deletable, ServiceLinkerConsumer  {
@@ -198,7 +197,7 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
     public Flux<String> streamingLogs(String logType, String revisionName, String replicaName, String containerName,
                                       boolean follow, int tailLines) {
         final String endPoint = getLogStreamingEndpoint(logType, revisionName, replicaName, containerName);
-        final String basicAuth = "Bearer " + getToken();
+        final String basicAuth = "Bearer " + getAuthToken();
         try {
             final URIBuilder uriBuilder = new URIBuilder(endPoint);
             uriBuilder.addParameter("follow", String.valueOf(follow));
@@ -248,11 +247,9 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
     }
 
     @Nullable
-    private String getToken() {
-        final Account account = Azure.az(AzureAccount.class).account();
-        final String[] scopes = ScopeUtil.resourceToScopes(account.getEnvironment().getManagementEndpoint());
-        final TokenRequestContext request = new TokenRequestContext().addScopes(scopes);
-        return Optional.ofNullable(account.getTokenCredential(getSubscriptionId()).getToken(request).block()).map(AccessToken::getToken).orElse(null);
+    private String getAuthToken() {
+        final ContainerAppsApiManager manager = getParent().getRemote();
+        return Optional.ofNullable(manager).map(m -> m.containerApps().getAuthToken(getResourceGroupName(), getName()).token()).orElse(null);
     }
 
     @Override
