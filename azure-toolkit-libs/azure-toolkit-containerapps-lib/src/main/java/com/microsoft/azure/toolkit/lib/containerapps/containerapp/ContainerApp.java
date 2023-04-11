@@ -10,6 +10,7 @@ import com.azure.resourcemanager.appcontainers.fluent.models.ContainerAppInner;
 import com.azure.resourcemanager.appcontainers.models.*;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -232,7 +233,7 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
     private String getLogStreamingEndpoint(String logType, String revisionName, String replicaName, String containerName) {
         final com.azure.resourcemanager.appcontainers.models.ContainerApp remoteApp = this.getRemote();
         if (Objects.isNull(remoteApp)) {
-            return null;
+            throw new AzureToolkitRuntimeException(AzureString.format("resource ({0}) not found", getName()).toString());
         }
         final String eventStreamEndpoint = remoteApp.eventStreamEndpoint();
         final String baseUrl = eventStreamEndpoint.substring(0, eventStreamEndpoint.indexOf("/subscriptions/"));
