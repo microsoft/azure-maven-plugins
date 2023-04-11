@@ -28,11 +28,9 @@ import com.microsoft.azure.toolkit.lib.containerapps.model.IngressConfig;
 import com.microsoft.azure.toolkit.lib.containerapps.model.RevisionMode;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -261,19 +259,17 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
 
     @Setter
     @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
     public static class ImageConfig {
+        @Nonnull
+        private final String fullImageName;
         @Nullable
         private ContainerRegistry containerRegistry;
         @Nonnull
-        private String fullImageName;
-        @Nonnull
+        @Builder.Default
         private List<EnvironmentVar> environmentVariables = new ArrayList<>();
 
-        public String getSimpleImageName() {
-            return fullImageName.substring(0, fullImageName.lastIndexOf(':')).substring(fullImageName.lastIndexOf('/') + 1);
+        public ImageConfig(@Nonnull String fullImageName) {
+            this.fullImageName = fullImageName;
         }
 
         public String getTag() {
