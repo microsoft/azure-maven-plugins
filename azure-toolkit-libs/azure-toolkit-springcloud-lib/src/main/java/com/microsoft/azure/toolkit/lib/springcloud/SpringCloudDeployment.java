@@ -13,10 +13,12 @@ import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.RemoteDebuggingPayload;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasManager;
+import com.google.common.collect.ImmutableMap;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.utils.StreamingLogUtils;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerConsumer;
 import lombok.SneakyThrows;
@@ -25,11 +27,6 @@ import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.*;
 
 @SuppressWarnings("unused")
@@ -115,31 +112,15 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     @SneakyThrows
     public Flux<String> streamLogs(final String instance, int sinceSeconds, int tailLines, int limitBytes, boolean follow) {
         final String endpoint = this.getParent().getLogStreamingEndpoint(instance);
-        if (Objects.isNull(endpoint)) {
-            return Flux.empty();
-        }
-        final URL url = new URL(String.format("%s?tailLines=%s&follow=%s&sinceSeconds=%s&limitBytes=%s", endpoint, tailLines, follow, sinceSeconds, limitBytes));
-        final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
         final String password = this.getParent().getParent().getTestKey();
         final String userPass = "primary:" + password;
         final String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userPass.getBytes()));
-        connection.setRequestProperty("Authorization", basicAuth);
-        connection.setUseCaches(false);
-        connection.setDoOutput(true);
-        return Flux.create((fluxSink) -> {
-            try {
-                final InputStream is = connection.getInputStream();
-                BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-                String line;
-                while ((line = rd.readLine()) != null) {
-                    fluxSink.next(line);
-                }
-                rd.close();
-            } catch (final Exception e) {
-                throw new AzureToolkitRuntimeException(e);
-            }
-        });
+        final Map<String, String> params = ImmutableMap.of("follow", String.valueOf(follow),
+                "tailLines", String.valueOf(tailLines),
+                "sinceSeconds", String.valueOf(sinceSeconds),
+                "limitBytes", String.valueOf(limitBytes)
+                );
+        return StreamingLogUtils.streamingLogs(endpoint, params, ImmutableMap.of("Authorization", basicAuth));
     }
 
     @AzureOperation(name = "internal/springcloud.wait_until_deployment_ready.deployment|app", params = {"this.getName()", "this.getParent().getName()"})
