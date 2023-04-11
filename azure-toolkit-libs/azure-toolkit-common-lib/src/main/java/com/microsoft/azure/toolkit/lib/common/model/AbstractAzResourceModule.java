@@ -430,7 +430,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Nonnull
     public String toResourceId(@Nonnull String resourceName, @Nullable String resourceGroup) {
         resourceGroup = StringUtils.firstNonBlank(resourceGroup, this.getParent().getResourceGroupName(), RESOURCE_GROUP_PLACEHOLDER);
-        return String.format("%s/%s/%s", this.parent.getId(), this.getName(), resourceName).replace(RESOURCE_GROUP_PLACEHOLDER, resourceGroup);
+        // resource (ACR repository) name may contain "/".
+        final String encoded = resourceName.replaceAll("/", "%2F");
+        return String.format("%s/%s/%s", this.parent.getId(), this.getName(), encoded).replace(RESOURCE_GROUP_PLACEHOLDER, resourceGroup);
     }
 
     protected void deleteResourceFromLocal(@Nonnull String id, boolean... silent) {
