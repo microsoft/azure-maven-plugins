@@ -22,21 +22,21 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public class Image extends AbstractAzResource<Image, Repository, ArtifactManifestProperties> implements Deletable {
+public class Artifact extends AbstractAzResource<Artifact, Repository, ArtifactManifestProperties> implements Deletable {
     @Getter
     private final TagModule tagModule;
     @Nullable
     @Getter(AccessLevel.PACKAGE)
     private RegistryArtifact artifact;
 
-    protected Image(@Nonnull String name, @Nonnull ImageModule module) {
+    protected Artifact(@Nonnull String name, @Nonnull ArtifactModule module) {
         super(name, module);
         this.tagModule = new TagModule(this);
     }
 
-    protected Image(@Nonnull Image image) {
-        super(image);
-        this.tagModule = image.tagModule;
+    protected Artifact(@Nonnull Artifact artifact) {
+        super(artifact);
+        this.tagModule = artifact.tagModule;
     }
 
     @Nonnull

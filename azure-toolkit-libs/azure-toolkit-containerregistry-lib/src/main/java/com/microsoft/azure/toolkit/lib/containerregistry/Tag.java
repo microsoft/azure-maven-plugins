@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class Tag extends AbstractAzResource<Tag, Image, ArtifactTagProperties> implements Deletable {
+public class Tag extends AbstractAzResource<Tag, Artifact, ArtifactTagProperties> implements Deletable {
     protected Tag(@Nonnull String name, @Nonnull TagModule module) {
         super(name, module);
     }
@@ -75,5 +75,10 @@ public class Tag extends AbstractAzResource<Tag, Image, ArtifactTagProperties> i
         final Repository repository = this.getParent().getParent();
         final ContainerRegistry registry = repository.getParent();
         return String.format("%s/%s:%s", registry.getLoginServerUrl(), repository.getName(), this.getName());
+    }
+
+    public String getImageName() {
+        final Repository repository = this.getParent().getParent();
+        return String.format("%s:%s", repository.getName(), this.getName());
     }
 }

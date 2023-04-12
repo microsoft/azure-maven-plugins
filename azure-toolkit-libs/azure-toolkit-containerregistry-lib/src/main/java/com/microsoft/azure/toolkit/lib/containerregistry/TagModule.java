@@ -18,11 +18,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 
-public class TagModule extends AbstractAzResourceModule<Tag, Image, ArtifactTagProperties> {
+public class TagModule extends AbstractAzResourceModule<Tag, Artifact, ArtifactTagProperties> {
 
     public static final String NAME = "tags";
 
-    public TagModule(@Nonnull Image parent) {
+    public TagModule(@Nonnull Artifact parent) {
         super(NAME, parent);
     }
 

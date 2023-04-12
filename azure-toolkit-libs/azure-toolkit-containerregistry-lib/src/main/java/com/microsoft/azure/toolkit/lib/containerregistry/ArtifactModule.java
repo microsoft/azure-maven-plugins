@@ -17,11 +17,11 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 
-public class ImageModule extends AbstractAzResourceModule<Image, Repository, ArtifactManifestProperties> {
+public class ArtifactModule extends AbstractAzResourceModule<Artifact, Repository, ArtifactManifestProperties> {
 
-    public static final String NAME = "images";
+    public static final String NAME = "artifacts";
 
-    public ImageModule(@Nonnull Repository parent) {
+    public ArtifactModule(@Nonnull Repository parent) {
         super(NAME, parent);
     }
 
@@ -50,19 +50,19 @@ public class ImageModule extends AbstractAzResourceModule<Image, Repository, Art
 
     @Nonnull
     @Override
-    protected Image newResource(@Nonnull ArtifactManifestProperties manifest) {
-        return new Image(manifest.getRepositoryName(), this);
+    protected Artifact newResource(@Nonnull ArtifactManifestProperties manifest) {
+        return new Artifact(manifest.getRepositoryName(), this);
     }
 
     @Nonnull
     @Override
-    protected Image newResource(@Nonnull String name, @Nullable String resourceGroupName) {
-        return new Image(name, this);
+    protected Artifact newResource(@Nonnull String name, @Nullable String resourceGroupName) {
+        return new Artifact(name, this);
     }
 
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "Image";
+        return "Artifact";
     }
 }

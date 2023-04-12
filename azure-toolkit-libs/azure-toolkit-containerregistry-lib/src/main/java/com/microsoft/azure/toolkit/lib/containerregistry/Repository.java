@@ -27,24 +27,24 @@ import java.util.Optional;
 
 public class Repository extends AbstractAzResource<Repository, ContainerRegistry, ContainerRepository> implements Deletable {
     @Getter
-    private final ImageModule imageModule;
+    private final ArtifactModule artifactModule;
     @Nullable
     private ContainerRepositoryProperties properties;
 
     protected Repository(@Nonnull String name, @Nonnull RepositoryModule module) {
         super(name, module);
-        this.imageModule = new ImageModule(this);
+        this.artifactModule = new ArtifactModule(this);
     }
 
     protected Repository(@Nonnull Repository registry) {
         super(registry);
-        this.imageModule = registry.imageModule;
+        this.artifactModule = registry.artifactModule;
     }
 
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.singletonList(imageModule);
+        return Collections.singletonList(artifactModule);
     }
 
     @Nonnull
