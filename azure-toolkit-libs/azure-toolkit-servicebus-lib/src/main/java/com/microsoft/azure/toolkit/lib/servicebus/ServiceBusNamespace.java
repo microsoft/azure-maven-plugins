@@ -6,16 +6,22 @@
 package com.microsoft.azure.toolkit.lib.servicebus;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.azure.resourcemanager.servicebus.models.SkuTier;
+import com.azure.resourcemanager.servicebus.ServiceBusManager;
+import com.azure.resourcemanager.servicebus.fluent.models.SBAuthorizationRuleInner;
+import com.azure.resourcemanager.servicebus.models.*;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.servicebus.queue.ServiceBusQueueModule;
 import com.microsoft.azure.toolkit.lib.servicebus.topic.ServiceBusTopicModule;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ServiceBusNamespace extends AbstractAzResource<ServiceBusNamespace, ServiceBusNamespaceSubscription, com.azure.resourcemanager.servicebus.models.ServiceBusNamespace> implements Deletable {
     @Nonnull
@@ -63,5 +69,26 @@ public class ServiceBusNamespace extends AbstractAzResource<ServiceBusNamespace,
     @Override
     public String loadStatus(@Nonnull com.azure.resourcemanager.servicebus.models.ServiceBusNamespace remote) {
         return remote.innerModel().status();
+    }
+
+    public String getOrCreateConnectionString() {
+        final List<AccessRights> accessRights = Collections.singletonList(AccessRights.LISTEN);
+        final List<NamespaceAuthorizationRule> connectionStrings = Optional.ofNullable(getRemote())
+                .map(topic -> topic.authorizationRules().list().stream()
+                        .filter(rule -> new HashSet<>(rule.rights()).containsAll(accessRights))
+                        .collect(Collectors.toList()))
+                .orElse(new ArrayList<>());
+        if (connectionStrings.size() > 0) {
+            return connectionStrings.get(0).getKeys().primaryConnectionString();
+        }
+        final ServiceBusManager manager = getParent().getRemote();
+        if (Objects.isNull(manager)) {
+            throw new AzureToolkitRuntimeException(AzureString.format("resource ({0}) not found", getName()).toString());
+        }
+        final String accessRightsStr = StringUtils.join(accessRights, "-");
+        manager.serviceClient().getNamespaces().createOrUpdateAuthorizationRule(getResourceGroupName(),
+                getName(), accessRightsStr, new SBAuthorizationRuleInner().withRights(accessRights));
+        return manager.serviceClient().getNamespaces().listKeys(getResourceGroupName(),
+                getName(), accessRightsStr).primaryConnectionString();
     }
 }
