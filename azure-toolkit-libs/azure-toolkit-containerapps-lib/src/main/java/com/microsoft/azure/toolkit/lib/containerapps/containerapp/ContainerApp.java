@@ -40,6 +40,7 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
     public static final String LOG_TYPE_SYSTEM = "system";
     @Getter
     private final RevisionModule revisionModule;
+    private Revision latestRevision = null;
     private final ServiceLinkerModule linkerModule;
 
     protected ContainerApp(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull ContainerAppModule module) {
@@ -52,12 +53,27 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
         super(insight);
         this.revisionModule = insight.revisionModule;
         this.linkerModule = insight.linkerModule;
+        this.latestRevision = insight.latestRevision;
     }
 
     protected ContainerApp(@Nonnull com.azure.resourcemanager.appcontainers.models.ContainerApp remote, @Nonnull ContainerAppModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
         this.revisionModule = new RevisionModule(this);
         this.linkerModule = new ServiceLinkerModule(getId(), this);
+    }
+
+    @Override
+    protected void updateAdditionalProperties(@Nullable com.azure.resourcemanager.appcontainers.models.ContainerApp newRemote, @Nullable com.azure.resourcemanager.appcontainers.models.ContainerApp oldRemote) {
+        super.updateAdditionalProperties(newRemote, oldRemote);
+        this.latestRevision = Optional.ofNullable(newRemote)
+                .flatMap(c -> revisionModule.list().stream().filter(r -> Objects.equals(r.getName(), c.latestRevisionName())).findFirst())
+                .orElse(null);
+    }
+
+    @Override
+    public void invalidateCache() {
+        super.invalidateCache();
+        this.latestRevision = null;
     }
 
     public RevisionModule revisions() {
@@ -130,6 +146,11 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
     public Revision getLatestRevision() {
         return Optional.ofNullable(getLatestRevisionName())
                 .map(name -> this.revisions().get(name, this.getResourceGroupName())).orElse(null);
+    }
+
+    @Nullable
+    public Revision getCachedLatestRevision() {
+        return this.latestRevision;
     }
 
     public void activate() {
