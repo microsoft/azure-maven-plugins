@@ -22,35 +22,38 @@ import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerAppsServiceSu
 import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
 import com.microsoft.azure.toolkit.lib.containerapps.model.IngressConfig;
 import com.microsoft.azure.toolkit.lib.containerapps.model.RevisionMode;
+import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
+import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerSubscription;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @SuppressWarnings("unused")
-public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContainerAppsServiceSubscription, com.azure.resourcemanager.appcontainers.models.ContainerApp> implements Deletable {
+public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContainerAppsServiceSubscription, com.azure.resourcemanager.appcontainers.models.ContainerApp> implements Deletable, ServiceLinkerSubscription {
     @Getter
     private final RevisionModule revisionModule;
+    private final ServiceLinkerModule linkerModule;
 
     protected ContainerApp(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull ContainerAppModule module) {
         super(name, resourceGroupName, module);
         this.revisionModule = new RevisionModule(this);
+        this.linkerModule = new ServiceLinkerModule(getId(), this);
     }
 
     protected ContainerApp(@Nonnull ContainerApp insight) {
         super(insight);
         this.revisionModule = insight.revisionModule;
+        this.linkerModule = insight.linkerModule;
     }
 
     protected ContainerApp(@Nonnull com.azure.resourcemanager.appcontainers.models.ContainerApp remote, @Nonnull ContainerAppModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
         this.revisionModule = new RevisionModule(this);
+        this.linkerModule = new ServiceLinkerModule(getId(), this);
     }
 
     public RevisionModule revisions() {
@@ -140,7 +143,7 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.singletonList(this.revisionModule);
+        return Arrays.asList(revisionModule, linkerModule);
     }
 
     @Nullable

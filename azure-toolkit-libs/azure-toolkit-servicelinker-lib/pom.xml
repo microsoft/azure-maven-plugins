@@ -2,16 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>azure-toolkit-libs</artifactId>
         <groupId>com.microsoft.azure</groupId>
+        <artifactId>azure-toolkit-libs</artifactId>
         <version>0.32.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.microsoft.azure</groupId>
-    <artifactId>azure-toolkit-containerapps-lib</artifactId>
-    <version>0.32.0-SNAPSHOT</version>
+    <artifactId>azure-toolkit-servicelinker-lib</artifactId>
+
     <build>
         <plugins>
             <plugin>
@@ -35,6 +34,9 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                        <configuration>
+                            <additionalparam>${javadoc.opts}</additionalparam>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -98,23 +100,12 @@
         </dependency>
         <dependency>
             <groupId>com.azure.resourcemanager</groupId>
-            <artifactId>azure-resourcemanager-appcontainers</artifactId>
+            <artifactId>azure-resourcemanager-servicelinker</artifactId>
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-toolkit-auth-lib</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-toolkit-containerregistry-lib</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-toolkit-servicelinker-lib</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-toolkit-monitor-lib</artifactId>
-        </dependency>
     </dependencies>
+
 </project>

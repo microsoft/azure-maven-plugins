@@ -9,29 +9,30 @@ import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.microsoft.azure.toolkit.lib.common.model.*;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
+import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerSubscription;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Getter
 public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringCloudCluster, SpringApp>
-    implements Startable, Deletable {
+    implements Startable, Deletable, ServiceLinkerSubscription {
 
     @Nonnull
     private final SpringCloudDeploymentModule deploymentModule;
+    private final ServiceLinkerModule linkerModule;
     @Nullable
     private SpringCloudDeployment activeDeployment = null;
 
     protected SpringCloudApp(@Nonnull String name, @Nonnull SpringCloudAppModule module) {
         super(name, module);
         this.deploymentModule = new SpringCloudDeploymentModule(this);
+        this.linkerModule = new ServiceLinkerModule(getId(), this);
     }
 
     /**
@@ -41,11 +42,13 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
         super(origin);
         this.deploymentModule = origin.deploymentModule;
         this.activeDeployment = origin.activeDeployment;
+        this.linkerModule = origin.linkerModule;
     }
 
     protected SpringCloudApp(@Nonnull SpringApp remote, @Nonnull SpringCloudAppModule module) {
         super(remote.name(), module);
         this.deploymentModule = new SpringCloudDeploymentModule(this);
+        this.linkerModule = new ServiceLinkerModule(getId(), this);
     }
 
     @Override
@@ -64,7 +67,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.singletonList(deploymentModule);
+        return Arrays.asList(deploymentModule, linkerModule);
     }
 
     @Nonnull
