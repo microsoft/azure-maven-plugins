@@ -19,7 +19,6 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -155,7 +154,6 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 log.debug("[{}]:reloadResources->loadResourcesFromAzure()=EXCEPTION", this.name, e);
                 this.resources.clear();
                 this.syncTimeRef.compareAndSet(0, System.currentTimeMillis());
-                AzureMessager.getMessager().error(e);
                 throw e;
             }
         }
@@ -176,7 +174,6 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 fireEvents.debounce();
             }
         } catch (Exception e) {
-            AzureMessager.getMessager().error(e);
             throw e;
         } finally {
             this.lock.unlock();
