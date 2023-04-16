@@ -9,7 +9,6 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -33,15 +32,15 @@ public class EventHubsNamespace extends AbstractAzResource<EventHubsNamespace, E
         this.instanceModule = new EventHubsInstanceModule(this);
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(instanceModule);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public String loadStatus(@NotNull EventHubNamespace remote) {
+    public String loadStatus(@Nonnull EventHubNamespace remote) {
         return remote.innerModel().status();
     }
 

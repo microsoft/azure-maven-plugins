@@ -12,10 +12,9 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
@@ -25,25 +24,25 @@ import java.util.stream.Stream;
 public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase, CosmosDBAccount, MongoDBDatabaseGetResultsInner> {
     private static final String NAME = "mongodbDatabases";
 
-    public MongoDatabaseModule(@NotNull MongoCosmosDBAccount parent) {
+    public MongoDatabaseModule(@Nonnull MongoCosmosDBAccount parent) {
         super(NAME, parent);
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "MongoDB Database";
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected MongoDatabase newResource(@NotNull MongoDBDatabaseGetResultsInner resource) {
+    protected MongoDatabase newResource(@Nonnull MongoDBDatabaseGetResultsInner resource) {
         return new MongoDatabase(resource, this);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected MongoDatabase newResource(@NotNull String name, @Nullable String resourceGroupName) {
+    protected MongoDatabase newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         return new MongoDatabase(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
@@ -59,7 +58,7 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
         }).orElse(Collections.emptyIterator());
     }
 
-    @NotNull
+    @Nonnull
     @Override
     protected Stream<MongoDBDatabaseGetResultsInner> loadResourcesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
@@ -73,7 +72,7 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
 
     @Nullable
     @Override
-    protected MongoDBDatabaseGetResultsInner loadResourceFromAzure(@NotNull String name, @Nullable String resourceGroup) {
+    protected MongoDBDatabaseGetResultsInner loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
                 return client.getMongoDBDatabase(parent.getResourceGroupName(), parent.getName(), name);
@@ -83,21 +82,21 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
         }).orElse(null);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected MongoDatabaseDraft newDraftForCreate(@NotNull String name, @Nullable String rgName) {
+    protected MongoDatabaseDraft newDraftForCreate(@Nonnull String name, @Nullable String rgName) {
         return new MongoDatabaseDraft(name, Objects.requireNonNull(rgName), this);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected MongoDatabaseDraft newDraftForUpdate(@NotNull MongoDatabase mongoDatabase) {
+    protected MongoDatabaseDraft newDraftForUpdate(@Nonnull MongoDatabase mongoDatabase) {
         throw new UnsupportedOperationException("not support");
     }
 
     @Override
     @AzureOperation(name = "azure/cosmos.delete_mongo_table.table", params = {"nameFromResourceId(resourceId)"})
-    protected void deleteResourceFromAzure(@NotNull String resourceId) {
+    protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteMongoDBDatabase(id.resourceGroupName(), id.parent().name(), id.name()));
     }

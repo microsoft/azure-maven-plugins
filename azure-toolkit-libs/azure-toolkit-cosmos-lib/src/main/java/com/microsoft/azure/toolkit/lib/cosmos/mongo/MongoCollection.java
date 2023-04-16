@@ -18,10 +18,9 @@ import lombok.Getter;
 import org.apache.commons.collections4.MapUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -53,7 +52,7 @@ public class MongoCollection extends AbstractAzResource<MongoCollection, MongoDa
         this.documentModule = collection.documentModule;
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(documentModule);
@@ -117,9 +116,9 @@ public class MongoCollection extends AbstractAzResource<MongoCollection, MongoDa
         }
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public String loadStatus(@NotNull MongoDBCollectionGetResultsInner remote) {
+    public String loadStatus(@Nonnull MongoDBCollectionGetResultsInner remote) {
         return Status.RUNNING;
     }
 }

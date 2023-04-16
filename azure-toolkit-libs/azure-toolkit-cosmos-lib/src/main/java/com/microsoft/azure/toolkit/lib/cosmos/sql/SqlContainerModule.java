@@ -12,10 +12,9 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
@@ -25,19 +24,19 @@ import java.util.stream.Stream;
 public class SqlContainerModule extends AbstractAzResourceModule<SqlContainer, SqlDatabase, SqlContainerGetResultsInner> {
     private static final String NAME = "containers";
 
-    public SqlContainerModule(@NotNull SqlDatabase parent) {
+    public SqlContainerModule(@Nonnull SqlDatabase parent) {
         super(NAME, parent);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected SqlContainer newResource(@NotNull SqlContainerGetResultsInner sqlContainer) {
+    protected SqlContainer newResource(@Nonnull SqlContainerGetResultsInner sqlContainer) {
         return new SqlContainer(sqlContainer, this);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected SqlContainer newResource(@NotNull String name, @Nullable String resourceGroupName) {
+    protected SqlContainer newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         return new SqlContainer(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
@@ -53,7 +52,7 @@ public class SqlContainerModule extends AbstractAzResourceModule<SqlContainer, S
         }).orElse(Collections.emptyIterator());
     }
 
-    @NotNull
+    @Nonnull
     @Override
     protected Stream<SqlContainerGetResultsInner> loadResourcesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
@@ -67,7 +66,7 @@ public class SqlContainerModule extends AbstractAzResourceModule<SqlContainer, S
 
     @Nullable
     @Override
-    protected SqlContainerGetResultsInner loadResourceFromAzure(@NotNull String name, @Nullable String resourceGroup) {
+    protected SqlContainerGetResultsInner loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
                 return client.getSqlContainer(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName(), name);
@@ -79,20 +78,20 @@ public class SqlContainerModule extends AbstractAzResourceModule<SqlContainer, S
 
     @Override
     @AzureOperation(name = "azure/cosmos.delete_sql_container.container", params = {"nameFromResourceId(resourceId)"})
-    protected void deleteResourceFromAzure(@NotNull String resourceId) {
+    protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteSqlContainer(id.resourceGroupName(), id.parent().parent().name(), id.parent().name(), id.name()));
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected AzResource.Draft<SqlContainer, SqlContainerGetResultsInner> newDraftForCreate(@NotNull String name, @Nullable String rgName) {
+    protected AzResource.Draft<SqlContainer, SqlContainerGetResultsInner> newDraftForCreate(@Nonnull String name, @Nullable String rgName) {
         return new SqlContainerDraft(name, Objects.requireNonNull(rgName), this);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected AzResource.Draft<SqlContainer, SqlContainerGetResultsInner> newDraftForUpdate(@NotNull SqlContainer sqlContainer) {
+    protected AzResource.Draft<SqlContainer, SqlContainerGetResultsInner> newDraftForUpdate(@Nonnull SqlContainer sqlContainer) {
         throw new AzureToolkitRuntimeException("not supported");
     }
 

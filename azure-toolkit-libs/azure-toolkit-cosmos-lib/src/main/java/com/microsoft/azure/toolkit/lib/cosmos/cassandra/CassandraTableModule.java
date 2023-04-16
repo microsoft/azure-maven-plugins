@@ -12,10 +12,9 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
@@ -25,19 +24,19 @@ import java.util.stream.Stream;
 public class CassandraTableModule extends AbstractAzResourceModule<CassandraTable, CassandraKeyspace, CassandraTableGetResultsInner> {
     private static final String NAME = "tables";
 
-    public CassandraTableModule(@NotNull CassandraKeyspace parent) {
+    public CassandraTableModule(@Nonnull CassandraKeyspace parent) {
         super(NAME, parent);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected CassandraTable newResource(@NotNull CassandraTableGetResultsInner remote) {
+    protected CassandraTable newResource(@Nonnull CassandraTableGetResultsInner remote) {
         return new CassandraTable(remote, this);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected CassandraTable newResource(@NotNull String name, @Nullable String resourceGroupName) {
+    protected CassandraTable newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         return new CassandraTable(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
@@ -53,7 +52,7 @@ public class CassandraTableModule extends AbstractAzResourceModule<CassandraTabl
         }).orElse(Collections.emptyIterator());
     }
 
-    @NotNull
+    @Nonnull
     @Override
     protected Stream<CassandraTableGetResultsInner> loadResourcesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
@@ -67,7 +66,7 @@ public class CassandraTableModule extends AbstractAzResourceModule<CassandraTabl
 
     @Nullable
     @Override
-    protected CassandraTableGetResultsInner loadResourceFromAzure(@NotNull String name, @Nullable String resourceGroup) {
+    protected CassandraTableGetResultsInner loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
                 return client.getCassandraTable(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName(), name);
@@ -79,20 +78,20 @@ public class CassandraTableModule extends AbstractAzResourceModule<CassandraTabl
 
     @Override
     @AzureOperation(name = "azure/cosmos.delete_cassandra_table.table", params = {"nameFromResourceId(resourceId)"})
-    protected void deleteResourceFromAzure(@NotNull String resourceId) {
+    protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteCassandraTable(id.resourceGroupName(), id.parent().parent().name(), id.parent().name(), id.name()));
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected AzResource.Draft<CassandraTable, CassandraTableGetResultsInner> newDraftForCreate(@NotNull String name, @Nullable String rgName) {
+    protected AzResource.Draft<CassandraTable, CassandraTableGetResultsInner> newDraftForCreate(@Nonnull String name, @Nullable String rgName) {
         return new CassandraTableDraft(name, Objects.requireNonNull(rgName), this);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected AzResource.Draft<CassandraTable, CassandraTableGetResultsInner> newDraftForUpdate(@NotNull CassandraTable cassandraTable) {
+    protected AzResource.Draft<CassandraTable, CassandraTableGetResultsInner> newDraftForUpdate(@Nonnull CassandraTable cassandraTable) {
         throw new AzureToolkitRuntimeException("not supported");
     }
 

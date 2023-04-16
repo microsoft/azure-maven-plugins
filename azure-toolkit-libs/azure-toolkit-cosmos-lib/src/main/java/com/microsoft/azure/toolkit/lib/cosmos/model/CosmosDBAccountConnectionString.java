@@ -1,6 +1,6 @@
 package com.microsoft.azure.toolkit.lib.cosmos.model;
 
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 public interface CosmosDBAccountConnectionString {
     @Nullable String getHost();

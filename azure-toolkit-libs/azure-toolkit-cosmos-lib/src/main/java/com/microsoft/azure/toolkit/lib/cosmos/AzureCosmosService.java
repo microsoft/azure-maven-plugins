@@ -16,7 +16,6 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseAccountKind;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,9 +29,9 @@ public class AzureCosmosService extends AbstractAzService<CosmosServiceSubscript
         super("Microsoft.DocumentDB");
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected CosmosServiceSubscription newResource(@NotNull CosmosManager cosmosManager) {
+    protected CosmosServiceSubscription newResource(@Nonnull CosmosManager cosmosManager) {
         return new CosmosServiceSubscription(cosmosManager.subscriptionId(), this);
     }
 

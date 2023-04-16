@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.cosmos.model.MongoDatabaseAccountConnecti
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -91,7 +90,7 @@ public class MongoCosmosDBAccount extends CosmosDBAccount {
     }
 
     @Override
-    public @NotNull List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
+    public @Nonnull List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(mongoDatabaseModule);
     }
 

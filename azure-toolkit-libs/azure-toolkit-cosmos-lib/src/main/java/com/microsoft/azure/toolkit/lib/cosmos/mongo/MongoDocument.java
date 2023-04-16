@@ -13,10 +13,9 @@ import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocument;
 import org.apache.commons.lang3.ObjectUtils;
 import org.bson.Document;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +23,7 @@ import java.util.Optional;
 import static com.microsoft.azure.toolkit.lib.cosmos.mongo.MongoDocumentModule.MONGO_ID_KEY;
 
 public class MongoDocument extends AbstractAzResource<MongoDocument, MongoCollection, Document> implements Deletable, ICosmosDocument {
-    protected MongoDocument(@NotNull String name, @NotNull String resourceGroupName, @NotNull AbstractAzResourceModule<MongoDocument, MongoCollection, Document> module) {
+    protected MongoDocument(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<MongoDocument, MongoCollection, Document> module) {
         super(name, resourceGroupName, module);
     }
 
@@ -32,7 +31,7 @@ public class MongoDocument extends AbstractAzResource<MongoDocument, MongoCollec
         super(origin);
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
@@ -65,13 +64,13 @@ public class MongoDocument extends AbstractAzResource<MongoDocument, MongoCollec
     }
 
     @Override
-    protected void setRemote(@javax.annotation.Nullable Document newRemote) {
+    protected void setRemote(@Nullable Document newRemote) {
         super.setRemote(newRemote);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public String loadStatus(@NotNull Document remote) {
+    public String loadStatus(@Nonnull Document remote) {
         return Status.RUNNING;
     }
 }
