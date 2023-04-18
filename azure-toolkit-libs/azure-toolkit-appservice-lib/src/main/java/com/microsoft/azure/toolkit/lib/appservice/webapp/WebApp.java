@@ -13,13 +13,16 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.servicelinker.Consumer;
+import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinker;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
+import groovyjarjarantlr4.v4.codegen.model.LL1OptionalBlockSingleAlt;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Getter
 public class WebApp extends WebAppBase<WebApp, AppServiceServiceSubscription, com.azure.resourcemanager.appservice.models.WebApp>
@@ -66,5 +69,10 @@ public class WebApp extends WebAppBase<WebApp, AppServiceServiceSubscription, co
     @Nonnull
     public WebAppDeploymentSlotModule slots() {
         return this.deploymentModule;
+    }
+
+    @Override
+    public ServiceLinkerModule getServiceLinkerModule() {
+        return linkerModule;
     }
 }

@@ -163,4 +163,9 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     public boolean isPersistentDiskEnabled() {
         return Objects.nonNull(this.getPersistentDisk());
     }
+
+    @Override
+    public ServiceLinkerModule getServiceLinkerModule() {
+        return linkerModule;
+    }
 }

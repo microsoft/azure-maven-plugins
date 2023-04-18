@@ -18,10 +18,16 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface Consumer extends AzResource {
-    default ServiceLinkerManager getManager() {
+    ServiceLinkerModule getServiceLinkerModule();
+    default List<ServiceLinker> getServiceLinkers() {
+        return getServiceLinkerModule().list();
+    }
+
+    default ServiceLinkerManager getLinkerManager() {
         final String subscriptionId = getSubscriptionId();
         final Account account = Azure.az(AzureAccount.class).account();
         final String tenantId = account.getSubscription(subscriptionId).getTenantId();

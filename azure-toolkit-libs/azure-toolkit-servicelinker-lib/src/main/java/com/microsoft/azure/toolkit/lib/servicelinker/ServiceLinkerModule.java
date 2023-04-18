@@ -63,6 +63,6 @@ public class ServiceLinkerModule extends AbstractAzResourceModule<ServiceLinker,
     @Nullable
     @Override
     protected Linkers getClient() {
-        return Optional.ofNullable(this.parent.getManager()).map(ServiceLinkerManager::linkers).orElse(null);
+        return Optional.ofNullable(this.parent.getLinkerManager()).map(ServiceLinkerManager::linkers).orElse(null);
     }
 }

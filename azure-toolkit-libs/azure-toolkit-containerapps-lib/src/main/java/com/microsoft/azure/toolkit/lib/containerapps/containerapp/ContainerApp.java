@@ -179,4 +179,9 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
         }
         return false;
     }
+
+    @Override
+    public ServiceLinkerModule getServiceLinkerModule() {
+        return linkerModule;
+    }
 }
