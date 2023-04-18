@@ -13,6 +13,7 @@ import com.azure.resourcemanager.containerregistry.models.Registry;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.containerregistry.model.Sku;
 import lombok.Getter;
 
@@ -59,6 +60,20 @@ public class ContainerRegistry extends AbstractAzResource<ContainerRegistry, Azu
 
     public boolean isPublicAccessEnabled() {
         return remoteOptional().map(r -> r.publicNetworkAccess() == PublicNetworkAccess.ENABLED).orElse(true);
+    }
+
+    @AzureOperation(name = "internal/acr.enable_admin_user.registry", params = "this.getName()")
+    public void enableAdminUser() {
+        ContainerRegistryDraft update = (ContainerRegistryDraft) this.update();
+        update.setAdminUserEnabled(true);
+        update.commit();
+    }
+
+    @AzureOperation(name = "internal/acr.disable_admin_user.registry", params = "this.getName()")
+    public void disableAdminUser() {
+        ContainerRegistryDraft update = (ContainerRegistryDraft) this.update();
+        update.setAdminUserEnabled(false);
+        update.commit();
     }
 
     @Nullable

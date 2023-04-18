@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
+import lombok.SneakyThrows;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -86,12 +87,14 @@ public class RepositoryModule extends AbstractAzResourceModule<Repository, Conta
         return Objects.requireNonNull(client).getRepository(name);
     }
 
+    @SneakyThrows
     @Nonnull
     @Override
-    protected Repository newResource(@Nonnull ContainerRepository registry) {
-        return new Repository(registry.getName(), this);
+    protected Repository newResource(@Nonnull ContainerRepository repository) {
+        return new Repository(repository.getName(), this);
     }
 
+    @SneakyThrows
     @Nonnull
     @Override
     protected Repository newResource(@Nonnull String name, @Nullable String resourceGroupName) {
