@@ -49,8 +49,7 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
     @Nonnull
     @Override
     public String loadStatus(@Nonnull SpringService remote) {
-        final ProvisioningState state = remote.refresh().innerModel().properties().provisioningState();
-        return state.toString();
+        return remote.innerModel().properties().provisioningState().toString();
     }
 
     @Nonnull
