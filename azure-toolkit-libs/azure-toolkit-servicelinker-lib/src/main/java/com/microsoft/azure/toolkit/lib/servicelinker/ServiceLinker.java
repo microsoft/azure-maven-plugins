@@ -17,7 +17,7 @@ import java.util.Optional;
 public class ServiceLinker extends AbstractAzResource<ServiceLinker, Consumer, LinkerResource> implements Deletable {
     @Nullable
     @Getter
-    private String targetResourceId = null;
+    private String targetServiceId = null;
     protected ServiceLinker(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<ServiceLinker, Consumer, LinkerResource> module) {
         super(name, resourceGroupName, module);
     }
@@ -35,7 +35,7 @@ public class ServiceLinker extends AbstractAzResource<ServiceLinker, Consumer, L
         super.updateAdditionalProperties(newRemote, oldRemote);
         Optional.ofNullable(newRemote).ifPresent(remote -> {
             if (remote.targetService() instanceof AzureResource) {
-                this.targetResourceId = ((AzureResource) remote.targetService()).id();
+                this.targetServiceId = ((AzureResource) remote.targetService()).id();
             }
         });
     }
@@ -43,7 +43,7 @@ public class ServiceLinker extends AbstractAzResource<ServiceLinker, Consumer, L
     @Override
     public void invalidateCache() {
         super.invalidateCache();
-        this.targetResourceId = null;
+        this.targetServiceId = null;
     }
 
     @Nonnull
