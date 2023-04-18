@@ -5,13 +5,14 @@
 package com.microsoft.azure.maven.queryer;
 
 import com.microsoft.azure.maven.utils.TextIOUtils;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.beryx.textio.GenericInputReader;
 import org.beryx.textio.StringInputReader;
 
 import java.util.List;
 
+@Slf4j
 public class TextIOMavenPluginQueryer extends MavenPluginQueryer {
     private static final String FOUND_VALID_VALUE = "Found valid value. Skip user input.";
     private static final String PROMPT_STRING_WITHOUT_DEFAULTVALUE = "Define value for %s";
@@ -20,7 +21,7 @@ public class TextIOMavenPluginQueryer extends MavenPluginQueryer {
     public String assureInputFromUser(String attribute, String defaultValue, List<String> options, String prompt) {
         final String initValue = getInitValue(attribute);
         if (initValue != null && validateInputByOptions(initValue, options)) {
-            Log.info(FOUND_VALID_VALUE);
+            log.info(FOUND_VALID_VALUE);
             return initValue;
         }
         prompt = StringUtils.isEmpty(prompt) ? getPromptString(attribute) : prompt;
@@ -33,7 +34,7 @@ public class TextIOMavenPluginQueryer extends MavenPluginQueryer {
                                       String prompt, String errorMessage) {
         final String initValue = getInitValue(attribute);
         if (initValue != null && validateInputByRegex(initValue, regex)) {
-            Log.info(FOUND_VALID_VALUE);
+            log.info(FOUND_VALID_VALUE);
             return initValue;
         }
 

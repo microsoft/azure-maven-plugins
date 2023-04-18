@@ -9,14 +9,14 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationAspect;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationThreadContext;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import rx.Emitter;
 import rx.Observable;
 
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 
-@Log
+@Slf4j
 public abstract class AzureTaskManager {
 
     private static AzureTaskManager instance;

@@ -22,6 +22,7 @@ import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.models.Tenant;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.Preloader;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
@@ -112,7 +113,9 @@ public abstract class Account implements IAccount {
         final String[] scopes = ScopeUtil.resourceToScopes(this.getEnvironment().getManagementEndpoint());
         final TokenRequestContext request = new TokenRequestContext().addScopes(scopes);
         try {
-            return this.buildDefaultTokenCredential().getToken(request).blockOptional();
+            return this.buildDefaultTokenCredential().getToken(request)
+                .onErrorResume(Exception.class, t -> Mono.empty())
+                .blockOptional();
         } catch (Throwable t) {
             return Optional.empty();
         }
@@ -168,8 +171,10 @@ public abstract class Account implements IAccount {
         final AzureProfile profile = new AzureProfile(tenantId, null, this.getEnvironment());
         final ResourceManager.Authenticated client = configureAzure().authenticate(credential, profile);
         final List<Subscription> subscriptions = client.subscriptions().listAsync().onErrorResume(ex -> {
-                AzureMessager.getMessager().warning(String.format("Cannot get subscriptions for tenant %s " +
-                    ", please verify you have proper permissions over this tenant, detailed error: %s", tenantId, ex.getMessage()));
+                AzureMessager.getMessager().warning(AzureString.format(
+                    "Failed to get subscriptions for tenant %s, please confirm you have sufficient permissions." +
+                        " Use %s to explicitly login to a tenant if it requires Multi-Factor Authentication (MFA)." +
+                        " Message: %s", tenantId, "-Dauth.tenant=TENANT_ID", ex.getMessage()));
                 return Flux.fromIterable(new ArrayList<>());
             }).map(Subscription::new)
             .collect(Collectors.toList()).flatMapIterable(s -> s).collectList().block();

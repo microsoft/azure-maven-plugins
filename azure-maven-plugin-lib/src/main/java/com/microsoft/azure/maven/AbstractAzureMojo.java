@@ -28,7 +28,6 @@ import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -44,6 +43,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.maven.common.action.MavenActionManager;
 import com.microsoft.azure.toolkit.maven.common.messager.MavenAzureMessager;
 import com.microsoft.azure.toolkit.maven.common.task.MavenAzureTaskManager;
+import lombok.extern.slf4j.Slf4j;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
@@ -92,6 +92,7 @@ import java.util.stream.Stream;
 /**
  * Base abstract class for all Azure Mojos.
  */
+@Slf4j
 public abstract class AbstractAzureMojo extends AbstractMojo {
     public static final String PLUGIN_NAME_KEY = "pluginName";
     public static final String PLUGIN_VERSION_KEY = "pluginVersion";
@@ -322,7 +323,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             }
 
             if (isSkipMojo()) {
-                Log.info("Skip execution.");
+                log.info("Skip execution.");
                 onSkipped();
             } else {
                 beforeMojoExecution();
@@ -412,7 +413,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             throw new AzureExecutionException("Cannot find any subscriptions in current account.");
         }
         if (subscriptions.length == 1) {
-            Log.info(String.format("There is only one subscription '%s' in your account, will use it automatically.",
+            log.info(String.format("There is only one subscription '%s' in your account, will use it automatically.",
                 TextUtils.blue(SubscriptionOption.getSubscriptionName(subscriptions[0]))));
             return subscriptions[0].getId();
         }
@@ -438,7 +439,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         checkSubscription(subscriptions, targetSubscriptionId);
         account.setSelectedSubscriptions(Collections.singletonList(targetSubscriptionId));
         final Subscription subscription = account.getSubscription(targetSubscriptionId);
-        Log.info(String.format(SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.getName()), TextUtils.cyan(subscription.getId())));
+        log.info(String.format(SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.getName()), TextUtils.cyan(subscription.getId())));
         this.subscriptionId = targetSubscriptionId;
     }
 
@@ -605,7 +606,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             }
         } catch (Exception e) {
             // catch exceptions here to avoid blocking mojo execution.
-            Log.debug(e.getMessage());
+            log.debug(e.getMessage());
         }
         return true;
     }
@@ -616,14 +617,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             prop.store(output, "Azure Maven Plugin configurations");
         } catch (Exception e) {
             // catch exceptions here to avoid blocking mojo execution.
-            Log.debug(e.getMessage());
+            log.debug(e.getMessage());
         }
     }
 
     protected static class DefaultUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
         @Override
         public void uncaughtException(Thread t, Throwable e) {
-            Log.debug("uncaughtException: " + e);
+            log.debug("uncaughtException: " + e);
         }
     }
 
@@ -634,7 +635,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     public void infoWithMultipleLines(final String messages) {
         final String[] messageArray = messages.split("\\n");
         for (final String line : messageArray) {
-            Log.info(line);
+            log.info(line);
         }
     }
 
@@ -686,7 +687,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
                 return result;
             }
         } catch (RuntimeException e) {
-            getLog().debug(FAILED_TO_GET_VALID_RUNTIMES, e);
+            log.debug(FAILED_TO_GET_VALID_RUNTIMES, e);
             return runtimes;
         }
     }

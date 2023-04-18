@@ -6,8 +6,8 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -18,6 +18,7 @@ import java.io.InputStream;
  * The list mojo is used to provide Java Azure Functions templates information,
  * which is used by other tools such as VS Code Azure Functions extension.
  */
+@Slf4j
 @Mojo(name = "list")
 public class ListMojo extends AbstractFunctionMojo {
 
@@ -38,17 +39,17 @@ public class ListMojo extends AbstractFunctionMojo {
     @AzureOperation("user/functionapp.list")
     protected void doExecute() throws AzureExecutionException {
         try {
-            Log.info(TEMPLATES_START);
+            log.info(TEMPLATES_START);
             printToSystemOut(TEMPLATES_FILE);
-            Log.info(TEMPLATES_END);
+            log.info(TEMPLATES_END);
 
-            Log.info(BINDINGS_START);
+            log.info(BINDINGS_START);
             printToSystemOut(BINDINGS_FILE);
-            Log.info(BINDINGS_END);
+            log.info(BINDINGS_END);
 
-            Log.info(RESOURCES_START);
+            log.info(RESOURCES_START);
             printToSystemOut(RESOURCES_FILE);
-            Log.info(RESOURCES_END);
+            log.info(RESOURCES_END);
         } catch (IOException e) {
             throw new AzureExecutionException("IO error when printing templates:" + e.getMessage(), e);
         }

@@ -11,7 +11,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.keyvalue.DefaultMapEntry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluator;
@@ -42,14 +41,12 @@ import static org.mockito.Mockito.when;
 public class ConfigurationPrompterTest {
     private ConfigurationPrompter wrapper;
     private BufferedReader reader;
-    private Log mockLog;
     private ExpressionEvaluator mockEval;
 
     @Before
     public void setup() throws Exception {
-        mockLog = mock(Log.class);
         mockEval = mock(ExpressionEvaluator.class);
-        wrapper = new ConfigurationPrompter(mockEval, mockLog);
+        wrapper = new ConfigurationPrompter(mockEval);
 
         wrapper.initialize();
         final Object prompt = FieldUtils.readField(wrapper, "prompt", true);
@@ -60,7 +57,7 @@ public class ConfigurationPrompterTest {
 
     @Test
     public void testCtor() {
-        wrapper = new ConfigurationPrompter(mockEval, mockLog);
+        wrapper = new ConfigurationPrompter(mockEval);
         assertNotNull(wrapper);
     }
 

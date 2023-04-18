@@ -6,11 +6,11 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.CommandHandler;
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.CommandHandlerImpl;
 import com.microsoft.azure.toolkit.lib.legacy.function.utils.CommandUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -21,6 +21,7 @@ import java.io.File;
 /**
  * Run Azure Java Functions locally. Azure Functions Core Tools is required to be installed first.
  */
+@Slf4j
 @Mojo(name = "run")
 public class RunMojo extends AbstractFunctionMojo {
     protected static final String FUNC_CMD = "func -v";
@@ -92,7 +93,7 @@ public class RunMojo extends AbstractFunctionMojo {
         if (!file.exists() || !file.isDirectory()) {
             throw new AzureExecutionException(STAGE_DIR_NOT_FOUND);
         }
-        Log.info(STAGE_DIR_FOUND + getDeploymentStagingDirectoryPath());
+        log.info(STAGE_DIR_FOUND + getDeploymentStagingDirectoryPath());
     }
 
     protected void checkRuntimeExistence(final CommandHandler handler) throws AzureExecutionException {
@@ -103,7 +104,7 @@ public class RunMojo extends AbstractFunctionMojo {
                 CommandUtils.getDefaultValidReturnCodes(),
                 RUNTIME_NOT_FOUND
         );
-        Log.info(RUNTIME_FOUND);
+        log.info(RUNTIME_FOUND);
     }
 
     protected void runFunctions(final CommandHandler handler) throws AzureExecutionException {
