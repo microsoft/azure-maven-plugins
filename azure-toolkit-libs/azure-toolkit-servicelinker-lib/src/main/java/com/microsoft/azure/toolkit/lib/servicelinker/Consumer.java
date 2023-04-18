@@ -16,7 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 
 import java.util.Optional;
 
-public interface ServiceLinkerSubscription extends AzResource {
+public interface Consumer extends AzResource {
     default ServiceLinkerManager getManager() {
         final String subscriptionId = getSubscriptionId();
         final Account account = Azure.az(AzureAccount.class).account();

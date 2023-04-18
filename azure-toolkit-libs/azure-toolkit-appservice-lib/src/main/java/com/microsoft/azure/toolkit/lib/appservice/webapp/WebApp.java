@@ -12,8 +12,8 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.servicelinker.Consumer;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
-import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerSubscription;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -23,7 +23,7 @@ import java.util.Objects;
 
 @Getter
 public class WebApp extends WebAppBase<WebApp, AppServiceServiceSubscription, com.azure.resourcemanager.appservice.models.WebApp>
-    implements Deletable, ServiceLinkerSubscription {
+    implements Deletable, Consumer {
 
     @Nonnull
     private final WebAppDeploymentSlotModule deploymentModule;

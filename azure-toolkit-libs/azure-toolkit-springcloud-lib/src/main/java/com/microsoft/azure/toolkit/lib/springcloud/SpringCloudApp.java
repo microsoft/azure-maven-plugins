@@ -10,7 +10,7 @@ import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.microsoft.azure.toolkit.lib.common.model.*;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
-import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerSubscription;
+import com.microsoft.azure.toolkit.lib.servicelinker.Consumer;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -21,7 +21,7 @@ import java.util.*;
 
 @Getter
 public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringCloudCluster, SpringApp>
-    implements Startable, Deletable, ServiceLinkerSubscription {
+    implements Startable, Deletable, Consumer {
 
     @Nonnull
     private final SpringCloudDeploymentModule deploymentModule;
