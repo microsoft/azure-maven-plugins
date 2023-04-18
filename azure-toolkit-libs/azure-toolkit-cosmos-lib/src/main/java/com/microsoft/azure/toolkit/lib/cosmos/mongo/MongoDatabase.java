@@ -13,7 +13,6 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosCollection;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabase;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -23,7 +22,7 @@ public class MongoDatabase extends AbstractAzResource<MongoDatabase, CosmosDBAcc
 
     private final MongoCollectionModule collectionModule;
 
-    protected MongoDatabase(@NotNull String name, @NotNull String resourceGroupName, @NotNull MongoDatabaseModule module) {
+    protected MongoDatabase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull MongoDatabaseModule module) {
         super(name, resourceGroupName, module);
         this.collectionModule = new MongoCollectionModule(this);
     }
@@ -42,7 +41,7 @@ public class MongoDatabase extends AbstractAzResource<MongoDatabase, CosmosDBAcc
         return getParent().getRegion();
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(collectionModule);
@@ -52,9 +51,9 @@ public class MongoDatabase extends AbstractAzResource<MongoDatabase, CosmosDBAcc
         return this.collectionModule;
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public String loadStatus(@NotNull MongoDBDatabaseGetResultsInner remote) {
+    public String loadStatus(@Nonnull MongoDBDatabaseGetResultsInner remote) {
         return Status.RUNNING;
     }
 

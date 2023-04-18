@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccountModule;
 import com.microsoft.azure.toolkit.lib.cosmos.model.CosmosDBAccountConnectionString;
 import com.microsoft.azure.toolkit.lib.cosmos.model.SqlDatabaseAccountConnectionString;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -26,18 +25,18 @@ public class SqlCosmosDBAccount extends CosmosDBAccount {
     private CosmosClient cosmosClient;
     private final SqlDatabaseModule sqlDatabaseModule;
 
-    public SqlCosmosDBAccount(@NotNull String name, @NotNull String resourceGroupName, @NotNull CosmosDBAccountModule module) {
+    public SqlCosmosDBAccount(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull CosmosDBAccountModule module) {
         super(name, resourceGroupName, module);
         this.sqlDatabaseModule = new SqlDatabaseModule(this);
     }
 
-    public SqlCosmosDBAccount(@NotNull SqlCosmosDBAccount account) {
+    public SqlCosmosDBAccount(@Nonnull SqlCosmosDBAccount account) {
         super(account);
         this.sqlDatabaseModule = account.sqlDatabaseModule;
         this.cosmosClient = account.cosmosClient;
     }
 
-    public SqlCosmosDBAccount(@NotNull com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote, @NotNull CosmosDBAccountModule module) {
+    public SqlCosmosDBAccount(@Nonnull com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote, @Nonnull CosmosDBAccountModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
         this.sqlDatabaseModule = new SqlDatabaseModule(this);
     }
@@ -50,7 +49,7 @@ public class SqlCosmosDBAccount extends CosmosDBAccount {
     }
 
     @Override
-    public @NotNull List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
+    public @Nonnull List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(sqlDatabaseModule);
     }
 

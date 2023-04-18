@@ -13,7 +13,6 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosCollection;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabase;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -23,7 +22,7 @@ public class SqlDatabase extends AbstractAzResource<SqlDatabase, CosmosDBAccount
 
     private final SqlContainerModule containerModule;
 
-    protected SqlDatabase(@NotNull String name, @NotNull String resourceGroupName, @NotNull SqlDatabaseModule module) {
+    protected SqlDatabase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull SqlDatabaseModule module) {
         super(name, resourceGroupName, module);
         this.containerModule = new SqlContainerModule(this);
     }
@@ -38,7 +37,7 @@ public class SqlDatabase extends AbstractAzResource<SqlDatabase, CosmosDBAccount
         this.containerModule = new SqlContainerModule(this);
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(containerModule);
@@ -52,9 +51,9 @@ public class SqlDatabase extends AbstractAzResource<SqlDatabase, CosmosDBAccount
         return getParent().getRegion();
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public String loadStatus(@NotNull SqlDatabaseGetResultsInner remote) {
+    public String loadStatus(@Nonnull SqlDatabaseGetResultsInner remote) {
         return Status.RUNNING;
     }
 

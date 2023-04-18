@@ -25,6 +25,9 @@ hs_err_pid*
 
 # IDE
 .idea/
+!.idea/inspectionProfiles/*
+!.idea/codeStyles/*
+!.idea/.gitignore*
 *.iml
 .classpath
 .project

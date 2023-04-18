@@ -3,7 +3,6 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -13,7 +12,7 @@ import java.util.Objects;
 public class SpringCloudAppInstance extends AbstractAzResource<SpringCloudAppInstance, SpringCloudDeployment, DeploymentInstance> {
     private static final String REMOTE_URL_TEMPLATE = "https://%s/api/remoteDebugging/apps/%s/deployments/%s/instances/%s?port=%s";
 
-    protected SpringCloudAppInstance(@NotNull String name, @NotNull SpringCloudAppInstanceModule module) {
+    protected SpringCloudAppInstance(@Nonnull String name, @Nonnull SpringCloudAppInstanceModule module) {
         super(name, module);
     }
 
@@ -21,15 +20,15 @@ public class SpringCloudAppInstance extends AbstractAzResource<SpringCloudAppIns
         super(remote.name(), module);
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public String loadStatus(@NotNull DeploymentInstance remote) {
+    public String loadStatus(@Nonnull DeploymentInstance remote) {
         return remote.status();
     }
 

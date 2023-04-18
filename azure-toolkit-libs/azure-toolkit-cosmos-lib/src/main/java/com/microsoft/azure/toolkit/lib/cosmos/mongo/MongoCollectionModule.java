@@ -12,10 +12,9 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
@@ -25,19 +24,19 @@ import java.util.stream.Stream;
 public class MongoCollectionModule extends AbstractAzResourceModule<MongoCollection, MongoDatabase, MongoDBCollectionGetResultsInner> {
     private static final String NAME = "collections";
 
-    public MongoCollectionModule(@NotNull MongoDatabase parent) {
+    public MongoCollectionModule(@Nonnull MongoDatabase parent) {
         super(NAME, parent);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected MongoCollection newResource(@NotNull MongoDBCollectionGetResultsInner mongoDBCollectionGetResultsInner) {
+    protected MongoCollection newResource(@Nonnull MongoDBCollectionGetResultsInner mongoDBCollectionGetResultsInner) {
         return new MongoCollection(mongoDBCollectionGetResultsInner, this);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected MongoCollection newResource(@NotNull String name, @Nullable String resourceGroupName) {
+    protected MongoCollection newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         return new MongoCollection(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
@@ -53,7 +52,7 @@ public class MongoCollectionModule extends AbstractAzResourceModule<MongoCollect
         }).orElse(Collections.emptyIterator());
     }
 
-    @NotNull
+    @Nonnull
     @Override
     protected Stream<MongoDBCollectionGetResultsInner> loadResourcesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
@@ -67,7 +66,7 @@ public class MongoCollectionModule extends AbstractAzResourceModule<MongoCollect
 
     @Nullable
     @Override
-    protected MongoDBCollectionGetResultsInner loadResourceFromAzure(@NotNull String name, @Nullable String resourceGroup) {
+    protected MongoDBCollectionGetResultsInner loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
                 return client.getMongoDBCollection(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName(), name);
@@ -79,20 +78,20 @@ public class MongoCollectionModule extends AbstractAzResourceModule<MongoCollect
 
     @Override
     @AzureOperation(name = "azure/cosmos.delete_mongo_collection.collection", params = {"nameFromResourceId(resourceId)"})
-    protected void deleteResourceFromAzure(@NotNull String resourceId) {
+    protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteMongoDBCollection(id.resourceGroupName(), id.parent().parent().name(), id.parent().name(), id.name()));
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected AzResource.Draft<MongoCollection, MongoDBCollectionGetResultsInner> newDraftForCreate(@NotNull String name, @Nullable String rgName) {
+    protected AzResource.Draft<MongoCollection, MongoDBCollectionGetResultsInner> newDraftForCreate(@Nonnull String name, @Nullable String rgName) {
         return new MongoCollectionDraft(name, Objects.requireNonNull(rgName), this);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected AzResource.Draft<MongoCollection, MongoDBCollectionGetResultsInner> newDraftForUpdate(@NotNull MongoCollection mongoCollection) {
+    protected AzResource.Draft<MongoCollection, MongoDBCollectionGetResultsInner> newDraftForUpdate(@Nonnull MongoCollection mongoCollection) {
         throw new AzureToolkitRuntimeException("not supported");
     }
 

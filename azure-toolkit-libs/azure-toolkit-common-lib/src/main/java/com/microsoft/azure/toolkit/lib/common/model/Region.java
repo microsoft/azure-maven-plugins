@@ -12,7 +12,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -102,7 +101,7 @@ public class Region implements ExpandableParameter {
     @Nonnull
     private String abbreviation;
 
-    Region(@NotNull String name, @NotNull String label) {
+    Region(@Nonnull String name, @Nonnull String label) {
         this.name = name;
         this.label = label;
         this.abbreviation = name;

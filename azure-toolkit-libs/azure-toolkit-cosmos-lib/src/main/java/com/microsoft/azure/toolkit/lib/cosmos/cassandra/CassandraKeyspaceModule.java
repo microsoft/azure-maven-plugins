@@ -12,10 +12,9 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
@@ -25,25 +24,25 @@ import java.util.stream.Stream;
 public class CassandraKeyspaceModule extends AbstractAzResourceModule<CassandraKeyspace, CosmosDBAccount, CassandraKeyspaceGetResultsInner> {
     private static final String NAME = "cassandraKeyspaces";
 
-    public CassandraKeyspaceModule(@NotNull CassandraCosmosDBAccount parent) {
+    public CassandraKeyspaceModule(@Nonnull CassandraCosmosDBAccount parent) {
         super(NAME, parent);
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "Cassandra Keyspace";
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected CassandraKeyspace newResource(@NotNull CassandraKeyspaceGetResultsInner resource) {
+    protected CassandraKeyspace newResource(@Nonnull CassandraKeyspaceGetResultsInner resource) {
         return new CassandraKeyspace(resource, this);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected CassandraKeyspace newResource(@NotNull String name, @Nullable String resourceGroupName) {
+    protected CassandraKeyspace newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         return new CassandraKeyspace(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
@@ -59,7 +58,7 @@ public class CassandraKeyspaceModule extends AbstractAzResourceModule<CassandraK
         }).orElse(Collections.emptyIterator());
     }
 
-    @NotNull
+    @Nonnull
     @Override
     protected Stream<CassandraKeyspaceGetResultsInner> loadResourcesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
@@ -73,7 +72,7 @@ public class CassandraKeyspaceModule extends AbstractAzResourceModule<CassandraK
 
     @Nullable
     @Override
-    protected CassandraKeyspaceGetResultsInner loadResourceFromAzure(@NotNull String name, @Nullable String resourceGroup) {
+    protected CassandraKeyspaceGetResultsInner loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         return Optional.ofNullable(getClient()).map(client -> {
             try {
                 return client.getCassandraKeyspace(parent.getResourceGroupName(), parent.getName(), name);
@@ -85,20 +84,20 @@ public class CassandraKeyspaceModule extends AbstractAzResourceModule<CassandraK
 
     @Override
     @AzureOperation(name = "azure/cosmos.delete_cassandra_keyspace.keyspace", params = {"nameFromResourceId(resourceId)"})
-    protected void deleteResourceFromAzure(@NotNull String resourceId) {
+    protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteCassandraKeyspace(id.resourceGroupName(), id.parent().name(), id.name()));
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected CassandraKeyspaceDraft newDraftForCreate(@NotNull String name, @Nullable String rgName) {
+    protected CassandraKeyspaceDraft newDraftForCreate(@Nonnull String name, @Nullable String rgName) {
         return new CassandraKeyspaceDraft(name, Objects.requireNonNull(rgName), this);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected CassandraKeyspaceDraft newDraftForUpdate(@NotNull CassandraKeyspace cassandraKeyspace) {
+    protected CassandraKeyspaceDraft newDraftForUpdate(@Nonnull CassandraKeyspace cassandraKeyspace) {
         throw new UnsupportedOperationException("not support");
     }
 

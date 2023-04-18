@@ -12,10 +12,9 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
@@ -25,25 +24,25 @@ import java.util.stream.Stream;
 public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, CosmosDBAccount, SqlDatabaseGetResultsInner> {
     private static final String NAME = "sqlDatabases";
 
-    public SqlDatabaseModule(@NotNull SqlCosmosDBAccount parent) {
+    public SqlDatabaseModule(@Nonnull SqlCosmosDBAccount parent) {
         super(NAME, parent);
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public String getResourceTypeName() {
         return "SQL Database";
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected SqlDatabase newResource(@NotNull SqlDatabaseGetResultsInner resource) {
+    protected SqlDatabase newResource(@Nonnull SqlDatabaseGetResultsInner resource) {
         return new SqlDatabase(resource, this);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected SqlDatabase newResource(@NotNull String name, @Nullable String resourceGroupName) {
+    protected SqlDatabase newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         return new SqlDatabase(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
@@ -59,7 +58,7 @@ public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, Cos
         }).orElse(Collections.emptyIterator());
     }
 
-    @NotNull
+    @Nonnull
     @Override
     protected Stream<SqlDatabaseGetResultsInner> loadResourcesFromAzure() {
         return Optional.ofNullable(getClient()).map(client -> {
@@ -73,7 +72,7 @@ public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, Cos
 
     @Nullable
     @Override
-    protected SqlDatabaseGetResultsInner loadResourceFromAzure(@NotNull String name, @Nullable String resourceGroup) {
+    protected SqlDatabaseGetResultsInner loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         return Optional.ofNullable(getClient()).map(client -> {
                 try {
                     return client.getSqlDatabase(parent.getResourceGroupName(), parent.getName(), name);
@@ -86,20 +85,20 @@ public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, Cos
 
     @Override
     @AzureOperation(name = "azure/cosmos.delete_sql_database.database", params = {"nameFromResourceId(resourceId)"})
-    protected void deleteResourceFromAzure(@NotNull String resourceId) {
+    protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteSqlDatabase(id.resourceGroupName(), id.parent().name(), id.name()));
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected SqlDatabaseDraft newDraftForCreate(@NotNull String name, @Nullable String rgName) {
+    protected SqlDatabaseDraft newDraftForCreate(@Nonnull String name, @Nullable String rgName) {
         return new SqlDatabaseDraft(name, Objects.requireNonNull(rgName), this);
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected SqlDatabaseDraft newDraftForUpdate(@NotNull SqlDatabase sqlDatabase) {
+    protected SqlDatabaseDraft newDraftForUpdate(@Nonnull SqlDatabase sqlDatabase) {
         throw new UnsupportedOperationException("not support");
     }
 

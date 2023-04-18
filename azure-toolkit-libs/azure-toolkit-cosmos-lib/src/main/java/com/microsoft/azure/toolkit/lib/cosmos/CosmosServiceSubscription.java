@@ -11,7 +11,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscriptio
 import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -29,7 +28,7 @@ public class CosmosServiceSubscription extends AbstractAzServiceSubscription<Cos
     private final String subscriptionId;
     private final CosmosDBAccountModule cosmosDBAccountModule;
 
-    protected CosmosServiceSubscription(@NotNull String subscriptionId, @NotNull AzureCosmosService service) {
+    protected CosmosServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzureCosmosService service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.cosmosDBAccountModule = new CosmosDBAccountModule(this);
@@ -57,7 +56,7 @@ public class CosmosServiceSubscription extends AbstractAzServiceSubscription<Cos
         return new Availability(!exists, message, message);
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(cosmosDBAccountModule);

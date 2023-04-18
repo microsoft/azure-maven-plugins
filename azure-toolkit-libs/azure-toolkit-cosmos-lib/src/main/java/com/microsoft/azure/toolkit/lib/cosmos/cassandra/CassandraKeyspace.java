@@ -13,7 +13,6 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosCollection;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabase;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -23,7 +22,7 @@ public class CassandraKeyspace extends AbstractAzResource<CassandraKeyspace, Cos
 
     private final CassandraTableModule containerModule;
 
-    protected CassandraKeyspace(@NotNull String name, @NotNull String resourceGroupName, @NotNull CassandraKeyspaceModule module) {
+    protected CassandraKeyspace(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull CassandraKeyspaceModule module) {
         super(name, resourceGroupName, module);
         this.containerModule = new CassandraTableModule(this);
     }
@@ -38,7 +37,7 @@ public class CassandraKeyspace extends AbstractAzResource<CassandraKeyspace, Cos
         this.containerModule = new CassandraTableModule(this);
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(containerModule);
@@ -52,9 +51,9 @@ public class CassandraKeyspace extends AbstractAzResource<CassandraKeyspace, Cos
         return this.containerModule;
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public String loadStatus(@NotNull CassandraKeyspaceGetResultsInner remote) {
+    public String loadStatus(@Nonnull CassandraKeyspaceGetResultsInner remote) {
         return Status.RUNNING;
     }
 

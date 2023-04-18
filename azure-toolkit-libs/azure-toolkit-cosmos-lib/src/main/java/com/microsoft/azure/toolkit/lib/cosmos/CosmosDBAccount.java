@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.cosmos.model.CosmosDBAccountConnectionStr
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseAccountConnectionStrings;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseAccountKeys;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseAccountKind;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -58,7 +57,7 @@ public class CosmosDBAccount extends AbstractAzResource<CosmosDBAccount, CosmosS
         return Optional.ofNullable(getRemote()).map(DatabaseAccountKind::fromAccount).orElse(null);
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
@@ -79,9 +78,9 @@ public class CosmosDBAccount extends AbstractAzResource<CosmosDBAccount, CosmosS
         return null;
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public String loadStatus(@NotNull com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote) {
+    public String loadStatus(@Nonnull com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote) {
         // todo: investigate how to get status instead of provisioning state
         return remote.innerModel().provisioningState();
     }

@@ -7,7 +7,8 @@ package com.microsoft.azure.toolkit.lib.common.proxy;
 
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 @SuperBuilder
 @Getter

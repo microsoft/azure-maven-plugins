@@ -9,7 +9,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -44,7 +43,7 @@ public class EventHubsNamespaceSubscription extends AbstractAzServiceSubscriptio
     }
 
     @Override
-    public List<Region> listSupportedRegions(@NotNull String resourceType) {
+    public List<Region> listSupportedRegions(@Nonnull String resourceType) {
         return super.listSupportedRegions(this.eventHubsNamespaceModule.getName());
     }
 }

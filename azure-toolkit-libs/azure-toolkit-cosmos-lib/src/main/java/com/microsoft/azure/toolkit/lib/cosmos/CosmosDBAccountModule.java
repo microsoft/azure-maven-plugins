@@ -13,7 +13,6 @@ import com.microsoft.azure.toolkit.lib.cosmos.cassandra.CassandraCosmosDBAccount
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseAccountKind;
 import com.microsoft.azure.toolkit.lib.cosmos.mongo.MongoCosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.sql.SqlCosmosDBAccount;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -63,20 +62,20 @@ public class CosmosDBAccountModule extends AbstractAzResourceModule<CosmosDBAcco
         return "Azure Cosmos DB account";
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected AzResource.Draft<CosmosDBAccount, com.azure.resourcemanager.cosmos.models.CosmosDBAccount> newDraftForUpdate(@NotNull CosmosDBAccount cosmosDBAccount) {
+    protected AzResource.Draft<CosmosDBAccount, com.azure.resourcemanager.cosmos.models.CosmosDBAccount> newDraftForUpdate(@Nonnull CosmosDBAccount cosmosDBAccount) {
         throw new UnsupportedOperationException("not support");
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected AzResource.Draft<CosmosDBAccount, com.azure.resourcemanager.cosmos.models.CosmosDBAccount> newDraftForCreate(@NotNull String name, @org.jetbrains.annotations.Nullable String rgName) {
+    protected AzResource.Draft<CosmosDBAccount, com.azure.resourcemanager.cosmos.models.CosmosDBAccount> newDraftForCreate(@Nonnull String name, @Nullable String rgName) {
         return new CosmosDBAccountDraft(name, Objects.requireNonNull(rgName), this);
     }
 
-    @NotNull
-    public CosmosDBAccount create(@NotNull AzResource.Draft<CosmosDBAccount, ?> draft) {
+    @Nonnull
+    public CosmosDBAccount create(@Nonnull AzResource.Draft<CosmosDBAccount, ?> draft) {
         final CosmosDBAccount draftAccount = super.create(draft);
         this.deleteResourceFromLocal(draftAccount.getId()); // remove draft account from local cache as we can't tell the kind from draft
         final com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote = draftAccount.getRemote();

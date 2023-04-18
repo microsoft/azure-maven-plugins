@@ -10,7 +10,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosCollection;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -30,15 +29,15 @@ public class CassandraTable extends AbstractAzResource<CassandraTable, Cassandra
         super(collection);
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    public String loadStatus(@NotNull CassandraTableGetResultsInner remote) {
+    public String loadStatus(@Nonnull CassandraTableGetResultsInner remote) {
         return Status.RUNNING;
     }
 }
