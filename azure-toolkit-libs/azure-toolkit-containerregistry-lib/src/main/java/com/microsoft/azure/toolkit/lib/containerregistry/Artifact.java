@@ -56,6 +56,8 @@ public class Artifact extends AbstractAzResource<Artifact, Repository, ArtifactM
         if (Objects.nonNull(newRemote)) {
             final ContainerRepository repository = Objects.requireNonNull(this.getParent().getRemote());
             this.artifact = repository.getArtifact(newRemote.getDigest());
+        } else {
+            this.artifact = null;
         }
     }
 

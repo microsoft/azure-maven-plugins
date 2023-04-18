@@ -57,7 +57,6 @@ public class Tag extends AbstractAzResource<Tag, Artifact, ArtifactTagProperties
         final ContainerRegistry registry = repository.getParent();
         final String encodedRegistryId = URLEncoder.encode(registry.getId(), "UTF-8");
         final String encodedRepositoryName = URLEncoder.encode(repository.getName(), "UTF-8");
-        // https://ms.portal.azure.com/#blade/Microsoft_Azure_ContainerRegistries/TagMetadataBlade/registryId/%2Fsubscriptions%2F685ba005-af8d-4b04-8f16-a7bf38b2eb5a%2FresourceGroups%2Frg-wangmi%2Fproviders%2FMicrosoft.ContainerRegistry%2Fregistries%2Fwangmistandard/repositoryName/gr8miller%2Fcontainerapps-albumapi-javascript/tag/1.0.0
         return String.format("%s/#blade/Microsoft_Azure_ContainerRegistries/TagMetadataBlade/registryId/%s/repositoryName/%s/tag/%s", account.getPortalUrl(), encodedRegistryId, encodedRepositoryName, this.getName());
     }
 

@@ -77,7 +77,6 @@ public class Repository extends AbstractAzResource<Repository, ContainerRegistry
         final IAccount account = Azure.az(IAzureAccount.class).account();
         final String encodedRegistryId = URLEncoder.encode(this.getParent().getId(), "UTF-8");
         final String encodedRepositoryName = URLEncoder.encode(this.getName(), "UTF-8");
-        // https://ms.portal.azure.com/#blade/Microsoft_Azure_ContainerRegistries/RepositoryBlade/id/%2Fsubscriptions%2F685ba005-af8d-4b04-8f16-a7bf38b2eb5a%2FresourceGroups%2Frg-wangmi%2Fproviders%2FMicrosoft.ContainerRegistry%2Fregistries%2Fwangmistandard/repository/gr8miller%2Fcontainerapps-albumapi-javascript
         return String.format("%s/#blade/Microsoft_Azure_ContainerRegistries/RepositoryBlade/id/%s/repository/%s", account.getPortalUrl(), encodedRegistryId, encodedRepositoryName);
     }
 

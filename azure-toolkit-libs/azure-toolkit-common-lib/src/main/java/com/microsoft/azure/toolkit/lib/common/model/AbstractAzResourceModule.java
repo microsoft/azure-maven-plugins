@@ -30,10 +30,7 @@ import com.microsoft.azure.toolkit.lib.resource.GenericResourceModule;
 import com.microsoft.azure.toolkit.lib.resource.ResourceDeployment;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupModule;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -42,6 +39,8 @@ import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -428,10 +427,11 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
+    @SneakyThrows(UnsupportedEncodingException.class)
     public String toResourceId(@Nonnull String resourceName, @Nullable String resourceGroup) {
         resourceGroup = StringUtils.firstNonBlank(resourceGroup, this.getParent().getResourceGroupName(), RESOURCE_GROUP_PLACEHOLDER);
         // resource (ACR repository) name may contain "/".
-        final String encoded = resourceName.replaceAll("/", "%2F");
+        final String encoded = URLEncoder.encode(resourceName, "UTF-8");
         return String.format("%s/%s/%s", this.parent.getId(), this.getName(), encoded).replace(RESOURCE_GROUP_PLACEHOLDER, resourceGroup);
     }
 
