@@ -5,6 +5,7 @@ import com.azure.resourcemanager.servicelinker.models.AzureResource;
 import com.azure.resourcemanager.servicelinker.models.LinkerResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -13,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class ServiceLinker extends AbstractAzResource<ServiceLinker, ServiceLinkerSubscription, LinkerResource> {
+public class ServiceLinker extends AbstractAzResource<ServiceLinker, ServiceLinkerSubscription, LinkerResource> implements Deletable {
     @Nullable
     @Getter
     private String targetResourceId = null;

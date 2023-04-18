@@ -1,6 +1,7 @@
 package com.microsoft.azure.toolkit.lib.servicelinker;
 
 import com.azure.core.util.paging.ContinuablePage;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.servicelinker.ServiceLinkerManager;
 import com.azure.resourcemanager.servicelinker.models.LinkerResource;
 import com.azure.resourcemanager.servicelinker.models.Linkers;
@@ -45,6 +46,14 @@ public class ServiceLinkerModule extends AbstractAzResourceModule<ServiceLinker,
     @Override
     protected ServiceLinker newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         return new ServiceLinker(name, Objects.requireNonNull(resourceGroupName), this);
+    }
+
+    @Override
+    protected void deleteResourceFromAzure(@Nonnull String resourceId) {
+        Optional.ofNullable(this.getClient()).ifPresent(linkers -> {
+            final ResourceId resource = ResourceId.fromString(resourceId);
+            linkers.deleteByResourceGroup(targetResourceId, resource.name());
+        });
     }
 
     @Nullable
