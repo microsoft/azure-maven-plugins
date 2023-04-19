@@ -23,12 +23,12 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 public class RepositoryModule extends AbstractAzResourceModule<Repository, ContainerRegistry, ContainerRepository> {
 
     public static final String NAME = "repositories";
+    @Nullable
     private ContainerRegistryClient client;
 
     public RepositoryModule(@Nonnull ContainerRegistry parent) {
@@ -61,10 +61,14 @@ public class RepositoryModule extends AbstractAzResourceModule<Repository, Conta
         if (!this.parent.exists()) {
             return Collections.emptyIterator();
         }
-        return Optional.ofNullable(this.getClient())
-            .map(c -> c.listRepositoryNames().streamByPage(getPageSize())
-                .map(p -> new ItemPage<>(p.getValue().stream().map(client::getRepository))).iterator())
-            .orElse(Collections.emptyIterator());
+        final ContainerRegistryClient client = this.getClient();
+        if (Objects.nonNull(client)) {
+            return client.listRepositoryNames().streamByPage(getPageSize())
+                .map(p -> p.getValue().stream().map(client::getRepository))
+                .map(ItemPage::new).iterator();
+        } else {
+            return Collections.emptyIterator();
+        }
     }
 
     @Nonnull

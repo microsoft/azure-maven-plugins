@@ -75,6 +75,10 @@ public class Artifact extends AbstractAzResource<Artifact, Repository, ArtifactM
         return this.remoteOptional().map(ArtifactManifestProperties::getSizeInBytes).orElse(0L);
     }
 
+    public List<String> getTags() {
+        return this.remoteOptional().map(ArtifactManifestProperties::getTags).orElse(Collections.emptyList());
+    }
+
     @Nonnull
     public OffsetDateTime getLastUpdateDate() {
         return this.remoteOptional().map(ArtifactManifestProperties::getLastUpdatedOn).orElse(OffsetDateTime.MIN);
