@@ -97,7 +97,7 @@ public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azu
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.emptyList();
+        return Collections.singletonList(replicaModule);
     }
 
     public boolean isActive() {
