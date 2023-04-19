@@ -43,7 +43,7 @@ public class Replica extends AbstractAzResource<Replica, Revision, com.azure.res
         return Status.UNKNOWN;
     }
 
-    public List<ReplicaContainer> getContainerList() {
+    public List<ReplicaContainer> getContainers() {
         return Optional.ofNullable(getRemote()).map(com.azure.resourcemanager.appcontainers.models.Replica::containers).orElse(Collections.emptyList());
     }
 }

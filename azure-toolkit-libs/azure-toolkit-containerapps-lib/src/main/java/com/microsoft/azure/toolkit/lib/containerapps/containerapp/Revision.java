@@ -118,7 +118,7 @@ public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azu
         return provisioningState.toString();
     }
 
-    public List<Replica> getReplicaList() {
+    public List<Replica> getReplicas() {
         return replicaModule.list();
     }
 

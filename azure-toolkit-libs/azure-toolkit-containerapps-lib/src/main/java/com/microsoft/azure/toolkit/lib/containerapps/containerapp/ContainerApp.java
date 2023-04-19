@@ -205,7 +205,7 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
         return false;
     }
 
-    public List<Revision> getRevisionList() {
+    public List<Revision> getRevisions() {
         return revisionModule.list();
     }
 
