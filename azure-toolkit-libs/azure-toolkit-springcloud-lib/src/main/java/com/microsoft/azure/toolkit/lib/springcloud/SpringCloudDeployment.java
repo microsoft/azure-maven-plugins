@@ -13,17 +13,15 @@ import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.RemoteDebuggingPayload;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasManager;
-import com.google.common.collect.ImmutableMap;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.utils.StreamingLogUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.StreamingLogSupport;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerConsumer;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
-import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -31,7 +29,7 @@ import java.util.*;
 
 @SuppressWarnings("unused")
 public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment>
-        implements ServiceLinkerConsumer {
+        implements ServiceLinkerConsumer, StreamingLogSupport {
     @Nonnull
     private final SpringCloudAppInstanceModule instanceModule;
     private final ServiceLinkerModule linkerModule;
@@ -100,27 +98,6 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
             .map(AppPlatformManagementClient::getDeployments)
             .map(c -> c.getRemoteDebuggingConfig(this.getResourceGroupName(), cluster.getName(), app.getName(), this.getName()))
             .map(RemoteDebuggingInner::enabled).orElse(false);
-    }
-
-    @Nonnull
-    @SneakyThrows
-    public Flux<String> streamLogs(final String instance) {
-        return streamLogs(instance, 0, 10, 0, true);
-    }
-
-    @Nonnull
-    @SneakyThrows
-    public Flux<String> streamLogs(final String instance, int sinceSeconds, int tailLines, int limitBytes, boolean follow) {
-        final String endpoint = this.getParent().getLogStreamingEndpoint(instance);
-        final String password = this.getParent().getParent().getTestKey();
-        final String userPass = "primary:" + password;
-        final String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userPass.getBytes()));
-        final Map<String, String> params = ImmutableMap.of("follow", String.valueOf(follow),
-                "tailLines", String.valueOf(tailLines),
-                "sinceSeconds", String.valueOf(sinceSeconds),
-                "limitBytes", String.valueOf(limitBytes)
-                );
-        return StreamingLogUtils.streamingLogs(endpoint, params, ImmutableMap.of("Authorization", basicAuth));
     }
 
     @AzureOperation(name = "internal/springcloud.wait_until_deployment_ready.deployment|app", params = {"this.getName()", "this.getParent().getName()"})
@@ -243,6 +220,13 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     public SpringCloudAppInstance getLatestInstance() {
         return getInstances().stream().filter(springCloudAppInstance -> Objects.nonNull(springCloudAppInstance.getRemote()))
                 .max(Comparator.comparing(instance -> instance.getRemote().startTime())).orElse(null);
+    }
+
+    @Override
+    public String getAuthorizationValue() {
+        final String password = this.getParent().getParent().getTestKey();
+        final String userPass = "primary:" + password;
+        return "Basic " + new String(Base64.getEncoder().encode(userPass.getBytes()));
     }
 
     @Override

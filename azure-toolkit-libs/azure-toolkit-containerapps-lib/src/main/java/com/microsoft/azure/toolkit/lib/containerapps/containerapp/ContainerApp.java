@@ -9,7 +9,6 @@ import com.azure.resourcemanager.appcontainers.ContainerAppsApiManager;
 import com.azure.resourcemanager.appcontainers.fluent.models.ContainerAppInner;
 import com.azure.resourcemanager.appcontainers.models.*;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.google.common.collect.ImmutableMap;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -17,7 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
-import com.microsoft.azure.toolkit.lib.common.utils.StreamingLogUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.StreamingLogSupport;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerAppsServiceSubscription;
 import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
@@ -28,14 +27,16 @@ import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @SuppressWarnings("unused")
-public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContainerAppsServiceSubscription, com.azure.resourcemanager.appcontainers.models.ContainerApp> implements Deletable, ServiceLinkerConsumer  {
+public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContainerAppsServiceSubscription, com.azure.resourcemanager.appcontainers.models.ContainerApp> implements Deletable, StreamingLogSupport, ServiceLinkerConsumer  {
     public static final String LOG_TYPE_CONSOLE = "console";
     public static final String LOG_TYPE_SYSTEM = "system";
     @Getter
@@ -210,16 +211,7 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
     }
 
     // refer to https://github.com/Azure/azure-cli-extensions/blob/main/src/containerapp/azext_containerapp/custom.py
-    public Flux<String> streamingLogs(String logType, String revisionName, String replicaName, String containerName,
-                                      boolean follow, int tailLines) {
-        final String endPoint = getLogStreamingEndpoint(logType, revisionName, replicaName, containerName);
-        final String basicAuth = "Bearer " + getAuthToken();
-        final Map<String, String> params = ImmutableMap.of("follow", String.valueOf(follow), "tailLines", String.valueOf(tailLines));
-        return StreamingLogUtils.streamingLogs(endPoint, params, ImmutableMap.of("Authorization", basicAuth));
-    }
-
-    @Nullable
-    private String getLogStreamingEndpoint(String logType, String revisionName, String replicaName, String containerName) {
+    public @Nullable String getLogStreamingEndpoint(String logType, String revisionName, String replicaName, String containerName) {
         final com.azure.resourcemanager.appcontainers.models.ContainerApp remoteApp = this.getRemote();
         if (Objects.isNull(remoteApp)) {
             throw new AzureToolkitRuntimeException(AzureString.format("resource ({0}) not found", getName()).toString());
@@ -236,10 +228,11 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
         return null;
     }
 
-    @Nullable
-    private String getAuthToken() {
+    @Override
+    public String getAuthorizationValue() {
         final ContainerAppsApiManager manager = getParent().getRemote();
-        return Optional.ofNullable(manager).map(m -> m.containerApps().getAuthToken(getResourceGroupName(), getName()).token()).orElse(null);
+        final String authToken = Optional.ofNullable(manager).map(m -> m.containerApps().getAuthToken(getResourceGroupName(), getName()).token()).orElse(null);
+        return "Bearer " + authToken;
     }
 
     @Override

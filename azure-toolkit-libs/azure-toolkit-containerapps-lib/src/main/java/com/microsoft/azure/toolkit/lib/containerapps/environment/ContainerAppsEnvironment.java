@@ -11,23 +11,22 @@ import com.azure.resourcemanager.appcontainers.models.CheckNameAvailabilityReque
 import com.azure.resourcemanager.appcontainers.models.CheckNameAvailabilityResponse;
 import com.azure.resourcemanager.appcontainers.models.ManagedEnvironment;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.google.common.collect.ImmutableMap;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.*;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.utils.StreamingLogUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.StreamingLogSupport;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerAppsServiceSubscription;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
-import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-public class ContainerAppsEnvironment extends AbstractAzResource<ContainerAppsEnvironment, AzureContainerAppsServiceSubscription, ManagedEnvironment> implements Deletable {
+public class ContainerAppsEnvironment extends AbstractAzResource<ContainerAppsEnvironment, AzureContainerAppsServiceSubscription, ManagedEnvironment>
+        implements Deletable, StreamingLogSupport {
     protected ContainerAppsEnvironment(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull ContainerAppsEnvironmentModule module) {
         super(name, resourceGroupName, module);
     }
@@ -75,14 +74,7 @@ public class ContainerAppsEnvironment extends AbstractAzResource<ContainerAppsEn
         return remote.provisioningState().toString();
     }
 
-    public Flux<String> streamingLogs(boolean follow, int tailLines) {
-        final String endPoint = getLogStreamingEndpoint();
-        final String basicAuth = "Bearer " + getAuthToken();
-        final Map<String, String> params = ImmutableMap.of("follow", String.valueOf(follow), "tailLines", String.valueOf(tailLines));
-        return StreamingLogUtils.streamingLogs(endPoint, params, ImmutableMap.of("Authorization", basicAuth));
-    }
-
-    private String getLogStreamingEndpoint() {
+    public String getLogStreamingEndpoint() {
         final ManagedEnvironment remoteEnv = this.getRemote();
         if (Objects.isNull(remoteEnv)) {
             throw new AzureToolkitRuntimeException(AzureString.format("resource ({0}) not found", getName()).toString());
@@ -92,9 +84,10 @@ public class ContainerAppsEnvironment extends AbstractAzResource<ContainerAppsEn
                 baseUrl, getSubscriptionId(), getResourceGroupName(), getName());
     }
 
-    @Nullable
-    private String getAuthToken() {
+    @Override
+    public String getAuthorizationValue() {
         final ContainerAppsApiManager manager = getParent().getRemote();
-        return Optional.ofNullable(manager).map(m -> m.managedEnvironments().getAuthToken(getResourceGroupName(), getName()).token()).orElse(null);
+        final String authToken = Optional.ofNullable(manager).map(m -> m.managedEnvironments().getAuthToken(getResourceGroupName(), getName()).token()).orElse(null);
+        return "Bearer " + authToken;
     }
 }
