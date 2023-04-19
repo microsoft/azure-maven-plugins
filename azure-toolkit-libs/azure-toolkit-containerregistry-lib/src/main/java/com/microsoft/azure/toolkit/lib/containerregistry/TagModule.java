@@ -54,6 +54,15 @@ public class TagModule extends AbstractAzResourceModule<Tag, Artifact, ArtifactT
         return artifact.getTagProperties(name);
     }
 
+    @Override
+    protected void deleteResourceFromAzure(@Nonnull String resourceId) {
+        final Tag tag = this.get(resourceId);
+        Optional.ofNullable(tag)
+            .map(AbstractAzResource::getParent)
+            .map(Artifact::getArtifact)
+            .ifPresent(a -> a.deleteTag(tag.getName()));
+    }
+
     @Nonnull
     @Override
     protected Tag newResource(@Nonnull ArtifactTagProperties tag) {

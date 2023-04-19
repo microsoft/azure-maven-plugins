@@ -91,6 +91,16 @@ public class RepositoryModule extends AbstractAzResourceModule<Repository, Conta
         return Objects.requireNonNull(client).getRepository(name);
     }
 
+    @Override
+    protected void deleteResourceFromAzure(@Nonnull String resourceId) {
+        final Repository repository = this.get(resourceId);
+        if (!this.parent.exists() || Objects.isNull(repository)) {
+            return;
+        }
+        final ContainerRegistryClient client = this.getClient();
+        Objects.requireNonNull(client).deleteRepository(repository.getName());
+    }
+
     @SneakyThrows
     @Nonnull
     @Override

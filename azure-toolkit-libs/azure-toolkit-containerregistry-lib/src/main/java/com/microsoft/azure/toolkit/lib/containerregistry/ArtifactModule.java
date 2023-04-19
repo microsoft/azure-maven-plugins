@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.containerregistry;
 
 import com.azure.containers.containerregistry.ContainerRepository;
+import com.azure.containers.containerregistry.RegistryArtifact;
 import com.azure.containers.containerregistry.models.ArtifactManifestProperties;
 import com.azure.core.util.paging.ContinuablePage;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -46,6 +47,11 @@ public class ArtifactModule extends AbstractAzResourceModule<Artifact, Repositor
         return remote.listManifestProperties().stream()
             .filter(p -> p.getRepositoryName().equalsIgnoreCase(name))
             .findAny().orElse(null);
+    }
+
+    @Override
+    protected void deleteResourceFromAzure(@Nonnull String resourceId) {
+        Optional.ofNullable(this.get(resourceId)).map(Artifact::getArtifact).ifPresent(RegistryArtifact::delete);
     }
 
     @Nonnull

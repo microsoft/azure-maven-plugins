@@ -20,7 +20,6 @@ import java.net.URLEncoder;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 public class Tag extends AbstractAzResource<Tag, Artifact, ArtifactTagProperties> implements Deletable {
     protected Tag(@Nonnull String name, @Nonnull TagModule module) {
@@ -41,11 +40,6 @@ public class Tag extends AbstractAzResource<Tag, Artifact, ArtifactTagProperties
     @Override
     public String loadStatus(@Nonnull ArtifactTagProperties remote) {
         return Status.UNKNOWN;
-    }
-
-    @Override
-    public void delete() {
-        Optional.ofNullable(this.getParent().getArtifact()).ifPresent(a -> a.deleteTag(this.getName()));
     }
 
     @Nonnull
