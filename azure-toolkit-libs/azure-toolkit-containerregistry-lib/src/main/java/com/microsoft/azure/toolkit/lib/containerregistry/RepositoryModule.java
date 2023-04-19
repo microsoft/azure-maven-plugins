@@ -121,6 +121,6 @@ public class RepositoryModule extends AbstractAzResourceModule<Repository, Conta
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "Container ContainerRepository";
+        return "Repository";
     }
 }
