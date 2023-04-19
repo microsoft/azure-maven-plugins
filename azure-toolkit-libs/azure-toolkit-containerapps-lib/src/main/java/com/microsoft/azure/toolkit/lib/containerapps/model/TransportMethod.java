@@ -8,12 +8,14 @@ package com.microsoft.azure.toolkit.lib.containerapps.model;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
 public class TransportMethod {

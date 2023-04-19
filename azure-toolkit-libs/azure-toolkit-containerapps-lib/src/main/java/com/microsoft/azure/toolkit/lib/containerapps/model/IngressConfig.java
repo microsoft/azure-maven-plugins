@@ -8,9 +8,7 @@ package com.microsoft.azure.toolkit.lib.containerapps.model;
 import com.azure.resourcemanager.appcontainers.models.Ingress;
 import com.azure.resourcemanager.appcontainers.models.IngressTransportMethod;
 import com.azure.resourcemanager.appcontainers.models.TrafficWeight;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,6 +19,8 @@ import java.util.stream.Collectors;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode
 public class IngressConfig {
     public static final Traffic DEFAULT_TRAFFIC = Traffic.builder()
@@ -37,6 +37,8 @@ public class IngressConfig {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Traffic {
         private int weight;
         private boolean latestRevision;
