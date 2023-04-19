@@ -15,10 +15,13 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -107,13 +110,14 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
     }
 
     @Nullable
+    @SneakyThrows(UnsupportedEncodingException.class)
     protected <E> E doGetById(@Nonnull String id) {
         ResourceId resourceId = ResourceId.fromString(id);
         final String resourceGroup = resourceId.resourceGroupName();
         AbstractAzResource<?, ?, ?> resource = Objects.requireNonNull(this.get(resourceId.subscriptionId(), resourceGroup));
         final LinkedList<Pair<String, String>> resourceTypeNames = new LinkedList<>();
         while (resourceId != null) {
-            resourceTypeNames.push(Pair.of(resourceId.resourceType(), resourceId.name()));
+            resourceTypeNames.push(Pair.of(resourceId.resourceType(), URLDecoder.decode(resourceId.name(), "UTF-8")));
             resourceId = resourceId.parent();
         }
         for (Pair<String, String> resourceTypeName : resourceTypeNames) {
@@ -130,13 +134,14 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
     }
 
     @Nullable
+    @SneakyThrows(UnsupportedEncodingException.class)
     protected <E> E doGetOrInitById(@Nonnull String id) {
         ResourceId resourceId = ResourceId.fromString(id);
         final String resourceGroup = resourceId.resourceGroupName();
         AbstractAzResource<?, ?, ?> resource = Objects.requireNonNull(this.get(resourceId.subscriptionId(), resourceGroup));
         final LinkedList<Pair<String, String>> resourceTypeNames = new LinkedList<>();
         while (resourceId != null) {
-            resourceTypeNames.push(Pair.of(resourceId.resourceType(), resourceId.name()));
+            resourceTypeNames.push(Pair.of(resourceId.resourceType(), URLDecoder.decode(resourceId.name(), "UTF-8")));
             resourceId = resourceId.parent();
         }
         for (Pair<String, String> resourceTypeName : resourceTypeNames) {
