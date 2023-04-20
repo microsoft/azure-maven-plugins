@@ -9,6 +9,7 @@ import com.azure.resourcemanager.appcontainers.models.Ingress;
 import com.azure.resourcemanager.appcontainers.models.IngressTransportMethod;
 import com.azure.resourcemanager.appcontainers.models.TrafficWeight;
 import lombok.*;
+import org.apache.commons.lang3.BooleanUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -46,7 +47,7 @@ public class IngressConfig {
         public static Traffic fromTrafficWeight(@Nonnull final TrafficWeight trafficWeight) {
             return Traffic.builder()
                     .weight(trafficWeight.weight())
-                    .latestRevision(trafficWeight.latestRevision())
+                    .latestRevision(BooleanUtils.isTrue(trafficWeight.latestRevision()))
                     .build();
         }
 
