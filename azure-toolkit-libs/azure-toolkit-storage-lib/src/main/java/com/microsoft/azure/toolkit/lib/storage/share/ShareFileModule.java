@@ -43,16 +43,14 @@ public class ShareFileModule extends AbstractAzResourceModule<ShareFile, IShareF
             .orElse(Collections.emptyIterator());
     }
 
-    @Nonnull
-    @Override
-    protected Stream<ShareFileItem> loadResourcesFromAzure() {
-        return Optional.ofNullable(this.getClient()).map(ShareDirectoryClient::listFilesAndDirectories).map(PagedIterable::stream).orElse(Stream.empty());
-    }
-
     @Nullable
     @Override
     protected ShareFileItem loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        return this.loadResourcesFromAzure().filter(r -> r.getName().equals(name)).findAny().orElse(null);
+        return Optional.ofNullable(this.getClient())
+            .map(ShareDirectoryClient::listFilesAndDirectories)
+            .map(PagedIterable::stream)
+            .orElse(Stream.empty())
+            .filter(r -> r.getName().equals(name)).findAny().orElse(null);
     }
 
     @Override

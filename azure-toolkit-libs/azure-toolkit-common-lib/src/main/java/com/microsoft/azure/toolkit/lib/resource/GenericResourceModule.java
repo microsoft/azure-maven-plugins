@@ -13,14 +13,12 @@ import com.azure.resourcemanager.resources.models.GenericResources;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class GenericResourceModule extends
     AbstractAzResourceModule<GenericResource, ResourceGroup, HasId> {
@@ -44,15 +42,6 @@ public class GenericResourceModule extends
         return resources.listByResourceGroup(this.parent.getName()).streamByPage(getPageSize())
             .map(p -> new ItemPage<>(p.getValue().stream().filter(r -> Objects.isNull(ResourceId.fromString(r.id()).parent())).map(a -> (HasId) a)))
             .iterator();
-    }
-
-    @Nonnull
-    @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
-    protected Stream<HasId> loadResourcesFromAzure() {
-        final GenericResources resources = Objects.requireNonNull(this.getClient());
-        return resources.listByResourceGroup(this.parent.getName()).stream()
-            .filter(r -> Objects.isNull(ResourceId.fromString(r.id()).parent())).map(r -> r); // only keep top resources.
     }
 
     @Nonnull

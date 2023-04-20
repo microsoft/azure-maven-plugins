@@ -58,23 +58,15 @@ public class QueueModule extends AbstractAzResourceModule<Queue, StorageAccount,
             .iterator();
     }
 
-    @Nonnull
-    @Override
-    protected Stream<QueueClient> loadResourcesFromAzure() {
-        if (!this.parent.exists()) {
-            return Stream.empty();
-        }
-        final QueueServiceClient client = this.getQueueServiceClient();
-        return Objects.requireNonNull(client).listQueues().stream().map(s -> client.getQueueClient(s.getName()));
-    }
-
     @Nullable
     @Override
     protected QueueClient loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         if (!this.parent.exists()) {
             return null;
         }
-        return this.loadResourcesFromAzure().filter(c -> c.getQueueName().equals(name)).findAny().orElse(null);
+        final QueueServiceClient client = this.getQueueServiceClient();
+        Stream<QueueClient> resources = Objects.requireNonNull(client).listQueues().stream().map(s -> client.getQueueClient(s.getName()));
+        return resources.filter(c -> c.getQueueName().equals(name)).findAny().orElse(null);
     }
 
     @Override

@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class SqlContainerModule extends AbstractAzResourceModule<SqlContainer, SqlDatabase, SqlContainerGetResultsInner> {
     private static final String NAME = "containers";
@@ -50,18 +49,6 @@ public class SqlContainerModule extends AbstractAzResourceModule<SqlContainer, S
                 return null;
             }
         }).orElse(Collections.emptyIterator());
-    }
-
-    @Nonnull
-    @Override
-    protected Stream<SqlContainerGetResultsInner> loadResourcesFromAzure() {
-        return Optional.ofNullable(getClient()).map(client -> {
-            try {
-                return client.listSqlContainers(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).stream();
-            } catch (final RuntimeException e) {
-                return null;
-            }
-        }).orElse(Stream.empty());
     }
 
     @Nullable

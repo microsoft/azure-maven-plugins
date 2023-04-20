@@ -23,7 +23,6 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 public class RepositoryModule extends AbstractAzResourceModule<Repository, ContainerRegistry, ContainerRepository> {
 
@@ -69,16 +68,6 @@ public class RepositoryModule extends AbstractAzResourceModule<Repository, Conta
         } else {
             return Collections.emptyIterator();
         }
-    }
-
-    @Nonnull
-    @Override
-    protected Stream<ContainerRepository> loadResourcesFromAzure() {
-        if (!this.parent.exists()) {
-            return Stream.empty();
-        }
-        final ContainerRegistryClient client = this.getClient();
-        return Objects.requireNonNull(client).listRepositoryNames().stream().map(client::getRepository);
     }
 
     @Nullable

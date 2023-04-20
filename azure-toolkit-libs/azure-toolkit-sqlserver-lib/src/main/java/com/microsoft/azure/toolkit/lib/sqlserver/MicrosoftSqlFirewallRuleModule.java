@@ -48,14 +48,8 @@ public class MicrosoftSqlFirewallRuleModule extends AbstractAzResourceModule<Mic
     @Nonnull
     @Override
     protected Iterator<? extends ContinuablePage<String, SqlFirewallRule>> loadResourcePagesFromAzure() {
-        return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
-    }
-
-    @Nonnull
-    @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
-    protected Stream<SqlFirewallRule> loadResourcesFromAzure() {
-        return Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());
+        final Stream<SqlFirewallRule> resources = Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());
+        return Collections.singletonList(new ItemPage<>(resources)).iterator();
     }
 
     @Nullable

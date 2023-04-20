@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class ApplicationInsightsModule extends AbstractAzResourceModule<ApplicationInsight, ApplicationInsightsServiceSubscription, ApplicationInsightsComponent> {
 
@@ -33,13 +32,6 @@ public class ApplicationInsightsModule extends AbstractAzResourceModule<Applicat
     @Override
     protected Iterator<? extends ContinuablePage<String, ApplicationInsightsComponent>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(getPageSize()).iterator()).orElse(Collections.emptyIterator());
-    }
-
-    @Nonnull
-    @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
-    protected Stream<ApplicationInsightsComponent> loadResourcesFromAzure() {
-        return Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());
     }
 
     @Nullable

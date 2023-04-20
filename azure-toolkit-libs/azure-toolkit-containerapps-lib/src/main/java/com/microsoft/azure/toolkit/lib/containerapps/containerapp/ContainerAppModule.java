@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.containerapps.containerapp;
 
-import com.azure.core.http.rest.PagedIterable;
 import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.appcontainers.ContainerAppsApiManager;
 import com.azure.resourcemanager.appcontainers.models.ContainerApps;
@@ -23,7 +22,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ContainerAppModule extends AbstractAzResourceModule<ContainerApp, AzureContainerAppsServiceSubscription, com.azure.resourcemanager.appcontainers.models.ContainerApp> {
     public static final String NAME = "containerApps";
@@ -36,13 +34,6 @@ public class ContainerAppModule extends AbstractAzResourceModule<ContainerApp, A
     @Override
     protected Iterator<? extends ContinuablePage<String, com.azure.resourcemanager.appcontainers.models.ContainerApp>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(getPageSize()).iterator()).orElse(Collections.emptyIterator());
-    }
-
-    @Nonnull
-    @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
-    protected Stream<com.azure.resourcemanager.appcontainers.models.ContainerApp> loadResourcesFromAzure() {
-        return Optional.ofNullable(getClient()).map(ContainerApps::list).map(PagedIterable::stream).orElse(Stream.empty());
     }
 
     @Nullable

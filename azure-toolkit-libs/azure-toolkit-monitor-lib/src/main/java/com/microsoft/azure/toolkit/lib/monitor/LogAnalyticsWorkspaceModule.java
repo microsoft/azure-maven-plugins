@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class LogAnalyticsWorkspaceModule extends AbstractAzResourceModule<LogAnalyticsWorkspace, LogAnalyticsServiceWorkspaceSubscription, Workspace> {
     public static final String NAME = "workspaces";
@@ -27,13 +26,6 @@ public class LogAnalyticsWorkspaceModule extends AbstractAzResourceModule<LogAna
     @Override
     protected Iterator<? extends ContinuablePage<String, Workspace>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(getPageSize()).iterator()).orElse(Collections.emptyIterator());
-    }
-
-    @Nonnull
-    @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
-    protected Stream<Workspace> loadResourcesFromAzure() {
-        return Optional.ofNullable(this.getClient()).map(workspaces -> workspaces.list().stream()).orElse(Stream.empty());
     }
 
     @Nullable

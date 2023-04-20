@@ -29,7 +29,11 @@ import com.microsoft.azure.toolkit.lib.resource.GenericResourceModule;
 import com.microsoft.azure.toolkit.lib.resource.ResourceDeployment;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupModule;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -55,7 +59,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.microsoft.azure.toolkit.lib.common.model.AzResource.RESOURCE_GROUP_PLACEHOLDER;
 
@@ -136,9 +139,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         log.debug("[{}]:reloadResources()", this.name);
         this.syncTimeRef.set(0);
         try {
-            log.debug("[{}]:reloadResources->loadResourcesFromAzure()", this.name);
+            log.debug("[{}]:reloadResources->loadResourcePagesFromAzure()", this.name);
             this.pages = this.loadResourcePagesFromAzure();
-            final ContinuablePage<String, R> page = pages.hasNext() ? pages.next() : new ItemPage<>(this.loadResourcesFromAzure());
+            final ContinuablePage<String, R> page = pages.hasNext() ? pages.next() : new ItemPage<>(Collections.emptyList());
             final Map<String, R> loadedResources = page.getElements().stream()
                 .collect(Collectors.toMap(r -> this.newResource(r).getId().toLowerCase(), r -> r));
             log.debug("[{}]:reloadResources->setResources(xxx)", this.name);
@@ -150,7 +153,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 log.debug("[{}]:reloadResources->loadResourceFromAzure()=SC_NOT_FOUND", this.name, e);
                 this.setResources(Collections.emptyMap());
             } else {
-                log.debug("[{}]:reloadResources->loadResourcesFromAzure()=EXCEPTION", this.name, e);
+                log.debug("[{}]:reloadResources->loadResourcePagesFromAzure()=EXCEPTION", this.name, e);
                 this.resources.clear();
                 this.syncTimeRef.compareAndSet(0, System.currentTimeMillis());
                 throw e;
@@ -498,27 +501,6 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         AzureEventBus.emit("module.children_changed.module", this);
     }
 
-    /**
-     * @deprecated implement/use {@link #loadResourcePagesFromAzure()} instead.
-     */
-    @Deprecated
-    @Nonnull
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
-    protected Stream<R> loadResourcesFromAzure() {
-        log.debug("[{}]:loadResourcesFromAzure()", this.getName());
-        final Object client = this.getClient();
-        if (!this.parent.exists()) {
-            return Stream.empty();
-        } else if (client instanceof SupportsListing) {
-            log.debug("[{}]:loadResourcesFromAzure->client.list()", this.name);
-            return this.<SupportsListing<R>>cast(client).list().stream();
-        } else if (client != null) {
-            log.debug("[{}]:loadResourcesFromAzure->NOT Supported", this.name);
-            throw new AzureToolkitRuntimeException("not supported");
-        }
-        return Stream.empty();
-    }
-
     @Nonnull
     @AzureOperation(name = "azure/resource.load_resources_by_page.type", params = {"this.getResourceTypeName()"})
     protected Iterator<? extends ContinuablePage<String, R>> loadResourcePagesFromAzure() {
@@ -531,7 +513,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             return this.<SupportsListing<R>>cast(client).list().iterableByPage(getPageSize()).iterator();
         } else {
             log.debug("[{}]:loadPagedResourcesFromAzure->NOT Supported", this.name);
-            return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
+            throw new AzureToolkitRuntimeException("not supported");
         }
     }
 
@@ -597,7 +579,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     protected abstract T newResource(@Nonnull String name, @Nullable String resourceGroupName);
 
     /**
-     * get track2 client, which is used to implement {@link #loadResourcesFromAzure}, {@link #loadResourceFromAzure} and {@link #deleteResourceFromAzure}
+     * get track2 client, which is used to implement {@link #loadResourcePagesFromAzure}, {@link #loadResourceFromAzure} and {@link #deleteResourceFromAzure}
      */
     @Nullable
     protected Object getClient() {

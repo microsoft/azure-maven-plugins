@@ -9,7 +9,6 @@ import com.azure.core.util.paging.ContinuablePage;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.CosmosQueryRequestOptions;
-import com.azure.cosmos.models.FeedResponse;
 import com.azure.cosmos.models.PartitionKey;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,7 +24,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, SqlContainer, ObjectNode> {
 
@@ -37,6 +35,7 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
         super("documents", parent);
     }
 
+    @Nonnull
     @Override
     protected Iterator<? extends ContinuablePage<String, ObjectNode>> loadResourcePagesFromAzure() {
         final CosmosContainer client = getClient();

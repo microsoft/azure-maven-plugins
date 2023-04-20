@@ -18,7 +18,6 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class MySqlDatabaseModule extends AbstractAzResourceModule<MySqlDatabase, MySqlServer, Database> {
     public static final String NAME = "databases";
@@ -46,14 +45,6 @@ public class MySqlDatabaseModule extends AbstractAzResourceModule<MySqlDatabase,
         return Optional.ofNullable(getClient())
             .map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).iterableByPage(getPageSize()).iterator())
             .orElse(Collections.emptyIterator());
-    }
-
-    @Nonnull
-    @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
-    protected Stream<Database> loadResourcesFromAzure() {
-        final MySqlServer p = this.getParent();
-        return Optional.ofNullable(this.getClient()).map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).stream()).orElse(Stream.empty());
     }
 
     @Nullable

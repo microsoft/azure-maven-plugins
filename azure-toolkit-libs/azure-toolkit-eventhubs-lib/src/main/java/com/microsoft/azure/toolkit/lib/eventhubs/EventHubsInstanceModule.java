@@ -17,10 +17,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class EventHubsInstanceModule  extends AbstractAzResourceModule<EventHubsInstance, EventHubsNamespace, EventHub> {
+public class EventHubsInstanceModule extends AbstractAzResourceModule<EventHubsInstance, EventHubsNamespace, EventHub> {
     public static final String NAME = "eventhubs";
+
     public EventHubsInstanceModule(@Nonnull EventHubsNamespace parent) {
         super(NAME, parent);
     }
@@ -29,7 +29,7 @@ public class EventHubsInstanceModule  extends AbstractAzResourceModule<EventHubs
     @Override
     protected List<EventHub> getClient() {
         return Optional.ofNullable(this.parent.getRemote()).map(eventHubNamespace -> eventHubNamespace.listEventHubs()
-                .stream().collect(Collectors.toList())).orElse(null);
+            .stream().collect(Collectors.toList())).orElse(null);
     }
 
     @Nullable
@@ -42,20 +42,14 @@ public class EventHubsInstanceModule  extends AbstractAzResourceModule<EventHubs
     @Nonnull
     @Override
     protected Iterator<? extends ContinuablePage<String, EventHub>> loadResourcePagesFromAzure() {
-        return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
-    }
-
-    @Nonnull
-    @Override
-    protected Stream<EventHub> loadResourcesFromAzure() {
         List<EventHub> eventHubList = Optional.ofNullable(this.getClient()).orElse(Collections.emptyList());
-        return eventHubList.stream();
+        return Collections.singletonList(new ItemPage<>(eventHubList)).iterator();
     }
 
     @Override
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         Optional.ofNullable(this.parent.getParent().getRemote()).map(EventHubsManager::eventHubs)
-                .ifPresent(client -> client.deleteById(resourceId));
+            .ifPresent(client -> client.deleteById(resourceId));
     }
 
     @Nonnull

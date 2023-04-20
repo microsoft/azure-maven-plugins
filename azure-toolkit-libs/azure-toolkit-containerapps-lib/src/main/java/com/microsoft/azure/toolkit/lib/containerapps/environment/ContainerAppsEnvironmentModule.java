@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.containerapps.environment;
 
-import com.azure.core.http.rest.PagedIterable;
 import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.appcontainers.ContainerAppsApiManager;
 import com.azure.resourcemanager.appcontainers.models.ManagedEnvironment;
@@ -20,7 +19,6 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class ContainerAppsEnvironmentModule extends AbstractAzResourceModule<ContainerAppsEnvironment, AzureContainerAppsServiceSubscription, ManagedEnvironment> {
     public static final String NAME = "managedEnvironments";
@@ -33,13 +31,6 @@ public class ContainerAppsEnvironmentModule extends AbstractAzResourceModule<Con
     @Override
     protected Iterator<? extends ContinuablePage<String, ManagedEnvironment>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(c -> c.list().iterableByPage(getPageSize()).iterator()).orElse(Collections.emptyIterator());
-    }
-
-    @Nonnull
-    @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
-    protected Stream<ManagedEnvironment> loadResourcesFromAzure() {
-        return Optional.ofNullable(getClient()).map(ManagedEnvironments::list).map(PagedIterable::stream).orElse(Stream.empty());
     }
 
     @Nullable
