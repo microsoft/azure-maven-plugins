@@ -45,7 +45,7 @@ public class ArtifactModule extends AbstractAzResourceModule<Artifact, Repositor
         }
         final ContainerRepository remote = Objects.requireNonNull(this.parent.getRemote());
         return remote.listManifestProperties().stream()
-            .filter(p -> p.getRepositoryName().equalsIgnoreCase(name))
+            .filter(p -> p.getDigest().equalsIgnoreCase(name))
             .findAny().orElse(null);
     }
 
@@ -57,7 +57,7 @@ public class ArtifactModule extends AbstractAzResourceModule<Artifact, Repositor
     @Nonnull
     @Override
     protected Artifact newResource(@Nonnull ArtifactManifestProperties manifest) {
-        return new Artifact(manifest.getRepositoryName(), this);
+        return new Artifact(manifest.getDigest(), this);
     }
 
     @Nonnull
