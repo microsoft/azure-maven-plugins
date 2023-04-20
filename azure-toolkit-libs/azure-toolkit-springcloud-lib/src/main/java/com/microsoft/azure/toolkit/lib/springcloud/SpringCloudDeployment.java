@@ -17,6 +17,8 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
+import com.microsoft.azure.toolkit.lib.servicelinker.Consumer;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
@@ -31,14 +33,17 @@ import java.net.URL;
 import java.util.*;
 
 @SuppressWarnings("unused")
-public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment> {
+public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment>
+        implements Consumer {
     @Nonnull
     private final SpringCloudAppInstanceModule instanceModule;
+    private final ServiceLinkerModule linkerModule;
     private boolean remoteDebuggingEnabled;
 
     protected SpringCloudDeployment(@Nonnull String name, @Nonnull SpringCloudDeploymentModule module) {
         super(name, module);
         this.instanceModule = new SpringCloudAppInstanceModule(this);
+        this.linkerModule = new ServiceLinkerModule(getId(), this);
     }
 
     /**
@@ -48,11 +53,13 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
         super(origin);
         this.instanceModule = origin.instanceModule;
         this.remoteDebuggingEnabled = origin.remoteDebuggingEnabled;
+        this.linkerModule = origin.linkerModule;
     }
 
     protected SpringCloudDeployment(@Nonnull SpringAppDeployment remote, @Nonnull SpringCloudDeploymentModule module) {
         super(remote.name(), module);
         this.instanceModule = new SpringCloudAppInstanceModule(this);
+        this.linkerModule = new ServiceLinkerModule(getId(), this);
     }
 
     // MODIFY
@@ -83,7 +90,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.singletonList(instanceModule);
+        return Arrays.asList(instanceModule, linkerModule);
     }
 
     @Override
@@ -255,5 +262,10 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     public SpringCloudAppInstance getLatestInstance() {
         return getInstances().stream().filter(springCloudAppInstance -> Objects.nonNull(springCloudAppInstance.getRemote()))
                 .max(Comparator.comparing(instance -> instance.getRemote().startTime())).orElse(null);
+    }
+
+    @Override
+    public ServiceLinkerModule getServiceLinkerModule() {
+        return linkerModule;
     }
 }
