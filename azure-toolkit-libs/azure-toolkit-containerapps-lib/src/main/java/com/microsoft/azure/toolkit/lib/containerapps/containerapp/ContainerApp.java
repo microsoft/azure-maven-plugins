@@ -22,7 +22,7 @@ import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerAppsServiceSu
 import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
 import com.microsoft.azure.toolkit.lib.containerapps.model.IngressConfig;
 import com.microsoft.azure.toolkit.lib.containerapps.model.RevisionMode;
-import com.microsoft.azure.toolkit.lib.servicelinker.Consumer;
+import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerConsumer;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
@@ -33,7 +33,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 @SuppressWarnings("unused")
-public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContainerAppsServiceSubscription, com.azure.resourcemanager.appcontainers.models.ContainerApp> implements Deletable, Consumer {
+public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContainerAppsServiceSubscription, com.azure.resourcemanager.appcontainers.models.ContainerApp> implements Deletable, ServiceLinkerConsumer {
     @Getter
     private final RevisionModule revisionModule;
     private final ServiceLinkerModule linkerModule;

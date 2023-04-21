@@ -18,7 +18,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
-import com.microsoft.azure.toolkit.lib.servicelinker.Consumer;
+import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerConsumer;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
@@ -34,7 +34,7 @@ import java.util.*;
 
 @SuppressWarnings("unused")
 public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment>
-        implements Consumer {
+        implements ServiceLinkerConsumer {
     @Nonnull
     private final SpringCloudAppInstanceModule instanceModule;
     private final ServiceLinkerModule linkerModule;

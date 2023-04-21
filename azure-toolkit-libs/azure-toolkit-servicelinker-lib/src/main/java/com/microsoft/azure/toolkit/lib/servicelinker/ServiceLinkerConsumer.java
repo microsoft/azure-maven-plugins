@@ -21,7 +21,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import java.util.List;
 import java.util.Optional;
 
-public interface Consumer extends AzResource {
+public interface ServiceLinkerConsumer extends AzResource {
     ServiceLinkerModule getServiceLinkerModule();
     default List<ServiceLinker> getServiceLinkers() {
         return getServiceLinkerModule().list();

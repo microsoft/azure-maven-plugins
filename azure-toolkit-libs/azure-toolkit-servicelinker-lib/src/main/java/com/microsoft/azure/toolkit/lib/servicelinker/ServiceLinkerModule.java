@@ -19,10 +19,10 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 
-public class ServiceLinkerModule extends AbstractAzResourceModule<ServiceLinker, Consumer, LinkerResource> {
+public class ServiceLinkerModule extends AbstractAzResourceModule<ServiceLinker, ServiceLinkerConsumer, LinkerResource> {
     public static final String NAME = "linkers";
     private final String targetResourceId;
-    public ServiceLinkerModule(String targetResourceId, Consumer parent) {
+    public ServiceLinkerModule(String targetResourceId, ServiceLinkerConsumer parent) {
         super(NAME, parent);
         this.targetResourceId = targetResourceId;
     }

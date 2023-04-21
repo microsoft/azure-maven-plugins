@@ -18,11 +18,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class ServiceLinker extends AbstractAzResource<ServiceLinker, Consumer, LinkerResource> implements Deletable {
+public class ServiceLinker extends AbstractAzResource<ServiceLinker, ServiceLinkerConsumer, LinkerResource> implements Deletable {
     @Nullable
     @Getter
     private String targetServiceId = null;
-    protected ServiceLinker(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<ServiceLinker, Consumer, LinkerResource> module) {
+    protected ServiceLinker(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<ServiceLinker, ServiceLinkerConsumer, LinkerResource> module) {
         super(name, resourceGroupName, module);
     }
 
