@@ -34,6 +34,7 @@ import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Startable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.utils.StreamingLogSupport;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
@@ -53,7 +54,7 @@ public abstract class AppServiceAppBase<
     T extends AppServiceAppBase<T, P, F>,
     P extends AbstractAzResource<P, ?, ?>,
     F extends WebAppBase>
-    extends AbstractAzResource<T, P, WebSiteBase> implements Startable, Deletable {
+    extends AbstractAzResource<T, P, WebSiteBase> implements Startable, Deletable, StreamingLogSupport {
     protected AppServiceKuduClient kuduManager;
 
     protected AppServiceAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, WebSiteBase> module) {
@@ -135,8 +136,8 @@ public abstract class AppServiceAppBase<
         return Optional.ofNullable(this.getFullRemote()).map(WebAppBase::diagnosticLogsConfig).map(AppServiceUtils::fromWebAppDiagnosticLogs).orElse(null);
     }
 
-    @Nonnull
-    public Flux<String> streamAllLogsAsync() {
+    @Override
+    public Flux<String> streamingLogs(String endPoint, Map<String, String> params) {
         return Optional.ofNullable(this.getFullRemote()).map(WebAppBase::streamAllLogsAsync).orElseGet(Flux::empty);
     }
 

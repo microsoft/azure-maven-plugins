@@ -5,18 +5,18 @@
 
 package com.microsoft.azure.toolkit.lib.containerapps.containerapp;
 
+import com.azure.resourcemanager.appcontainers.ContainerAppsApiManager;
 import com.azure.resourcemanager.appcontainers.fluent.models.ContainerAppInner;
-import com.azure.resourcemanager.appcontainers.models.Configuration;
-import com.azure.resourcemanager.appcontainers.models.Container;
-import com.azure.resourcemanager.appcontainers.models.Ingress;
-import com.azure.resourcemanager.appcontainers.models.Template;
-import com.azure.resourcemanager.appcontainers.models.Volume;
+import com.azure.resourcemanager.appcontainers.models.*;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.utils.StreamingLogSupport;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerAppsServiceSubscription;
 import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
@@ -30,12 +30,18 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @SuppressWarnings("unused")
-public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContainerAppsServiceSubscription, com.azure.resourcemanager.appcontainers.models.ContainerApp> implements Deletable, ServiceLinkerConsumer {
+public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContainerAppsServiceSubscription, com.azure.resourcemanager.appcontainers.models.ContainerApp> implements Deletable, StreamingLogSupport, ServiceLinkerConsumer  {
+    public static final String LOG_TYPE_CONSOLE = "console";
+    public static final String LOG_TYPE_SYSTEM = "system";
     @Getter
     private final RevisionModule revisionModule;
+    private Revision latestRevision = null;
     private final ServiceLinkerModule linkerModule;
 
     protected ContainerApp(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull ContainerAppModule module) {
@@ -48,12 +54,27 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
         super(insight);
         this.revisionModule = insight.revisionModule;
         this.linkerModule = insight.linkerModule;
+        this.latestRevision = insight.latestRevision;
     }
 
     protected ContainerApp(@Nonnull com.azure.resourcemanager.appcontainers.models.ContainerApp remote, @Nonnull ContainerAppModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
         this.revisionModule = new RevisionModule(this);
         this.linkerModule = new ServiceLinkerModule(getId(), this);
+    }
+
+    @Override
+    protected void updateAdditionalProperties(@Nullable com.azure.resourcemanager.appcontainers.models.ContainerApp newRemote, @Nullable com.azure.resourcemanager.appcontainers.models.ContainerApp oldRemote) {
+        super.updateAdditionalProperties(newRemote, oldRemote);
+        this.latestRevision = Optional.ofNullable(newRemote)
+                .flatMap(c -> revisionModule.list().stream().filter(r -> Objects.equals(r.getName(), c.latestRevisionName())).findFirst())
+                .orElse(null);
+    }
+
+    @Override
+    public void invalidateCache() {
+        super.invalidateCache();
+        this.latestRevision = null;
     }
 
     public RevisionModule revisions() {
@@ -128,6 +149,11 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
                 .map(name -> this.revisions().get(name, this.getResourceGroupName())).orElse(null);
     }
 
+    @Nullable
+    public Revision getCachedLatestRevision() {
+        return this.latestRevision;
+    }
+
     public void activate() {
         this.doModify(() -> Objects.requireNonNull(getLatestRevision()).activate(), Status.ACTIVATING);
     }
@@ -178,6 +204,35 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
             }
         }
         return false;
+    }
+
+    public List<Revision> getRevisions() {
+        return revisionModule.list();
+    }
+
+    // refer to https://github.com/Azure/azure-cli-extensions/blob/main/src/containerapp/azext_containerapp/custom.py
+    public @Nullable String getLogStreamingEndpoint(String logType, String revisionName, String replicaName, String containerName) {
+        final com.azure.resourcemanager.appcontainers.models.ContainerApp remoteApp = this.getRemote();
+        if (Objects.isNull(remoteApp)) {
+            throw new AzureToolkitRuntimeException(AzureString.format("resource ({0}) not found", getName()).toString());
+        }
+        final String eventStreamEndpoint = remoteApp.eventStreamEndpoint();
+        final String baseUrl = eventStreamEndpoint.substring(0, eventStreamEndpoint.indexOf("/subscriptions/"));
+        if (Objects.equals(LOG_TYPE_CONSOLE, logType)) {
+            return String.format("%s/subscriptions/%s/resourceGroups/%s/containerApps/%s/revisions/%s/replicas/%s/containers/%s/logstream",
+                    baseUrl, getSubscriptionId(), getResourceGroupName(), getName(), revisionName, replicaName, containerName);
+        } else if (Objects.equals(LOG_TYPE_SYSTEM, logType)) {
+            return String.format("%s/subscriptions/%s/resourceGroups/%s/containerApps/%s/eventstream",
+                    baseUrl, getSubscriptionId(), getResourceGroupName(), getName());
+        }
+        return null;
+    }
+
+    @Override
+    public String getAuthorizationValue() {
+        final ContainerAppsApiManager manager = getParent().getRemote();
+        final String authToken = Optional.ofNullable(manager).map(m -> m.containerApps().getAuthToken(getResourceGroupName(), getName()).token()).orElse(null);
+        return "Bearer " + authToken;
     }
 
     @Override

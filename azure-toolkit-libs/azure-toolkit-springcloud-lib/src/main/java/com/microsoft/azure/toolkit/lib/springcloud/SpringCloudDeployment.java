@@ -17,24 +17,19 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.utils.StreamingLogSupport;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerConsumer;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
-import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.*;
 
 @SuppressWarnings("unused")
 public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment>
-        implements ServiceLinkerConsumer {
+        implements ServiceLinkerConsumer, StreamingLogSupport {
     @Nonnull
     private final SpringCloudAppInstanceModule instanceModule;
     private final ServiceLinkerModule linkerModule;
@@ -103,43 +98,6 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
             .map(AppPlatformManagementClient::getDeployments)
             .map(c -> c.getRemoteDebuggingConfig(this.getResourceGroupName(), cluster.getName(), app.getName(), this.getName()))
             .map(RemoteDebuggingInner::enabled).orElse(false);
-    }
-
-    @Nonnull
-    @SneakyThrows
-    public Flux<String> streamLogs(final String instance) {
-        return streamLogs(instance, 0, 10, 0, true);
-    }
-
-    @Nonnull
-    @SneakyThrows
-    public Flux<String> streamLogs(final String instance, int sinceSeconds, int tailLines, int limitBytes, boolean follow) {
-        final String endpoint = this.getParent().getLogStreamingEndpoint(instance);
-        if (Objects.isNull(endpoint)) {
-            return Flux.empty();
-        }
-        final URL url = new URL(String.format("%s?tailLines=%s&follow=%s&sinceSeconds=%s&limitBytes=%s", endpoint, tailLines, follow, sinceSeconds, limitBytes));
-        final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-        final String password = this.getParent().getParent().getTestKey();
-        final String userPass = "primary:" + password;
-        final String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userPass.getBytes()));
-        connection.setRequestProperty("Authorization", basicAuth);
-        connection.setUseCaches(false);
-        connection.setDoOutput(true);
-        return Flux.create((fluxSink) -> {
-            try {
-                final InputStream is = connection.getInputStream();
-                BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-                String line;
-                while ((line = rd.readLine()) != null) {
-                    fluxSink.next(line);
-                }
-                rd.close();
-            } catch (final Exception e) {
-                throw new AzureToolkitRuntimeException(e);
-            }
-        });
     }
 
     @AzureOperation(name = "internal/springcloud.wait_until_deployment_ready.deployment|app", params = {"this.getName()", "this.getParent().getName()"})
@@ -262,6 +220,13 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     public SpringCloudAppInstance getLatestInstance() {
         return getInstances().stream().filter(springCloudAppInstance -> Objects.nonNull(springCloudAppInstance.getRemote()))
                 .max(Comparator.comparing(instance -> instance.getRemote().startTime())).orElse(null);
+    }
+
+    @Override
+    public String getAuthorizationValue() {
+        final String password = this.getParent().getParent().getTestKey();
+        final String userPass = "primary:" + password;
+        return "Basic " + new String(Base64.getEncoder().encode(userPass.getBytes()));
     }
 
     @Override

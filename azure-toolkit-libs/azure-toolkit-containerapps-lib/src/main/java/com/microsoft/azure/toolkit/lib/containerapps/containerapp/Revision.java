@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -24,16 +25,21 @@ import java.util.Optional;
 
 @SuppressWarnings("unused")
 public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azure.resourcemanager.appcontainers.models.Revision> implements Deletable {
+    @Getter
+    private final ReplicaModule replicaModule;
     protected Revision(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<Revision, ContainerApp, com.azure.resourcemanager.appcontainers.models.Revision> module) {
         super(name, resourceGroupName, module);
+        this.replicaModule = new ReplicaModule(this);
     }
 
     protected Revision(@Nonnull Revision insight) {
         super(insight);
+        this.replicaModule = insight.replicaModule;
     }
 
     protected Revision(@Nonnull com.azure.resourcemanager.appcontainers.models.Revision remote, @Nonnull RevisionModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
+        this.replicaModule = new ReplicaModule(this);
     }
 
     @AzureOperation(name = "azure/containerapps.activate_revision.revision", params = {"this.getName()"})
@@ -91,7 +97,7 @@ public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azu
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.emptyList();
+        return Collections.singletonList(replicaModule);
     }
 
     public boolean isActive() {
@@ -110,6 +116,10 @@ public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azu
             return healthState.toString();
         }
         return provisioningState.toString();
+    }
+
+    public List<Replica> getReplicas() {
+        return replicaModule.list();
     }
 
     @Nullable

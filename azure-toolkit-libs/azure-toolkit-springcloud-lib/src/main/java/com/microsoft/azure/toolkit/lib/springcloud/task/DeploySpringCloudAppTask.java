@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud.task;
 
+import com.google.common.collect.ImmutableMap;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -145,7 +146,11 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
                 latch.countDown();
             }, Long.valueOf(Duration.ofSeconds(15).toMillis()).intValue());
             // refer to https://github.com/Azure/azure-cli-extensions/blob/main/src/spring/azext_spring/app.py#app_tail_log_internal
-            disposable = this.deployment.streamLogs(i.getName(), 300, 500, 1024 * 1024, follow)
+            disposable = this.deployment.streamingLogs(this.deployment.getParent().getLogStreamingEndpoint(i.getName()),
+                    ImmutableMap.of("follow", String.valueOf(follow),
+                            "sinceSeconds", String.valueOf(300),
+                            "tailLines", String.valueOf(500),
+                            "limitBytes", String.valueOf(1024 * 1024)))
                     .doFinally(type -> messager.debug("###############STREAMING LOG END##################"))
                     .subscribeOn(Schedulers.boundedElastic())
                     .subscribe((s) -> {
