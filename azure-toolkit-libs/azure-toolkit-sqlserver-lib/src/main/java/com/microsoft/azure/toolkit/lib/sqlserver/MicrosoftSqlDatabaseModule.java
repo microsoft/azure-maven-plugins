@@ -43,14 +43,8 @@ public class MicrosoftSqlDatabaseModule extends AbstractAzResourceModule<Microso
     @Nonnull
     @Override
     protected Iterator<? extends ContinuablePage<String, SqlDatabase>> loadResourcePagesFromAzure() {
-        return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
-    }
-
-    @Nonnull
-    @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
-    protected Stream<SqlDatabase> loadResourcesFromAzure() {
-        return Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());
+        final Stream<SqlDatabase> resources = Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());
+        return Collections.singletonList(new ItemPage<>(resources)).iterator();
     }
 
     @Nullable

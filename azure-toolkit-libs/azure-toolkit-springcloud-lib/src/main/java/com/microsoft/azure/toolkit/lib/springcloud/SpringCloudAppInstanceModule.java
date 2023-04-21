@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class SpringCloudAppInstanceModule extends AbstractAzResourceModule<SpringCloudAppInstance, SpringCloudDeployment, DeploymentInstance> {
     public static final String NAME = "instances";
@@ -34,16 +33,11 @@ public class SpringCloudAppInstanceModule extends AbstractAzResourceModule<Sprin
         return deploymentInstanceList.stream().filter(instance -> name.equals(instance.name())).findAny().orElse(null);
     }
 
-    @Override
-    protected Iterator<? extends ContinuablePage<String, DeploymentInstance>> loadResourcePagesFromAzure() {
-        return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
-    }
-
     @Nonnull
     @Override
-    protected Stream<DeploymentInstance> loadResourcesFromAzure() {
-        List<DeploymentInstance> deploymentInstanceList = Optional.ofNullable(this.getClient()).orElse(Collections.emptyList());
-        return deploymentInstanceList.stream();
+    protected Iterator<? extends ContinuablePage<String, DeploymentInstance>> loadResourcePagesFromAzure() {
+        final List<DeploymentInstance> deploymentInstanceList = Optional.ofNullable(this.getClient()).orElse(Collections.emptyList());
+        return Collections.singletonList(new ItemPage<>(deploymentInstanceList)).iterator();
     }
 
     @Nonnull

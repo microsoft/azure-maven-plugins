@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class CassandraTableModule extends AbstractAzResourceModule<CassandraTable, CassandraKeyspace, CassandraTableGetResultsInner> {
     private static final String NAME = "tables";
@@ -50,18 +49,6 @@ public class CassandraTableModule extends AbstractAzResourceModule<CassandraTabl
                 return null;
             }
         }).orElse(Collections.emptyIterator());
-    }
-
-    @Nonnull
-    @Override
-    protected Stream<CassandraTableGetResultsInner> loadResourcesFromAzure() {
-        return Optional.ofNullable(getClient()).map(client -> {
-            try {
-                return client.listCassandraTables(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).stream();
-            } catch (final RuntimeException e) {
-                return null;
-            }
-        }).orElse(Stream.empty());
     }
 
     @Nullable

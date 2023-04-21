@@ -58,23 +58,15 @@ public class TableModule extends AbstractAzResourceModule<Table, StorageAccount,
             .iterator();
     }
 
-    @Nonnull
-    @Override
-    protected Stream<TableClient> loadResourcesFromAzure() {
-        if (!this.parent.exists()) {
-            return Stream.empty();
-        }
-        final TableServiceClient client = this.getTableServiceClient();
-        return Objects.requireNonNull(client).listTables().stream().map(s -> client.getTableClient(s.getName()));
-    }
-
     @Nullable
     @Override
     protected TableClient loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         if (!this.parent.exists()) {
             return null;
         }
-        return this.loadResourcesFromAzure().filter(c -> c.getTableName().equals(name)).findAny().orElse(null);
+        final TableServiceClient client = this.getTableServiceClient();
+        final Stream<TableClient> resources = Objects.requireNonNull(client).listTables().stream().map(s -> client.getTableClient(s.getName()));
+        return resources.filter(c -> c.getTableName().equals(name)).findAny().orElse(null);
     }
 
     @Override

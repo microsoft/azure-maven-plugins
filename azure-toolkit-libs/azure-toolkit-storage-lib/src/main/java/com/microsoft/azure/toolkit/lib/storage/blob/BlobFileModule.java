@@ -46,16 +46,11 @@ public class BlobFileModule extends AbstractAzResourceModule<BlobFile, IBlobFile
             .orElse(Collections.emptyIterator());
     }
 
-    @Nonnull
-    @Override
-    protected Stream<BlobItem> loadResourcesFromAzure() {
-        return Optional.ofNullable(this.getClient()).map(c -> c.listBlobsByHierarchy(this.parent.getPath())).map(PagedIterable::stream).orElse(Stream.empty());
-    }
-
     @Nullable
     @Override
     protected BlobItem loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        return this.loadResourcesFromAzure()
+        final Stream<BlobItem> resources = Optional.ofNullable(this.getClient()).map(c -> c.listBlobsByHierarchy(this.parent.getPath())).map(PagedIterable::stream).orElse(Stream.empty());
+        return resources
             .filter(r -> Objects.equals(Paths.get(r.getName()).getFileName().toString(), name))
             .findAny().orElse(null);
     }

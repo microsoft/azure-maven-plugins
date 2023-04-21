@@ -40,8 +40,12 @@ public class PostgreSqlDatabaseModule extends AbstractAzResourceModule<PostgreSq
         return new PostgreSqlDatabase(name, this);
     }
 
+    @Nonnull
     @Override
     protected Iterator<? extends ContinuablePage<String, Database>> loadResourcePagesFromAzure() {
+        // https://docs.microsoft.com/en-us/azure/postgresql/concepts-servers
+        // azure_maintenance - This database is used to separate the processes that provide the managed service from user actions.
+        // You do not have access to this database.
         final PostgreSqlServer server = this.getParent();
         return Optional.ofNullable(this.getClient())
             .map(c -> c.listByServer(server.getResourceGroupName(), server.getName())
@@ -49,19 +53,6 @@ public class PostgreSqlDatabaseModule extends AbstractAzResourceModule<PostgreSq
                 .map(p -> new ItemPage<>(p.getValue().stream().filter(d -> !"azure_maintenance".equals(d.name()))))
                 .iterator())
             .orElse(Collections.emptyIterator());
-    }
-
-    @Nonnull
-    @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
-    protected Stream<Database> loadResourcesFromAzure() {
-        // https://docs.microsoft.com/en-us/azure/postgresql/concepts-servers
-        // azure_maintenance - This database is used to separate the processes that provide the managed service from user actions.
-        // You do not have access to this database.
-        final PostgreSqlServer p = this.getParent();
-        return Optional.ofNullable(this.getClient())
-            .map(c -> c.listByServer(p.getResourceGroupName(), p.getName()).stream().filter(d -> !"azure_maintenance".equals(d.name())))
-            .orElse(Stream.empty());
     }
 
     @Nullable

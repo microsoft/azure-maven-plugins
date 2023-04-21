@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, CosmosDBAccount, SqlDatabaseGetResultsInner> {
     private static final String NAME = "sqlDatabases";
@@ -56,18 +55,6 @@ public class SqlDatabaseModule extends AbstractAzResourceModule<SqlDatabase, Cos
                 return null;
             }
         }).orElse(Collections.emptyIterator());
-    }
-
-    @Nonnull
-    @Override
-    protected Stream<SqlDatabaseGetResultsInner> loadResourcesFromAzure() {
-        return Optional.ofNullable(getClient()).map(client -> {
-            try {
-                return client.listSqlDatabases(parent.getResourceGroupName(), parent.getName()).stream();
-            } catch (final RuntimeException e) {
-                return null;
-            }
-        }).orElse(Stream.empty());
     }
 
     @Nullable

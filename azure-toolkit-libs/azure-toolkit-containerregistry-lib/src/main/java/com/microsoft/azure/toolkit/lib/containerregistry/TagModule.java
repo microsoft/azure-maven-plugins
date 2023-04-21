@@ -6,17 +6,20 @@
 package com.microsoft.azure.toolkit.lib.containerregistry;
 
 import com.azure.containers.containerregistry.RegistryArtifact;
-import com.azure.containers.containerregistry.models.ArtifactManifestProperties;
 import com.azure.containers.containerregistry.models.ArtifactTagProperties;
 import com.azure.core.util.paging.ContinuablePage;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class TagModule extends AbstractAzResourceModule<Tag, Artifact, ArtifactTagProperties> {
 
@@ -29,12 +32,16 @@ public class TagModule extends AbstractAzResourceModule<Tag, Artifact, ArtifactT
     @Nonnull
     @Override
     protected Iterator<? extends ContinuablePage<String, ArtifactTagProperties>> loadResourcePagesFromAzure() {
-        if (!this.parent.exists()) {
+        final List<String> tags = Optional.of(this.getParent())
+            .filter(AbstractAzResource::exists)
+            .map(Artifact::getTags)
+            .orElse(Collections.emptyList());
+        if (CollectionUtils.isEmpty(tags)) {
             return Collections.emptyIterator();
         }
-        final ArtifactManifestProperties remote = Objects.requireNonNull(this.parent.getRemote());
-        final RegistryArtifact artifact = Objects.requireNonNull(this.parent.getParent().getRemote()).getArtifact(this.getParent().getDigest());
-        return Collections.singletonList(new ItemPage<>(remote.getTags().stream().map(artifact::getTagProperties))).iterator();
+        final Repository repository = this.getParent().getParent();
+        final RegistryArtifact image = Objects.requireNonNull(repository.getRemote()).getArtifact(this.getParent().getDigest());
+        return Collections.singletonList(new ItemPage<>(tags.stream().map(image::getTagProperties))).iterator();
     }
 
     @Nullable

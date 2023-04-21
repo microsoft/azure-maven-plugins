@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class MongoCollectionModule extends AbstractAzResourceModule<MongoCollection, MongoDatabase, MongoDBCollectionGetResultsInner> {
     private static final String NAME = "collections";
@@ -50,18 +49,6 @@ public class MongoCollectionModule extends AbstractAzResourceModule<MongoCollect
                 return null;
             }
         }).orElse(Collections.emptyIterator());
-    }
-
-    @Nonnull
-    @Override
-    protected Stream<MongoDBCollectionGetResultsInner> loadResourcesFromAzure() {
-        return Optional.ofNullable(getClient()).map(client -> {
-            try {
-                return client.listMongoDBCollections(parent.getResourceGroupName(), parent.getParent().getName(), parent.getName()).stream();
-            } catch (final RuntimeException e) {
-                return null;
-            }
-        }).orElse(Stream.empty());
     }
 
     @Nullable

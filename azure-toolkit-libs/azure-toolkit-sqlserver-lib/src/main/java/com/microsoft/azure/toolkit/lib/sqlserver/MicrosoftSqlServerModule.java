@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @Slf4j
 public class MicrosoftSqlServerModule extends AbstractAzResourceModule<MicrosoftSqlServer, MicrosoftSqlServiceSubscription, SqlServer> {
@@ -37,13 +36,6 @@ public class MicrosoftSqlServerModule extends AbstractAzResourceModule<Microsoft
         return Optional.ofNullable(getClient())
             .map(c -> c.list().iterableByPage(getPageSize()).iterator())
             .orElse(Collections.emptyIterator());
-    }
-
-    @Nonnull
-    @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
-    protected Stream<SqlServer> loadResourcesFromAzure() {
-        return Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());
     }
 
     @Nullable

@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase, CosmosDBAccount, MongoDBDatabaseGetResultsInner> {
     private static final String NAME = "mongodbDatabases";
@@ -56,18 +55,6 @@ public class MongoDatabaseModule extends AbstractAzResourceModule<MongoDatabase,
                 return null;
             }
         }).orElse(Collections.emptyIterator());
-    }
-
-    @Nonnull
-    @Override
-    protected Stream<MongoDBDatabaseGetResultsInner> loadResourcesFromAzure() {
-        return Optional.ofNullable(getClient()).map(client -> {
-            try {
-                return client.listMongoDBDatabases(parent.getResourceGroupName(), parent.getName()).stream();
-            } catch (final RuntimeException e) {
-                return null;
-            }
-        }).orElse(Stream.empty());
     }
 
     @Nullable

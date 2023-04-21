@@ -17,7 +17,6 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class RevisionModule extends AbstractAzResourceModule<Revision, ContainerApp, com.azure.resourcemanager.appcontainers.models.Revision> {
 
@@ -45,14 +44,6 @@ public class RevisionModule extends AbstractAzResourceModule<Revision, Container
         final ContainerApp parent = this.getParent();
         return Optional.ofNullable(this.getClient()).map(c -> c.listRevisions(parent.getResourceGroupName(), parent.getName()).iterableByPage(getPageSize()).iterator())
             .orElse(Collections.emptyIterator());
-    }
-
-    @Nonnull
-    @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
-    protected Stream<com.azure.resourcemanager.appcontainers.models.Revision> loadResourcesFromAzure() {
-        final ContainerApp parent = this.getParent();
-        return Optional.ofNullable(this.getClient()).map(c -> c.listRevisions(parent.getResourceGroupName(), parent.getName()).stream()).orElse(Stream.empty());
     }
 
     @Nullable

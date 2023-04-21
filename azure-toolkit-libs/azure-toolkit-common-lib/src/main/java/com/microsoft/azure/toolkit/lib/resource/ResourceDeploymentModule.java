@@ -11,7 +11,6 @@ import com.azure.resourcemanager.resources.models.Deployment;
 import com.azure.resourcemanager.resources.models.Deployments;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -20,7 +19,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class ResourceDeploymentModule extends
     AbstractAzResourceModule<ResourceDeployment, ResourceGroup, Deployment> {
@@ -54,14 +52,6 @@ public class ResourceDeploymentModule extends
     @Override
     protected Iterator<? extends ContinuablePage<String, Deployment>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(this.getClient()).map(c -> c.listByResourceGroup(this.parent.getName()).iterableByPage(getPageSize()).iterator()).orElse(Collections.emptyIterator());
-    }
-
-    @Nonnull
-    @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
-    protected Stream<Deployment> loadResourcesFromAzure() {
-        final Deployments deployments = Objects.requireNonNull(this.getClient());
-        return deployments.listByResourceGroup(this.parent.getName()).stream();
     }
 
     @Nonnull

@@ -58,23 +58,15 @@ public class ShareModule extends AbstractAzResourceModule<Share, StorageAccount,
             .iterator();
     }
 
-    @Nonnull
-    @Override
-    protected Stream<ShareClient> loadResourcesFromAzure() {
-        if (!this.parent.exists()) {
-            return Stream.empty();
-        }
-        final ShareServiceClient client = this.getFileShareServiceClient();
-        return Objects.requireNonNull(client).listShares().stream().map(s -> client.getShareClient(s.getName()));
-    }
-
     @Nullable
     @Override
     protected ShareClient loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         if (!this.parent.exists()) {
             return null;
         }
-        return this.loadResourcesFromAzure().filter(c -> c.getShareName().equals(name)).findAny().orElse(null);
+        final ShareServiceClient client = this.getFileShareServiceClient();
+        final Stream<ShareClient> resources = Objects.requireNonNull(client).listShares().stream().map(s -> client.getShareClient(s.getName()));
+        return resources.filter(c -> c.getShareName().equals(name)).findAny().orElse(null);
     }
 
     @Override

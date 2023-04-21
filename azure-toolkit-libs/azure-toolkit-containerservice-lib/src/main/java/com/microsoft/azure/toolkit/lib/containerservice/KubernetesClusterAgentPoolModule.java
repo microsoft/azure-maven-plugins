@@ -15,8 +15,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class KubernetesClusterAgentPoolModule extends
     AbstractAzResourceModule<KubernetesClusterAgentPool, KubernetesCluster, com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool> {
@@ -46,15 +46,15 @@ public class KubernetesClusterAgentPoolModule extends
         return "Node pool";
     }
 
-    @Override
-    protected Iterator<? extends ContinuablePage<String, com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool>> loadResourcePagesFromAzure() {
-        return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
-    }
-
     @Nonnull
     @Override
-    protected Stream<com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool> loadResourcesFromAzure() {
-        return Optional.ofNullable(this.getClient()).map(cluster -> cluster.agentPools().values().stream()).orElse(Stream.empty());
+    protected Iterator<? extends ContinuablePage<String, com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool>> loadResourcePagesFromAzure() {
+        return Optional.ofNullable(this.getClient())
+            .map(cluster -> cluster.agentPools().values().stream())
+            .map(ItemPage::new)
+            .map(Collections::singletonList)
+            .map(List::iterator)
+            .orElse(Collections.emptyIterator());
     }
 
     @Nullable

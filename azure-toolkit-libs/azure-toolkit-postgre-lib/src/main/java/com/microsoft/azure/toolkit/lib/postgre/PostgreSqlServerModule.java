@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlServer, PostgreSqlServiceSubscription, Server> {
 
@@ -35,13 +34,6 @@ public class PostgreSqlServerModule extends AbstractAzResourceModule<PostgreSqlS
         return Optional.ofNullable(getClient())
             .map(c -> c.list().iterableByPage(getPageSize()).iterator())
             .orElse(Collections.emptyIterator());
-    }
-
-    @Nonnull
-    @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
-    protected Stream<Server> loadResourcesFromAzure() {
-        return Optional.ofNullable(this.getClient()).map(c -> c.list().stream()).orElse(Stream.empty());
     }
 
     @Nullable

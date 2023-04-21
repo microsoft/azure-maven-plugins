@@ -20,7 +20,6 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 public class BlobContainerModule extends AbstractAzResourceModule<BlobContainer, StorageAccount, BlobContainerClient> {
 
@@ -58,23 +57,17 @@ public class BlobContainerModule extends AbstractAzResourceModule<BlobContainer,
             .iterator();
     }
 
-    @Nonnull
-    @Override
-    protected Stream<BlobContainerClient> loadResourcesFromAzure() {
-        if (!this.parent.exists()) {
-            return Stream.empty();
-        }
-        final BlobServiceClient client = this.getBlobServiceClient();
-        return Objects.requireNonNull(client).listBlobContainers().stream().map(s -> client.getBlobContainerClient(s.getName()));
-    }
-
     @Nullable
     @Override
     protected BlobContainerClient loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         if (!this.parent.exists()) {
             return null;
         }
-        return this.loadResourcesFromAzure().filter(c -> c.getBlobContainerName().equals(name)).findAny().orElse(null);
+        final BlobServiceClient client = this.getBlobServiceClient();
+        return Objects.requireNonNull(client).listBlobContainers().stream()
+            .map(s -> client.getBlobContainerClient(s.getName()))
+            .filter(c -> c.getBlobContainerName().equals(name))
+            .findAny().orElse(null);
     }
 
     @Override

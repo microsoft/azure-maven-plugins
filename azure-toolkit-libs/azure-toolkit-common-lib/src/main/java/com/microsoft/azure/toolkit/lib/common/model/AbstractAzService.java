@@ -83,16 +83,11 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/resource.load_resources_by_page.type", params = {"this.getResourceTypeName()"})
     protected Iterator<? extends ContinuablePage<String, R>> loadResourcePagesFromAzure() {
-        return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
-    }
-
-    @Nonnull
-    @Override
-    @AzureOperation(name = "azure/resource.load_resources.type", params = {"this.getResourceTypeName()"})
-    protected Stream<R> loadResourcesFromAzure() {
-        return Azure.az(IAzureAccount.class).account().getSelectedSubscriptions().stream().parallel()
+        final Stream<R> resources = Azure.az(IAzureAccount.class).account().getSelectedSubscriptions().stream().parallel()
             .map(Subscription::getId).map(i -> loadResourceFromAzure(i, null));
+        return Collections.singletonList(new ItemPage<>(resources)).iterator();
     }
 
     @Nonnull
