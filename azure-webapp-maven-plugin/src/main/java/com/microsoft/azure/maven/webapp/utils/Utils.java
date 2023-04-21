@@ -29,19 +29,7 @@ import java.util.stream.Collectors;
 
 public class Utils {
 
-    private static final String CREATE_TEMP_FILE_FAIL = "Failed to create temp file %s.%s";
-
     private static final String NO_RESOURCES_CONFIG = "<resources> is empty. Please make sure it is configured in pom.xml.";
-
-    public static File createTempFile(final String prefix, final String suffix) throws AzureExecutionException {
-        try {
-            final File zipFile = File.createTempFile(prefix, suffix);
-            zipFile.deleteOnExit();
-            return zipFile;
-        } catch (IOException e) {
-            throw new AzureExecutionException(String.format(CREATE_TEMP_FILE_FAIL, prefix, suffix), e.getCause());
-        }
-    }
 
     // Todo: Move this method to common for duplicated with Utils in spring maven plugin
     public static List<File> getArtifacts(Resource resource) {

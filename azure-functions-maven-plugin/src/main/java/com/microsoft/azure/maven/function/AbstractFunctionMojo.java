@@ -17,12 +17,14 @@ import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionEx
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.RuntimeConfiguration;
 import com.microsoft.azure.toolkit.lib.legacy.function.utils.FunctionUtils;
 import lombok.Getter;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,6 +44,8 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     protected static final String LOCAL_SETTINGS_JSON = "local.settings.json";
     protected static final String TRIGGER_TYPE = "triggerType";
     protected static final String AZURE_FUNCTIONS_JAVA_LIBRARY = "azure-functions-java-library";
+    protected static final String CAN_NOT_FIND_ARTIFACT = "Cannot find the maven artifact, please run `mvn package` first.";
+
     protected static final Map<FunctionExtensionVersion, Set<Integer>> FUNCTION_EXTENSION_LIBRARY_MAP = new HashMap<FunctionExtensionVersion, Set<Integer>>() {
         {
             put(FunctionExtensionVersion.VERSION_2, Sets.newHashSet(1, 2));
@@ -171,6 +175,13 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter(property = "functions.localSettingsJson", defaultValue = LOCAL_SETTINGS_JSON)
     protected String localSettingsJson;
 
+    /**
+     * Path for the artifact to package and deploy
+     */
+    @Getter
+    @Parameter(property = "functions.artifact")
+    protected String artifactPath;
+
     @Getter
     protected final ConfigParser parser = new ConfigParser(this);
 
@@ -205,6 +216,27 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     public RuntimeConfiguration getRuntimeConfiguration() {
         return runtime;
+    }
+
+    @Nonnull
+    protected File getArtifact() throws AzureToolkitRuntimeException {
+        // Using artifact from configuration first
+        if (StringUtils.isNotEmpty(getArtifactPath())) {
+            return new File(getArtifactPath());
+        }
+        final Artifact artifact = project.getArtifact();
+        if (artifact.getFile() != null) {
+            return artifact.getFile();
+        }
+        // Get artifact by buildDirectory and finalName
+        // as project.getArtifact() will be null when invoke azure-functions:package directly
+        final String finalName = project.getBuild().getFinalName();
+        final String packaging = project.getPackaging();
+        final File result = new File(buildDirectory, StringUtils.join(finalName, FilenameUtils.EXTENSION_SEPARATOR, packaging));
+        if (!result.exists()) {
+            throw new AzureToolkitRuntimeException(CAN_NOT_FIND_ARTIFACT);
+        }
+        return result;
     }
 
     protected File getHostJsonFile() {

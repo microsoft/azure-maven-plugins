@@ -153,6 +153,7 @@
         <azure-cosmos.version>4.38.0</azure-cosmos.version>
         <java-driver-core.version>4.15.0</java-driver-core.version>
         <azure-containers-containerregistry.version>1.0.9</azure-containers-containerregistry.version>
+        <maven-shade-plugin.version>3.4.1</maven-shade-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -834,6 +835,11 @@
                         <artifactId>netty-handler</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven-shade-plugin.version}</version>
             </dependency>
             <!-- TEST -->
             <dependency>

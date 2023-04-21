@@ -14,8 +14,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.microsoft.azure.maven.model.DeploymentResource;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.Binding;
@@ -28,18 +30,29 @@ import com.microsoft.azure.toolkit.lib.legacy.function.handlers.CommandHandlerIm
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreToolsHandler;
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreToolsHandlerImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.plugins.shade.DefaultShader;
+import org.apache.maven.plugins.shade.ShadeRequest;
+import org.apache.maven.plugins.shade.Shader;
+import org.apache.maven.plugins.shade.filter.Filter;
+import org.apache.maven.plugins.shade.filter.SimpleFilter;
+import org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer;
+import org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer;
+import org.apache.maven.plugins.shade.resource.ResourceTransformer;
+import org.apache.maven.plugins.shade.resource.ServicesResourceTransformer;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -95,13 +108,12 @@ public class PackageMojo extends AbstractFunctionMojo {
     private static final String DEFAULT_HOST_JSON = "{\"version\":\"2.0\",\"extensionBundle\":" +
             "{\"id\":\"Microsoft.Azure.Functions.ExtensionBundle\",\"version\":\"[4.*, 5.0.0)\"}}\n";
 
-    private static final BindingEnum[] FUNCTION_WITHOUT_FUNCTION_EXTENSION =
-        {BindingEnum.HttpOutput, BindingEnum.HttpTrigger};
+    private static final BindingEnum[] FUNCTION_WITHOUT_FUNCTION_EXTENSION = {BindingEnum.HttpOutput, BindingEnum.HttpTrigger};
     private static final String EXTENSION_BUNDLE_ID = "Microsoft.Azure.Functions.ExtensionBundle";
     private static final String EXTENSION_BUNDLE_PREVIEW_ID = "Microsoft.Azure.Functions.ExtensionBundle.Preview";
     private static final String SKIP_INSTALL_EXTENSIONS_FLAG = "skipInstallExtensions flag is set, skip install extension";
     private static final String SKIP_INSTALL_EXTENSIONS_BUNDLE = "Extension bundle specified, skip install extension";
-    private static final String CAN_NOT_FIND_ARTIFACT = "Cannot find the maven artifact, please run `mvn package` first.";
+    private static final String BUILD_UBER_ARTIFACT_EXCEPTION = "Failed to build uber artifact, please set `buildFatJar` to `false` and use `maven-shade-plugin` to try again.";
     //region Entry Point
 
     /**
@@ -109,6 +121,18 @@ public class PackageMojo extends AbstractFunctionMojo {
      */
     @Parameter(property = "functions.skipInstallExtensions", defaultValue = "false")
     protected Boolean skipInstallExtensions;
+
+    /**
+     * Boolean flag to control whether to skip copy dependencies to staging directory
+     */
+    @Parameter(property = "functions.skipCopyDependencies", defaultValue = "false")
+    protected Boolean skipCopyDependencies;
+
+    /**
+     * Boolean flag to control whether to build fat jar or use the original jar with dependencies in lib folder
+     */
+    @Parameter(property = "functions.buildJarWithDependencies", defaultValue = "false")
+    protected Boolean buildJarWithDependencies;
 
     @Override
     @AzureOperation("user/functionapp.package")
@@ -146,7 +170,7 @@ public class PackageMojo extends AbstractFunctionMojo {
             writeFunctionJsonFiles(objectWriter, configMap);
 
             copyJarsToStageDirectory();
-        } catch (IOException e) {
+        } catch (IOException | MojoExecutionException e) {
             throw new AzureExecutionException("Cannot perform IO operations due to error:" + e.getMessage(), e);
         }
 
@@ -157,6 +181,35 @@ public class PackageMojo extends AbstractFunctionMojo {
         installExtension(functionCoreToolsHandler, bindingClasses);
 
         log.info(BUILD_SUCCESS);
+    }
+
+    public static void buildArtifactWithDependencies(@Nonnull final File artifactFile, @Nullable final Set<File> dependencies, final File target) {
+        AzureMessager.getMessager().info("Building artifact with dependencies...");
+        final Shader shader = new DefaultShader();
+        final ShadeRequest shadeRequest = new ShadeRequest();
+        final Set<File> jars = new HashSet<>();
+        jars.add(artifactFile);
+        Optional.ofNullable(dependencies).ifPresent(jars::addAll);
+        shadeRequest.setJars(jars);
+        shadeRequest.setRelocators(Collections.emptyList());
+        shadeRequest.setFilters(Collections.singletonList(getExcludeSignFilesFilter(jars)));
+        shadeRequest.setShadeSourcesContent(false);
+        shadeRequest.setUberJar(target);
+        shadeRequest.setResourceTransformers(getDefaultResourceTransformers());
+        try {
+            shader.shade(shadeRequest);
+        } catch (IOException | MojoExecutionException e) {
+            throw new AzureToolkitRuntimeException(BUILD_UBER_ARTIFACT_EXCEPTION, e);
+        }
+        AzureMessager.getMessager().info(AzureString.format("Successfully build artifact to %s", target.getAbsolutePath()));
+    }
+
+    private static List<ResourceTransformer> getDefaultResourceTransformers() {
+        return Arrays.asList(new ServicesResourceTransformer(), new ApacheLicenseResourceTransformer(), new ApacheNoticeResourceTransformer());
+    }
+
+    private static Filter getExcludeSignFilesFilter(final Set<File> jars) {
+        return new SimpleFilter(jars, Collections.emptySet(), SetUtils.unmodifiableSet("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA"));
     }
 
     //endregion
@@ -186,7 +239,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     protected URL getArtifactUrl() throws MalformedURLException {
-        return this.getProject().getArtifact().getFile().toURI().toURL();
+        return this.getArtifact().toURI().toURL();
     }
 
     protected URL getTargetClassUrl() throws MalformedURLException {
@@ -327,25 +380,43 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     //region Copy Jars to stage directory
 
-    protected void copyJarsToStageDirectory() throws IOException, AzureExecutionException {
-        final String stagingDirectory = getDeploymentStagingDirectoryPath();
+    protected void copyJarsToStageDirectory() throws IOException, MojoExecutionException {
+        final File stagingDirectory = new File(getDeploymentStagingDirectoryPath());
         log.info("");
-        log.info(COPY_JARS + stagingDirectory);
-        final File libFolder = Paths.get(stagingDirectory, "lib").toFile();
-        if (libFolder.exists()) {
-            FileUtils.cleanDirectory(libFolder);
-        }
+        log.info(COPY_JARS + stagingDirectory.getAbsolutePath());
         final Set<Artifact> artifacts = project.getArtifacts();
         final String libraryToExclude = artifacts.stream()
                 .map(Artifact::getArtifactId)
                 .filter(artifactId -> StringUtils.equalsAnyIgnoreCase(artifactId, AZURE_FUNCTIONS_JAVA_CORE_LIBRARY)).findFirst().orElse(AZURE_FUNCTIONS_JAVA_LIBRARY);
-        for (final Artifact artifact : artifacts) {
-            if (!StringUtils.equalsIgnoreCase(artifact.getArtifactId(), libraryToExclude)) {
-                copyFileToDirectory(artifact.getFile(), libFolder);
-            }
-        }
-        copyFileToDirectory(getArtifactFile(), new File(stagingDirectory));
+        final Set<File> dependencies = artifacts.stream().filter(artifact -> !StringUtils.equalsIgnoreCase(artifact.getArtifactId(), libraryToExclude))
+                .map(Artifact::getFile).collect(Collectors.toSet());
+        copyArtifactToStagingDirectory(stagingDirectory, dependencies);
+        copyDependenciesToStagingDirectory(stagingDirectory, dependencies);
         log.info(COPY_SUCCESS);
+    }
+
+    private void copyDependenciesToStagingDirectory(@Nonnull final File stagingDirectory, @Nullable final Set<File> dependencies) throws IOException {
+        if (skipCopyDependencies) {
+            log.info("Skip copy dependencies to staging directory as `skipCopyDependencies` is set to true.");
+        } else if (buildJarWithDependencies) {
+            log.info("Skip copy dependencies to staging directory as `buildJarWithDependencies` is set to true, dependencies has been included in the artifact.");
+        } else {
+            final File libFolder = new File(stagingDirectory, "lib");
+            if (libFolder.exists()) {
+                FileUtils.cleanDirectory(libFolder);
+            }
+            Optional.ofNullable(dependencies).ifPresent(des -> des.forEach(dependency -> copyFileToDirectory(dependency, libFolder)));
+        }
+    }
+
+    private void copyArtifactToStagingDirectory(@Nonnull final File stagingDirectory, @Nullable final Set<File> dependencies) throws IOException {
+        final File originalArtifact = getArtifact();
+        final File finalArtifact = this.buildJarWithDependencies ?
+                com.microsoft.azure.toolkit.lib.appservice.utils.Utils.createTempFile(originalArtifact.getName(), "jar") : originalArtifact;
+        if (buildJarWithDependencies) {
+            buildArtifactWithDependencies(originalArtifact, dependencies, finalArtifact);
+        }
+        FileUtils.copyFile(finalArtifact, new File(stagingDirectory, originalArtifact.getName()));
     }
 
     @Override
@@ -411,26 +482,10 @@ public class PackageMojo extends AbstractFunctionMojo {
     protected void promptCompileInfo() {
         try {
             log.info(String.format("Java home : %s", System.getenv("JAVA_HOME")));
-            log.info(String.format("Artifact compile version : %s", Utils.getArtifactCompileVersion(getArtifactFile())));
-        } catch (AzureExecutionException | AzureToolkitRuntimeException e) {
+            log.info(String.format("Artifact compile version : %s", Utils.getArtifactCompileVersion(getArtifact())));
+        } catch (AzureToolkitRuntimeException e) {
             // swallow exception when prompt compile info
         }
-    }
-
-    private File getArtifactFile() throws AzureExecutionException {
-        final Artifact artifact = project.getArtifact();
-        if (artifact.getFile() != null) {
-            return artifact.getFile();
-        }
-        // Get artifact by buildDirectory and finalName
-        // as project.getArtifact() will be null when invoke azure-functions:package directly
-        final String finalName = project.getBuild().getFinalName();
-        final String packaging = project.getPackaging();
-        final File result = new File(buildDirectory, StringUtils.join(finalName, FilenameUtils.EXTENSION_SEPARATOR, packaging));
-        if (!result.exists()) {
-            throw new AzureExecutionException(CAN_NOT_FIND_ARTIFACT);
-        }
-        return result;
     }
 
     protected void trackFunctionProperties(Map<String, FunctionConfiguration> configMap) {
@@ -442,9 +497,13 @@ public class PackageMojo extends AbstractFunctionMojo {
         getTelemetryProxy().addDefaultProperty(TRIGGER_TYPE, StringUtils.join(bindingTypeSet, ","));
     }
 
-    private static void copyFileToDirectory(@Nonnull final File srcFile, @Nonnull final File destFile) throws IOException {
+    private static void copyFileToDirectory(@Nonnull final File srcFile, @Nonnull final File destFile) {
         if (!Objects.equals(srcFile.getParentFile(), destFile)) {
-            FileUtils.copyFileToDirectory(srcFile, destFile);
+            try {
+                FileUtils.copyFileToDirectory(srcFile, destFile);
+            } catch (IOException e) {
+                throw new AzureToolkitRuntimeException(e);
+            }
         }
     }
 }
