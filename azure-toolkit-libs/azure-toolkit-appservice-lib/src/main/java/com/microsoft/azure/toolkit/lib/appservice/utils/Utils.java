@@ -92,9 +92,9 @@ public class Utils {
 
     public static File createTempFile(final String prefix, final String suffix) throws AzureToolkitRuntimeException {
         try {
-            final File zipFile = File.createTempFile(prefix, suffix);
-            zipFile.deleteOnExit();
-            return zipFile;
+            final File result = File.createTempFile(prefix, suffix);
+            result.deleteOnExit();
+            return result;
         } catch (IOException e) {
             throw new AzureToolkitRuntimeException(String.format(Utils.CREATE_TEMP_FILE_FAIL, prefix, suffix), e.getCause());
         }
