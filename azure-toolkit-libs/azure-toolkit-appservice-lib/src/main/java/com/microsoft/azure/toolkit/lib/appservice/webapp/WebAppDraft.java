@@ -190,7 +190,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebS
 
     private void updateRuntime(@Nonnull Update update, @Nonnull Runtime newRuntime) {
         final Runtime oldRuntime = Objects.requireNonNull(Objects.requireNonNull(origin).getRuntime());
-        if (newRuntime.getOperatingSystem() != null && oldRuntime.getOperatingSystem() != newRuntime.getOperatingSystem()) {
+        if (newRuntime.getOperatingSystem() != null && (oldRuntime.isWindows() != newRuntime.isWindows())) {
             throw new AzureToolkitRuntimeException(CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS);
         }
         final OperatingSystem operatingSystem = ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), oldRuntime.getOperatingSystem());
