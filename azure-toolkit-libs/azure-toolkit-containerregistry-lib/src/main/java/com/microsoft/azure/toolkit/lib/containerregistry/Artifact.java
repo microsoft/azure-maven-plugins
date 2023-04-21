@@ -20,7 +20,6 @@ import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 public class Artifact extends AbstractAzResource<Artifact, Repository, ArtifactManifestProperties> implements Deletable {
     @Getter
@@ -59,11 +58,6 @@ public class Artifact extends AbstractAzResource<Artifact, Repository, ArtifactM
         } else {
             this.artifact = null;
         }
-    }
-
-    @Override
-    public void delete() {
-        Optional.ofNullable(this.artifact).ifPresent(RegistryArtifact::delete);
     }
 
     @Nonnull

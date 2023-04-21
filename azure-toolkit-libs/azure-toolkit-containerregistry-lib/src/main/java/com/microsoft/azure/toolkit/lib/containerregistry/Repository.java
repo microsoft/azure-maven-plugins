@@ -59,11 +59,6 @@ public class Repository extends AbstractAzResource<Repository, ContainerRegistry
         this.properties = Optional.ofNullable(newRemote).map(ContainerRepository::getProperties).orElse(null);
     }
 
-    @Override
-    public void delete() {
-        this.remoteOptional().ifPresent(ContainerRepository::delete);
-    }
-
     public OffsetDateTime getLastUpdatedOn() {
         return Optional.ofNullable(this.properties)
             .map(ContainerRepositoryProperties::getLastUpdatedOn)
