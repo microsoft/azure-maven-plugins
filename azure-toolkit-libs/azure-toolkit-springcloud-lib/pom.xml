@@ -22,6 +22,10 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-toolkit-common-lib</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-toolkit-servicelinker-lib</artifactId>
+        </dependency>
         <!-- javax annotations e.g. @Nonnull -->
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
