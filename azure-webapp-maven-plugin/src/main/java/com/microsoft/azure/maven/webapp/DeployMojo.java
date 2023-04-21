@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateWebAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask;
+import com.microsoft.azure.toolkit.lib.appservice.task.StreamingLogTask;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
@@ -82,9 +83,17 @@ public class DeployMojo extends AbstractWebAppMojo {
         doValidate();
         // initialize library client
         az = initAzureAppServiceClient();
-        final WebAppBase<?, ?, ?> target = createOrUpdateResource();
-        deployExternalResources(target, getConfigParser().getExternalArtifacts());
-        deploy(target, getConfigParser().getArtifacts());
+        final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
+        final WebApp app = Azure.az(AzureWebApp.class).webApps(appServiceConfig.subscriptionId())
+                .getOrDraft(appServiceConfig.appName(), appServiceConfig.resourceGroup());
+        try {
+            final WebAppBase<?, ?, ?> target = createOrUpdateResource(app);
+            deployExternalResources(target, getConfigParser().getExternalArtifacts());
+            deploy(target, getConfigParser().getArtifacts());
+        } catch (final Exception e) {
+            new StreamingLogTask(app).execute();
+            throw new AzureToolkitRuntimeException(e);
+        }
         updateTelemetryProperties();
     }
 
@@ -116,11 +125,9 @@ public class DeployMojo extends AbstractWebAppMojo {
         }
     }
 
-    private WebAppBase<?, ?, ?> createOrUpdateResource() throws AzureExecutionException {
+    private WebAppBase<?, ?, ?> createOrUpdateResource(WebAppBase<?, ?, ?> app) throws AzureExecutionException {
         final boolean skipCreate = skipAzureResourceCreate || BooleanUtils.isTrue(skipCreateAzureResource);
         final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
-        final WebApp app = Azure.az(AzureWebApp.class).webApps(appServiceConfig.subscriptionId())
-                .getOrDraft(appServiceConfig.appName(), appServiceConfig.resourceGroup());
         final AppServiceConfig defaultConfig = app.exists() ? fromAppService(app, Objects.requireNonNull(app.getAppServicePlan())) :
                 buildDefaultConfig(appServiceConfig.subscriptionId(), appServiceConfig.resourceGroup(), appServiceConfig.appName());
         mergeAppServiceConfig(appServiceConfig, defaultConfig);

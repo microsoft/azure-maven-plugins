@@ -77,7 +77,7 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
             } catch (final Exception e) {
                 // show warning instead of exception for list triggers
                 messager.warning(FAILED_TO_LIST_TRIGGERS);
-                startStreamingLog();
+                new StreamingLogTask(target).doExecute();
             }
         }
         return target;
@@ -111,27 +111,4 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
         }
     }
 
-
-
-    private void startStreamingLog() {
-        if (!target.isStreamingLogSupported() || !openStreamingLogOnFailure) {
-            return;
-        }
-        messager.debug("###############STREAMING LOG BEGIN##################");
-        subscription = target.streamAllLogsAsync()
-                .doFinally((type) -> messager.debug("###############STREAMING LOG END##################"))
-                .subscribe(messager::debug);
-        try {
-            TimeUnit.MINUTES.sleep(1);
-        } catch (final Exception ignored) {
-        } finally {
-            stopStreamingLog();
-        }
-    }
-
-    private synchronized void stopStreamingLog() {
-        if (subscription != null && !subscription.isDisposed()) {
-            subscription.dispose();
-        }
-    }
 }
