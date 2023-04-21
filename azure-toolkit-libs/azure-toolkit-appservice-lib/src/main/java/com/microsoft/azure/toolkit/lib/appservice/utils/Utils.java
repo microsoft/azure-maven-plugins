@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Utils {
+    private static final String CREATE_TEMP_FILE_FAIL = "Failed to create temp file %s.%s";
 
     public static Map<String, String> normalizeAppSettings(Map<String, AppSetting> input) {
         return input.entrySet().stream()
@@ -86,5 +88,15 @@ public class Utils {
         }
         segments = image.split(Pattern.quote("/"));
         return segments[segments.length - 1].trim();
+    }
+
+    public static File createTempFile(final String prefix, final String suffix) throws AzureToolkitRuntimeException {
+        try {
+            final File zipFile = File.createTempFile(prefix, suffix);
+            zipFile.deleteOnExit();
+            return zipFile;
+        } catch (IOException e) {
+            throw new AzureToolkitRuntimeException(String.format(Utils.CREATE_TEMP_FILE_FAIL, prefix, suffix), e.getCause());
+        }
     }
 }
