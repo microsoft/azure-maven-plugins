@@ -451,11 +451,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
 
     protected static void printCredentialDescription(Account account) {
         final IAzureMessager messager = AzureMessager.getMessager();
-        final AuthType type = account.getType();
         final String username = account.getUsername();
-        if (type != null) {
-            messager.info(AzureString.format("Auth type: %s", type.toString()));
-        }
         if (account.isLoggedIn()) {
             final List<Subscription> selectedSubscriptions = account.getSelectedSubscriptions();
             if (CollectionUtils.isNotEmpty(selectedSubscriptions) && selectedSubscriptions.size() == 1) {
