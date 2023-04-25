@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.servicebus.queue.ServiceBusQueueModule;
 import com.microsoft.azure.toolkit.lib.servicebus.topic.ServiceBusTopicModule;
 import org.apache.commons.lang3.StringUtils;
@@ -75,19 +76,20 @@ public class ServiceBusNamespace extends AbstractAzResource<ServiceBusNamespace,
         final List<AccessRights> accessRights = Collections.singletonList(AccessRights.LISTEN);
         final List<NamespaceAuthorizationRule> connectionStrings = Optional.ofNullable(getRemote())
                 .map(topic -> topic.authorizationRules().list().stream()
-                        .filter(rule -> new HashSet<>(rule.rights()).containsAll(accessRights))
+                        .filter(rule -> Objects.equals(rule.rights(), accessRights))
                         .collect(Collectors.toList()))
                 .orElse(new ArrayList<>());
         if (connectionStrings.size() > 0) {
             return connectionStrings.get(0).getKeys().primaryConnectionString();
         }
-        final ServiceBusManager manager = getParent().getRemote();
-        if (Objects.isNull(manager)) {
+        if (!this.exists()) {
             throw new AzureToolkitRuntimeException(AzureString.format("resource ({0}) not found", getName()).toString());
         }
+        final ServiceBusManager manager = getParent().getRemote();
         final String accessRightsStr = StringUtils.join(accessRights, "-");
+        final String authorizationRuleName = String.format("policy-%s-AzureToolkitForIntelliJ-%s", accessRightsStr, Utils.getTimestamp());
         manager.serviceClient().getNamespaces().createOrUpdateAuthorizationRule(getResourceGroupName(),
-                getName(), accessRightsStr, new SBAuthorizationRuleInner().withRights(accessRights));
+                getName(), authorizationRuleName, new SBAuthorizationRuleInner().withRights(accessRights));
         return manager.serviceClient().getNamespaces().listKeys(getResourceGroupName(),
                 getName(), accessRightsStr).primaryConnectionString();
     }

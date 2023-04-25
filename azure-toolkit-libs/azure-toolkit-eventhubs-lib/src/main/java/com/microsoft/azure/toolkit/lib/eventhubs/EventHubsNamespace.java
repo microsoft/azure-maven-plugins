@@ -59,19 +59,19 @@ public class EventHubsNamespace extends AbstractAzResource<EventHubsNamespace, E
         final List<AccessRights> accessRights = Collections.singletonList(AccessRights.LISTEN);
         final List<EventHubNamespaceAuthorizationRule> connectionStrings = Optional.ofNullable(getRemote())
                 .map(eventHubInstance -> eventHubInstance.listAuthorizationRules().stream()
-                        .filter(rule -> new HashSet<>(rule.rights()).containsAll(accessRights))
+                        .filter(rule -> Objects.equals(rule.rights(), accessRights))
                         .collect(Collectors.toList()))
                 .orElse(new ArrayList<>());
         if (connectionStrings.size() > 0) {
             return connectionStrings.get(0).getKeys().primaryConnectionString();
         }
-        final EventHubsManager manager = getParent().getRemote();
-        if (Objects.isNull(manager)) {
+        if (!this.exists()) {
             throw new AzureToolkitRuntimeException(AzureString.format("resource ({0}) not found", getName()).toString());
         }
+        final EventHubsManager manager = getParent().getRemote();
         final String accessRightsStr = StringUtils.join(accessRights, "-");
         final EventHubNamespaceAuthorizationRule.DefinitionStages.WithAccessPolicy policy = manager.namespaceAuthorizationRules()
-                .define(String.format("policy-%s-%s", accessRightsStr, Utils.getTimestamp()))
+                .define(String.format("policy-%s-AzureToolkitForIntelliJ-%s", accessRightsStr, Utils.getTimestamp()))
                 .withExistingNamespace(getResourceGroupName(), getName());
         EventHubNamespaceAuthorizationRule.DefinitionStages.WithCreate withCreate = policy.withListenAccess();
         if (accessRights.contains(AccessRights.MANAGE)) {
