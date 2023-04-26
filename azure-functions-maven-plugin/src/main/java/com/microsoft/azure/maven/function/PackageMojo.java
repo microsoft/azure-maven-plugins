@@ -32,6 +32,7 @@ import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreTool
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
@@ -412,7 +413,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     private void copyArtifactToStagingDirectory(@Nonnull final File stagingDirectory, @Nullable final Set<File> dependencies) throws IOException {
         final File originalArtifact = getArtifact();
         final File finalArtifact = this.buildJarWithDependencies ?
-                com.microsoft.azure.toolkit.lib.appservice.utils.Utils.createTempFile(originalArtifact.getName(), "jar") : originalArtifact;
+                com.microsoft.azure.toolkit.lib.appservice.utils.Utils.createTempFile(FilenameUtils.getBaseName(originalArtifact.getName()), ".jar") : originalArtifact;
         if (buildJarWithDependencies) {
             buildArtifactWithDependencies(originalArtifact, dependencies, finalArtifact);
         }
