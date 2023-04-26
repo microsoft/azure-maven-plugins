@@ -166,7 +166,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         update.withConfiguration(configuration);
         messager.info(AzureString.format("Start updating Container App({0})...", getName()));
         final com.azure.resourcemanager.appcontainers.models.ContainerApp result = update.apply();
-        messager.info(AzureString.format("Container App({0}) is successfully updated.", getName()));
+        messager.success(AzureString.format("Container App({0}) is successfully updated.", getName()));
         if (isImageModified) {
             AzureTaskManager.getInstance().runOnPooledThread(() -> this.getRevisionModule().refresh());
         }
