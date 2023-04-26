@@ -100,10 +100,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     // READ
     public boolean isPublicEndpointEnabled() {
-        if (Objects.nonNull(this.getRemote())) {
-            return this.getRemote().isPublic();
-        }
-        return false;
+        return this.remoteOptional().map(SpringApp::isPublic).orElse(false);
     }
 
     @Nullable
@@ -127,10 +124,11 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
         return StringUtils.isBlank(url) || url.equalsIgnoreCase("None") ? null : url;
     }
 
+    @SuppressWarnings("unused")
     @Nullable
     public String getTestUrl() {
         return Optional.ofNullable(this.getRemote()).map(SpringApp::activeDeploymentName).map(d -> {
-            final String endpoint = this.getRemote().parent().listTestKeys().primaryTestEndpoint();
+            final String endpoint = Objects.requireNonNull(this.getRemote()).parent().listTestKeys().primaryTestEndpoint();
             return String.format("%s/%s/%s", endpoint, this.getName(), d);
         }).orElse(null);
     }
@@ -138,7 +136,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     @Nullable
     public String getLogStreamingEndpoint(String instanceName) {
         return Optional.ofNullable(this.getRemote()).map(SpringApp::activeDeploymentName).map(d -> {
-            final String endpoint = this.getRemote().parent().listTestKeys().primaryTestEndpoint();
+            final String endpoint = Objects.requireNonNull(this.getRemote()).parent().listTestKeys().primaryTestEndpoint();
             return String.format("%s/api/logstream/apps/%s/instances/%s", endpoint.replace(".test", ""), this.getName(), instanceName);
         }).orElse(null);
     }
