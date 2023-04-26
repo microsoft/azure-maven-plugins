@@ -83,7 +83,7 @@
         <httpcore.version>4.4.15</httpcore.version>
         <adal4j.version>1.6.7</adal4j.version>
         <applicationinsights.version>2.6.4</applicationinsights.version>
-        <azure.resourcemanager.version>2.24.0</azure.resourcemanager.version>
+        <azure.resourcemanager.version>2.26.0</azure.resourcemanager.version>
         <azure-arm-client-runtime.version>1.7.14</azure-arm-client-runtime.version>
         <azure-resourcemanager-applicationinsights.version>1.0.0-beta.5</azure-resourcemanager-applicationinsights.version>
         <azure-resourcemanager-appcontainers.version>1.0.0-beta.4</azure-resourcemanager-appcontainers.version>
@@ -357,7 +357,7 @@
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-appservice</artifactId>
-                <version>${azure.resourcemanager.version}</version>
+                <version>2.26.1</version>
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
@@ -402,7 +402,7 @@
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-appplatform</artifactId>
-                <version>2.19.0-beta.1</version>
+                <version>2.26.0-beta.1</version>
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
