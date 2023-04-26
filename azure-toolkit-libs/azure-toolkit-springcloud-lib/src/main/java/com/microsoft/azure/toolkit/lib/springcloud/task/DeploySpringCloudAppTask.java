@@ -71,7 +71,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final String resourceGroup = config.getResourceGroup();
         final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(config.getSubscriptionId()).get(clusterName, resourceGroup);
         Optional.ofNullable(cluster).orElseThrow(() -> new AzureToolkitRuntimeException(
-            String.format("Azure Spring Apps(%s) is not found in subscription(%s).", clusterName, config.getSubscriptionId())));
+            String.format("Azure Spring Apps(%s) is not found in resource group(%s) of subscription(%s).", clusterName, config.getResourceGroup(), config.getSubscriptionId())));
         final SpringCloudAppDraft app = cluster.apps().updateOrCreate(appName, resourceGroup);
         final String deploymentName = StringUtils.firstNonBlank(
             deploymentConfig.getDeploymentName(),
@@ -80,7 +80,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
             DEFAULT_DEPLOYMENT_NAME
         );
         final boolean toCreateApp = !app.exists();
-        final boolean toCreateDeployment = toCreateApp && !app.deployments().exists(deploymentName, resourceGroup);
+        final boolean toCreateDeployment = toCreateApp || !app.deployments().exists(deploymentName, resourceGroup);
         config.setActiveDeploymentName(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateDeployment ? deploymentName : null));
 
         OperationContext.action().setTelemetryProperty("subscriptionId", config.getSubscriptionId());

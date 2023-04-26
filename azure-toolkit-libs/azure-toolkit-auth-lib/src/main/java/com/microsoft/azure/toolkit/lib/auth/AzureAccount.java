@@ -116,9 +116,7 @@ public class AzureAccount implements IAzureAccount {
             throw new AzureToolkitRuntimeException(String.format("Unsupported auth type '%s'", type));
         }
         account.setPersistenceEnabled(enablePersistence);
-        if (account.getType() == AuthType.OAUTH2 || account.getType() == AuthType.DEVICE_CODE) {
-            log.info(String.format("Auth type: %s", TextUtils.cyan(account.getType().name())));
-        }
+        log.info(String.format("Auth type: %s", TextUtils.cyan(account.getType().name())));
         this.accountRef = new AtomicReference<>();
         AzureEventBus.emit("account.logging_in.type", account.getType());
         try {

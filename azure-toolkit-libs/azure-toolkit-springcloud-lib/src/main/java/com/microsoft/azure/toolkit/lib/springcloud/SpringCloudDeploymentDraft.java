@@ -109,6 +109,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         final SpringApp app = Objects.requireNonNull(this.getParent().getRemote());
         final SpringAppDeploymentImpl create = ((SpringAppDeploymentImpl) app.deployments().define(name));
         create.withExistingSource(UserSourceType.JAR, "<default>");
+        create.withActivation();
         modify(create);
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating deployment({0})...", name));

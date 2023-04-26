@@ -20,7 +20,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.StreamingLogSupport;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerConsumer;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -92,12 +91,16 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     protected void updateAdditionalProperties(SpringAppDeployment newRemote, SpringAppDeployment oldRemote) {
         final SpringCloudApp app = this.getParent();
         final SpringCloudCluster cluster = app.getParent();
-        this.remoteDebuggingEnabled = Optional.ofNullable(cluster.getRemote())
-            .map(HasManager::manager)
-            .map(AppPlatformManager::serviceClient)
-            .map(AppPlatformManagementClient::getDeployments)
-            .map(c -> c.getRemoteDebuggingConfig(this.getResourceGroupName(), cluster.getName(), app.getName(), this.getName()))
-            .map(RemoteDebuggingInner::enabled).orElse(false);
+        if (Objects.nonNull(newRemote)) {
+            this.remoteDebuggingEnabled = Optional.ofNullable(cluster.getRemote())
+                .map(HasManager::manager)
+                .map(AppPlatformManager::serviceClient)
+                .map(AppPlatformManagementClient::getDeployments)
+                .map(c -> c.getRemoteDebuggingConfig(this.getResourceGroupName(), cluster.getName(), app.getName(), this.getName()))
+                .map(RemoteDebuggingInner::enabled).orElse(false);
+        } else {
+            this.remoteDebuggingEnabled = false;
+        }
     }
 
     @AzureOperation(name = "internal/springcloud.wait_until_deployment_ready.deployment|app", params = {"this.getName()", "this.getParent().getName()"})
