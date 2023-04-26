@@ -189,7 +189,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
             .map(HasManager::manager)
             .map(AppPlatformManager::serviceClient)
             .map(AppPlatformManagementClient::getDeployments)
-            .ifPresent(c -> doModify(() -> c.enableRemoteDebugging(this.getResourceGroupName(), cluster.getName(), app.getName(), this.getName(), payload), Status.UPDATING));
+            .ifPresent(c -> doModify(() -> c.enableRemoteDebuggingAsync(this.getResourceGroupName(), cluster.getName(), app.getName(), this.getName(), payload).block(), Status.UPDATING));
     }
 
     @AzureOperation(name = "azure/springcloud.disable_remote_debugging.deployment", params = {"this.getName()"})
