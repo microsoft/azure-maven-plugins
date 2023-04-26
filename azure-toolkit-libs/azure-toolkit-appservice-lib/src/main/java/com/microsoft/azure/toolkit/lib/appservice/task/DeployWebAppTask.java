@@ -90,16 +90,21 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         final List<WebAppArtifact> artifactsOneDeploy = this.artifacts.stream()
                 .filter(artifact -> artifact.getDeployType() != null)
                 .collect(Collectors.toList());
-        artifactsOneDeploy.forEach(resource -> deploymentResultAtomicReference.set(webApp.pushDeploy(resource.getDeployType(), resource.getFile(),
+        final boolean trackDeploymentStatus = isTrackDeploymentStatus();
+        if (trackDeploymentStatus) {
+            artifactsOneDeploy.forEach(resource -> deploymentResultAtomicReference.set(webApp.pushDeploy(resource.getDeployType(), resource.getFile(),
                 DeployOptions.builder().path(resource.getPath()).restartSite(restartSite).trackDeployment(true).build())));
-        if (!waitUntilDeploymentReady(this.deploymentStatusRefreshInterval, this.deploymentStatusMaxRefreshTimes) && openStreamingLogOnFailure) {
+        } else {
+            artifactsOneDeploy.forEach(resource -> webApp.deploy(resource.getDeployType(), resource.getFile(), DeployOptions.builder().path(resource.getPath()).restartSite(restartSite).build()));
+        }
+        if (!waitUntilDeploymentReady(trackDeploymentStatus, this.deploymentStatusRefreshInterval, this.deploymentStatusMaxRefreshTimes) && openStreamingLogOnFailure) {
             new StreamingLogTask(webApp).doExecute();
         }
         OperationContext.action().setTelemetryProperty("deploy-cost", String.valueOf(System.currentTimeMillis() - startTime));
     }
 
-    public boolean waitUntilDeploymentReady(long deploymentStatusRefreshInterval, long deploymentStatusMaxRefreshTimes) {
-        if (!isTrackDeploymentStatusSupported()) {
+    public boolean waitUntilDeploymentReady(boolean trackDeploymentStatus, long deploymentStatusRefreshInterval, long deploymentStatusMaxRefreshTimes) {
+        if (!trackDeploymentStatus) {
             return false;
         }
         final KuduDeploymentResult kuduDeploymentResult = deploymentResultAtomicReference.get();
@@ -130,7 +135,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         return false;
     }
 
-    private boolean isTrackDeploymentStatusSupported() {
+    private boolean isTrackDeploymentStatus() {
         if (BooleanUtils.isTrue(this.waitDeploymentComplete) && webApp.getFormalStatus().isStopped()) {
             messager.info("Skip waiting deployment status for stopped web app.");
             return false;
