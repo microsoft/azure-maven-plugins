@@ -74,12 +74,12 @@
         <maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
         <aspectj-maven-plugin.version>1.12.6</aspectj-maven-plugin.version>
 
-        <azure-core.version>1.36.0</azure-core.version>
-        <azure-core-management.version>1.10.1</azure-core-management.version>
-        <azure-identity.version>1.8.0</azure-identity.version>
-        <azure-core-http-netty.version>1.13.0</azure-core-http-netty.version>
-        <reactor-netty.version>1.1.3</reactor-netty.version>
-        <reactor-core.version>3.5.3</reactor-core.version>
+        <azure-core.version>1.38.0</azure-core.version>
+        <azure-core-management.version>1.11.0</azure-core-management.version>
+        <azure-identity.version>1.8.2</azure-identity.version>
+        <azure-core-http-netty.version>1.13.2</azure-core-http-netty.version>
+        <reactor-netty.version>1.1.6</reactor-netty.version>
+        <reactor-core.version>3.5.5</reactor-core.version>
         <httpcore.version>4.4.15</httpcore.version>
         <adal4j.version>1.6.7</adal4j.version>
         <applicationinsights.version>2.6.4</applicationinsights.version>
