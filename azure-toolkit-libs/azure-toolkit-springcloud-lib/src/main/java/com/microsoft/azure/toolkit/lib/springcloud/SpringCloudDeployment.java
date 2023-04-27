@@ -91,7 +91,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     protected void updateAdditionalProperties(SpringAppDeployment newRemote, SpringAppDeployment oldRemote) {
         final SpringCloudApp app = this.getParent();
         final SpringCloudCluster cluster = app.getParent();
-        if (Objects.nonNull(newRemote) && !isRemoteDebuggingSupported()) {
+        if (Objects.nonNull(newRemote) && isRemoteDebuggingSupported()) {
             this.remoteDebuggingEnabled = Optional.ofNullable(cluster.getRemote())
                 .map(HasManager::manager)
                 .map(AppPlatformManager::serviceClient)
