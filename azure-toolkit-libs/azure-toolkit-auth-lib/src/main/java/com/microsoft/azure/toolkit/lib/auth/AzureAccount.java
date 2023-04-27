@@ -15,6 +15,8 @@ import com.microsoft.azure.toolkit.lib.auth.devicecode.DeviceCodeAccount;
 import com.microsoft.azure.toolkit.lib.auth.managedidentity.ManagedIdentityAccount;
 import com.microsoft.azure.toolkit.lib.auth.oauth.OAuthAccount;
 import com.microsoft.azure.toolkit.lib.auth.serviceprincipal.ServicePrincipalAccount;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -43,6 +45,7 @@ import static com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubs
 
 @Slf4j
 public class AzureAccount implements IAzureAccount {
+
     @Nullable
     private AtomicReference<Account> accountRef;
 
@@ -123,7 +126,15 @@ public class AzureAccount implements IAzureAccount {
             account.login();
         } catch (Throwable t) {
             AzureEventBus.emit("account.failed_logging_in.type", account.getType());
-            throw t;
+            final Action<Object> disableAuthCache = AzureActionManager.getInstance().getAction(Action.DISABLE_AUTH_CACHE)
+                .bind(new Object()).withLabel("Disable");
+            throw new AzureToolkitRuntimeException(
+                "`msal4j` doesn't work well on some machines.",
+                t,
+                "please try disabling auth cache in \"Azure Settings\" and re-signing in",
+                disableAuthCache,
+                Action.OPEN_AZURE_SETTINGS
+                );
         }
         if (this.accountRef.compareAndSet(null, account)) {
             if (restoring) {
