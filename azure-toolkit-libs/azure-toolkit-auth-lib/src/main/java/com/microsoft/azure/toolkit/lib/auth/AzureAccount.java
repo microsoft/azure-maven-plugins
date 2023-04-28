@@ -29,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
@@ -126,15 +127,20 @@ public class AzureAccount implements IAzureAccount {
             account.login();
         } catch (Throwable t) {
             AzureEventBus.emit("account.failed_logging_in.type", account.getType());
-            final Action<Object> disableAuthCache = AzureActionManager.getInstance().getAction(Action.DISABLE_AUTH_CACHE)
-                .bind(new Object()).withLabel("Disable");
-            throw new AzureToolkitRuntimeException(
-                "`msal4j` doesn't work well on some machines.",
-                t,
-                "please try disabling auth cache in \"Azure Settings\" and re-signing in",
-                disableAuthCache,
-                Action.OPEN_AZURE_SETTINGS
+            final Throwable rootCause = ExceptionUtils.getRootCause(t);
+            if (rootCause instanceof UnsatisfiedLinkError || rootCause instanceof NoClassDefFoundError) {
+                final Action<Object> disableAuthCache = AzureActionManager.getInstance().getAction(Action.DISABLE_AUTH_CACHE)
+                    .bind(new Object()).withLabel("Disable");
+                throw new AzureToolkitRuntimeException(
+                    "`msal4j` doesn't work well on some machines.",
+                    t,
+                    "please try disabling auth cache in \"Azure Settings\" and re-signing in",
+                    disableAuthCache,
+                    Action.OPEN_AZURE_SETTINGS
                 );
+            } else {
+                throw t;
+            }
         }
         if (this.accountRef.compareAndSet(null, account)) {
             if (restoring) {
