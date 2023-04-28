@@ -130,7 +130,7 @@ public class AzureAccount implements IAzureAccount {
             final Throwable rootCause = ExceptionUtils.getRootCause(t);
             if (rootCause instanceof UnsatisfiedLinkError || rootCause instanceof NoClassDefFoundError) {
                 final Action<Object> disableAuthCache = AzureActionManager.getInstance().getAction(Action.DISABLE_AUTH_CACHE)
-                    .bind(new Object()).withLabel("Disable");
+                    .bind(new Object()).withLabel("Disable Auth Cache");
                 throw new AzureToolkitRuntimeException(
                     "`msal4j` doesn't work well on some machines.",
                     t,
