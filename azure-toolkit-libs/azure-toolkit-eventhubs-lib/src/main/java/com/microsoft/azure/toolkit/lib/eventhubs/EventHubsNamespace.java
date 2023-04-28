@@ -4,15 +4,22 @@
  */
 package com.microsoft.azure.toolkit.lib.eventhubs;
 
+import com.azure.resourcemanager.eventhubs.EventHubsManager;
+import com.azure.resourcemanager.eventhubs.models.AccessRights;
 import com.azure.resourcemanager.eventhubs.models.EventHubNamespace;
+import com.azure.resourcemanager.eventhubs.models.EventHubNamespaceAuthorizationRule;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class EventHubsNamespace extends AbstractAzResource<EventHubsNamespace, EventHubsNamespaceSubscription, EventHubNamespace> implements Deletable {
     @Nonnull
@@ -46,5 +53,34 @@ public class EventHubsNamespace extends AbstractAzResource<EventHubsNamespace, E
 
     public List<EventHubsInstance> getInstances() {
         return this.instanceModule.list();
+    }
+
+    public String getOrCreateListenConnectionString() {
+        final List<AccessRights> accessRights = Collections.singletonList(AccessRights.LISTEN);
+        final List<EventHubNamespaceAuthorizationRule> connectionStrings = Optional.ofNullable(getRemote())
+                .map(eventHubInstance -> eventHubInstance.listAuthorizationRules().stream()
+                        .filter(rule -> Objects.equals(rule.rights(), accessRights))
+                        .collect(Collectors.toList()))
+                .orElse(new ArrayList<>());
+        if (connectionStrings.size() > 0) {
+            return connectionStrings.get(0).getKeys().primaryConnectionString();
+        }
+        if (!this.exists()) {
+            throw new AzureToolkitRuntimeException(AzureString.format("resource ({0}) not found", getName()).toString());
+        }
+        final EventHubsManager manager = getParent().getRemote();
+        final String accessRightsStr = StringUtils.join(accessRights, "-");
+        final EventHubNamespaceAuthorizationRule.DefinitionStages.WithAccessPolicy policy = manager.namespaceAuthorizationRules()
+                .define(String.format("policy-%s-AzureToolkitForIntelliJ-%s", accessRightsStr, Utils.getTimestamp()))
+                .withExistingNamespace(getResourceGroupName(), getName());
+        EventHubNamespaceAuthorizationRule.DefinitionStages.WithCreate withCreate = policy.withListenAccess();
+        if (accessRights.contains(AccessRights.MANAGE)) {
+            withCreate = policy.withManageAccess();
+        } else if (accessRights.contains(AccessRights.SEND) && accessRights.contains(AccessRights.LISTEN)) {
+            withCreate = policy.withSendAndListenAccess();
+        } else if (accessRights.contains(AccessRights.SEND)) {
+            withCreate = policy.withSendAccess();
+        }
+        return withCreate.create().getKeys().primaryConnectionString();
     }
 }

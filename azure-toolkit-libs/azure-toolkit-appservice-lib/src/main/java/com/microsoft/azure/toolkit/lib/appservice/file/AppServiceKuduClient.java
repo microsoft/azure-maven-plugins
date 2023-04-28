@@ -15,24 +15,15 @@ import com.azure.core.annotation.PathParam;
 import com.azure.core.annotation.Post;
 import com.azure.core.annotation.Put;
 import com.azure.core.annotation.ServiceInterface;
-import com.azure.core.http.HttpPipeline;
-import com.azure.core.http.HttpPipelineBuilder;
-import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.http.rest.Response;
 import com.azure.core.http.rest.RestProxy;
 import com.azure.core.http.rest.StreamResponse;
-import com.azure.core.management.serializer.SerializerFactory;
-import com.azure.resourcemanager.appservice.models.KuduAuthenticationPolicy;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
-import com.azure.resourcemanager.resources.fluentcore.policy.AuthenticationPolicy;
-import com.azure.resourcemanager.resources.fluentcore.policy.AuxiliaryAuthenticationPolicy;
-import com.azure.resourcemanager.resources.fluentcore.policy.ProviderRegistrationPolicy;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
 import com.microsoft.azure.toolkit.lib.appservice.model.CommandOutput;
 import com.microsoft.azure.toolkit.lib.appservice.model.ProcessInfo;
 import com.microsoft.azure.toolkit.lib.appservice.model.TunnelStatus;
-import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import lombok.Data;
@@ -74,16 +65,7 @@ public class AppServiceKuduClient implements IFileClient, IProcessClient {
         host = parts[0] + ".scm." + parts[1];
         host = "https://" + host;
 
-        final List<HttpPipelinePolicy> policies = Utils.getPolicyFromPipeline(webAppBase.manager().httpPipeline(), policy ->
-                !(policy instanceof AuthenticationPolicy || policy instanceof ProviderRegistrationPolicy || policy instanceof AuxiliaryAuthenticationPolicy));
-        policies.add(new KuduAuthenticationPolicy(webAppBase));
-
-        final HttpPipeline httpPipeline = new HttpPipelineBuilder()
-                .policies(policies.toArray(new HttpPipelinePolicy[0]))
-                .httpClient(webAppBase.manager().httpPipeline().getHttpClient())
-                .build();
-        final KuduService kuduService = RestProxy.create(KuduService.class, httpPipeline,
-                SerializerFactory.createDefaultManagementSerializerAdapter());
+        final KuduService kuduService = RestProxy.create(KuduService.class, webAppBase.manager().httpPipeline());
         return new AppServiceKuduClient(host, kuduService, appService);
     }
 

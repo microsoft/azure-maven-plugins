@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+@SuppressWarnings("unused")
 @Slf4j
 public abstract class AppServiceAppBase<
     T extends AppServiceAppBase<T, P, F>,
@@ -113,11 +114,10 @@ public abstract class AppServiceAppBase<
 
     @Nullable
     public String getKuduHostName() {
-        return this.remoteOptional()
-                .map(siteBase -> siteBase.hostnameSslStates().values().stream()
-                        .filter(sslState -> sslState.hostType() == HostType.REPOSITORY)
-                        .map(HostnameSslState::name)
-                        .findFirst().orElse(null))
+        return this.remoteOptional().flatMap(siteBase -> siteBase.hostnameSslStates().values().stream()
+                .filter(sslState -> sslState.hostType() == HostType.REPOSITORY)
+                .map(HostnameSslState::name)
+                .findFirst())
                 .orElse(null);
     }
 
@@ -179,12 +179,12 @@ public abstract class AppServiceAppBase<
     }
 
     public InputStream listPublishingProfileXmlWithSecrets() {
-        final ResourceId resourceId = ResourceId.fromString(id());
+        final ResourceId resourceId = ResourceId.fromString(getId());
         final String resourceName = StringUtils.equals(resourceId.resourceType(), "slots") ?
             String.format("%s/slots/%s", resourceId.parent().name(), resourceId.name()) : resourceId.name();
         final CsmPublishingProfileOptions csmPublishingProfileOptions = new CsmPublishingProfileOptions().withFormat(PublishingProfileFormat.FTP);
         return Objects.requireNonNull(getFullRemote()).manager().serviceClient().getWebApps()
-            .listPublishingProfileXmlWithSecrets(resourceId.resourceGroupName(), resourceName, csmPublishingProfileOptions);
+            .listPublishingProfileXmlWithSecrets(resourceId.resourceGroupName(), resourceName, csmPublishingProfileOptions).toStream();
     }
 
     @Nullable
