@@ -5,13 +5,13 @@
 
 package com.microsoft.azure.toolkit.lib.database.entity;
 
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public interface IDatabase extends AzResourceBase {
+public interface IDatabase extends AzResource {
     @Nullable
     String getCollation();
 

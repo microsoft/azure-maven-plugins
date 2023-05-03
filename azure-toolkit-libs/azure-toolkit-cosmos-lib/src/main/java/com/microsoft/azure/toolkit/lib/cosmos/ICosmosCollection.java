@@ -1,6 +1,6 @@
 package com.microsoft.azure.toolkit.lib.cosmos;
 
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 
-public interface ICosmosCollection extends AzResourceBase {
+public interface ICosmosCollection extends AzResource {
 }
