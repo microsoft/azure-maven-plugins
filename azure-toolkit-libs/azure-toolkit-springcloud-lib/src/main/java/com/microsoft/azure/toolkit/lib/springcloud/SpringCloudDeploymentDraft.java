@@ -17,6 +17,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.Data;
 import lombok.Getter;
@@ -152,15 +153,17 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     }
 
     boolean modify(@Nonnull SpringAppDeploymentImpl deployment) {
-        final Map<String, String> newEnv = this.getEnvironmentVariables();
-        final String newJvmOptions = this.getJvmOptions();
-        final String newVersion = this.getRuntimeVersion();
-        final File newArtifact = Optional.ofNullable(config.artifact).map(IArtifact::getFile).orElse(null);
+        final Map<String, String> newEnv = Utils.emptyToNull(this.getEnvironmentVariables());
+        final String newJvmOptions = Utils.emptyToNull(this.getJvmOptions());
+        final String newVersion = Utils.emptyToNull(this.getRuntimeVersion());
+        final File newArtifact = Optional.ofNullable(config).map(c -> c.artifact).map(IArtifact::getFile).orElse(null);
 
-        final Map<String, String> oldEnv = super.getEnvironmentVariables();
+        final Map<String, String> oldEnv = Utils.emptyToNull(super.getEnvironmentVariables());
+        final String oldJvmOptions = Utils.emptyToNull(super.getJvmOptions());
+        final String oldVersion = Utils.emptyToNull(super.getRuntimeVersion());
         final boolean modified = (!Objects.equals(newEnv, oldEnv) && Objects.nonNull(newEnv)) ||
-            (!Objects.equals(newJvmOptions, super.getJvmOptions()) && Objects.nonNull(newJvmOptions)) ||
-            (!Objects.equals(newVersion, super.getRuntimeVersion()) && Objects.nonNull(newVersion)) ||
+            (!Objects.equals(newJvmOptions, oldJvmOptions) && Objects.nonNull(newJvmOptions)) ||
+            (!Objects.equals(newVersion, oldVersion) && Objects.nonNull(newVersion)) ||
             (Objects.nonNull(newArtifact));
         if (modified) {
             if (Objects.nonNull(newEnv)) {
