@@ -137,7 +137,7 @@ public abstract class AppServiceAppBase<
     }
 
     @Override
-    public Flux<String> streamingLogs(String endPoint, Map<String, String> params) {
+    public Flux<String> streamingLogs(boolean follow, @Nonnull Map<String, String> params) {
         return Optional.ofNullable(this.getFullRemote()).map(WebAppBase::streamAllLogsAsync).orElseGet(Flux::empty);
     }
 

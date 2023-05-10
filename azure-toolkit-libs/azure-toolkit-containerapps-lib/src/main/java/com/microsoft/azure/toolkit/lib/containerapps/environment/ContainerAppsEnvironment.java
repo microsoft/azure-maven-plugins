@@ -74,7 +74,7 @@ public class ContainerAppsEnvironment extends AbstractAzResource<ContainerAppsEn
         return remote.provisioningState().toString();
     }
 
-    public String getLogStreamingEndpoint() {
+    public String getLogStreamEndpoint() {
         final ManagedEnvironment remoteEnv = this.getRemote();
         if (Objects.isNull(remoteEnv)) {
             throw new AzureToolkitRuntimeException(AzureString.format("resource ({0}) not found", getName()).toString());
@@ -85,7 +85,7 @@ public class ContainerAppsEnvironment extends AbstractAzResource<ContainerAppsEn
     }
 
     @Override
-    public String getAuthorizationValue() {
+    public String getLogStreamAuthorization() {
         final ContainerAppsApiManager manager = getParent().getRemote();
         final String authToken = Optional.ofNullable(manager).map(m -> m.managedEnvironments().getAuthToken(getResourceGroupName(), getName()).token()).orElse(null);
         return "Bearer " + authToken;

@@ -17,18 +17,23 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.utils.StreamingLogSupport;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerConsumer;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 @SuppressWarnings("unused")
 public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment>
-        implements ServiceLinkerConsumer, StreamingLogSupport {
+        implements ServiceLinkerConsumer {
     @Nonnull
     private final SpringCloudAppInstanceModule instanceModule;
     private final ServiceLinkerModule linkerModule;
@@ -235,13 +240,6 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     public SpringCloudAppInstance getLatestInstance() {
         return getInstances().stream().filter(springCloudAppInstance -> Objects.nonNull(springCloudAppInstance.getRemote()))
             .max(Comparator.comparing(instance -> Objects.requireNonNull(instance.getRemote()).startTime())).orElse(null);
-    }
-
-    @Override
-    public String getAuthorizationValue() {
-        final String password = this.getParent().getParent().getTestKey();
-        final String userPass = "primary:" + password;
-        return "Basic " + new String(Base64.getEncoder().encode(userPass.getBytes()));
     }
 
     @Override

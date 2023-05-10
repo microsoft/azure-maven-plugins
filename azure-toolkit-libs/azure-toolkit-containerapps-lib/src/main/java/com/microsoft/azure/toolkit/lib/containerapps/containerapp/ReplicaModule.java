@@ -36,7 +36,7 @@ public class ReplicaModule extends AbstractAzResourceModule<Replica, Revision, c
     @Nonnull
     @Override
     protected Replica newResource(@Nonnull String name, @Nullable String resourceGroupName) {
-        return new Replica(name, resourceGroupName, this);
+        return new Replica(name, this);
     }
 
     @Nonnull

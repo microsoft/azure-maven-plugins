@@ -6,30 +6,40 @@
 package com.microsoft.azure.toolkit.lib.common.utils;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.http.client.utils.URIBuilder;
 import reactor.core.publisher.Flux;
 
+import javax.annotation.Nonnull;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public interface StreamingLogSupport {
-    default Flux<String> streamingLogs(String endPoint, Map<String, String> params) {
-        if (Objects.isNull(endPoint)) {
-            return Flux.empty();
-        }
+    default Flux<String> streamingLogs(boolean follow) {
+        return streamingLogs(follow, Collections.emptyMap());
+    }
+
+    default Flux<String> streamingLogs(boolean follow, int tailLines) {
+        return streamingLogs(follow, Collections.singletonMap("tailLines", String.valueOf(tailLines)));
+    }
+
+    default Flux<String> streamingLogs(boolean follow, @Nonnull Map<String, String> p) {
         try {
-            final URIBuilder uriBuilder = new URIBuilder(endPoint);
-            params.forEach(uriBuilder::addParameter);
-            final HttpURLConnection connection = (HttpURLConnection) uriBuilder.build().toURL().openConnection();
-            connection.setRequestProperty("Authorization", getAuthorizationValue());
-            connection.setReadTimeout(600000);
-            connection.setConnectTimeout(3000);
-            connection.setRequestMethod("GET");
+            final Map<String, String> params = new HashMap<>();
+            params.put("sinceSeconds", String.valueOf(300));
+            params.put("tailLines", String.valueOf(300));
+            params.put("limitBytes", String.valueOf(1024 * 1024));
+            params.putAll(p);
+            params.put("follow", String.valueOf(follow));
+
+            final HttpURLConnection connection = createLogStreamConnection(params);
             connection.connect();
             return Flux.create((fluxSink) -> {
                 try {
@@ -49,7 +59,23 @@ public interface StreamingLogSupport {
         }
     }
 
-    default String getAuthorizationValue() {
-        return StringUtils.EMPTY;
+    @Nonnull
+    default HttpURLConnection createLogStreamConnection(Map<String, String> params) throws IOException, URISyntaxException {
+        final URIBuilder uriBuilder = new URIBuilder(getLogStreamEndpoint());
+        params.forEach(uriBuilder::addParameter);
+        final HttpURLConnection connection = (HttpURLConnection) uriBuilder.build().toURL().openConnection();
+        connection.setRequestProperty("Authorization", getLogStreamAuthorization());
+        connection.setReadTimeout(600000);
+        connection.setConnectTimeout(3000);
+        connection.setRequestMethod("GET");
+        return connection;
+    }
+
+    default String getLogStreamEndpoint() {
+        throw new NotImplementedException();
+    }
+
+    default String getLogStreamAuthorization() {
+        throw new NotImplementedException();
     }
 }
