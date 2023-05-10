@@ -127,6 +127,9 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     @SuppressWarnings("unused")
     @Nullable
     public String getTestUrl() {
+        if (this.getParent().isConsumptionTier()) {
+            return null;
+        }
         return Optional.ofNullable(this.getRemote()).map(SpringApp::activeDeploymentName).map(d -> {
             final String endpoint = Objects.requireNonNull(this.getRemote()).parent().listTestKeys().primaryTestEndpoint();
             return String.format("%s/%s/%s", endpoint, this.getName(), d);

@@ -10,6 +10,7 @@ import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.exception.CommandExecuteException;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -250,5 +251,16 @@ public class Utils {
                 }
             }
         }
+    }
+
+    public static <T> T emptyToNull(T t) {
+        if (t instanceof Map && MapUtils.isEmpty((Map<?, ?>) t)) {
+            return null;
+        } else if (t instanceof CharSequence && StringUtils.isBlank((CharSequence) t)) {
+            return null;
+        } else if (t instanceof Collection && CollectionUtils.isEmpty((Collection<?>) t)) {
+            return null;
+        }
+        return t;
     }
 }

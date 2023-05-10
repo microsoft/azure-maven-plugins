@@ -80,15 +80,15 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
             DEFAULT_DEPLOYMENT_NAME
         );
         final boolean toCreateApp = !app.exists();
-        final boolean toCreateDeployment = toCreateApp || !app.deployments().exists(deploymentName, resourceGroup);
+        final boolean toCreateDeployment = !toCreateApp && !app.deployments().exists(deploymentName, resourceGroup);
         config.setActiveDeploymentName(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateDeployment ? deploymentName : null));
 
         OperationContext.action().setTelemetryProperty("subscriptionId", config.getSubscriptionId());
         OperationContext.current().setTelemetryProperty("isCreateNewApp", String.valueOf(toCreateApp));
-        OperationContext.current().setTelemetryProperty("isCreateDeployment", String.valueOf(toCreateDeployment));
+        OperationContext.current().setTelemetryProperty("isCreateDeployment", String.valueOf(toCreateApp || toCreateDeployment));
         OperationContext.current().setTelemetryProperty("isDeploymentNameGiven", String.valueOf(StringUtils.isNotEmpty(deploymentConfig.getDeploymentName())));
 
-        final AzureString CREATE_APP_TITLE = AzureString.format("Create new app({0}) in Azure Spring Apps({1})", appName, clusterName);
+        final AzureString CREATE_APP_TITLE = AzureString.format("Create new app({0}) and deployment({1}) in Azure Spring Apps({2})", appName, deploymentName, clusterName);
         final AzureString UPDATE_APP_TITLE = AzureString.format("Update app({0}) of Azure Spring Apps({1})", appName, clusterName);
         final AzureString CREATE_DEPLOYMENT_TITLE = AzureString.format("Create new deployment({0}) in app({1})", deploymentName, appName);
         final AzureString UPDATE_DEPLOYMENT_TITLE = AzureString.format("Update deployment({0}) of app({1})", deploymentName, appName);
