@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.model;
 
-public interface Startable extends AzResourceBase {
+public interface Startable extends AzResource {
 
     void start();
 

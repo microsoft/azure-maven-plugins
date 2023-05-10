@@ -6,19 +6,21 @@
 package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.google.common.collect.Sets;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
-public interface AzResource
-    extends AzResourceBase, Refreshable {
+public interface AzResource extends Refreshable {
     long CACHE_LIFETIME = 30 * 60 * 1000; // 30 minutes
 
     None NONE = new None();
@@ -73,6 +75,118 @@ public interface AzResource
         final IAccount account = Azure.az(IAzureAccount.class).account();
         Subscription subscription = account.getSubscription(this.getSubscriptionId());
         return String.format("%s/#@%s/resource%s", account.getPortalUrl(), subscription.getTenantId(), this.getId());
+    }
+
+    @Nonnull
+    default String getStatus() {
+        return getStatus(false);
+    }
+
+    /**
+     * @param immediately true to get status immediately from cache and refresh
+     *                    status asynchronously if needed;
+     *                    false to wait for status refresh synchronously if needed.
+     */
+    @Nonnull
+    String getStatus(boolean immediately);
+
+    default FormalStatus getFormalStatus() {
+        return getFormalStatus(false);
+    }
+
+    /**
+     * @param immediately true to get status immediately from cache and refresh
+     *                    status asynchronously if needed;
+     *                    false to wait for status refresh synchronously if needed.
+     */
+    default FormalStatus getFormalStatus(boolean immediately) {
+        final String status = this.getStatus(immediately);
+        return StringUtils.isBlank(status) ? FormalStatus.UNKNOWN : FormalStatus.dummyFormalize(status);
+    }
+
+    @SuppressWarnings("unused")
+    enum FormalStatus {
+        RUNNING, STOPPED, FAILED, DELETED, UNKNOWN, WRITING, READING, CREATING, DELETING;
+
+        private static final HashSet<String> runningStatus = Sets.newHashSet("running", "success", "succeeded", "ready", "ok", "healthy", "active");
+        private static final HashSet<String> stoppedStatus = Sets.newHashSet("stopped", "deallocated", "deprovisioned", "disabled");
+        private static final HashSet<String> failedStatus = Sets.newHashSet("failed", "error", "unhealthy");
+        private static final HashSet<String> writingStatus = Sets.newHashSet("writing", "pending", "processing", "updating",
+            "starting", "stopping", "activating", "deactivating", "restarting", "scaling", "deprovisioning", "provisioning");
+        private static final HashSet<String> readingStatus = Sets.newHashSet("reading", "loading", "refreshing");
+        private static final HashSet<String> deletingStatus = Sets.newHashSet("deleting");
+        private static final HashSet<String> deletedStatus = Sets.newHashSet("deleted", "removed", "disconnected");
+
+        public static FormalStatus dummyFormalize(String status) {
+            status = status.toLowerCase();
+            if (runningStatus.contains(status)) {
+                return FormalStatus.RUNNING;
+            } else if (stoppedStatus.contains(status)) {
+                return FormalStatus.STOPPED;
+            } else if (failedStatus.contains(status)) {
+                return FormalStatus.FAILED;
+            } else if (status.equals("creating")) {
+                return FormalStatus.CREATING;
+            } else if (writingStatus.contains(status)) {
+                return FormalStatus.WRITING;
+            } else if (readingStatus.contains(status)) {
+                return FormalStatus.READING;
+            } else if (deletingStatus.contains(status)) {
+                return FormalStatus.DELETING;
+            } else if (deletedStatus.contains(status)) {
+                return FormalStatus.DELETED;
+            } else {
+                return FormalStatus.UNKNOWN;
+            }
+        }
+
+        public boolean isRunning() {
+            return this == RUNNING;
+        }
+
+        public boolean isStopped() {
+            return this == STOPPED;
+        }
+
+        public boolean isFailed() {
+            return this == FAILED;
+        }
+
+        public boolean isDeleted() {
+            return this == DELETED;
+        }
+
+        public boolean isCreating() {
+            return this == CREATING;
+        }
+
+        public boolean isDeleting() {
+            return this == DELETING;
+        }
+
+        public boolean isWriting() {
+            return this == WRITING || this.isCreating();
+        }
+
+        public boolean isReading() {
+            return this == READING;
+        }
+
+        public boolean isWaiting() {
+            return this.isWriting() || this.isDeleting() || this == READING;
+        }
+
+        public boolean isUnknown() {
+            return this == UNKNOWN;
+        }
+
+        public boolean isWritable() {
+            return this.isConnected() && !(this.isFailed() || this.isWriting());
+        }
+
+        public boolean isConnected() {
+            return !(this.isDeleted() || this.isUnknown() || this.isCreating() || this.isDeleting());
+        }
     }
 
     // ***** START! TO BE REMOVED ***** //
@@ -138,6 +252,9 @@ public interface AzResource
 
         @Override
         public boolean equals(Object o) {
+            if (!(o instanceof None)) {
+                return false;
+            }
             return AzResource.NONE == o;
         }
 
@@ -147,6 +264,7 @@ public interface AzResource
         }
     }
 
+    @SuppressWarnings("unused")
     interface Draft<T extends AzResource, R> {
 
         String getName();
@@ -205,6 +323,7 @@ public interface AzResource
         T getOrigin();
     }
 
+    @SuppressWarnings("unused")
     interface Status {
         // unstable states
         String PENDING = "Pending";

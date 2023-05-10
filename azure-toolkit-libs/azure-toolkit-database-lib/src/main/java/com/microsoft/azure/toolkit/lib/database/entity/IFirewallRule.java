@@ -5,14 +5,14 @@
 
 package com.microsoft.azure.toolkit.lib.database.entity;
 
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public interface IFirewallRule extends AzResourceBase {
+public interface IFirewallRule extends AzResource {
     int MAX_FIREWALL_NAME_LENGTH = 128;
     String AZURE_SERVICES_ACCESS_FIREWALL_RULE_NAME = "AllowAllWindowsAzureIps";
     String IP_ALLOW_ACCESS_TO_AZURE_SERVICES = "0.0.0.0";
