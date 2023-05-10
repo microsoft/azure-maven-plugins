@@ -146,11 +146,8 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
                 latch.countDown();
             }, Long.valueOf(Duration.ofSeconds(15).toMillis()).intValue());
             // refer to https://github.com/Azure/azure-cli-extensions/blob/main/src/spring/azext_spring/app.py#app_tail_log_internal
-            disposable = this.deployment.streamingLogs(this.deployment.getParent().getLogStreamingEndpoint(i.getName()),
-                    ImmutableMap.of("follow", String.valueOf(follow),
-                            "sinceSeconds", String.valueOf(300),
-                            "tailLines", String.valueOf(500),
-                            "limitBytes", String.valueOf(1024 * 1024)))
+            final SpringCloudCluster service = deployment.getParent().getParent();
+            disposable = this.deployment.getLatestInstance().streamingLogs(follow, service.isConsumptionTier() ? 300 : 500)
                     .doFinally(type -> messager.debug("###############STREAMING LOG END##################"))
                     .subscribeOn(Schedulers.boundedElastic())
                     .subscribe((s) -> {

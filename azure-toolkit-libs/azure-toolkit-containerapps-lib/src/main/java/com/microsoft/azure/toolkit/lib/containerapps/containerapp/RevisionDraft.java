@@ -12,13 +12,13 @@ import lombok.Getter;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class RevisionDraft extends Revision implements AzResource.Draft<Revision, com.azure.resourcemanager.appcontainers.models.Revision>{
+public class RevisionDraft extends Revision implements AzResource.Draft<Revision, com.azure.resourcemanager.appcontainers.models.Revision> {
     @Getter
     @Nullable
-    private Revision origin;
+    private final Revision origin;
 
-    protected RevisionDraft(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<Revision, ContainerApp, com.azure.resourcemanager.appcontainers.models.Revision> module) {
-        super(name, resourceGroupName, module);
+    protected RevisionDraft(@Nonnull String name, @Nonnull AbstractAzResourceModule<Revision, ContainerApp, com.azure.resourcemanager.appcontainers.models.Revision> module) {
+        super(name, module);
         this.origin = null;
     }
 
@@ -47,11 +47,5 @@ public class RevisionDraft extends Revision implements AzResource.Draft<Revision
     @Override
     public boolean isModified() {
         return false;
-    }
-
-    @Nullable
-    @Override
-    public Revision getOrigin() {
-        return this.origin;
     }
 }

@@ -27,8 +27,8 @@ import java.util.Optional;
 public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azure.resourcemanager.appcontainers.models.Revision> implements Deletable {
     @Getter
     private final ReplicaModule replicaModule;
-    protected Revision(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<Revision, ContainerApp, com.azure.resourcemanager.appcontainers.models.Revision> module) {
-        super(name, resourceGroupName, module);
+    protected Revision(@Nonnull String name, @Nonnull AbstractAzResourceModule<Revision, ContainerApp, com.azure.resourcemanager.appcontainers.models.Revision> module) {
+        super(name, module);
         this.replicaModule = new ReplicaModule(this);
     }
 

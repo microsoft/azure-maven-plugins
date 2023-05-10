@@ -11,6 +11,7 @@ import com.azure.resourcemanager.appcontainers.models.ReplicaContainer;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -19,22 +20,28 @@ import java.util.List;
 import java.util.Optional;
 
 public class Replica extends AbstractAzResource<Replica, Revision, com.azure.resourcemanager.appcontainers.models.Replica> {
-    protected Replica(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull ReplicaModule module) {
-        super(name, resourceGroupName, module);
+    @Getter
+    private final ReplicaContainerModule containerModule;
+
+    protected Replica(@Nonnull String name, @Nonnull ReplicaModule module) {
+        super(name, module);
+        this.containerModule = new ReplicaContainerModule(this);
     }
 
     protected Replica(@Nonnull Replica origin) {
         super(origin);
+        this.containerModule = origin.containerModule;
     }
 
     protected Replica(@Nonnull com.azure.resourcemanager.appcontainers.models.Replica remote, @Nonnull ReplicaModule module) {
         super(remote.name(), ResourceId.fromString(remote.id()).resourceGroupName(), module);
+        this.containerModule = new ReplicaContainerModule(this);
     }
 
     @NotNull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.emptyList();
+        return Collections.singletonList(this.containerModule);
     }
 
     @NotNull

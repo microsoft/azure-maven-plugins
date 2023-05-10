@@ -7,7 +7,10 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
-import com.microsoft.azure.toolkit.lib.common.model.*;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.model.Startable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
 import lombok.Getter;
@@ -15,7 +18,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Getter
 public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringCloudCluster, SpringApp>
@@ -130,18 +136,16 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
         if (this.getParent().isConsumptionTier()) {
             return null;
         }
-        return Optional.ofNullable(this.getRemote()).map(SpringApp::activeDeploymentName).map(d -> {
-            final String endpoint = Objects.requireNonNull(this.getRemote()).parent().listTestKeys().primaryTestEndpoint();
-            return String.format("%s/%s/%s", endpoint, this.getName(), d);
-        }).orElse(null);
+        return Optional.ofNullable(this.getTestEndpoint())
+            .map(e -> String.format("%s/%s/%s", e, this.getName(), Objects.requireNonNull(this.getRemote()).activeDeploymentName()))
+            .orElse(null);
     }
 
     @Nullable
-    public String getLogStreamingEndpoint(String instanceName) {
-        return Optional.ofNullable(this.getRemote()).map(SpringApp::activeDeploymentName).map(d -> {
-            final String endpoint = Objects.requireNonNull(this.getRemote()).parent().listTestKeys().primaryTestEndpoint();
-            return String.format("%s/api/logstream/apps/%s/instances/%s", endpoint.replace(".test", ""), this.getName(), instanceName);
-        }).orElse(null);
+    public String getTestEndpoint() {
+        return Optional.ofNullable(this.getRemote()).map(SpringApp::activeDeploymentName)
+            .map(d -> Objects.requireNonNull(this.getRemote()).parent().listTestKeys().primaryTestEndpoint())
+            .orElse(null);
     }
 
     @Nullable

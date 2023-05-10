@@ -35,7 +35,7 @@ public class RevisionModule extends AbstractAzResourceModule<Revision, Container
     @Nonnull
     @Override
     protected Revision newResource(@Nonnull String name, @Nullable String resourceGroupName) {
-        return new Revision(name, resourceGroupName, this);
+        return new Revision(name, this);
     }
 
     @Nonnull
@@ -57,7 +57,7 @@ public class RevisionModule extends AbstractAzResourceModule<Revision, Container
     @Nonnull
     @Override
     protected AzResource.Draft<Revision, com.azure.resourcemanager.appcontainers.models.Revision> newDraftForCreate(@Nonnull String name, @Nullable String rgName) {
-        return new RevisionDraft(name, rgName, this);
+        return new RevisionDraft(name, this);
     }
 
     @Nonnull

@@ -7,7 +7,11 @@ package com.microsoft.azure.toolkit.lib.containerapps.containerapp;
 
 import com.azure.resourcemanager.appcontainers.ContainerAppsApiManager;
 import com.azure.resourcemanager.appcontainers.fluent.models.ContainerAppInner;
-import com.azure.resourcemanager.appcontainers.models.*;
+import com.azure.resourcemanager.appcontainers.models.Configuration;
+import com.azure.resourcemanager.appcontainers.models.Container;
+import com.azure.resourcemanager.appcontainers.models.Ingress;
+import com.azure.resourcemanager.appcontainers.models.Template;
+import com.azure.resourcemanager.appcontainers.models.Volume;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -211,25 +215,18 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
     }
 
     // refer to https://github.com/Azure/azure-cli-extensions/blob/main/src/containerapp/azext_containerapp/custom.py
-    public @Nullable String getLogStreamingEndpoint(String logType, String revisionName, String replicaName, String containerName) {
-        final com.azure.resourcemanager.appcontainers.models.ContainerApp remoteApp = this.getRemote();
-        if (Objects.isNull(remoteApp)) {
+    public @Nullable String getLogStreamEndpoint() {
+        if (!this.exists()) {
             throw new AzureToolkitRuntimeException(AzureString.format("resource ({0}) not found", getName()).toString());
         }
-        final String eventStreamEndpoint = remoteApp.eventStreamEndpoint();
+        final String eventStreamEndpoint = Objects.requireNonNull(this.getRemote()).eventStreamEndpoint();
         final String baseUrl = eventStreamEndpoint.substring(0, eventStreamEndpoint.indexOf("/subscriptions/"));
-        if (Objects.equals(LOG_TYPE_CONSOLE, logType)) {
-            return String.format("%s/subscriptions/%s/resourceGroups/%s/containerApps/%s/revisions/%s/replicas/%s/containers/%s/logstream",
-                    baseUrl, getSubscriptionId(), getResourceGroupName(), getName(), revisionName, replicaName, containerName);
-        } else if (Objects.equals(LOG_TYPE_SYSTEM, logType)) {
-            return String.format("%s/subscriptions/%s/resourceGroups/%s/containerApps/%s/eventstream",
-                    baseUrl, getSubscriptionId(), getResourceGroupName(), getName());
-        }
-        return null;
+        return String.format("%s/subscriptions/%s/resourceGroups/%s/containerApps/%s/eventstream",
+            baseUrl, getSubscriptionId(), getResourceGroupName(), getName());
     }
 
     @Override
-    public String getAuthorizationValue() {
+    public String getLogStreamAuthorization() {
         final ContainerAppsApiManager manager = getParent().getRemote();
         final String authToken = Optional.ofNullable(manager).map(m -> m.containerApps().getAuthToken(getResourceGroupName(), getName()).token()).orElse(null);
         return "Bearer " + authToken;

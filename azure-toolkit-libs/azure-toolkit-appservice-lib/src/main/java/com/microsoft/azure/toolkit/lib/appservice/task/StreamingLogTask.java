@@ -37,7 +37,7 @@ public class StreamingLogTask extends AzureTask<AppServiceAppBase<?, ?, ?>> {
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Opening streaming log of app({0})...", webApp.getName()));
         messager.debug("###############STREAMING LOG BEGIN##################");
-        this.subscription = this.webApp.streamingLogs(null, null)
+        this.subscription = this.webApp.streamingLogs(true)
                 .doFinally((type) -> messager.debug("###############STREAMING LOG END##################"))
                 .subscribe(messager::debug);
         try {
