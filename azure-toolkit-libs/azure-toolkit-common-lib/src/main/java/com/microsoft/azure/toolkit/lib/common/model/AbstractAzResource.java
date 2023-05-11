@@ -475,4 +475,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     public boolean isDraftForUpdating() {
         return this instanceof Draft && Objects.nonNull(((Draft<?, ?>) this).getOrigin());
     }
+
+    public boolean isEmulatorResource() {
+        return this.getParent() instanceof AbstractAzResource && ((AbstractAzResource<?, ?, ?>) this.getParent()).isEmulatorResource();
+    }
 }

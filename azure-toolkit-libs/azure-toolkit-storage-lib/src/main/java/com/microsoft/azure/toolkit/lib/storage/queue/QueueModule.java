@@ -5,11 +5,13 @@
 
 package com.microsoft.azure.toolkit.lib.storage.queue;
 
+import com.azure.core.util.Context;
 import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.storage.queue.QueueClient;
 import com.azure.storage.queue.QueueServiceClient;
 import com.azure.storage.queue.QueueServiceClientBuilder;
+import com.azure.storage.queue.models.QueuesSegmentOptions;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -53,7 +55,7 @@ public class QueueModule extends AbstractAzResourceModule<Queue, StorageAccount,
             return Collections.emptyIterator();
         }
         final QueueServiceClient client = this.getQueueServiceClient();
-        return Objects.requireNonNull(client).listQueues().streamByPage(getPageSize())
+        return Objects.requireNonNull(client).listQueues(new QueuesSegmentOptions().setIncludeMetadata(true),null, Context.NONE).streamByPage(getPageSize())
             .map(p -> new ItemPage<>(p.getValue().stream().map(s -> client.getQueueClient(s.getName()))))
             .iterator();
     }
@@ -65,7 +67,7 @@ public class QueueModule extends AbstractAzResourceModule<Queue, StorageAccount,
             return null;
         }
         final QueueServiceClient client = this.getQueueServiceClient();
-        Stream<QueueClient> resources = Objects.requireNonNull(client).listQueues().stream().map(s -> client.getQueueClient(s.getName()));
+        Stream<QueueClient> resources = Objects.requireNonNull(client).listQueues(new QueuesSegmentOptions().setIncludeMetadata(true),null, Context.NONE).stream().map(s -> client.getQueueClient(s.getName()));
         return resources.filter(c -> c.getQueueName().equals(name)).findAny().orElse(null);
     }
 

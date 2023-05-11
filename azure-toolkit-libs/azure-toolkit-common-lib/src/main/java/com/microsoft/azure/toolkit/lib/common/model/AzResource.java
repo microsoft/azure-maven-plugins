@@ -262,6 +262,11 @@ public interface AzResource extends Refreshable {
         public int hashCode() {
             return this.getClass().hashCode();
         }
+
+        @Override
+        public boolean isEmulatorResource() {
+            return false;
+        }
     }
 
     @SuppressWarnings("unused")
