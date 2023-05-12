@@ -24,7 +24,7 @@
     "memoryInGB": {
       "description": "memory in GB",
       "type": "number",
-      "default": 1,
+      "default": 2,
       "enum": [
         0.5,
         1,
