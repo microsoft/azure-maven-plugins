@@ -52,11 +52,17 @@ public class AzureStorageAccount extends AbstractAzService<StorageServiceSubscri
 
     @Nonnull
     public List<StorageAccount> accounts() {
+        return accounts(false);
+    }
+
+    @Nonnull
+    public List<StorageAccount> accounts(boolean includeLocalEmulator) {
         final List<StorageAccount> result = new ArrayList<>();
-        result.add(AzuriteStorageAccount.AZURITE_STORAGE_ACCOUNT);
+        if (includeLocalEmulator) {
+            result.add(AzuriteStorageAccount.AZURITE_STORAGE_ACCOUNT);
+        }
         if (Azure.az(AzureAccount.class).isLoggedIn()) {
-            final List<StorageAccount> collect = this.list().stream().flatMap(m -> m.storageAccounts().list().stream()).collect(Collectors.toList());
-            result.addAll(collect);
+            this.list().stream().flatMap(m -> m.storageAccounts().list().stream()).forEachOrdered(result::add);
         }
         return result;
     }
