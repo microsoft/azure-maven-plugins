@@ -5,8 +5,12 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
+import com.azure.resourcemanager.appplatform.fluent.models.DeploymentResourceInner;
 import com.azure.resourcemanager.appplatform.implementation.SpringAppDeploymentImpl;
+import com.azure.resourcemanager.appplatform.models.DeploymentResourceProperties;
+import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
+import com.azure.resourcemanager.appplatform.models.Scale;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.azure.resourcemanager.appplatform.models.UserSourceType;
@@ -76,7 +80,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     public void setConfig(@Nonnull SpringCloudDeploymentConfig deploymentConfig) {
         this.setCpu(deploymentConfig.getCpu());
         this.setMemoryInGB(deploymentConfig.getMemoryInGB());
-        this.setInstanceNum(deploymentConfig.getInstanceCount());
+        this.setCapacity(deploymentConfig.getCapacity());
         this.setEnvironmentVariables(deploymentConfig.getEnvironment());
         this.setRuntimeVersion(deploymentConfig.getRuntimeVersion());
         this.setJvmOptions(deploymentConfig.getJvmOptions());
@@ -89,7 +93,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             .deploymentName(this.getName())
             .cpu(this.getCpu())
             .memoryInGB(this.getMemoryInGB())
-            .instanceCount(this.getInstanceNum())
+            .capacity(this.getCapacity())
             .jvmOptions(this.getJvmOptions())
             .runtimeVersion(this.getRuntimeVersion())
             .environment(this.getEnvironmentVariables())
@@ -180,14 +184,32 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     private boolean scale(@Nonnull SpringAppDeployment deployment, @Nonnull SpringAppDeployment.Update update) {
         final Double newCpu = this.getCpu();
         final Double newMemoryInGB = this.getMemoryInGB();
-        final Integer newInstanceNum = this.getInstanceNum();
-        final boolean scaled = (!Objects.equals(deployment.cpu(), newCpu) && Objects.nonNull(newCpu)) ||
-            (!Objects.equals(deployment.memoryInGB(), newMemoryInGB) && Objects.nonNull(newMemoryInGB)) ||
-            (!Objects.equals(deployment.instances().size(), newInstanceNum) && Objects.nonNull(newInstanceNum));
+        final Integer capacity = this.getCapacity();
+        boolean scaled = (!Objects.equals(deployment.cpu(), newCpu) && Objects.nonNull(newCpu)) ||
+            (!Objects.equals(deployment.memoryInGB(), newMemoryInGB) && Objects.nonNull(newMemoryInGB));
         if (scaled) {
-            Optional.ofNullable(newCpu).map(c -> c < 1 ? 0.5 : c.intValue()).ifPresent(update::withCpu);
-            Optional.ofNullable(newMemoryInGB).map(c -> c < 1 ? 0.5 : c.intValue()).ifPresent(update::withMemory);
-            Optional.ofNullable(newInstanceNum).ifPresent(update::withInstance);
+            Optional.ofNullable(newCpu).ifPresent(update::withCpu);
+            Optional.ofNullable(newMemoryInGB).ifPresent(update::withMemory);
+        }
+
+        if(Objects.nonNull(capacity)) {
+            if (this.getParent().getParent().isConsumptionTier()) {
+                final Integer max = Optional.ofNullable(deployment.innerModel())
+                    .map(DeploymentResourceInner::properties)
+                    .map(DeploymentResourceProperties::deploymentSettings)
+                    .map(DeploymentSettings::scale)
+                    .map(Scale::maxReplicas)
+                    .orElse(0);
+                if (!Objects.equals(capacity, max)) {
+                    scaled = true;
+                    deployment.innerModel().properties().deploymentSettings().withScale(new Scale().withMaxReplicas(capacity));
+                }
+            } else {
+                if (!Objects.equals(deployment.parent().parent().sku().capacity(), capacity)) {
+                    scaled = true;
+                    Optional.of(capacity).ifPresent(update::withInstance);
+                }
+            }
         }
         return scaled;
     }
@@ -240,7 +262,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             Objects.isNull(this.config.getRuntimeVersion()) || Objects.equals(this.config.getRuntimeVersion(), super.getRuntimeVersion()) ||
             Objects.isNull(this.config.getCpu()) || Objects.equals(this.config.getCpu(), super.getCpu()) ||
             Objects.isNull(this.config.getMemoryInGB()) || Objects.equals(this.config.getMemoryInGB(), super.getMemoryInGB()) ||
-            Objects.isNull(this.config.getInstanceNum()) || Objects.equals(this.config.getInstanceNum(), super.getInstanceNum());
+            Objects.isNull(this.config.getCapacity()) || Objects.equals(this.config.getCapacity(), super.getCapacity());
         return !notModified;
     }
 
@@ -262,7 +284,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         @Nullable
         Double memoryInGB;
         @Nullable
-        Integer instanceNum;
+        Integer capacity;
     }
 
 
@@ -279,7 +301,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
 
         void setMemoryInGB(Double memoryInGB);
 
-        void setInstanceNum(Integer instanceNum);
+        void setCapacity(Integer capacity);
 
         @Nullable
         Map<String, String> getEnvironmentVariables();
@@ -300,6 +322,6 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         Double getMemoryInGB();
 
         @Nullable
-        Integer getInstanceNum();
+        Integer getCapacity();
     }
 }

@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.springcloud.config;
 
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstance;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
@@ -43,7 +42,7 @@ public class SpringCloudDeploymentConfig {
     @Builder.Default
     private Double memoryInGB = 2.0;
     @Nullable
-    private Integer instanceCount;
+    private Integer capacity;
     private String deploymentName;
     @Nullable
     private String jvmOptions;
@@ -79,7 +78,7 @@ public class SpringCloudDeploymentConfig {
         deploymentConfig.setEnablePersistentStorage(Objects.nonNull(disk) && disk.getSizeInGB() > 0);
         deploymentConfig.setCpu(deployment.getCpu());
         deploymentConfig.setMemoryInGB(deployment.getMemoryInGB());
-        deploymentConfig.setInstanceCount(deployment.getInstanceNum());
+        deploymentConfig.setCapacity(deployment.getCapacity());
         deploymentConfig.setJvmOptions(Optional.ofNullable(deployment.getJvmOptions()).map(String::trim).orElse(""));
         deploymentConfig.setEnvironment(Optional.ofNullable(deployment.getEnvironmentVariables()).orElse(new HashMap<>()));
         return deploymentConfig;

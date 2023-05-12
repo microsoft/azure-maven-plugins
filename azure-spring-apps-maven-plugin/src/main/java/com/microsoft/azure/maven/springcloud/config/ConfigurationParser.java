@@ -53,7 +53,7 @@ public class ConfigurationParser {
             .artifact(artifact != null ? IArtifact.fromFile(artifact) : null)
             .enablePersistentStorage(rawConfig.isEnablePersistentStorage())
             .environment(rawConfig.getEnvironment())
-            .instanceCount(rawConfig.getInstanceCount())
+            .capacity(rawConfig.getInstanceCount())
             .jvmOptions(rawConfig.getJvmOptions())
             .memoryInGB(rawConfig.getMemoryInGB())
             .runtimeVersion(StringUtils.firstNonEmpty(rawConfig.getRuntimeVersion(), mojo.getRuntimeVersion()))
