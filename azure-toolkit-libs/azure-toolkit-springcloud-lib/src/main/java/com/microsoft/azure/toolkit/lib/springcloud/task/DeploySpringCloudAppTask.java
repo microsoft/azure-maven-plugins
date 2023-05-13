@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud.task;
 
-import com.google.common.collect.ImmutableMap;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -115,6 +114,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
             final SpringCloudAppDraft draft = (SpringCloudAppDraft) app.update();
             draft.setConfig(config);
             draft.updateIfExist();
+            app.refresh();
         }));
         tasks.add(new AzureTask<Void>(app::reset));
         if (this.waitDeploymentComplete) {
