@@ -825,6 +825,12 @@
                 <artifactId>azure-cosmos</artifactId>
                 <version>${azure-cosmos.version}</version>
             </dependency>
+            <!-- fix cve issues -->
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>2.4.10</version>
+            </dependency>
             <dependency>
                 <groupId>com.datastax.oss</groupId>
                 <artifactId>java-driver-core</artifactId>
