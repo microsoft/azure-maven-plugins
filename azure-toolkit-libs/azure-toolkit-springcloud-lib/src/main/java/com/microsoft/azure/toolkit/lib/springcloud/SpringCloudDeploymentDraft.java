@@ -54,6 +54,9 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     implements AzResource.Draft<SpringCloudDeployment, SpringAppDeployment>, InvocationHandler {
 
     public static final RuntimeVersion DEFAULT_RUNTIME_VERSION = RuntimeVersion.JAVA_11;
+    public static final double DEFAULT_MEMORY = 2;
+    public static final double DEFAULT_CPU = 1;
+    public static final int DEFAULT_CAPACITY = 1;
     private static final String RUNTIME_VERSION_PATTERN = "[Jj]ava((\\s)?|_)(8|11|17)$";
 
     @Nonnull

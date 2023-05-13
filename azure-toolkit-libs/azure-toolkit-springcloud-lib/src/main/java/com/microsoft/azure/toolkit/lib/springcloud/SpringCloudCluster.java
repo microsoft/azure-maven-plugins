@@ -82,6 +82,14 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
         return this.remoteOptional().map(SpringService::sku).filter(s -> s.name().equalsIgnoreCase(SkuName.E0.toString())).isPresent();
     }
 
+    public boolean isStandardTier() {
+        return this.remoteOptional().map(SpringService::sku).filter(s -> s.name().equalsIgnoreCase(SkuName.S0.toString())).isPresent();
+    }
+
+    public boolean isBasicTier() {
+        return this.remoteOptional().map(SpringService::sku).filter(s -> s.name().equalsIgnoreCase(SkuName.B0.toString())).isPresent();
+    }
+
     public boolean isConsumptionTier() {
         return this.remoteOptional().map(SpringService::sku).filter(s -> s.tier().equalsIgnoreCase("StandardGen2")).isPresent();
     }

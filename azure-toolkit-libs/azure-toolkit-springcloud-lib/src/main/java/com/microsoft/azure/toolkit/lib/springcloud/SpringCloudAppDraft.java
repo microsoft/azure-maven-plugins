@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.azure.resourcemanager.appplatform.implementation.SpringAppImpl;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.UserSourceType;
@@ -25,6 +24,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft.DEFAULT_CAPACITY;
+import static com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft.DEFAULT_CPU;
+import static com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft.DEFAULT_MEMORY;
+import static com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft.DEFAULT_RUNTIME_VERSION;
 
 public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Draft<SpringCloudApp, SpringApp> {
     private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
@@ -100,23 +104,28 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         SpringApp.DefinitionStages.Blank blank = service.apps().define(appName);
         final String newActiveDeploymentName = StringUtils.firstNonBlank(this.getActiveDeploymentName(), DEFAULT_DEPLOYMENT_NAME);
         final boolean newPublicEndpointEnabled = this.isPublicEndpointEnabled();
-        final boolean newPersistentDiskEnabled = this.isPersistentDiskEnabled();
+        final boolean newPersistentDiskEnabled = this.isPersistentDiskEnabled() && !this.getParent().isEnterpriseTier();
 
         // refer https://github.com/Azure/azure-sdk-for-java/blob/main/sdk/resourcemanager/azure-resourcemanager-samples/src/main/java/com/azure/
         // resourcemanager/appplatform/samples/ManageSpringCloud.java#L122-L129
-        SpringApp.DefinitionStages.WithCreate create = !Objects.equals(newActiveDeploymentName, DEFAULT_DEPLOYMENT_NAME) ?
-            (((SpringAppImpl) blank).withActiveDeployment(newActiveDeploymentName))
-                .defineActiveDeployment(newActiveDeploymentName).withExistingSource(UserSourceType.JAR, "<default>").attach() :
-            blank.withDefaultActiveDeployment();
+        final Optional<SpringCloudDeploymentConfig> d = Optional.of(this.getConfig()).map(SpringCloudAppConfig::getDeployment);
+        SpringApp.DefinitionStages.WithCreate create = blank
+            .defineActiveDeployment(newActiveDeploymentName)
+            .withExistingSource(UserSourceType.JAR, "<default>")
+            .withJvmOptions(d.map(SpringCloudDeploymentConfig::getJvmOptions).orElse(null))
+            .withRuntime(d.map(SpringCloudDeploymentConfig::getRuntimeVersion).map(SpringCloudDeploymentDraft::formalizeRuntimeVersion).orElse(DEFAULT_RUNTIME_VERSION))
+            .withCpu(d.map(SpringCloudDeploymentConfig::getCpu).orElse(DEFAULT_CPU))
+            .withMemory(d.map(SpringCloudDeploymentConfig::getMemoryInGB).orElse(DEFAULT_MEMORY))
+            .withInstance(d.map(SpringCloudDeploymentConfig::getCapacity).orElse(DEFAULT_CAPACITY))
+            .attach();
 
-        if (!Objects.equals(super.isPublicEndpointEnabled(), newPublicEndpointEnabled) && newPublicEndpointEnabled) {
+        if (newPublicEndpointEnabled) {
             create = create.withDefaultPublicEndpoint();
         }
-        if (!this.getParent().isEnterpriseTier() && !Objects.equals(super.isPersistentDiskEnabled(), newPersistentDiskEnabled)) {
-            create = newPersistentDiskEnabled ? (this.getParent().getSku().toLowerCase().startsWith("s") ?
+        if (newPersistentDiskEnabled) {
+            create = this.getParent().isStandardTier() ?
                 create.withPersistentDisk(STANDARD_TIER_DEFAULT_DISK_SIZE, DEFAULT_DISK_MOUNT_PATH) :
-                create.withPersistentDisk(BASIC_TIER_DEFAULT_DISK_SIZE, DEFAULT_DISK_MOUNT_PATH)) :
-                create.withPersistentDisk(0, null);
+                create.withPersistentDisk(BASIC_TIER_DEFAULT_DISK_SIZE, DEFAULT_DISK_MOUNT_PATH);
         }
 
         final IAzureMessager messager = AzureMessager.getMessager();
