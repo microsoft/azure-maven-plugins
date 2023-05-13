@@ -115,16 +115,16 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     public SpringAppDeployment createResourceInAzure() {
         final String name = this.getName();
         final SpringApp app = Objects.requireNonNull(this.getParent().getRemote());
-        final SpringAppDeploymentImpl create = ((SpringAppDeploymentImpl) app.deployments().define(name));
-        create.withExistingSource(UserSourceType.JAR, "<default>");
-        create.withActivation();
-        modify(create);
+        final SpringAppDeploymentImpl create = (SpringAppDeploymentImpl) app.deployments()
+            .define(name)
+            .withExistingSource(UserSourceType.JAR, "<default>")
+            .withActivation();
+        config(create);
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating deployment({0})...", name));
-        SpringAppDeployment deployment = this.doModify(() -> create.create(), Status.CREATING);
+        SpringAppDeployment deployment = create.create();
         messager.success(AzureString.format("Deployment({0}) is successfully created", name));
-        deployment = this.scaleDeploymentInAzure(deployment);
-        return deployment;
+        return Objects.requireNonNull(deployment);
     }
 
     @Nonnull
@@ -132,47 +132,28 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     @AzureOperation(name = "azure/springcloud.update_app_deployment.deployment", params = {"this.getName()"})
     public SpringAppDeployment updateResourceInAzure(@Nonnull SpringAppDeployment deployment) {
         final SpringAppDeploymentImpl update = ((SpringAppDeploymentImpl) Objects.requireNonNull(deployment).update());
-        if (modify(update)) {
+        if (config(update)) {
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating deployment({0})...", deployment.name()));
             deployment = update.apply();
+            this.getSubModules().forEach(AbstractAzResourceModule::refresh);
             messager.success(AzureString.format("Deployment({0}) is successfully updated.", deployment.name()));
         }
-        deployment = this.scaleDeploymentInAzure(deployment);
         return deployment;
     }
 
-    @Nonnull
-    @AzureOperation(name = "azure/springcloud.scale_app_instances.deployment", params = {"this.getName()"})
-    SpringAppDeployment scaleDeploymentInAzure(@Nonnull SpringAppDeployment deployment) {
-        final SpringAppDeployment.Update update = deployment.update();
-        boolean modified = scale(deployment, update);
+    boolean config(@Nonnull SpringAppDeploymentImpl deployment) {
+        final boolean modified = this.isModified();
         if (modified) {
-            final IAzureMessager messager = AzureMessager.getMessager();
-            this.doModify(() -> {
-                messager.info(AzureString.format("Start scaling deployment({0})...", deployment.name()));
-                update.apply();
-                this.getSubModules().forEach(AbstractAzResourceModule::refresh);
-                messager.success(AzureString.format("Deployment({0}) is successfully scaled.", deployment.name()));
-            }, Status.SCALING);
-        }
-        return deployment;
-    }
+            final Map<String, String> newEnv = Utils.emptyToNull(this.getEnvironmentVariables());
+            final String newJvmOptions = Utils.emptyToNull(this.getJvmOptions());
+            final String newVersion = Utils.emptyToNull(this.getRuntimeVersion());
+            final File newArtifact = Optional.ofNullable(config).map(c -> c.artifact).map(IArtifact::getFile).orElse(null);
+            final Double newCpu = this.getCpu();
+            final Double newMemoryInGB = this.getMemoryInGB();
+            final Integer newCapacity = this.getCapacity();
 
-    boolean modify(@Nonnull SpringAppDeploymentImpl deployment) {
-        final Map<String, String> newEnv = Utils.emptyToNull(this.getEnvironmentVariables());
-        final String newJvmOptions = Utils.emptyToNull(this.getJvmOptions());
-        final String newVersion = Utils.emptyToNull(this.getRuntimeVersion());
-        final File newArtifact = Optional.ofNullable(config).map(c -> c.artifact).map(IArtifact::getFile).orElse(null);
-
-        final Map<String, String> oldEnv = Utils.emptyToNull(super.getEnvironmentVariables());
-        final String oldJvmOptions = Utils.emptyToNull(super.getJvmOptions());
-        final String oldVersion = Utils.emptyToNull(super.getRuntimeVersion());
-        final boolean modified = (!Objects.equals(newEnv, oldEnv) && Objects.nonNull(newEnv)) ||
-            (!Objects.equals(newJvmOptions, oldJvmOptions) && Objects.nonNull(newJvmOptions)) ||
-            (!Objects.equals(newVersion, oldVersion) && Objects.nonNull(newVersion)) ||
-            (Objects.nonNull(newArtifact));
-        if (modified) {
+            final Map<String, String> oldEnv = Utils.emptyToNull(super.getEnvironmentVariables());
             if (Objects.nonNull(newEnv)) {
                 Optional.ofNullable(oldEnv).ifPresent(e -> new HashSet<>(e.keySet()).forEach(deployment::withoutEnvironment));
                 Optional.of(newEnv).ifPresent((e) -> e.forEach(deployment::withEnvironment));
@@ -180,41 +161,27 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             Optional.ofNullable(newJvmOptions).ifPresent(deployment::withJvmOptions);
             Optional.ofNullable(newVersion).ifPresent(v -> deployment.withRuntime(formalizeRuntimeVersion(v)));
             Optional.ofNullable(newArtifact).ifPresent(deployment::withJarFile);
-        }
-        return modified;
-    }
-
-    private boolean scale(@Nonnull SpringAppDeployment deployment, @Nonnull SpringAppDeployment.Update update) {
-        final Double newCpu = this.getCpu();
-        final Double newMemoryInGB = this.getMemoryInGB();
-        final Integer capacity = this.getCapacity();
-        boolean scaled = (!Objects.equals(deployment.cpu(), newCpu) && Objects.nonNull(newCpu)) ||
-            (!Objects.equals(deployment.memoryInGB(), newMemoryInGB) && Objects.nonNull(newMemoryInGB));
-        if (scaled) {
-            Optional.ofNullable(newCpu).ifPresent(update::withCpu);
-            Optional.ofNullable(newMemoryInGB).ifPresent(update::withMemory);
-        }
-
-        if(Objects.nonNull(capacity)) {
-            if (this.getParent().getParent().isConsumptionTier()) {
-                final Integer max = Optional.ofNullable(deployment.innerModel())
-                    .map(DeploymentResourceInner::properties)
-                    .map(DeploymentResourceProperties::deploymentSettings)
-                    .map(DeploymentSettings::scale)
-                    .map(Scale::maxReplicas)
-                    .orElse(0);
-                if (!Objects.equals(capacity, max)) {
-                    scaled = true;
-                    deployment.innerModel().properties().deploymentSettings().withScale(new Scale().withMaxReplicas(capacity));
-                }
-            } else {
-                if (!Objects.equals(deployment.parent().parent().sku().capacity(), capacity)) {
-                    scaled = true;
-                    Optional.of(capacity).ifPresent(update::withInstance);
+            Optional.ofNullable(newCpu).ifPresent(deployment::withCpu);
+            Optional.ofNullable(newMemoryInGB).ifPresent(deployment::withMemory);
+            if (Objects.nonNull(newCapacity)) {
+                if (this.getParent().getParent().isConsumptionTier()) {
+                    final Integer max = Optional.ofNullable(deployment.innerModel())
+                        .map(DeploymentResourceInner::properties)
+                        .map(DeploymentResourceProperties::deploymentSettings)
+                        .map(DeploymentSettings::scale)
+                        .map(Scale::maxReplicas)
+                        .orElse(0);
+                    if (!Objects.equals(newCapacity, max)) {
+                        deployment.innerModel().properties().deploymentSettings().withScale(new Scale().withMaxReplicas(newCapacity));
+                    }
+                } else {
+                    if (!Objects.equals(deployment.parent().parent().sku().capacity(), newCapacity)) {
+                        Optional.of(newCapacity).ifPresent(deployment::withInstance);
+                    }
                 }
             }
         }
-        return scaled;
+        return modified;
     }
 
     @Nonnull
@@ -259,14 +226,28 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
 
     @Override
     public boolean isModified() {
-        final boolean notModified = Objects.isNull(this.config) || Objects.isNull(this.config.getArtifact()) ||
-            Objects.isNull(this.config.getEnvironmentVariables()) || Objects.equals(this.config.getEnvironmentVariables(), super.getEnvironmentVariables()) ||
-            Objects.isNull(this.config.getJvmOptions()) || Objects.equals(this.config.getJvmOptions(), super.getJvmOptions()) ||
-            Objects.isNull(this.config.getRuntimeVersion()) || Objects.equals(this.config.getRuntimeVersion(), super.getRuntimeVersion()) ||
-            Objects.isNull(this.config.getCpu()) || Objects.equals(this.config.getCpu(), super.getCpu()) ||
-            Objects.isNull(this.config.getMemoryInGB()) || Objects.equals(this.config.getMemoryInGB(), super.getMemoryInGB()) ||
-            Objects.isNull(this.config.getCapacity()) || Objects.equals(this.config.getCapacity(), super.getCapacity());
-        return !notModified;
+        final Map<String, String> newEnv = Utils.emptyToNull(this.getEnvironmentVariables());
+        final String newJvmOptions = Utils.emptyToNull(this.getJvmOptions());
+        final String newVersion = Utils.emptyToNull(this.getRuntimeVersion());
+        final File newArtifact = Optional.ofNullable(config).map(c -> c.artifact).map(IArtifact::getFile).orElse(null);
+        final Double newCpu = this.getCpu();
+        final Double newMemoryInGB = this.getMemoryInGB();
+        final Integer newCapacity = this.getCapacity();
+
+        final Map<String, String> oldEnv = Utils.emptyToNull(super.getEnvironmentVariables());
+        final String oldJvmOptions = Utils.emptyToNull(super.getJvmOptions());
+        final String oldVersion = Utils.emptyToNull(super.getRuntimeVersion());
+        final Double oldCpu = super.getCpu();
+        final Double oldMemoryInGB = super.getMemoryInGB();
+        final Integer oldCapacity = super.getCapacity();
+
+        return (!Objects.equals(newEnv, oldEnv) && Objects.nonNull(newEnv)) ||
+            (!Objects.equals(newJvmOptions, oldJvmOptions) && Objects.nonNull(newJvmOptions)) ||
+            (!Objects.equals(newVersion, oldVersion) && Objects.nonNull(newVersion)) ||
+            (!Objects.equals(newCpu, oldCpu) && Objects.nonNull(newCpu)) ||
+            (!Objects.equals(newMemoryInGB, oldMemoryInGB) && Objects.nonNull(newMemoryInGB)) ||
+            (!Objects.equals(newCapacity, oldCapacity) && Objects.nonNull(newCapacity)) ||
+            (Objects.nonNull(newArtifact));
     }
 
     /**
@@ -291,6 +272,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     }
 
 
+    @SuppressWarnings("unused")
     private interface IConfig {
         void setEnvironmentVariables(Map<String, String> environmentVariables);
 
