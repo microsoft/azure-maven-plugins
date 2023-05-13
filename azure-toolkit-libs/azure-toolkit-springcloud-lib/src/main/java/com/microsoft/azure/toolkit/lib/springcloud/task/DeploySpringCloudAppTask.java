@@ -80,7 +80,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         );
         final boolean toCreateApp = !app.exists();
         final boolean toCreateDeployment = !toCreateApp && !app.deployments().exists(deploymentName, resourceGroup);
-        config.setActiveDeploymentName(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateDeployment ? deploymentName : null));
+        config.setActiveDeploymentName(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateApp || toCreateDeployment ? deploymentName : null));
 
         OperationContext.action().setTelemetryProperty("subscriptionId", config.getSubscriptionId());
         OperationContext.current().setTelemetryProperty("isCreateNewApp", String.valueOf(toCreateApp));
