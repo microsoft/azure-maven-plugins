@@ -5,19 +5,30 @@
 
 package com.microsoft.azure.toolkit.lib.storage;
 
+import com.azure.core.http.policy.FixedDelayOptions;
+import com.azure.core.http.policy.RetryOptions;
 import com.azure.core.util.paging.ContinuablePage;
+import com.azure.data.tables.TableClient;
+import com.azure.data.tables.TableClientBuilder;
+import com.azure.data.tables.TableServiceClient;
+import com.azure.data.tables.TableServiceClientBuilder;
+import com.azure.storage.blob.BlobClient;
+import com.azure.storage.blob.BlobClientBuilder;
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.queue.QueueServiceClient;
+import com.azure.storage.queue.QueueServiceClientBuilder;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
-import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.storage.model.AccessTier;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Performance;
 import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
-import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -37,6 +48,7 @@ public class AzuriteStorageAccount extends StorageAccount {
     private static final String BLOBS_URI = "http://127.0.0.1:10000/devstoreaccount1";
     private static final String QUEUES_URI = "http://127.0.0.1:10001/devstoreaccount1";
     private static final String TABLES_URI = "http://127.0.0.1:10002/devstoreaccount1";
+    private static final RetryOptions TEST_CONNECTION_RETRY_OPTIONS = new RetryOptions(new FixedDelayOptions(0, Duration.ofSeconds(1))); // Duration.ZERO is not supported in RequestRetryOptions
 
     protected AzuriteStorageAccount(@Nonnull StorageAccountModule module) {
         super(NAME, AZURITE, module);
@@ -91,15 +103,36 @@ public class AzuriteStorageAccount extends StorageAccount {
     }
 
     public boolean canHaveQueues() {
-        return isAzuriteEndpointAccessible(QUEUES_URI);
+        try {
+            final QueueServiceClient client = new QueueServiceClientBuilder().retryOptions(TEST_CONNECTION_RETRY_OPTIONS).connectionString(AZURITE_CONNECTION_STRING).buildClient();
+            client.getProperties();
+            return true;
+        } catch (final Exception e) {
+            // swallow exception when test connection
+            return false;
+        }
     }
 
     public boolean canHaveTables() {
-        return isAzuriteEndpointAccessible(TABLES_URI);
+        try {
+            final TableServiceClient client = new TableServiceClientBuilder().retryOptions(TEST_CONNECTION_RETRY_OPTIONS).connectionString(AZURITE_CONNECTION_STRING).buildClient();
+            client.getProperties();
+            return true;
+        } catch (final Exception e) {
+            // swallow exception when test connection
+            return false;
+        }
     }
 
     public boolean canHaveBlobs() {
-        return isAzuriteEndpointAccessible(BLOBS_URI);
+        try {
+            final BlobServiceClient client = new BlobServiceClientBuilder().retryOptions(TEST_CONNECTION_RETRY_OPTIONS).connectionString(AZURITE_CONNECTION_STRING).buildClient();
+            client.getProperties();
+            return true;
+        } catch (final Exception e) {
+            // swallow exception when test connection
+            return false;
+        }
     }
 
     public boolean canHaveShares() {
@@ -127,10 +160,6 @@ public class AzuriteStorageAccount extends StorageAccount {
     @Override
     public boolean isEmulatorResource() {
         return true;
-    }
-
-    private static boolean isAzuriteEndpointAccessible(@Nonnull final String endpoint) {
-        return Utils.isUrlAccessible(endpoint, HttpStatus.SC_OK, HttpStatus.SC_ACCEPTED, HttpStatus.SC_BAD_REQUEST);
     }
 
     static class AzuriteStorageAccountModule extends StorageAccountModule {
