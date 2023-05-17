@@ -78,7 +78,7 @@
         <azure-core-management.version>1.11.0</azure-core-management.version>
         <azure-identity.version>1.8.2</azure-identity.version>
         <azure-core-http-netty.version>1.13.2</azure-core-http-netty.version>
-        <reactor-netty.version>1.1.6</reactor-netty.version>
+        <reactor-netty.version>1.0.28</reactor-netty.version>
         <reactor-core.version>3.5.5</reactor-core.version>
         <httpcore.version>4.4.15</httpcore.version>
         <adal4j.version>1.6.7</adal4j.version>
@@ -824,6 +824,12 @@
                 <groupId>com.azure</groupId>
                 <artifactId>azure-cosmos</artifactId>
                 <version>${azure-cosmos.version}</version>
+            </dependency>
+            <!-- fix cve issues -->
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>2.4.10</version>
             </dependency>
             <dependency>
                 <groupId>com.datastax.oss</groupId>
