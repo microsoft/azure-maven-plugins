@@ -39,7 +39,7 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageSe
     private final ShareModule shareModule;
     private final QueueModule queueModule;
     private final TableModule tableModule;
-    private final List<AbstractAzResourceModule<?, ?, ?>> subModules = new ArrayList<>();
+    protected final List<AbstractAzResourceModule<?, ?, ?>> subModules = new ArrayList<>();
 
     protected StorageAccount(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull StorageAccountModule module) {
         super(name, resourceGroupName, module);

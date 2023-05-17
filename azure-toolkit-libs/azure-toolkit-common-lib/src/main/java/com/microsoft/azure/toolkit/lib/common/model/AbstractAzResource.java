@@ -103,7 +103,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     public boolean exists() {
         final P parent = this.getParent();
-        if (StringUtils.equals(this.statusRef.get(), Status.DELETED)) {
+        if (this.isEmulatorResource()) {
+            return true;
+        } else if (StringUtils.equals(this.statusRef.get(), Status.DELETED)) {
             return false;
         } else if (parent == AzResource.NONE || this instanceof AbstractAzServiceSubscription || this instanceof ResourceGroup) {
             return this.remoteOptional().isPresent();
@@ -137,7 +139,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     @Nullable
     public final R getRemote(boolean... sync) {
         log.debug("[{}:{}]:getRemote()", this.module.getName(), this.getName());
-        Azure.az(IAzureAccount.class).account();
+        if (!isEmulatorResource()) {
+            Azure.az(IAzureAccount.class).account();
+        }
         if (this.isDraftForCreating()) {
             log.debug("[{}:{}]:getRemote->this.isDraftForCreating()=true", this.module.getName(), this.getName());
             return null;

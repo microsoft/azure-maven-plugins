@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 public class AzuriteStorageAccount extends StorageAccount {
 
@@ -63,15 +64,16 @@ public class AzuriteStorageAccount extends StorageAccount {
         return isAzuriteAccessible ? "Running" : "Stopped";
     }
 
+    @Override
+    public void refresh() {
+        Optional.ofNullable(this.subModules).ifPresent(List::clear); // clear cache for sub modules
+        super.refresh();
+    }
+
     @Nonnull
     @Override
     public String loadStatus(@Nullable com.azure.resourcemanager.storage.models.StorageAccount remote) {
         return getStatus(false);
-    }
-
-    @Override
-    public boolean exists() {
-        return true;
     }
 
     @Nonnull
