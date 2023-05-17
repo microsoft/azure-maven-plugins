@@ -21,10 +21,12 @@ import com.azure.storage.queue.QueueServiceClientBuilder;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.storage.model.AccessTier;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Performance;
 import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -160,6 +162,12 @@ public class AzuriteStorageAccount extends StorageAccount {
     @Override
     public boolean isEmulatorResource() {
         return true;
+    }
+
+    @NotNull
+    @Override
+    public Subscription getSubscription() {
+        return Subscription.NONE;
     }
 
     static class AzuriteStorageAccountModule extends StorageAccountModule {
