@@ -46,6 +46,10 @@ public class AzureConfiguration {
     private boolean authPersistenceEnabled = true;
     private String eventHubsConsumerGroup = "$Default";
 
+    private String azuritePath;
+    private String azuriteWorkspace;
+    private Boolean enableLeaseMode = false;
+
     public void setProxyInfo(ProxyInfo proxy) {
         this.setProxySource(proxy.getSource());
         this.setHttpProxyHost(proxy.getHost());
