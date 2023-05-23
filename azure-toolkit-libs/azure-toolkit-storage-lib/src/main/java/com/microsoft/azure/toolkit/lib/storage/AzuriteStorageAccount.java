@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.storage.model.AccessTier;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Performance;
 import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -35,6 +36,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class AzuriteStorageAccount extends StorageAccount {
@@ -57,10 +59,30 @@ public class AzuriteStorageAccount extends StorageAccount {
         super(NAME, AZURITE, module);
     }
 
+    @Override
+    protected void updateAdditionalProperties(@Nullable com.azure.resourcemanager.storage.models.StorageAccount newRemote, @Nullable com.azure.resourcemanager.storage.models.StorageAccount oldRemote) {
+        this.subModules.clear();
+        if (Objects.nonNull(newRemote)) {
+            if (this.canHaveBlobs()) {
+                this.subModules.add(this.blobContainerModule);
+            }
+            if (this.canHaveShares()) {
+                this.subModules.add(this.shareModule);
+            }
+            if (this.canHaveQueues()) {
+                this.subModules.add(this.queueModule);
+            }
+            if (this.canHaveTables()) {
+                this.subModules.add(this.tableModule);
+            }
+        }
+        super.updateAdditionalProperties(newRemote, oldRemote);
+    }
+
     @Nonnull
     @Override
     public String getStatus(boolean immediately) {
-        final boolean isAzuriteAccessible = canHaveBlobs() || canHaveQueues() || canHaveTables();
+        final boolean isAzuriteAccessible = CollectionUtils.isNotEmpty(this.subModules);
         return isAzuriteAccessible ? "Running" : "Stopped";
     }
 

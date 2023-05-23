@@ -35,10 +35,10 @@ import java.util.Objects;
 public class StorageAccount extends AbstractAzResource<StorageAccount, StorageServiceSubscription, com.azure.resourcemanager.storage.models.StorageAccount>
     implements Deletable {
 
-    private final BlobContainerModule blobContainerModule;
-    private final ShareModule shareModule;
-    private final QueueModule queueModule;
-    private final TableModule tableModule;
+    protected final BlobContainerModule blobContainerModule;
+    protected final ShareModule shareModule;
+    protected final QueueModule queueModule;
+    protected final TableModule tableModule;
     protected final List<AbstractAzResourceModule<?, ?, ?>> subModules = new ArrayList<>();
 
     protected StorageAccount(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull StorageAccountModule module) {
