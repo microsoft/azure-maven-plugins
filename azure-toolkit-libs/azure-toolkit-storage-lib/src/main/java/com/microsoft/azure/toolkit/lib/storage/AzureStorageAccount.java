@@ -111,4 +111,9 @@ public class AzureStorageAccount extends AbstractAzService<StorageServiceSubscri
     public String getResourceTypeName() {
         return "Storage accounts";
     }
+
+    @Override
+    public boolean isAuthRequired() {
+        return false; // As storage supports emulator resource, we don't need to login to list storage accounts
+    }
 }

@@ -483,4 +483,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     public boolean isEmulatorResource() {
         return this.getParent() instanceof AbstractAzResource && ((AbstractAzResource<?, ?, ?>) this.getParent()).isEmulatorResource();
     }
+
+    public boolean isAuthRequired() {
+        return !isEmulatorResource();
+    }
 }

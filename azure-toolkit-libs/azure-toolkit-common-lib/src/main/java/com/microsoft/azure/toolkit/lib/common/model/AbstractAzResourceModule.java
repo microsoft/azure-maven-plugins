@@ -115,7 +115,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Override
     public List<T> list() { // getResources
         log.debug("[{}]:list()", this.name);
-        if (requireAuthentication()) {
+        if (isAuthRequired()) {
             Azure.az(IAzureAccount.class).account();
         }
         if (this.parent instanceof AbstractAzResource && ((AbstractAzResource<?, ?, ?>) this.parent).isDraftForCreating()) {
@@ -137,8 +137,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
     }
 
-    protected boolean requireAuthentication() {
-        return !(this.getParent() instanceof AbstractAzResource) || !((AbstractAzResource<?, ?, ?>) this.getParent()).isEmulatorResource();
+    public boolean isEmulatorResource() {
+        return this.getParent() instanceof AbstractAzResource && ((AbstractAzResource<?, ?, ?>) this.getParent()).isEmulatorResource();
     }
 
     private void reloadResources() {
@@ -258,7 +258,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             log.debug("[{}]:get->parent.isDraftForCreating()=true||isBlank(name)=true", this.name);
             return null;
         }
-        if (requireAuthentication()) {
+        if (isAuthRequired()) {
             Azure.az(IAzureAccount.class).account();
         }
         final String id = this.toResourceId(name, resourceGroup).toLowerCase();
@@ -616,5 +616,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     public static int getPageSize() {
         return Azure.az().config().getPageSize();
+    }
+
+    public boolean isAuthRequired() {
+        return !isEmulatorResource();
     }
 }
