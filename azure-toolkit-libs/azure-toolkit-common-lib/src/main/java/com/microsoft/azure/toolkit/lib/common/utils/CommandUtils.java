@@ -94,8 +94,7 @@ public class CommandUtils {
             log.error(CommandUtils.class.getName(), "exec", exception);
             throw exception;
         }
-        final String commandWithPath = isWindows() || isWSL() ? commandWithArgs : String.format("export PATH=$PATH:/usr/local/bin ; %s", commandWithArgs);
-        return executeCommandAndGetOutput(starter, switcher, commandWithPath, new File(workingDirectory), env, mergeErrorStream);
+        return executeCommandAndGetOutput(starter, switcher, commandWithArgs, new File(workingDirectory), env, mergeErrorStream);
     }
 
     private static String executeCommandAndGetOutput(final String starter, final String switcher, final String commandWithArgs,
