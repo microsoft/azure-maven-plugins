@@ -35,6 +35,13 @@ public class CommandUtils {
     private static final String DEFAULT_WINDOWS_SYSTEM_ROOT = System.getenv("SystemRoot");
     private static final String DEFAULT_MAC_LINUX_PATH = "/bin/";
 
+    private static final Map<String, String> ENV = new HashMap<>(System.getenv());
+
+    public static void setEnv(Map<String, String> env) {
+        ENV.clear();
+        ENV.putAll(env);
+    }
+
     public static List<String> resolveCommandPath(String command) {
         final List<String> list = new ArrayList<>();
         try {
@@ -109,7 +116,7 @@ public class CommandUtils {
         executor.setStreamHandler(streamHandler);
         executor.setExitValues(new int[]{0});
         try {
-            Map<String, String> newEnv = new HashMap<>(System.getenv());
+            Map<String, String> newEnv = new HashMap<>(ENV);
             if (env != null) {
                 newEnv.putAll(env);
             }
