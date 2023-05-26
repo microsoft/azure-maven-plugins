@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud.task;
 
-import com.google.common.collect.ImmutableMap;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -81,7 +80,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         );
         final boolean toCreateApp = !app.exists();
         final boolean toCreateDeployment = !toCreateApp && !app.deployments().exists(deploymentName, resourceGroup);
-        config.setActiveDeploymentName(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateDeployment ? deploymentName : null));
+        config.setActiveDeploymentName(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateApp || toCreateDeployment ? deploymentName : null));
 
         OperationContext.action().setTelemetryProperty("subscriptionId", config.getSubscriptionId());
         OperationContext.current().setTelemetryProperty("isCreateNewApp", String.valueOf(toCreateApp));
@@ -115,6 +114,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
             final SpringCloudAppDraft draft = (SpringCloudAppDraft) app.update();
             draft.setConfig(config);
             draft.updateIfExist();
+            app.refresh();
         }));
         tasks.add(new AzureTask<Void>(app::reset));
         if (this.waitDeploymentComplete) {

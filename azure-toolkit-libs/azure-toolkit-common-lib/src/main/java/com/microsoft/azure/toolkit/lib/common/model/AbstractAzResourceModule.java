@@ -122,10 +122,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             log.debug("[{}]:list->parent.isDraftForCreating()=true", this.name);
             return Collections.emptyList();
         }
-        if (System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) { // 0, -1 or too old.
+        if (this.syncTimeRef.get() < 1) { // 0, -1 or too old.
             try {
                 this.lock.lock();
-                if (this.syncTimeRef.get() != 0 && System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) { // -1 or too old.
+                if (this.syncTimeRef.get() == -1) { // -1 or too old.
                     log.debug("[{}]:list->this.reload()", this.name);
                     this.reloadResources();
                 }

@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.azure.resourcemanager.resources.fluentcore.utils.ResourceManagerUtils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
@@ -16,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -119,6 +121,7 @@ public class Azure {
 
         public static synchronized List<AzService> getServices() {
             if (services.isEmpty()) {
+                ResourceManagerUtils.InternalRuntimeContext.setDelayProvider(duration -> Duration.ofSeconds(5));
                 reload();
             }
             return services;

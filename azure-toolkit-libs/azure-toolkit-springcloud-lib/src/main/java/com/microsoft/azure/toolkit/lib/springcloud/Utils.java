@@ -68,4 +68,37 @@ public class Utils {
             .takeUntil(resource -> predicate.test(resource) || System.currentTimeMillis() > timeout)
             .toBlocking().last();
     }
+
+
+    /**
+     * Converts cpu count from double to String
+     *
+     * @param cpuCount cpu count, 1 core can be represented by 1 or 1000m
+     * @return cpu String
+     */
+    public static String toCpuString(double cpuCount) {
+        if (isInteger(cpuCount)) {
+            return String.valueOf(Double.valueOf(cpuCount).intValue());
+        } else {
+            return String.format("%dm", Double.valueOf(cpuCount * 1000).intValue());
+        }
+    }
+
+    /**
+     * Converts memory count from double to String
+     *
+     * @param sizeInGB memory in GB
+     * @return memory String
+     */
+    public static String toMemoryString(double sizeInGB) {
+        if (isInteger(sizeInGB)) {
+            return String.format("%dGi", Double.valueOf(sizeInGB).intValue());
+        } else {
+            return String.format("%dMi", Double.valueOf(sizeInGB * 1024).intValue());
+        }
+    }
+
+    private static boolean isInteger(double sizeInGB) {
+        return (sizeInGB % 1) == 0;
+    }
 }

@@ -159,14 +159,14 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     private R getRemoteInner() {
-        if (System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) { // 0, -1 or too old.
+        if (this.syncTimeRef.get() < 1) { // 0, -1 or too old.
             final R remote = this.remoteRef.get();
             if (this.syncTimeRef.get() == 0 && Objects.nonNull(remote)) {
                 return remote;
             }
             try {
                 this.lock.lock();
-                if (this.syncTimeRef.get() != 0 && System.currentTimeMillis() - this.syncTimeRef.get() > AzResource.CACHE_LIFETIME) { // -1 or too old.
+                if (this.syncTimeRef.get() == -1) { // -1 or too old.
                     log.debug("[{}:{}]:getRemote->reloadRemote()", this.module.getName(), this.getName());
                     this.reloadRemote();
                 }

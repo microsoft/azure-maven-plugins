@@ -452,13 +452,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     protected static void printCredentialDescription(Account account) {
         final IAzureMessager messager = AzureMessager.getMessager();
         final String username = account.getUsername();
-        if (account.isLoggedIn()) {
-            final List<Subscription> selectedSubscriptions = account.getSelectedSubscriptions();
-            if (CollectionUtils.isNotEmpty(selectedSubscriptions) && selectedSubscriptions.size() == 1) {
-                messager.info(AzureString.format("Default subscription: %s(%s)", selectedSubscriptions.get(0).getName(),
-                    selectedSubscriptions.get(0).getId()));
-            }
-        }
         if (StringUtils.isNotEmpty(username)) {
             messager.info(AzureString.format("Username: %s", username.trim()));
         }

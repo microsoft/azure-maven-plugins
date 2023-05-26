@@ -160,6 +160,6 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     }
 
     public boolean isPersistentDiskEnabled() {
-        return Objects.nonNull(this.getPersistentDisk());
+        return !this.getParent().isEnterpriseTier() && Objects.nonNull(this.getPersistentDisk());
     }
 }

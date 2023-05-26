@@ -5,10 +5,20 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.azure.resourcemanager.appplatform.implementation.SpringAppImpl;
+import com.azure.resourcemanager.appplatform.fluent.models.AppResourceInner;
+import com.azure.resourcemanager.appplatform.fluent.models.DeploymentResourceInner;
+import com.azure.resourcemanager.appplatform.models.ActiveDeploymentCollection;
+import com.azure.resourcemanager.appplatform.models.AppResourceProperties;
+import com.azure.resourcemanager.appplatform.models.BuildResultUserSourceInfo;
+import com.azure.resourcemanager.appplatform.models.DeploymentResourceProperties;
+import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
+import com.azure.resourcemanager.appplatform.models.JarUploadedUserSourceInfo;
+import com.azure.resourcemanager.appplatform.models.PersistentDisk;
+import com.azure.resourcemanager.appplatform.models.ResourceRequests;
+import com.azure.resourcemanager.appplatform.models.Scale;
+import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringService;
-import com.azure.resourcemanager.appplatform.models.UserSourceType;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -23,8 +33,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft.*;
 
 public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Draft<SpringCloudApp, SpringApp> {
     private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
@@ -97,62 +110,80 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     public SpringApp createResourceInAzure() {
         final String appName = this.getName();
         final SpringService service = Objects.requireNonNull(this.getParent().getRemote());
-        SpringApp.DefinitionStages.Blank blank = service.apps().define(appName);
-        final String newActiveDeploymentName = StringUtils.firstNonBlank(this.getActiveDeploymentName(), DEFAULT_DEPLOYMENT_NAME);
         final boolean newPublicEndpointEnabled = this.isPublicEndpointEnabled();
-        final boolean newPersistentDiskEnabled = this.isPersistentDiskEnabled();
-
+        final Integer newDiskSize = this.isPersistentDiskEnabled() ? this.getParent().isStandardTier() ? STANDARD_TIER_DEFAULT_DISK_SIZE : BASIC_TIER_DEFAULT_DISK_SIZE : null;
+        final PersistentDisk newDisk = this.isPersistentDiskEnabled() ? new PersistentDisk().withSizeInGB(newDiskSize).withMountPath(DEFAULT_DISK_MOUNT_PATH) : null;
         // refer https://github.com/Azure/azure-sdk-for-java/blob/main/sdk/resourcemanager/azure-resourcemanager-samples/src/main/java/com/azure/
         // resourcemanager/appplatform/samples/ManageSpringCloud.java#L122-L129
-        SpringApp.DefinitionStages.WithCreate create = !Objects.equals(newActiveDeploymentName, DEFAULT_DEPLOYMENT_NAME) ?
-            (((SpringAppImpl) blank).withActiveDeployment(newActiveDeploymentName))
-                .defineActiveDeployment(newActiveDeploymentName).withExistingSource(UserSourceType.JAR, "<default>").attach() :
-            blank.withDefaultActiveDeployment();
+        final Optional<SpringCloudDeploymentConfig> d = Optional.of(this.getConfig()).map(SpringCloudAppConfig::getDeployment);
+        final String newActiveDeploymentName = d.map(SpringCloudDeploymentConfig::getDeploymentName).orElse(DEFAULT_DEPLOYMENT_NAME);
 
-        if (!Objects.equals(super.isPublicEndpointEnabled(), newPublicEndpointEnabled) && newPublicEndpointEnabled) {
-            create = create.withDefaultPublicEndpoint();
-        }
-        if (!this.getParent().isEnterpriseTier() && !Objects.equals(super.isPersistentDiskEnabled(), newPersistentDiskEnabled)) {
-            create = newPersistentDiskEnabled ? (this.getParent().getSku().toLowerCase().startsWith("s") ?
-                create.withPersistentDisk(STANDARD_TIER_DEFAULT_DISK_SIZE, DEFAULT_DISK_MOUNT_PATH) :
-                create.withPersistentDisk(BASIC_TIER_DEFAULT_DISK_SIZE, DEFAULT_DISK_MOUNT_PATH)) :
-                create.withPersistentDisk(0, null);
-        }
+        final AppResourceInner appResource = new AppResourceInner()
+            .withProperties(new AppResourceProperties()
+                .withPersistentDisk(newDisk)
+                .withPublicProperty(newPublicEndpointEnabled));
 
+        final DeploymentResourceProperties properties = new DeploymentResourceProperties()
+            .withActive(true)
+            .withSource(new JarUploadedUserSourceInfo()
+                .withRelativePath("<default>")
+                .withJvmOptions(d.map(SpringCloudDeploymentConfig::getJvmOptions).orElse(null))
+                .withRuntimeVersion(d.map(SpringCloudDeploymentConfig::getRuntimeVersion).map(SpringCloudDeploymentDraft::formalizeRuntimeVersion).orElse(DEFAULT_RUNTIME_VERSION).toString()))
+            .withDeploymentSettings(new DeploymentSettings()
+                .withScale(new Scale()
+                    .withMaxReplicas(d.map(SpringCloudDeploymentConfig::getCapacity).orElse(DEFAULT_CAPACITY)))
+                .withResourceRequests(new ResourceRequests()
+                    .withMemory(Utils.toMemoryString(d.map(SpringCloudDeploymentConfig::getMemoryInGB).orElse(DEFAULT_MEMORY)))
+                    .withCpu(Utils.toCpuString(d.map(SpringCloudDeploymentConfig::getCpu).orElse(DEFAULT_CPU)))));
+        final DeploymentResourceInner deploymentResource = new DeploymentResourceInner()
+            .withSku(Optional.ofNullable(service.sku()).orElse(new Sku().withName("B0").withTier("Basic"))
+                .withCapacity(d.map(SpringCloudDeploymentConfig::getCapacity).orElse(DEFAULT_CAPACITY)))
+            .withProperties(properties);
+        if (this.getParent().isEnterpriseTier()) {
+            properties
+                .withSource(new BuildResultUserSourceInfo()
+                    .withBuildResultId("<default>"));
+        }
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating app({0})...", appName));
-        final SpringApp app = create.create();
+        service.manager().serviceClient().getApps().createOrUpdate(this.getResourceGroupName(), service.name(), appName, appResource);
         messager.success(AzureString.format("App({0}) is successfully created.", appName));
-        return app;
+        messager.info(AzureString.format("Start creating deployment({0})...", newActiveDeploymentName));
+        service.manager().serviceClient().getDeployments().createOrUpdate(this.getResourceGroupName(), service.name(), appName, newActiveDeploymentName, deploymentResource);
+        messager.success(AzureString.format("Deployment({0}) is successfully created.", newActiveDeploymentName));
+        return service.apps().getByName(appName);
     }
 
     @Nonnull
     @Override
     @AzureOperation(name = "azure/springcloud.update_app.app", params = {"this.getName()"})
     public SpringApp updateResourceInAzure(@Nonnull SpringApp origin) {
-        final String oldActiveDeploymentName = super.getActiveDeploymentName();
-        final String newActiveDeploymentName = this.getActiveDeploymentName();
-        final boolean newPublicEndpointEnabled = this.isPublicEndpointEnabled();
-        final boolean newPersistentDiskEnabled = this.isPersistentDiskEnabled();
+        if (this.isModified()) {
+            final String oldActiveDeploymentName = super.getActiveDeploymentName();
+            final String newActiveDeploymentName = this.getActiveDeploymentName();
+            final boolean newPublicEndpointEnabled = this.isPublicEndpointEnabled();
+            final Integer newDiskSize = this.isPersistentDiskEnabled() ? this.getParent().isStandardTier() ? STANDARD_TIER_DEFAULT_DISK_SIZE : BASIC_TIER_DEFAULT_DISK_SIZE : null;
+            final PersistentDisk newDisk = this.isPersistentDiskEnabled() ? new PersistentDisk().withSizeInGB(newDiskSize).withMountPath(DEFAULT_DISK_MOUNT_PATH) : null;
 
-        boolean modified = !Objects.equals(oldActiveDeploymentName, newActiveDeploymentName) && StringUtils.isNotBlank(newActiveDeploymentName) ||
-            !Objects.equals(super.isPublicEndpointEnabled(), newPublicEndpointEnabled) ||
-            !this.getParent().isEnterpriseTier() && !Objects.equals(super.isPersistentDiskEnabled(), newPersistentDiskEnabled);
+            final AppResourceInner appResource = new AppResourceInner()
+                .withProperties(new AppResourceProperties()
+                    .withPersistentDisk(newDisk)
+                    .withPublicProperty(newPublicEndpointEnabled));
 
-        SpringApp.Update update = origin.update();
-        Optional.ofNullable(newActiveDeploymentName).filter(StringUtils::isNotBlank).ifPresent(update::withActiveDeployment);
-        update = newPublicEndpointEnabled ? update.withDefaultPublicEndpoint() : update.withoutDefaultPublicEndpoint();
-        update = newPersistentDiskEnabled ? (this.getParent().getSku().toLowerCase().startsWith("s") ?
-            update.withPersistentDisk(STANDARD_TIER_DEFAULT_DISK_SIZE, DEFAULT_DISK_MOUNT_PATH) :
-            update.withPersistentDisk(BASIC_TIER_DEFAULT_DISK_SIZE, DEFAULT_DISK_MOUNT_PATH)) :
-            update.withPersistentDisk(0, null);
-
-        if (modified) {
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating app({0})...", origin.name()));
-            origin = update.apply();
+            final SpringService service = origin.parent();
+            if(!Objects.equals(super.isPublicEndpointEnabled(), newPublicEndpointEnabled) ||
+                !Objects.equals(super.isPersistentDiskEnabled(), this.isPersistentDiskEnabled())){
+                service.manager().serviceClient().getApps().createOrUpdate(this.getResourceGroupName(), service.name(), origin.name(), appResource);
+            }
+            if (!Objects.equals(oldActiveDeploymentName, newActiveDeploymentName) && StringUtils.isNotBlank(newActiveDeploymentName)) {
+                service.manager().serviceClient().getApps().setActiveDeployments(this.getResourceGroupName(), service.name(), origin.name(), new ActiveDeploymentCollection()
+                    .withActiveDeploymentNames(Collections.singletonList(newActiveDeploymentName)));
+            }
             messager.success(AzureString.format("App({0}) is successfully updated.", origin.name()));
             messager.warning(UPDATE_APP_WARNING);
+            return service.apps().getByName(origin.name());
         }
         return origin;
     }
@@ -189,7 +220,8 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     }
 
     public boolean isPersistentDiskEnabled() {
-        return Optional.ofNullable(config).map(Config::getPersistentDiskEnabled).orElseGet(super::isPersistentDiskEnabled);
+        final Boolean enabled = Optional.ofNullable(config).map(Config::getPersistentDiskEnabled).orElseGet(super::isPersistentDiskEnabled);
+        return enabled && !this.getParent().isEnterpriseTier();
     }
 
     public void setActiveDeploymentName(String name) {
@@ -231,13 +263,14 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
 
     @Override
     public boolean isModified() {
-        final boolean notModified = Objects.isNull(this.config) ||
-            Objects.isNull(this.config.getName()) || Objects.equals(this.config.getName(), super.getName()) ||
-            Objects.isNull(this.config.getActiveDeploymentName()) || Objects.equals(this.config.getActiveDeploymentName(), super.getActiveDeploymentName()) ||
-            Objects.equals(this.isPublicEndpointEnabled(), super.isPublicEndpointEnabled()) ||
-            Objects.equals(this.isPersistentDiskEnabled(), super.isPersistentDiskEnabled()) ||
-            !(this.activeDeployment instanceof Draft) || !((SpringCloudDeploymentDraft) this.activeDeployment).isModified();
-        return !notModified;
+        final String oldActiveDeploymentName = super.getActiveDeploymentName();
+        final String newActiveDeploymentName = this.getActiveDeploymentName();
+        final boolean newPublicEndpointEnabled = this.isPublicEndpointEnabled();
+        final boolean newPersistentDiskEnabled = this.isPersistentDiskEnabled();
+
+        return !Objects.equals(oldActiveDeploymentName, newActiveDeploymentName) && StringUtils.isNotBlank(newActiveDeploymentName) ||
+            !Objects.equals(super.isPublicEndpointEnabled(), newPublicEndpointEnabled) ||
+            !Objects.equals(super.isPersistentDiskEnabled(), newPersistentDiskEnabled);
     }
 
     /**
