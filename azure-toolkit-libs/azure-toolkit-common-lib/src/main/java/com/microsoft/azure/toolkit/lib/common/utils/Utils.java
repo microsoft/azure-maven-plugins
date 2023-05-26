@@ -25,6 +25,8 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -58,6 +60,7 @@ public class Utils {
     private static final String SPRING_BOOT_CLASSES = "Spring-Boot-Classes";
     private static final String START_CLASS = "Start-Class";
     private static final String DEFAULT_SPRING_BOOT_CLASSES = "BOOT-INF/classes/";
+    public static final int DEFAULT_TIMEOUT = 10000;
 
     public static String generateRandomResourceName(@Nonnull final String prefix, final int maxLength) {
         final String name = String.format("%s-%s", prefix, Utils.getTimestamp());
@@ -262,5 +265,20 @@ public class Utils {
             return null;
         }
         return t;
+    }
+
+    public static boolean isUrlAccessible(@Nonnull final String url, @Nonnull final Integer... validResponseCodes)  {
+        HttpURLConnection.setFollowRedirects(false);
+        HttpURLConnection con = null;
+        try {
+            con = (HttpURLConnection) new URL(url).openConnection();
+            con.setRequestMethod("HEAD");
+            con.setReadTimeout(DEFAULT_TIMEOUT);
+            return ArrayUtils.contains(validResponseCodes, con.getResponseCode());
+        } catch (IOException ex) {
+            return false;
+        } finally {
+            Optional.ofNullable(con).ifPresent(HttpURLConnection::disconnect);
+        }
     }
 }

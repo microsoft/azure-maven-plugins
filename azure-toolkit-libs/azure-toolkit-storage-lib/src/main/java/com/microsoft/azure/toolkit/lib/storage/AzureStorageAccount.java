@@ -13,8 +13,8 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Performance;
 import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -51,7 +52,19 @@ public class AzureStorageAccount extends AbstractAzService<StorageServiceSubscri
 
     @Nonnull
     public List<StorageAccount> accounts() {
-        return this.list().stream().flatMap(m -> m.storageAccounts().list().stream()).collect(Collectors.toList());
+        return accounts(false);
+    }
+
+    @Nonnull
+    public List<StorageAccount> accounts(boolean includeLocalEmulator) {
+        final List<StorageAccount> result = new ArrayList<>();
+        if (includeLocalEmulator) {
+            result.add(AzuriteStorageAccount.AZURITE_STORAGE_ACCOUNT);
+        }
+        if (Azure.az(AzureAccount.class).isLoggedIn()) {
+            this.list().stream().flatMap(m -> m.storageAccounts().list().stream()).forEachOrdered(result::add);
+        }
+        return result;
     }
 
     @Nonnull
@@ -97,5 +110,10 @@ public class AzureStorageAccount extends AbstractAzService<StorageServiceSubscri
     @Override
     public String getResourceTypeName() {
         return "Storage accounts";
+    }
+
+    @Override
+    public boolean isAuthRequired() {
+        return false; // As storage supports emulator resource, we don't need to login to list storage accounts
     }
 }

@@ -35,11 +35,11 @@ import java.util.Objects;
 public class StorageAccount extends AbstractAzResource<StorageAccount, StorageServiceSubscription, com.azure.resourcemanager.storage.models.StorageAccount>
     implements Deletable {
 
-    private final BlobContainerModule blobContainerModule;
-    private final ShareModule shareModule;
-    private final QueueModule queueModule;
-    private final TableModule tableModule;
-    private final List<AbstractAzResourceModule<?, ?, ?>> subModules = new ArrayList<>();
+    protected final BlobContainerModule blobContainerModule;
+    protected final ShareModule shareModule;
+    protected final QueueModule queueModule;
+    protected final TableModule tableModule;
+    protected final List<AbstractAzResourceModule<?, ?, ?>> subModules = new ArrayList<>();
 
     protected StorageAccount(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull StorageAccountModule module) {
         super(name, resourceGroupName, module);
@@ -94,12 +94,12 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageSe
     public String loadStatus(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount remote) {
         return remote.innerModel().provisioningState().toString();
     }
-
+    
     @Nonnull
     public String getConnectionString() {
         // see https://github.com/Azure/azure-cli/blob/ac3b190d4d/src/azure-cli/azure/cli/command_modules/storage/operations/account.py#L232
         final AzureEnvironment environment = Azure.az(AzureCloud.class).get();
-        return ResourceManagerUtils.getStorageConnectionString(this.name(), getKey(), environment);
+        return ResourceManagerUtils.getStorageConnectionString(this.getName(), getKey(), environment);
     }
 
     @Nonnull

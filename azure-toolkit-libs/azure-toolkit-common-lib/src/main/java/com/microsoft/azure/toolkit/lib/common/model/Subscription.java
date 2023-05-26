@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,9 +19,12 @@ import javax.annotation.Nonnull;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Subscription {
+    public static final Subscription NONE = Subscription.builder().name(AzResource.NONE.getName())
+        .id("00000000-0000-0000-0000-000000000000").tenantId("00000000-0000-0000-0000-000000000000").selected(true).build();
     @Nonnull
     @JsonProperty
     @EqualsAndHashCode.Include

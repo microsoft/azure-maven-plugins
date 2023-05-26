@@ -7,6 +7,8 @@ package com.microsoft.azure.toolkit.lib.common.action;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
@@ -63,8 +65,10 @@ public class Action<D> extends OperationBase implements Cloneable {
     private D source;
 
     @Setter
-    @Getter
-    private boolean authRequired = true;
+    private Boolean authRequired = null;
+    @Setter
+
+    private Predicate<D> authRequiredProvider = Action::isAuthRequiredForAzureResource;
     /**
      * shortcuts for this action.
      * 1. directly bound to this action if it's IDE-specific type of shortcuts (e.g. {@code ShortcutSet} in IntelliJ).
@@ -131,7 +135,7 @@ public class Action<D> extends OperationBase implements Cloneable {
         final AzureString title = this.getTitle(source);
         final Runnable operationBody = () -> AzureTaskManager.getInstance().runInBackground(title, () -> handle(source, e, handler));
         final Runnable handlerBody = () -> Operation.execute(title, Type.USER, operationBody, source);
-        if (this.authRequired) {
+        if (this.isAuthRequired(s)) {
             final Action<Runnable> requireAuth = AzureActionManager.getInstance().getAction(REQUIRE_AUTH);
             if (Objects.nonNull(requireAuth)) {
                 requireAuth.handle(handlerBody, e);
@@ -171,6 +175,12 @@ public class Action<D> extends OperationBase implements Cloneable {
     @Override
     public String getType() {
         return Type.USER;
+    }
+
+    public boolean isAuthRequired(D s) {
+        final D source = Optional.ofNullable(this.source).orElse(s);
+        return Optional.ofNullable(this.authRequired)
+            .orElseGet(() -> Optional.ofNullable(this.authRequiredProvider).map(p -> p.test(source)).orElse(false));
     }
 
     public AzureString getTitle(D s) {
@@ -252,6 +262,11 @@ public class Action<D> extends OperationBase implements Cloneable {
 
     public Action<D> withAuthRequired(boolean authRequired) {
         this.authRequired = authRequired;
+        return this;
+    }
+
+    public Action<D> withAuthRequired(@Nonnull Predicate<D> authRequiredProvider) {
+        this.authRequiredProvider = authRequiredProvider;
         return this;
     }
 
@@ -337,6 +352,16 @@ public class Action<D> extends OperationBase implements Cloneable {
         return new Action<>(Id.<Void>of("common.retry"))
             .withHandler((v) -> handler.run())
             .withLabel("Retry");
+    }
+
+    public static <D> Boolean isAuthRequiredForAzureResource(@Nullable final D resource) {
+        if (resource instanceof AbstractAzResource) {
+            return ((AbstractAzResource<?, ?, ?>) resource).isAuthRequired();
+        } else if (resource instanceof AbstractAzResourceModule) {
+            return ((AbstractAzResourceModule<?, ?, ?>) resource).isAuthRequired();
+        } else {
+            return true;
+        }
     }
 }
 

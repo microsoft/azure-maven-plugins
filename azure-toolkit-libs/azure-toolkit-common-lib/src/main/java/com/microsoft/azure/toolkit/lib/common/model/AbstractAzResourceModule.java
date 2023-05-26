@@ -115,7 +115,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Override
     public List<T> list() { // getResources
         log.debug("[{}]:list()", this.name);
-        Azure.az(IAzureAccount.class).account();
+        if (isAuthRequired()) {
+            Azure.az(IAzureAccount.class).account();
+        }
         if (this.parent instanceof AbstractAzResource && ((AbstractAzResource<?, ?, ?>) this.parent).isDraftForCreating()) {
             log.debug("[{}]:list->parent.isDraftForCreating()=true", this.name);
             return Collections.emptyList();
@@ -133,6 +135,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         }
         log.debug("[{}]:list->this.resources.values()", this.name);
         return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
+    }
+
+    public boolean isEmulatorResource() {
+        return this.getParent() instanceof AbstractAzResource && ((AbstractAzResource<?, ?, ?>) this.getParent()).isEmulatorResource();
     }
 
     private void reloadResources() {
@@ -175,8 +181,6 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 this.addResources(loadedResources);
                 fireEvents.debounce();
             }
-        } catch (Exception e) {
-            throw e;
         } finally {
             this.lock.unlock();
         }
@@ -254,7 +258,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             log.debug("[{}]:get->parent.isDraftForCreating()=true||isBlank(name)=true", this.name);
             return null;
         }
-        Azure.az(IAzureAccount.class).account();
+        if (isAuthRequired()) {
+            Azure.az(IAzureAccount.class).account();
+        }
         final String id = this.toResourceId(name, resourceGroup).toLowerCase();
         if (!this.resources.containsKey(id)) {
             R remote = null;
@@ -610,5 +616,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
 
     public static int getPageSize() {
         return Azure.az().config().getPageSize();
+    }
+
+    public boolean isAuthRequired() {
+        return !isEmulatorResource();
     }
 }
