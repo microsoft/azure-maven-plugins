@@ -8,8 +8,8 @@ package com.microsoft.azure.toolkit.lib.storage.blob;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.models.BlobContainerProperties;
 import com.azure.storage.blob.specialized.BlobClientBase;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import lombok.Getter;
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Getter
-public class BlobContainer extends AbstractAzResource<BlobContainer, StorageAccount, BlobContainerClient>
+public class BlobContainer extends AbstractEmulatableAzResource<BlobContainer, StorageAccount, BlobContainerClient>
     implements Deletable, IBlobFile {
 
     private final BlobFileModule subFileModule;

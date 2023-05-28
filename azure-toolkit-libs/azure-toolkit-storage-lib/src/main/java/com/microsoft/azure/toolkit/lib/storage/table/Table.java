@@ -6,8 +6,8 @@
 package com.microsoft.azure.toolkit.lib.storage.table;
 
 import com.azure.data.tables.TableClient;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 
@@ -15,7 +15,7 @@ import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 
-public class Table extends AbstractAzResource<Table, StorageAccount, TableClient>
+public class Table extends AbstractEmulatableAzResource<Table, StorageAccount, TableClient>
     implements Deletable {
 
     protected Table(@Nonnull String name, @Nonnull TableModule module) {

@@ -10,8 +10,8 @@ import com.azure.resourcemanager.resources.fluentcore.utils.ResourceManagerUtils
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.storage.blob.BlobContainerModule;
@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-public class StorageAccount extends AbstractAzResource<StorageAccount, StorageServiceSubscription, com.azure.resourcemanager.storage.models.StorageAccount>
+public class StorageAccount extends AbstractEmulatableAzResource<StorageAccount, StorageServiceSubscription, com.azure.resourcemanager.storage.models.StorageAccount>
     implements Deletable {
 
     protected final BlobContainerModule blobContainerModule;
@@ -87,6 +87,11 @@ public class StorageAccount extends AbstractAzResource<StorageAccount, StorageSe
             this.subModules.add(this.tableModule);
         }
         return this.subModules;
+    }
+
+    @Override
+    public boolean exists() {
+        return true;
     }
 
     @Nonnull

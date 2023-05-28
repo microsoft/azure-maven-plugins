@@ -137,10 +137,6 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         return this.resources.values().stream().filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
     }
 
-    public boolean isEmulatorResource() {
-        return this.getParent() instanceof AbstractAzResource && ((AbstractAzResource<?, ?, ?>) this.getParent()).isEmulatorResource();
-    }
-
     private void reloadResources() {
         log.debug("[{}]:reloadResources()", this.name);
         this.syncTimeRef.set(0);
@@ -618,7 +614,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         return Azure.az().config().getPageSize();
     }
 
-    public boolean isAuthRequired() {
-        return !isEmulatorResource();
+    protected boolean isAuthRequired() {
+        return true;
     }
 }
