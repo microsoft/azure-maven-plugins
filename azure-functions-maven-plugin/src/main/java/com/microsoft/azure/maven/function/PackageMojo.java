@@ -29,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.legacy.function.handlers.CommandHandler;
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.CommandHandlerImpl;
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreToolsHandler;
 import com.microsoft.azure.toolkit.lib.legacy.function.handlers.FunctionCoreToolsHandlerImpl;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
@@ -61,6 +62,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -95,6 +97,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     public static final String SAVE_FUNCTION_JSON = "Starting processing function: ";
     public static final String SAVE_SUCCESS = "Successfully saved to ";
     public static final String COPY_JARS = "Step 7 of 8: Copying JARs to staging directory ";
+    public static final String COPY_BINARY = "Step 7 of 8: Copying Binary to staging directory ";
     public static final String COPY_SUCCESS = "Copied successfully.";
     public static final String INSTALL_EXTENSIONS = "Step 8 of 8: Installing function extensions if needed";
     public static final String SKIP_INSTALL_EXTENSIONS_HTTP = "Skip install Function extension for HTTP Trigger Functions";
@@ -104,10 +107,12 @@ public class PackageMojo extends AbstractFunctionMojo {
     public static final String FUNCTION_JSON = "function.json";
     public static final String EXTENSION_BUNDLE = "extensionBundle";
     private static final String AZURE_FUNCTIONS_JAVA_CORE_LIBRARY = "azure-functions-java-core-library";
-    private static final String DEFAULT_LOCAL_SETTINGS_JSON = "{ \"IsEncrypted\": false, \"Values\": " +
-            "{ \"FUNCTIONS_WORKER_RUNTIME\": \"java\" } }";
+    private static final String DEFAULT_LOCAL_SETTINGS_JSON = "'{' \"IsEncrypted\": false, \"Values\": " +
+            "'{' \"FUNCTIONS_WORKER_RUNTIME\": \"{0}\" '}' '}'";
     private static final String DEFAULT_HOST_JSON = "{\"version\":\"2.0\",\"extensionBundle\":" +
             "{\"id\":\"Microsoft.Azure.Functions.ExtensionBundle\",\"version\":\"[4.*, 5.0.0)\"}}\n";
+    private static final String DEFAULT_CUSTOM_HOST_JSON = "'{'\"version\":\"2.0\",\"extensionBundle\":" +
+            "'{'\"id\":\"Microsoft.Azure.Functions.ExtensionBundle\",\"version\":\"[4.*, 5.0.0)\"'}',\"customHandler\": '{'\"description\": '{'\"defaultExecutablePath\": \"{0}\",\"workingDirectory\": \"\",\"arguments\": [\"{1}\"]'}',\"enableForwardingHttpRequest\": true'}}'\n";
 
     private static final BindingEnum[] FUNCTION_WITHOUT_FUNCTION_EXTENSION = {BindingEnum.HttpOutput, BindingEnum.HttpTrigger};
     private static final String EXTENSION_BUNDLE_ID = "Microsoft.Azure.Functions.ExtensionBundle";
@@ -170,7 +175,12 @@ public class PackageMojo extends AbstractFunctionMojo {
 
             writeFunctionJsonFiles(objectWriter, configMap);
 
-            copyJarsToStageDirectory();
+            if (isNativeExecutable()) {
+                copyBinaryToStageDirectory();
+            } else {
+                copyJarsToStageDirectory();
+            }
+            
         } catch (IOException | MojoExecutionException e) {
             throw new AzureExecutionException("Cannot perform IO operations due to error:" + e.getMessage(), e);
         }
@@ -182,6 +192,21 @@ public class PackageMojo extends AbstractFunctionMojo {
         installExtension(functionCoreToolsHandler, bindingClasses);
 
         log.info(BUILD_SUCCESS);
+    }
+
+    protected void copyBinaryToStageDirectory() throws IOException, MojoExecutionException {
+        final File stagingDirectory = new File(getDeploymentStagingDirectoryPath());
+        log.info("");
+        log.info(COPY_BINARY + stagingDirectory.getAbsolutePath());
+        final File originalArtifact = new File(getArtifact().getParentFile(), nativeExecutablePath);
+        
+        File destFile = new File(stagingDirectory, nativeExecutablePath);
+        log.info("src: {}", originalArtifact.getAbsolutePath());
+        log.info("dest: {}", destFile.getAbsolutePath());
+        
+        FileUtils.copyFile(originalArtifact, destFile);
+
+        log.info(COPY_SUCCESS);
     }
 
     public static void buildArtifactWithDependencies(@Nonnull final File artifactFile, @Nullable final Set<File> dependencies, final File target) {
@@ -316,6 +341,7 @@ public class PackageMojo extends AbstractFunctionMojo {
                                           final Map<String, FunctionConfiguration> configMap) throws IOException {
         log.info("");
         log.info(SAVE_FUNCTION_JSONS);
+        log.info("Native: "+isNativeExecutable());
         if (configMap.size() == 0) {
             log.info(SAVE_SKIP);
         } else {
@@ -330,6 +356,11 @@ public class PackageMojo extends AbstractFunctionMojo {
         log.info(SAVE_FUNCTION_JSON + functionName);
         final File functionJsonFile = Paths.get(getDeploymentStagingDirectoryPath(),
                 functionName, FUNCTION_JSON).toFile();
+        
+        if (isNativeExecutable()) {
+            config.setEntryPoint(null);
+            config.setScriptFile(null);
+        }
         writeObjectToFile(objectWriter, config, functionJsonFile);
         log.info(SAVE_SUCCESS + functionJsonFile.getAbsolutePath());
     }
@@ -339,7 +370,14 @@ public class PackageMojo extends AbstractFunctionMojo {
         log.info(SAVING_HOST_JSON);
         final File sourceHostJsonFile = getHostJsonFile();
         final File destHostJsonFile = Paths.get(getDeploymentStagingDirectoryPath(), HOST_JSON).toFile();
-        copyFilesWithDefaultContent(sourceHostJsonFile, destHostJsonFile, DEFAULT_HOST_JSON);
+        if (isNativeExecutable()) {
+            File nativeFile = new File(getNativeExecutablePath());
+            String newDefaultContent = MessageFormat.format(DEFAULT_CUSTOM_HOST_JSON, nativeFile.getName(), getCustomHandlerArgs());
+            copyFilesWithDefaultContent(sourceHostJsonFile, destHostJsonFile, newDefaultContent);
+        } else {
+            copyFilesWithDefaultContent(sourceHostJsonFile, destHostJsonFile, DEFAULT_HOST_JSON);
+        }
+        
         log.info(SAVE_SUCCESS + destHostJsonFile.getAbsolutePath());
     }
 
@@ -348,8 +386,13 @@ public class PackageMojo extends AbstractFunctionMojo {
         log.info(SAVING_LOCAL_SETTINGS_JSON);
         final File sourceLocalSettingsJsonFile = getLocalSettingsJsonFile();
         final File destLocalSettingsJsonFile = Paths.get(getDeploymentStagingDirectoryPath(), LOCAL_SETTINGS_JSON).toFile();
-        copyFilesWithDefaultContent(sourceLocalSettingsJsonFile, destLocalSettingsJsonFile, DEFAULT_LOCAL_SETTINGS_JSON);
+        String defaultContent = MessageFormat.format(DEFAULT_LOCAL_SETTINGS_JSON, getWorkerRuntime());
+        copyFilesWithDefaultContent(sourceLocalSettingsJsonFile, destLocalSettingsJsonFile, defaultContent);
         log.info(SAVE_SUCCESS + destLocalSettingsJsonFile.getAbsolutePath());
+    }
+
+    private String getWorkerRuntime() {
+        return isNativeExecutable()? "custom": "java";
     }
 
     private static void copyFilesWithDefaultContent(File source, File dest, String defaultContent)

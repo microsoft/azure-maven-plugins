@@ -38,6 +38,8 @@ public class ConfigParser {
                 .appInsightsInstance(mojo.getAppInsightsInstance())
                 .storageAccountName(mojo.getStorageAccountName())
                 .storageAccountResourceGroup(StringUtils.firstNonBlank(mojo.getStorageAccountResourceGroup(), mojo.getResourceGroup()))
+                .nativeExecutablePath(mojo.getNativeExecutablePath())
+                .customHandlerArgs(mojo.getCustomHandlerArgs())
                 .subscriptionId(mojo.getSubscriptionId())
                 .resourceGroup(mojo.getResourceGroup())
                 .appName(mojo.getAppName())

@@ -61,6 +61,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     private static final String FUNCTION_REGION_KEY = "region";
     private static final String FUNCTION_PRICING_KEY = "pricingTier";
     private static final String FUNCTION_DEPLOY_TO_SLOT_KEY = "isDeployToFunctionSlot";
+    private static final String FUNCTION_NATIVE_EXECUTABLE_PATH = "nativeExecutablePath";
 
     //region Properties
     @Parameter(defaultValue = "${project.build.finalName}", readonly = true, required = true)
@@ -214,6 +215,24 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter
     protected String storageAccountResourceGroup;
 
+    /**
+     * Boolean flag to run function with custom runtime instead of java
+     *
+     * @since 1.27.0
+     */
+    @Getter
+    @Parameter(property = "functions.nativeExecutablePath")
+    protected String nativeExecutablePath;
+
+    /**
+     * Args to be used by custom handler.
+     *
+     * @since 1.27.0
+     */
+    @Getter
+    @Parameter(property = "functions.customHandlerArgs", defaultValue = "")
+    protected String customHandlerArgs;
+
     @Getter
     protected final ConfigParser parser = new ConfigParser(this);
 
@@ -269,6 +288,10 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
             throw new AzureToolkitRuntimeException(CAN_NOT_FIND_ARTIFACT);
         }
         return result;
+    }
+
+    protected boolean isNativeExecutable() {
+        return !StringUtils.isEmpty(getNativeExecutablePath());
     }
 
     protected File getHostJsonFile() {
@@ -355,6 +378,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         result.put(DISABLE_APP_INSIGHTS_KEY, String.valueOf(isDisableAppInsights()));
         final boolean isDeployToFunctionSlot = getDeploymentSlotSetting() != null && StringUtils.isNotEmpty(getDeploymentSlotSetting().getName());
         result.put(FUNCTION_DEPLOY_TO_SLOT_KEY, String.valueOf(isDeployToFunctionSlot));
+        result.put(FUNCTION_NATIVE_EXECUTABLE_PATH, nativeExecutablePath);
         return result;
     }
     //endregion
