@@ -9,8 +9,8 @@ import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.models.BlobItem;
 import com.azure.storage.blob.models.BlobItemProperties;
 import com.azure.storage.blob.specialized.BlobClientBase;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import lombok.Getter;
 import org.apache.commons.lang3.BooleanUtils;
@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Getter
-public class BlobFile extends AbstractAzResource<BlobFile, IBlobFile, BlobItem> implements Deletable, IBlobFile {
+public class BlobFile extends AbstractEmulatableAzResource<BlobFile, IBlobFile, BlobItem> implements Deletable, IBlobFile {
     private final BlobFileModule subFileModule;
 
     protected BlobFile(@Nonnull String name, @Nonnull BlobFileModule module) {

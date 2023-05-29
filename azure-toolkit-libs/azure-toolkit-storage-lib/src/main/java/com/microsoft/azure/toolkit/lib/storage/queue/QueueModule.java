@@ -12,7 +12,7 @@ import com.azure.storage.queue.QueueClient;
 import com.azure.storage.queue.QueueServiceClient;
 import com.azure.storage.queue.QueueServiceClientBuilder;
 import com.azure.storage.queue.models.QueuesSegmentOptions;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
@@ -24,7 +24,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public class QueueModule extends AbstractAzResourceModule<Queue, StorageAccount, QueueClient> {
+public class QueueModule extends AbstractEmulatableAzResourceModule<Queue, StorageAccount, QueueClient> {
 
     public static final String NAME = "Azure.Queue";
     private QueueServiceClient client;

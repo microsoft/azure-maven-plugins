@@ -9,7 +9,7 @@ import com.azure.core.http.rest.PagedIterable;
 import com.azure.core.util.paging.ContinuablePage;
 import com.azure.storage.file.share.ShareDirectoryClient;
 import com.azure.storage.file.share.models.ShareFileItem;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
@@ -21,7 +21,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class ShareFileModule extends AbstractAzResourceModule<ShareFile, IShareFile, ShareFileItem> {
+public class ShareFileModule extends AbstractEmulatableAzResourceModule<ShareFile, IShareFile, ShareFileItem> {
 
     public static final String NAME = "file";
 

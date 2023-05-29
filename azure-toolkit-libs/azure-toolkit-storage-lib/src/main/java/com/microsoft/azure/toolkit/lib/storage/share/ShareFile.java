@@ -8,8 +8,8 @@ package com.microsoft.azure.toolkit.lib.storage.share;
 import com.azure.storage.file.share.ShareDirectoryClient;
 import com.azure.storage.file.share.models.ShareFileItem;
 import com.azure.storage.file.share.models.ShareFileItemProperties;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import lombok.Getter;
 
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-public class ShareFile extends AbstractAzResource<ShareFile, IShareFile, ShareFileItem> implements Deletable, IShareFile {
+public class ShareFile extends AbstractEmulatableAzResource<ShareFile, IShareFile, ShareFileItem> implements Deletable, IShareFile {
     private final ShareFileModule subFileModule;
 
     protected ShareFile(@Nonnull String name, @Nonnull ShareFileModule module) {

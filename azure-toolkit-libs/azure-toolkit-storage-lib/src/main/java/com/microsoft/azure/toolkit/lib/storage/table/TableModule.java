@@ -10,7 +10,7 @@ import com.azure.data.tables.TableClient;
 import com.azure.data.tables.TableServiceClient;
 import com.azure.data.tables.TableServiceClientBuilder;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public class TableModule extends AbstractAzResourceModule<Table, StorageAccount, TableClient> {
+public class TableModule extends AbstractEmulatableAzResourceModule<Table, StorageAccount, TableClient> {
 
     public static final String NAME = "Azure.Table";
     private TableServiceClient client;

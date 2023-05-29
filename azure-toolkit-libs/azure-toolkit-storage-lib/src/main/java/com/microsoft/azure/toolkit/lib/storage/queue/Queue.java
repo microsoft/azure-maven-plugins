@@ -6,8 +6,8 @@
 package com.microsoft.azure.toolkit.lib.storage.queue;
 
 import com.azure.storage.queue.QueueClient;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 
@@ -15,7 +15,7 @@ import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 
-public class Queue extends AbstractAzResource<Queue, StorageAccount, QueueClient>
+public class Queue extends AbstractEmulatableAzResource<Queue, StorageAccount, QueueClient>
     implements Deletable {
 
     protected Queue(@Nonnull String name, @Nonnull QueueModule module) {

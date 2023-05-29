@@ -9,8 +9,8 @@ import com.azure.storage.file.share.ShareClient;
 import com.azure.storage.file.share.ShareDirectoryClient;
 import com.azure.storage.file.share.ShareServiceClient;
 import com.azure.storage.file.share.models.ShareProperties;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import lombok.Getter;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Getter
-public class Share extends AbstractAzResource<Share, StorageAccount, ShareClient>
+public class Share extends AbstractEmulatableAzResource<Share, StorageAccount, ShareClient>
     implements Deletable, IShareFile {
 
     private final ShareFileModule subFileModule;

@@ -10,7 +10,7 @@ import com.azure.core.util.paging.ContinuablePage;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.models.BlobItem;
 import com.azure.storage.blob.specialized.BlobClientBase;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.lang3.BooleanUtils;
@@ -24,7 +24,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class BlobFileModule extends AbstractAzResourceModule<BlobFile, IBlobFile, BlobItem> {
+public class BlobFileModule extends AbstractEmulatableAzResourceModule<BlobFile, IBlobFile, BlobItem> {
 
     public static final String NAME = "file";
 

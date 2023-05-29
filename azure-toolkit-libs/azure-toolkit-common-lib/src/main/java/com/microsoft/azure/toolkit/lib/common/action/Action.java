@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Emulatable;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBase;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
@@ -63,9 +64,6 @@ public class Action<D> extends OperationBase implements Cloneable {
     private List<Function<D, String>> titleParamProviders = new ArrayList<>();
 
     private D source;
-
-    @Setter
-    private Boolean authRequired = null;
     @Setter
 
     private Predicate<D> authRequiredProvider = Action::isAuthRequiredForAzureResource;
@@ -177,10 +175,9 @@ public class Action<D> extends OperationBase implements Cloneable {
         return Type.USER;
     }
 
-    public boolean isAuthRequired(D s) {
+    private boolean isAuthRequired(D s) {
         final D source = Optional.ofNullable(this.source).orElse(s);
-        return Optional.ofNullable(this.authRequired)
-            .orElseGet(() -> Optional.ofNullable(this.authRequiredProvider).map(p -> p.test(source)).orElse(false));
+        return Optional.ofNullable(this.authRequiredProvider).map(p -> p.test(source)).orElse(true);
     }
 
     public AzureString getTitle(D s) {
@@ -261,7 +258,7 @@ public class Action<D> extends OperationBase implements Cloneable {
     }
 
     public Action<D> withAuthRequired(boolean authRequired) {
-        this.authRequired = authRequired;
+        this.authRequiredProvider = ignore -> authRequired;
         return this;
     }
 
@@ -355,13 +352,7 @@ public class Action<D> extends OperationBase implements Cloneable {
     }
 
     public static <D> Boolean isAuthRequiredForAzureResource(@Nullable final D resource) {
-        if (resource instanceof AbstractAzResource) {
-            return ((AbstractAzResource<?, ?, ?>) resource).isAuthRequired();
-        } else if (resource instanceof AbstractAzResourceModule) {
-            return ((AbstractAzResourceModule<?, ?, ?>) resource).isAuthRequired();
-        } else {
-            return true;
-        }
+        return !(resource instanceof Emulatable && ((Emulatable) resource).isEmulatorResource());
     }
 }
 
