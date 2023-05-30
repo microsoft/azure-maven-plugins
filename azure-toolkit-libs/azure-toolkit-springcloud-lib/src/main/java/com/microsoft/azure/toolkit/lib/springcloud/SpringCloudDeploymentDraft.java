@@ -135,10 +135,18 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         SpringAppDeploymentImpl update = (SpringAppDeploymentImpl) deployment.update();
         if (update(update)) {
             final IAzureMessager messager = AzureMessager.getMessager();
-            messager.info(AzureString.format("Start updating deployment({0})...", deployment.name()));
-            deployment = update.apply();
-            this.getSubModules().forEach(AbstractAzResourceModule::refresh);
-            messager.success(AzureString.format("Deployment({0}) is successfully updated.", deployment.name()));
+            final File newArtifact = Optional.ofNullable(config).map(c -> c.artifact).map(IArtifact::getFile).orElse(null);
+            if (Objects.nonNull(newArtifact)) {
+                messager.info(AzureString.format("Start uploading artifact({0}) and updating deployment({1})...", newArtifact.getName(), deployment.name()));
+                deployment = update.apply();
+                this.getSubModules().forEach(AbstractAzResourceModule::refresh);
+                messager.success(AzureString.format("Artifact({0}) is uploaded and deployment({1}) is successfully updated.", newArtifact.getName(), deployment.name()));
+            } else {
+                messager.info(AzureString.format("Start updating deployment({0})...", deployment.name()));
+                deployment = update.apply();
+                this.getSubModules().forEach(AbstractAzResourceModule::refresh);
+                messager.success(AzureString.format("Deployment({0}) is successfully updated.", deployment.name()));
+            }
         }
         update = (SpringAppDeploymentImpl) deployment.update();
         if (scale(update)) {
