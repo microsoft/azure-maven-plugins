@@ -19,6 +19,8 @@ import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Performance;
 import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -110,6 +112,15 @@ public class AzureStorageAccount extends AbstractAzService<StorageServiceSubscri
     @Override
     public String getResourceTypeName() {
         return "Storage accounts";
+    }
+
+    @Nullable
+    @Override
+    public <E> E getById(@NotNull String id) {
+        if (StringUtils.equalsIgnoreCase(id, AzuriteStorageAccount.AZURITE_RESOURCE_ID)) {
+            return (E) AzuriteStorageAccount.AZURITE_STORAGE_ACCOUNT;
+        }
+        return super.getById(id);
     }
 
     @Override
