@@ -269,7 +269,7 @@ public class ConfigMojo extends AbstractMojoBase {
         } else {
             changesToConfirm.put("App name", this.appSettings.getAppName());
             changesToConfirm.put("Public access", this.appSettings.getIsPublic());
-            changesToConfirm.put("Instance count", this.deploymentSettings.getInstanceCount());
+            changesToConfirm.put("Instance count/max replicas", this.deploymentSettings.getInstanceCount());
             changesToConfirm.put("CPU count", this.deploymentSettings.getCpu());
             changesToConfirm.put("Memory size(GB)", this.deploymentSettings.getMemoryInGB());
             changesToConfirm.put("JVM options", this.deploymentSettings.getJvmOptions());
