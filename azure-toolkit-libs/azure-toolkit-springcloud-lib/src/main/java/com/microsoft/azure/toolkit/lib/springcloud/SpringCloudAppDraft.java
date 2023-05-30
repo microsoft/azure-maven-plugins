@@ -221,7 +221,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
 
     public boolean isPersistentDiskEnabled() {
         final Boolean enabled = Optional.ofNullable(config).map(Config::getPersistentDiskEnabled).orElseGet(super::isPersistentDiskEnabled);
-        return enabled && !this.getParent().isEnterpriseTier();
+        return enabled && !this.getParent().isEnterpriseTier() && !this.getParent().isConsumptionTier();
     }
 
     public void setActiveDeploymentName(String name) {

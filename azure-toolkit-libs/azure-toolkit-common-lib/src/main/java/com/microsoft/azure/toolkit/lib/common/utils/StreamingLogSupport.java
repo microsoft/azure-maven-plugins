@@ -6,12 +6,14 @@
 package com.microsoft.azure.toolkit.lib.common.utils;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.http.client.utils.URIBuilder;
 import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -44,13 +46,15 @@ public interface StreamingLogSupport {
             return Flux.create((fluxSink) -> {
                 try {
                     final InputStream is = connection.getInputStream();
-                    BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+                    final BufferedReader rd = new BufferedReader(new InputStreamReader(is));
                     String line;
                     while ((line = rd.readLine()) != null) {
                         fluxSink.next(line);
                     }
                     rd.close();
-                } catch (final Exception e) {
+                } catch (final FileNotFoundException e) {
+                    AzureMessager.getMessager().error("app/instance may be deactivated, please refresh and try again later.");
+                } catch (final IOException e) {
                     throw new AzureToolkitRuntimeException(e);
                 }
             });

@@ -122,7 +122,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         config(create);
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating deployment({0})...", name));
-        SpringAppDeployment deployment = create.create();
+        final SpringAppDeployment deployment = create.create();
         messager.success(AzureString.format("Deployment({0}) is successfully created", name));
         return Objects.requireNonNull(deployment);
     }
