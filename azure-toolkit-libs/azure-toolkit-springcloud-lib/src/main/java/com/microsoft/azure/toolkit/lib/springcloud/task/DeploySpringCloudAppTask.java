@@ -65,12 +65,13 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     private List<AzureTask<?>> initTasks() {
         // Init spring clients, and prompt users to confirm
         final SpringCloudDeploymentConfig deploymentConfig = config.getDeployment();
-        final String clusterName = config.getClusterName();
-        final String appName = config.getAppName();
+        final String subscriptionId = Optional.ofNullable(config.getSubscriptionId()).filter(StringUtils::isNotBlank).orElseThrow(() -> new AzureToolkitRuntimeException("'subscriptionId' is required"));
+        final String clusterName = Optional.ofNullable(config.getClusterName()).filter(StringUtils::isNotBlank).orElseThrow(() -> new AzureToolkitRuntimeException("'clusterName' is required"));
+        final String appName = Optional.ofNullable(config.getAppName()).filter(StringUtils::isNotBlank).orElseThrow(() -> new AzureToolkitRuntimeException("'appName' is required"));
         final String resourceGroup = config.getResourceGroup();
-        final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(config.getSubscriptionId()).get(clusterName, resourceGroup);
+        final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(subscriptionId).get(clusterName, resourceGroup);
         Optional.ofNullable(cluster).orElseThrow(() -> new AzureToolkitRuntimeException(
-            String.format("Azure Spring Apps(%s) is not found in resource group(%s) of subscription(%s).", clusterName, config.getResourceGroup(), config.getSubscriptionId())));
+            String.format("Azure Spring Apps(%s) is not found in resource group(%s) of subscription(%s).", clusterName, resourceGroup, subscriptionId)));
         final SpringCloudAppDraft app = cluster.apps().updateOrCreate(appName, resourceGroup);
         final String deploymentName = StringUtils.firstNonBlank(
             deploymentConfig.getDeploymentName(),
@@ -82,7 +83,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final boolean toCreateDeployment = !toCreateApp && !app.deployments().exists(deploymentName, resourceGroup);
         config.setActiveDeploymentName(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateApp || toCreateDeployment ? deploymentName : null));
 
-        OperationContext.action().setTelemetryProperty("subscriptionId", config.getSubscriptionId());
+        OperationContext.action().setTelemetryProperty("subscriptionId", subscriptionId);
         OperationContext.current().setTelemetryProperty("isCreateNewApp", String.valueOf(toCreateApp));
         OperationContext.current().setTelemetryProperty("isCreateDeployment", String.valueOf(toCreateApp || toCreateDeployment));
         OperationContext.current().setTelemetryProperty("isDeploymentNameGiven", String.valueOf(StringUtils.isNotEmpty(deploymentConfig.getDeploymentName())));
