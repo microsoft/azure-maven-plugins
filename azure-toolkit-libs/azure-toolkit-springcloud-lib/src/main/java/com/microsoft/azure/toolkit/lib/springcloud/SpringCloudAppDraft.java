@@ -19,6 +19,7 @@ import com.azure.resourcemanager.appplatform.models.Scale;
 import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringService;
+import com.azure.resourcemanager.appplatform.models.TemporaryDisk;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -51,6 +52,8 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
      * @see <a href="https://azure.microsoft.com/en-us/pricing/details/spring-cloud/">Pricing - Azure Spring Apps</a>
      */
     public static final int STANDARD_TIER_DEFAULT_DISK_SIZE = 50;
+    public static final int DEFAULT_TEMP_DISK_SIZE = 5;
+    public static final String DEFAULT_TEMP_DISK_MOUNT_PATH = "/tmp";
     @Getter
     @Nullable
     private final SpringCloudApp origin;
@@ -113,6 +116,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         final boolean newPublicEndpointEnabled = this.isPublicEndpointEnabled();
         final Integer newDiskSize = this.isPersistentDiskEnabled() ? this.getParent().isStandardTier() ? STANDARD_TIER_DEFAULT_DISK_SIZE : BASIC_TIER_DEFAULT_DISK_SIZE : null;
         final PersistentDisk newDisk = this.isPersistentDiskEnabled() ? new PersistentDisk().withSizeInGB(newDiskSize).withMountPath(DEFAULT_DISK_MOUNT_PATH) : null;
+        final TemporaryDisk tmpDisk = this.getParent().isEnterpriseTier() ? null : new TemporaryDisk().withSizeInGB(DEFAULT_TEMP_DISK_SIZE).withMountPath(DEFAULT_TEMP_DISK_MOUNT_PATH);
         // refer https://github.com/Azure/azure-sdk-for-java/blob/main/sdk/resourcemanager/azure-resourcemanager-samples/src/main/java/com/azure/
         // resourcemanager/appplatform/samples/ManageSpringCloud.java#L122-L129
         final Optional<SpringCloudDeploymentConfig> d = Optional.of(this.getConfig()).map(SpringCloudAppConfig::getDeployment);
@@ -121,6 +125,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         final AppResourceInner appResource = new AppResourceInner()
             .withProperties(new AppResourceProperties()
                 .withPersistentDisk(newDisk)
+                .withTemporaryDisk(tmpDisk)
                 .withPublicProperty(newPublicEndpointEnabled));
 
         final DeploymentResourceProperties properties = new DeploymentResourceProperties()

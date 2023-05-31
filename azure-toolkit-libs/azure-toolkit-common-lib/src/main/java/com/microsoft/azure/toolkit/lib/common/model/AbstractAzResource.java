@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.common.model;
 
 import com.azure.core.exception.HttpResponseException;
+import com.azure.core.http.HttpResponse;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
 import com.azure.resourcemanager.resources.fluentcore.model.Refreshable;
@@ -230,10 +231,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         log.debug("[{}:{}]:loadRemote()", this.module.getName(), this.getName());
         try {
             return this.getModule().loadResourceFromAzure(this.getName(), this.getResourceGroupName());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.debug("[{}:{}]:loadRemote()=EXCEPTION", this.module.getName(), this.getName(), e);
-            final Throwable cause = e instanceof HttpResponseException ? e : ExceptionUtils.getRootCause(e);
-            if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND == ((HttpResponseException) cause).getResponse().getStatusCode()) {
+            if (isNotFoundException(e)) {
                 return null;
             }
             throw e;
@@ -247,10 +247,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     private R refreshRemote(@Nonnull R remote) {
         try {
             return this.refreshRemoteFromAzure(remote);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.debug("[{}:{}]:refreshRemoteFromAzure()=EXCEPTION", this.module.getName(), this.getName(), e);
-            final Throwable cause = e instanceof HttpResponseException ? e : ExceptionUtils.getRootCause(e);
-            if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND == ((HttpResponseException) cause).getResponse().getStatusCode()) {
+            if (isNotFoundException(e)) {
                 return null;
             }
             throw e;
@@ -297,9 +296,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         log.debug("[{}:{}]:delete->module.deleteResourceFromAzure({})", this.module.getName(), this.getName(), this.getId());
         try {
             this.getModule().deleteResourceFromAzure(this.getId());
-        } catch (Exception e) {
-            final Throwable cause = e instanceof HttpResponseException ? e : ExceptionUtils.getRootCause(e);
-            if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND == ((HttpResponseException) cause).getResponse().getStatusCode()) {
+        } catch (final Exception e) {
+            if (isNotFoundException(e)) {
                 log.debug("[{}]:delete()->deleteResourceFromAzure()=SC_NOT_FOUND", this.name, e);
             } else {
                 this.getSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(r -> r.setStatus(Status.UNKNOWN));
@@ -365,9 +363,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
                 final R refreshed = Optional.ofNullable(this.remoteRef.get()).map(this::refreshRemote).orElse(null);
                 log.debug("[{}:{}]:doModify->setRemote({})", this.module.getName(), this.getName(), this.remoteRef.get());
                 this.setRemote(refreshed);
-            } catch (Throwable t) {
-                final Throwable cause = t instanceof HttpResponseException ? t : ExceptionUtils.getRootCause(t);
-                if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND == ((HttpResponseException) cause).getResponse().getStatusCode()) {
+            } catch (final Throwable t) {
+                if (isNotFoundException(t)) {
                     this.setRemote(null);
                 } else {
                     this.syncTimeRef.compareAndSet(0, System.currentTimeMillis());
@@ -380,6 +377,16 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         } else {
             AzureMessager.getMessager().warning(AzureString.format("%s (%s) is %s, please wait until it's finished.", this.getResourceTypeName(), this.getName(), this.getStatus()));
         }
+    }
+
+    static boolean isNotFoundException(Throwable t) {
+        final Throwable cause = t instanceof HttpResponseException ? t : ExceptionUtils.getRootCause(t);
+        return Optional.ofNullable(cause).filter(c -> cause instanceof HttpResponseException)
+            .map(c -> ((HttpResponseException) c))
+            .map(HttpResponseException::getResponse)
+            .map(HttpResponse::getStatusCode)
+            .filter(c -> c == HttpStatus.SC_NOT_FOUND)
+            .isPresent();
     }
 
     @Nullable
@@ -396,7 +403,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             log.debug("[{}:{}]:doModify->setRemote({})", this.module.getName(), this.getName(), remote);
             this.setRemote(remote);
             return remote;
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             final Throwable cause = t instanceof HttpResponseException ? t : ExceptionUtils.getRootCause(t);
             if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND == ((HttpResponseException) cause).getResponse().getStatusCode()) {
                 this.setRemote(null);

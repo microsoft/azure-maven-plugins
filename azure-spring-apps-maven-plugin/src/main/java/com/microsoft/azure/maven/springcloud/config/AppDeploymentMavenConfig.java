@@ -19,6 +19,9 @@ import java.util.Map;
 public class AppDeploymentMavenConfig {
     private Double cpu;
     private Double memoryInGB;
+    /**
+     * {@code max replicas} for apps of standard consumption plan or {@code instance num} for apps of other plans.
+     */
     private Integer instanceCount;
     private String deploymentName;
     private String jvmOptions;

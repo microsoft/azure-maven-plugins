@@ -38,7 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -60,6 +59,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import static com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource.isNotFoundException;
 import static com.microsoft.azure.toolkit.lib.common.model.AzResource.RESOURCE_GROUP_PLACEHOLDER;
 
 @Slf4j
@@ -148,10 +148,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 .collect(Collectors.toMap(r -> this.newResource(r).getId().toLowerCase(), r -> r));
             log.debug("[{}]:reloadResources->setResources(xxx)", this.name);
             this.setResources(loadedResources);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.debug("[{}]:reloadResources->setResources([])", this.name);
-            final Throwable cause = e instanceof HttpResponseException ? e : ExceptionUtils.getRootCause(e);
-            if (cause instanceof HttpResponseException && HttpStatus.SC_NOT_FOUND == ((HttpResponseException) cause).getResponse().getStatusCode()) {
+            if (isNotFoundException(e)) {
                 log.debug("[{}]:reloadResources->loadResourceFromAzure()=SC_NOT_FOUND", this.name, e);
                 this.setResources(Collections.emptyMap());
             } else {
@@ -263,11 +262,11 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             try {
                 log.debug("[{}]:get({}, {})->loadResourceFromAzure()", this.name, name, resourceGroup);
                 remote = loadResourceFromAzure(name, resourceGroup);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 log.debug("[{}]:get({}, {})->loadResourceFromAzure()=EXCEPTION", this.name, name, resourceGroup, e);
                 final Throwable cause = e instanceof HttpResponseException ? e : ExceptionUtils.getRootCause(e);
                 if (cause instanceof HttpResponseException) {
-                    if (HttpStatus.SC_NOT_FOUND != ((HttpResponseException) cause).getResponse().getStatusCode()) {
+                    if (!isNotFoundException(e)) {
                         log.debug("[{}]:get({}, {})->loadResourceFromAzure()=SC_NOT_FOUND", this.name, name, resourceGroup, e);
                         throw e;
                     }
