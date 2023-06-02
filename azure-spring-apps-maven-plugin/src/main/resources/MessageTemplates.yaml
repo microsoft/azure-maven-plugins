@@ -63,7 +63,7 @@ property:         isPublic
 required:         false
 ---
 id:               configure-instance-count
-promote:          "Input instance count [***${schema.minimum}***-***${schema.maximum}***] (***${schema.default}***):"
+promote:          "Input instance count (or max replicas for apps of standard consumption plan) [***${schema.minimum}***-***${schema.maximum}***] (***${schema.default}***):"
 resource:         Deployment
 property:         instanceCount
 

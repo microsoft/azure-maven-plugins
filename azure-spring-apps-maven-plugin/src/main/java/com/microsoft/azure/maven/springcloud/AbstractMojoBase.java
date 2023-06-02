@@ -83,7 +83,7 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
      * <ul>
      *     <li>cpu: Core numbers for deployment. </li>
      *     <li>memoryInGB: Memory for deployment. </li>
-     *     <li>instanceCount: Instance count for deployment. </li>
+     *     <li>instanceCount: Max replicas num for apps of standard consumption plan or instance num for apps of other plans. </li>
      *     <li>deploymentName: Name for deployment. </li>
      *     <li>jvmOptions: JVM options for the deployed app. </li>
      *     <li>runtimeVersion: The runtime version for Spring app,  supported values are `Java 11`, `Java 17` and `Java 8`. </li>

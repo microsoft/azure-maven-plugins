@@ -38,7 +38,7 @@
       ]
     },
     "instanceCount": {
-      "description": "instance count",
+      "description": "instance count/max replicas",
       "type": "integer",
       "default": 1,
       "minimum": 1,

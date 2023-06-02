@@ -7,13 +7,11 @@
 
 package com.microsoft.azure.toolkit.lib.containerapps.containerapp;
 
-import com.azure.resourcemanager.appcontainers.ContainerAppsApiManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.utils.StreamingLogSupport;
-import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerAppsServiceSubscription;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,7 +20,6 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 public class ReplicaContainer extends AbstractAzResource<ReplicaContainer, Replica, com.azure.resourcemanager.appcontainers.models.ReplicaContainer>
     implements StreamingLogSupport {
@@ -67,9 +64,6 @@ public class ReplicaContainer extends AbstractAzResource<ReplicaContainer, Repli
 
     @Override
     public String getLogStreamAuthorization() {
-        final AzureContainerAppsServiceSubscription subs = this.getParent().getParent().getParent().getParent();
-        final ContainerAppsApiManager manager = subs.getRemote();
-        final String authToken = Optional.ofNullable(manager).map(m -> m.containerApps().getAuthToken(getResourceGroupName(), getName()).token()).orElse(null);
-        return "Bearer " + authToken;
+        return this.getParent().getParent().getParent().getLogStreamAuthorization();
     }
 }
