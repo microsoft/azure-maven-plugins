@@ -101,5 +101,13 @@ public abstract class AzureActionManager {
         default Object deploy() {
             return null;
         }
+
+        default Object copy() {
+            return null;
+        }
+
+        default Object paste() {
+            return null;
+        }
     }
 }
