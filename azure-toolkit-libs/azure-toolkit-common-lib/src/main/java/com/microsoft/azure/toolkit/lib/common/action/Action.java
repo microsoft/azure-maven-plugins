@@ -7,8 +7,6 @@ package com.microsoft.azure.toolkit.lib.common.action;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Emulatable;
@@ -50,11 +48,13 @@ public class Action<D> extends OperationBase implements Cloneable {
     public static final Action.Id<Object> OPEN_AZURE_SETTINGS = Action.Id.of("user/common.open_azure_settings");
     public static final Action.Id<Object> DISABLE_AUTH_CACHE = Action.Id.of("user/account.disable_auth_cache");
 
+    public static final String COMMON = "common";
+
     @Nonnull
     private final Id<D> id;
     @Nonnull
     private Predicate<D> enableWhen = o -> true;
-    private Predicate<Object> visibleWhen = o -> true;
+    private BiPredicate<Object, String> visibleWhen = (o, place) -> true;
     private Function<D, String> iconProvider;
     private Function<D, String> labelProvider;
     private Function<D, AzureString> titleProvider;
@@ -64,6 +64,7 @@ public class Action<D> extends OperationBase implements Cloneable {
     private List<Function<D, String>> titleParamProviders = new ArrayList<>();
 
     private D source;
+    private String place;
     @Setter
 
     private Predicate<D> authRequiredProvider = Action::isAuthRequiredForAzureResource;
@@ -87,11 +88,15 @@ public class Action<D> extends OperationBase implements Cloneable {
         return this.id.id;
     }
 
-    @Nonnull
     public IView.Label getView(D s) {
+        return getView(s, COMMON);
+    }
+
+    @Nonnull
+    public IView.Label getView(D s, final String place) {
         final D source = Optional.ofNullable(this.source).orElse(s);
         try {
-            final boolean visible = this.visibleWhen.test(source);
+            final boolean visible = this.visibleWhen.test(source, place);
             if (visible) {
                 final String label = this.labelProvider.apply(source);
                 final String icon = Optional.ofNullable(this.iconProvider).map(p -> p.apply(source)).orElse(null);
@@ -110,7 +115,7 @@ public class Action<D> extends OperationBase implements Cloneable {
     @SuppressWarnings("unchecked")
     public BiConsumer<D, Object> getHandler(D s, Object e) {
         final D source = Optional.ofNullable(this.source).orElse(s);
-        if (!this.visibleWhen.test(source) && !this.enableWhen.test(source)) {
+        if (!this.visibleWhen.test(source, COMMON) && !this.enableWhen.test(source)) {
             return null;
         }
         for (int i = this.handlers.size() - 1; i >= 0; i--) {
@@ -203,6 +208,11 @@ public class Action<D> extends OperationBase implements Cloneable {
     }
 
     public Action<D> visibleWhen(@Nonnull Predicate<Object> visibleWhen) {
+        this.visibleWhen = (object, ignore) -> visibleWhen.test(object);
+        return this;
+    }
+
+    public Action<D> visibleWhen(@Nonnull BiPredicate<Object, String> visibleWhen) {
         this.visibleWhen = visibleWhen;
         return this;
     }
