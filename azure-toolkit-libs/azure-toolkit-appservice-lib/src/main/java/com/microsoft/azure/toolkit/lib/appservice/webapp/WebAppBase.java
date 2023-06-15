@@ -57,7 +57,7 @@ public abstract class WebAppBase<T extends WebAppBase<T, P, F>, P extends Abstra
     @Nullable
     public KuduDeploymentResult pushDeploy(@Nonnull DeployType deployType, @Nonnull File targetFile,
                                            @Nullable DeployOptions deployOptions) {
-        final WebSiteBase remote = this.getRemote();
+        final WebSiteBase remote = this.getFullRemote();
         if (remote instanceof SupportsOneDeploy) {
             final com.azure.resourcemanager.appservice.models.DeployOptions options =
                     deployOptions == null ? null : AppServiceUtils.toDeployOptions(deployOptions);
