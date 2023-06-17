@@ -189,7 +189,7 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
 
     // refer to https://github.com/microsoft/vscode-azurecontainerapps/main/src/commands/deployImage/deployImage.ts#L111
     public boolean hasUnsupportedFeatures() {
-        final Optional<Template> opTemplate = this.remoteOptional(false)
+        final Optional<Template> opTemplate = this.remoteOptional()
             .map(com.azure.resourcemanager.appcontainers.models.ContainerApp::innerModel).map(ContainerAppInner::template);
         final List<Container> containers = opTemplate.map(Template::containers).filter(CollectionUtils::isNotEmpty).orElse(null);
         final List<Volume> volumes = opTemplate.map(Template::volumes).orElse(null);

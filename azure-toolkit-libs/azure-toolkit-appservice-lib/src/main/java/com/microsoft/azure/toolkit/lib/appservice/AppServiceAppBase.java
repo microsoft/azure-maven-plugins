@@ -75,17 +75,11 @@ public abstract class AppServiceAppBase<
     }
 
     @Nullable
-    @Override
-    protected WebSiteBase refreshRemoteFromAzure(@Nonnull WebSiteBase remote) {
-        return super.loadRemote();
-    }
-
-    @Nullable
     public synchronized F getFullRemote() {
         WebSiteBase remote = this.getRemote();
         if (Objects.nonNull(remote) && !(remote instanceof WebAppBase)) {
             this.invalidateCache();
-            remote = this.getRemote(true);
+            remote = this.getRemote();
         }
         //noinspection unchecked
         return (F) remote;

@@ -57,7 +57,7 @@ public class SqlDocument extends AbstractAzResource<SqlDocument, SqlContainer, O
     public ObjectNode getDocument() {
         return Optional.ofNullable(getRemote()).map(remote -> {
             final ObjectNode node = remote.deepCopy();
-            for (String field : HIDE_FIELDS) {
+            for (final String field : HIDE_FIELDS) {
                 node.remove(field);
             }
             return node;
@@ -74,10 +74,5 @@ public class SqlDocument extends AbstractAzResource<SqlDocument, SqlContainer, O
     @Override
     public String loadStatus(@Nonnull ObjectNode remote) {
         return Status.RUNNING;
-    }
-
-    @Override
-    protected void setRemote(@Nullable ObjectNode newRemote) {
-        super.setRemote(newRemote);
     }
 }

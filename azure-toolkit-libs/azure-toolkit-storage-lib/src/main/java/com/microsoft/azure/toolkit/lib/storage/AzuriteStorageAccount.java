@@ -8,12 +8,8 @@ package com.microsoft.azure.toolkit.lib.storage;
 import com.azure.core.http.policy.FixedDelayOptions;
 import com.azure.core.http.policy.RetryOptions;
 import com.azure.core.util.paging.ContinuablePage;
-import com.azure.data.tables.TableClient;
-import com.azure.data.tables.TableClientBuilder;
 import com.azure.data.tables.TableServiceClient;
 import com.azure.data.tables.TableServiceClientBuilder;
-import com.azure.storage.blob.BlobClient;
-import com.azure.storage.blob.BlobClientBuilder;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.queue.QueueServiceClient;
@@ -80,8 +76,7 @@ public class AzuriteStorageAccount extends StorageAccount {
     }
 
     @Nonnull
-    @Override
-    public String getStatus(boolean immediately) {
+    public String getStatus() {
         final boolean isAzuriteAccessible = CollectionUtils.isNotEmpty(this.subModules);
         return isAzuriteAccessible ? "Running" : "Stopped";
     }
@@ -95,7 +90,7 @@ public class AzuriteStorageAccount extends StorageAccount {
     @Nonnull
     @Override
     public String loadStatus(@Nullable com.azure.resourcemanager.storage.models.StorageAccount remote) {
-        return getStatus(false);
+        return getStatus();
     }
 
     @Nonnull

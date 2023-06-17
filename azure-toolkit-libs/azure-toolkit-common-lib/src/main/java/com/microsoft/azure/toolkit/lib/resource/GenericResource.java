@@ -56,12 +56,6 @@ public class GenericResource extends AbstractAzResource<GenericResource, Resourc
         return Objects.isNull(concrete) ? this : concrete;
     }
 
-    @Nullable
-    @Override
-    protected HasId refreshRemoteFromAzure(@Nonnull HasId remote) {
-        return remote;
-    }
-
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
@@ -82,9 +76,9 @@ public class GenericResource extends AbstractAzResource<GenericResource, Resourc
 
     @Nonnull
     @Override
-    public String getStatus(boolean immediately) {
+    public String getStatus() {
         final AbstractAzResource<?, ?, ?> concrete = this.toConcreteResource();
-        return concrete instanceof GenericResource ? Status.UNKNOWN : concrete.getStatus(immediately);
+        return concrete instanceof GenericResource ? Status.UNKNOWN : concrete.getStatus();
     }
 
     @Override
