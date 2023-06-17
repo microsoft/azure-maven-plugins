@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.appservice.function;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
 import com.azure.resourcemanager.appservice.models.PlatformArchitecture;
+import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.ANONYMOUS;
@@ -204,5 +206,12 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
                             .orElseThrow(() -> new AzureToolkitRuntimeException(NO_TRIGGERS_FOUNDED));
                 }).subscribeOn(Schedulers.boundedElastic())
                 .retryWhen(Retry.fixedDelay(LIST_TRIGGERS_MAX_RETRY - 1, Duration.ofSeconds(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS))).block();
+    }
+
+    @Nullable
+    @Override
+    protected WebSiteBase doModify(@Nonnull Callable<WebSiteBase> body, @Nullable String status) {
+        // override only to provide package visibility
+        return super.doModify(body, status);
     }
 }
