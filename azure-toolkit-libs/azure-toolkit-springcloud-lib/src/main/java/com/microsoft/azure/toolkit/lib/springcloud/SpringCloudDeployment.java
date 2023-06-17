@@ -185,7 +185,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
         super.setStatus(status);
         // update app status when active deployment status changed
         if (this.isActive()) {
-            getParent().reloadStatus();
+            getParent().setStatus(status);
         }
     }
 
