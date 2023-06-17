@@ -89,6 +89,12 @@ public class StorageAccount extends AbstractEmulatableAzResource<StorageAccount,
         return this.subModules;
     }
 
+    @Nonnull
+    @Override
+    public List<AbstractAzResourceModule<?, ?, ?>> getCachedSubModules() {
+        return this.subModules;
+    }
+
     @Override
     public boolean exists() {
         return true;

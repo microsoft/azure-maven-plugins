@@ -23,6 +23,7 @@ import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Getter
@@ -46,6 +47,12 @@ public class BlobFile extends AbstractEmulatableAzResource<BlobFile, IBlobFile, 
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return this.isDirectory() ? Collections.singletonList(this.subFileModule) : Collections.emptyList();
+    }
+
+    @Nonnull
+    @Override
+    public List<AbstractAzResourceModule<?, ?, ?>> getCachedSubModules() {
+        return Objects.nonNull(this.subFileModule) ? Collections.singletonList(this.subFileModule) : Collections.emptyList();
     }
 
     @Nonnull

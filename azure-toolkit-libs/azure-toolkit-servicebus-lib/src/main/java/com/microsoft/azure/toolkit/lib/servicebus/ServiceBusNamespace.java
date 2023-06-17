@@ -60,7 +60,7 @@ public class ServiceBusNamespace extends AbstractAzResource<ServiceBusNamespace,
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        if (Objects.equals(skuTier, SkuTier.BASIC)) {
+        if (skuTier == SkuTier.BASIC) {
             return Collections.singletonList(queueModule);
         }
         return Arrays.asList(queueModule, topicModule);

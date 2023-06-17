@@ -48,6 +48,12 @@ public class ShareFile extends AbstractEmulatableAzResource<ShareFile, IShareFil
 
     @Nonnull
     @Override
+    public List<AbstractAzResourceModule<?, ?, ?>> getCachedSubModules() {
+        return Objects.nonNull(this.subFileModule) ? Collections.singletonList(this.subFileModule) : Collections.emptyList();
+    }
+
+    @Nonnull
+    @Override
     protected String loadStatus(@Nonnull ShareFileItem remote) {
         return "OK";
     }
