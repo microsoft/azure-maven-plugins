@@ -53,7 +53,7 @@ public class SqlDatabase extends AbstractAzResource<SqlDatabase, CosmosDBAccount
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull SqlDatabaseGetResultsInner remote) {
+    protected String loadStatus(@Nonnull SqlDatabaseGetResultsInner remote) {
         return Status.RUNNING;
     }
 

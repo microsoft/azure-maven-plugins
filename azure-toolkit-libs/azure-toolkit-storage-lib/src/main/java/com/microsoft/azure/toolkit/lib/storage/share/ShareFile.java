@@ -48,7 +48,7 @@ public class ShareFile extends AbstractEmulatableAzResource<ShareFile, IShareFil
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull ShareFileItem remote) {
+    protected String loadStatus(@Nonnull ShareFileItem remote) {
         return "OK";
     }
 

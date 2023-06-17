@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.fluent.models.ServiceResourceInner;
 import com.azure.resourcemanager.appplatform.models.ClusterResourceProperties;
-import com.azure.resourcemanager.appplatform.models.ProvisioningState;
 import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SkuName;
 import com.azure.resourcemanager.appplatform.models.SpringService;
@@ -48,7 +47,7 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull SpringService remote) {
+    protected String loadStatus(@Nonnull SpringService remote) {
         return remote.innerModel().properties().provisioningState().toString();
     }
 

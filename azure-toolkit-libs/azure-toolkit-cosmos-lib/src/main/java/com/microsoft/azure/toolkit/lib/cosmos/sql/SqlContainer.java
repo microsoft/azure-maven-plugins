@@ -116,7 +116,7 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull SqlContainerGetResultsInner remote) {
+    protected String loadStatus(@Nonnull SqlContainerGetResultsInner remote) {
         return Status.RUNNING;
     }
 }

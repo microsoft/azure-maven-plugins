@@ -96,7 +96,7 @@ public class StorageAccount extends AbstractEmulatableAzResource<StorageAccount,
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount remote) {
+    protected String loadStatus(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount remote) {
         return remote.innerModel().provisioningState().toString();
     }
     

@@ -76,7 +76,7 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSub
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull Server remote) {
+    protected String loadStatus(@Nonnull Server remote) {
         return remote.state().toString();
     }
 

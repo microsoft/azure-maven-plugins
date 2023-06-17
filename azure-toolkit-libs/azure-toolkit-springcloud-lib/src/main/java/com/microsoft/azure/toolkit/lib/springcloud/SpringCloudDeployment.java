@@ -79,7 +79,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull SpringAppDeployment remote) {
+    protected String loadStatus(@Nonnull SpringAppDeployment remote) {
         return Optional.of(remote)
             .map(SpringAppDeployment::status)
             .map(ExpandableStringEnum::toString)

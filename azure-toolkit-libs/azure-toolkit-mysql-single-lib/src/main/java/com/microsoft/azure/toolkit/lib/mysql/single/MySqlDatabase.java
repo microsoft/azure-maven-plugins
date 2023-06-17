@@ -34,7 +34,7 @@ public class MySqlDatabase extends AbstractAzResource<MySqlDatabase, MySqlServer
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull Database remote) {
+    protected String loadStatus(@Nonnull Database remote) {
         return Status.UNKNOWN;
     }
 

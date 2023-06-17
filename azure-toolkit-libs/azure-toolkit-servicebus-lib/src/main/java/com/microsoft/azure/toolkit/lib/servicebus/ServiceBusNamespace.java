@@ -68,7 +68,7 @@ public class ServiceBusNamespace extends AbstractAzResource<ServiceBusNamespace,
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull com.azure.resourcemanager.servicebus.models.ServiceBusNamespace remote) {
+    protected String loadStatus(@Nonnull com.azure.resourcemanager.servicebus.models.ServiceBusNamespace remote) {
         return remote.innerModel().status();
     }
 

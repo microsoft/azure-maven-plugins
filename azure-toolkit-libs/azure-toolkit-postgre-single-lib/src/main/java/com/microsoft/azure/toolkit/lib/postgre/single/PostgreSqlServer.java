@@ -77,7 +77,7 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull Server remote) {
+    protected String loadStatus(@Nonnull Server remote) {
         return remote.userVisibleState().toString();
     }
 

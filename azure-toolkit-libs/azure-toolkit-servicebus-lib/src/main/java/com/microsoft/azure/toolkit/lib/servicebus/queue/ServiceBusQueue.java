@@ -46,7 +46,7 @@ public class ServiceBusQueue extends ServiceBusInstance<ServiceBusQueue, Service
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull Queue remote) {
+    protected String loadStatus(@Nonnull Queue remote) {
         return remote.innerModel().status().toString();
     }
 

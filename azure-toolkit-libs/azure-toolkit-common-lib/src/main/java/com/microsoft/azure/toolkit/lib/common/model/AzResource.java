@@ -221,7 +221,7 @@ public interface AzResource extends Refreshable {
 
         @Nonnull
         @Override
-        public String loadStatus(@Nonnull Void remote) {
+        protected String loadStatus(@Nonnull Void remote) {
             return Status.UNKNOWN;
         }
 

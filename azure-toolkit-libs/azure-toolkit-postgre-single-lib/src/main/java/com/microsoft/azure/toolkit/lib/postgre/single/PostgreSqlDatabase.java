@@ -34,7 +34,7 @@ public class PostgreSqlDatabase extends AbstractAzResource<PostgreSqlDatabase, P
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull Database remote) {
+    protected String loadStatus(@Nonnull Database remote) {
         return Status.UNKNOWN;
     }
 

@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.resource;
 
-import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -17,7 +16,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesServiceSubscription, com.azure.resourcemanager.resources.models.ResourceGroup>
@@ -78,7 +76,7 @@ public class ResourceGroup extends AbstractAzResource<ResourceGroup, ResourcesSe
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull com.azure.resourcemanager.resources.models.ResourceGroup remote) {
+    protected String loadStatus(@Nonnull com.azure.resourcemanager.resources.models.ResourceGroup remote) {
         return remote.provisioningState();
     }
 

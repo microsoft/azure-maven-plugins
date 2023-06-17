@@ -50,7 +50,7 @@ public class ContainerRegistry extends AbstractAzResource<ContainerRegistry, Azu
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull Registry remote) {
+    protected String loadStatus(@Nonnull Registry remote) {
         return Optional.ofNullable(remote.innerModel()).map(RegistryInner::provisioningState).map(ProvisioningState::toString).orElse(Status.UNKNOWN);
     }
 

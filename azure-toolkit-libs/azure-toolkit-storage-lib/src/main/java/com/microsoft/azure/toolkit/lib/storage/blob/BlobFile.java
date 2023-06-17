@@ -50,7 +50,7 @@ public class BlobFile extends AbstractEmulatableAzResource<BlobFile, IBlobFile, 
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull BlobItem remote) {
+    protected String loadStatus(@Nonnull BlobItem remote) {
         return "OK";
     }
 

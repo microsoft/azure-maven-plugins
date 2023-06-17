@@ -72,7 +72,7 @@ public class SqlDocument extends AbstractAzResource<SqlDocument, SqlContainer, O
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull ObjectNode remote) {
+    protected String loadStatus(@Nonnull ObjectNode remote) {
         return Status.RUNNING;
     }
 }

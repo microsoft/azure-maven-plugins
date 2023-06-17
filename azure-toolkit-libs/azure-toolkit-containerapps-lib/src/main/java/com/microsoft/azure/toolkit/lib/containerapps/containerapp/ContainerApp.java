@@ -183,7 +183,7 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull com.azure.resourcemanager.appcontainers.models.ContainerApp remote) {
+    protected String loadStatus(@Nonnull com.azure.resourcemanager.appcontainers.models.ContainerApp remote) {
         return remote.provisioningState().toString();
     }
 

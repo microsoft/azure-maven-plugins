@@ -41,7 +41,7 @@ public class Queue extends AbstractEmulatableAzResource<Queue, StorageAccount, Q
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull QueueClient remote) {
+    protected String loadStatus(@Nonnull QueueClient remote) {
         return "";
     }
 }

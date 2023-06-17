@@ -41,7 +41,7 @@ public class Table extends AbstractEmulatableAzResource<Table, StorageAccount, T
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull TableClient remote) {
+    protected String loadStatus(@Nonnull TableClient remote) {
         return "";
     }
 }

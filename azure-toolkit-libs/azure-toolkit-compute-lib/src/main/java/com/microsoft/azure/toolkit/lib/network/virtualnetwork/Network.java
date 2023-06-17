@@ -42,7 +42,7 @@ public class Network extends AbstractAzResource<Network, NetworkServiceSubscript
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull com.azure.resourcemanager.network.models.Network remote) {
+    protected String loadStatus(@Nonnull com.azure.resourcemanager.network.models.Network remote) {
         return remote.innerModel().provisioningState().toString();
     }
 

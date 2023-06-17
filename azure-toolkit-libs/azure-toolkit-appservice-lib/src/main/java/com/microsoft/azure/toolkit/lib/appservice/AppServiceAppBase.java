@@ -209,7 +209,7 @@ public abstract class AppServiceAppBase<
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull WebSiteBase remote) {
+    protected String loadStatus(@Nonnull WebSiteBase remote) {
         return remote.state();
     }
 

@@ -46,7 +46,7 @@ public class Replica extends AbstractAzResource<Replica, Revision, com.azure.res
 
     @NotNull
     @Override
-    public String loadStatus(@NotNull com.azure.resourcemanager.appcontainers.models.Replica remote) {
+    protected String loadStatus(@NotNull com.azure.resourcemanager.appcontainers.models.Replica remote) {
         return Status.UNKNOWN;
     }
 

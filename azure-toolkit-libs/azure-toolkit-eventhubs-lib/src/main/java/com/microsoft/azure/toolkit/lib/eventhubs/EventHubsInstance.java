@@ -64,7 +64,7 @@ public class EventHubsInstance extends AbstractAzResource<EventHubsInstance, Eve
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull EventHub remote) {
+    protected String loadStatus(@Nonnull EventHub remote) {
         return remote.innerModel().status().toString();
     }
 

@@ -50,7 +50,7 @@ public class BlobContainer extends AbstractEmulatableAzResource<BlobContainer, S
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull BlobContainerClient remote) {
+    protected String loadStatus(@Nonnull BlobContainerClient remote) {
         return "";
     }
 

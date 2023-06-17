@@ -53,7 +53,7 @@ public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeSe
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull com.azure.resourcemanager.compute.models.VirtualMachine remote) {
+    protected String loadStatus(@Nonnull com.azure.resourcemanager.compute.models.VirtualMachine remote) {
         final String provisioningState = remote.provisioningState();
         return Optional.ofNullable(provisioningState).filter(s -> s.equalsIgnoreCase("succeeded"))
             .map(i -> remote.powerState())

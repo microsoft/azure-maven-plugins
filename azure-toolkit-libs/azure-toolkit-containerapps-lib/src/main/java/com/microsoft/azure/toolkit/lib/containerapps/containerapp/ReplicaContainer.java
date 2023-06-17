@@ -43,7 +43,7 @@ public class ReplicaContainer extends AbstractAzResource<ReplicaContainer, Repli
 
     @NotNull
     @Override
-    public String loadStatus(@NotNull com.azure.resourcemanager.appcontainers.models.ReplicaContainer remote) {
+    protected String loadStatus(@NotNull com.azure.resourcemanager.appcontainers.models.ReplicaContainer remote) {
         return BooleanUtils.isTrue(remote.started()) ? Status.RUNNING : Status.UNKNOWN;
     }
 

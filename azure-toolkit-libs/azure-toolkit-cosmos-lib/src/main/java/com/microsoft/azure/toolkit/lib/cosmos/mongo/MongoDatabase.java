@@ -53,7 +53,7 @@ public class MongoDatabase extends AbstractAzResource<MongoDatabase, CosmosDBAcc
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull MongoDBDatabaseGetResultsInner remote) {
+    protected String loadStatus(@Nonnull MongoDBDatabaseGetResultsInner remote) {
         return Status.RUNNING;
     }
 

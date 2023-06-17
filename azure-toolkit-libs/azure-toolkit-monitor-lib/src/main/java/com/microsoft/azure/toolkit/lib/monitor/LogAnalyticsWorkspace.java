@@ -59,7 +59,7 @@ public class LogAnalyticsWorkspace extends AbstractAzResource<LogAnalyticsWorksp
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull Workspace remote) {
+    protected String loadStatus(@Nonnull Workspace remote) {
         return remote.provisioningState().toString();
     }
 

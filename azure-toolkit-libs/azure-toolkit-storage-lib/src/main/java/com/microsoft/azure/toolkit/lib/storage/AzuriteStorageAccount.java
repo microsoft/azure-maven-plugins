@@ -89,7 +89,7 @@ public class AzuriteStorageAccount extends StorageAccount {
 
     @Nonnull
     @Override
-    public String loadStatus(@Nullable com.azure.resourcemanager.storage.models.StorageAccount remote) {
+    protected String loadStatus(@Nullable com.azure.resourcemanager.storage.models.StorageAccount remote) {
         return getStatus();
     }
 

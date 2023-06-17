@@ -68,7 +68,7 @@ public class KubernetesClusterAgentPool extends AbstractAzResource<KubernetesClu
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool remote) {
+    protected String loadStatus(@Nonnull com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool remote) {
         final String provisioningState = remote.provisioningState();
         return StringUtils.equalsIgnoreCase("Succeeded", provisioningState) ?
                 Optional.ofNullable(getPowerStatus()).map(PowerState::getValue).orElse(Status.UNKNOWN) :

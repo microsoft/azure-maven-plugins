@@ -40,7 +40,7 @@ public class PublicIpAddress extends AbstractAzResource<PublicIpAddress, Network
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull com.azure.resourcemanager.network.models.PublicIpAddress remote) {
+    protected String loadStatus(@Nonnull com.azure.resourcemanager.network.models.PublicIpAddress remote) {
         return remote.innerModel().provisioningState().toString();
     }
 

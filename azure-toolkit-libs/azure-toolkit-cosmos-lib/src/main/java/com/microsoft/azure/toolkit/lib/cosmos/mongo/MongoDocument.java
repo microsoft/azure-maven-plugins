@@ -65,7 +65,7 @@ public class MongoDocument extends AbstractAzResource<MongoDocument, MongoCollec
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull Document remote) {
+    protected String loadStatus(@Nonnull Document remote) {
         return Status.RUNNING;
     }
 }
