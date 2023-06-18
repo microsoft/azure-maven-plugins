@@ -62,13 +62,8 @@ public class Cache1<T> {
             this.setStatus(Status.LOADING);
             final T value = this.last = supplier.get();
             final Optional<T> result = Optional.ofNullable(value);
-            String s = Status.OK;
-            try {
-                result.ifPresent(newValue -> this.onNewValue.accept(newValue, null));
-            } catch (final Throwable ignored) {
-                s = Status.UNKNOWN;
-            }
-            this.setStatus(s);
+            this.setStatus(Status.OK);
+            AzureTaskManager.getInstance().runOnPooledThread(() -> result.ifPresent(newValue -> this.onNewValue.accept(newValue, null)));
             return result;
         } catch (final Throwable e) {
             log.error(e.getMessage(), e);
@@ -89,15 +84,10 @@ public class Cache1<T> {
                     final T value = this.last = body.call();
                     final Optional<T> result = Optional.ofNullable(value);
                     final T newValue = result.orElse(null);
-                    String s = Status.OK;
+                    this.setStatus(Status.OK);
                     if (!Objects.equals(newValue, oldValue)) {
-                        try {
-                            this.onNewValue.accept(newValue, oldValue);
-                        } catch (final Throwable ignored) {
-                            s = Status.UNKNOWN;
-                        }
+                        AzureTaskManager.getInstance().runOnPooledThread(() -> this.onNewValue.accept(newValue, oldValue));
                     }
-                    this.setStatus(s);
                     return result;
                 } catch (final Throwable e) {
                     this.setStatus(Status.UNKNOWN);
