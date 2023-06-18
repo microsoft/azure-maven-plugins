@@ -17,11 +17,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -29,6 +25,7 @@ import java.util.function.Supplier;
 @Slf4j
 @SuppressWarnings("UnusedReturnValue")
 public class Cache1<T> {
+    private static final ThreadLocal<Boolean> isCachingThread = ThreadLocal.withInitial(() -> false);
     private static final String KEY = "CACHE1_KEY";
     private final LoadingCache<String, Optional<T>> cache;
     private final Supplier<T> supplier;
@@ -59,6 +56,7 @@ public class Cache1<T> {
 
     private Optional<T> load() {
         try {
+            isCachingThread.set(true);
             this.setStatus(Status.LOADING);
             final T value = this.last = supplier.get();
             final Optional<T> result = Optional.ofNullable(value);
@@ -66,9 +64,10 @@ public class Cache1<T> {
             AzureTaskManager.getInstance().runOnPooledThread(() -> result.ifPresent(newValue -> this.onNewValue.accept(newValue, null)));
             return result;
         } catch (final Throwable e) {
-            log.error(e.getMessage(), e);
             this.setStatus(Status.UNKNOWN);
             throw e;
+        } finally {
+            isCachingThread.set(false);
         }
     }
 
@@ -80,6 +79,7 @@ public class Cache1<T> {
         try {
             return this.cache.get(KEY, (key) -> {
                 try {
+                    isCachingThread.set(true);
                     this.setStatus(Optional.ofNullable(status).orElse(Status.UPDATING));
                     final T value = this.last = body.call();
                     final Optional<T> result = Optional.ofNullable(value);
@@ -92,6 +92,8 @@ public class Cache1<T> {
                 } catch (final Throwable e) {
                     this.setStatus(Status.UNKNOWN);
                     throw (e instanceof AzureToolkitRuntimeException) ? (AzureToolkitRuntimeException) e : new AzureToolkitRuntimeException(e);
+                } finally {
+                    isCachingThread.set(false);
                 }
             }).orElse(null);
         } catch (final Throwable e) {
@@ -116,6 +118,9 @@ public class Cache1<T> {
     @Nullable
     @SuppressWarnings("OptionalAssignedToNull")
     public T getIfPresent(boolean loadIfAbsent) {
+        if (isCachingThread.get()) {
+            return this.last;
+        }
         final Optional<T> opt = this.cache.getIfPresent(KEY);
         if (opt == null) {
             if (loadIfAbsent) {
@@ -132,16 +137,12 @@ public class Cache1<T> {
 
     @Nullable
     public T get() {
+        if (isCachingThread.get()) {
+            return this.last;
+        }
         try {
             return CompletableFuture.supplyAsync(() -> { // prevent interruption of cache loading thread from e.g. debouncing thread
-                try {
-                    return this.cache.get(KEY).orElse(null);
-                } catch (final IllegalStateException e) {
-                    if ("Recursive update".equalsIgnoreCase(e.getMessage())) {
-                        return this.last;
-                    }
-                    throw e;
-                }
+                return this.cache.get(KEY).orElse(null);
             }, executor).join();
         } catch (final CompletionException e) {
             if (e.getCause() instanceof RuntimeException) {
