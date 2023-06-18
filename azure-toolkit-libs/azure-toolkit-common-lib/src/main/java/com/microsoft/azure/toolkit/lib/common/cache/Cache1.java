@@ -18,6 +18,10 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -36,6 +40,7 @@ public class Cache1<T> {
     private Consumer<String> onNewStatus = s -> {
     };
     private T last = null;
+    private final ExecutorService executor = Executors.newCachedThreadPool();
 
     public Cache1(@Nonnull Supplier<T> supplier) {
         this.supplier = supplier;
@@ -138,10 +143,21 @@ public class Cache1<T> {
     @Nullable
     public T get() {
         try {
-            return this.cache.get(KEY).orElse(null);
-        } catch (final IllegalStateException e) {
-            if ("Recursive update".equalsIgnoreCase(e.getMessage())) {
-                return this.last;
+            return CompletableFuture.supplyAsync(() -> { // prevent interruption of cache loading thread from e.g. debouncing thread
+                try {
+                    return this.cache.get(KEY).orElse(null);
+                } catch (final IllegalStateException e) {
+                    if ("Recursive update".equalsIgnoreCase(e.getMessage())) {
+                        return this.last;
+                    }
+                    throw e;
+                }
+            }, executor).join();
+        } catch (final CompletionException e) {
+            if (e.getCause() instanceof RuntimeException) {
+                throw (RuntimeException) e.getCause();
+            } else if (e.getCause() instanceof Error) {
+                throw (Error) e.getCause();
             }
             throw e;
         }
