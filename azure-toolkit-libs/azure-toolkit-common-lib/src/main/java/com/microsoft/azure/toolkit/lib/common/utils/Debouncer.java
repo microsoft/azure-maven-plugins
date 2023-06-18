@@ -8,5 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.utils;
 public interface Debouncer {
     void debounce();
 
+    void debounce(int delay);
+
     boolean isPending();
 }
