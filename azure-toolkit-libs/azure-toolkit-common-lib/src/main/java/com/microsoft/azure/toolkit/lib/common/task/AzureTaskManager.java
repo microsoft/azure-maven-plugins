@@ -393,6 +393,10 @@ public abstract class AzureTaskManager {
         }, Emitter.BackpressureMode.BUFFER);
     }
 
+    public boolean isUIThread() {
+        return false;
+    }
+
     protected abstract void doRead(Runnable runnable, AzureTask<?> task);
 
     protected abstract void doWrite(Runnable runnable, AzureTask<?> task);

@@ -15,12 +15,18 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Slf4j
 @SuppressWarnings("UnusedReturnValue")
@@ -36,7 +42,7 @@ public class Cache1<T> {
     };
     private Consumer<String> onNewStatus = s -> {
     };
-    private T last = null;
+    private T latest = null;
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     public Cache1(@Nonnull Supplier<T> supplier) {
@@ -58,7 +64,7 @@ public class Cache1<T> {
         try {
             isCachingThread.set(true);
             this.setStatus(Status.LOADING);
-            final T value = this.last = supplier.get();
+            final T value = this.latest = supplier.get();
             final Optional<T> result = Optional.ofNullable(value);
             this.setStatus(Status.OK);
             AzureTaskManager.getInstance().runOnPooledThread(() -> result.ifPresent(newValue -> this.onNewValue.accept(newValue, null)));
@@ -74,6 +80,9 @@ public class Cache1<T> {
     @Nullable
     @SneakyThrows
     public synchronized T update(@Nonnull Callable<T> body, String status) {
+        if (AzureTaskManager.getInstance().isUIThread()) {
+            log.warn("!!!!!!!!!!!!!!!!! Calling Cache1.update() in UI thread may block UI.");
+        }
         final T oldValue = this.getIfPresent();
         this.invalidate();
         try {
@@ -81,7 +90,7 @@ public class Cache1<T> {
                 try {
                     isCachingThread.set(true);
                     this.setStatus(Optional.ofNullable(status).orElse(Status.UPDATING));
-                    final T value = this.last = body.call();
+                    final T value = this.latest = body.call();
                     final Optional<T> result = Optional.ofNullable(value);
                     final T newValue = result.orElse(null);
                     this.setStatus(Status.OK);
@@ -119,14 +128,14 @@ public class Cache1<T> {
     @SuppressWarnings("OptionalAssignedToNull")
     public T getIfPresent(boolean loadIfAbsent) {
         if (isCachingThread.get()) {
-            return this.last;
+            return this.latest;
         }
         final Optional<T> opt = this.cache.getIfPresent(KEY);
         if (opt == null) {
             if (loadIfAbsent) {
                 AzureTaskManager.getInstance().runOnPooledThread(this::refresh);
             }
-            return this.last;
+            return this.latest;
         }
         return opt.orElse(null);
     }
@@ -137,8 +146,14 @@ public class Cache1<T> {
 
     @Nullable
     public T get() {
+        if (AzureTaskManager.getInstance().isUIThread()) {
+            //todo: show error message in debug/test mode
+            log.warn("!!!!!!!!!!!!!!!!! Calling Cache1.get() in UI thread may block UI.");
+            log.warn(Arrays.stream(Thread.currentThread().getStackTrace()).map(t -> "\tat " + t).collect(Collectors.joining("\n")));
+            return this.latest;
+        }
         if (isCachingThread.get()) {
-            return this.last;
+            return this.latest;
         }
         try {
             return CompletableFuture.supplyAsync(() -> { // prevent interruption of cache loading thread from e.g. debouncing thread
