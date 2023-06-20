@@ -86,7 +86,7 @@ public class Cache1<T> {
         final T oldValue = this.getIfPresent();
         this.invalidate();
         try {
-            return this.cache.get(KEY, (key) -> {
+            return Optional.ofNullable(this.cache.get(KEY, (key) -> {
                 try {
                     isCachingThread.set(true);
                     this.setStatus(Optional.ofNullable(status).orElse(Status.UPDATING));
@@ -104,7 +104,7 @@ public class Cache1<T> {
                 } finally {
                     isCachingThread.set(false);
                 }
-            }).orElse(null);
+            })).flatMap(o -> o).orElse(null);
         } catch (final Throwable e) {
             log.error(e.getMessage(), e);
             throw e.getCause();
@@ -157,7 +157,7 @@ public class Cache1<T> {
         }
         try {
             return CompletableFuture.supplyAsync(() -> { // prevent interruption of cache loading thread from e.g. debouncing thread
-                return this.cache.get(KEY).orElse(null);
+                return Optional.ofNullable(this.cache.get(KEY)).flatMap(o -> o).orElse(null);
             }, executor).join();
         } catch (final CompletionException e) {
             if (e.getCause() instanceof RuntimeException) {
@@ -178,7 +178,7 @@ public class Cache1<T> {
         Optional.ofNullable(this.onNewStatus).ifPresent(c -> c.accept(status));
     }
 
-    public static interface Status {
+    public interface Status {
         String LOADING = "Loading";
         String UPDATING = "Updating";
         String OK = "OK";
