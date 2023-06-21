@@ -62,6 +62,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     private static final String FUNCTION_PRICING_KEY = "pricingTier";
     private static final String FUNCTION_DEPLOY_TO_SLOT_KEY = "isDeployToFunctionSlot";
     private static final String FUNCTION_NATIVE_EXECUTABLE_PATH = "nativeExecutablePath";
+    private static final String FUNCTION_IS_NATIVE = "isNativeFunction";
 
     //region Properties
     @Parameter(defaultValue = "${project.build.finalName}", readonly = true, required = true)
@@ -291,7 +292,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     }
 
     protected boolean isNativeExecutable() {
-        return !StringUtils.isEmpty(getNativeExecutablePath());
+        return StringUtils.isNotEmpty(getNativeExecutablePath());
     }
 
     protected File getHostJsonFile() {
@@ -378,7 +379,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         result.put(DISABLE_APP_INSIGHTS_KEY, String.valueOf(isDisableAppInsights()));
         final boolean isDeployToFunctionSlot = getDeploymentSlotSetting() != null && StringUtils.isNotEmpty(getDeploymentSlotSetting().getName());
         result.put(FUNCTION_DEPLOY_TO_SLOT_KEY, String.valueOf(isDeployToFunctionSlot));
-        result.put(FUNCTION_NATIVE_EXECUTABLE_PATH, nativeExecutablePath);
+        result.put(FUNCTION_IS_NATIVE, String.valueOf(isNativeExecutable()));
         return result;
     }
     //endregion
