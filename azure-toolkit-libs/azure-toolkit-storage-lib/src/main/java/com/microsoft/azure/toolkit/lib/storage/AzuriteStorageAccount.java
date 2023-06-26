@@ -87,6 +87,11 @@ public class AzuriteStorageAccount extends StorageAccount {
         super.refresh();
     }
 
+    @Override
+    public boolean exists() {
+        return true;
+    }
+
     @Nonnull
     @Override
     protected String loadStatus(@Nullable com.azure.resourcemanager.storage.models.StorageAccount remote) {
