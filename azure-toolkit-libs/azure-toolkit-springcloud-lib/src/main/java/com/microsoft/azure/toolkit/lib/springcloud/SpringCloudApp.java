@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -62,6 +63,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
         super.updateAdditionalProperties(newRemote, oldRemote);
         this.activeDeployment = Optional.ofNullable(newRemote).map(SpringApp::activeDeploymentName)
             .map(name -> this.deployments().get(name, this.getResourceGroupName())).orElse(null);
+        AzureEventBus.emit("resource.refreshed.resource", this);
     }
 
     @Nonnull
