@@ -82,9 +82,7 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
         final String id = Objects.requireNonNull(objectNode.get(ID)).asText();
         final String partitionKey = container.getPartitionKey();
         final String partitionValue = getSqlDocumentPartitionValue(objectNode, partitionKey);
-        final SqlDocument sqlDocument = newResource(getSqlDocumentResourceName(id, partitionValue), container.getResourceGroupName());
-        sqlDocument.setRemote(objectNode);
-        return sqlDocument;
+        return newResource(getSqlDocumentResourceName(id, partitionValue), container.getResourceGroupName());
     }
 
     @Nonnull

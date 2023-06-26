@@ -32,12 +32,6 @@ public class PostgreSqlFirewallRule extends AbstractAzResource<PostgreSqlFirewal
         super(remote.name(), module);
     }
 
-    @Nullable
-    @Override
-    protected FirewallRule refreshRemoteFromAzure(@Nonnull FirewallRule remote) {
-        return remote.refresh();
-    }
-
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
@@ -46,7 +40,7 @@ public class PostgreSqlFirewallRule extends AbstractAzResource<PostgreSqlFirewal
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull FirewallRule remote) {
+    protected String loadStatus(@Nonnull FirewallRule remote) {
         return Status.UNKNOWN;
     }
 

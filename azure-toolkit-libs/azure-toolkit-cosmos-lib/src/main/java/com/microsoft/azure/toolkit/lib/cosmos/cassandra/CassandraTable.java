@@ -37,7 +37,7 @@ public class CassandraTable extends AbstractAzResource<CassandraTable, Cassandra
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull CassandraTableGetResultsInner remote) {
+    protected String loadStatus(@Nonnull CassandraTableGetResultsInner remote) {
         return Status.RUNNING;
     }
 }

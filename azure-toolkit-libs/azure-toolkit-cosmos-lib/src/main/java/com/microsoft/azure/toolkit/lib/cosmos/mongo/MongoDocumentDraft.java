@@ -95,7 +95,7 @@ public class MongoDocumentDraft extends MongoDocument implements
         final Object id = getDocumentId();
         final UpdateResult updateResult = client.replaceOne(new Document(MONGO_ID_KEY, id), draftDocument);
         if (updateResult.getModifiedCount() > 0) {
-            return Objects.requireNonNull(loadRemote());
+            return Objects.requireNonNull(loadRemoteFromAzure());
         } else {
             throw new AzureToolkitRuntimeException("Failed to update document.");
         }

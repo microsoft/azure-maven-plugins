@@ -58,12 +58,6 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSub
         this.firewallRuleModule = new MySqlFirewallRuleModule(this);
     }
 
-    @Nullable
-    @Override
-    protected Server refreshRemoteFromAzure(@Nonnull Server remote) {
-        return remote.refresh();
-    }
-
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
@@ -82,7 +76,7 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSub
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull Server remote) {
+    protected String loadStatus(@Nonnull Server remote) {
         return remote.userVisibleState().toString();
     }
 
@@ -193,11 +187,11 @@ public class MySqlServer extends AbstractAzResource<MySqlServer, MySqlServiceSub
 
     @Override
     public boolean isStoppable() {
-        return StringUtils.equalsIgnoreCase(this.getStatus(true), "Ready");
+        return StringUtils.equalsIgnoreCase(this.getStatus(), "Ready");
     }
 
     @Override
     public boolean isStartable() {
-        return StringUtils.equalsIgnoreCase(this.getStatus(true), "Stopped");
+        return StringUtils.equalsIgnoreCase(this.getStatus(), "Stopped");
     }
 }

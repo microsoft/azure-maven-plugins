@@ -115,7 +115,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @Override
     public List<T> list() { // getResources
         log.debug("[{}]:list()", this.name);
-        if (isAuthRequired()) {
+        if (isAuthRequiredForListing()) {
             Azure.az(IAzureAccount.class).account();
         }
         if (this.parent instanceof AbstractAzResource && ((AbstractAzResource<?, ?, ?>) this.parent).isDraftForCreating()) {
@@ -253,10 +253,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             log.debug("[{}]:get->parent.isDraftForCreating()=true||isBlank(name)=true", this.name);
             return null;
         }
-        if (isAuthRequired()) {
+        final String id = this.toResourceId(name, resourceGroup).toLowerCase();
+        if (isAuthRequiredForResource(id)) {
             Azure.az(IAzureAccount.class).account();
         }
-        final String id = this.toResourceId(name, resourceGroup).toLowerCase();
         if (!this.resources.containsKey(id)) {
             R remote = null;
             try {
@@ -613,7 +613,11 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         return Azure.az().config().getPageSize();
     }
 
-    protected boolean isAuthRequired() {
+    protected boolean isAuthRequiredForListing() {
         return true;
+    }
+
+    protected boolean isAuthRequiredForResource(@Nonnull String resourceId) {
+        return !StringUtils.equalsAnyIgnoreCase(ResourceId.fromString(resourceId).subscriptionId(), Subscription.NONE.getId());
     }
 }

@@ -40,7 +40,7 @@ public class MicrosoftSqlFirewallRule extends AbstractAzResource<MicrosoftSqlFir
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull SqlFirewallRule remote) {
+    protected String loadStatus(@Nonnull SqlFirewallRule remote) {
         return Status.UNKNOWN;
     }
 

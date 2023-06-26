@@ -106,7 +106,7 @@ public class Revision extends AbstractAzResource<Revision, ContainerApp, com.azu
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull com.azure.resourcemanager.appcontainers.models.Revision remote) {
+    protected String loadStatus(@Nonnull com.azure.resourcemanager.appcontainers.models.Revision remote) {
         final RevisionProvisioningState provisioningState = remote.provisioningState();
         if (provisioningState == RevisionProvisioningState.PROVISIONED) {
             final RevisionHealthState healthState = remote.healthState();

@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.webapp;
 
 import com.azure.resourcemanager.appservice.models.WebAppBasic;
+import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -17,9 +18,11 @@ import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 
 @Getter
 public class WebApp extends WebAppBase<WebApp, AppServiceServiceSubscription, com.azure.resourcemanager.appservice.models.WebApp>
@@ -71,5 +74,12 @@ public class WebApp extends WebAppBase<WebApp, AppServiceServiceSubscription, co
     @Override
     public ServiceLinkerModule getServiceLinkerModule() {
         return linkerModule;
+    }
+
+    @Nullable
+    @Override
+    protected WebSiteBase doModify(@Nonnull Callable<WebSiteBase> body, @Nullable String status) {
+        // override only to provide package visibility
+        return super.doModify(body, status);
     }
 }

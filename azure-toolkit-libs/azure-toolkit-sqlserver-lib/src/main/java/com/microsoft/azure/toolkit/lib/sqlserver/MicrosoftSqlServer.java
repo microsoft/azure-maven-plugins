@@ -71,7 +71,7 @@ public class MicrosoftSqlServer extends AbstractAzResource<MicrosoftSqlServer, M
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull SqlServer remote) {
+    protected String loadStatus(@Nonnull SqlServer remote) {
         return remote.state();
     }
 

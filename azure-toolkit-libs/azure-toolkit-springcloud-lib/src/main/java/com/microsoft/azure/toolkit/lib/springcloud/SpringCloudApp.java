@@ -72,7 +72,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull SpringApp remote) {
+    protected String loadStatus(@Nonnull SpringApp remote) {
         final SpringCloudDeployment activeDeployment = this.getActiveDeployment();
         if (Objects.isNull(activeDeployment)) {
             return Status.INACTIVE;
@@ -116,7 +116,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     @Nullable
     public SpringCloudDeployment getActiveDeployment() {
-        return this.remoteOptional(true).map(r -> this.activeDeployment).orElse(null);
+        return this.remoteOptional().map(r -> this.activeDeployment).orElse(null);
     }
 
     @Nullable
@@ -127,7 +127,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     @Nullable
     public String getApplicationUrl() {
         final String url = Optional.ofNullable(this.getRemote()).map(SpringApp::url).orElse(null);
-        return StringUtils.isBlank(url) || url.equalsIgnoreCase("None") ? null : url;
+        return StringUtils.isBlank(url) || "None".equalsIgnoreCase(url) ? null : url;
     }
 
     @SuppressWarnings("unused")

@@ -26,12 +26,6 @@ public class PostgreSqlDatabase extends AbstractAzResource<PostgreSqlDatabase, P
         super(remote.name(), module);
     }
 
-    @Nullable
-    @Override
-    protected Database refreshRemoteFromAzure(@Nonnull Database remote) {
-        return remote.refresh();
-    }
-
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
@@ -40,7 +34,7 @@ public class PostgreSqlDatabase extends AbstractAzResource<PostgreSqlDatabase, P
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull Database remote) {
+    protected String loadStatus(@Nonnull Database remote) {
         return Status.UNKNOWN;
     }
 

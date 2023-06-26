@@ -49,7 +49,7 @@ public class Repository extends AbstractAzResource<Repository, ContainerRegistry
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull ContainerRepository remote) {
+    protected String loadStatus(@Nonnull ContainerRepository remote) {
         return Status.UNKNOWN;
     }
 

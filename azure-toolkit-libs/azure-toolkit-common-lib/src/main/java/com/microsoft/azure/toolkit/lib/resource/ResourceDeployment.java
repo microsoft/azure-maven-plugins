@@ -48,12 +48,6 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
 
     @Nonnull
     @Override
-    protected Deployment refreshRemoteFromAzure(@Nonnull Deployment remote) {
-        return remote.manager().deployments().getById(remote.id());
-    }
-
-    @Nonnull
-    @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
@@ -139,7 +133,7 @@ public class ResourceDeployment extends AbstractAzResource<ResourceDeployment, R
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull Deployment remote) {
+    protected String loadStatus(@Nonnull Deployment remote) {
         return remote.provisioningState();
     }
 }

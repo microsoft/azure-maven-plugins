@@ -38,7 +38,7 @@ public class SpringCloudAppInstance extends AbstractAzResource<SpringCloudAppIns
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull DeploymentInstance remote) {
+    protected String loadStatus(@Nonnull DeploymentInstance remote) {
         return remote.status();
     }
 

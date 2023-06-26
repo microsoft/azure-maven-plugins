@@ -42,6 +42,8 @@ import java.util.function.Predicate;
 @Accessors(chain = true)
 public class Action<D> extends OperationBase implements Cloneable {
     public static final String SOURCE = "ACTION_SOURCE";
+    public static final String PLACE = "place";
+    public static final String EMPTY_PLACE = "empty";
     public static final String RESOURCE_TYPE = "resourceType";
     public static final Id<Runnable> REQUIRE_AUTH = Id.of("common.requireAuth");
     public static final Id<Object> AUTHENTICATE = Id.of("account.authenticate");
@@ -150,14 +152,14 @@ public class Action<D> extends OperationBase implements Cloneable {
 
     private void handle(D s, Object e, BiConsumer<D, Object> handler) {
         final D source = Optional.ofNullable(this.source).orElse(s);
+        final OperationContext context = OperationContext.action();
+        context.setTelemetryProperties(this.getContext().getTelemetryProperties());
         if (source instanceof AzResource) {
             final AzResource resource = (AzResource) source;
-            final OperationContext context = OperationContext.action();
             context.setTelemetryProperty("subscriptionId", resource.getSubscriptionId());
             context.setTelemetryProperty("resourceType", resource.getFullResourceType());
         } else if (source instanceof AzResourceModule) {
             final AzResourceModule<?> resource = (AzResourceModule<?>) source;
-            final OperationContext context = OperationContext.action();
             context.setTelemetryProperty("subscriptionId", resource.getSubscriptionId());
             context.setTelemetryProperty("resourceType", resource.getFullResourceType());
         }

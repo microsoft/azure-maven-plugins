@@ -58,7 +58,7 @@ public class ServiceLinker extends AbstractAzResource<ServiceLinker, ServiceLink
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull LinkerResource remote) {
+    protected String loadStatus(@Nonnull LinkerResource remote) {
         return remote.provisioningState();
     }
 }

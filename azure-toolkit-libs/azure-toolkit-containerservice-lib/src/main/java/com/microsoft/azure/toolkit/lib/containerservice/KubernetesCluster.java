@@ -76,7 +76,7 @@ public class KubernetesCluster extends AbstractAzResource<KubernetesCluster, Con
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull com.azure.resourcemanager.containerservice.models.KubernetesCluster remote) {
+    protected String loadStatus(@Nonnull com.azure.resourcemanager.containerservice.models.KubernetesCluster remote) {
         final String provisioningState = remote.provisioningState();
         return StringUtils.equalsIgnoreCase("Succeeded", provisioningState) ?
                 Optional.ofNullable(getPowerStatus()).map(PowerState::getValue).orElse(Status.UNKNOWN) :

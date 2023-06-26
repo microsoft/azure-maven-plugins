@@ -44,12 +44,12 @@ public class CosmosDBAccount extends AbstractAzResource<CosmosDBAccount, CosmosS
 
     @Nonnull
     public DatabaseAccountKeys listKeys() {
-        return remoteOptional(true).map(ignore -> this.databaseAccountKeys).orElseGet(DatabaseAccountKeys::new);
+        return remoteOptional().map(ignore -> this.databaseAccountKeys).orElseGet(DatabaseAccountKeys::new);
     }
 
     @Nonnull
     public DatabaseAccountConnectionStrings listConnectionStrings() {
-        return remoteOptional(true).map(ignore -> this.databaseAccountConnectionStrings).orElseGet(DatabaseAccountConnectionStrings::new);
+        return remoteOptional().map(ignore -> this.databaseAccountConnectionStrings).orElseGet(DatabaseAccountConnectionStrings::new);
     }
 
     @Nullable
@@ -80,7 +80,7 @@ public class CosmosDBAccount extends AbstractAzResource<CosmosDBAccount, CosmosS
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote) {
+    protected String loadStatus(@Nonnull com.azure.resourcemanager.cosmos.models.CosmosDBAccount remote) {
         // todo: investigate how to get status instead of provisioning state
         return remote.innerModel().provisioningState();
     }

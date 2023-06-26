@@ -40,7 +40,7 @@ public class NetworkSecurityGroup extends AbstractAzResource<NetworkSecurityGrou
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull com.azure.resourcemanager.network.models.NetworkSecurityGroup remote) {
+    protected String loadStatus(@Nonnull com.azure.resourcemanager.network.models.NetworkSecurityGroup remote) {
         return remote.innerModel().provisioningState().toString();
     }
 

@@ -79,7 +79,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull SpringAppDeployment remote) {
+    protected String loadStatus(@Nonnull SpringAppDeployment remote) {
         return Optional.of(remote)
             .map(SpringAppDeployment::status)
             .map(ExpandableStringEnum::toString)
@@ -185,7 +185,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
         super.setStatus(status);
         // update app status when active deployment status changed
         if (this.isActive()) {
-            getParent().reloadStatus();
+            getParent().setStatus(status);
         }
     }
 

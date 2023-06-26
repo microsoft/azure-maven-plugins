@@ -38,9 +38,7 @@ public class MongoDocumentModule extends AbstractAzResourceModule<MongoDocument,
     @Override
     protected MongoDocument newResource(@Nonnull Document document) {
         final String id = Objects.requireNonNull(document.get(MONGO_ID_KEY)).toString();
-        final MongoDocument mongoDocument = new MongoDocument(id, parent.getResourceGroupName(), this);
-        mongoDocument.setRemote(document);
-        return mongoDocument;
+        return new MongoDocument(id, parent.getResourceGroupName(), this);
     }
 
     @Nonnull

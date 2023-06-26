@@ -70,7 +70,7 @@ public class ContainerAppsEnvironment extends AbstractAzResource<ContainerAppsEn
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull ManagedEnvironment remote) {
+    protected String loadStatus(@Nonnull ManagedEnvironment remote) {
         return remote.provisioningState().toString();
     }
 

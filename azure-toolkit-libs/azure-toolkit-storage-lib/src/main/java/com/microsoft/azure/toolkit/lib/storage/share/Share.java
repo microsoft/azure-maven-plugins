@@ -51,7 +51,7 @@ public class Share extends AbstractEmulatableAzResource<Share, StorageAccount, S
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull ShareClient remote) {
+    protected String loadStatus(@Nonnull ShareClient remote) {
         return "";
     }
 

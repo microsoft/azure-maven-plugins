@@ -58,12 +58,6 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
         this.firewallRuleModule = new PostgreSqlFirewallRuleModule(this);
     }
 
-    @Nullable
-    @Override
-    protected Server refreshRemoteFromAzure(@Nonnull Server remote) {
-        return remote.refresh();
-    }
-
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
@@ -82,7 +76,7 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull Server remote) {
+    protected String loadStatus(@Nonnull Server remote) {
         return remote.state().toString();
     }
 
@@ -190,6 +184,6 @@ public class PostgreSqlServer extends AbstractAzResource<PostgreSqlServer, Postg
 
     @Override
     public boolean isStoppable() {
-        return StringUtils.equalsIgnoreCase(this.getStatus(true), "Ready");
+        return StringUtils.equalsIgnoreCase(this.getStatus(), "Ready");
     }
 }

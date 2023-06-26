@@ -44,7 +44,7 @@ public class ServiceBusTopic extends ServiceBusInstance<ServiceBusTopic, Service
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull Topic remote) {
+    protected String loadStatus(@Nonnull Topic remote) {
         return remote.innerModel().status().toString();
     }
 

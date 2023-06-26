@@ -53,7 +53,7 @@ public class CassandraKeyspace extends AbstractAzResource<CassandraKeyspace, Cos
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull CassandraKeyspaceGetResultsInner remote) {
+    protected String loadStatus(@Nonnull CassandraKeyspaceGetResultsInner remote) {
         return Status.RUNNING;
     }
 

@@ -38,7 +38,7 @@ public class Tag extends AbstractAzResource<Tag, Artifact, ArtifactTagProperties
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull ArtifactTagProperties remote) {
+    protected String loadStatus(@Nonnull ArtifactTagProperties remote) {
         return Status.UNKNOWN;
     }
 

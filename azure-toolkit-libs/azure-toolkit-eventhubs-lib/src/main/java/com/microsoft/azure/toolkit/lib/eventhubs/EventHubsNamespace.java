@@ -47,7 +47,7 @@ public class EventHubsNamespace extends AbstractAzResource<EventHubsNamespace, E
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull EventHubNamespace remote) {
+    protected String loadStatus(@Nonnull EventHubNamespace remote) {
         return remote.innerModel().status();
     }
 

@@ -17,7 +17,10 @@ import com.microsoft.azure.toolkit.lib.appservice.deploy.RunFromZipFunctionDeplo
 import com.microsoft.azure.toolkit.lib.appservice.deploy.ZIPFunctionDeployHandler;
 import com.microsoft.azure.toolkit.lib.appservice.file.AzureFunctionsAdminClient;
 import com.microsoft.azure.toolkit.lib.appservice.file.IFileClient;
-import com.microsoft.azure.toolkit.lib.appservice.model.*;
+import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -31,6 +34,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -169,13 +173,17 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
     }
 
     private boolean getIsRemoteDebuggingEnabled() {
-        final F remote = Objects.requireNonNull(getFullRemote());
-        final Map<String, String> appSettings = Objects.requireNonNull(this.getAppSettings());
+        final F r = getFullRemote();
+        if (Objects.isNull(r)) {
+            return false;
+        }
+        final F remote = Objects.requireNonNull(r);
+        final Map<String, String> appSettings = Optional.ofNullable(this.getAppSettings()).orElse(Collections.emptyMap());
         // siteConfig for remote debug
         final boolean configEnabled = remote.webSocketsEnabled() && remote.platformArchitecture() == PlatformArchitecture.X64;
         // JAVA_OPTS
         final boolean appSettingsEnabled = appSettings.containsKey(HTTP_PLATFORM_DEBUG_PORT) &&
-                StringUtils.equalsIgnoreCase(appSettings.get(JAVA_OPTS), getJavaOptsWithRemoteDebugEnabled(appSettings, appSettings.get(HTTP_PLATFORM_DEBUG_PORT)));
+            StringUtils.equalsIgnoreCase(appSettings.get(JAVA_OPTS), getJavaOptsWithRemoteDebugEnabled(appSettings, appSettings.get(HTTP_PLATFORM_DEBUG_PORT)));
         return configEnabled && appSettingsEnabled;
     }
 

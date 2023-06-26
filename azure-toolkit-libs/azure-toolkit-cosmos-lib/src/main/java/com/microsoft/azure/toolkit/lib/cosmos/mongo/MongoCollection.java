@@ -118,7 +118,7 @@ public class MongoCollection extends AbstractAzResource<MongoCollection, MongoDa
 
     @Nonnull
     @Override
-    public String loadStatus(@Nonnull MongoDBCollectionGetResultsInner remote) {
+    protected String loadStatus(@Nonnull MongoDBCollectionGetResultsInner remote) {
         return Status.RUNNING;
     }
 }
