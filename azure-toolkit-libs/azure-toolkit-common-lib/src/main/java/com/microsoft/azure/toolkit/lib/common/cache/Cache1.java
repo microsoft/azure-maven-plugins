@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -82,6 +83,7 @@ public class Cache1<T> {
     public synchronized T update(@Nonnull Callable<T> body, String status) {
         if (AzureTaskManager.getInstance().isUIThread()) {
             log.warn("!!!!!!!!!!!!!!!!! Calling Cache1.update() in UI thread may block UI.");
+            log.warn(Arrays.stream(Thread.currentThread().getStackTrace()).map(t -> "\tat " + t).collect(Collectors.joining("\n")));
         }
         final T oldValue = this.getIfPresent();
         this.invalidate();
@@ -170,12 +172,19 @@ public class Cache1<T> {
     }
 
     public void invalidate() {
+        if (isCachingThread.get() || this.isProcessing()) {
+            return;
+        }
         this.cache.invalidateAll();
     }
 
     private void setStatus(String status) {
         this.status = status;
         Optional.ofNullable(this.onNewStatus).ifPresent(c -> c.accept(status));
+    }
+
+    private boolean isProcessing() {
+        return !StringUtils.equalsAnyIgnoreCase(this.status, Status.OK, Status.UNKNOWN);
     }
 
     public interface Status {
