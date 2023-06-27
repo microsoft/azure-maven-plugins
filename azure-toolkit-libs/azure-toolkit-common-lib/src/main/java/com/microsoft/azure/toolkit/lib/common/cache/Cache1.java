@@ -9,10 +9,10 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -20,10 +20,8 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -34,17 +32,17 @@ import java.util.stream.Collectors;
 public class Cache1<T> {
     private static final ThreadLocal<Boolean> isCachingThread = ThreadLocal.withInitial(() -> false);
     private static final String KEY = "CACHE1_KEY";
+    @Nonnull
     private final LoadingCache<String, Optional<T>> cache;
+    @Nonnull
     private final Supplier<T> supplier;
-    @Getter
-    @Nullable
-    private String status = null;
+    @Nonnull
+    private final AtomicReference<String> status = new AtomicReference<>();
     private BiConsumer<T, T> onNewValue = (n, o) -> {
     };
     private Consumer<String> onNewStatus = s -> {
     };
     private T latest = null;
-    private final ExecutorService executor = Executors.newCachedThreadPool();
 
     public Cache1(@Nonnull Supplier<T> supplier) {
         this.supplier = supplier;
@@ -61,51 +59,65 @@ public class Cache1<T> {
         return this;
     }
 
+    @Nullable
     private Optional<T> load() {
+        final String originalStatus = Status.LOADING;
         try {
             isCachingThread.set(true);
-            this.setStatus(Status.LOADING);
+            this.setStatus(originalStatus);
             final T value = this.latest = supplier.get();
             final Optional<T> result = Optional.ofNullable(value);
-            this.setStatus(Status.OK);
-            AzureTaskManager.getInstance().runOnPooledThread(() -> result.ifPresent(newValue -> this.onNewValue.accept(newValue, null)));
-            return result;
+            if (this.compareAndSetStatus(originalStatus, Status.OK)) {
+                AzureTaskManager.getInstance().runOnPooledThread(() -> result.ifPresent(newValue -> this.onNewValue.accept(newValue, null)));
+                return result;
+            }
         } catch (final Throwable e) {
-            this.setStatus(Status.UNKNOWN);
-            throw e;
+            Throwable root = ExceptionUtils.getRootCause(e);
+            if (!(root instanceof InterruptedException) && this.compareAndSetStatus(originalStatus, Status.UNKNOWN)) {
+                throw e;
+            }
         } finally {
             isCachingThread.set(false);
         }
+        this.compareAndSetStatus(originalStatus, null);
+        //noinspection OptionalAssignedToNull
+        return null;// ignore loaded value
     }
 
     @Nullable
     @SneakyThrows
     public synchronized T update(@Nonnull Callable<T> body, String status) {
         if (AzureTaskManager.getInstance().isUIThread()) {
-            log.warn("!!!!!!!!!!!!!!!!! Calling Cache1.update() in UI thread may block UI.");
-            log.warn(Arrays.stream(Thread.currentThread().getStackTrace()).map(t -> "\tat " + t).collect(Collectors.joining("\n")));
+            log.debug("!!!!!!!!!!!!!!!!! Calling Cache1.update() in UI thread may block UI.");
+            log.debug(Arrays.stream(Thread.currentThread().getStackTrace()).map(t -> "\tat " + t).collect(Collectors.joining("\n")));
         }
         final T oldValue = this.getIfPresent();
-        this.invalidate();
+        this.cache.invalidate(KEY);
         try {
             return Optional.ofNullable(this.cache.get(KEY, (key) -> {
+                String originalStatus = Optional.ofNullable(status).orElse(Status.UPDATING);
                 try {
                     isCachingThread.set(true);
-                    this.setStatus(Optional.ofNullable(status).orElse(Status.UPDATING));
+                    this.setStatus(originalStatus);
                     final T value = this.latest = body.call();
                     final Optional<T> result = Optional.ofNullable(value);
                     final T newValue = result.orElse(null);
-                    this.setStatus(Status.OK);
-                    if (!Objects.equals(newValue, oldValue)) {
-                        AzureTaskManager.getInstance().runOnPooledThread(() -> this.onNewValue.accept(newValue, oldValue));
+                    if (this.compareAndSetStatus(originalStatus, Status.OK)) {
+                        if (!Objects.equals(newValue, oldValue)) {
+                            AzureTaskManager.getInstance().runOnPooledThread(() -> this.onNewValue.accept(newValue, oldValue));
+                        }
+                        return result;
                     }
-                    return result;
                 } catch (final Throwable e) {
-                    this.setStatus(Status.UNKNOWN);
-                    throw (e instanceof AzureToolkitRuntimeException) ? (AzureToolkitRuntimeException) e : new AzureToolkitRuntimeException(e);
+                    if (this.compareAndSetStatus(originalStatus, Status.UNKNOWN)) {
+                        throw (e instanceof AzureToolkitRuntimeException) ? (AzureToolkitRuntimeException) e : new AzureToolkitRuntimeException(e);
+                    }
                 } finally {
                     isCachingThread.set(false);
                 }
+                this.compareAndSetStatus(originalStatus, null);
+                //noinspection OptionalAssignedToNull
+                return null;// ignore loaded value
             })).flatMap(o -> o).orElse(null);
         } catch (final Throwable e) {
             log.error(e.getMessage(), e);
@@ -117,7 +129,7 @@ public class Cache1<T> {
     public T update(@Nonnull Runnable body, String status) {
         return this.update(() -> {
             body.run();
-            return load().orElse(null);
+            return supplier.get();
         }, status);
     }
 
@@ -150,17 +162,15 @@ public class Cache1<T> {
     public T get() {
         if (AzureTaskManager.getInstance().isUIThread()) {
             //todo: show error message in debug/test mode
-            log.warn("!!!!!!!!!!!!!!!!! Calling Cache1.get() in UI thread may block UI.");
-            log.warn(Arrays.stream(Thread.currentThread().getStackTrace()).map(t -> "\tat " + t).collect(Collectors.joining("\n")));
+            log.debug("!!!!!!!!!!!!!!!!! Calling Cache1.get() in UI thread may block UI.");
+            log.debug(Arrays.stream(Thread.currentThread().getStackTrace()).map(t -> "\tat " + t).collect(Collectors.joining("\n")));
             return this.latest;
         }
         if (isCachingThread.get()) {
             return this.latest;
         }
         try {
-            return CompletableFuture.supplyAsync(() -> { // prevent interruption of cache loading thread from e.g. debouncing thread
-                return Optional.ofNullable(this.cache.get(KEY)).flatMap(o -> o).orElse(null);
-            }, executor).join();
+            return Optional.ofNullable(this.cache.get(KEY)).flatMap(o -> o).orElse(null);
         } catch (final CompletionException e) {
             if (e.getCause() instanceof RuntimeException) {
                 throw (RuntimeException) e.getCause();
@@ -173,18 +183,31 @@ public class Cache1<T> {
 
     public void invalidate() {
         if (isCachingThread.get() || this.isProcessing()) {
+            this.status.set(null); // drop loading value.
             return;
         }
         this.cache.invalidateAll();
     }
 
-    private void setStatus(String status) {
-        this.status = status;
-        Optional.ofNullable(this.onNewStatus).ifPresent(c -> c.accept(status));
+    private boolean compareAndSetStatus(String o, String n) {
+        if (this.status.compareAndSet(o, n)) {
+            Optional.ofNullable(this.onNewStatus).ifPresent(c -> c.accept(this.status.get()));
+            return true;
+        }
+        return false;
+    }
+
+    private void setStatus(String n) {
+        this.status.set(n);
+        Optional.ofNullable(this.onNewStatus).ifPresent(c -> c.accept(this.status.get()));
+    }
+
+    public String getStatus() {
+        return this.status.get();
     }
 
     private boolean isProcessing() {
-        return !StringUtils.equalsAnyIgnoreCase(this.status, Status.OK, Status.UNKNOWN);
+        return !StringUtils.equalsAnyIgnoreCase(this.getStatus(), Status.OK, Status.UNKNOWN);
     }
 
     public interface Status {
