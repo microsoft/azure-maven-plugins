@@ -68,7 +68,7 @@ public class PublicIpAddressDraft extends PublicIpAddress implements AzResource.
             .withLeafDomainLabel(this.getLeafDomainLabel());
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Public IP address ({0})...", name));
-        com.azure.resourcemanager.network.models.PublicIpAddress address = this.doModify(() -> create.create(), Status.CREATING);
+        com.azure.resourcemanager.network.models.PublicIpAddress address = create.create();
         messager.success(AzureString.format("Public IP address ({0}) is successfully created", name));
         return Objects.requireNonNull(address);
     }

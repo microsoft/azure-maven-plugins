@@ -104,7 +104,7 @@ public class KubernetesClusterDraft extends KubernetesCluster implements
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Kubernetes service ({0})...", getName()));
         com.azure.resourcemanager.containerservice.models.KubernetesCluster cluster =
-                Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
+                Objects.requireNonNull(withCreate.create());
         messager.success(AzureString.format("Kubernetes service ({0}) is successfully created", getName()));
         return cluster;
     }
