@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Getter
 public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringCloudCluster, SpringApp>
@@ -30,8 +31,8 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     @Nonnull
     private final SpringCloudDeploymentModule deploymentModule;
-    @Nullable
-    private SpringCloudDeployment activeDeployment = null;
+    @Nonnull
+    private AtomicReference<SpringCloudDeployment> activeDeployment = new AtomicReference<>();
 
     protected SpringCloudApp(@Nonnull String name, @Nonnull SpringCloudAppModule module) {
         super(name, module);
@@ -55,14 +56,14 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     @Override
     public void invalidateCache() {
         super.invalidateCache();
-        this.activeDeployment = null;
+        this.activeDeployment.set(null);
     }
 
     @Override
     protected void updateAdditionalProperties(final SpringApp newRemote, final SpringApp oldRemote) {
         super.updateAdditionalProperties(newRemote, oldRemote);
-        this.activeDeployment = Optional.ofNullable(newRemote).map(SpringApp::activeDeploymentName)
-            .map(name -> this.deployments().get(name, this.getResourceGroupName())).orElse(null);
+        this.activeDeployment.set(Optional.ofNullable(newRemote).map(SpringApp::activeDeploymentName)
+            .map(name -> this.deployments().get(name, this.getResourceGroupName())).orElse(null));
         AzureEventBus.emit("resource.refreshed.resource", this);
     }
 
@@ -118,12 +119,12 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     @Nullable
     public SpringCloudDeployment getActiveDeployment() {
-        return this.remoteOptional().map(r -> this.activeDeployment).orElse(null);
+        return this.remoteOptional().map(r -> this.activeDeployment.get()).orElse(null);
     }
 
     @Nullable
     public SpringCloudDeployment getCachedActiveDeployment() {
-        return this.activeDeployment;
+        return this.activeDeployment.get();
     }
 
     @Nullable
