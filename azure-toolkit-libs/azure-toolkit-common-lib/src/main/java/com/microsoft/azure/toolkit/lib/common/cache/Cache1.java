@@ -192,7 +192,9 @@ public class Cache1<T> {
             this.status.set(null); // drop loading value.
             return;
         }
-        this.cache.invalidateAll();
+        if (this.status.compareAndSet(Status.OK, null) || this.status.compareAndSet(Status.UNKNOWN, null)) {
+            this.cache.invalidateAll();
+        }
     }
 
     private boolean compareAndSetStatus(String o, String n) {
