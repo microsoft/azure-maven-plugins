@@ -332,7 +332,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return true;
     }
 
-    static boolean isNotFoundException(Throwable t) {
+    public static boolean isNotFoundException(Throwable t) {
         final Throwable cause = t instanceof HttpResponseException ? t : ExceptionUtils.getRootCause(t);
         return Optional.ofNullable(cause).filter(c -> cause instanceof HttpResponseException)
             .map(c -> ((HttpResponseException) c))
