@@ -83,7 +83,7 @@ public class NetworkDraft extends Network implements AzResource.Draft<Network, c
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Virtual network ({0})...", name));
         com.azure.resourcemanager.network.models.Network.DefinitionStages.WithCreateAndSubnet finalCreate = create;
-        final com.azure.resourcemanager.network.models.Network network = this.doModify(() -> finalCreate.create(), Status.CREATING);
+        final com.azure.resourcemanager.network.models.Network network = finalCreate.create();
         messager.success(AzureString.format("Virtual network ({0}) is successfully created", name));
         return Objects.requireNonNull(network);
     }

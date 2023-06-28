@@ -95,11 +95,6 @@ public class StorageAccount extends AbstractEmulatableAzResource<StorageAccount,
         return this.subModules;
     }
 
-    @Override
-    public boolean exists() {
-        return true;
-    }
-
     @Nonnull
     @Override
     protected String loadStatus(@Nonnull com.azure.resourcemanager.storage.models.StorageAccount remote) {

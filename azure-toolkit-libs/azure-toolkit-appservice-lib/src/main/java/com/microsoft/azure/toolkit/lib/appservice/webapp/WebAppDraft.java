@@ -112,8 +112,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebS
         }
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Web App({0})...", name));
-        com.azure.resourcemanager.appservice.models.WebApp webApp = (com.azure.resourcemanager.appservice.models.WebApp)
-            Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
+        com.azure.resourcemanager.appservice.models.WebApp webApp = Objects.requireNonNull(withCreate.create());
         messager.success(AzureString.format("Web App({0}) is successfully created", name));
         return webApp;
     }
@@ -147,7 +146,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebS
             settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
         }
         final Set<String> settingsToRemove = Optional.ofNullable(this.ensureConfig().getAppSettingsToRemove())
-                .map(set -> set.stream().filter(key -> oldAppSettings.containsKey(key)).collect(Collectors.toSet()))
+                .map(set -> set.stream().filter(oldAppSettings::containsKey).collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
         final Runtime newRuntime = this.ensureConfig().getRuntime();

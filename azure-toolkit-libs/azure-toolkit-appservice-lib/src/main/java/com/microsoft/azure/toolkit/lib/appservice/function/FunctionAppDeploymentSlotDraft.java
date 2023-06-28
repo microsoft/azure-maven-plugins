@@ -123,15 +123,14 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         // todo: add unified error handling for reactor
         final Consumer<Throwable> throwableConsumer = error -> messager.error(error);
         final Context context = new Context("reactor.onErrorDropped.local", throwableConsumer);
-        FunctionDeploymentSlot slot = (FunctionDeploymentSlot) Objects.requireNonNull(this.doModify(() -> withCreate.create(context), Status.CREATING));
+        FunctionDeploymentSlot slot = withCreate.create(context);
         final Runtime runtime = this.getRuntime();
         // As we can not update runtime for deployment slot during creation, so call update resource here
         final boolean isRuntimeModified = (Objects.nonNull(runtime) && !Objects.equals(runtime, getParent().getRuntime())) || Objects.nonNull(this.getDockerConfiguration());
         this.ensureConfig().setAppSettings(null); // reset app settings
         this.ensureConfig().setDiagnosticConfig(null); // reset diagnostic config
         if (isRuntimeModified) {
-            final FunctionDeploymentSlot slotToUpdate = slot;
-            slot = (FunctionDeploymentSlot) Objects.requireNonNull(this.doModify(() -> updateResourceInAzure(slotToUpdate), Status.CREATING));
+            slot = updateResourceInAzure(slot);
         }
         if (isRemoteDebugEnabled() && CONFIGURATION_SOURCE_PARENT.equals(source)) {
             // disable remote debugging when configuration source is parent, in case port conflicts

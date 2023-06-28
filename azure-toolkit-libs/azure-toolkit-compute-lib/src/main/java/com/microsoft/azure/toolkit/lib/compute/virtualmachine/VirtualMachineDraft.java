@@ -173,7 +173,7 @@ public class VirtualMachineDraft extends VirtualMachine implements AzResource.Dr
         try {
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start creating Virtual machine ({0})...", name));
-            final com.azure.resourcemanager.compute.models.VirtualMachine vm = this.doModify(() -> withCreate.create(), Status.CREATING);
+            final com.azure.resourcemanager.compute.models.VirtualMachine vm = withCreate.create();
             messager.success(AzureString.format("Virtual machine ({0}) is successfully created", name));
             return Objects.requireNonNull(vm);
         } catch (Exception e) {

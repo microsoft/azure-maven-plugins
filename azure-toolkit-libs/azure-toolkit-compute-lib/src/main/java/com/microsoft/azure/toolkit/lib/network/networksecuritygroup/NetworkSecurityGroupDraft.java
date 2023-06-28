@@ -80,7 +80,7 @@ public class NetworkSecurityGroupDraft extends NetworkSecurityGroup implements A
         applySecurityRule(create, securityRules);
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Network security group ({0})...", name));
-        com.azure.resourcemanager.network.models.NetworkSecurityGroup group = this.doModify(() -> create.create(), Status.CREATING);
+        com.azure.resourcemanager.network.models.NetworkSecurityGroup group = create.create();
         messager.success(AzureString.format("Network security group ({0}) is successfully created", name));
         return Objects.requireNonNull(group);
     }

@@ -104,7 +104,7 @@ public class AppServicePlanDraft extends AppServicePlan implements
 
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating App Service plan ({0})...", name));
-        com.azure.resourcemanager.appservice.models.AppServicePlan plan = Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
+        com.azure.resourcemanager.appservice.models.AppServicePlan plan = Objects.requireNonNull(withCreate.create());
         messager.success(AzureString.format("App Service plan ({0}) is successfully created", name));
         return plan;
     }

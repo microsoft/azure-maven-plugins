@@ -127,8 +127,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         }
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Function App({0})...", name));
-        com.azure.resourcemanager.appservice.models.FunctionApp functionApp = (com.azure.resourcemanager.appservice.models.FunctionApp)
-            Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
+        com.azure.resourcemanager.appservice.models.FunctionApp functionApp = Objects.requireNonNull(withCreate.create());
         messager.success(AzureString.format("Function App({0}) is successfully created", name));
         return functionApp;
     }
