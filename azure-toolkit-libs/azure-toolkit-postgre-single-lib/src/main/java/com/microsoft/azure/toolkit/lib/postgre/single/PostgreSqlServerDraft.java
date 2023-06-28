@@ -6,11 +6,7 @@
 package com.microsoft.azure.toolkit.lib.postgre.single;
 
 import com.azure.resourcemanager.postgresql.PostgreSqlManager;
-import com.azure.resourcemanager.postgresql.models.PerformanceTierProperties;
-import com.azure.resourcemanager.postgresql.models.Server;
-import com.azure.resourcemanager.postgresql.models.ServerPropertiesForDefaultCreate;
-import com.azure.resourcemanager.postgresql.models.ServerVersion;
-import com.azure.resourcemanager.postgresql.models.Sku;
+import com.azure.resourcemanager.postgresql.models.*;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -18,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 import lombok.Getter;
@@ -108,7 +105,16 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
         messager.info(AzureString.format("Start creating PostgreSQL server ({0})...", this.getName()));
         final Server remote = create.create();
         messager.success(AzureString.format("PostgreSQL server({0}) is successfully created.", this.getName()));
-        return this.updateResourceInAzure(Objects.requireNonNull(remote));
+        if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
+            this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
+            AzureTaskManager.getInstance().runInBackground(AzureString.format("Update firewall rules of PostgreSQL server({0}).", this.getName()), () -> {
+                messager.info(AzureString.format("Start updating firewall rules of PostgreSQL server ({0})...", this.getName()));
+                this.firewallRules().toggleAzureServiceAccess(this.isAzureServiceAccessAllowed());
+                this.firewallRules().toggleLocalMachineAccess(this.isLocalMachineAccessAllowed());
+                messager.success(AzureString.format("Firewall rules of PostgreSQL server({0}) is successfully updated.", this.getName()));
+            });
+        }
+        return remote;
     }
 
     @Nonnull
