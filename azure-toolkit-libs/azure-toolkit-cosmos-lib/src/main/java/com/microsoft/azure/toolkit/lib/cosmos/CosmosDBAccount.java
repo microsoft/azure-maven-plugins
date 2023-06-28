@@ -19,7 +19,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 public class CosmosDBAccount extends AbstractAzResource<CosmosDBAccount, CosmosServiceSubscription,
@@ -65,7 +64,7 @@ public class CosmosDBAccount extends AbstractAzResource<CosmosDBAccount, CosmosS
 
     @Nullable
     public String getDocumentEndpoint() {
-        return Optional.ofNullable(getRemote()).map(remote -> remote.documentEndpoint()).orElse(null);
+        return Optional.ofNullable(getRemote()).map(com.azure.resourcemanager.cosmos.models.CosmosDBAccount::documentEndpoint).orElse(null);
     }
 
     @Nullable
@@ -92,7 +91,8 @@ public class CosmosDBAccount extends AbstractAzResource<CosmosDBAccount, CosmosS
             this.databaseAccountConnectionStrings = null;
         } else {
             this.databaseAccountKeys = DatabaseAccountKeys.fromDatabaseAccountListKeysResult(newRemote.listKeys());
-            this.databaseAccountConnectionStrings = DatabaseAccountConnectionStrings.fromDatabaseAccountListConnectionStringsResult(newRemote.listConnectionStrings(), Objects.requireNonNull(this.getKind()));
+            final DatabaseAccountKind kind = DatabaseAccountKind.fromAccount(newRemote);
+            this.databaseAccountConnectionStrings = DatabaseAccountConnectionStrings.fromDatabaseAccountListConnectionStringsResult(newRemote.listConnectionStrings(), kind);
         }
     }
 }
