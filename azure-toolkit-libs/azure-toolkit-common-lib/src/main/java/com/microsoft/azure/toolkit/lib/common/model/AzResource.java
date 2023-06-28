@@ -222,13 +222,13 @@ public interface AzResource extends Refreshable {
         @Nonnull
         @Override
         protected String loadStatus(@Nonnull Void remote) {
-            return Status.UNKNOWN;
+            return Status.OK;
         }
 
         @Nonnull
         @Override
         public String getStatus() {
-            return Status.UNKNOWN;
+            return Status.OK;
         }
 
         @Override
@@ -327,6 +327,7 @@ public interface AzResource extends Refreshable {
         String ERROR = "Error";
         String INACTIVE = "Inactive"; // no active deployment/...
         String RUNNING = "Running";
+        String OK = "OK";
         String STOPPED = "Stopped";
         String UNKNOWN = "Unknown";
     }

@@ -47,7 +47,7 @@ public class Artifact extends AbstractAzResource<Artifact, Repository, ArtifactM
     @Nonnull
     @Override
     protected String loadStatus(@Nonnull ArtifactManifestProperties remote) {
-        return Status.UNKNOWN;
+        return Status.OK;
     }
 
     @Override
