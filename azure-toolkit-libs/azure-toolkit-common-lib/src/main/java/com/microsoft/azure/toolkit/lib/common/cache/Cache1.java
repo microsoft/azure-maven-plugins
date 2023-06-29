@@ -68,7 +68,7 @@ public class Cache1<T> {
             final T value = this.latest = supplier.get();
             final Optional<T> result = Optional.ofNullable(value);
             if (this.compareAndSetStatus(originalStatus, Status.OK)) {
-                AzureTaskManager.getInstance().runOnPooledThread(() -> result.ifPresent(newValue -> this.onNewValue.accept(newValue, null)));
+                AzureTaskManager.getInstance().runOnPooledThread(() -> this.onNewValue.accept(value, null));
                 return result;
             }
         } catch (final Throwable e) {
@@ -192,7 +192,9 @@ public class Cache1<T> {
             this.status.set(null); // drop loading value.
             return;
         }
-        this.cache.invalidateAll();
+        if (this.status.compareAndSet(Status.OK, null) || this.status.compareAndSet(Status.UNKNOWN, null)) {
+            this.cache.invalidateAll();
+        }
     }
 
     private boolean compareAndSetStatus(String o, String n) {

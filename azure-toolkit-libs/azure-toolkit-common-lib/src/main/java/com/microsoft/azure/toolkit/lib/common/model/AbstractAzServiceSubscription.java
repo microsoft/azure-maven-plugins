@@ -61,7 +61,7 @@ public abstract class AbstractAzServiceSubscription<T extends AbstractAzResource
     @Nonnull
     @Override
     protected String loadStatus(@Nonnull R remote) {
-        return Status.UNKNOWN;
+        return Status.OK;
     }
 
     @Nonnull

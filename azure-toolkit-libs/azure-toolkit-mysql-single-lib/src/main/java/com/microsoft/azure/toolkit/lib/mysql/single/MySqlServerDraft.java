@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import lombok.Data;
 import lombok.Getter;
@@ -108,7 +109,16 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
         messager.info(AzureString.format("Start creating MySQL server ({0})...", this.getName()));
         final Server remote = create.create();
         messager.success(AzureString.format("MySQL server({0}) is successfully created.", this.getName()));
-        return this.updateResourceInAzure(remote);
+        if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
+            this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
+            AzureTaskManager.getInstance().runInBackground(AzureString.format("Update firewall rules of MySQL server({0}).", this.getName()), () -> {
+                messager.info(AzureString.format("Start updating firewall rules of MySQL server ({0})...", this.getName()));
+                this.firewallRules().toggleAzureServiceAccess(this.isAzureServiceAccessAllowed());
+                this.firewallRules().toggleLocalMachineAccess(this.isLocalMachineAccessAllowed());
+                messager.success(AzureString.format("Firewall rules of MySQL server({0}) is successfully updated.", this.getName()));
+            });
+        }
+        return remote;
     }
 
     @Nonnull

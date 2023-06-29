@@ -9,9 +9,12 @@ import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
@@ -22,12 +25,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -109,7 +107,12 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
     protected <E> E doGetById(@Nonnull String id) {
         ResourceId resourceId = ResourceId.fromString(id);
         final String resourceGroup = resourceId.resourceGroupName();
-        AbstractAzResource<?, ?, ?> resource = Objects.requireNonNull(this.get(resourceId.subscriptionId(), resourceGroup));
+        AbstractAzResource<?, ?, ?> resource = this.get(resourceId.subscriptionId(), resourceGroup);
+        if (resource == null) {
+            final IAccount account = Azure.az(IAzureAccount.class).account();
+            AzureMessager.getMessager().warning(AzureString.format("the signed-in Azure account (%s) has no access to subscription (%s)", account.getUsername(), resourceId.subscriptionId()));
+            return null;
+        }
         final LinkedList<Pair<String, String>> resourceTypeNames = new LinkedList<>();
         while (resourceId != null) {
             resourceTypeNames.push(Pair.of(resourceId.resourceType(), URLDecoder.decode(resourceId.name(), "UTF-8")));
