@@ -126,7 +126,6 @@ public class Cache1<T> {
         try {
             return Optional.ofNullable(this.cache.get(KEY, (key) -> update(body, status, oldValue))).flatMap(o -> o).orElse(null);
         } catch (final Throwable e) {
-            log.error(e.getMessage(), e);
             throw e.getCause();
         }
     }
