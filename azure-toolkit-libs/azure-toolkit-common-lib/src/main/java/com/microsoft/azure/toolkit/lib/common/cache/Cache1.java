@@ -116,7 +116,7 @@ public class Cache1<T> {
 
     @Nullable
     @SneakyThrows
-    public synchronized T update(@Nonnull Callable<T> body, String status) {
+    public T update(@Nonnull Callable<T> body, String status) {
         if (AzureTaskManager.getInstance().isUIThread()) {
             log.debug("!!!!!!!!!!!!!!!!! Calling Cache1.update() in UI thread may block UI.");
             log.debug(Arrays.stream(Thread.currentThread().getStackTrace()).map(t -> "\tat " + t).collect(Collectors.joining("\n")));

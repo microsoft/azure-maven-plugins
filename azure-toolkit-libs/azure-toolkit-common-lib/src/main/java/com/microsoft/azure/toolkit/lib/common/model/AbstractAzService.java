@@ -110,8 +110,8 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
         AbstractAzResource<?, ?, ?> resource = this.get(resourceId.subscriptionId(), resourceGroup);
         if (resource == null) {
             final IAccount account = Azure.az(IAzureAccount.class).account();
-            final String message = String.format("the signed-in account (%s) has no access to resources in subscription (%s)", account.getUsername(), resourceId.subscriptionId());
-            throw new AzureToolkitRuntimeException(message, Action.AUTHENTICATE);
+            final String message = String.format("the signed-in account has no access to subscription (%s)", resourceId.subscriptionId());
+            throw new AzureToolkitRuntimeException(message);
         }
         final LinkedList<Pair<String, String>> resourceTypeNames = new LinkedList<>();
         while (resourceId != null) {
