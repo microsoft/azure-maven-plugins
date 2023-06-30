@@ -66,6 +66,10 @@ public class OperationThreadContext {
     @Nullable
     synchronized Operation popOperation() {
         final Operation popped = this.operation;
+        if (popped == null) { // @wangmi FIXME: just workaround
+            log.warn("popped operation is null");
+            return null;
+        }
         assert popped != null : "popped operation is null";
         this.operation = popped.getParent();
         if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {
