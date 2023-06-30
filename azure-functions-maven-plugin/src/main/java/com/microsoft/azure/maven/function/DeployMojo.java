@@ -200,7 +200,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     private AppServiceConfig buildDefaultConfig(String subscriptionId, String resourceGroup, String appName) {
-        return AppServiceConfigUtils.buildDefaultFunctionConfig(subscriptionId, resourceGroup, appName, JavaVersion.JAVA_8);
+        return AppServiceConfigUtils.buildDefaultFunctionConfig(subscriptionId, resourceGroup, appName, JavaVersion.JAVA_17);
     }
 
     private void deployArtifact(final FunctionAppBase<?, ?, ?> target) {
