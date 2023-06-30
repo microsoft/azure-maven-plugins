@@ -72,7 +72,7 @@ public class Cache1<T> {
                 return result;
             }
         } catch (final Throwable e) {
-            Throwable root = ExceptionUtils.getRootCause(e);
+            final Throwable root = ExceptionUtils.getRootCause(e);
             if (!(root instanceof InterruptedException) && this.compareAndSetStatus(originalStatus, Status.UNKNOWN)) {
                 throw e;
             }
@@ -80,7 +80,7 @@ public class Cache1<T> {
             isCachingThread.set(false);
         }
         this.compareAndSetStatus(originalStatus, null);
-        //noinspection OptionalAssignedToNull
+        // noinspection OptionalAssignedToNull,ReturnOfNull
         return null;// ignore loaded value
     }
 
@@ -107,7 +107,7 @@ public class Cache1<T> {
             isCachingThread.set(false);
         }
         this.compareAndSetStatus(originalStatus, null);
-        //noinspection OptionalAssignedToNull
+        // noinspection OptionalAssignedToNull,ReturnOfNull
         return null;
     }
 
@@ -160,7 +160,11 @@ public class Cache1<T> {
     }
 
     public void refresh() {
-        this.cache.refresh(KEY);
+        if (this.status.compareAndSet(null, Status.LOADING) ||
+            this.status.compareAndSet(Status.OK, Status.LOADING) ||
+            this.status.compareAndSet(Status.UNKNOWN, Status.LOADING)) {
+            this.cache.refresh(KEY);
+        }
     }
 
     @Nullable
