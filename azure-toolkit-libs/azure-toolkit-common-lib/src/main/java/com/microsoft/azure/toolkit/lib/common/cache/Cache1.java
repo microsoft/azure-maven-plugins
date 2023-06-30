@@ -61,6 +61,9 @@ public class Cache1<T> {
 
     @Nullable
     private Optional<T> load() {
+        if (AzureTaskManager.getInstance().isUIThread()) {
+            return Optional.ofNullable(this.latest);
+        }
         final String originalStatus = Status.LOADING;
         try {
             isCachingThread.set(true);
@@ -117,6 +120,7 @@ public class Cache1<T> {
         if (AzureTaskManager.getInstance().isUIThread()) {
             log.debug("!!!!!!!!!!!!!!!!! Calling Cache1.update() in UI thread may block UI.");
             log.debug(Arrays.stream(Thread.currentThread().getStackTrace()).map(t -> "\tat " + t).collect(Collectors.joining("\n")));
+            return this.latest;
         }
         if (isCachingThread.get()) {
             return body.call();
