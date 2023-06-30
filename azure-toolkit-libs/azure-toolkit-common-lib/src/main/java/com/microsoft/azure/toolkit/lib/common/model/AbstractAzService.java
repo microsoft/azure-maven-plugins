@@ -11,10 +11,10 @@ import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
@@ -110,19 +110,20 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
         AbstractAzResource<?, ?, ?> resource = this.get(resourceId.subscriptionId(), resourceGroup);
         if (resource == null) {
             final IAccount account = Azure.az(IAzureAccount.class).account();
-            AzureMessager.getMessager().warning(AzureString.format("the signed-in Azure account (%s) has no access to subscription (%s)", account.getUsername(), resourceId.subscriptionId()));
-            return null;
+            final String message = String.format("the signed-in Azure account (%s) has no access to subscription (%s)", account.getUsername(), resourceId.subscriptionId());
+            throw new AzureToolkitRuntimeException(message, Action.AUTHENTICATE);
         }
         final LinkedList<Pair<String, String>> resourceTypeNames = new LinkedList<>();
         while (resourceId != null) {
             resourceTypeNames.push(Pair.of(resourceId.resourceType(), URLDecoder.decode(resourceId.name(), "UTF-8")));
             resourceId = resourceId.parent();
         }
-        for (Pair<String, String> resourceTypeName : resourceTypeNames) {
+        for (final Pair<String, String> resourceTypeName : resourceTypeNames) {
             resource = Optional.ofNullable(resource)
                 .map(r -> r.getSubModule(resourceTypeName.getLeft()))
                 .map(m -> m.getOrTemp(resourceTypeName.getRight(), resourceGroup)).orElse(null);
         }
+        //noinspection unchecked
         return (E) resource;
     }
 
@@ -142,11 +143,12 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
             resourceTypeNames.push(Pair.of(resourceId.resourceType(), URLDecoder.decode(resourceId.name(), "UTF-8")));
             resourceId = resourceId.parent();
         }
-        for (Pair<String, String> resourceTypeName : resourceTypeNames) {
+        for (final Pair<String, String> resourceTypeName : resourceTypeNames) {
             resource = Optional.ofNullable(resource)
                 .map(r -> r.getSubModule(resourceTypeName.getLeft()))
                 .map(m -> m.getOrInit(resourceTypeName.getRight(), resourceGroup)).orElse(null);
         }
+        //noinspection unchecked
         return (E) resource;
     }
 
