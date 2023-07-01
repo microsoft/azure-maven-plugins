@@ -82,6 +82,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private final AtomicLong syncTimeRef = new AtomicLong(-1);
     @Nonnull
     private final Map<String, Optional<T>> resources = Collections.synchronizedMap(new LinkedHashMap<>());
+    private final Map<String, T> tempResources = Collections.synchronizedMap(new LinkedHashMap<>());
 
     @Nonnull
     private final Debouncer fireEvents = new TailingDebouncer(this::fireChildrenChangedEvent, 300);
@@ -327,7 +328,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         final String resourceGroup = normalizeResourceGroupName(name, rgName);
         log.debug("[{}]:getOrTemp({}, {})", this.name, name, rgName);
         final String id = this.toResourceId(name, resourceGroup).toLowerCase();
-        return this.resources.getOrDefault(id, Optional.empty()).orElseGet(() -> this.newResource(name, resourceGroup));
+        return this.resources.getOrDefault(id, Optional.empty())
+            .orElseGet(() -> this.tempResources.computeIfAbsent(id, (i) -> this.newResource(name, resourceGroup)));
     }
 
     @Nonnull
