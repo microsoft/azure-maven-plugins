@@ -122,16 +122,19 @@ public class AzureTelemetryClient {
             if (StringUtils.isBlank(value) || StringUtils.equalsAnyIgnoreCase(key, SYSTEM_PROPERTIES)) {
                 return value;
             }
-            return Arrays.stream(value.split("\\r?\\n")).map(line -> {
-                final String input = FILE_PATH_PATTERN.matcher(line).replaceAll("<REDACTED: user-file-path>");
-                for (final Pattern pattern : PATTERN_MAP.keySet()) {
-                    if (pattern.matcher(input).find()) {
-                        return PATTERN_MAP.get(pattern);
-                    }
-                }
-                return input;
-            }).collect(Collectors.joining(StringUtils.LF));
+            return Arrays.stream(value.split("\\r?\\n"))
+                .map(AzureTelemetryClient::anonymizePiiData).collect(Collectors.joining(StringUtils.LF));
         });
+    }
+
+    public static String anonymizePiiData(@Nonnull final String input) {
+        final String result = FILE_PATH_PATTERN.matcher(input).replaceAll("<REDACTED: user-file-path>");
+        for (final Pattern pattern : PATTERN_MAP.keySet()) {
+            if (pattern.matcher(result).find()) {
+                return PATTERN_MAP.get(pattern);
+            }
+        }
+        return result;
     }
 
     private void initDefaultProperties() {
