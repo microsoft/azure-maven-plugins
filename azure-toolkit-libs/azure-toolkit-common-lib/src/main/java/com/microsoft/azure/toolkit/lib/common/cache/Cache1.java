@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @SuppressWarnings("UnusedReturnValue")
 public class Cache1<T> {
-    private static final ThreadLocal<Boolean> isCachingThread = ThreadLocal.withInitial(() -> false);
+    private static final ThreadLocal<Cache1<?>> caching = new ThreadLocal<>();
     private static final String KEY = "CACHE1_KEY";
     @Nonnull
     private final LoadingCache<String, Optional<T>> cache;
@@ -66,7 +66,7 @@ public class Cache1<T> {
         }
         final String originalStatus = Status.LOADING;
         try {
-            isCachingThread.set(true);
+            caching.set(this);
             this.setStatus(originalStatus);
             final T value = this.latest = supplier.get();
             final Optional<T> result = Optional.ofNullable(value);
@@ -80,7 +80,7 @@ public class Cache1<T> {
                 throw e;
             }
         } finally {
-            isCachingThread.set(false);
+            caching.set(null);
         }
         this.compareAndSetStatus(originalStatus, null);
         // noinspection OptionalAssignedToNull,ReturnOfNull
@@ -91,7 +91,7 @@ public class Cache1<T> {
     private Optional<T> update(@Nonnull Callable<T> body, String status, T oldValue) {
         final String originalStatus = Optional.ofNullable(status).orElse(Status.UPDATING);
         try {
-            isCachingThread.set(true);
+            caching.set(this);
             this.setStatus(originalStatus);
             final T value = this.latest = body.call();
             final Optional<T> result = Optional.ofNullable(value);
@@ -107,7 +107,7 @@ public class Cache1<T> {
                 throw (e instanceof AzureToolkitRuntimeException) ? (AzureToolkitRuntimeException) e : new AzureToolkitRuntimeException(e);
             }
         } finally {
-            isCachingThread.set(false);
+            caching.set(null);
         }
         this.compareAndSetStatus(originalStatus, null);
         // noinspection OptionalAssignedToNull,ReturnOfNull
@@ -122,7 +122,7 @@ public class Cache1<T> {
             log.debug(Arrays.stream(Thread.currentThread().getStackTrace()).map(t -> "\tat " + t).collect(Collectors.joining("\n")));
             return this.latest;
         }
-        if (isCachingThread.get()) {
+        if (caching.get() == this) {
             return body.call();
         }
         final T oldValue = this.getIfPresent();
@@ -150,7 +150,7 @@ public class Cache1<T> {
     @Nullable
     @SuppressWarnings("OptionalAssignedToNull")
     public T getIfPresent(boolean loadIfAbsent) {
-        if (isCachingThread.get()) {
+        if (caching.get() == this) {
             return this.latest;
         }
         final Optional<T> opt = this.cache.getIfPresent(KEY);
@@ -179,7 +179,7 @@ public class Cache1<T> {
             log.debug(Arrays.stream(Thread.currentThread().getStackTrace()).map(t -> "\tat " + t).collect(Collectors.joining("\n")));
             return this.latest;
         }
-        if (isCachingThread.get()) {
+        if (caching.get() == this) {
             return this.latest;
         }
         try {
@@ -195,7 +195,7 @@ public class Cache1<T> {
     }
 
     public void invalidate() {
-        if (isCachingThread.get() || this.isProcessing()) {
+        if (caching.get() == this || this.isProcessing()) {
             this.status.set(null); // drop loading value.
             return;
         }
