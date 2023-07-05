@@ -148,6 +148,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         final DeployWebAppTask deployWebAppTask = new DeployWebAppTask(target, artifacts, this.getRestartSite(), this.getWaitDeploymentComplete(), true);
         Optional.ofNullable(this.getDeploymentStatusRefreshInterval()).ifPresent(deployWebAppTask::setDeploymentStatusRefreshInterval);
         Optional.ofNullable(this.getDeploymentStatusMaxRefreshTimes()).ifPresent(deployWebAppTask::setDeploymentStatusMaxRefreshTimes);
+        deployWebAppTask.setDeploymentStatusStream(System.out);
         deployWebAppTask.doExecute();
     }
 
