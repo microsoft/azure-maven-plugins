@@ -5,12 +5,14 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
+import com.azure.core.management.Region;
 import com.azure.resourcemanager.appplatform.fluent.models.ServiceResourceInner;
 import com.azure.resourcemanager.appplatform.models.ClusterResourceProperties;
 import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SkuName;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.TestKeys;
+import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import lombok.Getter;
@@ -72,9 +74,21 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
         return Optional.ofNullable(this.getRemote()).map(SpringService::listTestKeys).map(TestKeys::primaryKey).orElse(null);
     }
 
+    @Nullable
+    public Region getRegion() {
+        return this.remoteOptional().map(Resource::region).orElse(null);
+    }
+
     @Nonnull
-    public String getSku() {
-        return Optional.ofNullable(this.getRemote()).map(SpringService::sku).map(Sku::name).orElse(SkuName.B0.toString());
+    public Sku getSku() {
+        return Optional.ofNullable(this.getRemote()).map(SpringService::sku).orElseGet(() -> new Sku().withName(SkuName.B0.toString()));
+    }
+
+    @Nullable
+    public String getManagedEnvironmentId() {
+        return Optional.ofNullable(this.getRemote()).map(SpringService::innerModel)
+            .map(ServiceResourceInner::properties)
+            .map(ClusterResourceProperties::managedEnvironmentId).orElse(null);
     }
 
     public boolean isEnterpriseTier() {
