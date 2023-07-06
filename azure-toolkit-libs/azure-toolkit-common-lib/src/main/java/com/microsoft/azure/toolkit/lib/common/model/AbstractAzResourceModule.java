@@ -24,16 +24,8 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
-import com.microsoft.azure.toolkit.lib.resource.GenericResource;
-import com.microsoft.azure.toolkit.lib.resource.GenericResourceModule;
-import com.microsoft.azure.toolkit.lib.resource.ResourceDeployment;
-import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
-import com.microsoft.azure.toolkit.lib.resource.ResourceGroupModule;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.ToString;
+import com.microsoft.azure.toolkit.lib.resource.*;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -43,17 +35,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -82,6 +64,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     private final AtomicLong syncTimeRef = new AtomicLong(-1);
     @Nonnull
     private final Map<String, Optional<T>> resources = Collections.synchronizedMap(new LinkedHashMap<>());
+    private final Map<String, T> tempResources = Collections.synchronizedMap(new LinkedHashMap<>());
 
     @Nonnull
     private final Debouncer fireEvents = new TailingDebouncer(this::fireChildrenChangedEvent, 300);
@@ -327,7 +310,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         final String resourceGroup = normalizeResourceGroupName(name, rgName);
         log.debug("[{}]:getOrTemp({}, {})", this.name, name, rgName);
         final String id = this.toResourceId(name, resourceGroup).toLowerCase();
-        return this.resources.getOrDefault(id, Optional.empty()).orElseGet(() -> this.newResource(name, resourceGroup));
+        return Optional.ofNullable(this.get(name, resourceGroup))
+            .orElseGet(() -> this.tempResources.computeIfAbsent(id, (i) -> this.newResource(name, resourceGroup)));
     }
 
     @Nonnull
@@ -335,12 +319,13 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         final String resourceGroup = normalizeResourceGroupName(name, rgName);
         log.debug("[{}]:getOrDraft({}, {})", this.name, name, rgName);
         final String id = this.toResourceId(name, resourceGroup).toLowerCase();
-        return this.resources.getOrDefault(id, Optional.empty()).orElseGet(() -> {
-            final T resource = this.newResource(name, resourceGroup);
-            log.debug("[{}]:get({}, {})->addResourceToLocal({}, resource)", this.name, id, resourceGroup, name);
-            this.addResourceToLocal(id, resource);
-            return resource;
-        });
+        return Optional.ofNullable(this.get(name, resourceGroup))
+            .orElseGet(() -> {
+                final T resource = this.newResource(name, resourceGroup);
+                log.debug("[{}]:get({}, {})->addResourceToLocal({}, resource)", this.name, id, resourceGroup, name);
+                this.addResourceToLocal(id, resource);
+                return resource;
+            });
     }
 
     @Nonnull

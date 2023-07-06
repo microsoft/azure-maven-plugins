@@ -7,6 +7,8 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
+import com.microsoft.azure.toolkit.lib.common.cache.Cache1;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -29,8 +31,9 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     @Nonnull
     private final SpringCloudDeploymentModule deploymentModule;
-    @Nullable
-    private SpringCloudDeployment activeDeployment = null;
+    @Nonnull
+    private Cache1<SpringCloudDeployment> activeDeployment = new Cache1<>(() -> this.remoteOptional().map(SpringApp::activeDeploymentName)
+        .map(name -> this.deployments().get(name, this.getResourceGroupName())).orElse(null));
 
     protected SpringCloudApp(@Nonnull String name, @Nonnull SpringCloudAppModule module) {
         super(name, module);
@@ -54,14 +57,14 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     @Override
     public void invalidateCache() {
         super.invalidateCache();
-        this.activeDeployment = null;
+        this.activeDeployment.invalidate();
     }
 
     @Override
     protected void updateAdditionalProperties(final SpringApp newRemote, final SpringApp oldRemote) {
         super.updateAdditionalProperties(newRemote, oldRemote);
-        this.activeDeployment = Optional.ofNullable(newRemote).map(SpringApp::activeDeploymentName)
-            .map(name -> this.deployments().get(name, this.getResourceGroupName())).orElse(null);
+        this.activeDeployment.get();
+        AzureEventBus.emit("resource.refreshed.resource", this);
     }
 
     @Nonnull
@@ -116,12 +119,12 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     @Nullable
     public SpringCloudDeployment getActiveDeployment() {
-        return this.remoteOptional().map(r -> this.activeDeployment).orElse(null);
+        return this.activeDeployment.get();
     }
 
     @Nullable
     public SpringCloudDeployment getCachedActiveDeployment() {
-        return this.activeDeployment;
+        return this.activeDeployment.getIfPresent();
     }
 
     @Nullable

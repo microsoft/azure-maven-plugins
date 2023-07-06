@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<FunctionApp, WebSiteBase> {
     private static final String CREATE_NEW_FUNCTION_APP = "isCreateNewFunctionApp";
     public static final String FUNCTIONS_EXTENSION_VERSION = "FUNCTIONS_EXTENSION_VERSION";
-    public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8;
+    public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_17;
     public static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     public static final String CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS = "Can not update the operation system of an existing app";
 
@@ -127,8 +127,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         }
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Function App({0})...", name));
-        com.azure.resourcemanager.appservice.models.FunctionApp functionApp = (com.azure.resourcemanager.appservice.models.FunctionApp)
-            Objects.requireNonNull(this.doModify(() -> withCreate.create(), Status.CREATING));
+        com.azure.resourcemanager.appservice.models.FunctionApp functionApp = Objects.requireNonNull(withCreate.create());
         messager.success(AzureString.format("Function App({0}) is successfully created", name));
         return functionApp;
     }

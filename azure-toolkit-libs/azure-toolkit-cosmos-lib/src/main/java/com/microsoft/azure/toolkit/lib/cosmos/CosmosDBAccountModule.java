@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.cosmos;
 
 import com.azure.resourcemanager.cosmos.CosmosManager;
 import com.azure.resourcemanager.cosmos.models.CosmosDBAccounts;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.cosmos.cassandra.CassandraCosmosDBAccount;
@@ -46,7 +47,16 @@ public class CosmosDBAccountModule extends AbstractAzResourceModule<CosmosDBAcco
     @Override
     protected CosmosDBAccount newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         final com.azure.resourcemanager.cosmos.models.CosmosDBAccount account = Optional.ofNullable(getClient())
-            .map(c -> c.getByResourceGroup(resourceGroupName, name)).orElse(null);
+            .map(c -> {
+                try {
+                    return c.getByResourceGroup(resourceGroupName, name);
+                } catch (Throwable e) {
+                    if (AbstractAzResource.isNotFoundException(e)) {
+                        return null;
+                    }
+                    throw e;
+                }
+            }).orElse(null);
         return account == null ? new CosmosDBAccount(name, Objects.requireNonNull(resourceGroupName), this) : newResource(account);
     }
 

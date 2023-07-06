@@ -65,7 +65,7 @@ public class GenericResource extends AbstractAzResource<GenericResource, Resourc
     @Nonnull
     @Override
     protected String loadStatus(@Nonnull HasId remote) {
-        return Status.UNKNOWN;
+        return Status.OK;
     }
 
     public String getKind() {

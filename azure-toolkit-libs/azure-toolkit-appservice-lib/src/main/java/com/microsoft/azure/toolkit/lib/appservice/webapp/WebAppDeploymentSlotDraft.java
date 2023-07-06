@@ -121,15 +121,14 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
         messager.info(AzureString.format("Start creating Web App deployment slot ({0})...", name));
         // workaround to resolve slot creation exception could not be caught by azure operation
         // todo: add unified error handling for reactor
-        final Consumer<Throwable> throwableConsumer = error -> messager.error(error);
+        final Consumer<Throwable> throwableConsumer = messager::error;
         final Context context = new Context("reactor.onErrorDropped.local", throwableConsumer);
-        DeploymentSlot slot = (DeploymentSlot) Objects.requireNonNull(this.doModify(() -> withCreate.create(context), Status.CREATING));
+        DeploymentSlot slot = Objects.requireNonNull(withCreate.create(context));
         final Runtime runtime = this.getRuntime();
         // As we can not update runtime for deployment slot during creation, so call update resource here
         final boolean isRuntimeModified = (Objects.nonNull(runtime) && !Objects.equals(runtime, getParent().getRuntime())) || Objects.nonNull(this.getDockerConfiguration());
         if (isRuntimeModified) {
-            final DeploymentSlot slotToUpdate = slot;
-            slot = (DeploymentSlot) Objects.requireNonNull(this.doModify(() -> updateResourceInAzure(slotToUpdate), Status.CREATING));
+            slot = Objects.requireNonNull(updateResourceInAzure(slot));
         }
         messager.success(AzureString.format("Web App deployment slot ({0}) is successfully created", name));
         return slot;

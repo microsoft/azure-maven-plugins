@@ -71,6 +71,9 @@ public final class AzureOperationAspect {
 
     public static void afterReturning(Operation current, Object source) {
         final Operation operation = OperationThreadContext.current().popOperation();
+        if (operation == null) { // @wangmi FIXME: just workaround
+            return;
+        }
         // TODO: this cannot ensure same operation actually, considering recursive call
         assert Objects.nonNull(operation) && Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the exiting operation[%s]", current, operation);
@@ -80,6 +83,9 @@ public final class AzureOperationAspect {
 
     public static void afterThrowing(Throwable e, Operation current, Object source) throws Throwable {
         final Operation operation = OperationThreadContext.current().popOperation();
+        if (operation == null) { // @wangmi FIXME: just workaround
+            return;
+        }
         // TODO: this cannot ensure same operation actually, considering recursive call
         assert Objects.nonNull(operation) && Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the operation[%s] throwing exception", current, operation);

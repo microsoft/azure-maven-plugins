@@ -173,11 +173,10 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
     }
 
     private boolean getIsRemoteDebuggingEnabled() {
-        final F r = getFullRemote();
-        if (Objects.isNull(r)) {
+        final F remote = getFullRemote();
+        if (Objects.isNull(remote)) {
             return false;
         }
-        final F remote = Objects.requireNonNull(r);
         final Map<String, String> appSettings = Optional.ofNullable(this.getAppSettings()).orElse(Collections.emptyMap());
         // siteConfig for remote debug
         final boolean configEnabled = remote.webSocketsEnabled() && remote.platformArchitecture() == PlatformArchitecture.X64;

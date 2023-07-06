@@ -31,7 +31,11 @@ public class AzureEventBus {
     }
 
     public static void off(@Nonnull final String type, @Nonnull EventListener listener) {
-        getBus(type).unregister(listener);
+        try {
+            getBus(type).unregister(listener);
+        } catch (final IllegalArgumentException e) {
+            // swallow exception during unregistering a listener which is not registered
+        }
     }
 
     public static void once(@Nonnull final String type, @Nonnull BiConsumer<Object, Object> listener) {
