@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure Function" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.27.0](#1270)
   - [1.13.0](#1130)
   - [1.12.0](#1120)
   - [1.11.0](#1110)
@@ -21,6 +22,10 @@ All notable changes to the "Maven Plugin for Azure Function" will be documented 
   - [1.2.2](#122)
   - [1.2.1](#121)
   - [1.2.0](#120)
+
+## 1.27.0
+- Support specify existing storage account during function creation
+  - Add new parameter `storageAccountName` and `storageAccountResourceGroup` to set existing storage account
 
 ## 1.14.0
 - Support default value for region/pricing tier/javaVersion [#1755](https://github.com/microsoft/azure-maven-plugins/pull/1761)

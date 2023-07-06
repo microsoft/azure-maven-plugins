@@ -5,11 +5,17 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.function;
 
+import com.azure.core.util.Context;
 import com.azure.resourcemanager.appservice.AppServiceManager;
+import com.azure.resourcemanager.appservice.fluent.WebAppsClient;
+import com.azure.resourcemanager.appservice.fluent.models.SiteConfigResourceInner;
+import com.azure.resourcemanager.appservice.fluent.models.SitePatchResourceInner;
+import com.azure.resourcemanager.appservice.implementation.FunctionAppsImpl;
 import com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages;
 import com.azure.resourcemanager.appservice.models.FunctionApp.Update;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
@@ -22,6 +28,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
+import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import lombok.Data;
 import lombok.Getter;
 import org.apache.commons.codec.binary.Hex;
@@ -97,7 +104,9 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         }
         final Map<String, String> newAppSettings = getAppSettings();
         final DiagnosticConfig newDiagnosticConfig = getDiagnosticConfig();
+        final FlexConsumptionConfiguration newFlexConsumptionConfiguration = getFlexConsumptionConfiguration();
         final String funcExtVersion = Optional.ofNullable(newAppSettings).map(map -> map.get(FUNCTIONS_EXTENSION_VERSION)).orElse(null);
+        final StorageAccount storageAccount = getStorageAccount();
 
         final AppServiceManager manager = Objects.requireNonNull(this.getParent().getRemote());
         final DefinitionStages.Blank blank = manager.functionApps().define(name);
@@ -121,12 +130,26 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             // todo: support remove app settings
             withCreate.withAppSettings(newAppSettings);
         }
+        if (Objects.nonNull(storageAccount)) {
+            withCreate.withExistingStorageAccount(storageAccount.getRemote());
+        }
         if (Objects.nonNull(newDiagnosticConfig)) {
             AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, newDiagnosticConfig);
         }
         final IAzureMessager messager = AzureMessager.getMessager();
+        final boolean updateFlexConsumptionConfiguration = Objects.nonNull(newFlexConsumptionConfiguration) && getAppServicePlan().getPricingTier().isFlexConsumption();
+        if (updateFlexConsumptionConfiguration) {
+            ((com.azure.resourcemanager.appservice.models.FunctionApp) withCreate).innerModel().withContainerSize(newFlexConsumptionConfiguration.getInstanceSize());
+        }
         messager.info(AzureString.format("Start creating Function App({0})...", name));
-        com.azure.resourcemanager.appservice.models.FunctionApp functionApp = Objects.requireNonNull(withCreate.create());
+        com.azure.resourcemanager.appservice.models.FunctionApp functionApp = (com.azure.resourcemanager.appservice.models.FunctionApp)
+            Objects.requireNonNull(this.doModify(() -> {
+                com.azure.resourcemanager.appservice.models.FunctionApp app = withCreate.create();
+                if (updateFlexConsumptionConfiguration) {
+                    updateFlexConsumptionConfiguration(app, newFlexConsumptionConfiguration);
+                }
+                return app;
+            }, Status.CREATING));
         messager.success(AzureString.format("Function App({0}) is successfully created", name));
         return functionApp;
     }
@@ -182,17 +205,21 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         final Runtime newRuntime = this.ensureConfig().getRuntime();
         final AppServicePlan newPlan = this.ensureConfig().getPlan();
         final DockerConfiguration newDockerConfig = this.ensureConfig().getDockerConfiguration();
+        final FlexConsumptionConfiguration newFlexConsumptionConfiguration = this.ensureConfig().getFlexConsumptionConfiguration();
+        final StorageAccount storageAccount = getStorageAccount();
         final Runtime oldRuntime = Objects.requireNonNull(origin.getRuntime());
         final AppServicePlan oldPlan = origin.getAppServicePlan();
+        final FlexConsumptionConfiguration oldFlexConsumptionConfiguration = origin.getFlexConsumptionConfiguration();
 
         final boolean planModified = Objects.nonNull(newPlan) && !Objects.equals(newPlan, oldPlan);
         final boolean runtimeModified = !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
         final boolean dockerModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
-        final boolean modified = planModified || runtimeModified || dockerModified ||
-            MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove) || Objects.nonNull(newDiagnosticConfig);
+        final boolean flexConsumptionModified = getAppServicePlan().getPricingTier().isFlexConsumption() &&
+            Objects.nonNull(newFlexConsumptionConfiguration) && !Objects.equals(newFlexConsumptionConfiguration, oldFlexConsumptionConfiguration);
+        final boolean modified = planModified || runtimeModified || dockerModified || flexConsumptionModified ||
+            MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove) || Objects.nonNull(newDiagnosticConfig) || Objects.nonNull(storageAccount);
         final String funcExtVersion = Optional.ofNullable(settingsToAdd).map(map -> map.get(FUNCTIONS_EXTENSION_VERSION))
                 .orElseGet(() -> oldAppSettings.get(FUNCTIONS_EXTENSION_VERSION));
-
         if (modified) {
             final Update update = remote.update();
             Optional.ofNullable(newPlan).ifPresent(p -> updateAppServicePlan(update, p));
@@ -201,10 +228,13 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             Optional.of(settingsToRemove).filter(CollectionUtils::isNotEmpty).ifPresent(s -> s.forEach(update::withoutAppSetting));
             Optional.ofNullable(newDockerConfig).ifPresent(p -> updateDockerConfiguration(update, p));
             Optional.ofNullable(newDiagnosticConfig).ifPresent(c -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, c));
-
+            Optional.ofNullable(storageAccount).ifPresent(s -> update.withExistingStorageAccount(s.getRemote()));
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating Function App({0})...", remote.name()));
             remote = update.apply();
+            if (flexConsumptionModified) {
+                updateFlexConsumptionConfiguration(remote, newFlexConsumptionConfiguration);
+            }
             messager.success(AzureString.format("Function App({0}) is successfully updated", remote.name()));
         }
         return remote;
@@ -264,6 +294,14 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         return Optional.ofNullable(config).map(Config::getRuntime).orElseGet(super::getRuntime);
     }
 
+    public void setStorageAccount(StorageAccount account) {
+        this.ensureConfig().setStorageAccount(account);
+    }
+
+    public StorageAccount getStorageAccount() {
+        return Optional.ofNullable(config).map(Config::getStorageAccount).orElse(null);
+    }
+
     public void setAppServicePlan(AppServicePlan plan) {
         this.ensureConfig().setPlan(plan);
     }
@@ -319,6 +357,15 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         return Optional.ofNullable(config).map(Config::getDockerConfiguration).orElse(null);
     }
 
+    public void setFlexConsumptionConfiguration(FlexConsumptionConfiguration flexConsumptionConfiguration) {
+        this.ensureConfig().setFlexConsumptionConfiguration(flexConsumptionConfiguration);
+    }
+
+    @Nullable
+    public FlexConsumptionConfiguration getFlexConsumptionConfiguration() {
+        return Optional.ofNullable(config).map(Config::getFlexConsumptionConfiguration).orElseGet(super::getFlexConsumptionConfiguration);
+    }
+
     @Override
     public boolean isModified() {
         final boolean notModified = Objects.isNull(this.config) ||
@@ -339,9 +386,29 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     private static class Config {
         private Runtime runtime;
         private AppServicePlan plan = null;
+        private StorageAccount storageAccount = null;
         private DiagnosticConfig diagnosticConfig = null;
         private Set<String> appSettingsToRemove = new HashSet<>();
         private Map<String, String> appSettings = new HashMap<>();
         private DockerConfiguration dockerConfiguration = null;
+        private FlexConsumptionConfiguration flexConsumptionConfiguration;
+    }
+
+    private static void updateFlexConsumptionConfiguration(final com.azure.resourcemanager.appservice.models.FunctionApp app, final FlexConsumptionConfiguration flexConfiguration) {
+        final WebAppsClient webApps = app.manager().serviceClient().getWebApps();
+        if (ObjectUtils.anyNotNull(flexConfiguration.getMaximumInstances(), flexConfiguration.getAlwaysReadyInstances())) {
+            final SiteConfigResourceInner configuration = webApps.getConfiguration(app.resourceGroupName(), app.name());
+            Optional.ofNullable(flexConfiguration.getMaximumInstances())
+                .filter(maxInstances -> Objects.equals(maxInstances, configuration.functionAppScaleLimit()))
+                .ifPresent(configuration::withFunctionAppScaleLimit);
+            Optional.ofNullable(flexConfiguration.getAlwaysReadyInstances())
+                .filter(readyInstances -> Objects.equals(readyInstances, configuration.minimumElasticInstanceCount()))
+                .ifPresent(configuration::withMinimumElasticInstanceCount);
+            webApps.updateConfiguration(app.resourceGroupName(), app.name(), configuration);
+        }
+        if (Objects.equals(app.innerModel().containerSize(), flexConfiguration.getInstanceSize())) {
+            webApps.updateWithResponse(app.resourceGroupName(), app.name(), new SitePatchResourceInner()
+                .withContainerSize(flexConfiguration.getInstanceSize()), Context.NONE);
+        }
     }
 }
