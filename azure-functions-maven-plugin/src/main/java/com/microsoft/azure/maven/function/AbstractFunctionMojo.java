@@ -6,6 +6,7 @@
 package com.microsoft.azure.maven.function;
 
 import com.azure.core.implementation.SemanticVersion;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import com.microsoft.azure.maven.appservice.AbstractAppServiceMojo;
@@ -182,6 +183,37 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter(property = "functions.artifact")
     protected String artifactPath;
 
+    @JsonProperty
+    @Getter
+    @Parameter(property = "deploymentType")
+    protected Integer alwaysReadyInstances;
+
+    @JsonProperty
+    @Getter
+    @Parameter(property = "deploymentType", defaultValue = "2048")
+    protected Integer instanceSize;
+
+    @JsonProperty
+    @Getter
+    @Parameter(property = "deploymentType")
+    protected Integer maximumInstances;
+
+    /**
+     * Name of the storage account. It will be created if it doesn't exist.
+     */
+    @JsonProperty
+    @Getter
+    @Parameter(property = "storageAccountName")
+    protected String storageAccountName;
+
+    /**
+     * Resource group of storage account. It will be created if it doesn't exist.
+     */
+    @JsonProperty
+    @Getter
+    @Parameter(property = "storageAccountResourceGroup")
+    protected String storageAccountResourceGroup;
+
     @Getter
     protected final ConfigParser parser = new ConfigParser(this);
 
@@ -284,7 +316,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         return artifacts.stream()
                 .filter(artifact -> StringUtils.equals(artifact.getArtifactId(), AZURE_FUNCTIONS_JAVA_LIBRARY))
                 .findFirst()
-                .map(artifact -> artifact.getVersion())
+                .map(Artifact::getVersion)
                 .orElse(null);
     }
 

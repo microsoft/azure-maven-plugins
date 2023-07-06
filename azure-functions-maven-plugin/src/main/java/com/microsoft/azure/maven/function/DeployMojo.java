@@ -36,7 +36,10 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.fromAppService;
@@ -59,6 +62,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String RESOURCE_GROUP_PATTERN = "[a-zA-Z0-9._\\-()]{1,90}";
     private static final String SLOT_NAME_PATTERN = "[A-Za-z0-9-]{1,60}";
     private static final String APP_SERVICE_PLAN_NAME_PATTERN = "[a-zA-Z0-9\\-]{1,40}";
+    private static final List<Integer> VALID_CONTAINER_SIZE = Arrays.asList(512, 2048, 4096);
     private static final String EMPTY_APP_NAME = "Please config the <appName> in pom.xml.";
     private static final String INVALID_APP_NAME = "The <appName> only allow alphanumeric characters, hyphens and cannot start or end in a hyphen.";
     private static final String EMPTY_RESOURCE_GROUP = "Please config the <resourceGroup> in pom.xml.";
@@ -76,6 +80,8 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String EXPANDABLE_REGION_WARNING = "'%s' may not be a valid region, " +
             "please refer to https://aka.ms/maven_function_configuration#supported-regions for valid values";
     private static final String EXPANDABLE_JAVA_VERSION_WARNING = "'%s' may not be a valid java version, recommended values are `Java 8`, `Java 11` and `Java 17`";
+    private static final String CV2_INVALID_CONTAINER_SIZE = "Invalid container size for flex consumption plan, valid values are: %s";
+    private static final String CV2_INVALID_RUNTIME = "Windows runtime is not supported within flex consumption service plan";
 
     /**
      * The deployment approach to use, valid values are FTP, ZIP, MSDEPLOY, RUN_FROM_ZIP, RUN_FROM_BLOB <p>
@@ -183,6 +189,15 @@ public class DeployMojo extends AbstractFunctionMojo {
         // docker image
         if (OperatingSystem.fromString(runtime.getOs()) == OperatingSystem.DOCKER && StringUtils.isEmpty(runtime.getImage())) {
             throw new AzureToolkitRuntimeException(EMPTY_IMAGE_NAME);
+        }
+        // flex consumption
+        if (StringUtils.isNotEmpty(pricingTier) && PricingTier.fromString(pricingTier).isFlexConsumption()) {
+            if (!VALID_CONTAINER_SIZE.contains(instanceSize)) {
+                throw new AzureToolkitRuntimeException(String.format(CV2_INVALID_CONTAINER_SIZE, VALID_CONTAINER_SIZE.stream().map(String::valueOf).collect(Collectors.joining(","))));
+            }
+            if (OperatingSystem.fromString(runtime.getOs()) == OperatingSystem.WINDOWS) {
+                throw new AzureToolkitRuntimeException(CV2_INVALID_RUNTIME);
+            }
         }
     }
 

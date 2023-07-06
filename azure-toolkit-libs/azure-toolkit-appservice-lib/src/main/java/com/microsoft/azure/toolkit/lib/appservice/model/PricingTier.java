@@ -46,19 +46,22 @@ public class PricingTier implements ExpandableParameter {
     public static final PricingTier SHARED_D1 = new PricingTier("Shared", "D1");
     // functions only
     public static final PricingTier CONSUMPTION = new PricingTier("Dynamic", "Y1");
+    public static final PricingTier FLEX_CONSUMPTION = new PricingTier("FlexConsumption", "FC1");
     public static final PricingTier ELASTIC_PREMIUM_EP1 = new PricingTier("ElasticPremium", "EP1");
     public static final PricingTier ELASTIC_PREMIUM_EP2 = new PricingTier("ElasticPremium", "EP2");
     public static final PricingTier ELASTIC_PREMIUM_EP3 = new PricingTier("ElasticPremium", "EP3");
 
     public static final Set<PricingTier> SHARED_PRICING = Collections.unmodifiableSet(Sets.newHashSet(BASIC_B1, BASIC_B2, BASIC_B3, STANDARD_S1, STANDARD_S2,
-            STANDARD_S3, PREMIUM_P1, PREMIUM_P2, PREMIUM_P3, PREMIUM_P1V2, PREMIUM_P2V2, PREMIUM_P3V2, PREMIUM_P1V3, PREMIUM_P2V3, PREMIUM_P3V3,
-            FREE_F1, SHARED_D1));
+        STANDARD_S3, PREMIUM_P1, PREMIUM_P2, PREMIUM_P3, PREMIUM_P1V2, PREMIUM_P2V2, PREMIUM_P3V2, PREMIUM_P1V3, PREMIUM_P2V3, PREMIUM_P3V3,
+        FREE_F1, SHARED_D1));
     public static final Set<PricingTier> WEB_APP_PRICING = Collections.unmodifiableSet(SHARED_PRICING);
     public static final Set<PricingTier> FUNCTION_PRICING = Collections.unmodifiableSet(SetUtils.union(SHARED_PRICING,
-            Sets.newHashSet(CONSUMPTION, ELASTIC_PREMIUM_EP1, ELASTIC_PREMIUM_EP2, ELASTIC_PREMIUM_EP3)));
+        Sets.newHashSet(CONSUMPTION, FLEX_CONSUMPTION, ELASTIC_PREMIUM_EP1, ELASTIC_PREMIUM_EP2, ELASTIC_PREMIUM_EP3)));
     private static final Set<PricingTier> values =
-            Collections.unmodifiableSet(SetUtils.union(WEB_APP_PRICING, FUNCTION_PRICING));
+        Collections.unmodifiableSet(SetUtils.union(WEB_APP_PRICING, FUNCTION_PRICING));
     private static final String CONSUMPTION_SIZE = "consumption";
+
+    private static final String FLEX_CONSUMPTION_SIZE = "flex consumption";
 
     private String tier;
     private String size;
@@ -75,10 +78,13 @@ public class PricingTier implements ExpandableParameter {
         if (StringUtils.equalsIgnoreCase(CONSUMPTION_SIZE, size)) {
             return PricingTier.CONSUMPTION;
         }
+        if (StringUtils.equalsIgnoreCase(FLEX_CONSUMPTION_SIZE, size)) {
+            return PricingTier.FLEX_CONSUMPTION;
+        }
         return values().stream()
-                .filter(pricingTier -> StringUtils.equalsIgnoreCase(size, pricingTier.size) &&
-                        (StringUtils.isEmpty(tier) || StringUtils.equals(tier, pricingTier.tier)))
-                .findFirst().orElseGet(() -> new PricingTier(tier, size));
+            .filter(pricingTier -> StringUtils.equalsIgnoreCase(size, pricingTier.size) &&
+                (StringUtils.isEmpty(tier) || StringUtils.equals(tier, pricingTier.tier)))
+            .findFirst().orElseGet(() -> new PricingTier(tier, size));
     }
 
     @Override
@@ -104,8 +110,18 @@ public class PricingTier implements ExpandableParameter {
     public String toString() {
         if (this.equals(CONSUMPTION)) {
             return "Consumption";
+        } else if (this.equals(FLEX_CONSUMPTION)) {
+            return "Flex Consumption";
         }
         return this.getSize();
+    }
+
+    public boolean isConsumption() {
+        return Objects.equals(this, CONSUMPTION);
+    }
+
+    public boolean isFlexConsumption() {
+        return Objects.equals(this, FLEX_CONSUMPTION);
     }
 
     @Override
