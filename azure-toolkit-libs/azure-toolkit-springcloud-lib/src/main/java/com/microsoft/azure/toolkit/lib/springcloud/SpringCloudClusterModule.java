@@ -9,6 +9,7 @@ import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.SpringServices;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -50,6 +51,19 @@ public class SpringCloudClusterModule extends AbstractAzResourceModule<SpringClo
     @Nonnull
     protected SpringCloudCluster newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         return new SpringCloudCluster(name, Objects.requireNonNull(resourceGroupName), this);
+    }
+
+    @Nonnull
+    @Override
+    protected AzResource.Draft<SpringCloudCluster, SpringService> newDraftForCreate(@Nonnull String name, @Nullable String rgName) {
+        assert rgName != null : "'Resource group' is required.";
+        return new SpringCloudClusterDraft(name, rgName, this);
+    }
+
+    @Nonnull
+    @Override
+    protected AzResource.Draft<SpringCloudCluster, SpringService> newDraftForUpdate(@Nonnull SpringCloudCluster springCloudCluster) {
+        return new SpringCloudClusterDraft(springCloudCluster);
     }
 
     @Nonnull
