@@ -6,12 +6,12 @@
     <parent>
         <groupId>com.microsoft.azure</groupId>
         <artifactId>azure-toolkit-libs</artifactId>
-        <version>0.34.0</version>
+        <version>0.34.1</version>
     </parent>
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-eventhubs-lib</artifactId>
-    <version>0.34.0</version>
+    <version>0.34.1</version>
     <build>
         <plugins>
             <plugin>
