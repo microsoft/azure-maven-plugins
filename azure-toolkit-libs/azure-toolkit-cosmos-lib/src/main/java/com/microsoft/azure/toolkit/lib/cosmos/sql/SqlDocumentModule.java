@@ -16,10 +16,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
@@ -48,8 +51,11 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
 
     @Nullable
     @Override
+    @SneakyThrows(UnsupportedEncodingException.class)
     protected ObjectNode loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        final String[] split = name.split(DELIMITER);
+        // workaround to fix the name by be encoded which will make split by DELIMITER failed
+        final String decodedName = URLDecoder.decode(name, "UTF-8");
+        final String[] split = decodedName.split(DELIMITER);
         if (split.length > 2) {
             return null;
         }
