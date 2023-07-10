@@ -190,7 +190,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     @JsonProperty
     @Getter
-    @Parameter(property = "deploymentType", defaultValue = "2048")
+    @Parameter(property = "deploymentType")
     protected Integer instanceSize;
 
     @JsonProperty

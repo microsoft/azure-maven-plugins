@@ -6,10 +6,13 @@
 package com.microsoft.azure.toolkit.lib.appservice.config;
 
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
+import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
 import lombok.Setter;
@@ -71,13 +74,18 @@ public class AppServiceConfig {
         return appServiceConfig;
     }
 
-    public static AppServiceConfig buildDefaultFunctionConfig(String resourceGroup, String appName, JavaVersion javaVersion) {
-        RuntimeConfig runtimeConfig = new RuntimeConfig().os(OperatingSystem.WINDOWS).webContainer(WebContainer.JAVA_OFF)
-            .javaVersion(javaVersion);
-        AppServiceConfig appServiceConfig = buildDefaultAppServiceConfig(resourceGroup, appName);
-        appServiceConfig.runtime(runtimeConfig);
-        appServiceConfig.pricingTier(PricingTier.CONSUMPTION);
-        return appServiceConfig;
+    public static FunctionAppConfig buildDefaultFunctionConfig(String resourceGroup, String appName) {
+        final FunctionAppConfig result = new FunctionAppConfig();
+        final AppServiceConfig appServiceConfig = buildDefaultAppServiceConfig(resourceGroup, appName);
+        AppServiceConfigUtils.mergeAppServiceConfig(result, appServiceConfig);
+        RuntimeConfig runtimeConfig = new RuntimeConfig()
+            .os(Runtime.DEFAULT_FUNCTION_RUNTIME.getOperatingSystem())
+            .webContainer(Runtime.DEFAULT_FUNCTION_RUNTIME.getWebContainer())
+            .javaVersion(Runtime.DEFAULT_FUNCTION_RUNTIME.getJavaVersion());
+        result.runtime(runtimeConfig);
+        result.pricingTier(PricingTier.CONSUMPTION);
+        result.flexConsumptionConfiguration(FlexConsumptionConfiguration.DEFAULT);
+        return result;
     }
 
     @Nonnull

@@ -64,7 +64,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
     private static final String FUNCTION_APP_NOT_EXIST_FOR_SLOT = "The Function App specified in pom.xml does not exist. " +
             "Please make sure the Function App name is correct.";
 
-    public static final JavaVersion DEFAULT_FUNCTION_JAVA_VERSION = JavaVersion.JAVA_17;
+    public static final JavaVersion DEFAULT_FUNCTION_JAVA_VERSION = Runtime.DEFAULT_FUNCTION_RUNTIME.getJavaVersion();
 
     private final FunctionAppConfig functionAppConfig;
     private final List<AzureTask<?>> tasks = new ArrayList<>();

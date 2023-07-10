@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsSchema;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
@@ -22,7 +23,6 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.StreamingLogTask;
-import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -38,12 +38,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.fromAppService;
+import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.fromFunctionApp;
 import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.mergeAppServiceConfig;
+import static com.microsoft.azure.toolkit.lib.common.utils.Utils.selectFirstOptionIfCurrentInvalid;
 
 /**
  * Deploy your project to target Azure Functions. If target Function App doesn't exist, it will be created.
@@ -192,10 +194,10 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
         // flex consumption
         if (StringUtils.isNotEmpty(pricingTier) && PricingTier.fromString(pricingTier).isFlexConsumption()) {
-            if (!VALID_CONTAINER_SIZE.contains(instanceSize)) {
+            if (Objects.nonNull(instanceSize) && !VALID_CONTAINER_SIZE.contains(instanceSize)) {
                 throw new AzureToolkitRuntimeException(String.format(CV2_INVALID_CONTAINER_SIZE, VALID_CONTAINER_SIZE.stream().map(String::valueOf).collect(Collectors.joining(","))));
             }
-            if (OperatingSystem.fromString(runtime.getOs()) == OperatingSystem.WINDOWS) {
+            if (StringUtils.isEmpty(runtime.getOs()) || OperatingSystem.fromString(runtime.getOs()) == OperatingSystem.WINDOWS) {
                 throw new AzureToolkitRuntimeException(CV2_INVALID_RUNTIME);
             }
         }
@@ -204,18 +206,24 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected FunctionAppBase<?, ?, ?> createOrUpdateResource(final FunctionApp app) throws Throwable {
         final FunctionAppConfig config = parser.parseConfig();
         final boolean newFunctionApp = !app.exists();
-        final AppServiceConfig defaultConfig = !newFunctionApp ? fromAppService(app, app.getAppServicePlan()) : buildDefaultConfig(config.subscriptionId(),
-            config.resourceGroup(), config.appName());
+        final FunctionAppConfig defaultConfig = !newFunctionApp ?
+            fromFunctionApp(app, Objects.requireNonNull(app.getAppServicePlan())) :
+            buildDefaultConfig(config.subscriptionId(), config.resourceGroup(), config.appName());
         mergeAppServiceConfig(config, defaultConfig);
         if (!newFunctionApp && !config.disableAppInsights() && StringUtils.isEmpty(config.appInsightsKey())) {
             // fill ai key from existing app settings
-            config.appInsightsKey(app.getAppSettings().get(CreateOrUpdateFunctionAppTask.APPINSIGHTS_INSTRUMENTATION_KEY));
+            config.appInsightsKey(Objects.requireNonNull(app.getAppSettings()).get(CreateOrUpdateFunctionAppTask.APPINSIGHTS_INSTRUMENTATION_KEY));
         }
         return new CreateOrUpdateFunctionAppTask(config).doExecute();
     }
 
-    private AppServiceConfig buildDefaultConfig(String subscriptionId, String resourceGroup, String appName) {
-        return AppServiceConfigUtils.buildDefaultFunctionConfig(subscriptionId, resourceGroup, appName, JavaVersion.JAVA_17);
+    private FunctionAppConfig buildDefaultConfig(String subscriptionId, String resourceGroup, String appName) {
+        final FunctionAppConfig appServiceConfig = AppServiceConfig.buildDefaultFunctionConfig(resourceGroup, appName);
+        appServiceConfig.subscriptionId(subscriptionId);
+        final List<Region> regions = Azure.az(AzureAppService.class).forSubscription(subscriptionId).listSupportedRegions();
+        // replace with first region when the default region is not present
+        appServiceConfig.region(selectFirstOptionIfCurrentInvalid("region", regions, appServiceConfig.region()));
+        return appServiceConfig;
     }
 
     private void deployArtifact(final FunctionAppBase<?, ?, ?> target) {

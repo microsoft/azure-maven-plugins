@@ -21,7 +21,10 @@ import javax.annotation.Nonnull;
 @EqualsAndHashCode
 @Builder
 public class FlexConsumptionConfiguration {
-    @Nonnull
+    public static final int DEFAULT_INSTANCE_SIZE = 2048;
+    public static final FlexConsumptionConfiguration DEFAULT =
+        FlexConsumptionConfiguration.builder().instanceSize(DEFAULT_INSTANCE_SIZE).build();
+
     private Integer instanceSize;
     private Integer alwaysReadyInstances;
     private Integer maximumInstances;

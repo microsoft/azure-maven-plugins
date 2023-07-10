@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<FunctionApp, com.azure.resourcemanager.appservice.models.FunctionApp> {
     private static final String CREATE_NEW_FUNCTION_APP = "isCreateNewFunctionApp";
     public static final String FUNCTIONS_EXTENSION_VERSION = "FUNCTIONS_EXTENSION_VERSION";
-    public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_17;
+    public static final JavaVersion DEFAULT_JAVA_VERSION = Runtime.DEFAULT_FUNCTION_RUNTIME.getJavaVersion();
     public static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     public static final String CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS = "Can not update the operation system of an existing app";
 
