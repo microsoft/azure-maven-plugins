@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.maven.springcloud;
 
+import com.azure.core.management.Region;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentRawConfig;
 import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
@@ -20,9 +21,14 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
+import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterModule;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
+import com.microsoft.azure.toolkit.lib.springcloud.model.Sku;
 import lombok.Lombok;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +45,7 @@ import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluator
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.dom4j.DocumentException;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,6 +55,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -116,6 +124,9 @@ public class ConfigMojo extends AbstractMojoBase {
     @Parameter(property = "advancedOptions")
     private Boolean advancedOptions;
 
+    private boolean useExistingCluster = false;
+    private boolean useExistingApp = false;
+
     @Override
     @AzureOperation("user/springcloud.config_mojo")
     protected void doExecute() throws AzureExecutionException {
@@ -154,8 +165,16 @@ public class ConfigMojo extends AbstractMojoBase {
             loginAzure();
             promptAndSelectSubscription();
 
-            selectAppCluster();
-            configCommon();
+            // prompt to select existing cluster or create a new one
+            useExistingCluster = this.wrapper.handleConfirm("Using existing cluster in Azure (Y/n):", true, true);
+            final SpringCloudCluster cluster = useExistingCluster ? selectAppCluster() : configCluster();
+            useExistingApp = !Objects.isNull(cluster) && !parentMode &&
+                this.wrapper.handleConfirm(String.format("Using existing app in cluster %s (Y/n):", cluster.getName()), true, true);
+            if (useExistingApp) {
+                selectApp(cluster);
+            } else {
+                configCommon();
+            }
             confirmAndSave();
         } catch (IOException | InvalidConfigurationException | UnsupportedOperationException | MavenDecryptException | AzureToolkitAuthenticationException e) {
             throw new AzureExecutionException(e.getMessage());
@@ -171,12 +190,76 @@ public class ConfigMojo extends AbstractMojoBase {
         }
     }
 
+    private SpringCloudCluster configCluster() throws IOException, InvalidConfigurationException {
+        configureClusterName();
+        configureResourceGroup();
+        final Region region = configureRegion();
+        final Sku sku = configureSku(region);
+        if (sku.isConsumptionTier()) {
+            configureEnvironment();
+        }
+        return null;
+    }
+
+    private void configureClusterName() throws IOException, InvalidConfigurationException {
+        final String cluster = this.wrapper.handle("configure-cluster-name", false);
+        this.appSettings.setClusterName(cluster);
+        this.wrapper.putCommonVariable("cluster", cluster);
+    }
+
+    private void configureResourceGroup() throws IOException, InvalidConfigurationException {
+        final String resourceGroup = this.wrapper.handle("configure-resource-group-name", false);
+        this.appSettings.setResourceGroup(resourceGroup);
+    }
+
+    private Region configureRegion() throws IOException, InvalidConfigurationException {
+        final List<Region> regions = Azure.az(AzureSpringCloud.class)
+            .forSubscription(getSubscriptionId()).listSupportedRegions((Sku) null);
+        assert CollectionUtils.isNotEmpty(regions) : "No valid region found for current subscription.";
+        this.wrapper.putCommonVariable("regions", regions);
+        final Region defaultRegion = regions.get(0);
+        final Region result = autoUseDefault() ? defaultRegion : this.wrapper.handleSelectOne("configure-region", regions, defaultRegion, Region::name);
+        this.appSettings.setRegion(result.name());
+        return result;
+    }
+
+    private Sku configureSku(@Nonnull final Region region) throws IOException, InvalidConfigurationException {
+        final List<Sku> skus = Azure.az(AzureSpringCloud.class)
+            .forSubscription(getSubscriptionId()).listSupportedSkus(region);
+        assert CollectionUtils.isNotEmpty(skus) : "No valid sku found for current subscription.";
+        this.wrapper.putCommonVariable("skus", skus);
+        final Sku defaultSku = skus.get(0);
+        final Sku result = autoUseDefault() ? defaultSku : this.wrapper.handleSelectOne("configure-sku", skus, defaultSku, Sku::getName);
+        this.appSettings.setSku(result.getName());
+        return result;
+    }
+
+    private void configureEnvironment() throws IOException, InvalidConfigurationException {
+        // todo: support create new environment
+        final List<ContainerAppsEnvironment> environments = Azure.az(AzureContainerApps.class)
+            .environments(getSubscriptionId()).list();
+        if (CollectionUtils.isEmpty(environments)) {
+            this.appSettings.setEnvironment(String.format("cae-%s", this.appSettings.getClusterName()));
+            log.info(String.format("No environment found, will create new app environment %s.", this.appSettings.getEnvironment()));
+        }
+        this.wrapper.putCommonVariable("environments", environments);
+        final ContainerAppsEnvironment defaultEnvironment = environments.get(0);
+        final ContainerAppsEnvironment containerAppsEnvironment = autoUseDefault() ? defaultEnvironment :
+            this.wrapper.handleSelectOne("configure-environment", environments, defaultEnvironment, ContainerAppsEnvironment::getName);
+        this.appSettings.setEnvironment(containerAppsEnvironment.getName());
+        this.appSettings.setEnvironmentResourceGroup(containerAppsEnvironment.getResourceGroupName());
+    }
+
     private void configCommon() throws IOException, InvalidConfigurationException {
         configureAppName();
         if (this.notEnterpriseTier()) {
             configureJavaVersion();
         }
         configurePublic();
+        configDeployment();
+    }
+
+    private void configDeployment() throws IOException, InvalidConfigurationException {
         configureInstanceCount();
         configureCpu();
         configureMemory();
@@ -257,6 +340,14 @@ public class ConfigMojo extends AbstractMojoBase {
         changesToConfirm.put("Azure Spring Apps name", this.appSettings.getClusterName());
         if (this.notEnterpriseTier()) {
             changesToConfirm.put("Runtime Java version", this.deploymentSettings.getRuntimeVersion());
+        }
+        if (!useExistingCluster) {
+            changesToConfirm.put("Region", this.appSettings.getRegion());
+            changesToConfirm.put("Sku", this.appSettings.getSku());
+            if (StringUtils.equalsIgnoreCase("StandardGen2", appSettings.getSku())) {
+                changesToConfirm.put("Environment", this.appSettings.getEnvironment());
+                changesToConfirm.put("Environment resource group", this.appSettings.getEnvironmentResourceGroup());
+            }
         }
         if (this.parentMode) {
             changesToConfirm.put("App " + English.plural("name", this.appNameByProject.size()),
@@ -339,14 +430,43 @@ public class ConfigMojo extends AbstractMojoBase {
 
     }
 
-    private void selectAppCluster() throws IOException, InvalidConfigurationException {
+    private SpringCloudApp selectApp(@Nonnull final SpringCloudCluster cluster) throws IOException, InvalidConfigurationException {
+        log.info(String.format("It may take a few minutes to list apps in your cluster %s, please be patient.", cluster.getName()));
+        if (StringUtils.isNotBlank(appName)) {
+            final SpringCloudApp springCloudApp = cluster.apps().get(appName, resourceGroup);
+            if (Objects.nonNull(springCloudApp) && springCloudApp.exists()) {
+                appSettings.saveSpringCloudApp(springCloudApp);
+            }
+            log.warn(String.format("Cannot find Azure Spring App with name: %s in cluster: %s.",
+                TextUtils.yellow(this.appName), TextUtils.yellow(cluster.getName())));
+        }
+        final List<SpringCloudApp> apps = cluster.apps().list();
+        this.wrapper.putCommonVariable("apps", apps);
+        final SpringCloudApp targetApp = this.wrapper.handleSelectOne("select-App", apps, null, AbstractAzResource::getName);
+        appSettings.saveSpringCloudApp(targetApp);
+        saveDeployment(targetApp);
+        return targetApp;
+    }
+
+    private void saveDeployment(SpringCloudApp targetApp) throws IOException, InvalidConfigurationException {
+        final SpringCloudDeployment activeDeployment = Optional.ofNullable(targetApp.getActiveDeployment())
+            .orElseGet(() -> targetApp.deployments().list().stream().findFirst().orElse(null));
+        if (Objects.nonNull(activeDeployment)) {
+            deploymentSettings.saveSpringCloudDeployment(activeDeployment);
+        } else {
+            configCommon();
+        }
+    }
+
+    private SpringCloudCluster selectAppCluster() throws IOException, InvalidConfigurationException {
+        log.info("It may take a few minutes to list clusters in your account, please be patient.");
         final SpringCloudClusterModule az = Azure.az(AzureSpringCloud.class).clusters(subscriptionId);
         if (StringUtils.isNotBlank(clusterName)) {
             final SpringCloudCluster cluster = az.get(this.clusterName, this.resourceGroup);
             if (Objects.nonNull(cluster) && cluster.exists()) {
                 this.appSettings.setResourceGroup(cluster.getResourceGroupName());
                 this.appSettings.setClusterName(cluster.getName());
-                return;
+                return cluster;
             }
             log.warn(String.format("Cannot find Azure Spring Apps with name: %s in resource group: %s.",
                 TextUtils.yellow(this.clusterName), TextUtils.yellow(this.resourceGroup)));
@@ -357,8 +477,9 @@ public class ConfigMojo extends AbstractMojoBase {
         if (targetAppCluster != null) {
             this.appSettings.setResourceGroup(targetAppCluster.getResourceGroupName());
             this.appSettings.setClusterName(targetAppCluster.getName());
-            log.info(String.format("Using Azure Spring Apps: %s", TextUtils.blue(targetAppCluster.name())));
+            log.info(String.format("Using Azure Spring Apps: %s", TextUtils.blue(targetAppCluster.getName())));
         }
+        return targetAppCluster;
     }
 
     @SneakyThrows

@@ -55,9 +55,14 @@ public class ConfigurationUpdater {
             new DefaultMapEntry<>("subscriptionId", app.getSubscriptionId()),
             new DefaultMapEntry<>("resourceGroup", app.getResourceGroup()),
             new DefaultMapEntry<>("clusterName", app.getClusterName()),
+            new DefaultMapEntry<>("region", app.getRegion()),
+            new DefaultMapEntry<>("sku", app.getSku()),
+            new DefaultMapEntry<>("environment", app.getEnvironment()),
+            new DefaultMapEntry<>("environmentResourceGroup", app.getEnvironmentResourceGroup()),
             new DefaultMapEntry<>("appName", app.getAppName()),
             new DefaultMapEntry<>("isPublic", app.getIsPublic())
         });
+
     }
 
     public static Map<String, Object> toMap(AppDeploymentRawConfig deployment) {
