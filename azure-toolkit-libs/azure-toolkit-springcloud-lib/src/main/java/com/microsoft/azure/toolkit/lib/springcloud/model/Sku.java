@@ -68,6 +68,10 @@ public class Sku {
         return name.equalsIgnoreCase(SkuName.E0.toString());
     }
 
+    public boolean isConsumptionTier() {
+        return tier.equalsIgnoreCase("StandardGen2");
+    }
+
     public com.azure.resourcemanager.appplatform.models.Sku toSku() {
         return new com.azure.resourcemanager.appplatform.models.Sku().withName(name).withTier(tier);
     }

@@ -12,6 +12,74 @@ allow_empty:      true
 default_selected: true
 
 ---
+id:               select-App
+promote:
+  header:       "Available Azure Spring App:"
+  many:         "Select Azure Spring App for deployment:"
+message:
+  empty_options:  "There are no Azure Spring App in current cluster, please create a new one."
+  auto_select:    "There is only one Azure Spring App (***${ apps[0].name() }***) in current cluster, will use it automatically."
+  select_none:    "You have not selected any Azure Spring Apps, 'config' will terminate."
+required:         true
+auto_select:      true
+default_index:    0
+
+---
+id:               configure-cluster-name
+promote:          "Input the name of Azure Spring Apps (***${default_val}***):"
+default_val:      'cluster-${project.getArtifactId().replaceAll("[^-a-z0-9]", "").toLowerCase()}'
+resource:         Cluster
+property:         clusterName
+expression:       true
+required:         true
+
+---
+id:               configure-resource-group-name
+promote:          "Input the resource group name (***${default_val}***):"
+default_val:      'rg-${project.getArtifactId().replaceAll("[^-a-z0-9]", "").toLowerCase()}'
+expression:       true
+required:         true
+resource:         Cluster
+property:         resourceGroup
+
+---
+id:               configure-region
+promote:
+  header: "Regions:"
+  many: "Select region for Azure Spring Apps:"
+message:
+  auto_select:    "There is only one valid region (***${ regions[0] }***) for your project, will use it automatically."
+  select_none:    "You have not selected any region, 'config' will terminate."
+required:         true
+auto_select:      true
+default_index:    0
+
+---
+id:               configure-sku
+promote:
+  header: "Skus:"
+  many: "Select sku for Azure Spring Apps:"
+message:
+  auto_select:    "There is only one valid sku (***${ skus[0] }***) for your project, will use it automatically."
+  select_none:    "You have not selected any sku, 'config' will terminate."
+required:         true
+auto_select:      true
+default_index:    0
+
+---
+id:               configure-environment
+promote:
+  header:       "Available app environments:"
+  many:         "Select app environment for Azure Spring Apps:"
+message:
+  empty_options:  "There are no app environment in current subscription, please create it in Azure Portal."
+  auto_select:    "There is only one app environment (***${ environments[0].name() }***) in current subscription, will use it automatically."
+  select_none:    "You have not selected any app environment, 'config' will terminate."
+required:         true
+auto_select:      true
+default_index:    0
+
+---
 id:               configure-public-list
 promote:
   header:         "Project list:"
