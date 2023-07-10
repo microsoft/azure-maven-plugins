@@ -24,7 +24,6 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
-import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -75,7 +74,7 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
 
     public void deploy(File targetFile, FunctionDeployType functionDeployType) {
         OperationContext.action().setTelemetryProperty(FUNCTION_DEPLOY_TYPE, functionDeployType.name());
-        getDeployHandlerByType(functionDeployType).deploy(targetFile, getRemote());
+        getDeployHandlerByType(functionDeployType).deploy(targetFile, this);
     }
 
     protected AzureFunctionsAdminClient getAdminClient() {

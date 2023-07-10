@@ -14,25 +14,28 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.Optional;
+import java.util.Objects;
 
 public class FlexFunctionDeployHandler implements IFunctionDeployHandler {
 
-    public static final String FAILED_TO_GET_FUNCTION = "Failed to get function app with id %s, please ensure the target exists";
     public static final String FAILED_TO_DEPLOY = "Failed to deploy to Azure Function (%s) : ";
 
     @Override
-    public void deploy(File file, WebAppBase webAppBase) {
-        final AppServiceKuduClient kuduManager = Optional.ofNullable((FunctionAppBase<?, ?, ?>)
-                Azure.az(AzureFunctions.class).getById(webAppBase.id()))
-            .map(FunctionAppBase::getKuduManager)
-            .orElseThrow(() -> new AzureToolkitRuntimeException(FAILED_TO_GET_FUNCTION, webAppBase.id()));
+    @Deprecated
+    public void deploy(@Nonnull File file, @Nonnull WebAppBase webAppBase) {
+        deploy(file, (FunctionAppBase<?, ?, ?>) Objects.requireNonNull(Azure.az(AzureFunctions.class).getById(webAppBase.id())));
+    }
+
+    @Override
+    public void deploy(@Nonnull File file, @Nonnull final FunctionAppBase<?,?,?> functionAppBase) {
+        final AppServiceKuduClient kuduManager = functionAppBase.getKuduManager();
         try {
-            kuduManager.flexZipDeploy(file);
+            Objects.requireNonNull(kuduManager).flexZipDeploy(file);
         } catch (final Exception e) {
             throw new AzureToolkitRuntimeException(String.format(FAILED_TO_DEPLOY, ExceptionUtils.getRootCauseMessage(e)), e);
         }
-        AzureMessager.getMessager().info(String.format(DEPLOY_FINISH, webAppBase.defaultHostname()));
+        AzureMessager.getMessager().info(String.format(DEPLOY_FINISH, functionAppBase.getHostName()));
     }
 }

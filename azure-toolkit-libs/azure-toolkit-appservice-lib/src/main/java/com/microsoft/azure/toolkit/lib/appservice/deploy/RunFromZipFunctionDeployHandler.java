@@ -6,6 +6,7 @@ package com.microsoft.azure.toolkit.lib.appservice.deploy;
 
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 
 public class RunFromZipFunctionDeployHandler extends ZIPFunctionDeployHandler {
@@ -13,7 +14,7 @@ public class RunFromZipFunctionDeployHandler extends ZIPFunctionDeployHandler {
     private static final String RUN_FROM_PACKAGE_VALUE = "1";
 
     @Override
-    public void deploy(File file, WebAppBase functionApp) {
+    public void deploy(@Nonnull File file, @Nonnull WebAppBase functionApp) {
         DeployUtils.updateFunctionAppSetting(functionApp, APP_SETTING_WEBSITE_RUN_FROM_PACKAGE, RUN_FROM_PACKAGE_VALUE);
         // todo: Check status from kudu api, refers https://github.com/Azure/azure-functions-core-tools/blob/dev/src/Azure.Functions.Cli/
         //  Actions/AzureActions/PublishFunctionAppAction.cs#L515

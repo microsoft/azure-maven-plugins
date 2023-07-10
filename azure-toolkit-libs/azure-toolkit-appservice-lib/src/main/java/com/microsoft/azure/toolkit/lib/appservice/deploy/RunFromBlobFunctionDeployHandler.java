@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.function.AzureStorageHelper;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.time.Period;
@@ -31,7 +32,7 @@ public class RunFromBlobFunctionDeployHandler implements IFunctionDeployHandler 
     private static final String UPDATE_ACCESS_LEVEL_TO_PRIVATE = "The blob container '%s' access level was updated to be private";
 
     @Override
-    public void deploy(File file, WebAppBase target) {
+    public void deploy(@Nonnull File file, @Nonnull WebAppBase target) {
         final CloudStorageAccount storageAccount = DeployUtils.getCloudStorageAccount(target);
         try {
             final CloudBlockBlob blob = deployArtifactToAzureStorage(target, file, storageAccount);

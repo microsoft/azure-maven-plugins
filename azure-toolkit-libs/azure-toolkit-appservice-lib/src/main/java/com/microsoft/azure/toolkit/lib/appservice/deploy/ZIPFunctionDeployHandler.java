@@ -7,11 +7,12 @@ package com.microsoft.azure.toolkit.lib.appservice.deploy;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 
 public class ZIPFunctionDeployHandler implements IFunctionDeployHandler {
     @Override
-    public void deploy(File file, WebAppBase functionApp) {
+    public void deploy(@Nonnull File file, @Nonnull WebAppBase functionApp) {
         AzureMessager.getMessager().info(String.format(DEPLOY_START, functionApp.name()));
         functionApp.zipDeploy(file);
         AzureMessager.getMessager().info(String.format(DEPLOY_FINISH, functionApp.defaultHostname()));

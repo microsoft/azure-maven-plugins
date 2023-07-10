@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.function.AzureStorageHelper;
 import com.microsoft.azure.toolkit.lib.legacy.function.Constants;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.time.Period;
@@ -30,7 +31,7 @@ public class MSFunctionDeployHandler implements IFunctionDeployHandler {
     private static final String DELETE_PACKAGE_FAIL = "Failed to delete deployment package ";
 
     @Override
-    public void deploy(final File file, final WebAppBase webAppBase) {
+    public void deploy(@Nonnull final File file, @Nonnull final WebAppBase webAppBase) {
         final CloudStorageAccount storageAccount = DeployUtils.getCloudStorageAccount(webAppBase);
 
         final String blobName = getBlobName(webAppBase);

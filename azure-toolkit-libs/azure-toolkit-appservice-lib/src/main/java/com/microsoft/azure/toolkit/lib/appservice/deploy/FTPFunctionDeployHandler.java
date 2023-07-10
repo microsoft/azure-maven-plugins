@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.artifact.FTPUploader;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 
 public class FTPFunctionDeployHandler implements IFunctionDeployHandler {
@@ -19,7 +20,7 @@ public class FTPFunctionDeployHandler implements IFunctionDeployHandler {
     private static final int DEFAULT_MAX_RETRY_TIMES = 3;
 
     @Override
-    public void deploy(final File file, final WebAppBase webAppBase) {
+    public void deploy(@Nonnull final File file, @Nonnull final WebAppBase webAppBase) {
         final FTPUploader uploader = new FTPUploader();
         final PublishingProfile profile = webAppBase.getPublishingProfile();
         final String serverUrl = profile.ftpUrl().split("/", 2)[0];
