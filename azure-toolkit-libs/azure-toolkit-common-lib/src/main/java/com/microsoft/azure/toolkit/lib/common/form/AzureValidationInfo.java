@@ -14,7 +14,10 @@ import javax.annotation.Nonnull;
 @Builder
 public class AzureValidationInfo {
     private final Object value;
-    private final AzureFormInput<?> input;
+    /**
+     * AzureFormInput or JComponent
+     */
+    private final Object input;
     private final String message;
     @Builder.Default
     private final Type type = Type.ERROR;
@@ -24,27 +27,45 @@ public class AzureValidationInfo {
         PENDING, ERROR, WARNING, SUCCESS
     }
 
-    public static AzureValidationInfo pending(AzureFormInput<?> input) {
+    /**
+     * @param input the input (AzureFormInput or JComponent) to be validated
+     */
+    public static AzureValidationInfo pending(Object input) {
         return AzureValidationInfo.builder().type(Type.PENDING).message("Validating...").input(input).build();
     }
 
-    public static AzureValidationInfo error(@Nonnull String message, AzureFormInput<?> input) {
+    /**
+     * @param input the input (AzureFormInput or JComponent) to be validated
+     */
+    public static AzureValidationInfo error(@Nonnull String message, Object input) {
         return AzureValidationInfo.builder().type(Type.ERROR).message(message).input(input).build();
     }
 
-    public static AzureValidationInfo warning(@Nonnull String message, AzureFormInput<?> input) {
+    /**
+     * @param input the input (AzureFormInput or JComponent) to be validated
+     */
+    public static AzureValidationInfo warning(@Nonnull String message, Object input) {
         return AzureValidationInfo.builder().type(Type.WARNING).message(message).input(input).build();
     }
 
-    public static AzureValidationInfo success(AzureFormInput<?> input) {
+    /**
+     * @param input the input (AzureFormInput or JComponent) to be validated
+     */
+    public static AzureValidationInfo success(Object input) {
         return AzureValidationInfo.builder().type(Type.SUCCESS).message("Validation passed!").input(input).build();
     }
 
-    public static AzureValidationInfo ok(AzureFormInput<?> input) {
+    /**
+     * @param input the input (AzureFormInput or JComponent) to be validated
+     */
+    public static AzureValidationInfo ok(Object input) {
         return success(input);
     }
 
-    public static AzureValidationInfo none(AzureFormInput<?> input) {
+    /**
+     * @param input the input (AzureFormInput or JComponent) to be validated
+     */
+    public static AzureValidationInfo none(Object input) {
         return AzureValidationInfo.builder().type(Type.SUCCESS).message("No need to validate.").input(input).build();
     }
 

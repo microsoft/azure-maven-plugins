@@ -46,7 +46,7 @@ public interface AzureForm<T> extends AzureFormInput<T> {
 
     @Override
     default AzureValidationInfo getValidationInfo() {
-        return Stream.concat(this.getInputs().stream().map(input -> input.getValidationInfo(true)), this.validateAdditionalInfo().stream())
+        return this.getAllValidationInfos(true).stream()
             .filter(i -> i.getType() != SUCCESS)
             .min(Comparator.comparing(AzureValidationInfo::getType))
             .orElse(AzureValidationInfo.ok(this));
