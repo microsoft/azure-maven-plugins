@@ -183,7 +183,14 @@ public class Cache1<T> {
             return this.latest;
         }
         try {
-            return Optional.ofNullable(this.cache.get(KEY)).flatMap(o -> o).orElse(null);
+            final Optional<T> value = this.cache.get(KEY);
+            // noinspection OptionalAssignedToNull
+            if (value == null) {// value is dropped.
+                return this.latest;
+            }
+            return value.orElse(null);
+        } catch (final IllegalStateException e) {
+            return this.latest;
         } catch (final CompletionException e) {
             if (e.getCause() instanceof RuntimeException) {
                 throw (RuntimeException) e.getCause();
