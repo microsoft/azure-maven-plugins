@@ -46,6 +46,7 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.dom4j.DocumentException;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -193,8 +194,8 @@ public class ConfigMojo extends AbstractMojoBase {
     private SpringCloudCluster configCluster() throws IOException, InvalidConfigurationException {
         configureClusterName();
         configureResourceGroup();
-        final Region region = configureRegion();
-        final Sku sku = configureSku(region);
+        final Sku sku = configureSku();
+        configureRegion(sku);
         if (sku.isConsumptionTier()) {
             configureEnvironment();
         }
@@ -212,25 +213,26 @@ public class ConfigMojo extends AbstractMojoBase {
         this.appSettings.setResourceGroup(resourceGroup);
     }
 
-    private Region configureRegion() throws IOException, InvalidConfigurationException {
+    private Region configureRegion(@Nonnull final Sku sku) throws IOException, InvalidConfigurationException {
         final List<Region> regions = Azure.az(AzureSpringCloud.class)
-            .forSubscription(getSubscriptionId()).listSupportedRegions((Sku) null);
-        assert CollectionUtils.isNotEmpty(regions) : "No valid region found for current subscription.";
+            .forSubscription(getSubscriptionId()).listSupportedRegions(sku);
+        assert CollectionUtils.isNotEmpty(regions) : String.format("No valid region found for sku %s.", sku.toString());
         this.wrapper.putCommonVariable("regions", regions);
-        final Region defaultRegion = regions.get(0);
+        // todo: improve the logic to get default region
+        final Region defaultRegion = regions.contains(Region.US_EAST) ? Region.US_EAST : regions.get(0);
         final Region result = autoUseDefault() ? defaultRegion : this.wrapper.handleSelectOne("configure-region", regions, defaultRegion, Region::name);
         this.appSettings.setRegion(result.name());
         return result;
     }
 
-    private Sku configureSku(@Nonnull final Region region) throws IOException, InvalidConfigurationException {
+    private Sku configureSku() throws IOException, InvalidConfigurationException {
         final List<Sku> skus = Azure.az(AzureSpringCloud.class)
-            .forSubscription(getSubscriptionId()).listSupportedSkus(region);
-        assert CollectionUtils.isNotEmpty(skus) : "No valid sku found for current subscription.";
+            .forSubscription(getSubscriptionId()).listSupportedSkus(null);
+        assert CollectionUtils.isNotEmpty(skus) : "No valid sku found in current subscription.";
         this.wrapper.putCommonVariable("skus", skus);
-        final Sku defaultSku = skus.get(0);
+        final Sku defaultSku = skus.contains(Sku.SPRING_APPS_DEFAULT_SKU) ? Sku.SPRING_APPS_DEFAULT_SKU : skus.get(0);
         final Sku result = autoUseDefault() ? defaultSku : this.wrapper.handleSelectOne("configure-sku", skus, defaultSku, Sku::getName);
-        this.appSettings.setSku(result.getName());
+        this.appSettings.setSku(result.toString());
         return result;
     }
 

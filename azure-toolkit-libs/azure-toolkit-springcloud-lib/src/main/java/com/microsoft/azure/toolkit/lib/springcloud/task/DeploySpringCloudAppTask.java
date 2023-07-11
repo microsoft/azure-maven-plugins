@@ -10,18 +10,24 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
+import com.microsoft.azure.toolkit.lib.resource.AzureResources;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroupDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.model.Sku;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.Disposable;
@@ -64,14 +70,13 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     @Nonnull
     private List<AzureTask<?>> initTasks() {
         // Init spring clients, and prompt users to confirm
+        final List<AzureTask<?>> tasks = new ArrayList<>();
         final SpringCloudDeploymentConfig deploymentConfig = config.getDeployment();
         final String subscriptionId = Optional.ofNullable(config.getSubscriptionId()).filter(StringUtils::isNotBlank).orElseThrow(() -> new AzureToolkitRuntimeException("'subscriptionId' is required"));
         final String clusterName = Optional.ofNullable(config.getClusterName()).filter(StringUtils::isNotBlank).orElseThrow(() -> new AzureToolkitRuntimeException("'clusterName' is required"));
         final String appName = Optional.ofNullable(config.getAppName()).filter(StringUtils::isNotBlank).orElseThrow(() -> new AzureToolkitRuntimeException("'appName' is required"));
         final String resourceGroup = config.getResourceGroup();
-        final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(subscriptionId).get(clusterName, resourceGroup);
-        Optional.ofNullable(cluster).orElseThrow(() -> new AzureToolkitRuntimeException(
-            String.format("Azure Spring Apps(%s) is not found in resource group(%s) of subscription(%s).", clusterName, resourceGroup, subscriptionId)));
+        final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(subscriptionId).getOrDraft(clusterName, resourceGroup);
         final SpringCloudAppDraft app = cluster.apps().updateOrCreate(appName, resourceGroup);
         final String deploymentName = StringUtils.firstNonBlank(
             deploymentConfig.getDeploymentName(),
@@ -79,6 +84,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
             app.getActiveDeploymentName(),
             DEFAULT_DEPLOYMENT_NAME
         );
+        final boolean toCreateCluster = cluster.isDraftForCreating() && !cluster.exists();
         final boolean toCreateApp = !app.exists();
         final boolean toCreateDeployment = !toCreateApp && !app.deployments().exists(deploymentName, resourceGroup);
         config.setActiveDeploymentName(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateApp || toCreateDeployment ? deploymentName : null));
@@ -88,13 +94,21 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         OperationContext.current().setTelemetryProperty("isCreateDeployment", String.valueOf(toCreateApp || toCreateDeployment));
         OperationContext.current().setTelemetryProperty("isDeploymentNameGiven", String.valueOf(StringUtils.isNotEmpty(deploymentConfig.getDeploymentName())));
 
+        final AzureString CREATE_CLUSTER_TITLE = AzureString.format("Create new Azure Spring Apps({0})", clusterName);
         final AzureString CREATE_APP_TITLE = AzureString.format("Create new app({0}) and deployment({1}) in Azure Spring Apps({2})", appName, deploymentName, clusterName);
         final AzureString UPDATE_APP_TITLE = AzureString.format("Update app({0}) of Azure Spring Apps({1})", appName, clusterName);
         final AzureString CREATE_DEPLOYMENT_TITLE = AzureString.format("Create new deployment({0}) in app({1})", deploymentName, appName);
         final AzureString UPDATE_DEPLOYMENT_TITLE = AzureString.format("Update deployment({0}) of app({1})", deploymentName, appName);
         final AzureString MODIFY_DEPLOYMENT_TITLE = toCreateDeployment ? CREATE_DEPLOYMENT_TITLE : UPDATE_DEPLOYMENT_TITLE;
 
-        final List<AzureTask<?>> tasks = new ArrayList<>();
+        if (toCreateCluster) {
+            tasks.add(new AzureTask<Void>(CREATE_CLUSTER_TITLE, () -> {
+                final SpringCloudClusterDraft draft = (SpringCloudClusterDraft) cluster;
+                final SpringCloudClusterDraft.Config config = getDraftConfig(DeploySpringCloudAppTask.this.config);
+                draft.setConfig(config);
+                draft.createIfNotExist();
+            }));
+        }
         app.setConfig(config);
         if (toCreateApp) {
             tasks.add(new AzureTask<Void>(CREATE_APP_TITLE, app::createIfNotExist));
@@ -122,6 +136,24 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
             tasks.add(new AzureTask<Void>(this::startApp));
         }
         return tasks;
+    }
+
+    private static SpringCloudClusterDraft.Config getDraftConfig(@Nonnull final SpringCloudAppConfig appConfig) {
+        final SpringCloudClusterDraft.Config result = new SpringCloudClusterDraft.Config();
+        final Region region = Region.fromName(appConfig.getRegion());
+        final ResourceGroup resourceGroup = Azure.az(AzureResources.class).groups(appConfig.getSubscriptionId())
+            .getOrDraft(appConfig.getResourceGroup(), appConfig.getResourceGroup());
+        final Sku sku = Sku.fromString(appConfig.getSku());
+        if (resourceGroup.isDraftForCreating()) {
+            ((ResourceGroupDraft) resourceGroup).setRegion(region);
+        }
+        result.setName(appConfig.getClusterName());
+        result.setResourceGroup(resourceGroup);
+        result.setRegion(com.azure.core.management.Region.fromName(appConfig.getRegion()));
+        result.setSku(sku);
+        // todo: support create management environment for consumption cluster
+        // result.setManagedEnvironmentId();
+        return result;
     }
 
     @Override
