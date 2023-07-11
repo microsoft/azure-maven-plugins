@@ -385,6 +385,10 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         final T existing = this.get(draft.getName(), draft.getResourceGroupName());
         if (Objects.isNull(existing)) {
             final T resource = cast(draft);
+            final P parent = Objects.requireNonNull(resource.getParent());
+            if (parent instanceof AbstractAzResource && ((AbstractAzResource<?, ?, ?>) parent).isDraftForCreating()) {
+                ((AzResource.Draft<?, ?>) parent).createIfNotExist();
+            }
             // this will notify azure explorer to show a draft resource first
             log.debug("[{}]:create->addResourceToLocal({})", this.name, resource);
             this.addResourceToLocal(resource.getId(), resource);
