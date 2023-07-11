@@ -68,10 +68,11 @@ public class Cache1<T> {
         try {
             caching.set(this);
             this.setStatus(originalStatus);
-            final T value = this.latest = supplier.get();
-            final Optional<T> result = Optional.ofNullable(value);
+            final T oldValue = this.latest;
+            final T newValue = this.latest = supplier.get();
+            final Optional<T> result = Optional.ofNullable(newValue);
             if (this.compareAndSetStatus(originalStatus, Status.OK)) {
-                AzureTaskManager.getInstance().runOnPooledThread(() -> this.onNewValue.accept(value, null));
+                AzureTaskManager.getInstance().runOnPooledThread(() -> this.onNewValue.accept(newValue, oldValue));
                 return result;
             }
         } catch (final Throwable e) {
