@@ -15,6 +15,7 @@ import com.azure.resourcemanager.appplatform.models.TestKeys;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -24,7 +25,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Getter
-public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, SpringCloudServiceSubscription, SpringService> {
+public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, SpringCloudServiceSubscription, SpringService>
+    implements Deletable {
 
     @Nonnull
     private final SpringCloudAppModule appModule;
