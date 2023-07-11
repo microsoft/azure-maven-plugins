@@ -374,8 +374,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             log.debug("[{}]:create->doModify(draft.createResourceInAzure({}))", this.name, resource);
             try {
                 resource.doModify(draft::createResourceInAzure, AzResource.Status.CREATING);
-            } catch (RuntimeException e) {
-                resource.delete();
+            } catch (final RuntimeException e) {
+                resource.refresh();
                 throw e;
             }
             AzureEventBus.emit("azure.explorer.highlight_resource", resource);
