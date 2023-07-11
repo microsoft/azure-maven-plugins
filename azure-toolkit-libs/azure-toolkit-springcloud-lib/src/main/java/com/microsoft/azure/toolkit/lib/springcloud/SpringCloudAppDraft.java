@@ -38,7 +38,10 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft.*;
+import static com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft.DEFAULT_CAPACITY;
+import static com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft.DEFAULT_CPU;
+import static com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft.DEFAULT_MEMORY;
+import static com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft.DEFAULT_RUNTIME_VERSION;
 
 public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Draft<SpringCloudApp, SpringApp> {
     private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
@@ -243,6 +246,17 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     @Override
     public SpringCloudDeployment getActiveDeployment() {
         return Optional.ofNullable(activeDeployment).orElseGet(super::getActiveDeployment);
+    }
+
+    @Nonnull
+    public SpringCloudDeployment getOrCreateDefaultActiveDeployment() {
+        SpringCloudDeployment deployment = this.getActiveDeployment();
+        if (Objects.isNull(deployment)) {
+            final String deploymentName = Optional.ofNullable(this.getActiveDeploymentName()).orElse("default");
+            deployment = this.deployments().create(deploymentName, null);
+        }
+        this.setActiveDeployment(deployment);
+        return deployment;
     }
 
     @Nullable
