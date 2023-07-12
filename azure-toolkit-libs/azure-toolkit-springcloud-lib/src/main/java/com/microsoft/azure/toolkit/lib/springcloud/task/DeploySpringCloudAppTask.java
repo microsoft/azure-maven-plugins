@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudClusterConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.model.Sku;
 import lombok.Getter;
@@ -72,10 +73,11 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         // Init spring clients, and prompt users to confirm
         final List<AzureTask<?>> tasks = new ArrayList<>();
         final SpringCloudDeploymentConfig deploymentConfig = config.getDeployment();
-        final String subscriptionId = Optional.ofNullable(config.getSubscriptionId()).filter(StringUtils::isNotBlank).orElseThrow(() -> new AzureToolkitRuntimeException("'subscriptionId' is required"));
-        final String clusterName = Optional.ofNullable(config.getClusterName()).filter(StringUtils::isNotBlank).orElseThrow(() -> new AzureToolkitRuntimeException("'clusterName' is required"));
+        final SpringCloudClusterConfig clusterConfig = config.getCluster();
+        final String subscriptionId = Optional.ofNullable(clusterConfig).map(SpringCloudClusterConfig::getSubscriptionId).filter(StringUtils::isNotBlank).orElseThrow(() -> new AzureToolkitRuntimeException("'subscriptionId' is required"));
+        final String clusterName = Optional.ofNullable(config.getCluster()).map(SpringCloudClusterConfig::getClusterName).filter(StringUtils::isNotBlank).orElseThrow(() -> new AzureToolkitRuntimeException("'clusterName' is required"));
         final String appName = Optional.ofNullable(config.getAppName()).filter(StringUtils::isNotBlank).orElseThrow(() -> new AzureToolkitRuntimeException("'appName' is required"));
-        final String resourceGroup = config.getResourceGroup();
+        final String resourceGroup = Optional.ofNullable(clusterConfig).map(SpringCloudClusterConfig::getResourceGroup).orElse(null);
         final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(subscriptionId).getOrDraft(clusterName, resourceGroup);
         final SpringCloudAppDraft app = cluster.apps().updateOrCreate(appName, resourceGroup);
         final String deploymentName = StringUtils.firstNonBlank(
@@ -104,7 +106,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         if (toCreateCluster) {
             tasks.add(new AzureTask<Void>(CREATE_CLUSTER_TITLE, () -> {
                 final SpringCloudClusterDraft draft = (SpringCloudClusterDraft) cluster;
-                final SpringCloudClusterDraft.Config config = getDraftConfig(DeploySpringCloudAppTask.this.config);
+                final SpringCloudClusterDraft.Config config = getDraftConfig(DeploySpringCloudAppTask.this.config.getCluster());
                 draft.setConfig(config);
                 draft.createIfNotExist();
             }));
@@ -138,18 +140,18 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         return tasks;
     }
 
-    private static SpringCloudClusterDraft.Config getDraftConfig(@Nonnull final SpringCloudAppConfig appConfig) {
+    private static SpringCloudClusterDraft.Config getDraftConfig(@Nonnull final SpringCloudClusterConfig cluster) {
         final SpringCloudClusterDraft.Config result = new SpringCloudClusterDraft.Config();
-        final Region region = Region.fromName(appConfig.getRegion());
-        final ResourceGroup resourceGroup = Azure.az(AzureResources.class).groups(appConfig.getSubscriptionId())
-            .getOrDraft(appConfig.getResourceGroup(), appConfig.getResourceGroup());
-        final Sku sku = Sku.fromString(appConfig.getSku());
+        final Region region = Region.fromName(cluster.getRegion());
+        final ResourceGroup resourceGroup = Azure.az(AzureResources.class).groups(cluster.getSubscriptionId())
+            .getOrDraft(cluster.getResourceGroup(), cluster.getResourceGroup());
+        final Sku sku = Sku.fromString(cluster.getSku());
         if (resourceGroup.isDraftForCreating()) {
             ((ResourceGroupDraft) resourceGroup).setRegion(region);
         }
-        result.setName(appConfig.getClusterName());
+        result.setName(cluster.getClusterName());
         result.setResourceGroup(resourceGroup);
-        result.setRegion(com.azure.core.management.Region.fromName(appConfig.getRegion()));
+        result.setRegion(com.azure.core.management.Region.fromName(cluster.getRegion()));
         result.setSku(sku);
         // todo: support create management environment for consumption cluster
         // result.setManagedEnvironmentId();

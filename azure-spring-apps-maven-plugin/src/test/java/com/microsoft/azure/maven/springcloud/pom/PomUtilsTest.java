@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.springcloud.pom;
 import com.microsoft.azure.maven.springcloud.TestHelper;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentRawConfig;
 import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
+import com.microsoft.azure.maven.springcloud.config.ClusterRawConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Model;
@@ -35,8 +36,10 @@ public class PomUtilsTest {
         when(project.getModel()).thenReturn(model);
         when(project.getFile()).thenReturn(tempFile);
         final AppRawConfig app = new AppRawConfig();
-        app.setSubscriptionId("subscriptionId1");
-        app.setClusterName("clusterName1");
+        final ClusterRawConfig cluster = new ClusterRawConfig();
+        cluster.setSubscriptionId("subscriptionId1");
+        cluster.setClusterName("clusterName1");
+        app.setCluster(cluster);
         app.setAppName("appName1");
         app.setIsPublic("true");
 
@@ -94,8 +97,10 @@ public class PomUtilsTest {
         when(project.getModel()).thenReturn(model);
         when(project.getFile()).thenReturn(tempFile);
         final AppRawConfig app = new AppRawConfig();
-        app.setSubscriptionId("subscriptionId1");
-        app.setClusterName("clusterName1");
+        final ClusterRawConfig cluster = new ClusterRawConfig();
+        cluster.setSubscriptionId("subscriptionId1");
+        cluster.setClusterName("clusterName1");
+        app.setCluster(cluster);
         app.setAppName("appName1");
         app.setIsPublic("true");
 

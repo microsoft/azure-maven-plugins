@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import com.microsoft.azure.toolkit.lib.springcloud.Utils;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudClusterConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.task.DeploySpringCloudAppTask;
 import lombok.SneakyThrows;
@@ -83,12 +84,13 @@ public class DeployMojo extends AbstractMojoBase {
 
         // Init spring clients, and prompt users to confirm
         final SpringCloudAppConfig appConfig = this.getConfiguration();
+        final SpringCloudClusterConfig clusterConfig = appConfig.getCluster();
         final SpringCloudDeploymentConfig deploymentConfig = appConfig.getDeployment();
         final File file = Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getArtifact).map(IArtifact::getFile)
                 .orElseThrow(() -> new AzureToolkitRuntimeException("No artifact is specified to deploy."));
         final String javaVersion = Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getJavaVersion)
                 .map(version -> StringUtils.removeStart(version, "Java_")).orElse(StringUtils.EMPTY);
-        final SpringCloudCluster springCloudCluster = Azure.az(AzureSpringCloud.class).clusters(appConfig.getSubscriptionId()).get(appConfig.getClusterName(), appConfig.getResourceGroup());
+        final SpringCloudCluster springCloudCluster = Azure.az(AzureSpringCloud.class).clusters(clusterConfig.getSubscriptionId()).get(clusterConfig.getClusterName(), clusterConfig.getResourceGroup());
         final boolean skipCompileVersionValidation = Optional.ofNullable(springCloudCluster).map(SpringCloudCluster::isEnterpriseTier).orElse(false);
         if (!skipCompileVersionValidation) {
             validateArtifactCompileVersion(javaVersion, file, getFailsOnRuntimeValidationError());
@@ -137,7 +139,7 @@ public class DeployMojo extends AbstractMojoBase {
         if (!app.isPublicEndpointEnabled()) {
             return;
         }
-        log.info("Getting public url of app({})...", TextUtils.cyan(app.name()));
+        log.info("Getting public url of app({})...", TextUtils.cyan(app.getName()));
         String publicUrl = app.getApplicationUrl();
         if (!BooleanUtils.isTrue(noWait) && StringUtils.isEmpty(publicUrl)) {
             publicUrl = Utils.pollUntil(() -> {

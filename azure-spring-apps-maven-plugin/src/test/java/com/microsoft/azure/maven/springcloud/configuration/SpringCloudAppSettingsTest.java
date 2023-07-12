@@ -6,6 +6,7 @@
 package com.microsoft.azure.maven.springcloud.configuration;
 
 import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
+import com.microsoft.azure.maven.springcloud.config.ClusterRawConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
 import com.microsoft.azure.maven.utils.PomUtils;
 import org.dom4j.Document;
@@ -16,20 +17,6 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 public class SpringCloudAppSettingsTest {
-    @Test
-    public void testSetSubscriptionId() {
-        final AppRawConfig app = new AppRawConfig();
-        app.setSubscriptionId("subscriptionId1");
-        assertEquals("subscriptionId1", app.getSubscriptionId());
-    }
-
-    @Test
-    public void testSetClusterName() {
-        final AppRawConfig app = new AppRawConfig();
-        app.setClusterName("clusterName1");
-        assertEquals("clusterName1", app.getClusterName());
-    }
-
     @Test
     public void testSetAppName() {
         final AppRawConfig app = new AppRawConfig();
@@ -47,8 +34,10 @@ public class SpringCloudAppSettingsTest {
     @Test
     public void testSaveToDom4j() {
         final AppRawConfig app = new AppRawConfig();
-        app.setSubscriptionId("subscriptionId1");
-        app.setClusterName("clusterName1");
+        final ClusterRawConfig cluster = new ClusterRawConfig();
+        cluster.setSubscriptionId("subscriptionId1");
+        cluster.setClusterName("clusterName1");
+        app.setCluster(cluster);
         app.setAppName("appName1");
         app.setIsPublic("true");
         final Document document = DocumentHelper.createDocument();
@@ -67,8 +56,10 @@ public class SpringCloudAppSettingsTest {
     @Test
     public void testSaveToDom4jNullProperty() {
         final AppRawConfig app = new AppRawConfig();
-        app.setSubscriptionId("subscriptionId1");
-        app.setClusterName("clusterName1");
+        final ClusterRawConfig cluster = new ClusterRawConfig();
+        cluster.setSubscriptionId("subscriptionId1");
+        cluster.setClusterName("clusterName1");
+        app.setCluster(cluster);
         app.setAppName("appName1");
         final Document document = DocumentHelper.createDocument();
         final Element root = document.addElement("test");

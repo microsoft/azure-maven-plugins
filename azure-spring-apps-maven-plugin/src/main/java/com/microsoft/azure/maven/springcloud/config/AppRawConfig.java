@@ -9,24 +9,18 @@ import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import lombok.Data;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 @Data
 public class AppRawConfig {
-    private String subscriptionId;
-    private String resourceGroup; // optional
-    private String clusterName;
     private String appName;
     private String isPublic;
-    private String region;
-    private String sku;
-    private String environment;
-    private String environmentResourceGroup;
+    private ClusterRawConfig cluster = new ClusterRawConfig();
     private AppDeploymentRawConfig deployment;
 
     public void saveSpringCloudApp(@Nonnull final SpringCloudApp app) {
-        this.setSubscriptionId(app.getSubscriptionId());
-        this.setResourceGroup(app.getResourceGroupName());
-        this.setClusterName(app.getParent().getName());
+        this.cluster = Optional.ofNullable(cluster).orElseGet(ClusterRawConfig::new);
+        this.cluster.saveSpringCluster(app.getParent());
         this.setAppName(app.getName());
         this.setIsPublic(String.valueOf(app.isPublicEndpointEnabled()));
         final AppDeploymentRawConfig deploymentSettings = new AppDeploymentRawConfig();
