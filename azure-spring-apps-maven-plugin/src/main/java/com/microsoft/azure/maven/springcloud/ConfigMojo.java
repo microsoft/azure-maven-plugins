@@ -173,10 +173,10 @@ public class ConfigMojo extends AbstractMojoBase {
             promptAndSelectSubscription();
 
             // prompt to select existing cluster or create a new one
-            useExistingCluster = this.wrapper.handleConfirm("Using existing cluster in Azure (Y/n):", true, true);
+            useExistingCluster = this.wrapper.handleConfirm("Using existing Azure Spring Apps in Azure (Y/n):", true, true);
             final SpringCloudCluster cluster = useExistingCluster ? selectAppCluster() : configCluster();
             useExistingApp = Objects.nonNull(cluster) && !parentMode &&
-                this.wrapper.handleConfirm(String.format("Using existing app in cluster %s (y/N):", cluster.getName()), false, true);
+                this.wrapper.handleConfirm(String.format("Using existing app in Azure Spring Apps %s (y/N):", cluster.getName()), false, true);
             if (useExistingApp) {
                 selectApp(cluster);
             } else {
@@ -237,7 +237,7 @@ public class ConfigMojo extends AbstractMojoBase {
         assert CollectionUtils.isNotEmpty(skus) : "No valid sku found in current subscription.";
         this.wrapper.putCommonVariable("skus", skus);
         final Sku defaultSku = skus.contains(Sku.SPRING_APPS_DEFAULT_SKU) ? Sku.SPRING_APPS_DEFAULT_SKU : skus.get(0);
-        final Sku result = autoUseDefault() ? defaultSku : this.wrapper.handleSelectOne("configure-sku", skus, defaultSku, Sku::getName);
+        final Sku result = autoUseDefault() ? defaultSku : this.wrapper.handleSelectOne("configure-sku", skus, defaultSku, Sku::toString);
         this.clusterSettings.setSku(result.toString());
         return result;
     }
@@ -441,13 +441,13 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private SpringCloudApp selectApp(@Nonnull final SpringCloudCluster cluster) throws IOException, InvalidConfigurationException {
-        log.info(String.format("It may take a few minutes to list apps in your cluster %s, please be patient.", cluster.getName()));
+        log.info(String.format("It may take a few minutes to list apps in your Azure Spring Apps %s, please be patient.", cluster.getName()));
         if (StringUtils.isNotBlank(appName)) {
             final SpringCloudApp springCloudApp = cluster.apps().get(appName, resourceGroup);
             if (Objects.nonNull(springCloudApp) && springCloudApp.exists()) {
                 appSettings.saveSpringCloudApp(springCloudApp);
             }
-            log.warn(String.format("Cannot find Azure Spring App with name: %s in cluster: %s.",
+            log.warn(String.format("Cannot find app with name: %s in Azure Spring Apps: %s.",
                 TextUtils.yellow(this.appName), TextUtils.yellow(cluster.getName())));
         }
         final List<SpringCloudApp> apps = cluster.apps().list();
@@ -469,7 +469,7 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private SpringCloudCluster selectAppCluster() throws IOException, InvalidConfigurationException {
-        log.info("It may take a few minutes to list clusters in your account, please be patient.");
+        log.info("It may take a few minutes to list Azure Spring Apps in your account, please be patient.");
         final SpringCloudClusterModule az = Azure.az(AzureSpringCloud.class).clusters(subscriptionId);
         if (StringUtils.isNotBlank(clusterName)) {
             final SpringCloudCluster cluster = az.get(this.clusterName, this.resourceGroup);

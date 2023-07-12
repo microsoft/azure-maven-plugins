@@ -17,8 +17,8 @@ promote:
   header:       "Available Azure Spring App:"
   many:         "Select Azure Spring App for deployment:"
 message:
-  empty_options:  "There are no Azure Spring App in current cluster, please create a new one."
-  auto_select:    "There is only one Azure Spring App (***${ apps[0].name() }***) in current cluster, will use it automatically."
+  empty_options:  "There are no app in current Azure Spring Apps, please create a new one."
+  auto_select:    "There is only one app (***${ apps[0].name() }***) in current Azure Spring Apps, will use it automatically."
   select_none:    "You have not selected any Azure Spring Apps, 'config' will terminate."
 required:         true
 auto_select:      true
