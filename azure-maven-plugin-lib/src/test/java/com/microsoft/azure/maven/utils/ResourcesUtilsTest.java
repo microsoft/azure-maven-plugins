@@ -40,7 +40,7 @@ public class ResourcesUtilsTest {
         final Element rootNode = document.getRootElement();
         MavenConfigUtils.addResourcesConfig(rootNode, MavenConfigUtils.getDefaultResources());
         assertTrue(rootNode.asXML().contains(
-            "<resources><resource><filtering/><mergeId/><targetPath/><directory>${project.basedir}/target</directory>" +
+            "<resources><resource><directory>${project.basedir}/target</directory>" +
                 "<includes><include>*.jar</include></includes></resource></resources>"));
     }
 }
