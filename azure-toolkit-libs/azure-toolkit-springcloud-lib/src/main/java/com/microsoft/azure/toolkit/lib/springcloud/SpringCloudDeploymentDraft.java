@@ -15,12 +15,14 @@ import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.azure.resourcemanager.appplatform.models.UserSourceType;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.Data;
@@ -105,6 +107,12 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     }
 
     @Override
+    public void invalidateCache() {
+        super.invalidateCache();
+        this.reset();
+    }
+
+    @Override
     public void reset() {
         this.config = null;
     }
@@ -119,12 +127,13 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             .define(name)
             .withExistingSource(UserSourceType.JAR, "<default>")
             .withActivation();
-        this.scale(create);
-        this.update(create);
+        this.updateScalingProperties(create);
+        this.updateProperties(create);
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating deployment({0})...", name));
         final SpringAppDeployment deployment = create.create();
         messager.success(AzureString.format("Deployment({0}) is successfully created", name));
+        AzureTaskManager.getInstance().runOnPooledThread(() -> this.getParent().refresh()); // ask parent to refresh active deployment
         return Objects.requireNonNull(deployment);
     }
 
@@ -133,34 +142,46 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     @AzureOperation(name = "azure/springcloud.update_app_deployment.deployment", params = {"this.getName()"})
     public SpringAppDeployment updateResourceInAzure(@Nonnull SpringAppDeployment deployment) {
         SpringAppDeploymentImpl update = (SpringAppDeploymentImpl) deployment.update();
-        if (update(update)) {
+        if (updateProperties(update)) {
             final IAzureMessager messager = AzureMessager.getMessager();
             final File newArtifact = Optional.ofNullable(config).map(c -> c.artifact).map(IArtifact::getFile).orElse(null);
             if (Objects.nonNull(newArtifact)) {
                 messager.info(AzureString.format("Start uploading artifact({0}) and updating deployment({1})...", newArtifact.getName(), deployment.name()));
                 deployment = update.apply();
-                this.getSubModules().forEach(AbstractAzResourceModule::refresh);
                 messager.success(AzureString.format("Artifact({0}) is uploaded and deployment({1}) is successfully updated.", newArtifact.getName(), deployment.name()));
             } else {
                 messager.info(AzureString.format("Start updating deployment({0})...", deployment.name()));
                 deployment = update.apply();
-                this.getSubModules().forEach(AbstractAzResourceModule::refresh);
                 messager.success(AzureString.format("Deployment({0}) is successfully updated.", deployment.name()));
             }
         }
         update = (SpringAppDeploymentImpl) deployment.update();
-        if (scale(update)) {
+        if (updateScalingProperties(update)) {
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start scaling deployment({0})...", deployment.name()));
             deployment = update.apply();
-            this.getSubModules().forEach(AbstractAzResourceModule::refresh);
             messager.success(AzureString.format("Deployment({0}) is successfully scaled.", deployment.name()));
         }
+        update = (SpringAppDeploymentImpl) deployment.update();
+        if (updateDeployingProperties(update)) {
+            final IAzureMessager messager = AzureMessager.getMessager();
+            try {
+                messager.info(AzureString.format("Start deploying artifact to deployment({0})...", deployment.name()));
+                deployment = update.apply();
+                messager.success(AzureString.format("Artifact is successfully deployed to deployment({0}).", deployment.name()));
+            } catch (final Exception e) {
+                final SpringCloudApp app = this.getParent();
+                app.refresh();
+                Optional.ofNullable(app.getActiveDeployment()).ifPresent(d -> d.startStreamingLog(true));
+                throw new AzureToolkitRuntimeException(e);
+            }
+        }
+        this.getSubModules().forEach(AbstractAzResourceModule::refresh);
         return deployment;
     }
 
-    boolean scale(@Nonnull SpringAppDeploymentImpl deployment) {
-        final boolean scaled = this.isScaled();
+    boolean updateScalingProperties(@Nonnull SpringAppDeploymentImpl deployment) {
+        final boolean scaled = this.toScale();
         if (scaled) {
             final Double newCpu = this.getCpu();
             final Double newMemoryInGB = this.getMemoryInGB();
@@ -189,8 +210,8 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         return scaled;
     }
 
-    boolean update(@Nonnull SpringAppDeploymentImpl deployment) {
-        final boolean updated = this.isUpdated();
+    boolean updateProperties(@Nonnull SpringAppDeploymentImpl deployment) {
+        final boolean updated = this.toUpdate();
         if (updated) {
             final Map<String, String> newEnv = Utils.emptyToNull(this.getEnvironmentVariables());
             final String newJvmOptions = Utils.emptyToNull(this.getJvmOptions());
@@ -207,6 +228,15 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             Optional.ofNullable(newArtifact).ifPresent(deployment::withJarFile);
         }
         return updated;
+    }
+
+    boolean updateDeployingProperties(@Nonnull SpringAppDeploymentImpl deployment) {
+        final boolean toDeploy = this.toDeploy();
+        if (toDeploy) {
+            final File newArtifact = Optional.ofNullable(config).map(c -> c.artifact).map(IArtifact::getFile).orElse(null);
+            Optional.ofNullable(newArtifact).ifPresent(deployment::withJarFile);
+        }
+        return toDeploy;
     }
 
     @Nonnull
@@ -251,10 +281,10 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
 
     @Override
     public boolean isModified() {
-        return isScaled() || isUpdated();
+        return toScale() || toUpdate() || toDeploy();
     }
 
-    public boolean isScaled() {
+    public boolean toScale() {
         final Double newCpu = this.getCpu();
         final Double newMemoryInGB = this.getMemoryInGB();
         final Integer newCapacity = this.getCapacity();
@@ -268,11 +298,10 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             (!Objects.equals(newCapacity, oldCapacity) && Objects.nonNull(newCapacity));
     }
 
-    public boolean isUpdated() {
+    public boolean toUpdate() {
         final Map<String, String> newEnv = Utils.emptyToNull(this.getEnvironmentVariables());
         final String newJvmOptions = Utils.emptyToNull(this.getJvmOptions());
         final String newVersion = Utils.emptyToNull(this.getRuntimeVersion());
-        final File newArtifact = Optional.ofNullable(config).map(c -> c.artifact).map(IArtifact::getFile).orElse(null);
 
         final Map<String, String> oldEnv = Utils.emptyToNull(super.getEnvironmentVariables());
         final String oldJvmOptions = Utils.emptyToNull(super.getJvmOptions());
@@ -280,8 +309,11 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
 
         return (!Objects.equals(newEnv, oldEnv) && Objects.nonNull(newEnv)) ||
             (!Objects.equals(newJvmOptions, oldJvmOptions) && Objects.nonNull(newJvmOptions)) ||
-            (!Objects.equals(newVersion, oldVersion) && Objects.nonNull(newVersion)) ||
-            (Objects.nonNull(newArtifact));
+            (!Objects.equals(newVersion, oldVersion) && Objects.nonNull(newVersion));
+    }
+
+    public boolean toDeploy() {
+        return Optional.ofNullable(config).map(c -> c.artifact).map(IArtifact::getFile).isPresent();
     }
 
     /**

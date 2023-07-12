@@ -7,6 +7,8 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
+import com.azure.resourcemanager.appplatform.models.SpringService;
+import com.azure.resourcemanager.appplatform.models.TestKeys;
 import com.microsoft.azure.toolkit.lib.common.cache.Cache1;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -146,9 +148,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     @Nullable
     public String getTestEndpoint() {
-        return Optional.ofNullable(this.getRemote()).map(SpringApp::activeDeploymentName)
-            .map(d -> Objects.requireNonNull(this.getRemote()).parent().listTestKeys().primaryTestEndpoint())
-            .orElse(null);
+        return this.remoteOptional().map(SpringApp::parent).map(SpringService::listTestKeys).map(TestKeys::primaryTestEndpoint).orElse(null);
     }
 
     @Nullable
