@@ -6,17 +6,9 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.resourcemanager.appplatform.fluent.models.AppResourceInner;
-import com.azure.resourcemanager.appplatform.fluent.models.DeploymentResourceInner;
 import com.azure.resourcemanager.appplatform.models.ActiveDeploymentCollection;
 import com.azure.resourcemanager.appplatform.models.AppResourceProperties;
-import com.azure.resourcemanager.appplatform.models.BuildResultUserSourceInfo;
-import com.azure.resourcemanager.appplatform.models.DeploymentResourceProperties;
-import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
-import com.azure.resourcemanager.appplatform.models.JarUploadedUserSourceInfo;
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
-import com.azure.resourcemanager.appplatform.models.ResourceRequests;
-import com.azure.resourcemanager.appplatform.models.Scale;
-import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.TemporaryDisk;
@@ -37,11 +29,6 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
-
-import static com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft.DEFAULT_CAPACITY;
-import static com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft.DEFAULT_CPU;
-import static com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft.DEFAULT_MEMORY;
-import static com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft.DEFAULT_RUNTIME_VERSION;
 
 public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Draft<SpringCloudApp, SpringApp> {
     private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
@@ -102,11 +89,14 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     }
 
     @Override
+    public void invalidateCache() {
+        super.invalidateCache();
+        this.reset();
+    }
+
+    @Override
     public void reset() {
         this.config = null;
-        if (this.activeDeployment instanceof Draft) {
-            ((Draft<?, ?>) this.activeDeployment).reset();
-        }
         this.activeDeployment = null;
     }
 
@@ -120,10 +110,6 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         final Integer newDiskSize = this.isPersistentDiskEnabled() ? this.getParent().isStandardTier() ? STANDARD_TIER_DEFAULT_DISK_SIZE : BASIC_TIER_DEFAULT_DISK_SIZE : null;
         final PersistentDisk newDisk = this.isPersistentDiskEnabled() ? new PersistentDisk().withSizeInGB(newDiskSize).withMountPath(DEFAULT_DISK_MOUNT_PATH) : null;
         final TemporaryDisk tmpDisk = this.getParent().isEnterpriseTier() ? null : new TemporaryDisk().withSizeInGB(DEFAULT_TEMP_DISK_SIZE).withMountPath(DEFAULT_TEMP_DISK_MOUNT_PATH);
-        // refer https://github.com/Azure/azure-sdk-for-java/blob/main/sdk/resourcemanager/azure-resourcemanager-samples/src/main/java/com/azure/
-        // resourcemanager/appplatform/samples/ManageSpringCloud.java#L122-L129
-        final Optional<SpringCloudDeploymentConfig> d = Optional.of(this.getConfig()).map(SpringCloudAppConfig::getDeployment);
-        final String newActiveDeploymentName = d.map(SpringCloudDeploymentConfig::getDeploymentName).orElse(DEFAULT_DEPLOYMENT_NAME);
 
         final AppResourceInner appResource = new AppResourceInner()
             .withProperties(new AppResourceProperties()
@@ -131,34 +117,10 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
                 .withTemporaryDisk(tmpDisk)
                 .withPublicProperty(newPublicEndpointEnabled));
 
-        final DeploymentResourceProperties properties = new DeploymentResourceProperties()
-            .withActive(true)
-            .withSource(new JarUploadedUserSourceInfo()
-                .withRelativePath("<default>")
-                .withJvmOptions(d.map(SpringCloudDeploymentConfig::getJvmOptions).orElse(null))
-                .withRuntimeVersion(d.map(SpringCloudDeploymentConfig::getRuntimeVersion).map(SpringCloudDeploymentDraft::formalizeRuntimeVersion).orElse(DEFAULT_RUNTIME_VERSION).toString()))
-            .withDeploymentSettings(new DeploymentSettings()
-                .withScale(new Scale()
-                    .withMaxReplicas(d.map(SpringCloudDeploymentConfig::getCapacity).orElse(DEFAULT_CAPACITY)))
-                .withResourceRequests(new ResourceRequests()
-                    .withMemory(Utils.toMemoryString(d.map(SpringCloudDeploymentConfig::getMemoryInGB).orElse(DEFAULT_MEMORY)))
-                    .withCpu(Utils.toCpuString(d.map(SpringCloudDeploymentConfig::getCpu).orElse(DEFAULT_CPU)))));
-        final DeploymentResourceInner deploymentResource = new DeploymentResourceInner()
-            .withSku(Optional.ofNullable(service.sku()).orElse(new Sku().withName("B0").withTier("Basic"))
-                .withCapacity(d.map(SpringCloudDeploymentConfig::getCapacity).orElse(DEFAULT_CAPACITY)))
-            .withProperties(properties);
-        if (this.getParent().isEnterpriseTier()) {
-            properties
-                .withSource(new BuildResultUserSourceInfo()
-                    .withBuildResultId("<default>"));
-        }
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating app({0})...", appName));
         service.manager().serviceClient().getApps().createOrUpdate(this.getResourceGroupName(), service.name(), appName, appResource);
         messager.success(AzureString.format("App({0}) is successfully created.", appName));
-        messager.info(AzureString.format("Start creating deployment({0})...", newActiveDeploymentName));
-        service.manager().serviceClient().getDeployments().createOrUpdate(this.getResourceGroupName(), service.name(), appName, newActiveDeploymentName, deploymentResource);
-        messager.success(AzureString.format("Deployment({0}) is successfully created.", newActiveDeploymentName));
         return service.apps().getByName(appName);
     }
 
@@ -248,17 +210,6 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         return Optional.ofNullable(activeDeployment).orElseGet(super::getActiveDeployment);
     }
 
-    @Nonnull
-    public SpringCloudDeployment getOrCreateDefaultActiveDeployment() {
-        SpringCloudDeployment deployment = this.getActiveDeployment();
-        if (Objects.isNull(deployment)) {
-            final String deploymentName = Optional.ofNullable(this.getActiveDeploymentName()).orElse("default");
-            deployment = this.deployments().create(deploymentName, null);
-        }
-        this.setActiveDeployment(deployment);
-        return deployment;
-    }
-
     @Nullable
     @Override
     public SpringCloudDeployment getCachedActiveDeployment() {
@@ -266,11 +217,16 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     }
 
     @Nonnull
-    public SpringCloudDeploymentDraft updateOrCreateActiveDeployment() {
-        final String activeDeploymentName = Optional.ofNullable(this.getActiveDeploymentName()).orElse("default");
-        final SpringCloudDeploymentDraft deploymentDraft = (SpringCloudDeploymentDraft) Optional
-            .ofNullable(super.getActiveDeployment()).map(AbstractAzResource::update)
-            .orElseGet(() -> this.deployments().updateOrCreate(activeDeploymentName, this.getResourceGroupName()));
+    public synchronized SpringCloudDeploymentDraft updateOrCreateActiveDeployment() {
+        final SpringCloudDeployment deployment = this.getActiveDeployment();
+        SpringCloudDeploymentDraft deploymentDraft;
+        if (Objects.isNull(deployment)) {
+            deploymentDraft = this.deployments().create(Optional.ofNullable(this.getActiveDeploymentName()).orElse("default"), null);
+        } else if (!deployment.isDraft()) {
+            deploymentDraft = (SpringCloudDeploymentDraft) deployment.update();
+        } else {
+            deploymentDraft = (SpringCloudDeploymentDraft) deployment;
+        }
         this.setActiveDeployment(deploymentDraft);
         return deploymentDraft;
     }
