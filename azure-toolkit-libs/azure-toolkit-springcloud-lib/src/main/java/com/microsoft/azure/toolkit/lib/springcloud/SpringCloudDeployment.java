@@ -13,16 +13,24 @@ import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.RemoteDebuggingPayload;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasManager;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
+import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerConsumer;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.Disposable;
+import reactor.core.scheduler.Schedulers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -30,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 
 @SuppressWarnings("unused")
 public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment>
@@ -38,6 +47,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     private final SpringCloudAppInstanceModule instanceModule;
     private final ServiceLinkerModule linkerModule;
     private boolean remoteDebuggingEnabled;
+    private Disposable disposable;
 
     protected SpringCloudDeployment(@Nonnull String name, @Nonnull SpringCloudDeploymentModule module) {
         super(name, module);
@@ -244,6 +254,42 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     public SpringCloudAppInstance getLatestInstance() {
         return getInstances().stream().filter(springCloudAppInstance -> Objects.nonNull(springCloudAppInstance.getRemote()))
             .max(Comparator.comparing(instance -> Objects.requireNonNull(instance.getRemote()).startTime())).orElse(null);
+    }
+
+    public void startStreamingLog(boolean follow) {
+        final IAzureMessager messager = AzureMessager.getMessager();
+        Optional.ofNullable(this.getLatestInstance()).ifPresent(i -> {
+            messager.info(AzureString.format("Opening streaming log of instance({0})...", i.getName()));
+            messager.debug("###############STREAMING LOG BEGIN##################");
+            final CountDownLatch latch = new CountDownLatch(1);
+            final Debouncer fireEvents = new TailingDebouncer(() -> {
+                stopStreamingLog();
+                latch.countDown();
+            }, Long.valueOf(Duration.ofSeconds(15).toMillis()).intValue());
+            // refer to https://github.com/Azure/azure-cli-extensions/blob/main/src/spring/azext_spring/app.py#app_tail_log_internal
+            final SpringCloudCluster service = this.getParent().getParent();
+            disposable = this.getLatestInstance().streamingLogs(follow, service.isConsumptionTier() ? 300 : 500)
+                .doFinally(type -> messager.debug("###############STREAMING LOG END##################"))
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe((s) -> {
+                    messager.debug(s);
+                    fireEvents.debounce();
+                });
+            fireEvents.debounce();
+            try {
+                latch.await();
+            } catch (final InterruptedException e) {
+                stopStreamingLog();
+            } finally {
+                latch.countDown();
+            }
+        });
+    }
+
+    private void stopStreamingLog() {
+        if (!disposable.isDisposed()) {
+            disposable.dispose();
+        }
     }
 
     @Override
