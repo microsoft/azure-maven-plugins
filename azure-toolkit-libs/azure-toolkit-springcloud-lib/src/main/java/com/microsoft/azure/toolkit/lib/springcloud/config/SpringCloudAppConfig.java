@@ -40,6 +40,35 @@ public class SpringCloudAppConfig {
         return BooleanUtils.isTrue(isPublic);
     }
 
+    public String getSubscriptionId() {
+        return Optional.ofNullable(cluster).map(SpringCloudClusterConfig::getSubscriptionId).orElse(null);
+    }
+
+    public void setSubscriptionId(String subscriptionId) {
+        this.ensureCluster().setSubscriptionId(subscriptionId);
+    }
+
+    public String getResourceGroup() {
+        return Optional.ofNullable(cluster).map(SpringCloudClusterConfig::getResourceGroup).orElse(null);
+    }
+
+    public void setResourceGroup(String resourceGroup) {
+        this.ensureCluster().setResourceGroup(resourceGroup);
+    }
+
+    public String getClusterName() {
+        return Optional.ofNullable(cluster).map(SpringCloudClusterConfig::getClusterName).orElse(null);
+    }
+
+    public void setClusterName(String clusterName) {
+        this.ensureCluster().setClusterName(clusterName);
+    }
+
+    private SpringCloudClusterConfig ensureCluster() {
+        this.cluster = Optional.ofNullable(cluster).orElseGet(SpringCloudClusterConfig::new);
+        return this.cluster;
+    }
+
     @Nonnull
     public static SpringCloudAppConfig fromApp(@Nonnull SpringCloudApp app) { // get config from app
         final SpringCloudDeployment deployment = Optional.ofNullable(app.getActiveDeployment())
