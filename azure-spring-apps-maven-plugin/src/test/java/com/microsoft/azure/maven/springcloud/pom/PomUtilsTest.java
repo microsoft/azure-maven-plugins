@@ -73,9 +73,6 @@ public class PomUtilsTest {
             "                        <runtimeVersion>8</runtimeVersion>\n" +
             "                        <resources>\n" +
             "                            <resource>\n" +
-            "                                <filtering/>\n" +
-            "                                <mergeId/>\n" +
-            "                                <targetPath/>\n" +
             "                                <directory>${project.basedir}/target</directory>\n" +
             "                                <includes>\n" +
             "                                    <include>*.jar</include>\n" +
@@ -133,9 +130,6 @@ public class PomUtilsTest {
             "                        <runtimeVersion>8</runtimeVersion>\n" +
             "                        <resources>\n" +
             "                            <resource>\n" +
-            "                                <filtering/>\n" +
-            "                                <mergeId/>\n" +
-            "                                <targetPath/>\n" +
             "                                <directory>${project.basedir}/target</directory>\n" +
             "                                <includes>\n" +
             "                                    <include>*.jar</include>\n" +

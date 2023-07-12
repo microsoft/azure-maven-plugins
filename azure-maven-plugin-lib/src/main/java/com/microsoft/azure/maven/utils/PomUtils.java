@@ -33,6 +33,8 @@ import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -214,8 +216,9 @@ public class PomUtils {
     public static void updateNode(Element ele, Map<String, Object> map) {
         final Set<String> existing = ele.content().stream().filter(t -> t instanceof Element).map(Node::getName).collect(Collectors.toSet());
         for (final Map.Entry<String, Object> entry : map.entrySet()) {
-            if (entry.getValue() != null && !existing.contains(entry.getKey())) {
-                XmlUtils.addDomWithKeyValue(ele, entry.getKey(), entry.getValue());
+            final String value = Optional.ofNullable(entry.getValue()).map(Objects::toString).orElse(null);
+            if (StringUtils.isNotEmpty(value) && !existing.contains(entry.getKey())) {
+                XmlUtils.addDomWithKeyValue(ele, entry.getKey(), value);
             }
         }
     }
