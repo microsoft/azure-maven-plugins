@@ -175,8 +175,8 @@ public class ConfigMojo extends AbstractMojoBase {
             // prompt to select existing cluster or create a new one
             useExistingCluster = this.wrapper.handleConfirm("Using existing cluster in Azure (Y/n):", true, true);
             final SpringCloudCluster cluster = useExistingCluster ? selectAppCluster() : configCluster();
-            useExistingApp = !Objects.isNull(cluster) && !parentMode &&
-                this.wrapper.handleConfirm(String.format("Using existing app in cluster %s (Y/n):", cluster.getName()), true, true);
+            useExistingApp = Objects.nonNull(cluster) && !parentMode &&
+                this.wrapper.handleConfirm(String.format("Using existing app in cluster %s (y/N):", cluster.getName()), false, true);
             if (useExistingApp) {
                 selectApp(cluster);
             } else {
