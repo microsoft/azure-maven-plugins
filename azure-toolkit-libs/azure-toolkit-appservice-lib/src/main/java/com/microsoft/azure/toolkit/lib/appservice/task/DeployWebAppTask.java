@@ -87,7 +87,6 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         }
         this.messager.info(String.format(DEPLOY_START, webApp.getName()));
         deployArtifacts();
-        this.messager.info(AzureString.fromString(String.format(DEPLOY_FINISH, webApp.getHostName())));
         startAppService(webApp);
         return webApp;
     }
