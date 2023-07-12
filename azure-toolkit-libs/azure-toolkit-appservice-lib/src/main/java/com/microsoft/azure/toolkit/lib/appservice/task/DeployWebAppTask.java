@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -26,6 +27,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -38,8 +41,9 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
     private static final String START_APP = "Starting Web App after deploying artifacts...";
     private static final String START_APP_DONE = "Successfully started Web App.";
-    private static final int DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL = 1;
+    private static final int DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL = 5;
     private static final int DEFAULT_DEPLOYMENT_STATUS_MAX_REFRESH_TIMES = 30;
+    private static final int DEPLOYMENT_STATUS_DISPLAY_REFRESH_INTERVAL = 500;
     private static final String CLEAR_MESSAGE_STRING = StringUtils.repeat(StringUtils.SPACE, 100) + "\r";
 
     private final WebAppBase<?, ?, ?> webApp;
@@ -110,21 +114,26 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     }
 
     public boolean waitUntilDeploymentReady(boolean trackDeploymentStatus, long deploymentStatusRefreshInterval, long deploymentStatusMaxRefreshTimes) {
-        if (!trackDeploymentStatus) {
+        final String trackId = Optional.ofNullable(deploymentResultAtomicReference.get())
+            .map(KuduDeploymentResult::getDeploymentId).orElse(null);
+        if (!trackDeploymentStatus || StringUtils.isBlank(trackId)) {
             return false;
         }
-        final KuduDeploymentResult kuduDeploymentResult = deploymentResultAtomicReference.get();
-        if (kuduDeploymentResult == null) {
-            return false;
-        }
-        final AtomicInteger times = new AtomicInteger(0);
-        final CsmDeploymentStatus status = Mono.fromCallable(() -> getDeploymentStatus(webApp, kuduDeploymentResult, times))
-                .delayElement(Duration.ofSeconds(deploymentStatusRefreshInterval))
-                .subscribeOn(Schedulers.boundedElastic())
-                .repeat(deploymentStatusMaxRefreshTimes)
-                .takeUntil(csmDeploymentStatus -> !csmDeploymentStatus.getStatus().isRunning())
-                .blockLast();
-        final DeploymentBuildStatus buildStatus = Optional.ofNullable(status).map(CsmDeploymentStatus::getStatus).orElse(null);
+        final AtomicReference<CsmDeploymentStatus> status = new AtomicReference<>(null);
+        final Timer timer = new Timer();
+        timer.schedule(new TrackDeploymentStatusTask(status), 0, DEPLOYMENT_STATUS_DISPLAY_REFRESH_INTERVAL);
+        final CsmDeploymentStatus result = Mono.fromCallable(() -> {
+                final CsmDeploymentStatus deploymentStatus = webApp.getDeploymentStatus(trackId);
+                status.set(deploymentStatus);
+                return deploymentStatus;
+            })
+            .delayElement(Duration.ofSeconds(deploymentStatusRefreshInterval))
+            .subscribeOn(Schedulers.boundedElastic())
+            .repeat(deploymentStatusMaxRefreshTimes)
+            .takeUntil(csmDeploymentStatus -> !csmDeploymentStatus.getStatus().isRunning())
+            .blockLast();
+        timer.cancel();
+        final DeploymentBuildStatus buildStatus = Optional.ofNullable(result).map(CsmDeploymentStatus::getStatus).orElse(null);
         if (buildStatus == null || buildStatus.isSucceed()) {
             return true;
         } else if (buildStatus.isTimeout()) {
@@ -132,10 +141,10 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         } else if (buildStatus.isRunning()) {
             AzureMessager.getMessager().warning("Resource deployed, but the deployment is still in process in Azure");
         } else if (buildStatus.isFailed()) {
-            final String errorMessages = CollectionUtils.isNotEmpty(status.getErrors()) ?
-                    status.getErrors().stream().map(ErrorEntity::getMessage).collect(Collectors.joining(StringUtils.LF)) : StringUtils.EMPTY;
-            final String failedInstancesLogs = CollectionUtils.isEmpty(status.getFailedInstancesLogs()) ?
-                    StringUtils.join(status.getFailedInstancesLogs(), StringUtils.LF) : StringUtils.EMPTY;
+            final String errorMessages = CollectionUtils.isNotEmpty(result.getErrors()) ?
+                    result.getErrors().stream().map(ErrorEntity::getMessage).collect(Collectors.joining(StringUtils.LF)) : StringUtils.EMPTY;
+            final String failedInstancesLogs = CollectionUtils.isEmpty(result.getFailedInstancesLogs()) ?
+                    StringUtils.join(result.getFailedInstancesLogs(), StringUtils.LF) : StringUtils.EMPTY;
             throw new AzureToolkitRuntimeException(String.format("Failed to start app %s. %s %s", webApp.getName(), errorMessages, failedInstancesLogs));
         }
         return false;
@@ -153,39 +162,55 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         return Optional.ofNullable(this.waitDeploymentComplete).orElse(Objects.requireNonNull(webApp.getRuntime()).isLinux());
     }
 
-    private CsmDeploymentStatus getDeploymentStatus(final WebAppBase<?, ?, ?> target, final KuduDeploymentResult result, AtomicInteger times) {
-        final CsmDeploymentStatus deploymentStatus = target.getDeploymentStatus(result.getDeploymentId());
-        if (Objects.isNull(deploymentStatus)) {
-            return null;
-        }
-        final StringBuilder message = new StringBuilder(128);
-        message.append(String.format("Status %s ", deploymentStatus.getStatus().getValue()));
-        final int totalInstanceCount = deploymentStatus.getTotalInstanceCount();
-        if (totalInstanceCount > 0) {
-            final String instanceStatus = deploymentStatus.getNumberOfInstancesFailed() == 0 ?
-                String.format("(%d/%d)", deploymentStatus.getNumberOfInstancesSuccessful(), totalInstanceCount) :
-                String.format("(%d/%d, failed %d)", deploymentStatus.getNumberOfInstancesSuccessful(),
-                    totalInstanceCount, deploymentStatus.getNumberOfInstancesFailed());
-            message.append(instanceStatus);
-        }
-        final int dotTimes = times.addAndGet(1) % 4;
-        IntStream.range(0, dotTimes).forEach(i -> message.append("."));
-        IntStream.range(dotTimes, 4).forEach(i -> message.append(" "));
-        if (Objects.isNull(deploymentStatusStream)) {
-            this.messager.info(message.toString());
-        } else {
-            deploymentStatusStream.print(CLEAR_MESSAGE_STRING);
-            deploymentStatusStream.print(message.append('\r'));
-            deploymentStatusStream.flush();
-        }
-        return deploymentStatus;
-    }
-
     private static void startAppService(WebAppBase<?, ?, ?> target) {
         if (!target.getFormalStatus().isRunning()) {
             AzureMessager.getMessager().info(START_APP);
             target.start();
             AzureMessager.getMessager().info(START_APP_DONE);
+        }
+    }
+
+    @RequiredArgsConstructor
+    private class TrackDeploymentStatusTask extends TimerTask{
+        private final AtomicReference<CsmDeploymentStatus> status;
+        private final AtomicInteger times = new AtomicInteger(0);
+
+        @Override
+        public void run() {
+            final StringBuilder message = new StringBuilder(getDeploymentStatus(status.get()));
+            // add dot to indicate process is still running
+            final int dotTimes = times.addAndGet(1) % 4;
+            IntStream.range(0, dotTimes).forEach(i -> message.append("."));
+            IntStream.range(dotTimes, 4).forEach(i -> message.append(" "));
+            printMessage(message.toString());
+        }
+
+        private void printMessage(final String message) {
+            if (Objects.isNull(deploymentStatusStream)) {
+                messager.info(message.toString());
+            } else {
+                deploymentStatusStream.print(CLEAR_MESSAGE_STRING);
+                deploymentStatusStream.print(message);
+                deploymentStatusStream.print('\r');
+                deploymentStatusStream.flush();
+            }
+        }
+
+        private String getDeploymentStatus(final CsmDeploymentStatus deploymentStatus) {
+            if (Objects.isNull(deploymentStatus)) {
+                return "Waiting for deployment";
+            }
+            final StringBuilder message = new StringBuilder(128);
+            message.append(String.format("Status %s ", deploymentStatus.getStatus().getValue()));
+            final int totalInstanceCount = deploymentStatus.getTotalInstanceCount();
+            if (totalInstanceCount > 0) {
+                final String instanceStatus = deploymentStatus.getNumberOfInstancesFailed() == 0 ?
+                    String.format("(%d/%d)", deploymentStatus.getNumberOfInstancesSuccessful(), totalInstanceCount) :
+                    String.format("(%d/%d, failed %d)", deploymentStatus.getNumberOfInstancesSuccessful(),
+                        totalInstanceCount, deploymentStatus.getNumberOfInstancesFailed());
+                message.append(instanceStatus);
+            }
+           return message.toString();
         }
     }
 }
