@@ -24,6 +24,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.Utils;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudClusterConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.model.Sku;
 import com.microsoft.azure.toolkit.lib.springcloud.task.DeploySpringCloudAppTask;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -91,8 +92,9 @@ public class DeployMojo extends AbstractMojoBase {
         final String javaVersion = Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getJavaVersion)
                 .map(version -> StringUtils.removeStart(version, "Java_")).orElse(StringUtils.EMPTY);
         final SpringCloudCluster springCloudCluster = Azure.az(AzureSpringCloud.class).clusters(clusterConfig.getSubscriptionId()).get(clusterConfig.getClusterName(), clusterConfig.getResourceGroup());
-        final boolean skipCompileVersionValidation = Optional.ofNullable(springCloudCluster).map(SpringCloudCluster::isEnterpriseTier).orElse(false);
-        if (!skipCompileVersionValidation) {
+        final Sku sku = Optional.ofNullable(springCloudCluster).map(SpringCloudCluster::getSku)
+            .filter(s -> !Objects.equals(s, Sku.UNKNOWN)).orElseGet(() -> Sku.fromString(clusterConfig.getSku()));
+        if (!sku.isEnterpriseTier()) {
             validateArtifactCompileVersion(javaVersion, file, getFailsOnRuntimeValidationError());
         }
         final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig, true, true);

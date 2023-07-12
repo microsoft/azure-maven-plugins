@@ -131,7 +131,6 @@ public class ConfigMojo extends AbstractMojoBase {
     private Boolean advancedOptions;
 
     private boolean useExistingCluster = false;
-    private boolean useExistingApp = false;
 
     @Override
     @AzureOperation("user/springcloud.config_mojo")
@@ -175,7 +174,8 @@ public class ConfigMojo extends AbstractMojoBase {
             // prompt to select existing cluster or create a new one
             useExistingCluster = this.wrapper.handleConfirm("Using existing Azure Spring Apps in Azure (Y/n):", true, true);
             final SpringCloudCluster cluster = useExistingCluster ? selectAppCluster() : configCluster();
-            useExistingApp = Objects.nonNull(cluster) && !parentMode &&
+            // todo: handle empty cluster cases
+            final boolean useExistingApp = Objects.nonNull(cluster) && !parentMode &&
                 this.wrapper.handleConfirm(String.format("Using existing app in Azure Spring Apps %s (y/N):", cluster.getName()), false, true);
             if (useExistingApp) {
                 selectApp(cluster);
@@ -276,9 +276,7 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private boolean notEnterpriseTier() {
-        final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(this.subscriptionId)
-            .get(this.clusterSettings.getClusterName(), this.clusterSettings.getResourceGroup());
-        return !(Objects.nonNull(cluster) && cluster.isEnterpriseTier());
+        return !Sku.fromString(this.clusterSettings.getSku()).isEnterpriseTier();
     }
 
     private void selectProjects() throws IOException, InvalidConfigurationException {
@@ -487,6 +485,7 @@ public class ConfigMojo extends AbstractMojoBase {
         if (targetAppCluster != null) {
             this.clusterSettings.setResourceGroup(targetAppCluster.getResourceGroupName());
             this.clusterSettings.setClusterName(targetAppCluster.getName());
+            this.clusterSettings.setSku(targetAppCluster.getSku().toString());
             log.info(String.format("Using Azure Spring Apps: %s", TextUtils.blue(targetAppCluster.getName())));
         }
         return targetAppCluster;

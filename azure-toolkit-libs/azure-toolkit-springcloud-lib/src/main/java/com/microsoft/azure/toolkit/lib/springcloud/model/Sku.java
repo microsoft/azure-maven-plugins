@@ -20,10 +20,10 @@ import java.util.Objects;
 public class Sku {
     public static final Sku BASIC = new Sku(SkuName.B0.toString(), "Basic");
     public static final Sku STANDARD = new Sku(SkuName.S0.toString(), "Standard");
-    public static final Sku PREMIUM = new Sku(SkuName.E0.toString(), "Premium");
+    public static final Sku ENTERPRISE = new Sku(SkuName.E0.toString(), "Enterprise");
     public static final Sku CONSUMPTION = new Sku(SkuName.S0.toString(), "StandardGen2");
     public static final Sku UNKNOWN = new Sku("Unknown", "Unknown");
-    public static final List<Sku> KNOWN_SKUS = Collections.unmodifiableList(Arrays.asList(BASIC, STANDARD, PREMIUM, CONSUMPTION));
+    public static final List<Sku> KNOWN_SKUS = Collections.unmodifiableList(Arrays.asList(BASIC, STANDARD, ENTERPRISE, CONSUMPTION));
     public static final String CONSUMPTION_DISPLAY_NAME = "Consumption";
 
     public static final Sku SPRING_APPS_DEFAULT_SKU = CONSUMPTION;
