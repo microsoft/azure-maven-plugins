@@ -104,6 +104,12 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final AzureString MODIFY_DEPLOYMENT_TITLE = toCreateDeployment ? CREATE_DEPLOYMENT_TITLE : UPDATE_DEPLOYMENT_TITLE;
 
         if (toCreateCluster) {
+            Optional.ofNullable(config.getResourceGroup()).filter(StringUtils::isNotBlank)
+                .orElseThrow(() -> new AzureToolkitRuntimeException("'resourceGroup' is required to create Azure Spring Apps"));
+            Optional.ofNullable(config.getCluster()).map(SpringCloudClusterConfig::getRegion).filter(StringUtils::isNotBlank)
+                .orElseThrow(() -> new AzureToolkitRuntimeException("'region' is required to create Azure Spring Apps"));
+            Optional.ofNullable(config.getCluster()).map(SpringCloudClusterConfig::getSku).filter(StringUtils::isNotBlank)
+                .orElseThrow(() -> new AzureToolkitRuntimeException("'sku' is required to create Azure Spring Apps"));
             tasks.add(new AzureTask<Void>(CREATE_CLUSTER_TITLE, () -> {
                 final SpringCloudClusterDraft draft = (SpringCloudClusterDraft) cluster;
                 final SpringCloudClusterDraft.Config config = getDraftConfig(DeploySpringCloudAppTask.this.config.getCluster());
