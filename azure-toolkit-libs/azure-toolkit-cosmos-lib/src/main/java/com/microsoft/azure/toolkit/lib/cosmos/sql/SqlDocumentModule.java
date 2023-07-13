@@ -119,7 +119,7 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
 
     @Override
     @Nullable
-    protected synchronized CosmosContainer getClient() {
+    protected CosmosContainer getClient() {
         return getParent().getClient();
     }
 

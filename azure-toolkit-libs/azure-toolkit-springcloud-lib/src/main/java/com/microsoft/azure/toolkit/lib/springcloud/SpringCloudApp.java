@@ -115,7 +115,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
     }
 
     @Nullable
-    public synchronized String getActiveDeploymentName() {
+    public String getActiveDeploymentName() {
         return Optional.ofNullable(this.getActiveDeployment()).map(AbstractAzResource::getName).orElse(null);
     }
 

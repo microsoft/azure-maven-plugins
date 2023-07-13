@@ -166,9 +166,10 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         if (updateDeployingProperties(update)) {
             final IAzureMessager messager = AzureMessager.getMessager();
             try {
-                messager.info(AzureString.format("Start deploying artifact to deployment({0})...", deployment.name()));
+                final File artifact = Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(config).artifact).getFile());
+                messager.info(AzureString.format("Start deploying artifact({0}) to deployment({1}) of app({2})...", artifact.getPath(), deployment.name()), this.getParent().getName());
                 deployment = update.apply();
-                messager.success(AzureString.format("Artifact is successfully deployed to deployment({0}).", deployment.name()));
+                messager.success(AzureString.format("Artifact({0}) is successfully deployed to deployment({1}) of app({2}).", artifact.getPath(), deployment.name(), this.getParent().getName()));
             } catch (final Exception e) {
                 final SpringCloudApp app = this.getParent();
                 app.refresh();
