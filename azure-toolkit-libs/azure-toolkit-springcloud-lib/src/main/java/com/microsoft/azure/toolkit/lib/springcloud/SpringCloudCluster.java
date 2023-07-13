@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.azure.core.management.Region;
 import com.azure.resourcemanager.appplatform.fluent.models.ServiceResourceInner;
 import com.azure.resourcemanager.appplatform.models.ClusterResourceProperties;
-import com.azure.resourcemanager.appplatform.models.SkuName;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.TestKeys;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
@@ -68,12 +67,12 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
 
     @Nullable
     public String getTestEndpoint() {
-        return Optional.ofNullable(this.getRemote()).map(SpringService::listTestKeys).map(TestKeys::primaryTestEndpoint).orElse(null);
+        return this.remoteOptional().map(SpringService::listTestKeys).map(TestKeys::primaryTestEndpoint).orElse(null);
     }
 
     @Nullable
     public String getTestKey() {
-        return Optional.ofNullable(this.getRemote()).map(SpringService::listTestKeys).map(TestKeys::primaryKey).orElse(null);
+        return this.remoteOptional().map(SpringService::listTestKeys).map(TestKeys::primaryKey).orElse(null);
     }
 
     @Nullable
@@ -83,30 +82,30 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
 
     @Nullable
     public Sku getSku() {
-        return Optional.ofNullable(this.getRemote()).map(SpringService::sku).map(Sku::new).orElse(null);
+        return this.remoteOptional().map(SpringService::sku).map(Sku::new).orElse(null);
     }
 
     @Nullable
     public String getManagedEnvironmentId() {
-        return Optional.ofNullable(this.getRemote()).map(SpringService::innerModel)
+        return this.remoteOptional().map(SpringService::innerModel)
             .map(ServiceResourceInner::properties)
             .map(ClusterResourceProperties::managedEnvironmentId).orElse(null);
     }
 
     public boolean isEnterpriseTier() {
-        return this.remoteOptional().map(SpringService::sku).filter(s -> s.name().equalsIgnoreCase(SkuName.E0.toString())).isPresent();
+        return Optional.ofNullable(this.getSku()).filter(Sku::isEnterpriseTier).isPresent();
     }
 
     public boolean isStandardTier() {
-        return this.remoteOptional().map(SpringService::sku).filter(s -> s.name().equalsIgnoreCase(SkuName.S0.toString())).isPresent();
+        return Optional.ofNullable(this.getSku()).filter(Sku::isStandardTier).isPresent();
     }
 
     public boolean isBasicTier() {
-        return this.remoteOptional().map(SpringService::sku).filter(s -> s.name().equalsIgnoreCase(SkuName.B0.toString())).isPresent();
+        return Optional.ofNullable(this.getSku()).filter(Sku::isBasicTier).isPresent();
     }
 
     public boolean isConsumptionTier() {
-        return this.remoteOptional().map(SpringService::sku).filter(s -> "StandardGen2".equalsIgnoreCase(s.tier())).isPresent();
+        return Optional.ofNullable(this.getSku()).filter(Sku::isConsumptionTier).isPresent();
     }
 
     @Nonnull

@@ -26,7 +26,7 @@ public class Sku {
     }
 
     public String getLabel() {
-        if (tier.equalsIgnoreCase("StandardGen2")) {
+        if ("StandardGen2".equalsIgnoreCase(tier)) {
             return "Standard Consumption & Dedicated (preview)";
         } else if (name.equalsIgnoreCase(SkuName.B0.toString())) {
             return "Basic";
@@ -39,7 +39,7 @@ public class Sku {
     }
 
     public int getOrdinal() {
-        if (tier.equalsIgnoreCase("StandardGen2")) {
+        if ("StandardGen2".equalsIgnoreCase(tier)) {
             return 0;
         } else if (name.equalsIgnoreCase(SkuName.B0.toString())) {
             return 1;
@@ -52,7 +52,7 @@ public class Sku {
     }
 
     public String getDescription() {
-        if (tier.equalsIgnoreCase("StandardGen2")) {
+        if ("StandardGen2".equalsIgnoreCase(tier)) {
             return "0 base price + actual usage, 400/1000 app instances max.";
         } else if (name.equalsIgnoreCase(SkuName.B0.toString())) {
             return "2 vCPUs, 4 Gi included, 25 app instances max.";
@@ -66,6 +66,18 @@ public class Sku {
 
     public boolean isEnterpriseTier() {
         return name.equalsIgnoreCase(SkuName.E0.toString());
+    }
+
+    public boolean isBasicTier() {
+        return name.equalsIgnoreCase(SkuName.B0.toString());
+    }
+
+    public boolean isStandardTier() {
+        return name.equalsIgnoreCase(SkuName.S0.toString());
+    }
+
+    public boolean isConsumptionTier() {
+        return "StandardGen2".equalsIgnoreCase(this.tier);
     }
 
     public com.azure.resourcemanager.appplatform.models.Sku toSku() {
