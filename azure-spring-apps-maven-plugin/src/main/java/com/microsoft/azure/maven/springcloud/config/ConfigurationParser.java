@@ -41,6 +41,8 @@ public class ConfigurationParser {
             .region(springMojo.getRegion())
             .subscriptionId(springMojo.getSubscriptionId())
             .sku(springMojo.getSku())
+            .environment(springMojo.getEnvironment())
+            .environmentResourceGroup(StringUtils.firstNonBlank(springMojo.getEnvironmentResourceGroup(), springMojo.getResourceGroup()))
             .build();
     }
 
