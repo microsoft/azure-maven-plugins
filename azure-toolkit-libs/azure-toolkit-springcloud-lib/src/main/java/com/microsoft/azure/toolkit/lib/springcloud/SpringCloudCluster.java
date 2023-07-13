@@ -81,9 +81,9 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
         return this.remoteOptional().map(Resource::region).orElse(null);
     }
 
-    @Nonnull
+    @Nullable
     public Sku getSku() {
-        return Optional.ofNullable(this.getRemote()).map(SpringService::sku).orElseGet(() -> new Sku().withName(SkuName.B0.toString()));
+        return Optional.ofNullable(this.getRemote()).map(SpringService::sku).orElse(null);
     }
 
     @Nullable

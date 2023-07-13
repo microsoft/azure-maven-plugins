@@ -127,7 +127,7 @@ public class SpringCloudClusterDraft extends SpringCloudCluster implements Draft
         return Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion);
     }
 
-    @Nonnull
+    @Nullable
     @Override
     public Sku getSku() {
         return Optional.ofNullable(config).map(Config::getSku).orElseGet(super::getSku);
