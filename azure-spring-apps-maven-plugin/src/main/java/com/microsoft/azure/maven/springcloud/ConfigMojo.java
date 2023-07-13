@@ -172,11 +172,11 @@ public class ConfigMojo extends AbstractMojoBase {
             promptAndSelectSubscription();
 
             // prompt to select existing cluster or create a new one
-            useExistingCluster = this.wrapper.handleConfirm("Using existing Azure Spring Apps in Azure (Y/n):", true, true);
+            useExistingCluster = this.wrapper.handleConfirm("Use existing Azure Spring Apps in Azure (Y/n):", true, true);
             final SpringCloudCluster cluster = useExistingCluster ? selectAppCluster() : configCluster();
             // todo: handle empty cluster cases
             final boolean useExistingApp = Objects.nonNull(cluster) && !parentMode &&
-                this.wrapper.handleConfirm(String.format("Using existing app in Azure Spring Apps %s (y/N):", cluster.getName()), false, true);
+                this.wrapper.handleConfirm(String.format("Use existing app in Azure Spring Apps %s (y/N):", cluster.getName()), false, true);
             if (useExistingApp) {
                 selectApp(cluster);
             } else {
@@ -237,7 +237,7 @@ public class ConfigMojo extends AbstractMojoBase {
         assert CollectionUtils.isNotEmpty(skus) : "No valid sku found in current subscription.";
         this.wrapper.putCommonVariable("skus", skus);
         final Sku defaultSku = skus.contains(Sku.SPRING_APPS_DEFAULT_SKU) ? Sku.SPRING_APPS_DEFAULT_SKU : skus.get(0);
-        final Sku result = autoUseDefault() ? defaultSku : this.wrapper.handleSelectOne("configure-sku", skus, defaultSku, Sku::toString);
+        final Sku result = this.wrapper.handleSelectOne("configure-sku", skus, defaultSku, Sku::toString);
         this.clusterSettings.setSku(result.toString());
         return result;
     }

@@ -26,7 +26,7 @@ default_index:    0
 
 ---
 id:               configure-cluster-name
-promote:          "Input the name of Azure Spring Apps (***${default_val}***):"
+promote:          "Input the Azure Spring Apps name (***${default_val}***):"
 default_val:      'cluster-${project.getArtifactId().replaceAll("[^-a-z0-9]", "").toLowerCase()}'
 resource:         Cluster
 property:         clusterName
