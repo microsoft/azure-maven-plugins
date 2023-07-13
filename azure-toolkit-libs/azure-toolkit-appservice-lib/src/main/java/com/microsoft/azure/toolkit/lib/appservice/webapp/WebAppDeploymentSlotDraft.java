@@ -10,7 +10,6 @@ import com.azure.core.util.Context;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
 import com.azure.resourcemanager.appservice.models.WebApp;
-import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
@@ -47,7 +46,7 @@ import static com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDraft.CAN_
 import static com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDraft.UNSUPPORTED_OPERATING_SYSTEM;
 
 @Slf4j
-public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements AzResource.Draft<WebAppDeploymentSlot, WebSiteBase> {
+public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements AzResource.Draft<WebAppDeploymentSlot, DeploymentSlot> {
     private static final String CREATE_NEW_DEPLOYMENT_SLOT = "createNewDeploymentSlot";
     public static final String CONFIGURATION_SOURCE_NEW = "new";
     public static final String CONFIGURATION_SOURCE_PARENT = "parent";
@@ -94,7 +93,7 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
         // Using configuration from parent by default
         final String source = StringUtils.isBlank(newConfigurationSource) ? CONFIGURATION_SOURCE_PARENT : StringUtils.lowerCase(newConfigurationSource);
 
-        final WebApp webApp = Objects.requireNonNull(this.getParent().getFullRemote());
+        final WebApp webApp = Objects.requireNonNull(this.getParent().getRemote());
         final DeploymentSlot.DefinitionStages.Blank blank = webApp.deploymentSlots().define(getName());
         final DeploymentSlot.DefinitionStages.WithCreate withCreate;
         if (CONFIGURATION_SOURCE_NEW.equals(source)) {
@@ -137,15 +136,14 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
     @Nonnull
     @Override
     @AzureOperation(name = "azure/webapp.update_deployment_slot.slot", params = {"this.getName()"})
-    public DeploymentSlot updateResourceInAzure(@Nonnull WebSiteBase base) {
-        DeploymentSlot remote = (DeploymentSlot) base;
+    public DeploymentSlot updateResourceInAzure(@Nonnull DeploymentSlot remote) {
         final Map<String, String> oldAppSettings = Utils.normalizeAppSettings(remote.getAppSettings());
         final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();
         if (ObjectUtils.allNotNull(oldAppSettings, settingsToAdd)) {
             settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
         }
         final Set<String> settingsToRemove = Optional.ofNullable(this.ensureConfig().getAppSettingsToRemove())
-                .map(set -> set.stream().filter(key -> oldAppSettings.containsKey(key)).collect(Collectors.toSet()))
+                .map(set -> set.stream().filter(oldAppSettings::containsKey).collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
         final Runtime newRuntime = this.ensureConfig().getRuntime();
         final DockerConfiguration newDockerConfig = this.ensureConfig().getDockerConfiguration();

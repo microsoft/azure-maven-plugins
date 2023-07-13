@@ -55,14 +55,14 @@ public abstract class AppServiceAppBase<
     T extends AppServiceAppBase<T, P, F>,
     P extends AbstractAzResource<P, ?, ?>,
     F extends WebAppBase>
-    extends AbstractAzResource<T, P, WebSiteBase> implements Startable, Deletable, StreamingLogSupport {
+    extends AbstractAzResource<T, P, F> implements Startable, Deletable, StreamingLogSupport {
     protected AppServiceKuduClient kuduManager;
 
-    protected AppServiceAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, WebSiteBase> module) {
+    protected AppServiceAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, F> module) {
         super(name, resourceGroupName, module);
     }
 
-    protected AppServiceAppBase(@Nonnull String name, @Nonnull AbstractAzResourceModule<T, P, WebSiteBase> module) {
+    protected AppServiceAppBase(@Nonnull String name, @Nonnull AbstractAzResourceModule<T, P, F> module) {
         super(name, module);
     }
 
@@ -74,34 +74,20 @@ public abstract class AppServiceAppBase<
         this.kuduManager = origin.kuduManager;
     }
 
-    @Nullable
-    public synchronized F getFullRemote() {
-        WebSiteBase remote = this.getRemote();
-        if (Objects.nonNull(remote) && !(remote instanceof WebAppBase)) {
-            this.invalidateCache();
-            remote = this.getRemote();
-        }
-        if (!(remote instanceof WebAppBase)) {
-            return null;
-        }
-        //noinspection unchecked
-        return (F) remote;
-    }
-
     // MODIFY
     @AzureOperation(name = "azure/resource.start_resource.resource", params = {"this.getName()"})
     public void start() {
-        this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).start(), AzResource.Status.STARTING);
+        this.doModify(() -> Objects.requireNonNull(this.getRemote()).start(), AzResource.Status.STARTING);
     }
 
     @AzureOperation(name = "azure/resource.stop_resource.resource", params = {"this.getName()"})
     public void stop() {
-        this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).stop(), AzResource.Status.STOPPING);
+        this.doModify(() -> Objects.requireNonNull(this.getRemote()).stop(), AzResource.Status.STOPPING);
     }
 
     @AzureOperation(name = "azure/resource.restart_resource.resource", params = {"this.getName()"})
     public void restart() {
-        this.doModify(() -> Objects.requireNonNull(this.getFullRemote()).restart(), AzResource.Status.RESTARTING);
+        this.doModify(() -> Objects.requireNonNull(this.getRemote()).restart(), AzResource.Status.RESTARTING);
     }
 
     @Nullable
@@ -120,22 +106,22 @@ public abstract class AppServiceAppBase<
 
     @Nullable
     public String getLinuxFxVersion() {
-        return Optional.ofNullable(this.getFullRemote()).map(WebAppBase::linuxFxVersion).orElse(null);
+        return Optional.ofNullable(this.getRemote()).map(WebAppBase::linuxFxVersion).orElse(null);
     }
 
     @Nullable
     public PublishingProfile getPublishingProfile() {
-        return Optional.ofNullable(this.getFullRemote()).map(WebAppBase::getPublishingProfile).map(AppServiceUtils::fromPublishingProfile).orElse(null);
+        return Optional.ofNullable(this.getRemote()).map(WebAppBase::getPublishingProfile).map(AppServiceUtils::fromPublishingProfile).orElse(null);
     }
 
     @Nullable
     public DiagnosticConfig getDiagnosticConfig() {
-        return Optional.ofNullable(this.getFullRemote()).map(WebAppBase::diagnosticLogsConfig).map(AppServiceUtils::fromWebAppDiagnosticLogs).orElse(null);
+        return Optional.ofNullable(this.getRemote()).map(WebAppBase::diagnosticLogsConfig).map(AppServiceUtils::fromWebAppDiagnosticLogs).orElse(null);
     }
 
     @Override
     public Flux<String> streamingLogs(boolean follow, @Nonnull Map<String, String> params) {
-        return Optional.ofNullable(this.getFullRemote()).map(WebAppBase::streamAllLogsAsync).orElseGet(Flux::empty);
+        return Optional.ofNullable(this.getRemote()).map(WebAppBase::streamAllLogsAsync).orElseGet(Flux::empty);
     }
 
     @Nonnull
@@ -180,7 +166,7 @@ public abstract class AppServiceAppBase<
         final String resourceName = StringUtils.equals(resourceId.resourceType(), "slots") ?
             String.format("%s/slots/%s", resourceId.parent().name(), resourceId.name()) : resourceId.name();
         final CsmPublishingProfileOptions csmPublishingProfileOptions = new CsmPublishingProfileOptions().withFormat(PublishingProfileFormat.FTP);
-        return Objects.requireNonNull(getFullRemote()).manager().serviceClient().getWebApps()
+        return Objects.requireNonNull(getRemote()).manager().serviceClient().getWebApps()
             .listPublishingProfileXmlWithSecrets(resourceId.resourceGroupName(), resourceName, csmPublishingProfileOptions).toStream();
     }
 
@@ -202,17 +188,17 @@ public abstract class AppServiceAppBase<
 
     @Nullable
     public Map<String, String> getAppSettings() {
-        return Optional.ofNullable(this.getFullRemote()).map(WebAppBase::getAppSettings).map(Utils::normalizeAppSettings).orElse(null);
+        return Optional.ofNullable(this.getRemote()).map(WebAppBase::getAppSettings).map(Utils::normalizeAppSettings).orElse(null);
     }
 
     @Nullable
     public Runtime getRuntime() {
-        return Optional.ofNullable(this.getFullRemote()).map(AppServiceUtils::getRuntimeFromAppService).orElse(null);
+        return Optional.ofNullable(this.getRemote()).map(AppServiceUtils::getRuntimeFromAppService).orElse(null);
     }
 
     @Nonnull
     @Override
-    protected String loadStatus(@Nonnull WebSiteBase remote) {
+    protected String loadStatus(@Nonnull WebAppBase remote) {
         return remote.state();
     }
 
@@ -229,12 +215,17 @@ public abstract class AppServiceAppBase<
     @Nullable
     protected AppServiceKuduClient getKuduManager() {
         if (kuduManager == null) {
-            kuduManager = Optional.ofNullable(this.getFullRemote()).map(r -> AppServiceKuduClient.getClient(r, this)).orElse(null);
+            kuduManager = Optional.ofNullable(this.getRemote()).map(r -> AppServiceKuduClient.getClient(r, this)).orElse(null);
         }
         return kuduManager;
     }
 
     public boolean isStreamingLogSupported() {
         return false;
+    }
+
+    @Override
+    protected void setRemote(F remote) {
+        super.setRemote(remote);
     }
 }

@@ -6,23 +6,24 @@
 package com.microsoft.azure.toolkit.lib.appservice.webapp;
 
 import com.azure.resourcemanager.appservice.AppServiceManager;
-import com.azure.resourcemanager.appservice.models.WebAppBasic;
 import com.azure.resourcemanager.appservice.models.WebApps;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceModule;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
-import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
-public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceServiceSubscription, WebSiteBase> {
+public class WebAppModule extends AppServiceResourceModule<WebApp, AppServiceServiceSubscription, com.azure.resourcemanager.appservice.models.WebApp> {
 
     public static final String NAME = "sites";
 
@@ -49,8 +50,8 @@ public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceSer
 
     @Nonnull
     @Override
-    protected WebApp newResource(@Nonnull WebSiteBase remote) {
-        return new WebApp((WebAppBasic) remote, this);
+    protected WebApp newResource(@Nonnull com.azure.resourcemanager.appservice.models.WebApp remote) {
+        return new WebApp(remote, this);
     }
 
     @Nonnull
@@ -65,17 +66,10 @@ public class WebAppModule extends AbstractAzResourceModule<WebApp, AppServiceSer
         return "Web app";
     }
 
-    @Nonnull
     @Override
-    public WebApp update(@Nonnull AzResource.Draft<WebApp, ?> d) {
-        final AzResource.Draft<FunctionApp, WebSiteBase> draft = this.cast(d);
-        log.debug("[{}]:update(draft:{})", this.getName(), draft);
-        final WebApp resource = this.get(draft.getName(), draft.getResourceGroupName());
-        if (Objects.nonNull(resource) && Objects.nonNull(resource.getRemote())) {
-            log.debug("[{}]:update->doModify(draft.updateResourceInAzure({}))", this.getName(), resource.getRemote());
-            resource.doModify(() -> draft.updateResourceInAzure(Objects.requireNonNull(resource.getFullRemote())), AzResource.Status.UPDATING);
-            return resource;
-        }
-        throw new AzureToolkitRuntimeException(String.format("resource \"%s\" doesn't exist", draft.getName()));
+    protected List<String> loadResourceIdsFromAzure() {
+        return Optional.ofNullable(getClient())
+            .map(client -> client.list().stream().map(WebSiteBase::id).collect(Collectors.toList()))
+            .orElse(Collections.emptyList());
     }
 }

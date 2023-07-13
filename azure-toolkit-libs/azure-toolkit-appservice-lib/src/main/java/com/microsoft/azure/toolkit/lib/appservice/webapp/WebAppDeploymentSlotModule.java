@@ -5,23 +5,21 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.webapp;
 
+import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.DeploymentSlots;
-import com.azure.resourcemanager.appservice.models.WebDeploymentSlotBasic;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceModule;
 import com.microsoft.azure.toolkit.lib.appservice.IDeploymentSlotModule;
-import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
-import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-public class WebAppDeploymentSlotModule extends AbstractAzResourceModule<WebAppDeploymentSlot, WebApp, WebSiteBase>
-        implements IDeploymentSlotModule<WebAppDeploymentSlot, WebApp, WebSiteBase> {
+public class WebAppDeploymentSlotModule extends AppServiceResourceModule<WebAppDeploymentSlot, WebApp, DeploymentSlot>
+        implements IDeploymentSlotModule<WebAppDeploymentSlot, WebApp, DeploymentSlot> {
 
     public static final String NAME = "slots";
 
@@ -31,7 +29,7 @@ public class WebAppDeploymentSlotModule extends AbstractAzResourceModule<WebAppD
 
     @Override
     public DeploymentSlots getClient() {
-        return Optional.ofNullable(this.parent.getFullRemote()).map(com.azure.resourcemanager.appservice.models.WebApp::deploymentSlots).orElse(null);
+        return Optional.ofNullable(this.parent.getRemote()).map(com.azure.resourcemanager.appservice.models.WebApp::deploymentSlots).orElse(null);
     }
 
     @Nonnull
@@ -48,8 +46,8 @@ public class WebAppDeploymentSlotModule extends AbstractAzResourceModule<WebAppD
 
     @Nonnull
     @Override
-    protected WebAppDeploymentSlot newResource(@Nonnull WebSiteBase remote) {
-        return new WebAppDeploymentSlot((WebDeploymentSlotBasic) remote, this);
+    protected WebAppDeploymentSlot newResource(@Nonnull DeploymentSlot remote) {
+        return new WebAppDeploymentSlot(remote, this);
     }
 
     @Nonnull
@@ -64,4 +62,10 @@ public class WebAppDeploymentSlotModule extends AbstractAzResourceModule<WebAppD
         return "Deployment slot";
     }
 
+    @Override
+    protected List<String> loadResourceIdsFromAzure() {
+        return Optional.ofNullable(getClient())
+            .map(client -> client.list().stream().map(WebSiteBase::id).collect(Collectors.toList()))
+            .orElse(Collections.emptyList());
+    }
 }

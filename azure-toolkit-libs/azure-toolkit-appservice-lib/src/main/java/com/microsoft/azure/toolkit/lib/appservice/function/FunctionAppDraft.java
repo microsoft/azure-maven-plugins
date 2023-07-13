@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.appservice.function;
 import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages;
 import com.azure.resourcemanager.appservice.models.FunctionApp.Update;
-import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
@@ -43,7 +42,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<FunctionApp, WebSiteBase> {
+public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<FunctionApp, com.azure.resourcemanager.appservice.models.FunctionApp> {
     private static final String CREATE_NEW_FUNCTION_APP = "isCreateNewFunctionApp";
     public static final String FUNCTIONS_EXTENSION_VERSION = "FUNCTIONS_EXTENSION_VERSION";
     public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_17;
@@ -169,8 +168,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     @Nonnull
     @Override
     @AzureOperation(name = "azure/function.update_app.app", params = {"this.getName()"})
-    public com.azure.resourcemanager.appservice.models.FunctionApp updateResourceInAzure(@Nonnull WebSiteBase base) {
-        com.azure.resourcemanager.appservice.models.FunctionApp remote = (com.azure.resourcemanager.appservice.models.FunctionApp) base;
+    public com.azure.resourcemanager.appservice.models.FunctionApp updateResourceInAzure(@Nonnull com.azure.resourcemanager.appservice.models.FunctionApp remote) {
         assert origin != null : "updating target is not specified.";
         final Map<String, String> oldAppSettings = Objects.requireNonNull(origin.getAppSettings());
         final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();
@@ -178,7 +176,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
         }
         final Set<String> settingsToRemove = Optional.ofNullable(this.ensureConfig().getAppSettingsToRemove())
-                .map(set -> set.stream().filter(key -> oldAppSettings.containsKey(key)).collect(Collectors.toSet()))
+                .map(set -> set.stream().filter(oldAppSettings::containsKey).collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
         final Runtime newRuntime = this.ensureConfig().getRuntime();

@@ -10,7 +10,6 @@ import com.azure.core.util.Context;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
 import com.azure.resourcemanager.appservice.models.FunctionApp;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
-import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
@@ -48,7 +47,7 @@ import static com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDra
 
 @Slf4j
 public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
-    implements AzResource.Draft<FunctionAppDeploymentSlot, WebSiteBase> {
+    implements AzResource.Draft<FunctionAppDeploymentSlot, FunctionDeploymentSlot> {
     private static final String CREATE_NEW_DEPLOYMENT_SLOT = "createNewDeploymentSlot";
     public static final String CONFIGURATION_SOURCE_NEW = "new";
     public static final String CONFIGURATION_SOURCE_PARENT = "parent";
@@ -94,7 +93,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         // Using configuration from parent by default
         final String source = StringUtils.isBlank(newConfigurationSource) ? CONFIGURATION_SOURCE_PARENT : StringUtils.lowerCase(newConfigurationSource);
 
-        final FunctionApp functionApp = Objects.requireNonNull(this.getParent().getFullRemote());
+        final FunctionApp functionApp = Objects.requireNonNull(this.getParent().getRemote());
         final FunctionDeploymentSlot.DefinitionStages.Blank blank = functionApp.deploymentSlots().define(getName());
         final FunctionDeploymentSlot.DefinitionStages.WithCreate withCreate;
         if (CONFIGURATION_SOURCE_NEW.equals(source)) {
@@ -121,7 +120,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         messager.info(AzureString.format("Start creating Function App deployment slot ({0})...", name));
         // workaround to resolve slot creation exception could not be caught by azure operation
         // todo: add unified error handling for reactor
-        final Consumer<Throwable> throwableConsumer = error -> messager.error(error);
+        final Consumer<Throwable> throwableConsumer = messager::error;
         final Context context = new Context("reactor.onErrorDropped.local", throwableConsumer);
         FunctionDeploymentSlot slot = withCreate.create(context);
         final Runtime runtime = this.getRuntime();
@@ -143,8 +142,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
     @Nonnull
     @Override
     @AzureOperation(name = "azure/function.update_deployment_slot.slot", params = {"this.getName()"})
-    public FunctionDeploymentSlot updateResourceInAzure(@Nonnull WebSiteBase base) {
-        FunctionDeploymentSlot remote = (FunctionDeploymentSlot) base;
+    public FunctionDeploymentSlot updateResourceInAzure(@Nonnull FunctionDeploymentSlot remote) {
         final Map<String, String> oldAppSettings = Utils.normalizeAppSettings(remote.getAppSettings());
         final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();
         if (ObjectUtils.allNotNull(oldAppSettings, settingsToAdd)) {
