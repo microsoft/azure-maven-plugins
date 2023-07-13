@@ -9,7 +9,6 @@ import com.azure.core.management.Region;
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.azure.resourcemanager.appplatform.fluent.models.ServiceResourceInner;
 import com.azure.resourcemanager.appplatform.models.ClusterResourceProperties;
-import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -17,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupDraft;
+import com.microsoft.azure.toolkit.lib.springcloud.model.Sku;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -82,7 +82,7 @@ public class SpringCloudClusterDraft extends SpringCloudCluster implements Draft
             .withManagedEnvironmentId(this.getManagedEnvironmentId());
         final ServiceResourceInner resource = new ServiceResourceInner()
             .withLocation(region.toString())
-            .withSku(this.getSku())
+            .withSku(Optional.ofNullable(this.getSku()).map(Sku::toSku).orElse(null))
             .withProperties(properties);
         manager.serviceClient().getServices().createOrUpdate(this.getResourceGroupName(), this.getName(), resource);
         messager.success(AzureString.format("Spring apps ({0}) is successfully created.", serviceName));
