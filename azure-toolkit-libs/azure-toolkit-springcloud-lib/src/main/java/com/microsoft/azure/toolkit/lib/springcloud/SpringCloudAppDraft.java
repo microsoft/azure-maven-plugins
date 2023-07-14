@@ -133,7 +133,8 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
             final String newActiveDeploymentName = this.getActiveDeploymentName();
             final boolean newPublicEndpointEnabled = this.isPublicEndpointEnabled();
             final Integer newDiskSize = this.isPersistentDiskEnabled() ? this.getParent().isStandardTier() ? STANDARD_TIER_DEFAULT_DISK_SIZE : BASIC_TIER_DEFAULT_DISK_SIZE : null;
-            final PersistentDisk newDisk = this.isPersistentDiskEnabled() ? new PersistentDisk().withSizeInGB(newDiskSize).withMountPath(DEFAULT_DISK_MOUNT_PATH) : null;
+            final PersistentDisk newDisk = this.isPersistentDiskEnabled() ? new PersistentDisk().withSizeInGB(newDiskSize).withMountPath(DEFAULT_DISK_MOUNT_PATH) :
+                new PersistentDisk().withSizeInGB(0).withMountPath(DEFAULT_DISK_MOUNT_PATH);
 
             final AppResourceInner appResource = new AppResourceInner()
                 .withProperties(new AppResourceProperties()
@@ -143,8 +144,8 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating app({0})...", origin.name()));
             final SpringService service = origin.parent();
-            if(!Objects.equals(super.isPublicEndpointEnabled(), newPublicEndpointEnabled) ||
-                !Objects.equals(super.isPersistentDiskEnabled(), this.isPersistentDiskEnabled())){
+            if (!Objects.equals(super.isPublicEndpointEnabled(), newPublicEndpointEnabled) ||
+                !Objects.equals(super.isPersistentDiskEnabled(), this.isPersistentDiskEnabled())) {
                 service.manager().serviceClient().getApps().createOrUpdate(this.getResourceGroupName(), service.name(), origin.name(), appResource);
             }
             if (!Objects.equals(oldActiveDeploymentName, newActiveDeploymentName) && StringUtils.isNotBlank(newActiveDeploymentName)) {
@@ -219,7 +220,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     @Nonnull
     public synchronized SpringCloudDeploymentDraft updateOrCreateActiveDeployment() {
         final SpringCloudDeployment deployment = this.getActiveDeployment();
-        SpringCloudDeploymentDraft deploymentDraft;
+        final SpringCloudDeploymentDraft deploymentDraft;
         if (Objects.isNull(deployment)) {
             deploymentDraft = this.deployments().create(Optional.ofNullable(this.getActiveDeploymentName()).orElse("default"), null);
         } else if (!deployment.isDraft()) {
