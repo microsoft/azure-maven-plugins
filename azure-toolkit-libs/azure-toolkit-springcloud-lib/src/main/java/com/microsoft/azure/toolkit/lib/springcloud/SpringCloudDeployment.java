@@ -181,8 +181,7 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
         if (this.getParent().getParent().isConsumptionTier()) {
             return this.remoteOptional().map(r -> r.innerModel().properties().deploymentSettings().scale().maxReplicas()).orElse(null);
         }
-        return this.remoteOptional().map(r -> r.parent().parent()).map(s -> s.sku().capacity())
-            .orElseGet(() -> this.remoteOptional().map(SpringAppDeployment::instances).map(List::size).orElse(null));
+        return this.remoteOptional().map(SpringAppDeployment::instances).map(List::size).orElse(null);
     }
 
     @Nonnull
