@@ -255,36 +255,30 @@ public interface AzResource extends Refreshable {
         AzResourceModule<T> getModule();
 
         default T commit() {
-            synchronized (this) {
-                final boolean existing = this.getModule().exists(this.getName(), this.getResourceGroupName());
-                final T result = existing ? this.getModule().update(this) : this.getModule().create(this);
-                this.reset();
-                return result;
-            }
+            final boolean existing = this.getModule().exists(this.getName(), this.getResourceGroupName());
+            final T result = existing ? this.getModule().update(this) : this.getModule().create(this);
+            this.reset();
+            return result;
         }
 
         void reset();
 
         @Nonnull
         default T createIfNotExist() {
-            synchronized (this) {
-                final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
-                if (Objects.isNull(origin) || !origin.exists()) {
-                    return this.getModule().create(this);
-                }
-                return origin;
+            final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
+            if (Objects.isNull(origin) || !origin.exists()) {
+                return this.getModule().create(this);
             }
+            return origin;
         }
 
         @Nullable
         default T updateIfExist() {
-            synchronized (this) {
-                final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
-                if (Objects.nonNull(origin) && origin.exists()) {
-                    return this.getModule().update(this);
-                }
-                return origin;
+            final T origin = this.getModule().get(this.getName(), this.getResourceGroupName());
+            if (Objects.nonNull(origin) && origin.exists()) {
+                return this.getModule().update(this);
             }
+            return origin;
         }
 
         @Nonnull

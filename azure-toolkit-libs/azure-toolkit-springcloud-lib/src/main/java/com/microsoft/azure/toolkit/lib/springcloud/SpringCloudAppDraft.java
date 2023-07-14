@@ -218,7 +218,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     }
 
     @Nonnull
-    public synchronized SpringCloudDeploymentDraft updateOrCreateActiveDeployment() {
+    public SpringCloudDeploymentDraft updateOrCreateActiveDeployment() {
         final SpringCloudDeployment deployment = this.getActiveDeployment();
         final SpringCloudDeploymentDraft deploymentDraft;
         if (Objects.isNull(deployment)) {

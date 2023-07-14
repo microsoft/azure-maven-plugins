@@ -259,7 +259,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
 
     @Nullable
     @Override
-    public synchronized Object invoke(Object proxy, @Nonnull Method method, Object[] args) throws Throwable {
+    public Object invoke(Object proxy, @Nonnull Method method, Object[] args) throws Throwable {
         args = ObjectUtils.firstNonNull(args, new Object[0]);
         if (method.getName().startsWith("set")) {
             synchronized (this) {
