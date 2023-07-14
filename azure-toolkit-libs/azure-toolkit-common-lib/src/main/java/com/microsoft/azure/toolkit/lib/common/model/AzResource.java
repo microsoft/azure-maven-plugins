@@ -154,7 +154,7 @@ public interface AzResource extends Refreshable {
         }
 
         public boolean isWaiting() {
-            return this.isWriting() || this.isDeleting() || this == READING;
+            return this.isWriting() || this.isDeleting() || this.isCreating() || this.isReading();
         }
 
         public boolean isUnknown() {
