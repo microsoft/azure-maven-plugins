@@ -174,22 +174,22 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         final FlexConsumptionConfiguration oldFlexConsumptionConfiguration = origin.getFlexConsumptionConfiguration();
 
         final Runtime oldRuntime = AppServiceUtils.getRuntimeFromAppService(remote);
-        boolean isRuntimeModified =  !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
-        boolean isDockerConfigurationModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
-        boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
-        boolean isDiagnosticConfigModified = Objects.nonNull(newDiagnosticConfig) && !Objects.equals(newDiagnosticConfig, oldDiagnosticConfig);
-        boolean flexConsumptionModified = getAppServicePlan().getPricingTier().isFlexConsumption() &&
+        final boolean isRuntimeModified =  !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
+        final boolean isDockerConfigurationModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
+        final boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
+        final boolean isDiagnosticConfigModified = Objects.nonNull(newDiagnosticConfig) && !Objects.equals(newDiagnosticConfig, oldDiagnosticConfig);
+        final boolean flexConsumptionModified = getAppServicePlan().getPricingTier().isFlexConsumption() &&
             Objects.nonNull(newFlexConsumptionConfiguration) && !Objects.equals(newFlexConsumptionConfiguration, oldFlexConsumptionConfiguration);
-        boolean modified = isDiagnosticConfigModified || isAppSettingsModified || isRuntimeModified || isDockerConfigurationModified || flexConsumptionModified;
+        final boolean modified = isDiagnosticConfigModified || isAppSettingsModified || isRuntimeModified || isDockerConfigurationModified || flexConsumptionModified;
 
         if (modified) {
             final DeploymentSlotBase.Update<FunctionDeploymentSlot> update = remote.update();
-            Optional.ofNullable(settingsToAdd).ifPresent(update::withAppSettings);
-            Optional.ofNullable(settingsToRemove).ifPresent(s -> s.forEach(update::withoutAppSetting));
-            Optional.ofNullable(newRuntime).ifPresent(r -> updateRuntime(update, r));
-            Optional.ofNullable(newDockerConfig)
+            Optional.ofNullable(settingsToAdd).filter(ignore -> isAppSettingsModified).ifPresent(update::withAppSettings);
+            Optional.ofNullable(settingsToRemove).filter(ignore -> isAppSettingsModified).ifPresent(s -> s.forEach(update::withoutAppSetting));
+            Optional.ofNullable(newRuntime).filter(ignore -> isRuntimeModified).ifPresent(r -> updateRuntime(update, r));
+            Optional.ofNullable(newDockerConfig).filter(ignore -> isDockerConfigurationModified)
                     .ifPresent(dockerConfiguration -> updateDockerConfiguration(update, dockerConfiguration));
-            Optional.ofNullable(newDiagnosticConfig)
+            Optional.ofNullable(newDiagnosticConfig).filter(ignore -> isDiagnosticConfigModified)
                     .ifPresent(diagnosticConfig -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, diagnosticConfig));
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating Function App deployment slot({0})...", remote.name()));

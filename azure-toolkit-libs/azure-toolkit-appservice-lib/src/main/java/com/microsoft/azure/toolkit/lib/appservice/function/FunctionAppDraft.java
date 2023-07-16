@@ -201,6 +201,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         final Set<String> settingsToRemove = Optional.ofNullable(this.ensureConfig().getAppSettingsToRemove())
                 .map(set -> set.stream().filter(oldAppSettings::containsKey).collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
+        final DiagnosticConfig oldDiagnosticConfig = super.getDiagnosticConfig();
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
         final Runtime newRuntime = this.ensureConfig().getRuntime();
         final AppServicePlan newPlan = this.ensureConfig().getPlan();
@@ -216,18 +217,20 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         final boolean dockerModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
         final boolean flexConsumptionModified = getAppServicePlan().getPricingTier().isFlexConsumption() &&
             Objects.nonNull(newFlexConsumptionConfiguration) && !Objects.equals(newFlexConsumptionConfiguration, oldFlexConsumptionConfiguration);
+        final boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
+        final boolean isDiagnosticConfigModified = Objects.nonNull(newDiagnosticConfig) && !Objects.equals(newDiagnosticConfig, oldDiagnosticConfig);
         final boolean modified = planModified || runtimeModified || dockerModified || flexConsumptionModified ||
-            MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove) || Objects.nonNull(newDiagnosticConfig) || Objects.nonNull(storageAccount);
+            isAppSettingsModified || Objects.nonNull(newDiagnosticConfig) || Objects.nonNull(storageAccount);
         final String funcExtVersion = Optional.ofNullable(settingsToAdd).map(map -> map.get(FUNCTIONS_EXTENSION_VERSION))
                 .orElseGet(() -> oldAppSettings.get(FUNCTIONS_EXTENSION_VERSION));
         if (modified) {
             final Update update = remote.update();
-            Optional.ofNullable(newPlan).ifPresent(p -> updateAppServicePlan(update, p));
-            Optional.ofNullable(newRuntime).ifPresent(p -> updateRuntime(update, p, funcExtVersion));
-            Optional.ofNullable(settingsToAdd).ifPresent(update::withAppSettings);
-            Optional.of(settingsToRemove).filter(CollectionUtils::isNotEmpty).ifPresent(s -> s.forEach(update::withoutAppSetting));
-            Optional.ofNullable(newDockerConfig).ifPresent(p -> updateDockerConfiguration(update, p));
-            Optional.ofNullable(newDiagnosticConfig).ifPresent(c -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, c));
+            Optional.ofNullable(newPlan).filter(ignore -> planModified).ifPresent(p -> updateAppServicePlan(update, p));
+            Optional.ofNullable(newRuntime).filter(ignore -> runtimeModified).ifPresent(p -> updateRuntime(update, p, funcExtVersion));
+            Optional.ofNullable(settingsToAdd).filter(ignore -> isAppSettingsModified).ifPresent(update::withAppSettings);
+            Optional.of(settingsToRemove).filter(CollectionUtils::isNotEmpty).filter(ignore -> isAppSettingsModified).ifPresent(s -> s.forEach(update::withoutAppSetting));
+            Optional.ofNullable(newDockerConfig).filter(ignore -> dockerModified).ifPresent(p -> updateDockerConfiguration(update, p));
+            Optional.ofNullable(newDiagnosticConfig).filter(ignore -> isDiagnosticConfigModified).ifPresent(c -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, c));
             Optional.ofNullable(storageAccount).ifPresent(s -> update.withExistingStorageAccount(s.getRemote()));
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating Function App({0})...", remote.name()));
