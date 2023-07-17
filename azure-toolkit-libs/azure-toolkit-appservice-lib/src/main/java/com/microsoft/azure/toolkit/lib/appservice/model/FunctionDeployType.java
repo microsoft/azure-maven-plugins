@@ -15,7 +15,9 @@ public enum FunctionDeployType {
     ZIP,
     MSDEPLOY,
     RUN_FROM_ZIP,
-    RUN_FROM_BLOB;
+    RUN_FROM_BLOB,
+
+    FLEX;
 
     private static final String UNKNOWN_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown.";
 

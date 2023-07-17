@@ -39,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import reactor.core.publisher.Flux;
@@ -202,7 +203,8 @@ public abstract class Account implements IAccount {
         this.config.setSelectedSubscriptions(selectedSubscriptionIds);
         AzureEventBus.emit("account.subscription_changed.account", this);
         final AzureTaskManager manager = AzureTaskManager.getInstance();
-        if (Objects.nonNull(manager)) {
+        final Boolean enablePreloading = Azure.az().config().getEnablePreloading();
+        if (Objects.nonNull(manager) && BooleanUtils.isTrue(enablePreloading)) {
             manager.runOnPooledThread(Preloader::load);
         }
     }

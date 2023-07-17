@@ -9,6 +9,7 @@ import com.azure.resourcemanager.appservice.models.PlatformArchitecture;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.deploy.FTPFunctionDeployHandler;
+import com.microsoft.azure.toolkit.lib.appservice.deploy.FlexFunctionDeployHandler;
 import com.microsoft.azure.toolkit.lib.appservice.deploy.IFunctionDeployHandler;
 import com.microsoft.azure.toolkit.lib.appservice.deploy.MSFunctionDeployHandler;
 import com.microsoft.azure.toolkit.lib.appservice.deploy.RunFromBlobFunctionDeployHandler;
@@ -17,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.appservice.deploy.ZIPFunctionDeployHandle
 import com.microsoft.azure.toolkit.lib.appservice.file.AzureFunctionsAdminClient;
 import com.microsoft.azure.toolkit.lib.appservice.file.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
+import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
@@ -72,7 +74,7 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
 
     public void deploy(File targetFile, FunctionDeployType functionDeployType) {
         OperationContext.action().setTelemetryProperty(FUNCTION_DEPLOY_TYPE, functionDeployType.name());
-        getDeployHandlerByType(functionDeployType).deploy(targetFile, getRemote());
+        getDeployHandlerByType(functionDeployType).deploy(targetFile, this);
     }
 
     protected AzureFunctionsAdminClient getAdminClient() {
@@ -91,6 +93,9 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
     protected FunctionDeployType getDefaultDeployType() {
         final PricingTier pricingTier = Optional.ofNullable(getAppServicePlan()).map(AppServicePlan::getPricingTier).orElse(PricingTier.PREMIUM_P1V2);
         final OperatingSystem os = Optional.ofNullable(getRuntime()).map(Runtime::getOperatingSystem).orElse(OperatingSystem.LINUX);
+        if (pricingTier.isFlexConsumption()) {
+            return FunctionDeployType.FLEX;
+        }
         if (os == OperatingSystem.WINDOWS) {
             return FunctionDeployType.RUN_FROM_ZIP;
         }
@@ -100,6 +105,8 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
 
     protected IFunctionDeployHandler getDeployHandlerByType(final FunctionDeployType deployType) {
         switch (deployType) {
+            case FLEX:
+                return new FlexFunctionDeployHandler();
             case FTP:
                 return new FTPFunctionDeployHandler();
             case ZIP:
@@ -159,6 +166,11 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
             }
         }
         return String.join(" ", jvmOptions);
+    }
+
+    @Nullable
+    public FlexConsumptionConfiguration getFlexConsumptionConfiguration() {
+        return Optional.ofNullable(this.getFullRemote()).map(FlexConsumptionConfiguration::fromWebAppBase).orElse(null);
     }
 
     @Override

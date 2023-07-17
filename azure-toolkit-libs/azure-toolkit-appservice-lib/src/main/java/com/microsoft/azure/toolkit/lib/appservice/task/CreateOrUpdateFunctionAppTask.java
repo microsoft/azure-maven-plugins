@@ -31,6 +31,12 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
+import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.StorageAccountDraft;
+import com.microsoft.azure.toolkit.lib.storage.StorageAccountModule;
+import com.microsoft.azure.toolkit.lib.storage.model.Kind;
+import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -58,13 +64,14 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
     private static final String FUNCTION_APP_NOT_EXIST_FOR_SLOT = "The Function App specified in pom.xml does not exist. " +
             "Please make sure the Function App name is correct.";
 
-    public static final JavaVersion DEFAULT_FUNCTION_JAVA_VERSION = JavaVersion.JAVA_17;
+    public static final JavaVersion DEFAULT_FUNCTION_JAVA_VERSION = Runtime.DEFAULT_FUNCTION_RUNTIME.getJavaVersion();
 
     private final FunctionAppConfig functionAppConfig;
     private final List<AzureTask<?>> tasks = new ArrayList<>();
 
     private ResourceGroup resourceGroup;
     private AppServicePlan appServicePlan;
+    private StorageAccount storageAccount;
     private String instrumentationKey;
     private FunctionAppBase<?, ?, ?> functionApp;
 
@@ -79,6 +86,9 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             .updateOrCreate(functionAppConfig.appName(), functionAppConfig.resourceGroup());
         registerSubTask(getResourceGroupTask(), result -> this.resourceGroup = result);
         registerSubTask(getServicePlanTask(), result -> this.appServicePlan = result);
+        if (StringUtils.isNotBlank(functionAppConfig.storageAccountName())) {
+            registerSubTask(getStorageAccountTask(), result -> this.storageAccount = result);
+        }
         // get/create AI instances only if user didn't specify AI connection string in app settings
         if (!functionAppConfig.disableAppInsights() && !functionAppConfig.appSettings().containsKey(APPINSIGHTS_INSTRUMENTATION_KEY)) {
             if (StringUtils.isNotEmpty(functionAppConfig.appInsightsKey())) {
@@ -98,6 +108,21 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
                 getUpdateFunctionSlotTask(slotDraft) : getCreateFunctionSlotTask(slotDraft);
             registerSubTask(slotTask, result -> this.functionApp = result);
         }
+    }
+
+    private AzureTask<StorageAccount> getStorageAccountTask() {
+        return new AzureTask<>(() -> {
+            final StorageAccountModule accounts = Azure.az(AzureStorageAccount.class).accounts(functionAppConfig.subscriptionId());
+            final StorageAccount existingAccount = accounts.get(functionAppConfig.storageAccountName(), functionAppConfig.resourceGroup());
+            if (existingAccount.exists()) {
+                return existingAccount;
+            }
+            final StorageAccountDraft draft = accounts.create(functionAppConfig.storageAccountName(), functionAppConfig.resourceGroup());
+            draft.setRegion(functionAppConfig.region());
+            draft.setKind(Kind.STORAGE_V2);
+            draft.setRedundancy(Redundancy.STANDARD_LRS);
+            return draft.commit();
+        });
     }
 
     private <T> void registerSubTask(AzureTask<T> task, Consumer<T> consumer) {
@@ -122,6 +147,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setDockerConfiguration(getDockerConfiguration(functionAppConfig.runtime()));
             draft.setAppSettings(appSettings);
             draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
+            draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
+            draft.setStorageAccount(storageAccount);
             return draft.createIfNotExist();
         });
     }
@@ -164,6 +191,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setAppSettings(appSettings);
             draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
             draft.removeAppSettings(functionAppConfig.appSettingsToRemove());
+            draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
+            draft.setStorageAccount(storageAccount);
             return draft.updateIfExist();
         });
     }
@@ -199,6 +228,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
             draft.setAppSettings(appSettings);
             draft.removeAppSettings(functionAppConfig.appSettingsToRemove());
+            draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
             return draft.commit();
         });
     }

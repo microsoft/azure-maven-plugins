@@ -213,7 +213,7 @@ public abstract class AppServiceAppBase<
     }
 
     @Nullable
-    protected AppServiceKuduClient getKuduManager() {
+    public AppServiceKuduClient getKuduManager() {
         if (kuduManager == null) {
             kuduManager = Optional.ofNullable(this.getRemote()).map(r -> AppServiceKuduClient.getClient(r, this)).orElse(null);
         }

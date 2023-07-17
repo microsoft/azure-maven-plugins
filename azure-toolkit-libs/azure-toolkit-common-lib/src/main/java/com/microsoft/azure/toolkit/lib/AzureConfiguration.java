@@ -50,6 +50,8 @@ public class AzureConfiguration {
     private String azuriteWorkspace;
     private Boolean enableLeaseMode = false;
 
+    private Boolean enablePreloading = false;
+
     public void setProxyInfo(ProxyInfo proxy) {
         this.setProxySource(proxy.getSource());
         this.setHttpProxyHost(proxy.getHost());

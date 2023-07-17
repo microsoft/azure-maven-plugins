@@ -4,6 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.config;
 
+import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
 import com.microsoft.azure.toolkit.lib.monitor.LogAnalyticsWorkspaceConfig;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,5 +17,8 @@ public class FunctionAppConfig extends AppServiceConfig {
     private String appInsightsInstance;
     private String appInsightsKey;
     private boolean disableAppInsights;
+    private String storageAccountName;
+    private String storageAccountResourceGroup;
     private LogAnalyticsWorkspaceConfig workspaceConfig;
+    private FlexConsumptionConfiguration flexConsumptionConfiguration;
 }

@@ -305,6 +305,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             AzureMessager.setDefaultMessager(new MavenAzureMessager());
             Azure.az().config().setLogLevel(HttpLogDetailLevel.NONE.name());
             Azure.az().config().setUserAgent(getUserAgent());
+            Azure.az().config().setProduct(getPluginName());
+            Azure.az().config().setVersion(getPluginVersion());
             // init proxy manager
             initMavenSettingsProxy(Optional.ofNullable(this.session).map(MavenSession::getRequest).orElse(null));
             ProxyManager.getInstance().applyProxy();

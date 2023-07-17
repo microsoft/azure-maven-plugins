@@ -7,11 +7,15 @@ package com.microsoft.azure.toolkit.lib.appservice.function;
 
 import com.azure.core.management.exception.ManagementException;
 import com.azure.core.util.Context;
+import com.azure.resourcemanager.appservice.fluent.WebAppsClient;
+import com.azure.resourcemanager.appservice.fluent.models.SiteConfigResourceInner;
+import com.azure.resourcemanager.appservice.fluent.models.SitePatchResourceInner;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
 import com.azure.resourcemanager.appservice.models.FunctionApp;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
@@ -90,6 +94,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         final Map<String, String> newAppSettings = this.getAppSettings();
         final DiagnosticConfig newDiagnosticConfig = this.getDiagnosticConfig();
         final String newConfigurationSource = this.getConfigurationSource();
+        final FlexConsumptionConfiguration newFlexConsumptionConfiguration = getFlexConsumptionConfiguration();
         // Using configuration from parent by default
         final String source = StringUtils.isBlank(newConfigurationSource) ? CONFIGURATION_SOURCE_PARENT : StringUtils.lowerCase(newConfigurationSource);
 
@@ -116,13 +121,23 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         if (Objects.nonNull(newDiagnosticConfig)) {
             AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, newDiagnosticConfig);
         }
+        final boolean updateFlexConsumptionConfiguration = Objects.nonNull(newFlexConsumptionConfiguration) && getAppServicePlan().getPricingTier().isFlexConsumption();
+        if (updateFlexConsumptionConfiguration) {
+            ((com.azure.resourcemanager.appservice.models.FunctionApp) withCreate).innerModel().withContainerSize(newFlexConsumptionConfiguration.getInstanceSize());
+        }
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Function App deployment slot ({0})...", name));
         // workaround to resolve slot creation exception could not be caught by azure operation
         // todo: add unified error handling for reactor
         final Consumer<Throwable> throwableConsumer = messager::error;
         final Context context = new Context("reactor.onErrorDropped.local", throwableConsumer);
-        FunctionDeploymentSlot slot = withCreate.create(context);
+        FunctionDeploymentSlot slot = (FunctionDeploymentSlot) Objects.requireNonNull(this.doModify(() -> {
+            final FunctionDeploymentSlot functionDeploymentSlot = withCreate.create(context);
+            if (updateFlexConsumptionConfiguration) {
+                updateFlexConsumptionConfiguration(functionDeploymentSlot, newFlexConsumptionConfiguration);
+            }
+            return functionDeploymentSlot;
+        }, Status.CREATING));
         final Runtime runtime = this.getRuntime();
         // As we can not update runtime for deployment slot during creation, so call update resource here
         final boolean isRuntimeModified = (Objects.nonNull(runtime) && !Objects.equals(runtime, getParent().getRuntime())) || Objects.nonNull(this.getDockerConfiguration());
@@ -155,26 +170,33 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         final DockerConfiguration newDockerConfig = this.ensureConfig().getDockerConfiguration();
         final DiagnosticConfig oldDiagnosticConfig = super.getDiagnosticConfig();
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
+        final FlexConsumptionConfiguration newFlexConsumptionConfiguration = this.ensureConfig().getFlexConsumptionConfiguration();
+        final FlexConsumptionConfiguration oldFlexConsumptionConfiguration = origin.getFlexConsumptionConfiguration();
 
         final Runtime oldRuntime = AppServiceUtils.getRuntimeFromAppService(remote);
-        boolean isRuntimeModified =  !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
-        boolean isDockerConfigurationModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
-        boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
-        boolean isDiagnosticConfigModified = Objects.nonNull(newDiagnosticConfig) && !Objects.equals(newDiagnosticConfig, oldDiagnosticConfig);
-        boolean modified = isDiagnosticConfigModified || isAppSettingsModified || isRuntimeModified || isDockerConfigurationModified;
+        final boolean isRuntimeModified =  !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
+        final boolean isDockerConfigurationModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
+        final boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
+        final boolean isDiagnosticConfigModified = Objects.nonNull(newDiagnosticConfig) && !Objects.equals(newDiagnosticConfig, oldDiagnosticConfig);
+        final boolean flexConsumptionModified = getAppServicePlan().getPricingTier().isFlexConsumption() &&
+            Objects.nonNull(newFlexConsumptionConfiguration) && !Objects.equals(newFlexConsumptionConfiguration, oldFlexConsumptionConfiguration);
+        final boolean modified = isDiagnosticConfigModified || isAppSettingsModified || isRuntimeModified || isDockerConfigurationModified || flexConsumptionModified;
 
         if (modified) {
             final DeploymentSlotBase.Update<FunctionDeploymentSlot> update = remote.update();
-            Optional.ofNullable(settingsToAdd).ifPresent(update::withAppSettings);
-            Optional.ofNullable(settingsToRemove).ifPresent(s -> s.forEach(update::withoutAppSetting));
-            Optional.ofNullable(newRuntime).ifPresent(r -> updateRuntime(update, r));
-            Optional.ofNullable(newDockerConfig)
+            Optional.ofNullable(settingsToAdd).filter(ignore -> isAppSettingsModified).ifPresent(update::withAppSettings);
+            Optional.ofNullable(settingsToRemove).filter(ignore -> isAppSettingsModified).ifPresent(s -> s.forEach(update::withoutAppSetting));
+            Optional.ofNullable(newRuntime).filter(ignore -> isRuntimeModified).ifPresent(r -> updateRuntime(update, r));
+            Optional.ofNullable(newDockerConfig).filter(ignore -> isDockerConfigurationModified)
                     .ifPresent(dockerConfiguration -> updateDockerConfiguration(update, dockerConfiguration));
-            Optional.ofNullable(newDiagnosticConfig)
+            Optional.ofNullable(newDiagnosticConfig).filter(ignore -> isDiagnosticConfigModified)
                     .ifPresent(diagnosticConfig -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, diagnosticConfig));
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating Function App deployment slot({0})...", remote.name()));
             remote = update.apply();
+            if (flexConsumptionModified) {
+                updateFlexConsumptionConfiguration(remote, newFlexConsumptionConfiguration);
+            }
             messager.success(AzureString.format("Function app deployment slot({0}) is successfully updated", remote.name()));
         }
         return remote;
@@ -273,6 +295,15 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         return Optional.ofNullable(config).map(FunctionAppDeploymentSlotDraft.Config::getDockerConfiguration).orElse(null);
     }
 
+    public void setFlexConsumptionConfiguration(FlexConsumptionConfiguration flexConsumptionConfiguration) {
+        this.ensureConfig().setFlexConsumptionConfiguration(flexConsumptionConfiguration);
+    }
+
+    @Nullable
+    public FlexConsumptionConfiguration getFlexConsumptionConfiguration() {
+        return Optional.ofNullable(config).map(Config::getFlexConsumptionConfiguration).orElseGet(super::getFlexConsumptionConfiguration);
+    }
+
     @Override
     public boolean isModified() {
         final boolean notModified = Objects.isNull(this.config) || (StringUtils.isBlank(this.config.getConfigurationSource()) &&
@@ -280,7 +311,8 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
                 Objects.isNull(this.getDockerConfiguration()) &&
                 Objects.equals(this.getDiagnosticConfig(), super.getDiagnosticConfig()) &&
                 Objects.equals(this.getAppSettings(), super.getAppSettings()) &&
-                Objects.equals(this.getRuntime(), super.getRuntime()));
+                Objects.equals(this.getRuntime(), super.getRuntime())) &&
+                Objects.equals(this.getFlexConsumptionConfiguration(), super.getFlexConsumptionConfiguration());
         return !notModified;
     }
 
@@ -293,5 +325,27 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         private DiagnosticConfig diagnosticConfig = null;
         private Set<String> appSettingsToRemove = new HashSet<>();
         private Map<String, String> appSettings = null;
+        private FlexConsumptionConfiguration flexConsumptionConfiguration;
+
+    }
+
+    private static void updateFlexConsumptionConfiguration(final com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot slot,
+                                                           final FlexConsumptionConfiguration flexConfiguration) {
+        final String name = String.format("%s/slots/%s", slot.parent().name(), slot.name());
+        final WebAppsClient webApps = slot.manager().serviceClient().getWebApps();
+        if (ObjectUtils.anyNotNull(flexConfiguration.getMaximumInstances(), flexConfiguration.getAlwaysReadyInstances())) {
+            final SiteConfigResourceInner configuration = webApps.getConfiguration(slot.resourceGroupName(), name);
+            Optional.ofNullable(flexConfiguration.getMaximumInstances())
+                .filter(maxInstances -> Objects.equals(maxInstances, configuration.functionAppScaleLimit()))
+                .ifPresent(configuration::withFunctionAppScaleLimit);
+            Optional.ofNullable(flexConfiguration.getAlwaysReadyInstances())
+                .filter(readyInstances -> Objects.equals(readyInstances, configuration.minimumElasticInstanceCount()))
+                .ifPresent(configuration::withMinimumElasticInstanceCount);
+            webApps.updateConfiguration(slot.resourceGroupName(), name, configuration);
+        }
+        if (Objects.equals(slot.innerModel().containerSize(), flexConfiguration.getInstanceSize())) {
+            webApps.updateWithResponse(slot.resourceGroupName(), name, new SitePatchResourceInner()
+                .withContainerSize(flexConfiguration.getInstanceSize()), Context.NONE);
+        }
     }
 }
