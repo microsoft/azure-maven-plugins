@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudClusterConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.Data;
 import lombok.Getter;
@@ -78,10 +79,8 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
             ((SpringCloudDeploymentDraft) activeDeployment).getConfig() : SpringCloudDeploymentConfig.builder().build();
         deploymentConfig.setEnablePersistentStorage(this.isPersistentDiskEnabled());
         return SpringCloudAppConfig.builder()
-            .subscriptionId(this.getSubscriptionId())
-            .clusterName(this.getParent().getName())
+            .cluster(SpringCloudClusterConfig.fromCluster(this.getParent()))
             .appName(this.getName())
-            .resourceGroup(this.getResourceGroupName())
             .isPublic(this.isPublicEndpointEnabled())
             .activeDeploymentName(this.getActiveDeploymentName())
             .deployment(deploymentConfig)

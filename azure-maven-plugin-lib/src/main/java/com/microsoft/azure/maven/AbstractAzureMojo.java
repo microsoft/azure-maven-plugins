@@ -82,6 +82,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
@@ -299,7 +300,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
+        final String originalReflectionLogLevel = System.getProperty("org.slf4j.simpleLogger.log.org.reflections.Reflections");
         try {
+            System.setProperty("org.slf4j.simpleLogger.log.org.reflections.Reflections", "warn");
             MavenActionManager.register();
             AzureTaskManager.register(new MavenAzureTaskManager());
             AzureMessager.setDefaultMessager(new MavenAzureMessager());
@@ -345,6 +348,11 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
                 Thread.sleep(2 * 1000);
             } catch (InterruptedException e) {
                 // swallow this exception
+            }
+            if (Objects.nonNull(originalReflectionLogLevel)) {
+                System.setProperty("org.slf4j.simpleLogger.log.org.reflections.Reflections", originalReflectionLogLevel);
+            } else {
+                System.clearProperty("org.slf4j.simpleLogger.log.org.reflections.Reflections");
             }
             ProxyManager.getInstance().resetProxy();
             ApacheSenderFactory.INSTANCE.create().close();

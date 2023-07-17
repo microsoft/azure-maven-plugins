@@ -51,13 +51,19 @@ public class ConfigurationUpdater {
     }
 
     public static Map<String, Object> toMap(AppRawConfig app) {
+        final ClusterRawConfig cluster = app.getCluster();
         return MapUtils.putAll(new LinkedHashMap<>(), new Map.Entry[]{
-            new DefaultMapEntry<>("subscriptionId", app.getSubscriptionId()),
-            new DefaultMapEntry<>("resourceGroup", app.getResourceGroup()),
-            new DefaultMapEntry<>("clusterName", app.getClusterName()),
+            new DefaultMapEntry<>("subscriptionId", cluster.getSubscriptionId()),
+            new DefaultMapEntry<>("resourceGroup", cluster.getResourceGroup()),
+            new DefaultMapEntry<>("clusterName", cluster.getClusterName()),
+            new DefaultMapEntry<>("region", cluster.getRegion()),
+            new DefaultMapEntry<>("sku", cluster.getSku()),
+            new DefaultMapEntry<>("environment", cluster.getEnvironment()),
+            new DefaultMapEntry<>("environmentResourceGroup", cluster.getEnvironmentResourceGroup()),
             new DefaultMapEntry<>("appName", app.getAppName()),
             new DefaultMapEntry<>("isPublic", app.getIsPublic())
         });
+
     }
 
     public static Map<String, Object> toMap(AppDeploymentRawConfig deployment) {

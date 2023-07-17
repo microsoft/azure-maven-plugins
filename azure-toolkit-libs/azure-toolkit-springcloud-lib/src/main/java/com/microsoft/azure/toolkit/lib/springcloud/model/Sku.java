@@ -1,17 +1,30 @@
 package com.microsoft.azure.toolkit.lib.springcloud.model;
 
 import com.azure.resourcemanager.appplatform.models.SkuName;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @Getter
 @RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Sku {
+    public static final Sku BASIC = new Sku(SkuName.B0.toString(), "Basic");
+    public static final Sku STANDARD = new Sku(SkuName.S0.toString(), "Standard");
+    public static final Sku ENTERPRISE = new Sku(SkuName.E0.toString(), "Enterprise");
+    public static final Sku CONSUMPTION = new Sku(SkuName.S0.toString(), "StandardGen2");
+    public static final List<Sku> KNOWN_SKUS = Collections.unmodifiableList(Arrays.asList(BASIC, STANDARD, ENTERPRISE, CONSUMPTION));
+    public static final String CONSUMPTION_DISPLAY_NAME = "Consumption";
+
+    public static final Sku SPRING_APPS_DEFAULT_SKU = CONSUMPTION;
+
     @Nonnull
     @EqualsAndHashCode.Include
     private final String name;
@@ -35,7 +48,7 @@ public class Sku {
         } else if (name.equalsIgnoreCase(SkuName.E0.toString())) {
             return "Enterprise";
         }
-        throw new AzureToolkitRuntimeException("invalid sku");
+        return tier + " " + name;
     }
 
     public int getOrdinal() {
@@ -48,7 +61,7 @@ public class Sku {
         } else if (name.equalsIgnoreCase(SkuName.E0.toString())) {
             return 3;
         }
-        throw new AzureToolkitRuntimeException("invalid sku");
+        return 4;
     }
 
     public String getDescription() {
@@ -61,7 +74,7 @@ public class Sku {
         } else if (name.equalsIgnoreCase(SkuName.E0.toString())) {
             return "6 vCPUs, 12 Gi included, 1000 app instances max.";
         }
-        throw new AzureToolkitRuntimeException("invalid sku");
+        return tier + " " + name;
     }
 
     public boolean isEnterpriseTier() {
@@ -82,6 +95,32 @@ public class Sku {
 
     public com.azure.resourcemanager.appplatform.models.Sku toSku() {
         return new com.azure.resourcemanager.appplatform.models.Sku().withName(name).withTier(tier);
+    }
+
+    public static Sku fromString(final String value) {
+        if (StringUtils.equalsIgnoreCase(value, CONSUMPTION_DISPLAY_NAME)) {
+            return CONSUMPTION;
+        }
+        return KNOWN_SKUS.stream()
+            .filter(sku -> StringUtils.equalsIgnoreCase(value, sku.toString()))
+            .findFirst()
+            .orElseGet(() -> {
+                // get sku by pattern: tier/name
+                final String[] split = value.split("/");
+                return ArrayUtils.getLength(split) > 1 ? new Sku(split[1], split[0]) : new Sku(value, value);
+            });
+    }
+
+    @Override
+    public String toString() {
+        if (this.equals(CONSUMPTION)) {
+            return CONSUMPTION_DISPLAY_NAME;
+        }
+        return KNOWN_SKUS.stream()
+            .filter(sku -> sku.equals(this))
+            .findFirst()
+            .map(Sku::getTier)
+            .orElseGet(() -> this.tier + "/" + this.name);
     }
 
     public static Sku fromSku(com.azure.resourcemanager.appplatform.models.Sku sku) {

@@ -27,10 +27,8 @@ import java.util.Optional;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class SpringCloudAppConfig {
-    private String subscriptionId;
-    private String clusterName;
+    private SpringCloudClusterConfig cluster;
     private String appName;
-    private String resourceGroup;
     @Builder.Default
     private Boolean isPublic = false;
     @Nullable
@@ -42,15 +40,42 @@ public class SpringCloudAppConfig {
         return BooleanUtils.isTrue(isPublic);
     }
 
+    public String getSubscriptionId() {
+        return Optional.ofNullable(cluster).map(SpringCloudClusterConfig::getSubscriptionId).orElse(null);
+    }
+
+    public void setSubscriptionId(String subscriptionId) {
+        this.ensureCluster().setSubscriptionId(subscriptionId);
+    }
+
+    public String getResourceGroup() {
+        return Optional.ofNullable(cluster).map(SpringCloudClusterConfig::getResourceGroup).orElse(null);
+    }
+
+    public void setResourceGroup(String resourceGroup) {
+        this.ensureCluster().setResourceGroup(resourceGroup);
+    }
+
+    public String getClusterName() {
+        return Optional.ofNullable(cluster).map(SpringCloudClusterConfig::getClusterName).orElse(null);
+    }
+
+    public void setClusterName(String clusterName) {
+        this.ensureCluster().setClusterName(clusterName);
+    }
+
+    private SpringCloudClusterConfig ensureCluster() {
+        this.cluster = Optional.ofNullable(cluster).orElseGet(SpringCloudClusterConfig::new);
+        return this.cluster;
+    }
+
     @Nonnull
     public static SpringCloudAppConfig fromApp(@Nonnull SpringCloudApp app) { // get config from app
         final SpringCloudDeployment deployment = Optional.ofNullable(app.getActiveDeployment())
             .orElse(app.deployments().getOrDraft("default", app.getResourceGroupName()));
         final SpringCloudDeploymentConfig deploymentConfig = SpringCloudDeploymentConfig.fromDeployment(deployment);
         final SpringCloudAppConfig appConfig = SpringCloudAppConfig.builder().deployment(deploymentConfig).build();
-        appConfig.setSubscriptionId(app.getSubscriptionId());
-        appConfig.setResourceGroup(app.getParent().getResourceGroupName());
-        appConfig.setClusterName(app.getParent().getName());
+        appConfig.setCluster(SpringCloudClusterConfig.fromCluster(app.getParent()));
         appConfig.setAppName(app.getName());
         appConfig.setIsPublic(Objects.equals(app.isPublicEndpointEnabled(), true));
         return appConfig;

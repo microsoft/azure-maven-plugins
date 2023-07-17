@@ -5,6 +5,8 @@
 
 package com.microsoft.azure.maven.utils;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -13,6 +15,7 @@ import org.dom4j.dom.DOMElement;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class MavenConfigUtils {
     private static final String POM = "pom";
@@ -33,13 +36,16 @@ public class MavenConfigUtils {
         final DOMElement resourceRootNode = new DOMElement("resources");
         for (final Resource resource : resources) {
             final DOMElement resourceNode = new DOMElement("resource");
-
-            XmlUtils.addDomWithKeyValue(resourceNode, "filtering", resource.getFiltering());
-            XmlUtils.addDomWithKeyValue(resourceNode, "mergeId", resource.getMergeId());
-            XmlUtils.addDomWithKeyValue(resourceNode, "targetPath", resource.getTargetPath());
-            XmlUtils.addDomWithKeyValue(resourceNode, "directory", resource.getDirectory());
-            XmlUtils.addDomWithValueList(resourceNode, "includes", "include", resource.getIncludes());
-            XmlUtils.addDomWithValueList(resourceNode, "excludes", "exclude", resource.getExcludes());
+            Optional.ofNullable(resource.getFiltering()).filter(StringUtils::isNoneBlank)
+                    .ifPresent(value -> XmlUtils.addDomWithKeyValue(resourceNode, "filtering", value));
+            Optional.ofNullable(resource.getTargetPath()).filter(StringUtils::isNoneBlank)
+                .ifPresent(value -> XmlUtils.addDomWithKeyValue(resourceNode, "targetPath", value));
+            Optional.ofNullable(resource.getDirectory()).filter(StringUtils::isNoneBlank)
+                .ifPresent(value -> XmlUtils.addDomWithKeyValue(resourceNode, "directory", value));
+            Optional.ofNullable(resource.getIncludes()).filter(CollectionUtils::isNotEmpty)
+                .ifPresent(value -> XmlUtils.addDomWithValueList(resourceNode, "includes", "include", value));
+            Optional.ofNullable(resource.getExcludes()).filter(CollectionUtils::isNotEmpty)
+                .ifPresent(value -> XmlUtils.addDomWithValueList(resourceNode, "excludes", "exclude", value));
 
             resourceRootNode.add(resourceNode);
         }

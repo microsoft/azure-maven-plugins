@@ -10,6 +10,7 @@ import com.microsoft.azure.maven.springcloud.config.AppDeploymentMavenConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationParser;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudClusterConfig;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -17,6 +18,7 @@ import org.apache.maven.settings.Settings;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.Optional;
 
 public abstract class AbstractMojoBase extends AbstractAzureMojo {
     private static final String PROXY = "proxy";
@@ -41,6 +43,45 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     public static final String TELEMETRY_KEY_PLUGIN_NAME = "pluginName";
     public static final String TELEMETRY_KEY_PLUGIN_VERSION = "pluginVersion";
 
+    // region for cluster configuration
+    /**
+     * Name of the spring apps
+     */
+    @Getter
+    @Parameter(property = "clusterName")
+    protected String clusterName;
+
+    /**
+     * Region of the spring apps
+     */
+    @Getter
+    @Parameter(property = "region")
+    protected String region;
+
+    /**
+     * SKU of the spring apps, valid values are
+     */
+    @Getter
+    @Parameter(property = "sku")
+    protected String sku;
+
+//    /**
+//     * App environment of the spring apps, which will host your apps and microservices in the same
+//     * environment with unified communication, observability, and network isolation.
+//     * Valid for Consumption sku only
+//     */
+//    @Getter
+//    @Parameter(property = "environment")
+//    protected String environment;
+//
+//    /**
+//     * Resource group of the app environment
+//     */
+//    @Getter
+//    @Parameter(property = "environmentResourceGroup")
+//    protected String environmentResourceGroup;
+    // end of region
+
     /**
      * Boolean flag to control whether the app exposes public endpoint
      */
@@ -55,12 +96,6 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     @Parameter(property = "resourceGroup")
     protected String resourceGroup; // optional
 
-    /**
-     * Name of the spring apps
-     */
-    @Getter
-    @Parameter(property = "clusterName")
-    protected String clusterName;
 
     /**
      * Name of the Spring app. It will be created if not exist
@@ -77,8 +112,7 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     protected String runtimeVersion;
 
     /**
-     * Configuration for spring app deployment
-     *
+     * Configuration for spring app deployment*
      * Parameters for deployment
      * <ul>
      *     <li>cpu: Core numbers for deployment. </li>
@@ -129,7 +163,7 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
         telemetryProxy.addDefaultProperty(TELEMETRY_KEY_INSTANCE_COUNT, String.valueOf(configuration.getDeployment().getCapacity()));
         telemetryProxy.addDefaultProperty(TELEMETRY_KEY_JVM_OPTIONS,
                 String.valueOf(StringUtils.isEmpty(configuration.getDeployment().getJvmOptions())));
-        telemetryProxy.addDefaultProperty(TELEMETRY_KEY_SUBSCRIPTION_ID, configuration.getSubscriptionId());
+        telemetryProxy.addDefaultProperty(TELEMETRY_KEY_SUBSCRIPTION_ID, Optional.ofNullable(configuration.getCluster()).map(SpringCloudClusterConfig::getSubscriptionId).orElse(StringUtils.EMPTY));
     }
 
     public synchronized SpringCloudAppConfig getConfiguration() {

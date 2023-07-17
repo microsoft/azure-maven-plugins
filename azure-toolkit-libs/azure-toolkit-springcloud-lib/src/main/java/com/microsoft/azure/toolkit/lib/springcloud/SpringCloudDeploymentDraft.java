@@ -129,6 +129,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             .withActivation();
         this.updateScalingProperties(create);
         this.updateProperties(create);
+        this.updateDeployingProperties(create);
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating deployment({0})...", name));
         final SpringAppDeployment deployment = create.create();
