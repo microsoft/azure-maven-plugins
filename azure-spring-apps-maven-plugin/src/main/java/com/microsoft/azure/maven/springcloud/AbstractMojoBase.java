@@ -65,21 +65,21 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     @Parameter(property = "sku")
     protected String sku;
 
-    /**
-     * App environment of the spring apps, which will host your apps and microservices in the same
-     * environment with unified communication, observability, and network isolation.
-     * Valid for Consumption sku only
-     */
-    @Getter
-    @Parameter(property = "environment")
-    protected String environment;
-
-    /**
-     * Resource group of the app environment
-     */
-    @Getter
-    @Parameter(property = "environmentResourceGroup")
-    protected String environmentResourceGroup;
+//    /**
+//     * App environment of the spring apps, which will host your apps and microservices in the same
+//     * environment with unified communication, observability, and network isolation.
+//     * Valid for Consumption sku only
+//     */
+//    @Getter
+//    @Parameter(property = "environment")
+//    protected String environment;
+//
+//    /**
+//     * Resource group of the app environment
+//     */
+//    @Getter
+//    @Parameter(property = "environmentResourceGroup")
+//    protected String environmentResourceGroup;
     // end of region
 
     /**

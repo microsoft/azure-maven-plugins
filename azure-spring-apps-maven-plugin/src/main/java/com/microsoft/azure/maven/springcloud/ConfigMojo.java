@@ -202,9 +202,9 @@ public class ConfigMojo extends AbstractMojoBase {
         configureResourceGroup();
         final Sku sku = configureSku();
         configureRegion(sku);
-        if (sku.isConsumptionTier()) {
-            configureEnvironment();
-        }
+//        if (sku.isConsumptionTier()) {
+//            configureEnvironment();
+//        }
         return null;
     }
 
@@ -232,8 +232,11 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private Sku configureSku() throws IOException, InvalidConfigurationException {
-        final List<Sku> skus = Azure.az(AzureSpringCloud.class)
+        final List<Sku> rawSkus = Azure.az(AzureSpringCloud.class)
             .forSubscription(getSubscriptionId()).listSupportedSkus(null);
+        // workaround to remove consumption sku
+        final List<Sku> skus = rawSkus.stream()
+            .filter(sku -> !sku.isConsumptionTier()).collect(Collectors.toList());
         assert CollectionUtils.isNotEmpty(skus) : "No valid sku found in current subscription.";
         this.wrapper.putCommonVariable("skus", skus);
         final Sku defaultSku = skus.contains(Sku.SPRING_APPS_DEFAULT_SKU) ? Sku.SPRING_APPS_DEFAULT_SKU : skus.get(0);
