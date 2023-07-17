@@ -217,7 +217,6 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             final Map<String, String> newEnv = Utils.emptyToNull(this.getEnvironmentVariables());
             final String newJvmOptions = Utils.emptyToNull(this.getJvmOptions());
             final String newVersion = Utils.emptyToNull(this.getRuntimeVersion());
-            final File newArtifact = Optional.ofNullable(config).map(c -> c.artifact).map(IArtifact::getFile).orElse(null);
 
             final Map<String, String> oldEnv = Utils.emptyToNull(super.getEnvironmentVariables());
             if (Objects.nonNull(newEnv)) {
@@ -226,7 +225,6 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             }
             Optional.ofNullable(newJvmOptions).ifPresent(deployment::withJvmOptions);
             Optional.ofNullable(newVersion).ifPresent(v -> deployment.withRuntime(formalizeRuntimeVersion(v)));
-            Optional.ofNullable(newArtifact).ifPresent(deployment::withJarFile);
         }
         return updated;
     }
