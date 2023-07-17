@@ -185,17 +185,17 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     @JsonProperty
     @Getter
-    @Parameter(property = "deploymentType")
+    @Parameter
     protected Integer alwaysReadyInstances;
 
     @JsonProperty
     @Getter
-    @Parameter(property = "deploymentType")
+    @Parameter
     protected Integer instanceSize;
 
     @JsonProperty
     @Getter
-    @Parameter(property = "deploymentType")
+    @Parameter
     protected Integer maximumInstances;
 
     /**
@@ -203,7 +203,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      */
     @JsonProperty
     @Getter
-    @Parameter(property = "storageAccountName")
+    @Parameter
     protected String storageAccountName;
 
     /**
@@ -211,7 +211,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      */
     @JsonProperty
     @Getter
-    @Parameter(property = "storageAccountResourceGroup")
+    @Parameter
     protected String storageAccountResourceGroup;
 
     @Getter
