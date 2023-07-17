@@ -17,8 +17,6 @@ public abstract class AzureMessager implements IAzureMessager {
     public static synchronized void setDefaultMessager(@Nonnull IAzureMessager messager) {
         if (AzureMessager.defaultMessager == null) { // not allow overwriting...
             AzureMessager.defaultMessager = messager;
-        } else {
-            AzureMessager.getMessager().warning("default messager has already been registered");
         }
     }
 
