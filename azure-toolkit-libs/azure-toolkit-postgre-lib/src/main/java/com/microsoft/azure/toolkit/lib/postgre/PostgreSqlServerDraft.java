@@ -6,7 +6,12 @@
 package com.microsoft.azure.toolkit.lib.postgre;
 
 import com.azure.resourcemanager.postgresqlflexibleserver.PostgreSqlManager;
-import com.azure.resourcemanager.postgresqlflexibleserver.models.*;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Server;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.ServerVersion;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Sku;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.SkuTier;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Storage;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.VcoreCapability;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -85,7 +90,9 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
             .filter(v -> StringUtils.equalsIgnoreCase(v.name(), this.getVersion()))
             .flatMap(v -> v.supportedVcores().stream())
             .collect(Collectors.toList());
-
+        if (capabilities.isEmpty()) {
+            throw new AzureToolkitRuntimeException(String.format("Version '%s' is not supported in region '%s'.", this.getVersion(), region));
+        }
         final Sku sku = new Sku().withName(capabilities.get(0).name()).withTier(SkuTier.BURSTABLE);
         // create server
         final Server.DefinitionStages.WithCreate create = manager.servers().define(this.getName())

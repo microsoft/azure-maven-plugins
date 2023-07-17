@@ -85,7 +85,9 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
             .filter(v -> StringUtils.equalsIgnoreCase(v.name(), this.getVersion()))
             .flatMap(v -> v.supportedSkus().stream())
             .collect(Collectors.toList());
-
+        if (skus.isEmpty()) {
+            throw new AzureToolkitRuntimeException(String.format("Version '%s' is not supported in region '%s'.", this.getVersion(), region));
+        }
         final Sku sku = new Sku().withName(skus.get(0).name()).withTier(SkuTier.BURSTABLE);
         // create server
         final Server.DefinitionStages.WithCreate create = manager.servers().define(this.getName())
