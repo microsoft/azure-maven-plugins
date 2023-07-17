@@ -170,7 +170,7 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
 
     @Nullable
     public FlexConsumptionConfiguration getFlexConsumptionConfiguration() {
-        return Optional.ofNullable(this.getFullRemote()).map(FlexConsumptionConfiguration::fromWebAppBase).orElse(null);
+        return Optional.ofNullable(this.getRemote()).map(FlexConsumptionConfiguration::fromWebAppBase).orElse(null);
     }
 
     @Override
