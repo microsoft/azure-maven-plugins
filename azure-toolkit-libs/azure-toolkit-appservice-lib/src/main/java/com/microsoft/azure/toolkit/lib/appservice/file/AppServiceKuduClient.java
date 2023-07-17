@@ -123,12 +123,13 @@ public class AppServiceKuduClient implements IFileClient, IProcessClient {
     }
 
     public void flexZipDeploy(final @Nonnull File zipFile) throws IOException {
-        final AsynchronousFileChannel fileChannel = AsynchronousFileChannel.open(zipFile.toPath(), StandardOpenOption.READ);
-        final Flux<ByteBuffer> byteBuffer = FluxUtil.readFile(fileChannel);
-        final String product = Azure.az().config().getProduct();
-        final String version = Azure.az().config().getVersion();
-        final String tool = StringUtils.isAllBlank(product, version) ? DEFAULT_TOOL_NAME : String.format("%s/%s", product, version);
-        kuduService.flexZipDeploy(host, byteBuffer,fileChannel.size(), tool).block();
+        try (final AsynchronousFileChannel fileChannel = AsynchronousFileChannel.open(zipFile.toPath(), StandardOpenOption.READ)) {
+            final Flux<ByteBuffer> byteBuffer = FluxUtil.readFile(fileChannel);
+            final String product = Azure.az().config().getProduct();
+            final String version = Azure.az().config().getVersion();
+            final String tool = StringUtils.isAllBlank(product, version) ? DEFAULT_TOOL_NAME : String.format("%s/%s", product, version);
+            kuduService.flexZipDeploy(host, byteBuffer, fileChannel.size(), tool).block();
+        }
     }
 
     public TunnelStatus getAppServiceTunnelStatus() {
