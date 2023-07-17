@@ -19,6 +19,6 @@ public interface IFunctionDeployHandler {
     void deploy(@Nonnull final File file, @Nonnull final WebAppBase webAppBase);
 
     default void deploy(@Nonnull final File file, @Nonnull final FunctionAppBase<?, ?, ?> functionAppBase) {
-        this.deploy(file, Objects.requireNonNull(functionAppBase.getFullRemote(), String.format(FAILED_TO_GET_FUNCTION, functionAppBase.getId())));
+        this.deploy(file, Objects.requireNonNull(functionAppBase.getRemote(), String.format(FAILED_TO_GET_FUNCTION, functionAppBase.getId())));
     }
 }
