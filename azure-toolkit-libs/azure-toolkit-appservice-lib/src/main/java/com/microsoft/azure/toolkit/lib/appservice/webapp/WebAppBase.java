@@ -26,11 +26,11 @@ import java.util.Optional;
 public abstract class WebAppBase<T extends WebAppBase<T, P, F>, P extends AbstractAzResource<P, ?, ?>, F extends com.azure.resourcemanager.appservice.models.WebAppBase>
     extends AppServiceAppBase<T, P, F> implements IOneDeploy {
 
-    protected WebAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, WebSiteBase> module) {
+    protected WebAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, F> module) {
         super(name, resourceGroupName, module);
     }
 
-    protected WebAppBase(@Nonnull String name, @Nonnull AbstractAzResourceModule<T, P, WebSiteBase> module) {
+    protected WebAppBase(@Nonnull String name, @Nonnull AbstractAzResourceModule<T, P, F> module) {
         super(name, module);
     }
 
@@ -57,7 +57,7 @@ public abstract class WebAppBase<T extends WebAppBase<T, P, F>, P extends Abstra
     @Nullable
     public KuduDeploymentResult pushDeploy(@Nonnull DeployType deployType, @Nonnull File targetFile,
                                            @Nullable DeployOptions deployOptions) {
-        final WebSiteBase remote = this.getFullRemote();
+        final WebSiteBase remote = this.getRemote();
         if (remote instanceof SupportsOneDeploy) {
             final com.azure.resourcemanager.appservice.models.DeployOptions options =
                     deployOptions == null ? null : AppServiceUtils.toDeployOptions(deployOptions);
@@ -74,7 +74,7 @@ public abstract class WebAppBase<T extends WebAppBase<T, P, F>, P extends Abstra
     @Override
     @Nullable
     public CsmDeploymentStatus getDeploymentStatus(@Nonnull final String deploymentId) {
-        final WebSiteBase remote = this.getFullRemote();
+        final WebSiteBase remote = this.getRemote();
         if (remote instanceof SupportsOneDeploy) {
             return AppServiceUtils.fromCsmDeploymentStatus(((SupportsOneDeploy) remote).getDeploymentStatus(deploymentId));
         } else {

@@ -49,7 +49,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionAppDeploy
     @Override
     public String getMasterKey() {
         final String name = String.format("%s/slots/%s", getParent().getName(), this.getName());
-        return getFullRemote().manager().serviceClient().getWebApps().listHostKeysAsync(this.getResourceGroupName(), name).map(HostKeysInner::masterKey).block();
+        return getRemote().manager().serviceClient().getWebApps().listHostKeysAsync(this.getResourceGroupName(), name).map(HostKeysInner::masterKey).block();
     }
 
     @Override
@@ -57,7 +57,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionAppDeploy
     public void enableRemoteDebug() {
         final Map<String, String> appSettings = this.getAppSettings();
         final String debugPort = appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, getRemoteDebugPort());
-        doModify(() -> getFullRemote().update()
+        doModify(() -> getRemote().update()
                 .withWebSocketsEnabled(true)
                 .withPlatformArchitecture(PlatformArchitecture.X64)
                 .withAppSetting(HTTP_PLATFORM_DEBUG_PORT, debugPort)
@@ -71,9 +71,9 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionAppDeploy
         final String javaOpts = this.getJavaOptsWithRemoteDebugDisabled(appSettings);
         doModify(() -> {
             if (StringUtils.isEmpty(javaOpts)) {
-                getFullRemote().update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withoutAppSetting(JAVA_OPTS).apply();
+                getRemote().update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withoutAppSetting(JAVA_OPTS).apply();
             } else {
-                getFullRemote().update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withAppSetting(JAVA_OPTS, javaOpts).apply();
+                getRemote().update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withAppSetting(JAVA_OPTS, javaOpts).apply();
             }
         }, Status.UPDATING);
     }
@@ -81,12 +81,12 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionAppDeploy
     @Override
     protected String getRemoteDebugPort() {
         final List<FunctionAppDeploymentSlot> list = getParent().slots().list();
-        final List<Integer> collect = list.stream().filter(slot -> slot.getAppSettings().keySet().contains(HTTP_PLATFORM_DEBUG_PORT))
+        final List<Integer> collect = list.stream().filter(slot -> slot.getAppSettings().containsKey(HTTP_PLATFORM_DEBUG_PORT))
                 .map(slot -> slot.getAppSettings().get(HTTP_PLATFORM_DEBUG_PORT))
-                .map(portValue -> NumberUtils.toInt(portValue))
+                .map(NumberUtils::toInt)
                 .filter(value -> value != 0)
                 .collect(Collectors.toList());
-        for (int i = Integer.valueOf(DEFAULT_REMOTE_DEBUG_PORT) + 1; i < MAX_PORT; i++) {
+        for (int i = Integer.parseInt(DEFAULT_REMOTE_DEBUG_PORT) + 1; i < MAX_PORT; i++) {
             if (!collect.contains(i)) {
                 return String.valueOf(i);
             }

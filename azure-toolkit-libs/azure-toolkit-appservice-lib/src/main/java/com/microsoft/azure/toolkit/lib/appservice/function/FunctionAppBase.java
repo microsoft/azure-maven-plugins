@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.appservice.function;
 
 import com.azure.resourcemanager.appservice.models.PlatformArchitecture;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
-import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.deploy.FTPFunctionDeployHandler;
 import com.microsoft.azure.toolkit.lib.appservice.deploy.IFunctionDeployHandler;
@@ -55,11 +54,11 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
     private Boolean isEnableRemoteDebugging = null;
     private AzureFunctionsAdminClient fileClient;
 
-    protected FunctionAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, WebSiteBase> module) {
+    protected FunctionAppBase(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull AbstractAzResourceModule<T, P, F> module) {
         super(name, resourceGroupName, module);
     }
 
-    protected FunctionAppBase(@Nonnull String name, @Nonnull AbstractAzResourceModule<T, P, WebSiteBase> module) {
+    protected FunctionAppBase(@Nonnull String name, @Nonnull AbstractAzResourceModule<T, P, F> module) {
         super(name, module);
     }
 
@@ -73,12 +72,12 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
 
     public void deploy(File targetFile, FunctionDeployType functionDeployType) {
         OperationContext.action().setTelemetryProperty(FUNCTION_DEPLOY_TYPE, functionDeployType.name());
-        getDeployHandlerByType(functionDeployType).deploy(targetFile, getFullRemote());
+        getDeployHandlerByType(functionDeployType).deploy(targetFile, getRemote());
     }
 
     protected AzureFunctionsAdminClient getAdminClient() {
         if (fileClient == null) {
-            fileClient = Optional.ofNullable(this.getFullRemote()).map(r -> AzureFunctionsAdminClient.getClient(r, this)).orElse(null);
+            fileClient = Optional.ofNullable(this.getRemote()).map(r -> AzureFunctionsAdminClient.getClient(r, this)).orElse(null);
         }
         return fileClient;
     }
@@ -163,7 +162,7 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
     }
 
     @Override
-    protected void updateAdditionalProperties(@Nullable WebSiteBase newRemote, @Nullable WebSiteBase oldRemote) {
+    protected void updateAdditionalProperties(@Nullable F newRemote, @Nullable F oldRemote) {
         super.updateAdditionalProperties(newRemote, oldRemote);
         if (Objects.nonNull(newRemote)) {
             this.isEnableRemoteDebugging = getIsRemoteDebuggingEnabled();
@@ -173,7 +172,7 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
     }
 
     private boolean getIsRemoteDebuggingEnabled() {
-        final F remote = getFullRemote();
+        final WebAppBase remote = getRemote();
         if (Objects.isNull(remote)) {
             return false;
         }

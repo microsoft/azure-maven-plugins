@@ -9,7 +9,6 @@ import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.models.WebApp.DefinitionStages;
 import com.azure.resourcemanager.appservice.models.WebApp.Update;
 import com.azure.resourcemanager.appservice.models.WebApp.UpdateStages;
-import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
@@ -39,7 +38,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebSiteBase> {
+public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.azure.resourcemanager.appservice.models.WebApp> {
     public static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     public static final String CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS = "Can not update the operation system for existing app service";
     public static final Runtime DEFAULT_RUNTIME = Runtime.LINUX_JAVA17;
@@ -137,8 +136,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, WebS
     @Nonnull
     @Override
     @AzureOperation(name = "azure/webapp.update_app.app", params = {"this.getName()"})
-    public com.azure.resourcemanager.appservice.models.WebApp updateResourceInAzure(@Nonnull WebSiteBase base) {
-        com.azure.resourcemanager.appservice.models.WebApp remote = (com.azure.resourcemanager.appservice.models.WebApp) base;
+    public com.azure.resourcemanager.appservice.models.WebApp updateResourceInAzure(@Nonnull com.azure.resourcemanager.appservice.models.WebApp remote) {
         assert origin != null : "updating target is not specified.";
         final Map<String, String> oldAppSettings = Objects.requireNonNull(origin.getAppSettings());
         final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();

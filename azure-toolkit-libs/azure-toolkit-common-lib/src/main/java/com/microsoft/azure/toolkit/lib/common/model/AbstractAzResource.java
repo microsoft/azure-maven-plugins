@@ -144,7 +144,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return this.cache.get();
     }
 
-    void setRemote(R remote) {
+    protected void setRemote(R remote) {
         this.cache.update(() -> remote, Status.UPDATING);
     }
 

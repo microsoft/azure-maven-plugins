@@ -24,8 +24,16 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
-import com.microsoft.azure.toolkit.lib.resource.*;
-import lombok.*;
+import com.microsoft.azure.toolkit.lib.resource.GenericResource;
+import com.microsoft.azure.toolkit.lib.resource.GenericResourceModule;
+import com.microsoft.azure.toolkit.lib.resource.ResourceDeployment;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroupModule;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -35,7 +43,18 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -61,9 +80,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     protected final P parent;
     @Nonnull
     @ToString.Include
-    private final AtomicLong syncTimeRef = new AtomicLong(-1);
+    protected final AtomicLong syncTimeRef = new AtomicLong(-1);
     @Nonnull
-    private final Map<String, Optional<T>> resources = Collections.synchronizedMap(new LinkedHashMap<>());
+    protected final Map<String, Optional<T>> resources = Collections.synchronizedMap(new LinkedHashMap<>());
     private final Map<String, T> tempResources = Collections.synchronizedMap(new LinkedHashMap<>());
 
     @Nonnull
@@ -125,10 +144,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         this.syncTimeRef.set(0);
         try {
             log.debug("[{}]:reloadResources->loadResourcePagesFromAzure()", this.name);
-            this.pages = this.loadResourcePagesFromAzure();
-            final ContinuablePage<String, R> page = pages.hasNext() ? pages.next() : new ItemPage<>(Collections.emptyList());
-            final Map<String, R> loadedResources = page.getElements().stream()
-                .collect(Collectors.toMap(r -> this.newResource(r).getId().toLowerCase(), r -> r));
+            final Map<String, R> loadedResources = getResourcesFromAzure();
             log.debug("[{}]:reloadResources->setResources(xxx)", this.name);
             this.setResources(loadedResources);
         } catch (final Exception e) {
@@ -143,6 +159,13 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 throw e;
             }
         }
+    }
+
+    protected Map<String, R> getResourcesFromAzure() {
+        this.pages = this.loadResourcePagesFromAzure();
+        final ContinuablePage<String, R> page = pages.hasNext() ? pages.next() : new ItemPage<>(Collections.emptyList());
+        return page.getElements().stream()
+            .collect(Collectors.toMap(r -> this.newResource(r).getId().toLowerCase(), r -> r));
     }
 
     public void loadMoreResources() {
@@ -191,18 +214,13 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         log.debug("[{}]:reload.refreshed->resource.setRemote", this.name);
         refreshed.forEach(id -> this.resources.getOrDefault(id, Optional.empty()).ifPresent(r -> m.runOnPooledThread(() -> r.setRemote(loadedResources.get(id)))));
         log.debug("[{}]:reload.added->addResourceToLocal", this.name);
-        added.stream().map(loadedResources::get).map(r -> Pair.of(r, this.newResource(r)))
-            .sorted(Comparator.comparing(p -> p.getValue().getName())) // sort by name when adding into cache
-            .forEach(p -> {
-                final R remote = p.getKey();
-                final T resource = p.getValue();
-                m.runOnPooledThread(() -> resource.setRemote(remote));
-                this.addResourceToLocal(resource.getId(), resource, true);
-            });
+        final Map<String, R> newResources = new HashMap<>();
+        added.forEach(id -> newResources.put(id, loadedResources.get(id)));
+        addResources(newResources);
         this.syncTimeRef.set(System.currentTimeMillis());
     }
 
-    private void addResources(Map<String, R> loadedResources) {
+    protected void addResources(Map<String, R> loadedResources) {
         final Set<String> added = loadedResources.keySet();
         log.debug("[{}]:reload().added={}", this.name, added);
         loadedResources.values().stream().map(r -> Pair.of(r, this.newResource(r)))

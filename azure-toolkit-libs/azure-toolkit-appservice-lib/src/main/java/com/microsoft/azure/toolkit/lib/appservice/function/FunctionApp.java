@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.appservice.function;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
 import com.azure.resourcemanager.appservice.models.PlatformArchitecture;
-import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
@@ -89,7 +88,7 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     @Nullable
     @Override
     public String getMasterKey() {
-        return Optional.ofNullable(this.getFullRemote()).map(com.azure.resourcemanager.appservice.models.FunctionApp::getMasterKey).orElse(null);
+        return Optional.ofNullable(this.getRemote()).map(com.azure.resourcemanager.appservice.models.FunctionApp::getMasterKey).orElse(null);
     }
 
     @Override
@@ -97,7 +96,7 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     public void enableRemoteDebug() {
         final Map<String, String> appSettings = Optional.ofNullable(this.getAppSettings()).orElseGet(HashMap::new);
         final String debugPort = appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, getRemoteDebugPort());
-        doModify(() -> Objects.requireNonNull(getFullRemote()).update()
+        doModify(() -> Objects.requireNonNull(getRemote()).update()
                 .withWebSocketsEnabled(true)
                 .withPlatformArchitecture(PlatformArchitecture.X64)
                 .withAppSetting(HTTP_PLATFORM_DEBUG_PORT, appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, getRemoteDebugPort()))
@@ -111,16 +110,16 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
         final String javaOpts = this.getJavaOptsWithRemoteDebugDisabled(appSettings);
         doModify(() -> {
             if (StringUtils.isEmpty(javaOpts)) {
-                Objects.requireNonNull(getFullRemote()).update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withoutAppSetting(JAVA_OPTS).apply();
+                Objects.requireNonNull(getRemote()).update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withoutAppSetting(JAVA_OPTS).apply();
             } else {
-                Objects.requireNonNull(getFullRemote()).update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withAppSetting(JAVA_OPTS, javaOpts).apply();
+                Objects.requireNonNull(getRemote()).update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withAppSetting(JAVA_OPTS, javaOpts).apply();
             }
         }, Status.UPDATING);
     }
 
     @Nonnull
     public List<FunctionEntity> listFunctions(boolean... force) {
-        return Optional.ofNullable(this.getFullRemote()).map(r -> r.listFunctions().stream()
+        return Optional.ofNullable(this.getRemote()).map(r -> r.listFunctions().stream()
                 .map(envelope -> AppServiceUtils.fromFunctionAppEnvelope(envelope, this.getId()))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList()))
@@ -129,24 +128,24 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
 
     @AzureOperation(name = "azure/function.trigger_function.func", params = {"functionName"})
     public void triggerFunction(String functionName, Object input) {
-        Optional.ofNullable(this.getFullRemote()).ifPresent(r -> r.triggerFunction(functionName, input));
+        Optional.ofNullable(this.getRemote()).ifPresent(r -> r.triggerFunction(functionName, input));
     }
 
     @AzureOperation(name = "azure/function.swap_slot.app|slot", params = {"this.getName()", "slotName"})
     public void swap(String slotName) {
         this.doModify(() -> {
-            Objects.requireNonNull(this.getFullRemote()).swap(slotName);
+            Objects.requireNonNull(this.getRemote()).swap(slotName);
             AzureMessager.getMessager().info(AzureString.format("Swap deployment slot %s into production successfully", slotName));
         }, Status.UPDATING);
     }
 
     public void syncTriggers() {
-        Optional.ofNullable(this.getFullRemote()).ifPresent(com.azure.resourcemanager.appservice.models.FunctionApp::syncTriggers);
+        Optional.ofNullable(this.getRemote()).ifPresent(com.azure.resourcemanager.appservice.models.FunctionApp::syncTriggers);
     }
 
     @Nonnull
     public Map<String, String> listFunctionKeys(String functionName) {
-        return Optional.ofNullable(this.getFullRemote()).map(r -> r.listFunctionKeys(functionName)).orElseGet(HashMap::new);
+        return Optional.ofNullable(this.getRemote()).map(r -> r.listFunctionKeys(functionName)).orElseGet(HashMap::new);
     }
 
     @Nonnull
@@ -210,7 +209,7 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
 
     @Nullable
     @Override
-    protected WebSiteBase doModify(@Nonnull Callable<WebSiteBase> body, @Nullable String status) {
+    protected com.azure.resourcemanager.appservice.models.FunctionApp doModify(@Nonnull Callable<com.azure.resourcemanager.appservice.models.FunctionApp> body, @Nullable String status) {
         // override only to provide package visibility
         return super.doModify(body, status);
     }

@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.appservice.webapp;
 
 import com.azure.resourcemanager.appservice.models.WebAppBasic;
-import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -27,7 +26,6 @@ import java.util.concurrent.Callable;
 @Getter
 public class WebApp extends WebAppBase<WebApp, AppServiceServiceSubscription, com.azure.resourcemanager.appservice.models.WebApp>
     implements Deletable, ServiceLinkerConsumer {
-
     @Nonnull
     private final WebAppDeploymentSlotModule deploymentModule;
     private final ServiceLinkerModule linkerModule;
@@ -55,7 +53,7 @@ public class WebApp extends WebAppBase<WebApp, AppServiceServiceSubscription, co
     @AzureOperation(name = "azure/webapp.swap_slot.app|slot", params = {"this.getName()", "slotName"})
     public void swap(String slotName) {
         this.doModify(() -> {
-            Objects.requireNonNull(this.getFullRemote()).swap(slotName);
+            Objects.requireNonNull(this.getRemote()).swap(slotName);
             AzureMessager.getMessager().info(AzureString.format("Swap deployment slot %s into production successfully", slotName));
         }, Status.UPDATING);
     }
@@ -78,7 +76,7 @@ public class WebApp extends WebAppBase<WebApp, AppServiceServiceSubscription, co
 
     @Nullable
     @Override
-    protected WebSiteBase doModify(@Nonnull Callable<WebSiteBase> body, @Nullable String status) {
+    protected com.azure.resourcemanager.appservice.models.WebApp doModify(@Nonnull Callable<com.azure.resourcemanager.appservice.models.WebApp> body, @Nullable String status) {
         // override only to provide package visibility
         return super.doModify(body, status);
     }
