@@ -5,7 +5,10 @@
 
 package com.microsoft.azure.maven.springcloud.config;
 
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import lombok.Data;
+
+import javax.annotation.Nonnull;
 
 /**
  * The string version of <class>Deployment</class> which is used in `config` goal due to the reason that users may use
@@ -19,4 +22,13 @@ public class AppDeploymentRawConfig {
     private String deploymentName;
     private String jvmOptions;
     private String runtimeVersion;
+
+    public void saveSpringCloudDeployment(@Nonnull final SpringCloudDeployment activeDeployment) {
+        this.setCpu(String.valueOf(activeDeployment.getCpu()));
+        this.setMemoryInGB(String.valueOf(activeDeployment.getMemoryInGB()));
+        this.setInstanceCount(String.valueOf(activeDeployment.getInstances().size()));
+        this.setDeploymentName(activeDeployment.getName());
+        this.setJvmOptions(activeDeployment.getJvmOptions());
+        this.setRuntimeVersion(activeDeployment.getRuntimeVersion());
+    }
 }

@@ -8,14 +8,13 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.azure.core.management.Region;
 import com.azure.resourcemanager.appplatform.fluent.models.ServiceResourceInner;
 import com.azure.resourcemanager.appplatform.models.ClusterResourceProperties;
-import com.azure.resourcemanager.appplatform.models.Sku;
-import com.azure.resourcemanager.appplatform.models.SkuName;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.TestKeys;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.springcloud.model.Sku;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -83,7 +82,8 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
 
     @Nonnull
     public Sku getSku() {
-        return Optional.ofNullable(this.getRemote()).map(SpringService::sku).orElseGet(() -> new Sku().withName(SkuName.B0.toString()));
+        return Optional.ofNullable(this.getRemote()).map(SpringService::sku)
+            .map(Sku::fromSku).orElse(Sku.UNKNOWN);
     }
 
     @Nullable
@@ -94,19 +94,19 @@ public class SpringCloudCluster extends AbstractAzResource<SpringCloudCluster, S
     }
 
     public boolean isEnterpriseTier() {
-        return this.remoteOptional().map(SpringService::sku).filter(s -> s.name().equalsIgnoreCase(SkuName.E0.toString())).isPresent();
+        return getSku().isEnterpriseTier();
     }
 
     public boolean isStandardTier() {
-        return this.remoteOptional().map(SpringService::sku).filter(s -> s.name().equalsIgnoreCase(SkuName.S0.toString())).isPresent();
+        return getSku().isStandardTier();
     }
 
     public boolean isBasicTier() {
-        return this.remoteOptional().map(SpringService::sku).filter(s -> s.name().equalsIgnoreCase(SkuName.B0.toString())).isPresent();
+        return getSku().isBasicTier();
     }
 
     public boolean isConsumptionTier() {
-        return this.remoteOptional().map(SpringService::sku).filter(s -> s.tier().equalsIgnoreCase("StandardGen2")).isPresent();
+        return getSku().isConsumptionTier();
     }
 
     @Nonnull

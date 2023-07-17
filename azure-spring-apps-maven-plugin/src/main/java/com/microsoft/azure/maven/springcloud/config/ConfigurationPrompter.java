@@ -247,6 +247,10 @@ public class ConfigurationPrompter {
         }, TemplateUtils.evalBoolean("required", variables));
     }
 
+    public boolean handleConfirm(final String message, final Boolean defaultVal, final Boolean required) throws IOException {
+        return prompt.promoteYesNo(message, defaultVal, required);
+    }
+
     public void confirmChanges(Map<String, String> changesToConfirm, Supplier<Integer> confirmedAction) throws IOException {
         final Map<String, Object> variables = createVariableTables("confirm");
         System.out.println(TemplateUtils.evalText("promote.header", variables));
