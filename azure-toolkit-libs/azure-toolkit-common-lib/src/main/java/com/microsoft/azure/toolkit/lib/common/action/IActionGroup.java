@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.action;
 
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 public interface IActionGroup {
@@ -16,4 +17,22 @@ public interface IActionGroup {
     List<Object> getActions();
 
     void addAction(Object action);
+
+    default void appendAction(Object action) {
+        this.addAction(action);
+    }
+
+    default void appendActions(@Nonnull Object... actions) {
+        for (final Object action : actions) {
+            this.appendAction(action);
+        }
+    }
+
+    void prependAction(Object action);
+
+    default void prependActions(@Nonnull Object... actions) {
+        for (int i = actions.length - 1; i >= 0; i--) {
+            this.prependAction(actions[i]);
+        }
+    }
 }
