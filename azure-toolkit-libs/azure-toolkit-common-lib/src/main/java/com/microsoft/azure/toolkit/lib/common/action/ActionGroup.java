@@ -27,8 +27,10 @@ public class ActionGroup implements IActionGroup {
         this.actions.addAll(actions);
     }
 
-    public ActionGroup(@Nonnull Object... actions) {
-        this.actions.addAll(Arrays.asList(actions));
+    public ActionGroup(Object... actions) {
+        if (actions != null) {
+            this.actions.addAll(Arrays.asList(actions));
+        }
     }
 
     public ActionGroup(@Nonnull List<Object> actions, @Nullable IView.Label view) {
