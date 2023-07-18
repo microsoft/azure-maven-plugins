@@ -121,7 +121,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         if (Objects.nonNull(newDiagnosticConfig)) {
             AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, newDiagnosticConfig);
         }
-        final boolean updateFlexConsumptionConfiguration = Objects.nonNull(newFlexConsumptionConfiguration) && getAppServicePlan().getPricingTier().isFlexConsumption();
+        final boolean updateFlexConsumptionConfiguration = Objects.nonNull(newFlexConsumptionConfiguration) && Objects.requireNonNull(getAppServicePlan()).getPricingTier().isFlexConsumption();
         if (updateFlexConsumptionConfiguration) {
             ((com.azure.resourcemanager.appservice.models.FunctionApp) withCreate).innerModel().withContainerSize(newFlexConsumptionConfiguration.getInstanceSize());
         }
@@ -131,7 +131,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         // todo: add unified error handling for reactor
         final Consumer<Throwable> throwableConsumer = messager::error;
         final Context context = new Context("reactor.onErrorDropped.local", throwableConsumer);
-        FunctionDeploymentSlot slot = (FunctionDeploymentSlot) Objects.requireNonNull(this.doModify(() -> {
+        FunctionDeploymentSlot slot = Objects.requireNonNull(this.doModify(() -> {
             final FunctionDeploymentSlot functionDeploymentSlot = withCreate.create(context);
             if (updateFlexConsumptionConfiguration) {
                 updateFlexConsumptionConfiguration(functionDeploymentSlot, newFlexConsumptionConfiguration);
@@ -335,15 +335,14 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         final WebAppsClient webApps = slot.manager().serviceClient().getWebApps();
         if (ObjectUtils.anyNotNull(flexConfiguration.getMaximumInstances(), flexConfiguration.getAlwaysReadyInstances())) {
             final SiteConfigResourceInner configuration = webApps.getConfiguration(slot.resourceGroupName(), name);
-            Optional.ofNullable(flexConfiguration.getMaximumInstances())
-                .filter(maxInstances -> Objects.equals(maxInstances, configuration.functionAppScaleLimit()))
-                .ifPresent(configuration::withFunctionAppScaleLimit);
-            Optional.ofNullable(flexConfiguration.getAlwaysReadyInstances())
-                .filter(readyInstances -> Objects.equals(readyInstances, configuration.minimumElasticInstanceCount()))
-                .ifPresent(configuration::withMinimumElasticInstanceCount);
-            webApps.updateConfiguration(slot.resourceGroupName(), name, configuration);
+            if (!Objects.equals(flexConfiguration.getMaximumInstances(), configuration.functionAppScaleLimit()) ||
+                !Objects.equals(flexConfiguration.getAlwaysReadyInstances(), configuration.minimumElasticInstanceCount())) {
+                configuration.withFunctionAppScaleLimit(flexConfiguration.getMaximumInstances())
+                    .withMinimumElasticInstanceCount(flexConfiguration.getAlwaysReadyInstances());
+                webApps.updateConfiguration(slot.resourceGroupName(), name, configuration);
+            }
         }
-        if (Objects.equals(slot.innerModel().containerSize(), flexConfiguration.getInstanceSize())) {
+        if (!Objects.equals(slot.innerModel().containerSize(), flexConfiguration.getInstanceSize())) {
             webApps.updateWithResponse(slot.resourceGroupName(), name, new SitePatchResourceInner()
                 .withContainerSize(flexConfiguration.getInstanceSize()), Context.NONE);
         }
