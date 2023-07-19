@@ -93,6 +93,7 @@ public class DeployMojo extends AbstractMojoBase {
                 .map(version -> StringUtils.removeStart(version, "Java_")).orElse(StringUtils.EMPTY);
         final SpringCloudCluster springCloudCluster = Azure.az(AzureSpringCloud.class).clusters(clusterConfig.getSubscriptionId()).get(clusterConfig.getClusterName(), clusterConfig.getResourceGroup());
         final Sku sku = Optional.ofNullable(springCloudCluster).map(SpringCloudCluster::getSku).orElseGet(() -> Sku.fromString(clusterConfig.getSku()));
+        Objects.requireNonNull(sku, "Sku is required for creating Azure Spring Apps.");
         if (!sku.isEnterpriseTier()) {
             validateArtifactCompileVersion(javaVersion, file, getFailsOnRuntimeValidationError());
         }

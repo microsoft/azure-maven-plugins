@@ -8,6 +8,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -97,7 +98,11 @@ public class Sku {
         return new com.azure.resourcemanager.appplatform.models.Sku().withName(name).withTier(tier);
     }
 
+    @Nullable
     public static Sku fromString(final String value) {
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
         if (StringUtils.equalsIgnoreCase(value, CONSUMPTION_DISPLAY_NAME)) {
             return CONSUMPTION;
         }

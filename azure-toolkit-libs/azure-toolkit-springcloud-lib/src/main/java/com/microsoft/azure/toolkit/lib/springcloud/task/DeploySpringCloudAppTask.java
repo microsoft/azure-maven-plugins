@@ -74,7 +74,10 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final String clusterName = Optional.ofNullable(config.getCluster()).map(SpringCloudClusterConfig::getClusterName).filter(StringUtils::isNotBlank).orElseThrow(() -> new AzureToolkitRuntimeException("'clusterName' is required"));
         final String appName = Optional.ofNullable(config.getAppName()).filter(StringUtils::isNotBlank).orElseThrow(() -> new AzureToolkitRuntimeException("'appName' is required"));
         final String resourceGroup = Optional.of(clusterConfig).map(SpringCloudClusterConfig::getResourceGroup).orElse(null);
-        final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(subscriptionId).getOrDraft(clusterName, resourceGroup);
+        SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(subscriptionId).get(clusterName, resourceGroup);
+        if (Objects.isNull(cluster)) {
+            cluster = Azure.az(AzureSpringCloud.class).clusters(subscriptionId).create(clusterName, resourceGroup);
+        }
         final SpringCloudAppDraft app = cluster.apps().updateOrCreate(appName, resourceGroup);
         final String deploymentName = StringUtils.firstNonBlank(
             deploymentConfig.getDeploymentName(),
