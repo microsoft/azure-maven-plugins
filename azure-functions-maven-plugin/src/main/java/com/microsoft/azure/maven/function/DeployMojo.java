@@ -84,6 +84,8 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String EXPANDABLE_JAVA_VERSION_WARNING = "'%s' may not be a valid java version, recommended values are `Java 8`, `Java 11` and `Java 17`";
     private static final String CV2_INVALID_CONTAINER_SIZE = "Invalid container size for flex consumption plan, valid values are: %s";
     private static final String CV2_INVALID_RUNTIME = "Windows runtime is not supported within flex consumption service plan";
+    private static final String CV2_INVALID_MAX_INSTANCE = "Invalid maximum instances for flex consumption plan, the limit is 1000";
+    public static final int MAX_MAX_INSTANCES = 1000;
 
     /**
      * The deployment approach to use, valid values are FTP, ZIP, MSDEPLOY, RUN_FROM_ZIP, RUN_FROM_BLOB <p>
@@ -196,6 +198,9 @@ public class DeployMojo extends AbstractFunctionMojo {
         if (StringUtils.isNotEmpty(pricingTier) && PricingTier.fromString(pricingTier).isFlexConsumption()) {
             if (Objects.nonNull(instanceSize) && !VALID_CONTAINER_SIZE.contains(instanceSize)) {
                 throw new AzureToolkitRuntimeException(String.format(CV2_INVALID_CONTAINER_SIZE, VALID_CONTAINER_SIZE.stream().map(String::valueOf).collect(Collectors.joining(","))));
+            }
+            if (Objects.nonNull(maximumInstances) && maximumInstances > MAX_MAX_INSTANCES) {
+                throw new AzureToolkitRuntimeException(CV2_INVALID_MAX_INSTANCE);
             }
             if (StringUtils.isEmpty(runtime.getOs()) || OperatingSystem.fromString(runtime.getOs()) == OperatingSystem.WINDOWS) {
                 throw new AzureToolkitRuntimeException(CV2_INVALID_RUNTIME);
