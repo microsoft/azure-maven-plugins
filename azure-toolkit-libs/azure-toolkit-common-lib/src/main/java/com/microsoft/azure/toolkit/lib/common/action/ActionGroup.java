@@ -13,6 +13,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 @Getter
@@ -49,6 +50,11 @@ public class ActionGroup implements IActionGroup {
     }
 
     @Override
+    public void appendActions(@Nonnull Collection<Object> actions) {
+        this.actions.addAll(actions);
+    }
+
+    @Override
     public void prependAction(Object action) {
         this.actions.add(0, action);
     }
@@ -56,5 +62,10 @@ public class ActionGroup implements IActionGroup {
     @Override
     public void prependActions(@Nonnull Object... actions) {
         this.actions.addAll(0, Arrays.asList(actions));
+    }
+
+    @Override
+    public void prependActions(@Nonnull Collection<Object> actions) {
+        this.actions.addAll(0, actions);
     }
 }

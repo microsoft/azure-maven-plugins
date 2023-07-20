@@ -8,6 +8,8 @@ package com.microsoft.azure.toolkit.lib.common.action;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public interface IActionGroup {
@@ -28,11 +30,24 @@ public interface IActionGroup {
         }
     }
 
+    default void appendActions(@Nonnull Collection<Object> actions) {
+        for (final Object action : actions) {
+            this.appendAction(action);
+        }
+    }
+
     void prependAction(Object action);
 
     default void prependActions(@Nonnull Object... actions) {
         for (int i = actions.length - 1; i >= 0; i--) {
             this.prependAction(actions[i]);
+        }
+    }
+
+    default void prependActions(@Nonnull Collection<Object> actions) {
+        final ArrayList<Object> list = new ArrayList<>(actions);
+        for (int i = list.size() - 1; i >= 0; i--) {
+            this.prependAction(list.get(i));
         }
     }
 }
