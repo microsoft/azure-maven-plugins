@@ -44,6 +44,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -65,6 +66,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             "Please make sure the Function App name is correct.";
 
     public static final JavaVersion DEFAULT_FUNCTION_JAVA_VERSION = Runtime.DEFAULT_FUNCTION_RUNTIME.getJavaVersion();
+    public static final String FLEX_CONSUMPTION_SLOT_NOT_SUPPORT = "Deployment slot is not supported for function app with consumption plan.";
 
     private final FunctionAppConfig functionAppConfig;
     private final List<AzureTask<?>> tasks = new ArrayList<>();
@@ -114,7 +116,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
         return new AzureTask<>(() -> {
             final StorageAccountModule accounts = Azure.az(AzureStorageAccount.class).accounts(functionAppConfig.subscriptionId());
             final StorageAccount existingAccount = accounts.get(functionAppConfig.storageAccountName(), functionAppConfig.resourceGroup());
-            if (existingAccount.exists()) {
+            if (existingAccount != null && existingAccount.exists()) {
                 return existingAccount;
             }
             final StorageAccountDraft draft = accounts.create(functionAppConfig.storageAccountName(), functionAppConfig.resourceGroup());
@@ -207,6 +209,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setAppSettings(appSettings);
             draft.setRuntime(getRuntime(functionAppConfig.runtime()));
             draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
+            // draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
             draft.setDockerConfiguration(getDockerConfiguration(functionAppConfig.runtime()));
             draft.setConfigurationSource(functionAppConfig.deploymentSlotConfigurationSource());
             draft.removeAppSettings(functionAppConfig.appSettingsToRemove());
@@ -226,9 +229,9 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setRuntime(getRuntime(functionAppConfig.runtime()));
             draft.setDockerConfiguration(getDockerConfiguration(functionAppConfig.runtime()));
             draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
+            // draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
             draft.setAppSettings(appSettings);
             draft.removeAppSettings(functionAppConfig.appSettingsToRemove());
-            draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
             return draft.commit();
         });
     }
@@ -236,6 +239,9 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
     private FunctionAppDeploymentSlotDraft getFunctionDeploymentSlot(final FunctionApp functionApp) {
         if (!functionApp.exists()) {
             throw new AzureToolkitRuntimeException(FUNCTION_APP_NOT_EXIST_FOR_SLOT);
+        }
+        if (Objects.requireNonNull(functionApp.getAppServicePlan()).getPricingTier().isFlexConsumption()) {
+            throw new AzureToolkitRuntimeException(FLEX_CONSUMPTION_SLOT_NOT_SUPPORT);
         }
         return functionApp.slots().updateOrCreate(functionAppConfig.deploymentSlotName(), functionAppConfig.resourceGroup());
     }
