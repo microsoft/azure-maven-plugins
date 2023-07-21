@@ -10,7 +10,6 @@ import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.fluent.WebAppsClient;
 import com.azure.resourcemanager.appservice.fluent.models.SiteConfigResourceInner;
 import com.azure.resourcemanager.appservice.fluent.models.SitePatchResourceInner;
-import com.azure.resourcemanager.appservice.implementation.FunctionAppsImpl;
 import com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages;
 import com.azure.resourcemanager.appservice.models.FunctionApp.Update;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
@@ -142,14 +141,13 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             ((com.azure.resourcemanager.appservice.models.FunctionApp) withCreate).innerModel().withContainerSize(newFlexConsumptionConfiguration.getInstanceSize());
         }
         messager.info(AzureString.format("Start creating Function App({0})...", name));
-        com.azure.resourcemanager.appservice.models.FunctionApp functionApp = (com.azure.resourcemanager.appservice.models.FunctionApp)
-            Objects.requireNonNull(this.doModify(() -> {
-                com.azure.resourcemanager.appservice.models.FunctionApp app = withCreate.create();
-                if (updateFlexConsumptionConfiguration) {
-                    updateFlexConsumptionConfiguration(app, newFlexConsumptionConfiguration);
-                }
-                return app;
-            }, Status.CREATING));
+        com.azure.resourcemanager.appservice.models.FunctionApp functionApp = Objects.requireNonNull(this.doModify(() -> {
+            com.azure.resourcemanager.appservice.models.FunctionApp app = withCreate.create();
+            if (updateFlexConsumptionConfiguration) {
+                updateFlexConsumptionConfiguration(app, newFlexConsumptionConfiguration);
+            }
+            return app;
+        }, Status.CREATING));
         messager.success(AzureString.format("Function App({0}) is successfully created", name));
         return functionApp;
     }
@@ -401,15 +399,14 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         final WebAppsClient webApps = app.manager().serviceClient().getWebApps();
         if (ObjectUtils.anyNotNull(flexConfiguration.getMaximumInstances(), flexConfiguration.getAlwaysReadyInstances())) {
             final SiteConfigResourceInner configuration = webApps.getConfiguration(app.resourceGroupName(), app.name());
-            Optional.ofNullable(flexConfiguration.getMaximumInstances())
-                .filter(maxInstances -> Objects.equals(maxInstances, configuration.functionAppScaleLimit()))
-                .ifPresent(configuration::withFunctionAppScaleLimit);
-            Optional.ofNullable(flexConfiguration.getAlwaysReadyInstances())
-                .filter(readyInstances -> Objects.equals(readyInstances, configuration.minimumElasticInstanceCount()))
-                .ifPresent(configuration::withMinimumElasticInstanceCount);
-            webApps.updateConfiguration(app.resourceGroupName(), app.name(), configuration);
+            if (!Objects.equals(flexConfiguration.getMaximumInstances(), configuration.functionAppScaleLimit()) ||
+                !Objects.equals(flexConfiguration.getAlwaysReadyInstances(), configuration.minimumElasticInstanceCount())) {
+                configuration.withFunctionAppScaleLimit(flexConfiguration.getMaximumInstances())
+                    .withMinimumElasticInstanceCount(flexConfiguration.getAlwaysReadyInstances());
+                webApps.updateConfiguration(app.resourceGroupName(), app.name(), configuration);
+            }
         }
-        if (Objects.equals(app.innerModel().containerSize(), flexConfiguration.getInstanceSize())) {
+        if (!Objects.equals(app.innerModel().containerSize(), flexConfiguration.getInstanceSize())) {
             webApps.updateWithResponse(app.resourceGroupName(), app.name(), new SitePatchResourceInner()
                 .withContainerSize(flexConfiguration.getInstanceSize()), Context.NONE);
         }

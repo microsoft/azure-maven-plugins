@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.task;
 
+import com.azure.resourcemanager.resources.fluentcore.utils.ResourceManagerUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
 import com.microsoft.azure.toolkit.lib.applicationinsights.task.GetOrCreateApplicationInsightsTask;
@@ -28,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
@@ -44,6 +46,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -65,6 +68,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             "Please make sure the Function App name is correct.";
 
     public static final JavaVersion DEFAULT_FUNCTION_JAVA_VERSION = Runtime.DEFAULT_FUNCTION_RUNTIME.getJavaVersion();
+    public static final String FLEX_CONSUMPTION_SLOT_NOT_SUPPORT = "Deployment slot is not supported for function app with consumption plan.";
 
     private final FunctionAppConfig functionAppConfig;
     private final List<AzureTask<?>> tasks = new ArrayList<>();
@@ -86,7 +90,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             .updateOrCreate(functionAppConfig.appName(), functionAppConfig.resourceGroup());
         registerSubTask(getResourceGroupTask(), result -> this.resourceGroup = result);
         registerSubTask(getServicePlanTask(), result -> this.appServicePlan = result);
-        if (StringUtils.isNotBlank(functionAppConfig.storageAccountName())) {
+        if (appDraft.isDraftForCreating()) {
+            // create new storage account when create function app
             registerSubTask(getStorageAccountTask(), result -> this.storageAccount = result);
         }
         // get/create AI instances only if user didn't specify AI connection string in app settings
@@ -112,17 +117,36 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
 
     private AzureTask<StorageAccount> getStorageAccountTask() {
         return new AzureTask<>(() -> {
+            final String storageAccountName = StringUtils.firstNonBlank(functionAppConfig.storageAccountName(), getDefaultStorageAccountName(functionAppConfig.appName()));
+            final String storageResourceGroup = StringUtils.firstNonBlank(functionAppConfig.storageAccountResourceGroup(), functionAppConfig.resourceGroup());
             final StorageAccountModule accounts = Azure.az(AzureStorageAccount.class).accounts(functionAppConfig.subscriptionId());
-            final StorageAccount existingAccount = accounts.get(functionAppConfig.storageAccountName(), functionAppConfig.resourceGroup());
-            if (existingAccount.exists()) {
+            final StorageAccount existingAccount = accounts.get(storageAccountName, storageResourceGroup);
+            if (existingAccount != null && existingAccount.exists()) {
                 return existingAccount;
             }
-            final StorageAccountDraft draft = accounts.create(functionAppConfig.storageAccountName(), functionAppConfig.resourceGroup());
-            draft.setRegion(functionAppConfig.region());
+            final StorageAccountDraft draft = accounts.create(storageAccountName, storageResourceGroup);
+            draft.setRegion(getNonStageRegion(functionAppConfig.region()));
             draft.setKind(Kind.STORAGE_V2);
             draft.setRedundancy(Redundancy.STANDARD_LRS);
             return draft.commit();
         });
+    }
+
+    private String getDefaultStorageAccountName(@Nonnull final String functionAppName) {
+        final ResourceManagerUtils.InternalRuntimeContext context = new ResourceManagerUtils.InternalRuntimeContext();
+        return context.randomResourceName(functionAppName.replaceAll("[^a-zA-Z0-9]", ""), 20);
+    }
+
+    private static Region getNonStageRegion(@Nonnull final Region region) {
+        final String regionName = region.getName();
+        if (!StringUtils.containsIgnoreCase(regionName, "stage")) {
+            return region;
+        }
+        return Optional.of(regionName)
+            .map(name -> StringUtils.removeIgnoreCase(name, "(stage)"))
+            .map(name -> StringUtils.removeIgnoreCase(name, "stage"))
+            .map(StringUtils::trim)
+            .map(Region::fromName).orElse(region);
     }
 
     private <T> void registerSubTask(AzureTask<T> task, Consumer<T> consumer) {
@@ -207,6 +231,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setAppSettings(appSettings);
             draft.setRuntime(getRuntime(functionAppConfig.runtime()));
             draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
+            // draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
             draft.setDockerConfiguration(getDockerConfiguration(functionAppConfig.runtime()));
             draft.setConfigurationSource(functionAppConfig.deploymentSlotConfigurationSource());
             draft.removeAppSettings(functionAppConfig.appSettingsToRemove());
@@ -226,9 +251,9 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setRuntime(getRuntime(functionAppConfig.runtime()));
             draft.setDockerConfiguration(getDockerConfiguration(functionAppConfig.runtime()));
             draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
+            // draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
             draft.setAppSettings(appSettings);
             draft.removeAppSettings(functionAppConfig.appSettingsToRemove());
-            draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
             return draft.commit();
         });
     }
@@ -236,6 +261,9 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
     private FunctionAppDeploymentSlotDraft getFunctionDeploymentSlot(final FunctionApp functionApp) {
         if (!functionApp.exists()) {
             throw new AzureToolkitRuntimeException(FUNCTION_APP_NOT_EXIST_FOR_SLOT);
+        }
+        if (Objects.requireNonNull(functionApp.getAppServicePlan()).getPricingTier().isFlexConsumption()) {
+            throw new AzureToolkitRuntimeException(FLEX_CONSUMPTION_SLOT_NOT_SUPPORT);
         }
         return functionApp.slots().updateOrCreate(functionAppConfig.deploymentSlotName(), functionAppConfig.resourceGroup());
     }
@@ -245,7 +273,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             try {
                 final String name = StringUtils.firstNonEmpty(functionAppConfig.appInsightsInstance(), functionAppConfig.appName());
                 return new GetOrCreateApplicationInsightsTask(functionAppConfig.subscriptionId(),
-                        functionAppConfig.resourceGroup(), functionAppConfig.region(), name, functionAppConfig.workspaceConfig()).getBody().call();
+                        functionAppConfig.resourceGroup(), getNonStageRegion(functionAppConfig.region()), name, functionAppConfig.workspaceConfig()).getBody().call();
             } catch (final Throwable e) {
                 final String errorMessage = Optional.ofNullable(ExceptionUtils.getRootCause(e)).orElse(e).getMessage();
                 AzureMessager.getMessager().warning(String.format(APPLICATION_INSIGHTS_CREATE_FAILED, errorMessage));
