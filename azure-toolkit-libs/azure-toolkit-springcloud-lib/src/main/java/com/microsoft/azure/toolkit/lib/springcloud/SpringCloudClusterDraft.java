@@ -7,8 +7,6 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.core.management.Region;
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
-import com.azure.resourcemanager.appplatform.fluent.models.ServiceResourceInner;
-import com.azure.resourcemanager.appplatform.models.ClusterResourceProperties;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -78,13 +76,14 @@ public class SpringCloudClusterDraft extends SpringCloudCluster implements Draft
         final String serviceName = this.getName();
         final AppPlatformManager manager = Objects.requireNonNull(this.getParent().getRemote());
         messager.info(AzureString.format("Start creating Spring apps ({0})...", serviceName));
-        final ClusterResourceProperties properties = new ClusterResourceProperties()
-            .withManagedEnvironmentId(this.getManagedEnvironmentId());
-        final ServiceResourceInner resource = new ServiceResourceInner()
-            .withLocation(region.toString())
+
+        manager.springServices()
+            .define(this.getName())
+            .withRegion(region)
+            .withExistingResourceGroup(this.getResourceGroupName())
             .withSku(Optional.ofNullable(this.getSku()).map(Sku::toSku).orElse(null))
-            .withProperties(properties);
-        manager.serviceClient().getServices().createOrUpdate(this.getResourceGroupName(), this.getName(), resource);
+            .create();
+
         messager.success(AzureString.format("Spring apps ({0}) is successfully created.", serviceName));
         return manager.springServices().getByResourceGroup(this.getResourceGroupName(), this.getName());
     }
