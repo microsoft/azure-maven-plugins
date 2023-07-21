@@ -141,8 +141,12 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
         if (this.getParent().isConsumptionTier()) {
             return null;
         }
+        final String name = this.getActiveDeploymentName();
+        if (Objects.isNull(name)) {
+            return null;
+        }
         return Optional.ofNullable(this.getTestEndpoint())
-            .map(e -> String.format("%s/%s/%s", e, this.getName(), Objects.requireNonNull(this.getRemote()).activeDeploymentName()))
+            .map(e -> String.format("%s/%s/%s", e, this.getName(), name))
             .orElse(null);
     }
 
@@ -153,7 +157,7 @@ public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringClo
 
     @Nullable
     public SpringCloudPersistentDisk getPersistentDisk() {
-        final PersistentDisk disk = Optional.ofNullable(this.getRemote()).map(SpringApp::persistentDisk).orElse(null);
+        final PersistentDisk disk = this.remoteOptional().map(SpringApp::persistentDisk).orElse(null);
         return Optional.ofNullable(disk).filter(d -> d.sizeInGB() > 0)
             .map(d -> SpringCloudPersistentDisk.builder()
                 .sizeInGB(disk.sizeInGB())

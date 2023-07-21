@@ -180,6 +180,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @Nonnull
     public String getStatus() {
+        if (this.isDraftForCreating()) {
+            return Status.CREATING;
+        }
         String cacheStatus = this.cache.getStatus();
         if (StringUtils.isBlank(cacheStatus)) {
             final R remote = this.cache.getIfPresent(true);
@@ -277,10 +280,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @Nonnull
     public String getId() {
-        final R r = this.cache.getIfPresent();
-        if (r instanceof HasId) {
-            return ((HasId) r).id();
-        }
         return this.getModule().toResourceId(this.getName(), this.getResourceGroupName());
     }
 

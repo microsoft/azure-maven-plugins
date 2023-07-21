@@ -145,16 +145,9 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         SpringAppDeploymentImpl update = (SpringAppDeploymentImpl) deployment.update();
         if (updateProperties(update)) {
             final IAzureMessager messager = AzureMessager.getMessager();
-            final File newArtifact = Optional.ofNullable(config).map(c -> c.artifact).map(IArtifact::getFile).orElse(null);
-            if (Objects.nonNull(newArtifact)) {
-                messager.info(AzureString.format("Start uploading artifact({0}) and updating deployment({1})...", newArtifact.getName(), deployment.name()));
-                deployment = update.apply();
-                messager.success(AzureString.format("Artifact({0}) is uploaded and deployment({1}) is successfully updated.", newArtifact.getName(), deployment.name()));
-            } else {
-                messager.info(AzureString.format("Start updating deployment({0})...", deployment.name()));
-                deployment = update.apply();
-                messager.success(AzureString.format("Deployment({0}) is successfully updated.", deployment.name()));
-            }
+            messager.info(AzureString.format("Start updating deployment({0})...", deployment.name()));
+            deployment = update.apply();
+            messager.success(AzureString.format("Deployment({0}) is successfully updated.", deployment.name()));
         }
         update = (SpringAppDeploymentImpl) deployment.update();
         if (updateScalingProperties(update)) {
@@ -168,9 +161,9 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             final IAzureMessager messager = AzureMessager.getMessager();
             try {
                 final File artifact = Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(config).artifact).getFile());
-                messager.info(AzureString.format("Start deploying artifact({0}) to deployment({1}) of app({2})...", artifact.getPath(), deployment.name()), this.getParent().getName());
+                messager.info(AzureString.format("Start deploying artifact(%s) to deployment(%s) of app(%s)...", artifact.getName(), deployment.name(), deployment.parent().name()));
                 deployment = update.apply();
-                messager.success(AzureString.format("Artifact({0}) is successfully deployed to deployment({1}) of app({2}).", artifact.getPath(), deployment.name(), this.getParent().getName()));
+                messager.success(AzureString.format("Artifact(%s) is successfully deployed to deployment(%s) of app(%s).", artifact.getName(), deployment.name(), deployment.parent().name()));
             } catch (final Exception e) {
                 final SpringCloudApp app = this.getParent();
                 app.refresh();

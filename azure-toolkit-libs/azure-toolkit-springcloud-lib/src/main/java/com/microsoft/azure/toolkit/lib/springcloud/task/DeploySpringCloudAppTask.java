@@ -73,8 +73,11 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final String subscriptionId = Optional.ofNullable(clusterConfig).map(SpringCloudClusterConfig::getSubscriptionId).filter(StringUtils::isNotBlank).orElseThrow(() -> new AzureToolkitRuntimeException("'subscriptionId' is required"));
         final String clusterName = Optional.ofNullable(config.getCluster()).map(SpringCloudClusterConfig::getClusterName).filter(StringUtils::isNotBlank).orElseThrow(() -> new AzureToolkitRuntimeException("'clusterName' is required"));
         final String appName = Optional.ofNullable(config.getAppName()).filter(StringUtils::isNotBlank).orElseThrow(() -> new AzureToolkitRuntimeException("'appName' is required"));
-        final String resourceGroup = Optional.ofNullable(clusterConfig).map(SpringCloudClusterConfig::getResourceGroup).orElse(null);
-        final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(subscriptionId).getOrDraft(clusterName, resourceGroup);
+        final String resourceGroup = Optional.of(clusterConfig).map(SpringCloudClusterConfig::getResourceGroup).orElse(null);
+        SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).clusters(subscriptionId).get(clusterName, resourceGroup);
+        if (Objects.isNull(cluster)) {
+            cluster = Azure.az(AzureSpringCloud.class).clusters(subscriptionId).create(clusterName, resourceGroup);
+        }
         final SpringCloudAppDraft app = cluster.apps().updateOrCreate(appName, resourceGroup);
         final String deploymentName = StringUtils.firstNonBlank(
             deploymentConfig.getDeploymentName(),
@@ -85,7 +88,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final boolean toCreateCluster = cluster.isDraftForCreating() && !cluster.exists();
 
         final boolean toCreateApp = !app.exists();
-        final boolean toCreateDeployment = !toCreateApp && !app.deployments().exists(deploymentName, resourceGroup);
+        final boolean toCreateDeployment = toCreateApp || !app.deployments().exists(deploymentName, resourceGroup);
         config.setActiveDeploymentName(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateApp || toCreateDeployment ? deploymentName : null));
 
         OperationContext.action().setTelemetryProperty("subscriptionId", subscriptionId);
