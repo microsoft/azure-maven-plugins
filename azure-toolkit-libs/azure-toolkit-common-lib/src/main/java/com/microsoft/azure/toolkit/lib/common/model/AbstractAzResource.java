@@ -180,6 +180,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @Nonnull
     public String getStatus() {
+        if (this.isDraftForCreating()) {
+            return Status.CREATING;
+        }
         String cacheStatus = this.cache.getStatus();
         if (StringUtils.isBlank(cacheStatus)) {
             final R remote = this.cache.getIfPresent(true);
