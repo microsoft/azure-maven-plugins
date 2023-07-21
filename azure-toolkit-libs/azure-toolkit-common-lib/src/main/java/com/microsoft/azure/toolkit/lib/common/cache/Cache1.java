@@ -157,20 +157,12 @@ public class Cache1<T> {
         }
         final Optional<T> opt = this.cache.getIfPresent(KEY);
         if (opt == null) {
-            if (loadIfAbsent) {
-                AzureTaskManager.getInstance().runOnPooledThread(this::refresh);
+            if (loadIfAbsent && (StringUtils.equalsAnyIgnoreCase(this.getStatus(), Status.OK, Status.UNKNOWN, null))) {
+                AzureTaskManager.getInstance().runOnPooledThread(this::get);
             }
             return this.latest;
         }
         return opt.orElse(null);
-    }
-
-    public void refresh() {
-        if (this.status.compareAndSet(null, Status.LOADING) ||
-            this.status.compareAndSet(Status.OK, Status.LOADING) ||
-            this.status.compareAndSet(Status.UNKNOWN, Status.LOADING)) {
-            this.cache.refresh(KEY);
-        }
     }
 
     @Nullable
