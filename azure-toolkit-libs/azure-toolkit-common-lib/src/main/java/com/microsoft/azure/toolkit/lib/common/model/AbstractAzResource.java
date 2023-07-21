@@ -280,10 +280,6 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
 
     @Nonnull
     public String getId() {
-        final R r = this.cache.getIfPresent();
-        if (r instanceof HasId) {
-            return ((HasId) r).id();
-        }
         return this.getModule().toResourceId(this.getName(), this.getResourceGroupName());
     }
 
