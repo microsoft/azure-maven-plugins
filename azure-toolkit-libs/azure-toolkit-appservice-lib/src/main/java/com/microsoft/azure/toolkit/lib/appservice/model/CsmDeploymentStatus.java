@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @Data
 @Builder
@@ -22,4 +23,10 @@ public class CsmDeploymentStatus {
     private Integer numberOfInstancesFailed;
     private List<String> failedInstancesLogs;
     private List<ErrorEntity> errors;
+
+    public int getTotalInstanceCount() {
+        return Stream.of(numberOfInstancesInProgress, numberOfInstancesFailed, numberOfInstancesSuccessful)
+            .filter(i -> i != null)
+            .mapToInt(Integer::intValue).sum();
+    }
 }

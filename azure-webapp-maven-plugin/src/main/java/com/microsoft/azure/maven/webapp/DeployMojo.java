@@ -23,6 +23,7 @@ import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -90,6 +91,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             final WebAppBase<?, ?, ?> target = createOrUpdateResource(app);
             deployExternalResources(target, getConfigParser().getExternalArtifacts());
             deploy(target, getConfigParser().getArtifacts());
+            AzureMessager.getMessager().info(AzureString.format("Application url: %s", "https://" + target.getHostName()));
         } catch (final Exception e) {
             new StreamingLogTask(app).execute();
             throw new AzureToolkitRuntimeException(e);
@@ -148,6 +150,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         final DeployWebAppTask deployWebAppTask = new DeployWebAppTask(target, artifacts, this.getRestartSite(), this.getWaitDeploymentComplete(), true);
         Optional.ofNullable(this.getDeploymentStatusRefreshInterval()).ifPresent(deployWebAppTask::setDeploymentStatusRefreshInterval);
         Optional.ofNullable(this.getDeploymentStatusMaxRefreshTimes()).ifPresent(deployWebAppTask::setDeploymentStatusMaxRefreshTimes);
+        deployWebAppTask.setDeploymentStatusStream(System.out);
         deployWebAppTask.doExecute();
     }
 
