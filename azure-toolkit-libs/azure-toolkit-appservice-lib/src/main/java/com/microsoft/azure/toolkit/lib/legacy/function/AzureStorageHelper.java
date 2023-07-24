@@ -5,26 +5,19 @@
 
 package com.microsoft.azure.toolkit.lib.legacy.function;
 
-import com.microsoft.azure.storage.CloudStorageAccount;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.BlobContainerPublicAccessType;
-import com.microsoft.azure.storage.blob.CloudBlob;
-import com.microsoft.azure.storage.blob.CloudBlobClient;
-import com.microsoft.azure.storage.blob.CloudBlobContainer;
-import com.microsoft.azure.storage.blob.CloudBlockBlob;
-import com.microsoft.azure.storage.blob.SharedAccessBlobPermissions;
-import com.microsoft.azure.storage.blob.SharedAccessBlobPolicy;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.legacy.function.utils.DateUtils;
+import com.azure.storage.blob.BlobClient;
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.sas.BlobSasPermission;
+import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.Period;
-import java.util.EnumSet;
 
 public class AzureStorageHelper {
     private static final int SAS_START_RESERVE_MINUTE = 5;
@@ -32,55 +25,39 @@ public class AzureStorageHelper {
     private static final String FAIL_TO_UPLOAD_BLOB = "Fail to upload file as blob";
     private static final String FAIL_TO_GENERATE_BLOB_SAS_TOKEN = "Fail to generate blob sas token";
 
-    public static CloudBlockBlob uploadFileAsBlob(final File fileToUpload, final CloudStorageAccount storageAccount,
-            final String containerName, final String blobName, final BlobContainerPublicAccessType accessType) throws AzureExecutionException {
+    public static BlobClient uploadFileAsBlob(final File fileToUpload, final BlobServiceClient blobServiceClient,
+            final String containerName, final String blobName) {
         try {
-            final CloudBlobContainer blobContainer = getBlobContainer(storageAccount, containerName);
-            blobContainer.createIfNotExists(accessType, null, null);
+            final BlobContainerClient blobContainer = blobServiceClient.getBlobContainerClient(containerName);
+            blobContainer.createIfNotExists();
 
-            final CloudBlockBlob blob = blobContainer.getBlockBlobReference(blobName);
+            final BlobClient blob = blobContainer.getBlobClient(blobName);
             blob.upload(new FileInputStream(fileToUpload), fileToUpload.length());
             return blob;
-        } catch (URISyntaxException | StorageException | IOException e) {
-            throw new AzureExecutionException(FAIL_TO_UPLOAD_BLOB, e);
+        } catch (IOException e) {
+            throw new AzureToolkitRuntimeException(FAIL_TO_UPLOAD_BLOB, e);
         }
     }
 
-    public static void deleteBlob(final CloudStorageAccount storageAccount, final String containerName,
-            final String blobName) throws AzureExecutionException {
-        try {
-            final CloudBlobContainer blobContainer = getBlobContainer(storageAccount, containerName);
-            if (blobContainer.exists()) {
-                final CloudBlockBlob blob = blobContainer.getBlockBlobReference(blobName);
-                blob.deleteIfExists();
-            }
-        } catch (URISyntaxException | StorageException e) {
-            throw new AzureExecutionException(FAIL_TO_DELETE_BLOB, e);
+    public static void deleteBlob(final BlobServiceClient blobServiceClient, final String containerName, final String blobName) {
+        final BlobContainerClient blobContainer = blobServiceClient.getBlobContainerClient(containerName);
+        if (blobContainer.exists()) {
+            final BlobClient blob = blobContainer.getBlobClient(blobName);
+            blob.deleteIfExists();
         }
     }
 
-    public static String getSASToken(final CloudBlob blob, Period period) throws AzureExecutionException {
-        final SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy();
-        policy.setPermissions(EnumSet.of(SharedAccessBlobPermissions.READ));
+    public static String getSASToken(final BlobClient blob, Period period) {
+        final BlobServiceSasSignatureValues policy = new BlobServiceSasSignatureValues();
+        policy.setPermissions(new BlobSasPermission().setReadPermission(true));
 
         final LocalDateTime now = LocalDateTime.now();
         final LocalDateTime sasStartTime = now.minusMinutes(SAS_START_RESERVE_MINUTE);
         final LocalDateTime sasExpireTime = now.plus(period);
-        policy.setSharedAccessStartTime(DateUtils.convertLocalDateTimeToDate(sasStartTime));
-        policy.setSharedAccessExpiryTime(DateUtils.convertLocalDateTimeToDate(sasExpireTime));
-
-        try {
-            final String sas = blob.generateSharedAccessSignature(policy, null);
-            final String url = blob.getUri().toString();
-            return String.format("%s?%s", url, sas);
-        } catch (InvalidKeyException | StorageException e) {
-            throw new AzureExecutionException(FAIL_TO_GENERATE_BLOB_SAS_TOKEN, e);
-        }
-    }
-
-    protected static CloudBlobContainer getBlobContainer(final CloudStorageAccount storageAccount,
-                                                         final String containerName) throws URISyntaxException, StorageException {
-        final CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
-        return blobClient.getContainerReference(containerName);
+        policy.setStartTime(OffsetDateTime.from(sasStartTime));
+        policy.setExpiryTime(OffsetDateTime.from(sasExpireTime));
+        final String sas = blob.generateSas(policy);
+        final String url = blob.getBlobUrl().toString();
+        return String.format("%s?%s", url, sas);
     }
 }

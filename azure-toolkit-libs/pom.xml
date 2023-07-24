@@ -578,16 +578,6 @@
             <!-- azure sdk (Track 1) -->
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-storage</artifactId>
-                <version>${azure-storage.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-client-runtime</artifactId>
-                <version>${azure-arm-client-runtime.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
                 <artifactId>applicationinsights-core</artifactId>
                 <version>${applicationinsights.version}</version>
             </dependency>
@@ -600,11 +590,6 @@
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-data-lake-store-sdk</artifactId>
                 <version>2.3.10</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>adal4j</artifactId>
-                <version>${adal4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>

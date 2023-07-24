@@ -8,12 +8,11 @@ import com.azure.resourcemanager.appservice.models.AppSetting;
 import com.azure.resourcemanager.appservice.models.FunctionApp;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
-import com.microsoft.azure.storage.CloudStorageAccount;
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
 import java.util.Optional;
 
 class DeployUtils {
@@ -29,7 +28,7 @@ class DeployUtils {
      * @param functionApp target function/slot, using WebAppBase here which is the base class for function app/slot in sdk
      * @return StorageAccount specified in AzureWebJobsStorage
      */
-    static CloudStorageAccount getCloudStorageAccount(final WebAppBase functionApp) {
+    static BlobServiceClient getBlobServiceClient(final WebAppBase functionApp) {
         // Call functionApp.getSiteAppSettings() to get the app settings with key vault reference
         final String connectionString = Optional.ofNullable(functionApp.getSiteAppSettings())
                 .map(map -> map.get(INTERNAL_STORAGE_KEY))
@@ -39,13 +38,7 @@ class DeployUtils {
         if (StringUtils.isEmpty(connectionString)) {
             throw new AzureToolkitRuntimeException(INTERNAL_STORAGE_NOT_FOUND);
         }
-        try {
-            return CloudStorageAccount.parse(connectionString);
-        } catch (final AzureToolkitRuntimeException e) {
-            throw e;
-        } catch (InvalidKeyException | URISyntaxException | RuntimeException e) {
-            throw new AzureToolkitRuntimeException(INVALID_STORAGE_CONNECTION_STRING, e);
-        }
+        return new BlobServiceClientBuilder().connectionString(connectionString).buildClient();
     }
 
     static void updateFunctionAppSetting(final WebAppBase deployTarget, final String key, final String value) {
