@@ -59,7 +59,7 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     protected String region;
 
     /**
-     * SKU of the spring apps, valid values are
+     * SKU of the spring apps, valid values are Basic, Standard, and Enterprise.
      */
     @Getter
     @Parameter(property = "sku")
