@@ -50,12 +50,11 @@ public class AzureStorageHelper {
     public static String getSASToken(final BlobClient blob, Period period) {
         final BlobServiceSasSignatureValues policy = new BlobServiceSasSignatureValues();
         policy.setPermissions(new BlobSasPermission().setReadPermission(true));
-
-        final LocalDateTime now = LocalDateTime.now();
-        final LocalDateTime sasStartTime = now.minusMinutes(SAS_START_RESERVE_MINUTE);
-        final LocalDateTime sasExpireTime = now.plus(period);
-        policy.setStartTime(OffsetDateTime.from(sasStartTime));
-        policy.setExpiryTime(OffsetDateTime.from(sasExpireTime));
+        final OffsetDateTime now = OffsetDateTime.now();
+        final OffsetDateTime sasStartTime = now.minusMinutes(SAS_START_RESERVE_MINUTE);
+        final OffsetDateTime sasExpireTime = now.plus(period);
+        policy.setStartTime(sasStartTime);
+        policy.setExpiryTime(sasExpireTime);
         final String sas = blob.generateSas(policy);
         final String url = blob.getBlobUrl().toString();
         return String.format("%s?%s", url, sas);
