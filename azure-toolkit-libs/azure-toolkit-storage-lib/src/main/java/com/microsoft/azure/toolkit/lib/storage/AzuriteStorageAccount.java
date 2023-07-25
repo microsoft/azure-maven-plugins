@@ -38,8 +38,7 @@ import java.util.Optional;
 public class AzuriteStorageAccount extends StorageAccount {
 
     public static final String AZURITE_RESOURCE_ID = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/azurite/providers/Microsoft.Storage/storageAccounts/azurite";
-    public static final String AZURITE = "Azurite";
-    public static final String NAME = "Storage Emulator (Azurite)";
+    public static final String AZURITE = "azurite";
     public static final AzuriteStorageAccount AZURITE_STORAGE_ACCOUNT = new AzuriteStorageAccount(AzuriteStorageAccountModule.AZURITE_STORAGE_ACCOUNT_MODULE);
     // Refers https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite
     public static final String AZURITE_CONNECTION_STRING = "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="public credential for azurite, refers https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite")]
@@ -52,7 +51,7 @@ public class AzuriteStorageAccount extends StorageAccount {
     private static final RetryOptions TEST_CONNECTION_RETRY_OPTIONS = new RetryOptions(new FixedDelayOptions(0, Duration.ofSeconds(1))); // Duration.ZERO is not supported in RequestRetryOptions
 
     protected AzuriteStorageAccount(@Nonnull StorageAccountModule module) {
-        super(NAME, AZURITE, module);
+        super(AZURITE, AZURITE, module);
     }
 
     @Override
