@@ -4,6 +4,8 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
+import com.azure.resourcemanager.appservice.fluent.models.SiteConfigInner;
+import com.azure.resourcemanager.appservice.fluent.models.SiteInner;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 @Getter
 @Setter
@@ -32,7 +35,7 @@ public class FlexConsumptionConfiguration {
     public static FlexConsumptionConfiguration fromWebAppBase(@Nonnull final WebAppBase app) {
         return FlexConsumptionConfiguration.builder()
             .instanceSize(app.containerSize())
-            .alwaysReadyInstances(app.innerModel().siteConfig().minimumElasticInstanceCount())
-            .maximumInstances(app.innerModel().siteConfig().functionAppScaleLimit()).build();
+            .alwaysReadyInstances(Optional.ofNullable(app.innerModel()).map(SiteInner::siteConfig).map(SiteConfigInner::minimumElasticInstanceCount).orElse(null))
+            .maximumInstances(Optional.ofNullable(app.innerModel()).map(SiteInner::siteConfig).map(SiteConfigInner::functionAppScaleLimit).orElse(null)).build();
     }
 }
