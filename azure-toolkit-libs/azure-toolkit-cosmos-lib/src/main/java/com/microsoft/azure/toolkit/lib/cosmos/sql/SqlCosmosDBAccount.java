@@ -78,8 +78,12 @@ public class SqlCosmosDBAccount extends CosmosDBAccount {
         if (Objects.nonNull(newRemote)) {
             this.cosmosClient = getCosmosClient();
         } else {
-            Optional.ofNullable(this.cosmosClient).ifPresent(CosmosClient::close);
-            this.cosmosClient = null;
+            try {
+                Optional.ofNullable(this.cosmosClient).ifPresent(CosmosClient::close);
+                this.cosmosClient = null;
+            } catch (final RuntimeException e) {
+                // swallow exception during close client
+            }
         }
     }
 
