@@ -15,7 +15,6 @@ import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.azure.resourcemanager.appplatform.models.UserSourceType;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -153,17 +152,10 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         update = (SpringAppDeploymentImpl) deployment.update();
         if (updateDeployingProperties(update)) {
             final IAzureMessager messager = AzureMessager.getMessager();
-            try {
-                final File artifact = Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(config).artifact).getFile());
-                messager.info(AzureString.format("Start deploying artifact(%s) to deployment(%s) of app(%s)...", artifact.getName(), deployment.name(), deployment.parent().name()));
-                deployment = update.apply();
-                messager.success(AzureString.format("Artifact(%s) is successfully deployed to deployment(%s) of app(%s).", artifact.getName(), deployment.name(), deployment.parent().name()));
-            } catch (final Exception e) {
-                final SpringCloudApp app = this.getParent();
-                app.refresh();
-                Optional.ofNullable(app.getActiveDeployment()).ifPresent(d -> d.startStreamingLog(true));
-                throw new AzureToolkitRuntimeException(e);
-            }
+            final File artifact = Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(config).artifact).getFile());
+            messager.info(AzureString.format("Start deploying artifact(%s) to deployment(%s) of app(%s)...", artifact.getName(), deployment.name(), deployment.parent().name()));
+            deployment = update.apply();
+            messager.success(AzureString.format("Artifact(%s) is successfully deployed to deployment(%s) of app(%s).", artifact.getName(), deployment.name(), deployment.parent().name()));
         }
         this.getSubModules().forEach(AbstractAzResourceModule::refresh);
         return deployment;

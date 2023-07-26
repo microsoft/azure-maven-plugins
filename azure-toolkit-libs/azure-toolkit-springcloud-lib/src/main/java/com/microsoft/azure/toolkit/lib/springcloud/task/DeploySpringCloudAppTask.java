@@ -117,6 +117,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
             } catch (final Exception e) {
                 app.refresh();
                 this.deployment = app.getActiveDeployment();
+                Optional.ofNullable(this.deployment).ifPresent(d -> d.startStreamingLog(true));
                 throw new AzureToolkitRuntimeException(e);
             }
         }));
@@ -217,9 +218,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         AzureMessager.getMessager().info(START_APP);
         if (!this.deployment.waitUntilReady(TIMEOUT_IN_SECONDS)) {
             AzureMessager.getMessager().warning(GET_APP_STATUS_TIMEOUT);
-            if (Objects.nonNull(this.deployment) && openStreamingLogOnFailure) {
-                this.deployment.startStreamingLog(false);
-            }
+            Optional.ofNullable(this.deployment).ifPresent(d -> d.startStreamingLog(false));
         }
     }
 }
