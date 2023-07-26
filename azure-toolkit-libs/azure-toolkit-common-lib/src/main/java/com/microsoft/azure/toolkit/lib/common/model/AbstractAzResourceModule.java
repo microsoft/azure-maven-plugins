@@ -407,7 +407,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             try {
                 resource.doModify(draft::createResourceInAzure, AzResource.Status.CREATING);
             } catch (final RuntimeException e) {
-                resource.refresh();
+                resource.setStatus(AzResource.Status.ERROR);
+                resource.deleteFromCache();
                 throw e;
             }
             AzureEventBus.emit("azure.explorer.highlight_resource", resource);
