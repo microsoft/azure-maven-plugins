@@ -95,7 +95,7 @@ public class ConfigurationPrompter {
             if (isRequired) {
                 throw new InvalidConfigurationException(TemplateUtils.evalText("message.empty_options", variables));
             }
-            final String warningMessage = TemplateUtils.evalText("message.empty_options", variables);
+            final String warningMessage = TemplateUtils.evalExpressionValue("message.empty_options", variables);
             if (StringUtils.isNotBlank(warningMessage)) {
                 log.warn(warningMessage);
             }
@@ -134,7 +134,7 @@ public class ConfigurationPrompter {
             if (!allowEmpty) {
                 throw new InvalidConfigurationException(TemplateUtils.evalText("message.empty_options", variables));
             } else {
-                final String warningMessage = TemplateUtils.evalText("message.empty_options", variables);
+                final String warningMessage = TemplateUtils.evalExpressionValue("message.empty_options", variables);
                 if (StringUtils.isNotBlank(warningMessage)) {
                     log.warn(warningMessage);
                 }
@@ -158,7 +158,7 @@ public class ConfigurationPrompter {
                 TemplateUtils.evalText("promote.many", variables), TemplateUtils.evalText("promote.header", variables), options, getNameFunc,
                 allowEmpty, defaultSelected ? "to select ALL" : "to select NONE", defaultSelected ? options : Collections.emptyList());
         if (selectedEntities.isEmpty()) {
-            final String warningMessage = TemplateUtils.evalText("message.select_none", variables);
+            final String warningMessage = TemplateUtils.evalExpressionValue("message.select_none", variables);
             if (StringUtils.isNotBlank(warningMessage)) {
                 log.warn(warningMessage);
             }

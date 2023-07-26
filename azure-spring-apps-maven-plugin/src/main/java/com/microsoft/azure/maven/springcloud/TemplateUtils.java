@@ -11,6 +11,7 @@ import groovy.text.SimpleTemplateEngine;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Objects;
 
@@ -84,6 +85,14 @@ public class TemplateUtils {
 
     private static String evalInline(String expr, Map<String, Object> variableMap) {
         return eval(String.format("${%s}", expr), variableMap);
+    }
+
+    /**
+     * evaluate expression value, returns empty string if there is no correspond value in variable map
+     */
+    public static String evalExpressionValue(@Nonnull final String expr, @Nonnull final Map<String, Object> variableMap) {
+        final String result = evalText(expr, variableMap);
+        return StringUtils.equals(result, String.format("${%s}", expr)) ? StringUtils.EMPTY : result;
     }
 
     private TemplateUtils() {
