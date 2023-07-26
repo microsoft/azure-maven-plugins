@@ -107,12 +107,6 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     }
 
     @Override
-    public void invalidateCache() {
-        super.invalidateCache();
-        this.reset();
-    }
-
-    @Override
     public void reset() {
         this.config = null;
     }

@@ -90,12 +90,6 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
     }
 
     @Override
-    public void invalidateCache() {
-        super.invalidateCache();
-        this.reset();
-    }
-
-    @Override
     public void reset() {
         this.config = null;
         this.activeDeployment = null;
