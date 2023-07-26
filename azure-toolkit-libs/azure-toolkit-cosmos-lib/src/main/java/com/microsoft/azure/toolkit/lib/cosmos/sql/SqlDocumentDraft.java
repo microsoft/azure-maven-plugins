@@ -9,10 +9,12 @@ import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.models.CosmosPatchItemRequestOptions;
 import com.azure.cosmos.models.PartitionKey;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -75,7 +77,7 @@ public class SqlDocumentDraft extends SqlDocument implements
         final String documentPartitionValue = SqlDocumentModule.getSqlDocumentPartitionValue(draftDocument, documentPartitionKey);
         final PartitionKey partitionKey = Objects.isNull(documentPartitionValue) ?
                 PartitionKey.NONE : new PartitionKey(documentPartitionValue);
-        final String documentId = draftDocument.get(ID).asText();
+        final String documentId = Objects.requireNonNull(draftDocument.get(ID).asText(), "'id' is required for sql document");
         final CosmosContainer client = ((SqlDocumentModule) getModule()).getClient();
         Objects.requireNonNull(client).createItem(draftDocument).getItem();
         return Objects.requireNonNull(client).readItem(documentId, partitionKey, ObjectNode.class).getItem();
@@ -85,15 +87,28 @@ public class SqlDocumentDraft extends SqlDocument implements
     @Override
     @AzureOperation(name = "azure/cosmos.update_sql_document.document", params = {"this.getName()"})
     public ObjectNode updateResourceInAzure(@Nonnull ObjectNode origin) {
+        final ObjectNode document = getDocument();
+        final ObjectNode originDocument = Objects.requireNonNull(super.getDocument());
+        if (Objects.isNull(document) || Objects.equals(document, originDocument)) {
+            return originDocument;
+        }
+        if (!Objects.equals(document.get(ID), originDocument.get(ID))) {
+            throw new AzureToolkitRuntimeException("Could not modify id for sql document");
+        }
+        final String partitionKey = Objects.requireNonNull(getParent().getPartitionKey());
+        final String newPartitionValue = SqlDocumentModule.getSqlDocumentPartitionValue(document, partitionKey);
+        final String originPartitionValue = SqlDocumentModule.getSqlDocumentPartitionValue(originDocument, partitionKey);
+        if (!StringUtils.equals(newPartitionValue, originPartitionValue)) {
+            throw new AzureToolkitRuntimeException(String.format("Could not modify partition key '%s' for sql document", partitionKey));
+        }
         final CosmosContainer client = ((SqlDocumentModule) getModule()).getClient();
-        final String documentPartitionKey = getDocumentPartitionKey();
-        final PartitionKey partitionKey = Objects.isNull(getDocumentPartitionKey()) ? PartitionKey.NONE : new PartitionKey(documentPartitionKey);
+        final PartitionKey key = Objects.isNull(newPartitionValue) ? PartitionKey.NONE : new PartitionKey(newPartitionValue);
         final ObjectNode node = draftDocument.deepCopy();
         for (String field : HIDE_FIELDS) {
             node.set(field, origin.get(field));
         }
-        Objects.requireNonNull(client).replaceItem(node, getDocumentId(), partitionKey, new CosmosPatchItemRequestOptions()).getItem();
-        return Objects.requireNonNull(client).readItem(node.get(ID).asText(), partitionKey, ObjectNode.class).getItem();
+        Objects.requireNonNull(client).replaceItem(node, getDocumentId(), key, new CosmosPatchItemRequestOptions()).getItem();
+        return Objects.requireNonNull(client).readItem(node.get(ID).asText(), key, ObjectNode.class).getItem();
     }
 
     @Override

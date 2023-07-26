@@ -173,8 +173,7 @@ public class ConfigMojo extends AbstractMojoBase {
 
             // prompt to select existing cluster or create a new one
             final SpringCloudClusterModule module = Azure.az(AzureSpringCloud.class).clusters(subscriptionId);
-            useExistingCluster = CollectionUtils.isEmpty(module.list()) ? false :
-                this.wrapper.handleConfirm("Use existing Azure Spring Apps in Azure (Y/n):", true, true);
+            useExistingCluster = CollectionUtils.isNotEmpty(module.list()) && this.wrapper.handleConfirm("Use existing Azure Spring Apps in Azure (Y/n):", true, true);
             final SpringCloudCluster cluster = useExistingCluster ? selectAppCluster() : configCluster();
             // todo: handle empty cluster cases
             final boolean useExistingApp = Objects.nonNull(cluster) && !parentMode &&

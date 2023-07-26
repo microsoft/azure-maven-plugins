@@ -14,6 +14,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 
 import javax.annotation.Nonnull;
@@ -59,7 +60,7 @@ public class MongoDocumentDraft extends MongoDocument implements
         return Optional.ofNullable(draftDocument)
                 .map(Document::toJson)
                 .map(json -> JsonUtils.fromJson(json, ObjectNode.class))
-                .orElseGet(() -> super.getDocument());
+                .orElseGet(super::getDocument);
     }
 
     @Nullable
@@ -81,6 +82,10 @@ public class MongoDocumentDraft extends MongoDocument implements
     @Override
     @AzureOperation(name = "azure/cosmos.create_mongo_document.document", params = {"this.getName()"})
     public Document createResourceInAzure() {
+        final String sharedKey = getParent().getSharedKey();
+        if (StringUtils.isNotEmpty(sharedKey) && !draftDocument.containsKey(sharedKey)) {
+            throw new AzureToolkitRuntimeException(String.format("Document does not contain shard key at '%s'", sharedKey));
+        }
         final com.mongodb.client.MongoCollection<Document> client = Objects.requireNonNull(((MongoDocumentModule) getModule()).getClient());
         final Object id = Objects.requireNonNull(draftDocument).get(MONGO_ID_KEY);
         client.insertOne(draftDocument);
@@ -91,6 +96,18 @@ public class MongoDocumentDraft extends MongoDocument implements
     @Override
     @AzureOperation(name = "azure/cosmos.update_mongo_document.document", params = {"this.getName()"})
     public Document updateResourceInAzure(@Nonnull Document origin) {
+        final ObjectNode document = getDocument();
+        final ObjectNode originDocument = Objects.requireNonNull(super.getDocument());
+        if (Objects.isNull(document) || Objects.equals(document, originDocument)) {
+            return Document.parse(originDocument.toPrettyString());
+        }
+        if (!Objects.equals(document.get(MONGO_ID_KEY), originDocument.get(MONGO_ID_KEY))) {
+            throw new AzureToolkitRuntimeException("Could not modify id for mongo document");
+        }
+        final String sharedKey = getParent().getSharedKey();
+        if (StringUtils.isNotEmpty(sharedKey) && !Objects.equals(document.get(sharedKey), originDocument.get(sharedKey))) {
+            throw new AzureToolkitRuntimeException(String.format("Could not modify shared key '%s' for mongo document", sharedKey));
+        }
         final com.mongodb.client.MongoCollection<Document> client = Objects.requireNonNull(((MongoDocumentModule) getModule()).getClient());
         final Object id = getDocumentId();
         final UpdateResult updateResult = client.replaceOne(new Document(MONGO_ID_KEY, id), draftDocument);
