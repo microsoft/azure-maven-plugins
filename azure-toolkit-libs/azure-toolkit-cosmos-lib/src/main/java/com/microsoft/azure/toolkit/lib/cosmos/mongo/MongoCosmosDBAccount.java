@@ -107,8 +107,12 @@ public class MongoCosmosDBAccount extends CosmosDBAccount {
         if (Objects.nonNull(newRemote)) {
             this.mongoClient = getMongoClient();
         } else {
-            Optional.ofNullable(this.mongoClient).ifPresent(MongoClient::close);
-            this.mongoClient = null;
+            try {
+                Optional.ofNullable(this.mongoClient).ifPresent(MongoClient::close);
+                this.mongoClient = null;
+            } catch (final RuntimeException e) {
+                // swallow exception during close client
+            }
         }
     }
 
