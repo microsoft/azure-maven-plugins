@@ -42,7 +42,7 @@ import java.util.function.Predicate;
 @Accessors(chain = true)
 public class Action<D> extends OperationBase implements Cloneable {
     public static final String SOURCE = "ACTION_SOURCE";
-    public static final String PLACE = "place";
+    public static final String PLACE = "action_place";
     public static final String EMPTY_PLACE = "empty";
     public static final String RESOURCE_TYPE = "resourceType";
     public static final Id<Runnable> REQUIRE_AUTH = Id.of("common.requireAuth");
