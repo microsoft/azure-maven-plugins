@@ -63,17 +63,8 @@ public class SqlDocumentModule extends AbstractAzResourceModule<SqlDocument, Sql
         final String partitionKeyValue = split.length > 1 ? split[1] : StringUtils.EMPTY;
         final PartitionKey partitionKey = StringUtils.equals(partitionKeyValue, NONE) ? PartitionKey.NONE : new PartitionKey(partitionKeyValue);
         return Optional.ofNullable(getClient())
-            .map(client -> doLoadDocument(client, partitionKey, id))
+            .map(client -> client.readItem(id, partitionKey, ObjectNode.class).getItem())
             .orElse(null);
-    }
-
-    @Nullable
-    private ObjectNode doLoadDocument(@Nonnull CosmosContainer container, @Nonnull PartitionKey partitionKey, @Nonnull String id) {
-        try {
-            return container.readItem(id, partitionKey, ObjectNode.class).getItem();
-        } catch (RuntimeException e2) {
-            return null;
-        }
     }
 
     @Nullable
