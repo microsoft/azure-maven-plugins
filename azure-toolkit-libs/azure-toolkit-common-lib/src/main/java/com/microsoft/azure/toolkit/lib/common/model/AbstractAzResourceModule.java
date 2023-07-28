@@ -377,10 +377,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         // TODO: use generics to avoid class casting
         log.debug("[{}]:create->newDraftForCreate({}, {})", this.name, name, resourceGroup);
         final String id = this.toResourceId(name, resourceGroup).toLowerCase();
-        T resource = this.tempResources.computeIfAbsent(id, (i) -> this.cast(this.newDraftForCreate(name, resourceGroup)));
-        if (resource.isDraftForCreating()) {
-            ((AzResource.Draft<?, ?>) resource).reset();
-        } else {
+        T resource = this.tempResources.get(id);
+        if (!Objects.nonNull(resource) || !resource.isDraftForCreating()) {
             resource = this.cast(this.newDraftForCreate(name, resourceGroup));
             this.tempResources.put(id, resource);
         }

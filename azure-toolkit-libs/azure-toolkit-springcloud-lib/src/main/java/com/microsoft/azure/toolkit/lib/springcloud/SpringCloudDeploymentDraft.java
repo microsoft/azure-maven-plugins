@@ -72,6 +72,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     protected SpringCloudDeploymentDraft(@Nonnull String name, @Nonnull SpringCloudDeploymentModule module) {
         super(name, module);
         this.origin = null;
+        this.withDefaultConfig();
         this.configProxy = (IConfig) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{IConfig.class}, this);
     }
 
@@ -89,6 +90,14 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         this.setRuntimeVersion(deploymentConfig.getRuntimeVersion());
         this.setJvmOptions(deploymentConfig.getJvmOptions());
         this.setArtifact(deploymentConfig.getArtifact());
+    }
+
+    public void withDefaultConfig() {
+        this.config = new Config();
+        this.config.setCapacity(1);
+        this.config.setCpu(1d);
+        this.config.setMemoryInGB(2d);
+        this.config.setRuntimeVersion(DEFAULT_RUNTIME_VERSION.toString());
     }
 
     @Nonnull
