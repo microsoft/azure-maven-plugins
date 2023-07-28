@@ -84,12 +84,14 @@ public class SpringCloudClusterDraft extends SpringCloudCluster implements Draft
             .withSku(Optional.ofNullable(this.getSku()).map(Sku::toSku).orElse(null))
             .create();
 
-        // wait until builder ready
-        BuilderProvisioningState provisioningState = manager.serviceClient().getBuildServiceBuilders().get(rgName, serviceName, "default", "default").properties().provisioningState();
-        while (provisioningState != BuilderProvisioningState.SUCCEEDED) {
-            provisioningState = manager.serviceClient().getBuildServiceBuilders().get(rgName, serviceName, "default", "default").properties().provisioningState();
-            ResourceManagerUtils.sleep(Duration.ofSeconds(5));
-            log.debug("Waiting for builder ready...");
+        if (this.isEnterpriseTier()) {
+            // wait until builder ready
+            BuilderProvisioningState provisioningState = manager.serviceClient().getBuildServiceBuilders().get(rgName, serviceName, "default", "default").properties().provisioningState();
+            while (provisioningState != BuilderProvisioningState.SUCCEEDED) {
+                provisioningState = manager.serviceClient().getBuildServiceBuilders().get(rgName, serviceName, "default", "default").properties().provisioningState();
+                ResourceManagerUtils.sleep(Duration.ofSeconds(5));
+                log.debug("Waiting for builder ready...");
+            }
         }
 
         messager.success(AzureString.format("Spring apps ({0}) is successfully created.", serviceName));
