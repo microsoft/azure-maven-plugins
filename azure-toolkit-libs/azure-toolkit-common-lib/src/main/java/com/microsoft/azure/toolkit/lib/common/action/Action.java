@@ -10,7 +10,6 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Emulatable;
-import com.microsoft.azure.toolkit.lib.common.operation.Operation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBase;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
@@ -45,8 +44,8 @@ public class Action<D> extends OperationBase implements Cloneable {
     public static final String PLACE = "action_place";
     public static final String EMPTY_PLACE = "empty";
     public static final String RESOURCE_TYPE = "resourceType";
-    public static final Id<Runnable> REQUIRE_AUTH = Id.of("common.requireAuth");
     public static final Id<Object> AUTHENTICATE = Id.of("user/account.authenticate");
+    public static final Id<Runnable> REQUIRE_AUTH = Id.of("user/common.requireAuth");
     public static final Action.Id<Object> OPEN_AZURE_SETTINGS = Action.Id.of("user/common.open_azure_settings");
     public static final Action.Id<Object> DISABLE_AUTH_CACHE = Action.Id.of("user/account.disable_auth_cache");
 
@@ -139,14 +138,13 @@ public class Action<D> extends OperationBase implements Cloneable {
         }
         final AzureString title = this.getTitle(source);
         final Runnable operationBody = () -> AzureTaskManager.getInstance().runInBackground(title, () -> handle(source, e, handler));
-        final Runnable handlerBody = () -> Operation.execute(title, Type.USER, operationBody, source);
         if (this.isAuthRequired(s)) {
             final Action<Runnable> requireAuth = AzureActionManager.getInstance().getAction(REQUIRE_AUTH);
             if (Objects.nonNull(requireAuth)) {
-                requireAuth.handle(handlerBody, e);
+                requireAuth.handle(operationBody, e);
             }
         } else {
-            handlerBody.run();
+            operationBody.run();
         }
     }
 
