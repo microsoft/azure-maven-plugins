@@ -59,7 +59,7 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     protected String region;
 
     /**
-     * SKU of the spring apps, valid values are
+     * SKU of the spring apps, valid values are Basic, Standard, and Enterprise.
      */
     @Getter
     @Parameter(property = "sku")
@@ -171,6 +171,9 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
             final ConfigurationParser parser = ConfigurationParser.getInstance();
             this.configuration = parser.parse(this);
         }
+        // update subscription here, or the value will be null if not defined in pom,
+        // as `selectSubscription()` will only update `subscriptionId`
+        this.configuration.setSubscriptionId(this.subscriptionId);
         return this.configuration;
     }
 }

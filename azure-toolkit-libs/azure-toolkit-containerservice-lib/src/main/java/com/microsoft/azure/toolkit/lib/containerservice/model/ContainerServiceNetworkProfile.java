@@ -23,7 +23,6 @@ public class ContainerServiceNetworkProfile {
     private String podCidr;
     private String serviceCidr;
     private String dnsServiceIp;
-    private String dockerBridgeCidr;
     private OutboundType outboundType;
     private LoadBalancerSku loadBalancerSku;
     private List<String> podCidrs;
@@ -38,7 +37,6 @@ public class ContainerServiceNetworkProfile {
         result.setPodCidr(profile.podCidr());
         result.setServiceCidr(profile.serviceCidr());
         result.setDnsServiceIp(profile.dnsServiceIp());
-        result.setDockerBridgeCidr(profile.dockerBridgeCidr());
         result.setOutboundType(OutboundType.fromString(Optional.ofNullable(profile.outboundType()).map(Objects::toString).orElse(null)));
         result.setLoadBalancerSku(LoadBalancerSku.fromString(Optional.ofNullable(profile.loadBalancerSku()).map(Objects::toString).orElse(null)));
         result.setPodCidrs(profile.podCidrs());

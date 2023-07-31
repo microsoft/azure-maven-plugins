@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.common.model;
 import com.azure.core.exception.HttpResponseException;
 import com.azure.core.http.HttpResponse;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.cache.Cache1;
@@ -320,7 +319,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     public boolean isDraftForCreating() {
-        return this instanceof Draft && Objects.isNull(((Draft<?, ?>) this).getOrigin()) && Objects.isNull(this.cache.getIfPresent());
+        return this instanceof Draft && Objects.isNull(((Draft<?, ?>) this).getOrigin())
+            && Objects.isNull(this.cache.getIfPresent())
+            && !StringUtils.equalsIgnoreCase(this.status.get(), Status.DELETED)
+            && !StringUtils.equalsIgnoreCase(this.status.get(), Status.ERROR);
     }
 
     public boolean isDraftForUpdating() {

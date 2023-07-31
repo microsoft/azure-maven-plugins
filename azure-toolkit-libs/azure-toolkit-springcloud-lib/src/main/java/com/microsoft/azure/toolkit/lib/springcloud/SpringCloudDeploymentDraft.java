@@ -15,7 +15,6 @@ import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.azure.resourcemanager.appplatform.models.UserSourceType;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -73,6 +72,7 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     protected SpringCloudDeploymentDraft(@Nonnull String name, @Nonnull SpringCloudDeploymentModule module) {
         super(name, module);
         this.origin = null;
+        this.withDefaultConfig();
         this.configProxy = (IConfig) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{IConfig.class}, this);
     }
 
@@ -92,6 +92,14 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         this.setArtifact(deploymentConfig.getArtifact());
     }
 
+    public void withDefaultConfig() {
+        this.config = new Config();
+        this.config.setCapacity(1);
+        this.config.setCpu(1d);
+        this.config.setMemoryInGB(2d);
+        this.config.setRuntimeVersion(DEFAULT_RUNTIME_VERSION.toString());
+    }
+
     @Nonnull
     public SpringCloudDeploymentConfig getConfig() {
         return SpringCloudDeploymentConfig.builder()
@@ -104,12 +112,6 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             .environment(this.getEnvironmentVariables())
             .artifact(this.getArtifact())
             .build();
-    }
-
-    @Override
-    public void invalidateCache() {
-        super.invalidateCache();
-        this.reset();
     }
 
     @Override
@@ -159,17 +161,10 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         update = (SpringAppDeploymentImpl) deployment.update();
         if (updateDeployingProperties(update)) {
             final IAzureMessager messager = AzureMessager.getMessager();
-            try {
-                final File artifact = Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(config).artifact).getFile());
-                messager.info(AzureString.format("Start deploying artifact(%s) to deployment(%s) of app(%s)...", artifact.getName(), deployment.name(), deployment.parent().name()));
-                deployment = update.apply();
-                messager.success(AzureString.format("Artifact(%s) is successfully deployed to deployment(%s) of app(%s).", artifact.getName(), deployment.name(), deployment.parent().name()));
-            } catch (final Exception e) {
-                final SpringCloudApp app = this.getParent();
-                app.refresh();
-                Optional.ofNullable(app.getActiveDeployment()).ifPresent(d -> d.startStreamingLog(true));
-                throw new AzureToolkitRuntimeException(e);
-            }
+            final File artifact = Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(config).artifact).getFile());
+            messager.info(AzureString.format("Start deploying artifact(%s) to deployment(%s) of app(%s)...", artifact.getName(), deployment.name(), deployment.parent().name()));
+            deployment = update.apply();
+            messager.success(AzureString.format("Artifact(%s) is successfully deployed to deployment(%s) of app(%s).", artifact.getName(), deployment.name(), deployment.parent().name()));
         }
         this.getSubModules().forEach(AbstractAzResourceModule::refresh);
         return deployment;

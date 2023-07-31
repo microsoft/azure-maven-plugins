@@ -7,9 +7,9 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.core.management.Region;
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
-import com.azure.resourcemanager.appplatform.fluent.models.ServiceResourceInner;
-import com.azure.resourcemanager.appplatform.models.ClusterResourceProperties;
+import com.azure.resourcemanager.appplatform.models.BuilderProvisioningState;
 import com.azure.resourcemanager.appplatform.models.SpringService;
+import com.azure.resourcemanager.resources.fluentcore.utils.ResourceManagerUtils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -21,15 +21,18 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft.Draft;
 
+@Slf4j
 public class SpringCloudClusterDraft extends SpringCloudCluster implements Draft<SpringCloudCluster, SpringService> {
 
     @Getter
@@ -55,12 +58,6 @@ public class SpringCloudClusterDraft extends SpringCloudCluster implements Draft
     }
 
     @Override
-    public void invalidateCache() {
-        super.invalidateCache();
-        this.reset();
-    }
-
-    @Override
     public void reset() {
         this.config = null;
     }
@@ -74,19 +71,31 @@ public class SpringCloudClusterDraft extends SpringCloudCluster implements Draft
         if (rg.isDraftForCreating()) {
             ((ResourceGroupDraft) rg).createIfNotExist();
         }
+        final String rgName = this.getResourceGroupName();
         final Region region = Objects.requireNonNull(this.getRegion(), "'Region' is required.");
         final String serviceName = this.getName();
         final AppPlatformManager manager = Objects.requireNonNull(this.getParent().getRemote());
         messager.info(AzureString.format("Start creating Spring apps ({0})...", serviceName));
-        final ClusterResourceProperties properties = new ClusterResourceProperties()
-            .withManagedEnvironmentId(this.getManagedEnvironmentId());
-        final ServiceResourceInner resource = new ServiceResourceInner()
-            .withLocation(region.toString())
+
+        manager.springServices()
+            .define(this.getName())
+            .withRegion(region)
+            .withExistingResourceGroup(rgName)
             .withSku(Optional.ofNullable(this.getSku()).map(Sku::toSku).orElse(null))
-            .withProperties(properties);
-        manager.serviceClient().getServices().createOrUpdate(this.getResourceGroupName(), this.getName(), resource);
+            .create();
+
+        if (this.isEnterpriseTier()) {
+            // wait until builder ready
+            BuilderProvisioningState provisioningState = manager.serviceClient().getBuildServiceBuilders().get(rgName, serviceName, "default", "default").properties().provisioningState();
+            while (provisioningState != BuilderProvisioningState.SUCCEEDED) {
+                provisioningState = manager.serviceClient().getBuildServiceBuilders().get(rgName, serviceName, "default", "default").properties().provisioningState();
+                ResourceManagerUtils.sleep(Duration.ofSeconds(5));
+                log.debug("Waiting for builder ready...");
+            }
+        }
+
         messager.success(AzureString.format("Spring apps ({0}) is successfully created.", serviceName));
-        return manager.springServices().getByResourceGroup(this.getResourceGroupName(), this.getName());
+        return manager.springServices().getByResourceGroup(rgName, this.getName());
     }
 
     @Nonnull

@@ -31,8 +31,6 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft.DEFAULT_RUNTIME_VERSION;
-
 public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Draft<SpringCloudApp, SpringApp> {
     private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
     public static final String DEFAULT_DISK_MOUNT_PATH = "/persistent";
@@ -87,12 +85,6 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
             .activeDeploymentName(this.getActiveDeploymentName())
             .deployment(deploymentConfig)
             .build();
-    }
-
-    @Override
-    public void invalidateCache() {
-        super.invalidateCache();
-        this.reset();
     }
 
     @Override
@@ -224,10 +216,6 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         final SpringCloudDeploymentDraft deploymentDraft;
         if (Objects.isNull(deployment)) {
             deploymentDraft = this.deployments().create(Optional.ofNullable(this.getActiveDeploymentName()).orElse("default"), null);
-            deploymentDraft.setCapacity(1);
-            deploymentDraft.setCpu(1d);
-            deploymentDraft.setMemoryInGB(2d);
-            deploymentDraft.setRuntimeVersion(DEFAULT_RUNTIME_VERSION.toString());
         } else if (!deployment.isDraft()) {
             deploymentDraft = (SpringCloudDeploymentDraft) deployment.update();
         } else {

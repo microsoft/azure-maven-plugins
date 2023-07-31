@@ -18,6 +18,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.lib.cosmos.mongo.MongoDocumentModule.MONGO_ID_KEY;
@@ -51,15 +52,15 @@ public class MongoDocument extends AbstractAzResource<MongoDocument, MongoCollec
     }
 
     @Override
-    public void updateDocument(ObjectNode document) {
-        final MongoDocumentDraft sqlDocumentDraft = (MongoDocumentDraft) this.update();
-        sqlDocumentDraft.setDocument(document);
-        sqlDocumentDraft.updateIfExist();
+    public void updateDocument(@Nonnull ObjectNode document) {
+        final MongoDocumentDraft documentDraft = (MongoDocumentDraft) this.update();
+        documentDraft.setDocument(document);
+        documentDraft.updateIfExist();
     }
 
     public String getSharedKey() {
         final String sharedKey = getParent().getSharedKey();
-        final ObjectNode document = getDocument();
+        final ObjectNode document = Objects.requireNonNull(getDocument());
         return ObjectUtils.allNotNull(sharedKey, document) ? document.get(sharedKey).asText() : null;
     }
 

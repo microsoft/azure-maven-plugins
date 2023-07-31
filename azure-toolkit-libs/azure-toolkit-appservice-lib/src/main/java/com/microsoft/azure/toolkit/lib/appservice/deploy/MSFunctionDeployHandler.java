@@ -5,11 +5,8 @@
 package com.microsoft.azure.toolkit.lib.appservice.deploy;
 
 import com.azure.resourcemanager.appservice.models.WebAppBase;
-import com.microsoft.azure.storage.CloudStorageAccount;
-import com.microsoft.azure.storage.blob.BlobContainerPublicAccessType;
-import com.microsoft.azure.storage.blob.CloudBlockBlob;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.azure.storage.blob.BlobClient;
+import com.azure.storage.blob.BlobServiceClient;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.function.AzureStorageHelper;
 import com.microsoft.azure.toolkit.lib.legacy.function.Constants;
@@ -32,7 +29,7 @@ public class MSFunctionDeployHandler implements IFunctionDeployHandler {
 
     @Override
     public void deploy(@Nonnull final File file, @Nonnull final WebAppBase webAppBase) {
-        final CloudStorageAccount storageAccount = DeployUtils.getCloudStorageAccount(webAppBase);
+        final BlobServiceClient storageAccount = DeployUtils.getBlobServiceClient(webAppBase);
 
         final String blobName = getBlobName(webAppBase);
 
@@ -47,18 +44,12 @@ public class MSFunctionDeployHandler implements IFunctionDeployHandler {
                 .concat(Constants.ZIP_EXT);
     }
 
-    private String uploadPackageToAzureStorage(final File zipPackage, final CloudStorageAccount storageAccount,
-                                                 final String blobName) {
+    private String uploadPackageToAzureStorage(final File zipPackage, final BlobServiceClient storageAccount, final String blobName) {
         AzureMessager.getMessager().info(UPLOAD_PACKAGE_START);
-        try {
-            final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
-                    DEPLOYMENT_PACKAGE_CONTAINER, blobName, BlobContainerPublicAccessType.OFF);
-            final String packageUri = AzureStorageHelper.getSASToken(blob, Period.ofDays(1)); // no need for a long period as it will be deleted after deployment
-            AzureMessager.getMessager().info(UPLOAD_PACKAGE_DONE + blob.getUri().toString());
-            return packageUri;
-        } catch (AzureExecutionException e) {
-            throw new AzureToolkitRuntimeException("Failed to upload package to azure storage", e);
-        }
+        final BlobClient blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount, DEPLOYMENT_PACKAGE_CONTAINER, blobName);
+        final String packageUri = AzureStorageHelper.getSASToken(blob, Period.ofDays(1)); // no need for a long period as it will be deleted after deployment
+        AzureMessager.getMessager().info(UPLOAD_PACKAGE_DONE + blob.getBlobUrl());
+        return packageUri;
     }
 
     private void deployWithPackageUri(final WebAppBase target, final String packageUri, Runnable onDeployFinish) {
@@ -71,7 +62,7 @@ public class MSFunctionDeployHandler implements IFunctionDeployHandler {
         }
     }
 
-    private void deletePackageFromAzureStorage(final CloudStorageAccount storageAccount, final String blobName) {
+    private void deletePackageFromAzureStorage(final BlobServiceClient storageAccount, final String blobName) {
         try {
             AzureMessager.getMessager().info(DELETE_PACKAGE_START);
             AzureStorageHelper.deleteBlob(storageAccount, DEPLOYMENT_PACKAGE_CONTAINER, blobName);

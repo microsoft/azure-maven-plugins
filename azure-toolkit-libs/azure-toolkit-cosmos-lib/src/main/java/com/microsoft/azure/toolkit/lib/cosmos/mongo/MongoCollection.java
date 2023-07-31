@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.cosmos.mongo;
 import com.azure.resourcemanager.cosmos.fluent.models.MongoDBCollectionGetResultsInner;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -15,7 +16,9 @@ import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosCollection;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentContainer;
 import lombok.Getter;
+import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -69,6 +72,10 @@ public class MongoCollection extends AbstractAzResource<MongoCollection, MongoDa
             document.put(MONGO_ID_KEY, new ObjectId());
         }
         final String id = document.get(MONGO_ID_KEY).toString();
+        final String sharedKey = this.getSharedKey();
+        if (StringUtils.isNotEmpty(sharedKey) && !IteratorUtils.contains(node.fieldNames(), sharedKey)) {
+            throw new AzureToolkitRuntimeException(String.format("Document does not contain shard key at '%s'", sharedKey));
+        }
         final MongoDocumentDraft documentDraft = this.documentModule.create(id, getResourceGroupName());
         documentDraft.setDraftDocument(document);
         final boolean existing = this.getDocumentModule().exists(documentDraft.getName(), documentDraft.getResourceGroupName());
