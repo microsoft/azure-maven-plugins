@@ -43,13 +43,6 @@ public class MethodOperation extends OperationBase {
         return this.invocation::invoke;
     }
 
-    @Nonnull
-    public String getType() {
-        final String id = this.getId();
-        final String[] parts = id.split("/");
-        return parts.length > 1 ? parts[0] : "unknown";
-    }
-
     public AzureString getDescription() {
         final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
         final String name = StringUtils.firstNonBlank(annotation.name(), annotation.value());

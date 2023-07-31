@@ -20,8 +20,6 @@ public class SimpleOperation extends OperationBase {
     @Getter
     @Nonnull
     private final Callable<?> body;
-    @Nonnull
-    private final String type;
 
     @Override
     public String toString() {
@@ -32,12 +30,6 @@ public class SimpleOperation extends OperationBase {
     @Override
     public String getId() {
         return this.title.getName();
-    }
-
-    @Nonnull
-    @Override
-    public String getType() {
-        return this.type;
     }
 
     @Nullable

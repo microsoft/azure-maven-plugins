@@ -28,6 +28,12 @@ public interface Operation {
     @Nonnull
     String getType();
 
+    @Nonnull
+    String getServiceName();
+
+    @Nonnull
+    String getOperationName();
+
     @Nullable
     AzureString getDescription();
 
@@ -38,6 +44,7 @@ public interface Operation {
 
     OperationContext getContext();
 
+    @Nullable
     default Operation getEffectiveParent() {
         final Operation parent = this.getParent();
         if (parent == null) {
@@ -63,17 +70,17 @@ public interface Operation {
     }
 
     @SneakyThrows
-    static void execute(@Nonnull final AzureString title, @Nonnull final String type, @Nonnull final Callable<?> body, @Nullable final Object source) {
-        final SimpleOperation operation = new SimpleOperation(title, body, type);
+    static void execute(@Nonnull final AzureString title, @Nonnull final Callable<?> body, @Nullable final Object source) {
+        final SimpleOperation operation = new SimpleOperation(title, body);
         AzureOperationAspect.execute(operation, source);
     }
 
     @SneakyThrows
-    static void execute(@Nonnull final AzureString title, @Nonnull final String type, @Nonnull final Runnable body, @Nullable final Object source) {
+    static void execute(@Nonnull final AzureString title, @Nonnull final Runnable body, @Nullable final Object source) {
         final SimpleOperation operation = new SimpleOperation(title, () -> {
             body.run();
             return null;
-        }, type);
+        });
         AzureOperationAspect.execute(operation, source);
     }
 

@@ -75,7 +75,7 @@ public final class AzureOperationAspect {
             return;
         }
         // TODO: this cannot ensure same operation actually, considering recursive call
-        assert Objects.nonNull(operation) && Objects.equals(current, operation) :
+        assert Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the exiting operation[%s]", current, operation);
         OperationManager.getInstance().fireAfterReturning(operation, source);
         AzureTelemeter.afterExit(operation);
@@ -87,7 +87,7 @@ public final class AzureOperationAspect {
             return;
         }
         // TODO: this cannot ensure same operation actually, considering recursive call
-        assert Objects.nonNull(operation) && Objects.equals(current, operation) :
+        assert Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the operation[%s] throwing exception", current, operation);
         if (e instanceof OperationException) {
             throw e;
@@ -108,7 +108,7 @@ public final class AzureOperationAspect {
             final T result = (T) body.call();
             AzureOperationAspect.afterReturning(operation, source);
             return result;
-        } catch (Throwable e) {
+        } catch (final Throwable e) {
             AzureOperationAspect.afterThrowing(e, operation, source);
             throw e;
         }

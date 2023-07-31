@@ -13,12 +13,11 @@ import javax.annotation.Nonnull;
 import java.util.Objects;
 
 public abstract class OperationBase implements Operation {
-
     @Getter
     @Setter
     private Operation parent;
-
     private OperationContext context;
+    private Id idObject;
 
     @Nonnull
     public String getExecutionId() {
@@ -31,5 +30,60 @@ public abstract class OperationBase implements Operation {
             this.context = new OperationContext(this);
         }
         return this.context;
+    }
+
+    private synchronized Id getIdObject() {
+        if (Objects.isNull(this.idObject)) {
+            this.idObject = new Id(this.getId());
+        }
+        return this.idObject;
+    }
+
+    @Nonnull
+    @Override
+    public String getType() {
+        return this.getIdObject().getType();
+    }
+
+    @Nonnull
+    @Override
+    public final String getServiceName() {
+        return this.getIdObject().getService();
+    }
+
+    @Nonnull
+    @Override
+    public final String getOperationName() {
+        return this.getIdObject().getOperation();
+    }
+
+    private static class Id {
+        private final String id;
+        @Getter
+        private String type;
+        @Getter
+        private String service;
+        @Getter
+        private String operation;
+
+        public Id(String id) {
+            this.id = id;
+            try {
+                final String[] parts = id.split("\\."); // ["internal/appservice", "list_file", "dir"]
+                final String[] typeAndService = parts[0].split("/"); // ["internal", "appservice"]
+                this.type = typeAndService[0];
+                this.service = typeAndService[1];
+                this.operation = parts[1];
+            } catch (final Exception e) {
+                this.type = "unknown";
+                this.service = "unknown";
+                this.operation = "unknown";
+            }
+        }
+
+        @Override
+        public String toString() {
+            return this.id;
+        }
     }
 }

@@ -174,12 +174,6 @@ public class Action<D> extends OperationBase implements Cloneable {
         throw new AzureToolkitRuntimeException("'action.getBody()' is not supported");
     }
 
-    @Nonnull
-    @Override
-    public String getType() {
-        return Type.USER;
-    }
-
     private boolean isAuthRequired(D s) {
         final D source = Optional.ofNullable(this.source).orElse(s);
         return Optional.ofNullable(this.authRequiredProvider).map(p -> p.test(source)).orElse(true);
