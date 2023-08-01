@@ -7,16 +7,12 @@ package com.microsoft.azure.toolkit.lib.common.action;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.model.Emulatable;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationAspect;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBase;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -27,9 +23,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -55,19 +49,18 @@ public class Action<D> {
     @Nonnull
     private final Id<D> id;
     @Nonnull
-    private Predicate<D> enableWhen = o -> true;
-    private BiPredicate<Object, String> visibleWhen = (o, place) -> true;
-    private Function<D, String> iconProvider;
-    private Function<D, String> labelProvider;
-    private Function<D, AzureString> titleProvider;
-    @Nonnull
     private List<Pair<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
-    @Nonnull
-    private List<Function<D, String>> titleParamProviders = new ArrayList<>();
     private D source;
+    @Nonnull
+    Predicate<D> enableWhen = o -> true;
+    BiPredicate<Object, String> visibleWhen = (o, place) -> true;
+    Function<D, String> iconProvider;
+    Function<D, String> labelProvider;
+    Function<D, AzureString> titleProvider;
+    @Nonnull
+    List<Function<D, String>> titleParamProviders = new ArrayList<>();
+    Predicate<D> authRequiredProvider = Action::isAuthRequiredForAzureResource;
 
-    @Setter
-    private Predicate<D> authRequiredProvider = Action::isAuthRequiredForAzureResource;
     /**
      * shortcuts for this action.
      * 1. directly bound to this action if it's IDE-specific type of shortcuts (e.g. {@code ShortcutSet} in IntelliJ).
@@ -88,7 +81,7 @@ public class Action<D> {
 
     @Nonnull
     public IView.Label getView(D s, final String place) {
-        final ActionInstance instance = this.instantiate(s, null);
+        final ActionInstance<D> instance = this.instantiate(s, null);
         return Optional.ofNullable(instance).map(i -> i.getView(place)).orElse(View.INVISIBLE);
     }
 
@@ -103,7 +96,7 @@ public class Action<D> {
      * perform asynchronously
      */
     public void handle(D s, Object e) {
-        final ActionInstance instance = this.instantiate(s, e);
+        final ActionInstance<D> instance = this.instantiate(s, e);
         Optional.ofNullable(instance).ifPresent(ActionInstance::performAsync);
     }
 
@@ -209,7 +202,7 @@ public class Action<D> {
         return null;
     }
 
-    public Action<D> bind(D s) {
+    public Action<D> bind(D s) { // TODO: remove this method and use `instantiate` instead
         try {
             // noinspection unchecked
             final Action<D> clone = (Action<D>) this.clone();
@@ -223,13 +216,15 @@ public class Action<D> {
     }
 
     @Nullable
-    public ActionInstance instantiate(D s, Object event) {
-        s = Optional.ofNullable(this.source).orElse(s);
-        final BiConsumer<D, Object> handler = getHandler(s, event);
-        if (Objects.isNull(handler)) {
-            return null;
-        }
-        return new ActionInstance(s, event, handler);
+    public ActionInstance<D> instantiate(D s) {
+        return this.instantiate(s, null);
+    }
+
+    @Nullable
+    public ActionInstance<D> instantiate(D s, Object event) {
+        final D source = Optional.ofNullable(this.source).orElse(s);
+        final BiConsumer<D, Object> handler = getHandler(source, event);
+        return Optional.ofNullable(handler).map(h -> new ActionInstance<>(this, source, event, h)).orElse(null);
     }
 
     public void register(AzureActionManager am) {
@@ -239,86 +234,6 @@ public class Action<D> {
     @Override
     public String toString() {
         return String.format("Action {id:'%s', bindTo: %s}", this.getId(), this.source);
-    }
-
-    @RequiredArgsConstructor
-    public class ActionInstance extends OperationBase {
-        @Nullable
-        private final D source;
-        @Nullable
-        private final Object event;
-        @Nonnull
-        private final BiConsumer<D, Object> handler;
-
-        @Nonnull
-        @Override
-        public String getId() {
-            return id.id;
-        }
-
-        @Override
-        public Callable<?> getBody() {
-            return () -> {
-                final Runnable handlerBody = () -> this.handler.accept(this.source, this.event);
-                if (isAuthRequired(this.source)) {
-                    final Action<Runnable> requireAuth = AzureActionManager.getInstance().getAction(REQUIRE_AUTH);
-                    if (Objects.nonNull(requireAuth)) {
-                        requireAuth.handle(handlerBody, this.source);
-                    }
-                } else {
-                    handlerBody.run();
-                }
-                return null;
-            };
-        }
-
-        @Nullable
-        @Override
-        public AzureString getDescription() {
-            if (Objects.nonNull(titleProvider)) {
-                return titleProvider.apply(this.source);
-            } else if (!titleParamProviders.isEmpty()) {
-                final Object[] params = titleParamProviders.stream().map(p -> p.apply(this.source)).toArray();
-                return OperationBundle.description(id.id, params);
-            }
-            return OperationBundle.description(id.id);
-        }
-
-        @Nonnull
-        public IView.Label getView() {
-            return getView(COMMON_PLACE);
-        }
-
-        @Nonnull
-        public IView.Label getView(String place) {
-            try {
-                final boolean visible = visibleWhen.test(this.source, place);
-                if (visible) {
-                    final String label = labelProvider.apply(this.source);
-                    final String icon = Optional.ofNullable(iconProvider).map(p -> p.apply(this.source)).orElse(null);
-                    final boolean enabled = enableWhen.test(this.source);
-                    final AzureString title = getDescription();
-                    return new View(label, icon, enabled, title);
-                }
-                return View.INVISIBLE;
-            } catch (final Exception e) {
-                log.warn(e.getMessage(), e);
-                return View.INVISIBLE;
-            }
-        }
-
-        private boolean isAuthRequired(D s) {
-            return Optional.ofNullable(authRequiredProvider).map(p -> p.test(this.source)).orElse(true);
-        }
-
-        @SneakyThrows
-        public void perform() {
-            AzureOperationAspect.execute(this, this.source);
-        }
-
-        public void performAsync() {
-            AzureTaskManager.getInstance().runInBackground(this.getDescription(), this::perform);
-        }
     }
 
     @Getter
