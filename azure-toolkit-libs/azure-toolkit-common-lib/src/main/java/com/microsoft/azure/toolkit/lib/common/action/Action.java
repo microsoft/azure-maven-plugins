@@ -39,7 +39,7 @@ public class Action<D> {
     public static final String EMPTY_PLACE = "empty";
     public static final String RESOURCE_TYPE = "resourceType";
     public static final Id<Object> AUTHENTICATE = Id.of("user/account.authenticate");
-    public static final Id<Runnable> REQUIRE_AUTH = Id.of("user/common.requireAuth");
+    public static final Id<Runnable> REQUIRE_AUTH = Id.of("user/common.authorize_action");
     public static final Action.Id<Object> OPEN_AZURE_SETTINGS = Action.Id.of("user/common.open_azure_settings");
     public static final Action.Id<Object> DISABLE_AUTH_CACHE = Action.Id.of("user/account.disable_auth_cache");
 
@@ -283,7 +283,7 @@ public class Action<D> {
     }
 
     public static Action<Void> retryFromFailure(@Nonnull Runnable handler) {
-        return new Action<>(Id.<Void>of("common.retry"))
+        return new Action<>(Id.<Void>of("user/common.retry"))
             .withHandler((v) -> handler.run())
             .withLabel("Retry");
     }
