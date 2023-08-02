@@ -100,6 +100,21 @@ public class Action<D> {
         Optional.ofNullable(instance).ifPresent(ActionInstance::performAsync);
     }
 
+    /**
+     * perform asynchronously
+     */
+    public void handleSync(D s) {
+        this.handleSync(s, null);
+    }
+
+    /**
+     * perform asynchronously
+     */
+    public void handleSync(D s, Object e) {
+        final ActionInstance<D> instance = this.instantiate(s, e);
+        Optional.ofNullable(instance).ifPresent(ActionInstance::perform);
+    }
+
     public Action<D> enableWhen(@Nonnull Predicate<D> enableWhen) {
         this.enableWhen = enableWhen;
         return this;
