@@ -47,6 +47,11 @@ public class MethodOperation extends OperationBase {
     @Nullable
     @Override
     public Object getSource() {
+        final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
+        final String sourceExpression = annotation.source();
+        if (StringUtils.isNotBlank(sourceExpression)) {
+            return ExpressionUtils.evaluate(sourceExpression, this.invocation);
+        }
         return this.invocation.getInstance();
     }
 

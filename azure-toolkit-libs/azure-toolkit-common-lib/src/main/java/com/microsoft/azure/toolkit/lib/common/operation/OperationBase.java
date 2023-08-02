@@ -5,6 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.common.operation;
 
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Getter;
 import lombok.Setter;
@@ -48,7 +50,16 @@ public abstract class OperationBase implements Operation {
     @Nonnull
     @Override
     public final String getServiceName() {
-        return this.getIdObject().getService();
+        final String serviceName = this.getIdObject().getService();
+        if (serviceName.contains("$")) {
+            final Object source = this.getSource();
+            if (source instanceof AzResourceModule) {
+                return ((AzResourceModule<?>) source).getServiceNameForTelemetry();
+            } else if (source instanceof AzResource) {
+                return ((AzResource) source).getModule().getServiceNameForTelemetry();
+            }
+        }
+        return serviceName;
     }
 
     @Nonnull
