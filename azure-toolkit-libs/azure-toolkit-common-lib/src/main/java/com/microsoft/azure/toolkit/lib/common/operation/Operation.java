@@ -25,6 +25,9 @@ public interface Operation {
 
     Callable<?> getBody();
 
+    @Nullable
+    Object getSource();
+
     @Nonnull
     String getType();
 
@@ -71,17 +74,18 @@ public interface Operation {
 
     @SneakyThrows
     static void execute(@Nonnull final AzureString title, @Nonnull final Callable<?> body, @Nullable final Object source) {
-        final SimpleOperation operation = new SimpleOperation(title, body);
-        AzureOperationAspect.execute(operation, source);
+        final SimpleOperation operation = new SimpleOperation(title, body, source);
+        AzureOperationAspect.execute(operation);
     }
 
     @SneakyThrows
     static void execute(@Nonnull final AzureString title, @Nonnull final Runnable body, @Nullable final Object source) {
         final SimpleOperation operation = new SimpleOperation(title, () -> {
             body.run();
+            //noinspection ReturnOfNull
             return null;
-        });
-        AzureOperationAspect.execute(operation, source);
+        }, source);
+        AzureOperationAspect.execute(operation);
     }
 
     interface Type {

@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
@@ -41,6 +42,12 @@ public class MethodOperation extends OperationBase {
     @Override
     public Callable<Object> getBody() {
         return this.invocation::invoke;
+    }
+
+    @Nullable
+    @Override
+    public Object getSource() {
+        return this.invocation.getInstance();
     }
 
     public AzureString getDescription() {

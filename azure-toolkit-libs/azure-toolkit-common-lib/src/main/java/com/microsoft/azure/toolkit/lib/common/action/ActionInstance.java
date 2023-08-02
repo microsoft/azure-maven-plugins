@@ -7,6 +7,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ import static com.microsoft.azure.toolkit.lib.common.action.Action.REQUIRE_AUTH;
 public class ActionInstance<D> extends OperationBase {
     @EqualsAndHashCode.Include
     public final Action<D> action;
+    @Getter
     @Nullable
     @EqualsAndHashCode.Include
     private final D source;
@@ -118,7 +120,7 @@ public class ActionInstance<D> extends OperationBase {
 
     @SneakyThrows
     public void perform() {
-        AzureOperationAspect.execute(this, this.source);
+        AzureOperationAspect.execute(this);
     }
 
     public void performAsync() {

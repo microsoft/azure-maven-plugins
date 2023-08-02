@@ -26,26 +26,26 @@ public class OperationManager {
         this.listeners.remove(listener);
     }
 
-    void fireBeforeEnter(Operation operation, Object source) {
+    void fireBeforeEnter(Operation operation) {
         try {
-            this.listeners.forEach(l -> l.beforeEnter(operation, source));
-        } catch (Throwable e) {
+            this.listeners.forEach(l -> l.beforeEnter(operation, operation.getSource()));
+        } catch (final Throwable e) {
             // ignore
         }
     }
 
-    void fireAfterReturning(Operation operation, Object source) {
+    void fireAfterReturning(Operation operation) {
         try {
-            this.listeners.forEach(l -> l.afterReturning(operation, source));
-        } catch (Throwable e) {
+            this.listeners.forEach(l -> l.afterReturning(operation, operation.getSource()));
+        } catch (final Throwable e) {
             // ignore
         }
     }
 
-    void fireAfterThrowing(Throwable e, Operation operation, Object source) {
+    void fireAfterThrowing(Throwable e, Operation operation) {
         try {
-            this.listeners.forEach(l -> l.afterThrowing(e, operation, source));
-        } catch (Throwable ex) {
+            this.listeners.forEach(l -> l.afterThrowing(e, operation, operation.getSource()));
+        } catch (final Throwable ex) {
             // ignore
         }
     }

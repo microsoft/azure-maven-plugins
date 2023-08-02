@@ -39,6 +39,8 @@ public class AzureTask<T> extends OperationBase {
     @Builder.Default
     private String type = "ASYNC";
     private Monitor monitor;
+    @Nullable
+    private Object source;
 
     public AzureTask() {
         this((Callable<T>) null);

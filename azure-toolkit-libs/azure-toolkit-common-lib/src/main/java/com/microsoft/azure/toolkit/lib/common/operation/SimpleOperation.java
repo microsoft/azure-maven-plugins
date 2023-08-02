@@ -20,6 +20,9 @@ public class SimpleOperation extends OperationBase {
     @Getter
     @Nonnull
     private final Callable<?> body;
+    @Getter
+    @Nullable
+    private final Object source;
 
     @Override
     public String toString() {

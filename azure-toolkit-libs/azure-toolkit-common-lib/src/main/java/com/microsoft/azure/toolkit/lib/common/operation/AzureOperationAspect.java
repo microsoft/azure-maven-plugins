@@ -30,23 +30,17 @@ public final class AzureOperationAspect {
 
     @Before("operation()")
     public void beforeEnter(JoinPoint point) {
-        final Operation operation = toOperation(point);
-        final Object source = point.getThis();
-        beforeEnter(operation, source);
+        beforeEnter(toOperation(point));
     }
 
     @AfterReturning("operation()")
     public void afterReturning(JoinPoint point) {
-        final Operation current = toOperation(point);
-        final Object source = point.getThis();
-        afterReturning(current, source);
+        afterReturning(toOperation(point));
     }
 
     @AfterThrowing(pointcut = "operation()", throwing = "e")
     public void afterThrowing(JoinPoint point, Throwable e) throws Throwable {
-        final Operation current = toOperation(point);
-        final Object source = point.getThis();
-        afterThrowing(e, current, source);
+        afterThrowing(e, toOperation(point));
     }
 
     //    @Around("operation()")
@@ -56,7 +50,8 @@ public final class AzureOperationAspect {
     //        return execute(current, source);
     //    }
 
-    public static void beforeEnter(Operation operation, Object source) {
+    public static void beforeEnter(Operation operation) {
+        final Object source = operation.getSource();
         if (source instanceof AzResourceModule) {
             operation.getContext().setTelemetryProperty("resourceType", ((AzResourceModule<?>) source).getFullResourceType());
             operation.getContext().setTelemetryProperty("subscriptionId", ((AzResourceModule<?>) source).getSubscriptionId());
@@ -65,11 +60,11 @@ public final class AzureOperationAspect {
             operation.getContext().setTelemetryProperty("subscriptionId", ((AzResource) source).getSubscriptionId());
         }
         AzureTelemeter.beforeEnter(operation);
-        OperationManager.getInstance().fireBeforeEnter(operation, source);
+        OperationManager.getInstance().fireBeforeEnter(operation);
         OperationThreadContext.current().pushOperation(operation);
     }
 
-    public static void afterReturning(Operation current, Object source) {
+    public static void afterReturning(Operation current) {
         final Operation operation = OperationThreadContext.current().popOperation();
         if (operation == null) { // @wangmi FIXME: just workaround
             return;
@@ -77,11 +72,11 @@ public final class AzureOperationAspect {
         // TODO: this cannot ensure same operation actually, considering recursive call
         assert Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the exiting operation[%s]", current, operation);
-        OperationManager.getInstance().fireAfterReturning(operation, source);
+        OperationManager.getInstance().fireAfterReturning(operation);
         AzureTelemeter.afterExit(operation);
     }
 
-    public static void afterThrowing(Throwable e, Operation current, Object source) throws Throwable {
+    public static void afterThrowing(Throwable e, Operation current) throws Throwable {
         final Operation operation = OperationThreadContext.current().popOperation();
         if (operation == null) { // @wangmi FIXME: just workaround
             return;
@@ -92,7 +87,7 @@ public final class AzureOperationAspect {
         if (e instanceof OperationException) {
             throw e;
         } else {
-            OperationManager.getInstance().fireAfterThrowing(e, operation, source);
+            OperationManager.getInstance().fireAfterThrowing(e, operation);
             AzureTelemeter.onError(operation, e);
             if (e instanceof Exception && !(e instanceof RuntimeException)) {
                 throw e; // do not wrap checked exception and AzureOperationException
@@ -101,15 +96,16 @@ public final class AzureOperationAspect {
         }
     }
 
-    public static <T> T execute(Operation operation, Object source) throws Throwable {
+    public static <T> T execute(Operation operation) throws Throwable {
         final Callable<?> body = operation.getBody();
         try {
-            AzureOperationAspect.beforeEnter(operation, source);
+            AzureOperationAspect.beforeEnter(operation);
+            //noinspection unchecked
             final T result = (T) body.call();
-            AzureOperationAspect.afterReturning(operation, source);
+            AzureOperationAspect.afterReturning(operation);
             return result;
         } catch (final Throwable e) {
-            AzureOperationAspect.afterThrowing(e, operation, source);
+            AzureOperationAspect.afterThrowing(e, operation);
             throw e;
         }
     }

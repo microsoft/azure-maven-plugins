@@ -381,7 +381,7 @@ public abstract class AzureTaskManager {
             AzureTelemeter.afterCreate(task);
             final Runnable t = () -> context.run(() -> {
                 try {
-                    final T result = AzureOperationAspect.execute(task, null);
+                    final T result = AzureOperationAspect.execute(task);
                     emitter.onNext(result);
                 } catch (final Throwable e) {
                     emitter.onError(e);
