@@ -519,7 +519,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
-    @AzureOperation(name = "azure/resource.load_resources_by_page.type", params = {"this.getResourceTypeName()"})
+    @AzureOperation(name = "azure/$resource.load_resources_by_page.type", params = {"this.getResourceTypeName()"})
     protected Iterator<? extends ContinuablePage<String, R>> loadResourcePagesFromAzure() {
         log.debug("[{}]:loadPagedResourcesFromAzure()", this.getName());
         final Object client = this.getClient();
@@ -535,7 +535,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nullable
-    @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"})
+    @AzureOperation(name = "azure/$resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"})
     protected R loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         log.debug("[{}]:loadResourceFromAzure({}, {})", this.getName(), name, resourceGroup);
         final Object client = this.getClient();
@@ -556,7 +556,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         }
     }
 
-    @AzureOperation(name = "azure/resource.delete_resource.resource|type", params = {"nameFromResourceId(resourceId)", "this.getResourceTypeName()"})
+    @AzureOperation(name = "azure/$resource.delete_resource.resource|type", params = {"nameFromResourceId(resourceId)", "this.getResourceTypeName()"})
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         log.debug("[{}]:deleteResourceFromAzure({})", this.getName(), resourceId);
         final Object client = this.getClient();
