@@ -34,7 +34,7 @@ public class ServiceBusNamespaceModule extends AbstractAzResourceModule<ServiceB
 
     @Nullable
     @Override
-    @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"})
+    @AzureOperation(name = "azure/servicebus.load_service_bus_namespace.servicebus", params = {"name"})
     protected com.azure.resourcemanager.servicebus.models.ServiceBusNamespace loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         assert StringUtils.isNoneBlank(resourceGroup) : "resource group can not be empty";
         return Optional.ofNullable(this.getClient()).map(serviceBusNamespaces -> serviceBusNamespaces.getByResourceGroup(resourceGroup, name)).orElse(null);

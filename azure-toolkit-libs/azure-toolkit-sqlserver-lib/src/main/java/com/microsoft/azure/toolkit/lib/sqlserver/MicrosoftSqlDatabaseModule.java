@@ -49,7 +49,7 @@ public class MicrosoftSqlDatabaseModule extends AbstractAzResourceModule<Microso
 
     @Nullable
     @Override
-    @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"})
+    @AzureOperation(name = "azure/sqlserver.load_database.database", params = {"name"})
     protected SqlDatabase loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         return Optional.ofNullable(this.getClient()).map(c -> c.get(name)).orElse(null);
     }

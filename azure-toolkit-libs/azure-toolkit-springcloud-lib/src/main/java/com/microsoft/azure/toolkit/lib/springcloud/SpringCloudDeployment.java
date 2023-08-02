@@ -42,7 +42,7 @@ import java.util.concurrent.CountDownLatch;
 
 @SuppressWarnings("unused")
 public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeployment, SpringCloudApp, SpringAppDeployment>
-        implements ServiceLinkerConsumer {
+    implements ServiceLinkerConsumer {
     @Nonnull
     private final SpringCloudAppInstanceModule instanceModule;
     private final ServiceLinkerModule linkerModule;
@@ -72,17 +72,17 @@ public class SpringCloudDeployment extends AbstractAzResource<SpringCloudDeploym
     }
 
     // MODIFY
-    @AzureOperation(name = "azure/resource.start_resource.resource", params = {"this.name()"})
+    @AzureOperation(name = "azure/springcloud.start_deployment.deployment", params = {"this.getName()"})
     public void start() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).start(), Status.STARTING);
     }
 
-    @AzureOperation(name = "azure/resource.stop_resource.resource", params = {"this.name()"})
+    @AzureOperation(name = "azure/springcloud.stop_deployment.deployment", params = {"this.getName()"})
     public void stop() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).stop(), Status.STOPPING);
     }
 
-    @AzureOperation(name = "azure/resource.restart_resource.resource", params = {"this.name()"})
+    @AzureOperation(name = "azure/springcloud.restart_deployment.deployment", params = {"this.getName()"})
     public void restart() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).restart(), Status.RESTARTING);
     }

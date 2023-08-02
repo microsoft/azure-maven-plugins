@@ -48,7 +48,7 @@ public class RevisionModule extends AbstractAzResourceModule<Revision, Container
 
     @Nullable
     @Override
-    @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"})
+    @AzureOperation(name = "azure/containerapps.load_revision.revision", params = {"name"})
     protected com.azure.resourcemanager.appcontainers.models.Revision loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         final ContainerApp parent = this.getParent();
         return getClient().getRevision(parent.getResourceGroupName(), parent.getName(), name);

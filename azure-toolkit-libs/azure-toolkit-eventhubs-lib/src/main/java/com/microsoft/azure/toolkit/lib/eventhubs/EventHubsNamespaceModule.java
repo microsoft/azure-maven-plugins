@@ -33,7 +33,7 @@ public class EventHubsNamespaceModule extends AbstractAzResourceModule<EventHubs
 
     @Nullable
     @Override
-    @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"})
+    @AzureOperation(name = "azure/eventhubs.load_event_hubs_namespace.eventhubs", params = {"name"})
     protected EventHubNamespace loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         assert StringUtils.isNoneBlank(resourceGroup) : "resource group can not be empty";
         return Optional.ofNullable(this.getClient()).map(eventHubNamespaces -> eventHubNamespaces.getByResourceGroup(resourceGroup, name)).orElse(null);
