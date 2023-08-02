@@ -60,7 +60,7 @@ public class ActionInstance<D> extends OperationBase {
             if (isAuthRequired()) {
                 final Action<Runnable> requireAuth = AzureActionManager.getInstance().getAction(REQUIRE_AUTH);
                 if (Objects.nonNull(requireAuth)) {
-                    requireAuth.handle(handlerBody, this.source);
+                    requireAuth.handle(handlerBody, this.event);
                 }
             } else {
                 handlerBody.run();
