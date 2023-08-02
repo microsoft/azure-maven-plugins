@@ -636,4 +636,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     protected boolean isAuthRequiredForResource(@Nonnull String resourceId) {
         return !StringUtils.equalsAnyIgnoreCase(ResourceId.fromString(resourceId).subscriptionId(), Subscription.NONE.getId());
     }
+
+    public String getServiceNameForTelemetry() {
+        return this.getParent().getModule().getServiceNameForTelemetry();
+    }
 }

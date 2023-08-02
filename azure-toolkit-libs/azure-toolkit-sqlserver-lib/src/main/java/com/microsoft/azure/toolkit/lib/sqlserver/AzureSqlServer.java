@@ -67,4 +67,8 @@ public class AzureSqlServer extends AbstractAzService<MicrosoftSqlServiceSubscri
     public String getResourceTypeName() {
         return "SQL servers";
     }
+
+    public String getServiceNameForTelemetry() {
+        return "sqlserver";
+    }
 }

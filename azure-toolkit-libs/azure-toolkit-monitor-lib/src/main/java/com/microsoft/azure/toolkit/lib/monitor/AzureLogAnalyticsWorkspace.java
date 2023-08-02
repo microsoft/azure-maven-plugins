@@ -65,4 +65,8 @@ public class AzureLogAnalyticsWorkspace extends AbstractAzService<LogAnalyticsSe
     public String getResourceTypeName() {
         return "Log Analytics workspace";
     }
+
+    public String getServiceNameForTelemetry() {
+        return "monitor";
+    }
 }

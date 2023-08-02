@@ -38,12 +38,6 @@ public class AzureContainerService extends AbstractAzService<ContainerServiceSub
         return serviceSubscription.kubernetes();
     }
 
-    @Nonnull
-    @Override
-    public String getResourceTypeName() {
-        return "Kubernetes services";
-    }
-
     @Nullable
     @Override
     protected ContainerServiceManager loadResourceFromAzure(@Nonnull String subscriptionId, @Nullable String resourceGroup) {
@@ -57,5 +51,15 @@ public class AzureContainerService extends AbstractAzService<ContainerServiceSub
                 .withLogOptions(new HttpLogOptions().setLogLevel(logLevel))
                 .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent))
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
+    }
+
+    @Nonnull
+    @Override
+    public String getResourceTypeName() {
+        return "Kubernetes services";
+    }
+
+    public String getServiceNameForTelemetry() {
+        return "kubernetes";
     }
 }

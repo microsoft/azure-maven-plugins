@@ -129,4 +129,8 @@ public class AzureAppService extends AbstractAzService<AppServiceServiceSubscrip
     public String getResourceTypeName() {
         return "App Services";
     }
+
+    public String getServiceNameForTelemetry() {
+        return "appservice";
+    }
 }

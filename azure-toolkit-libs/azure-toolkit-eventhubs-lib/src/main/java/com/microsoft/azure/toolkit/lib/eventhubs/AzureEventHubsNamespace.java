@@ -62,4 +62,8 @@ public class AzureEventHubsNamespace extends AbstractAzService<EventHubsNamespac
     public String getResourceTypeName() {
         return "Event Hubs Namespace";
     }
+
+    public String getServiceNameForTelemetry() {
+        return "eventhubs";
+    }
 }

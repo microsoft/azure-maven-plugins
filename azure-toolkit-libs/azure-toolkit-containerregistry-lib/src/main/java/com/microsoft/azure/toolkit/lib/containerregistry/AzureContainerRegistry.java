@@ -71,4 +71,8 @@ public class AzureContainerRegistry extends AbstractAzService<AzureContainerRegi
     public String getResourceTypeName() {
         return "Container Registries";
     }
+
+    public String getServiceNameForTelemetry() {
+        return "acr";
+    }
 }

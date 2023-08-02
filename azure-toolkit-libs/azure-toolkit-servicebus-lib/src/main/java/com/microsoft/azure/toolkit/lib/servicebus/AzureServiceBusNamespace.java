@@ -63,4 +63,8 @@ public class AzureServiceBusNamespace extends AbstractAzService<ServiceBusNamesp
     public String getResourceTypeName() {
         return "Service Bus Namespace";
     }
+
+    public String getServiceNameForTelemetry() {
+        return "servicebus";
+    }
 }

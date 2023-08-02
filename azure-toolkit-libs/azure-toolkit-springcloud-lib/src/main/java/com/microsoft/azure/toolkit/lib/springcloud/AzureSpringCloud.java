@@ -56,4 +56,8 @@ public final class AzureSpringCloud extends AbstractAzService<SpringCloudService
     public String getResourceTypeName() {
         return "Azure Spring Apps";
     }
+
+    public String getServiceNameForTelemetry() {
+        return "springcloud";
+    }
 }

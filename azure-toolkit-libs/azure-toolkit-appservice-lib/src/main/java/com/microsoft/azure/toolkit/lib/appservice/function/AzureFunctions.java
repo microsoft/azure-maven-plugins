@@ -43,7 +43,7 @@ public class AzureFunctions extends AzureAppService {
     @Nonnull
     public List<Runtime> listFunctionAppRuntimes(@Nonnull OperatingSystem os, @Nonnull JavaVersion version) {
         return Runtime.FUNCTION_APP_RUNTIME.stream()
-            .filter(runtime -> Objects.equals(os, runtime.getOperatingSystem()) && Objects.equals(version, runtime.getJavaVersion()))
+            .filter(runtime -> os == runtime.getOperatingSystem() && Objects.equals(version, runtime.getJavaVersion()))
             .collect(Collectors.toList());
     }
 
@@ -51,5 +51,15 @@ public class AzureFunctions extends AzureAppService {
     @Override
     protected AppServiceServiceSubscription newResource(@Nonnull AppServiceManager remote) {
         return new FunctionsServiceSubscription(remote, this);
+    }
+
+    @Nonnull
+    @Override
+    public String getResourceTypeName() {
+        return "Function Apps";
+    }
+
+    public String getServiceNameForTelemetry() {
+        return "function";
     }
 }

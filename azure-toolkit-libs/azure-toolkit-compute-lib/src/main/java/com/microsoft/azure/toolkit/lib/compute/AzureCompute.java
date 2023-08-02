@@ -70,12 +70,6 @@ public class AzureCompute extends AbstractAzService<ComputeServiceSubscription, 
     }
 
     @Nonnull
-    @Override
-    public String getResourceTypeName() {
-        return "Virtual machines";
-    }
-
-    @Nonnull
     public VirtualMachineModule virtualMachines(@Nonnull String subscriptionId) {
         final ComputeServiceSubscription rm = get(subscriptionId, null);
         assert rm != null;
@@ -115,5 +109,15 @@ public class AzureCompute extends AbstractAzService<ComputeServiceSubscription, 
 
     public static List<VmImage> getKnownImages() {
         return images;
+    }
+
+    @Nonnull
+    @Override
+    public String getResourceTypeName() {
+        return "Virtual machines";
+    }
+
+    public String getServiceNameForTelemetry() {
+        return "vm";
     }
 }

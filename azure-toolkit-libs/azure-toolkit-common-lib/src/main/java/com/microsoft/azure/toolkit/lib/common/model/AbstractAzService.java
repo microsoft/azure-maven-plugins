@@ -168,4 +168,8 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
         final R r = this.loadResourceFromAzure(name, resourceGroupName);
         return this.newResource(Objects.requireNonNull(r));
     }
+
+    public String getServiceNameForTelemetry() {
+        return this.getName();
+    }
 }

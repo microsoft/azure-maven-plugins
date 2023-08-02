@@ -55,6 +55,9 @@ public interface AzResourceModule<T extends AzResource> extends Refreshable {
     String getResourceTypeName();
 
     @Nonnull
+    String getServiceNameForTelemetry();
+
+    @Nonnull
     String getSubscriptionId();
 
     @Getter
@@ -78,6 +81,12 @@ public interface AzResourceModule<T extends AzResource> extends Refreshable {
         @Nonnull
         @Override
         public String getResourceTypeName() {
+            return AzResource.None.NONE;
+        }
+
+        @Nonnull
+        @Override
+        public String getServiceNameForTelemetry() {
             return AzResource.None.NONE;
         }
 
