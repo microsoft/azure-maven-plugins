@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 
 @Getter
@@ -25,6 +26,7 @@ public class MethodOperation extends OperationBase {
 
     @EqualsAndHashCode.Include
     private final MethodInvocation invocation;
+    private Object source;
 
     @Override
     public String toString() {
@@ -47,12 +49,16 @@ public class MethodOperation extends OperationBase {
     @Nullable
     @Override
     public Object getSource() {
-        final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
-        final String sourceExpression = annotation.source();
-        if (StringUtils.isNotBlank(sourceExpression)) {
-            return ExpressionUtils.evaluate(sourceExpression, this.invocation);
+        if (Objects.isNull(this.source)) {
+            final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
+            final String sourceExpression = annotation.source();
+            if (StringUtils.isNotBlank(sourceExpression)) {
+                this.source = ExpressionUtils.evaluate(sourceExpression, this.invocation);
+            } else {
+                this.source = this.invocation.getInstance();
+            }
         }
-        return this.invocation.getInstance();
+        return this.source;
     }
 
     public AzureString getDescription() {
