@@ -1,25 +1,31 @@
 package com.microsoft.azure.toolkit.lib.common.action;
 
+import com.google.common.util.concurrent.SettableFuture;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.account.IAccount;
+import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationAspect;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBase;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -27,14 +33,11 @@ import static com.microsoft.azure.toolkit.lib.common.action.Action.COMMON_PLACE;
 import static com.microsoft.azure.toolkit.lib.common.action.Action.REQUIRE_AUTH;
 
 @Slf4j
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @RequiredArgsConstructor
 public class ActionInstance<D> extends OperationBase {
-    @EqualsAndHashCode.Include
     public final Action<D> action;
     @Getter
     @Nullable
-    @EqualsAndHashCode.Include
     private final D source;
     @Nullable
     private final Object event;
@@ -45,7 +48,7 @@ public class ActionInstance<D> extends OperationBase {
     private Function<D, String> labelProvider;
     private Function<D, AzureString> titleProvider;
     private Predicate<D> authRequiredProvider;
-    private List<Function<D, String>> titleParamProviders;
+    private final List<Function<D, String>> titleParamProviders = new ArrayList<>();
 
     @Nonnull
     @Override
@@ -56,15 +59,7 @@ public class ActionInstance<D> extends OperationBase {
     @Override
     public Callable<?> getBody() {
         return () -> {
-            final Runnable handlerBody = () -> this.handler.accept(this.source, this.event);
-            if (isAuthRequired()) {
-                final Action<Runnable> requireAuth = AzureActionManager.getInstance().getAction(REQUIRE_AUTH);
-                if (Objects.nonNull(requireAuth)) {
-                    requireAuth.handle(handlerBody, this.event);
-                }
-            } else {
-                handlerBody.run();
-            }
+            this.handler.accept(this.source, this.event);
             return null;
         };
     }
@@ -73,7 +68,7 @@ public class ActionInstance<D> extends OperationBase {
     @Override
     public AzureString getDescription() {
         final Function<D, AzureString> titleProvider = Optional.ofNullable(this.titleProvider).orElse(this.action.titleProvider);
-        final List<Function<D, String>> titleParamProviders = Optional.ofNullable(this.titleParamProviders).orElse(this.action.titleParamProviders);
+        final List<Function<D, String>> titleParamProviders = Optional.of(this.titleParamProviders).filter(CollectionUtils::isNotEmpty).orElse(this.action.titleParamProviders);
         if (Objects.nonNull(titleProvider)) {
             return titleProvider.apply(this.source);
         } else {
@@ -120,6 +115,14 @@ public class ActionInstance<D> extends OperationBase {
 
     @SneakyThrows
     public void perform() {
+        if (isAuthRequired()) {
+            final SettableFuture<IAccount> authorized = SettableFuture.create();
+            final Action<Consumer<IAccount>> authorizeAction = AzureActionManager.getInstance().getAction(REQUIRE_AUTH);
+            authorizeAction.handleSync(authorized::set, this.event);
+            if (Objects.isNull(authorized.get())) {
+                Azure.az(IAzureAccount.class).account();
+            }
+        }
         AzureOperationAspect.execute(this);
     }
 
