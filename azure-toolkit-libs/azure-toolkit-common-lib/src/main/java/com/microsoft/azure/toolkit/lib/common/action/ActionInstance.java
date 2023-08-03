@@ -10,7 +10,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.OperationBase;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -36,9 +35,8 @@ import static com.microsoft.azure.toolkit.lib.common.action.Action.REQUIRE_AUTH;
 @RequiredArgsConstructor
 public class ActionInstance<D> extends OperationBase {
     public final Action<D> action;
-    @Getter
     @Nullable
-    private final D source;
+    private final D target;
     @Nullable
     private final Object event;
     @Nonnull
@@ -59,9 +57,15 @@ public class ActionInstance<D> extends OperationBase {
     @Override
     public Callable<?> getBody() {
         return () -> {
-            this.handler.accept(this.source, this.event);
+            this.handler.accept(this.target, this.event);
             return null;
         };
+    }
+
+    @Nullable
+    @Override
+    public Object getSource() {
+        return Optional.ofNullable(this.action.sourceProvider).map(p -> p.apply(this.target)).orElse(this.target);
     }
 
     @Nullable
@@ -70,10 +74,10 @@ public class ActionInstance<D> extends OperationBase {
         final Function<D, AzureString> titleProvider = Optional.ofNullable(this.titleProvider).orElse(this.action.titleProvider);
         final List<Function<D, String>> titleParamProviders = Optional.of(this.titleParamProviders).filter(CollectionUtils::isNotEmpty).orElse(this.action.titleParamProviders);
         if (Objects.nonNull(titleProvider)) {
-            return titleProvider.apply(this.source);
+            return titleProvider.apply(this.target);
         } else {
             if (!titleParamProviders.isEmpty()) {
-                final Object[] params = titleParamProviders.stream().map(p -> p.apply(this.source)).toArray();
+                final Object[] params = titleParamProviders.stream().map(p -> p.apply(this.target)).toArray();
                 return OperationBundle.description(this.action.getId().getId(), params);
             }
         }
@@ -93,11 +97,11 @@ public class ActionInstance<D> extends OperationBase {
             final Function<D, String> labelProvider = Optional.ofNullable(this.labelProvider).orElse(this.action.labelProvider);
             final Function<D, String> iconProvider = Optional.ofNullable(this.iconProvider).orElse(this.action.iconProvider);
 
-            final boolean visible = visibleWhen.test(this.source, place);
+            final boolean visible = visibleWhen.test(this.target, place);
             if (visible) {
-                final String label = labelProvider.apply(this.source);
-                final String icon = Optional.ofNullable(iconProvider).map(p -> p.apply(this.source)).orElse(null);
-                final boolean enabled = enableWhen.test(this.source);
+                final String label = labelProvider.apply(this.target);
+                final String icon = Optional.ofNullable(iconProvider).map(p -> p.apply(this.target)).orElse(null);
+                final boolean enabled = enableWhen.test(this.target);
                 final AzureString title = getDescription();
                 return new Action.View(label, icon, enabled, title);
             }
@@ -110,7 +114,7 @@ public class ActionInstance<D> extends OperationBase {
 
     private boolean isAuthRequired() {
         final Predicate<D> authRequiredProvider = Optional.ofNullable(this.authRequiredProvider).orElse(this.action.authRequiredProvider);
-        return Optional.ofNullable(authRequiredProvider).map(p -> p.test(this.source)).orElse(true);
+        return Optional.ofNullable(authRequiredProvider).map(p -> p.test(this.target)).orElse(true);
     }
 
     @SneakyThrows

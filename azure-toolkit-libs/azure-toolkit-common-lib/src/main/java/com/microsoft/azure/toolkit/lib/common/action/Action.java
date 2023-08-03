@@ -51,7 +51,7 @@ public class Action<D> implements Cloneable {
     private final Id<D> id;
     @Nonnull
     private List<Pair<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
-    private D source;
+    private D target;
     @Nonnull
     Predicate<D> enableWhen = o -> true;
     BiPredicate<Object, String> visibleWhen = (o, place) -> true;
@@ -60,6 +60,7 @@ public class Action<D> implements Cloneable {
     Function<D, AzureString> titleProvider;
     @Nonnull
     List<Function<D, String>> titleParamProviders = new ArrayList<>();
+    Function<D, Object> sourceProvider;
     Predicate<D> authRequiredProvider = Action::isAuthRequiredForAzureResource;
 
     /**
@@ -201,6 +202,16 @@ public class Action<D> implements Cloneable {
         return this;
     }
 
+    public Action<D> withSource(@Nonnull final Object source) {
+        this.sourceProvider = (any) -> source;
+        return this;
+    }
+
+    public Action<D> withSource(@Nonnull final Function<D, Object> sourceProvider) {
+        this.sourceProvider = sourceProvider;
+        return this;
+    }
+
     @Nullable
     @SuppressWarnings("unchecked")
     private BiConsumer<D, Object> getHandler(D s, Object e) {
@@ -224,7 +235,7 @@ public class Action<D> implements Cloneable {
             final Action<D> clone = (Action<D>) this.clone();
             clone.handlers = new ArrayList<>(this.handlers);
             clone.titleParamProviders = new ArrayList<>(this.titleParamProviders);
-            clone.source = s;
+            clone.target = s;
             return clone;
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
@@ -238,9 +249,9 @@ public class Action<D> implements Cloneable {
 
     @Nullable
     public ActionInstance<D> instantiate(D s, Object event) {
-        final D source = Optional.ofNullable(this.source).orElse(s);
-        final BiConsumer<D, Object> handler = getHandler(source, event);
-        return Optional.ofNullable(handler).map(h -> new ActionInstance<>(this, source, event, h)).orElse(null);
+        final D target = Optional.ofNullable(this.target).orElse(s);
+        final BiConsumer<D, Object> handler = getHandler(target, event);
+        return Optional.ofNullable(handler).map(h -> new ActionInstance<>(this, target, event, h)).orElse(null);
     }
 
     public void register(AzureActionManager am) {
@@ -249,7 +260,7 @@ public class Action<D> implements Cloneable {
 
     @Override
     public String toString() {
-        return String.format("Action {id:'%s', bindTo: %s}", this.getId(), this.source);
+        return String.format("Action {id:'%s', bindTo: %s}", this.getId(), this.target);
     }
 
     @Getter
