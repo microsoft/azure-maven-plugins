@@ -99,7 +99,7 @@ public class AzureTelemeter {
         final Map<String, String> actionProperties = getActionProperties(op);
         final Optional<Operation> parent = Optional.ofNullable(op.getEffectiveParent());
         final Map<String, String> properties = new HashMap<>();
-        final String name = op.getId().replaceAll("\\(.+\\)", "(***)"); // e.g. `internal/appservice.list_file.dir`
+        final String name = op.getId().replaceAll("\\(.+\\)", "(***)"); // e.g. `internal/$appservice.list_file.dir`
         properties.put(OP_ID, op.getExecutionId());
         properties.put(OP_PARENT_ID, parent.map(Operation::getExecutionId).orElse("/"));
         properties.put(OP_NAME, name);

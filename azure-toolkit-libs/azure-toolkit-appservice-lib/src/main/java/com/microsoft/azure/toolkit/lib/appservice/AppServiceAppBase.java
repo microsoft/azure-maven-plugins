@@ -75,17 +75,17 @@ public abstract class AppServiceAppBase<
     }
 
     // MODIFY
-    @AzureOperation(name = "azure/appservice.start_app.name", params = {"this.getName()"})
+    @AzureOperation(name = "azure/$appservice.start_app.name", params = {"this.getName()"})
     public void start() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).start(), AzResource.Status.STARTING);
     }
 
-    @AzureOperation(name = "azure/appservice.stop_app.name", params = {"this.getName()"})
+    @AzureOperation(name = "azure/$appservice.stop_app.name", params = {"this.getName()"})
     public void stop() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).stop(), AzResource.Status.STOPPING);
     }
 
-    @AzureOperation(name = "azure/appservice.restart_app.name", params = {"this.getName()"})
+    @AzureOperation(name = "azure/$appservice.restart_app.name", params = {"this.getName()"})
     public void restart() {
         this.doModify(() -> Objects.requireNonNull(this.getRemote()).restart(), AzResource.Status.RESTARTING);
     }
