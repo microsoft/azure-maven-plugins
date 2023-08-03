@@ -14,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
-import java.util.Optional;
 
 public abstract class OperationBase implements Operation {
     @Getter
@@ -62,7 +61,10 @@ public abstract class OperationBase implements Operation {
             } else {
                 String serviceNameFromContext = this.context.getProperty("serviceName");
                 if (StringUtils.isBlank(serviceNameFromContext)) {
-                    serviceNameFromContext = Optional.ofNullable(this.getActionParent()).map(Operation::getServiceName).orElse(null);
+                    final Operation actionParent = this.getActionParent();
+                    if (actionParent != null && actionParent != this) {
+                        serviceNameFromContext = actionParent.getServiceName();
+                    }
                 }
                 if (StringUtils.isNotBlank(serviceNameFromContext)) {
                     return serviceNameFromContext;
