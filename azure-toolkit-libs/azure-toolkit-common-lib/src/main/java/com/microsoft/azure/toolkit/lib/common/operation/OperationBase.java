@@ -10,9 +10,11 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
+import java.util.Optional;
 
 public abstract class OperationBase implements Operation {
     @Getter
@@ -57,6 +59,14 @@ public abstract class OperationBase implements Operation {
                 return ((AzResourceModule<?>) source).getServiceNameForTelemetry();
             } else if (source instanceof AzResource) {
                 return ((AzResource) source).getModule().getServiceNameForTelemetry();
+            } else {
+                String serviceNameFromContext = this.context.getProperty("serviceName");
+                if (StringUtils.isBlank(serviceNameFromContext)) {
+                    serviceNameFromContext = Optional.ofNullable(this.getActionParent()).map(Operation::getServiceName).orElse(null);
+                }
+                if (StringUtils.isNotBlank(serviceNameFromContext)) {
+                    return serviceNameFromContext;
+                }
             }
         }
         return serviceName;
