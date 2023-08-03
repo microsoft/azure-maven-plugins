@@ -45,7 +45,7 @@ public class ExpressionUtils {
             return null;
         }
         final Map<String, Object> bindings = initBindings(invocation);
-        final String fixed = expression.replaceAll("(\\W)this(\\.)", "$1_this_$2"); // resolve `this`
+        final String fixed = expression.replaceAll("(\\W?)this(\\.)", "$1_this_$2"); // resolve `this`
         try {
             final GroovyShell shell = new GroovyShell(ExpressionUtils.class.getClassLoader(), new Binding(bindings));
             return shell.evaluate(fixed);
