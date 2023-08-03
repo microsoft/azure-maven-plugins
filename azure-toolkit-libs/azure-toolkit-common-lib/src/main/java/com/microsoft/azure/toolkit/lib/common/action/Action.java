@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.action;
 
+import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.model.Emulatable;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
@@ -39,7 +40,7 @@ public class Action<D> implements Cloneable {
     public static final String EMPTY_PLACE = "empty";
     public static final String RESOURCE_TYPE = "resourceType";
     public static final Id<Object> AUTHENTICATE = Id.of("user/account.authenticate");
-    public static final Id<Runnable> REQUIRE_AUTH = Id.of("user/common.authorize_action");
+    public static final Id<Consumer<IAccount>> REQUIRE_AUTH = Id.of("user/common.authorize_action");
     public static final Action.Id<Object> OPEN_AZURE_SETTINGS = Action.Id.of("user/common.open_azure_settings");
     public static final Action.Id<Object> DISABLE_AUTH_CACHE = Action.Id.of("user/account.disable_auth_cache");
 
