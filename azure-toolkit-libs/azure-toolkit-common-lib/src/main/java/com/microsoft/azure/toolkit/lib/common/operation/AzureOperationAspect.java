@@ -53,10 +53,8 @@ public final class AzureOperationAspect {
     public static void beforeEnter(Operation operation) {
         final Object source = operation.getSource();
         if (source instanceof AzResourceModule) {
-            operation.getContext().setTelemetryProperty("resourceType", ((AzResourceModule<?>) source).getFullResourceType());
             operation.getContext().setTelemetryProperty("subscriptionId", ((AzResourceModule<?>) source).getSubscriptionId());
         } else if (source instanceof AzResource) {
-            operation.getContext().setTelemetryProperty("resourceType", ((AzResource) source).getFullResourceType());
             operation.getContext().setTelemetryProperty("subscriptionId", ((AzResource) source).getSubscriptionId());
         }
         AzureTelemeter.beforeEnter(operation);
