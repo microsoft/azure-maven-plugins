@@ -33,7 +33,7 @@ import java.util.function.Predicate;
 @SuppressWarnings({"unused", "UnresolvedPropertyKey"})
 @Slf4j
 @Accessors(chain = true)
-public class Action<D> {
+public class Action<D> implements Cloneable {
     public static final String SOURCE = "ACTION_SOURCE";
     public static final String PLACE = "action_place";
     public static final String EMPTY_PLACE = "empty";
