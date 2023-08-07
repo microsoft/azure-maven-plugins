@@ -222,8 +222,11 @@ public class Action<D> implements Cloneable {
             final Pair<BiPredicate<D, ?>, BiConsumer<D, ?>> p = this.handlers.get(i);
             final BiPredicate<D, Object> condition = (BiPredicate<D, Object>) p.getKey();
             final BiConsumer<D, Object> handler = (BiConsumer<D, Object>) p.getValue();
-            if (condition.test(s, e)) {
-                return handler;
+            try {
+                if (condition.test(s, e)) {
+                    return handler;
+                }
+            } catch (final Exception ignored) {
             }
         }
         return null;
