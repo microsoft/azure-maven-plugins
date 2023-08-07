@@ -119,7 +119,7 @@ public class ActionInstance<D> extends OperationBase {
 
     @SneakyThrows
     public void perform() {
-        if (isAuthRequired()) {
+        if (isAuthRequired() && !Azure.az(IAzureAccount.class).isLoggedIn()) {
             final SettableFuture<IAccount> authorized = SettableFuture.create();
             final Action<Consumer<IAccount>> authorizeAction = AzureActionManager.getInstance().getAction(REQUIRE_AUTH);
             authorizeAction.handleSync(authorized::set, this.event);

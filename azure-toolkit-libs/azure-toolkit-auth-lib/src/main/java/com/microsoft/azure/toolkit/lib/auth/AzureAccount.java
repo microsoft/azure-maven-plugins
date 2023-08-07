@@ -177,10 +177,12 @@ public class AzureAccount implements IAzureAccount {
         }
     }
 
+    @Override
     public boolean isLoggedIn() {
         return Optional.ofNullable(this.accountRef).map(AtomicReference::get).map(Account::isLoggedInCompletely).isPresent();
     }
 
+    @Override
     public boolean isLoggingIn() {
         return Objects.nonNull(this.accountRef) && Objects.isNull(this.accountRef.get());
     }
