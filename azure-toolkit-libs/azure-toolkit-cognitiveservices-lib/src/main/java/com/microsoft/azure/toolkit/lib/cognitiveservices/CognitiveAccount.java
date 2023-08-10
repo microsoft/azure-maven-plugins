@@ -13,9 +13,11 @@ import com.azure.resourcemanager.cognitiveservices.models.AccountProperties;
 import com.azure.resourcemanager.cognitiveservices.models.ApiKeys;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.model.AccountModel;
+import com.microsoft.azure.toolkit.lib.cognitiveservices.model.AccountSku;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -82,6 +84,7 @@ public class CognitiveAccount extends AbstractAzResource<CognitiveAccount, Cogni
         return Optional.ofNullable(getRemote()).map(Account::properties).map(AccountProperties::endpoint).orElse(null);
     }
 
+    @Nonnull
     public OpenAIClient getOpenAIClient() {
         return new OpenAIClientBuilder()
             .credential(new AzureKeyCredential(Objects.requireNonNull(this.getPrimaryKey(), String.format("Failed to get primary key for account %s", getName()))))
@@ -89,6 +92,19 @@ public class CognitiveAccount extends AbstractAzResource<CognitiveAccount, Cogni
             .buildClient();
     }
 
+    @Nullable
+    public AccountSku getSku() {
+        return Optional.ofNullable(getRemote())
+            .map(Account::sku)
+            .map(AccountSku::fromSku).orElse(null);
+    }
+
+    @Nullable
+    public Region getRegion() {
+        return Optional.ofNullable(getRemote()).map(Account::location).map(Region::fromName).orElse(null);
+    }
+
+    @Nonnull
     public CognitiveDeploymentModule deployments() {
         return this.deploymentModule;
     }
