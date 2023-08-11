@@ -26,4 +26,10 @@ public @interface AzureOperation {
      * e.g. groovy expression: {@code "this.webapp.id()" }, {@code "subscriptionId" }
      */
     String[] params() default {};
+
+    /**
+     * groovy expressions to compute the source object dynamically.
+     * e.g. groovy expression: {@code "this.webapp" }, {@code "app" }
+     */
+    String source() default "";
 }

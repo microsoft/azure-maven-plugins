@@ -57,7 +57,7 @@ public class PostgreSqlDatabaseModule extends AbstractAzResourceModule<PostgreSq
 
     @Nullable
     @Override
-    @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"})
+    @AzureOperation(name = "azure/postgre.load_database.database", params = {"name"})
     protected Database loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
         final PostgreSqlServer p = this.getParent();
         return Optional.ofNullable(this.getClient()).map(c -> c.get(p.getResourceGroupName(), p.getName(), name)).orElse(null);

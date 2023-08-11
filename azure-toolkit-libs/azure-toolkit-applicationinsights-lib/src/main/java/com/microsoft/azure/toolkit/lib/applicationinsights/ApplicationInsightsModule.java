@@ -36,7 +36,7 @@ public class ApplicationInsightsModule extends AbstractAzResourceModule<Applicat
 
     @Nullable
     @Override
-    @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"})
+    @AzureOperation(name = "azure/ai.load_application_insight.ai", params = {"name"})
     protected ApplicationInsightsComponent loadResourceFromAzure(@Nonnull String name, String resourceGroup) {
         assert StringUtils.isNoneBlank(resourceGroup) : "resource group can not be empty";
         return Optional.ofNullable(this.getClient()).map(c -> c.getByResourceGroup(resourceGroup, name)).orElse(null);

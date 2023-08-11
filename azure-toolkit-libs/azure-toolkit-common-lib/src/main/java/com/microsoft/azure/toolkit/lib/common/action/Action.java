@@ -5,22 +5,17 @@
 
 package com.microsoft.azure.toolkit.lib.common.action;
 
+import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Emulatable;
-import com.microsoft.azure.toolkit.lib.common.operation.Operation;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBase;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.PropertyKey;
@@ -29,47 +24,45 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnresolvedPropertyKey"})
+@Slf4j
 @Accessors(chain = true)
-public class Action<D> extends OperationBase implements Cloneable {
+public class Action<D> implements Cloneable {
     public static final String SOURCE = "ACTION_SOURCE";
     public static final String PLACE = "action_place";
     public static final String EMPTY_PLACE = "empty";
     public static final String RESOURCE_TYPE = "resourceType";
-    public static final Id<Runnable> REQUIRE_AUTH = Id.of("common.requireAuth");
     public static final Id<Object> AUTHENTICATE = Id.of("user/account.authenticate");
+    public static final Id<Consumer<IAccount>> REQUIRE_AUTH = Id.of("user/common.authorize_action");
     public static final Action.Id<Object> OPEN_AZURE_SETTINGS = Action.Id.of("user/common.open_azure_settings");
     public static final Action.Id<Object> DISABLE_AUTH_CACHE = Action.Id.of("user/account.disable_auth_cache");
 
-    public static final String COMMON = "common";
+    public static final String COMMON_PLACE = "common";
 
+    @Getter
     @Nonnull
     private final Id<D> id;
     @Nonnull
-    private Predicate<D> enableWhen = o -> true;
-    private BiPredicate<Object, String> visibleWhen = (o, place) -> true;
-    private Function<D, String> iconProvider;
-    private Function<D, String> labelProvider;
-    private Function<D, AzureString> titleProvider;
-    @Nonnull
     private List<Pair<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
+    private D target;
     @Nonnull
-    private List<Function<D, String>> titleParamProviders = new ArrayList<>();
+    Predicate<D> enableWhen = o -> true;
+    BiPredicate<Object, String> visibleWhen = (o, place) -> true;
+    Function<D, String> iconProvider;
+    Function<D, String> labelProvider;
+    Function<D, AzureString> titleProvider;
+    @Nonnull
+    List<Function<D, String>> titleParamProviders = new ArrayList<>();
+    Function<D, Object> sourceProvider;
+    Predicate<D> authRequiredProvider = Action::isAuthRequiredForAzureResource;
 
-    private D source;
-    private String place;
-    @Setter
-
-    private Predicate<D> authRequiredProvider = Action::isAuthRequiredForAzureResource;
     /**
      * shortcuts for this action.
      * 1. directly bound to this action if it's IDE-specific type of shortcuts (e.g. {@code ShortcutSet} in IntelliJ).
@@ -84,124 +77,44 @@ public class Action<D> extends OperationBase implements Cloneable {
         this.id = id;
     }
 
-    @Nonnull
-    @Override
-    public String getId() {
-        return this.id.id;
-    }
-
     public IView.Label getView(D s) {
-        return getView(s, COMMON);
+        return getView(s, COMMON_PLACE);
     }
 
     @Nonnull
     public IView.Label getView(D s, final String place) {
-        final D source = Optional.ofNullable(this.source).orElse(s);
-        try {
-            final boolean visible = this.visibleWhen.test(source, place);
-            if (visible) {
-                final String label = this.labelProvider.apply(source);
-                final String icon = Optional.ofNullable(this.iconProvider).map(p -> p.apply(source)).orElse(null);
-                final boolean enabled = this.enableWhen.test(source);
-                final AzureString title = this.getTitle(source);
-                return new View(label, icon, enabled, title);
-            }
-            return View.INVISIBLE;
-        } catch (final Exception e) {
-            e.printStackTrace();
-            return View.INVISIBLE;
-        }
+        final ActionInstance<D> instance = this.instantiate(s, null);
+        return Optional.ofNullable(instance).map(i -> i.getView(place)).orElse(View.INVISIBLE);
     }
 
-    @Nullable
-    @SuppressWarnings("unchecked")
-    public BiConsumer<D, Object> getHandler(D s, Object e) {
-        final D source = Optional.ofNullable(this.source).orElse(s);
-        if (!this.visibleWhen.test(source, COMMON) && !this.enableWhen.test(source)) {
-            return null;
-        }
-        for (int i = this.handlers.size() - 1; i >= 0; i--) {
-            final Pair<BiPredicate<D, ?>, BiConsumer<D, ?>> p = this.handlers.get(i);
-            final BiPredicate<D, Object> condition = (BiPredicate<D, Object>) p.getKey();
-            final BiConsumer<D, Object> handler = (BiConsumer<D, Object>) p.getValue();
-            if (condition.test(source, e)) {
-                return handler;
-            }
-        }
-        return null;
-    }
-
-    public void handle(D s, Object e) {
-        final D source = Optional.ofNullable(this.source).orElse(s);
-        final BiConsumer<D, Object> handler = this.getHandler(source, e);
-        if (Objects.isNull(handler)) {
-            return;
-        }
-        final AzureString title = this.getTitle(source);
-        final Runnable operationBody = () -> AzureTaskManager.getInstance().runInBackground(title, () -> handle(source, e, handler));
-        final Runnable handlerBody = () -> Operation.execute(title, Type.USER, operationBody, source);
-        if (this.isAuthRequired(s)) {
-            final Action<Runnable> requireAuth = AzureActionManager.getInstance().getAction(REQUIRE_AUTH);
-            if (Objects.nonNull(requireAuth)) {
-                requireAuth.handle(handlerBody, e);
-            }
-        } else {
-            handlerBody.run();
-        }
-    }
-
-    private void handle(D s, Object e, BiConsumer<D, Object> handler) {
-        final D source = Optional.ofNullable(this.source).orElse(s);
-        final OperationContext context = OperationContext.action();
-        context.setTelemetryProperties(this.getContext().getTelemetryProperties());
-        if (source instanceof AzResource) {
-            final AzResource resource = (AzResource) source;
-            context.setTelemetryProperty("subscriptionId", resource.getSubscriptionId());
-            context.setTelemetryProperty("resourceType", resource.getFullResourceType());
-        } else if (source instanceof AzResourceModule) {
-            final AzResourceModule<?> resource = (AzResourceModule<?>) source;
-            context.setTelemetryProperty("subscriptionId", resource.getSubscriptionId());
-            context.setTelemetryProperty("resourceType", resource.getFullResourceType());
-        }
-        handler.accept(source, e);
-    }
-
+    /**
+     * perform asynchronously
+     */
     public void handle(D s) {
-        final D source = Optional.ofNullable(this.source).orElse(s);
-        this.handle(source, null);
+        this.handle(s, null);
     }
 
-    @Override
-    public Callable<?> getBody() {
-        throw new AzureToolkitRuntimeException("'action.getBody()' is not supported");
+    /**
+     * perform asynchronously
+     */
+    public void handle(D s, Object e) {
+        final ActionInstance<D> instance = this.instantiate(s, e);
+        Optional.ofNullable(instance).ifPresent(ActionInstance::performAsync);
     }
 
-    @Nonnull
-    @Override
-    public String getType() {
-        return Type.USER;
+    /**
+     * perform asynchronously
+     */
+    public void handleSync(D s) {
+        this.handleSync(s, null);
     }
 
-    private boolean isAuthRequired(D s) {
-        final D source = Optional.ofNullable(this.source).orElse(s);
-        return Optional.ofNullable(this.authRequiredProvider).map(p -> p.test(source)).orElse(true);
-    }
-
-    public AzureString getTitle(D s) {
-        final D source = Optional.ofNullable(this.source).orElse(s);
-        if (Objects.nonNull(this.titleProvider)) {
-            return this.titleProvider.apply(source);
-        } else if (!this.titleParamProviders.isEmpty()) {
-            final Object[] params = this.titleParamProviders.stream().map(p -> p.apply(source)).toArray();
-            return OperationBundle.description(this.id.id, params);
-        }
-        return this.getDescription();
-    }
-
-    @Nonnull
-    @Override
-    public AzureString getDescription() {
-        return OperationBundle.description(this.id.id);
+    /**
+     * perform asynchronously
+     */
+    public void handleSync(D s, Object e) {
+        final ActionInstance<D> instance = this.instantiate(s, e);
+        Optional.ofNullable(instance).ifPresent(ActionInstance::perform);
     }
 
     public Action<D> enableWhen(@Nonnull Predicate<D> enableWhen) {
@@ -289,17 +202,59 @@ public class Action<D> extends OperationBase implements Cloneable {
         return this;
     }
 
-    public Action<D> bind(D source) {
+    public Action<D> withSource(@Nonnull final Object source) {
+        this.sourceProvider = (any) -> source;
+        return this;
+    }
+
+    public Action<D> withSource(@Nonnull final Function<D, Object> sourceProvider) {
+        this.sourceProvider = sourceProvider;
+        return this;
+    }
+
+    @Nullable
+    @SuppressWarnings("unchecked")
+    private BiConsumer<D, Object> getHandler(D s, Object e) {
+        if (!this.visibleWhen.test(s, COMMON_PLACE) && !this.enableWhen.test(s)) {
+            return null;
+        }
+        for (int i = this.handlers.size() - 1; i >= 0; i--) {
+            final Pair<BiPredicate<D, ?>, BiConsumer<D, ?>> p = this.handlers.get(i);
+            final BiPredicate<D, Object> condition = (BiPredicate<D, Object>) p.getKey();
+            final BiConsumer<D, Object> handler = (BiConsumer<D, Object>) p.getValue();
+            try {
+                if (condition.test(s, e)) {
+                    return handler;
+                }
+            } catch (final Exception ignored) {
+            }
+        }
+        return null;
+    }
+
+    public Action<D> bind(D s) { // TODO: remove this method and use `instantiate` instead
         try {
             // noinspection unchecked
             final Action<D> clone = (Action<D>) this.clone();
             clone.handlers = new ArrayList<>(this.handlers);
             clone.titleParamProviders = new ArrayList<>(this.titleParamProviders);
-            clone.source = source;
+            clone.target = s;
             return clone;
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Nullable
+    public ActionInstance<D> instantiate(D s) {
+        return this.instantiate(s, null);
+    }
+
+    @Nullable
+    public ActionInstance<D> instantiate(D s, Object event) {
+        final D target = Optional.ofNullable(this.target).orElse(s);
+        final BiConsumer<D, Object> handler = getHandler(target, event);
+        return Optional.ofNullable(handler).map(h -> new ActionInstance<>(this, target, event, h)).orElse(null);
     }
 
     public void register(AzureActionManager am) {
@@ -308,9 +263,10 @@ public class Action<D> extends OperationBase implements Cloneable {
 
     @Override
     public String toString() {
-        return String.format("Action {id:'%s', bindTo: %s}", this.getId(), this.source);
+        return String.format("Action {id:'%s', bindTo: %s}", this.getId(), this.target);
     }
 
+    @Getter
     public static class Id<D> {
         @Nonnull
         private final String id;
@@ -324,8 +280,7 @@ public class Action<D> extends OperationBase implements Cloneable {
             return new Id<>(id);
         }
 
-        @Nonnull
-        public String getId() {
+        public String toString() {
             return id;
         }
     }
@@ -358,7 +313,7 @@ public class Action<D> extends OperationBase implements Cloneable {
     }
 
     public static Action<Void> retryFromFailure(@Nonnull Runnable handler) {
-        return new Action<>(Id.<Void>of("common.retry"))
+        return new Action<>(Id.<Void>of("user/common.retry"))
             .withHandler((v) -> handler.run())
             .withLabel("Retry");
     }

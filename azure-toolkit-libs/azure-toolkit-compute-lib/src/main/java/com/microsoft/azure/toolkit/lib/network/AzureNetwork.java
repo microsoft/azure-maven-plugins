@@ -75,4 +75,8 @@ public class AzureNetwork extends AbstractAzService<NetworkServiceSubscription, 
     public String getResourceTypeName() {
         return "Azure Network";
     }
+
+    public String getServiceNameForTelemetry() {
+        return "vm";
+    }
 }

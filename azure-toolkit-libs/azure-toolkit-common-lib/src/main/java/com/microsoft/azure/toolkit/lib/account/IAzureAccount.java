@@ -13,5 +13,9 @@ import java.util.List;
 public interface IAzureAccount extends AzService {
     IAccount account();
 
+    boolean isLoggedIn();
+
+    boolean isLoggingIn();
+
     List<Region> listRegions(String subscriptionId);
 }

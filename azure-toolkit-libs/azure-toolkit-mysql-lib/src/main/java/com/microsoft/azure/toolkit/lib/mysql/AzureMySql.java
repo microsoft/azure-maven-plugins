@@ -73,4 +73,8 @@ public class AzureMySql extends AbstractAzService<MySqlServiceSubscription, MySq
     public String getResourceTypeName() {
         return "Azure Database for MySQL servers";
     }
+
+    public String getServiceNameForTelemetry() {
+        return "mysql";
+    }
 }

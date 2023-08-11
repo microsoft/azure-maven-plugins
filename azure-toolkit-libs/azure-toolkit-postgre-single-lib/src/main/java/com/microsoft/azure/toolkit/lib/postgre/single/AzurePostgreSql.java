@@ -74,4 +74,8 @@ public class AzurePostgreSql extends AbstractAzService<PostgreSqlServiceSubscrip
     public String getResourceTypeName() {
         return "Azure Database for PostgreSQL servers";
     }
+
+    public String getServiceNameForTelemetry() {
+        return "postgre";
+    }
 }

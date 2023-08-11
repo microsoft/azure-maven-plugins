@@ -52,12 +52,6 @@ public class AzureCosmosService extends AbstractAzService<CosmosServiceSubscript
         return this.list().stream().flatMap(m -> m.databaseAccounts().list().stream().filter(a -> kind.equals(a.getKind()))).collect(Collectors.toList());
     }
 
-    @Nonnull
-    @Override
-    public String getResourceTypeName() {
-        return "Azure Cosmos DB";
-    }
-
     @Nullable
     @Override
     protected CosmosManager loadResourceFromAzure(@Nonnull String subscriptionId, @Nullable String resourceGroup) {
@@ -71,5 +65,15 @@ public class AzureCosmosService extends AbstractAzService<CosmosServiceSubscript
             .withLogOptions(new HttpLogOptions().setLogLevel(logLevel))
             .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent))
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
+    }
+
+    @Nonnull
+    @Override
+    public String getResourceTypeName() {
+        return "Azure Cosmos DB";
+    }
+
+    public String getServiceNameForTelemetry() {
+        return "cosmos";
     }
 }

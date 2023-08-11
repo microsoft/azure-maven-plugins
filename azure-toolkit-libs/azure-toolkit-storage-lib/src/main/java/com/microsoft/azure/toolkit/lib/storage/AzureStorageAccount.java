@@ -108,12 +108,6 @@ public class AzureStorageAccount extends AbstractAzService<StorageServiceSubscri
             .collect(Collectors.toList());
     }
 
-    @Nonnull
-    @Override
-    public String getResourceTypeName() {
-        return "Storage accounts";
-    }
-
     @Nullable
     @Override
     public <E> E getById(@NotNull String id) {
@@ -126,5 +120,15 @@ public class AzureStorageAccount extends AbstractAzService<StorageServiceSubscri
     @Override
     public boolean isAuthRequiredForListing() {
         return false; // As storage supports emulator resource, we don't need to login to list storage accounts
+    }
+
+    @Nonnull
+    @Override
+    public String getResourceTypeName() {
+        return "Storage accounts";
+    }
+
+    public String getServiceNameForTelemetry() {
+        return "storage";
     }
 }

@@ -44,7 +44,7 @@ public abstract class AbstractAzServiceSubscription<T extends AbstractAzResource
         super(name, AzResource.RESOURCE_GROUP_PLACEHOLDER, module);
     }
 
-    @AzureOperation(name = "azure/resource.list_supported_regions.type", params = {"resourceType"})
+    @AzureOperation(name = "azure/$resource.list_supported_regions.type", params = {"resourceType"})
     public List<Region> listSupportedRegions(@Nonnull String resourceType) {
         final String provider = getService().getName();
         final String subscriptionId = this.getSubscriptionId();

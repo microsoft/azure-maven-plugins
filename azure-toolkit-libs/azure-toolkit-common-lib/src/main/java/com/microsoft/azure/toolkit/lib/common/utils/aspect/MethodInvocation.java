@@ -15,6 +15,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -36,13 +37,14 @@ public class MethodInvocation {
         this.method = signature.getMethod();
     }
 
+    @Nullable
     public Object invoke() throws Exception {
         if (this.point instanceof ProceedingJoinPoint) {
             try {
                 return ((ProceedingJoinPoint) this.point).proceed();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw e;
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 throw new AzureToolkitException(t.getMessage(), t);
             }
         }

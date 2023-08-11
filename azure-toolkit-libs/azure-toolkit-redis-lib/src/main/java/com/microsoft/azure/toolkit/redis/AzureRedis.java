@@ -58,4 +58,8 @@ public class AzureRedis extends AbstractAzService<RedisServiceSubscription, Redi
     public String getResourceTypeName() {
         return "Azure Cache for Redis";
     }
+
+    public String getServiceNameForTelemetry() {
+        return "redis";
+    }
 }

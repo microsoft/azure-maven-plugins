@@ -65,13 +65,13 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
             .forEach(m -> preload((AzResourceModule) m));
     }
 
-    @AzureOperation(name = "auto/resource.refresh_on_subscription_changed.type", params = {"this.getResourceTypeName()"})
+    @AzureOperation(name = "auto/$resource.refresh_on_subscription_changed.type", params = {"this.getResourceTypeName()"})
     private void refreshOnSubscriptionChanged() {
         this.clear();
         this.refresh();
     }
 
-    @AzureOperation(name = "auto/resource.preload.type", params = {"module.getResourceTypeName()"})
+    @AzureOperation(name = "auto/$resource.preload.type", params = {"module.getResourceTypeName()"})
     private static void preload(AzResourceModule<?> module) {
         OperationContext.action().setTelemetryProperty("preloading", String.valueOf(true));
         module.list();
@@ -84,7 +84,7 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/resource.load_resources_by_page.type", params = {"this.getResourceTypeName()"})
+    @AzureOperation(name = "azure/$resource.load_resources_by_page.type", params = {"this.getResourceTypeName()"})
     protected Iterator<? extends ContinuablePage<String, R>> loadResourcePagesFromAzure() {
         final Stream<R> resources = Azure.az(IAzureAccount.class).account().getSelectedSubscriptions().stream().parallel()
             .map(Subscription::getId).map(i -> loadResourceFromAzure(i, null));
@@ -167,5 +167,9 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
     protected T newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         final R r = this.loadResourceFromAzure(name, resourceGroupName);
         return this.newResource(Objects.requireNonNull(r));
+    }
+
+    public String getServiceNameForTelemetry() {
+        return this.getName();
     }
 }

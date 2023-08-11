@@ -48,12 +48,6 @@ public class AzureContainerApps extends AbstractAzService<AzureContainerAppsServ
         return Objects.requireNonNull(rm).environments();
     }
 
-    @Nonnull
-    @Override
-    public String getResourceTypeName() {
-        return "Container Apps";
-    }
-
     @Nullable
     @Override
     protected ContainerAppsApiManager loadResourceFromAzure(@Nonnull String subscriptionId, @Nullable String resourceGroup) {
@@ -77,5 +71,15 @@ public class AzureContainerApps extends AbstractAzService<AzureContainerAppsServ
                 .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent))
                 .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
+    }
+
+    @Nonnull
+    @Override
+    public String getResourceTypeName() {
+        return "Container Apps";
+    }
+
+    public String getServiceNameForTelemetry() {
+        return "containerapps";
     }
 }

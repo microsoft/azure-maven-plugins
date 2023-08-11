@@ -40,7 +40,7 @@ public class MySqlServerModule extends AbstractAzResourceModule<MySqlServer, MyS
 
     @Nullable
     @Override
-    @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"})
+    @AzureOperation(name = "azure/mysql.load_server.server", params = {"name"})
     protected Server loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         assert StringUtils.isNoneBlank(resourceGroup) : "resource group can not be empty";
         return Optional.ofNullable(this.getClient()).map(c -> c.getByResourceGroup(resourceGroup, name)).orElse(null);

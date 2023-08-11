@@ -14,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 
 @Getter
@@ -24,6 +26,7 @@ public class MethodOperation extends OperationBase {
 
     @EqualsAndHashCode.Include
     private final MethodInvocation invocation;
+    private Object source;
 
     @Override
     public String toString() {
@@ -43,11 +46,19 @@ public class MethodOperation extends OperationBase {
         return this.invocation::invoke;
     }
 
-    @Nonnull
-    public String getType() {
-        final String id = this.getId();
-        final String[] parts = id.split("/");
-        return parts.length > 1 ? parts[0] : "unknown";
+    @Nullable
+    @Override
+    public Object getSource() {
+        if (Objects.isNull(this.source)) {
+            final AzureOperation annotation = this.invocation.getAnnotation(AzureOperation.class);
+            final String sourceExpression = annotation.source();
+            if (StringUtils.isNotBlank(sourceExpression)) {
+                this.source = ExpressionUtils.evaluate(sourceExpression, this.invocation);
+            } else {
+                this.source = this.invocation.getInstance();
+            }
+        }
+        return this.source;
     }
 
     public AzureString getDescription() {

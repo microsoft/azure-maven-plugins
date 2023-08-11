@@ -71,4 +71,8 @@ public class AzureApplicationInsights extends AbstractAzService<ApplicationInsig
     public String getResourceTypeName() {
         return "Application Insights";
     }
+
+    public String getServiceNameForTelemetry() {
+        return "ai";
+    }
 }

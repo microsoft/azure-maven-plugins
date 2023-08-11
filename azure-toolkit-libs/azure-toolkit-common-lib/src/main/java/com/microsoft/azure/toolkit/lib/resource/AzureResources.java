@@ -100,4 +100,8 @@ public class AzureResources extends AbstractAzService<ResourcesServiceSubscripti
     public String getResourceTypeName() {
         return "Resource groups";
     }
+
+    public String getServiceNameForTelemetry() {
+        return "arm";
+    }
 }

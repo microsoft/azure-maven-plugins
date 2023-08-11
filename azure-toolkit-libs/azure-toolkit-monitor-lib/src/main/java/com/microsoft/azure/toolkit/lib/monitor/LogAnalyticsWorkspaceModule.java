@@ -30,14 +30,14 @@ public class LogAnalyticsWorkspaceModule extends AbstractAzResourceModule<LogAna
 
     @Nullable
     @Override
-    @AzureOperation(name = "azure/resource.load_resource.resource|type", params = {"name", "this.getResourceTypeName()"})
+    @AzureOperation(name = "azure/monitor.load_log_analytics_workspace.workspace", params = {"name"})
     protected Workspace loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         assert StringUtils.isNoneBlank(resourceGroup) : "resource group can not be empty";
         return Optional.ofNullable(this.getClient()).map(workspaces -> workspaces.getByResourceGroup(resourceGroup, name)).orElse(null);
     }
 
     @Override
-    @AzureOperation(name = "azure/workspace.delete_log_analytics_workspace.workspace", params = {"nameFromResourceId(resourceId)"})
+    @AzureOperation(name = "azure/monitor.delete_log_analytics_workspace.workspace", params = {"nameFromResourceId(resourceId)"})
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         Optional.ofNullable(this.getClient()).ifPresent(workspaces -> workspaces.deleteById(resourceId));
     }
