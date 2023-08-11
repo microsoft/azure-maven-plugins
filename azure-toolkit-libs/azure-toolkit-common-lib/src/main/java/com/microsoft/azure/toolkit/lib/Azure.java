@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -23,10 +24,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class Azure {
+    @Setter
+    private Consumer<AzureConfiguration> loadConfigurationHandler;
+    @Setter
+    private Consumer<AzureConfiguration> saveConfigurationHandler;
     private final AzureConfiguration configuration;
     private static final Azure defaultInstance = new Azure();
 
@@ -113,6 +120,14 @@ public class Azure {
 
     public AzureConfiguration config() {
         return this.configuration;
+    }
+
+    public void loadConfiguration() {
+        Optional.ofNullable(this.loadConfigurationHandler).ifPresent(h -> h.accept(this.configuration));
+    }
+
+    public void saveConfiguration() {
+        Optional.ofNullable(this.saveConfigurationHandler).ifPresent(h -> h.accept(this.configuration));
     }
 
     private static class ServiceManager {

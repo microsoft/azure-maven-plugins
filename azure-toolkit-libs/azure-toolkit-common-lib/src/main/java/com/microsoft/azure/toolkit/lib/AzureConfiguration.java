@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,6 +40,7 @@ public class AzureConfiguration {
     @Nullable
     private String nonProxyHosts;
     @Nullable
+    @JsonIgnore
     private SSLContext sslContext;
     private int pageSize = 99;
     private List<String> documentsLabelFields = new ArrayList<>(DEFAULT_DOCUMENT_LABEL_FIELDS);
