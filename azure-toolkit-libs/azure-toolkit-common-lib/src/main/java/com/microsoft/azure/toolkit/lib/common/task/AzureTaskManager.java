@@ -258,6 +258,11 @@ public abstract class AzureTaskManager {
                 }
             } catch (final Throwable e) {
                 future.completeExceptionally(e);
+                if (e instanceof RuntimeException) {
+                    throw ((RuntimeException) e);
+                } else {
+                    throw new RuntimeException(e);
+                }
             }
         });
         AzureTelemeter.afterCreate(task);
