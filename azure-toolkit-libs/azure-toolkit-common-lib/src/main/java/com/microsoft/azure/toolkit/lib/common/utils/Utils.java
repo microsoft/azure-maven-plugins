@@ -281,4 +281,8 @@ public class Utils {
             Optional.ofNullable(con).ifPresent(HttpURLConnection::disconnect);
         }
     }
+
+    public static boolean containsIgnoreCases(@Nonnull final String target, @Nonnull List<String> list) {
+        return list.stream().anyMatch(item -> StringUtils.equalsIgnoreCase(target, item));
+    }
 }

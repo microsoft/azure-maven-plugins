@@ -57,6 +57,7 @@
         <module>azure-toolkit-eventhubs-lib</module>
         <module>azure-toolkit-servicebus-lib</module>
         <module>azure-toolkit-servicelinker-lib</module>
+        <module>azure-toolkit-cognitiveservices-lib</module>
     </modules>
 
     <properties>
@@ -153,6 +154,8 @@
         <java-driver-core.version>4.15.0</java-driver-core.version>
         <azure-containers-containerregistry.version>1.0.9</azure-containers-containerregistry.version>
         <maven-shade-plugin.version>3.4.1</maven-shade-plugin.version>
+        <azure-ai-openai.version>1.0.0-beta.2</azure-ai-openai.version>
+        <azure-resourcemanager-cognitiveservices.version>1.1.0-beta.1</azure-resourcemanager-cognitiveservices.version>
     </properties>
 
     <dependencyManagement>
@@ -276,6 +279,11 @@
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-cognitiveservices-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-servicelinker-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
@@ -314,6 +322,11 @@
                 <groupId>com.azure</groupId>
                 <artifactId>azure-messaging-servicebus</artifactId>
                 <version>${azure-messaging-servicebus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-ai-openai</artifactId>
+                <version>${azure-ai-openai.version}</version>
             </dependency>
             <!-- azure resource management sdk -->
             <dependency>
@@ -452,6 +465,11 @@
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-servicelinker</artifactId>
                 <version>${azure-resourcemanager-servicelinker.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-cognitiveservices</artifactId>
+                <version>${azure-resourcemanager-cognitiveservices.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.rest</groupId>
