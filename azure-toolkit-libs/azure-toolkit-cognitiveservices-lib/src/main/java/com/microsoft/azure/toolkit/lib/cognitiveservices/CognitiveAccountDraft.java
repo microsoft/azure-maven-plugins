@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupDraft;
 import lombok.AllArgsConstructor;
@@ -55,6 +56,7 @@ public class CognitiveAccountDraft extends CognitiveAccount
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/openai.create_account.account", params = {"this.getName()"})
     public Account createResourceInAzure() {
         final Accounts client = Objects.requireNonNull(((CognitiveAccountModule) getModule()).getClient());
         final Region region = Objects.requireNonNull(getRegion(), "'region' is required to create cognitive account.");
@@ -81,6 +83,7 @@ public class CognitiveAccountDraft extends CognitiveAccount
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/openai.update_account.account", params = {"this.getName()"})
     public Account updateResourceInAzure(@Nonnull Account origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

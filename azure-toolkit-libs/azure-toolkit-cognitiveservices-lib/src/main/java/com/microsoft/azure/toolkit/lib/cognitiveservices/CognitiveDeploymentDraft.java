@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -52,6 +53,7 @@ public class CognitiveDeploymentDraft extends CognitiveDeployment
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/openai.create_deployment.deployment", params = {"this.getName()"})
     public Deployment createResourceInAzure() {
         final CognitiveAccount account = getParent();
         final CognitiveServicesManager manager = Objects.requireNonNull(account.getParent().getRemote());
@@ -70,6 +72,7 @@ public class CognitiveDeploymentDraft extends CognitiveDeployment
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/openai.update_deployment.deployment", params = {"this.getName()"})
     public Deployment updateResourceInAzure(@Nonnull Deployment origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }
