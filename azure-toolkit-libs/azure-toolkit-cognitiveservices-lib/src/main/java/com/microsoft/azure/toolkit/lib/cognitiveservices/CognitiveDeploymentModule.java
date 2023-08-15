@@ -12,6 +12,7 @@ import com.azure.resourcemanager.cognitiveservices.models.Deployments;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -50,6 +51,7 @@ public class CognitiveDeploymentModule extends
 
     @Nullable
     @Override
+    @AzureOperation(name = "azure/openai.load_deployment.deployment", params = {"name"})
     protected Deployment loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         final CognitiveAccount account = getParent();
         return Optional.ofNullable(this.getClient()).map(c -> c.get(resourceGroup, account.getName(), name)).orElse(null);
@@ -63,6 +65,7 @@ public class CognitiveDeploymentModule extends
     }
 
     @Override
+    @AzureOperation(name = "azure/openai.delete_deployment.deployment", params = {"nameFromResourceId(resourceId)"})
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(getClient()).ifPresent(client -> client.delete(id.resourceGroupName(), id.parent().name(), id.name()));

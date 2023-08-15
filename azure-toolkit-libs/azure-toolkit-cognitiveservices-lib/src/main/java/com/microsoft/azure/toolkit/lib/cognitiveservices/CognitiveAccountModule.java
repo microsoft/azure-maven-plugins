@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.cognitiveservices.model.AccountSku;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,11 +58,13 @@ public class CognitiveAccountModule extends AbstractAzResourceModule<CognitiveAc
 
     @Nullable
     @Override
+    @AzureOperation(name = "azure/openai.load_account.account", params = {"name"})
     protected Account loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         return Optional.ofNullable(this.getClient()).map(c -> c.getByResourceGroup(resourceGroup, name)).orElse(null);
     }
 
     @Override
+    @AzureOperation(name = "azure/openai.delete_account.account", params = {"nameFromResourceId(resourceId)"})
     protected void deleteResourceFromAzure(@NotNull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(getClient()).ifPresent(client -> client.deleteByResourceGroup(id.resourceGroupName(), id.name()));

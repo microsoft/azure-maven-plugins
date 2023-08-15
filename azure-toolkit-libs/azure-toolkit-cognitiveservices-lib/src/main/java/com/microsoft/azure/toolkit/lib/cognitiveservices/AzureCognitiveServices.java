@@ -39,12 +39,6 @@ public class AzureCognitiveServices extends AbstractAzService<CognitiveServicesS
     }
 
     @Nonnull
-    @Override
-    public String getResourceTypeName() {
-        return "Azure Open AI";
-    }
-
-    @Nonnull
     public CognitiveAccountModule accounts(@Nonnull String subscriptionId) {
         final CognitiveServicesSubscription rm = get(subscriptionId, null);
         assert rm != null;
@@ -80,5 +74,16 @@ public class AzureCognitiveServices extends AbstractAzService<CognitiveServicesS
             .withPolicy(new UserAgentPolicy(userAgent))
             .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
+    }
+
+    @Nonnull
+    @Override
+    public String getResourceTypeName() {
+        return "Azure Open AI";
+    }
+
+    @Override
+    public String getServiceNameForTelemetry() {
+        return "openai";
     }
 }
