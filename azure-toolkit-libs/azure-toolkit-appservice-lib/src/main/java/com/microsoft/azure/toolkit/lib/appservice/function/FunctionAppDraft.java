@@ -5,11 +5,9 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.function;
 
-import com.azure.core.util.Context;
 import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.fluent.WebAppsClient;
 import com.azure.resourcemanager.appservice.fluent.models.SiteConfigResourceInner;
-import com.azure.resourcemanager.appservice.fluent.models.SitePatchResourceInner;
 import com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages;
 import com.azure.resourcemanager.appservice.models.FunctionApp.Update;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
@@ -138,7 +136,8 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         final IAzureMessager messager = AzureMessager.getMessager();
         final boolean updateFlexConsumptionConfiguration = Objects.nonNull(newFlexConsumptionConfiguration) && getAppServicePlan().getPricingTier().isFlexConsumption();
         if (updateFlexConsumptionConfiguration) {
-            ((com.azure.resourcemanager.appservice.models.FunctionApp) withCreate).innerModel().withContainerSize(newFlexConsumptionConfiguration.getInstanceSize());
+            withCreate.withContainerSize(newFlexConsumptionConfiguration.getInstanceSize());
+            withCreate.withWebAppAlwaysOn(false);
         }
         messager.info(AzureString.format("Start creating Function App({0})...", name));
         com.azure.resourcemanager.appservice.models.FunctionApp functionApp = Objects.requireNonNull(this.doModify(() -> {
@@ -229,6 +228,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             Optional.of(settingsToRemove).filter(CollectionUtils::isNotEmpty).filter(ignore -> isAppSettingsModified).ifPresent(s -> s.forEach(update::withoutAppSetting));
             Optional.ofNullable(newDockerConfig).filter(ignore -> dockerModified).ifPresent(p -> updateDockerConfiguration(update, p));
             Optional.ofNullable(newDiagnosticConfig).filter(ignore -> isDiagnosticConfigModified).ifPresent(c -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, c));
+            Optional.ofNullable(newFlexConsumptionConfiguration).filter(ignore -> flexConsumptionModified).ifPresent(c -> update.withContainerSize(c.getInstanceSize()));
             Optional.ofNullable(storageAccount).ifPresent(s -> update.withExistingStorageAccount(s.getRemote()));
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating Function App({0})...", remote.name()));
@@ -405,10 +405,6 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
                     .withMinimumElasticInstanceCount(flexConfiguration.getAlwaysReadyInstances());
                 webApps.updateConfiguration(app.resourceGroupName(), app.name(), configuration);
             }
-        }
-        if (!Objects.equals(app.innerModel().containerSize(), flexConfiguration.getInstanceSize())) {
-            webApps.updateWithResponse(app.resourceGroupName(), app.name(), new SitePatchResourceInner()
-                .withContainerSize(flexConfiguration.getInstanceSize()), Context.NONE);
         }
     }
 }
