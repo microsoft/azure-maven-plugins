@@ -15,11 +15,10 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Objects;
 
@@ -37,31 +36,27 @@ public class FlexFunctionDeployHandler implements IFunctionDeployHandler {
     }
 
     @Override
-    public void deploy(@Nonnull File file, @Nonnull final FunctionAppBase<?,?,?> functionAppBase) {
+    public void deploy(@Nonnull File file, @Nonnull final FunctionAppBase<?, ?, ?> functionAppBase) {
         final AppServiceKuduClient kuduManager = functionAppBase.getKuduManager();
         try {
             Objects.requireNonNull(kuduManager).flexZipDeploy(file);
+            kuduManager.checkLatestDeploymentStatus(Duration.ofMillis(2), 500);
             checkFlexAppAfterDeployment(functionAppBase);
-        } catch (final Exception e) {
+        } catch (final IOException | InterruptedException e) {
             throw new AzureToolkitRuntimeException(String.format(FAILED_TO_DEPLOY, ExceptionUtils.getRootCauseMessage(e)), e);
         }
         AzureMessager.getMessager().info(String.format(DEPLOY_FINISH, functionAppBase.getHostName()));
     }
 
-    private void checkFlexAppAfterDeployment(@Nonnull final FunctionAppBase<?,?,?> functionAppBase) throws InterruptedException {
+    private void checkFlexAppAfterDeployment(@Nonnull final FunctionAppBase<?, ?, ?> functionAppBase) throws InterruptedException {
         final AzureFunctionsAdminClient adminClient = functionAppBase.getAdminClient();
-        if (Objects.isNull(adminClient)){
+        if (Objects.isNull(adminClient)) {
             return;
         }
         AzureMessager.getMessager().info("Waiting for sync triggers, it may take some moments...");
         Thread.sleep(60 * 1000);
         AzureMessager.getMessager().info("Checking the health of the function app...");
-        final Boolean result = Mono.fromCallable(adminClient::getHostStatus)
-            .delayElement(Duration.ofSeconds(STATUS_DELAY))
-            .subscribeOn(Schedulers.boundedElastic())
-            .repeat(STATUS_REPEAT_TIMES)
-            .takeUntil(BooleanUtils::isTrue)
-            .blockLast();
+        final Boolean result = adminClient.getHostStatus(STATUS_DELAY, STATUS_REPEAT_TIMES);
         if (BooleanUtils.isNotTrue(result)) {
             throw new AzureToolkitRuntimeException(INVALID_STATUS);
         }

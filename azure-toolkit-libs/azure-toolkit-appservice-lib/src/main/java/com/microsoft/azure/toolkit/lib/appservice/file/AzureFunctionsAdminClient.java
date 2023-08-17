@@ -35,14 +35,17 @@ import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -73,11 +76,11 @@ public class AzureFunctionsAdminClient implements IFileClient {
         policies.add(new AddHeadersPolicy(new HttpHeaders(Collections.singletonMap("x-functions-key", appService.getMasterKey()))));
 
         final HttpPipeline httpPipeline = new HttpPipelineBuilder()
-                .policies(policies.toArray(new HttpPipelinePolicy[0]))
-                .httpClient(functionApp.manager().httpPipeline().getHttpClient())
-                .build();
+            .policies(policies.toArray(new HttpPipelinePolicy[0]))
+            .httpClient(functionApp.manager().httpPipeline().getHttpClient())
+            .build();
         final FunctionsService functionsService = RestProxy.create(FunctionsService.class, httpPipeline,
-                SerializerFactory.createDefaultManagementSerializerAdapter());
+            SerializerFactory.createDefaultManagementSerializerAdapter());
         return new AzureFunctionsAdminClient(functionsService, appService);
     }
 
@@ -98,9 +101,9 @@ public class AzureFunctionsAdminClient implements IFileClient {
         final File file = new File(path);
         final List<? extends AppServiceFile> result = getFilesInDirectory(getFixedPath(file.getParent()));
         return result.stream()
-                .filter(appServiceFile -> StringUtils.equals(file.getName(), appServiceFile.getName()))
-                .findFirst()
-                .orElse(null);
+            .filter(appServiceFile -> StringUtils.equals(file.getName(), appServiceFile.getName()))
+            .findFirst()
+            .orElse(null);
     }
 
     public void uploadFileToPath(String content, String path) {
@@ -117,16 +120,23 @@ public class AzureFunctionsAdminClient implements IFileClient {
 
     private String getFixedPath(String originPath) {
         return Objects.requireNonNull(app.getRuntime()).getOperatingSystem() == OperatingSystem.WINDOWS || StringUtils.startsWithIgnoreCase(originPath, LINUX_ROOT) ?
-                originPath : Paths.get(LINUX_ROOT, originPath).toString();
+            originPath : Paths.get(LINUX_ROOT, originPath).toString();
     }
 
-    public boolean getHostStatus() {
-        try {
-            final Response<Void> result = this.functionsService.getHostStatus(host).block();
-            return Optional.ofNullable(result).map(Response::getStatusCode).map(status -> status == 200).orElse(false);
-        } catch (final RuntimeException e) {
-            return false;
-        }
+    public Boolean getHostStatus(final int delay, final int repeatTimes) {
+        return Mono.fromCallable(() -> {
+                try {
+                    final Response<Void> result = this.functionsService.getHostStatus(host).block();
+                    return Optional.ofNullable(result).map(Response::getStatusCode).map(status -> status == 200).orElse(false);
+                } catch (final RuntimeException e) {
+                    return false;
+                }
+            })
+            .delayElement(Duration.ofSeconds(delay))
+            .subscribeOn(Schedulers.boundedElastic())
+            .repeat(repeatTimes)
+            .takeUntil(BooleanUtils::isTrue)
+            .blockLast();
     }
 
     public void ping() {
@@ -137,7 +147,7 @@ public class AzureFunctionsAdminClient implements IFileClient {
     @ServiceInterface(name = "FunctionHost")
     private interface FunctionsService {
         @Headers({
-                "Content-Type: application/json; charset=utf-8"
+            "Content-Type: application/json; charset=utf-8"
         })
         @Post("admin/host/ping")
         Mono<Void> ping(@HostParam("$host") String host);
