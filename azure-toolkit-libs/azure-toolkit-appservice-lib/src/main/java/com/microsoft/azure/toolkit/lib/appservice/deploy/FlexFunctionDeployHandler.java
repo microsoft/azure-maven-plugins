@@ -25,9 +25,11 @@ import java.util.Objects;
 public class FlexFunctionDeployHandler implements IFunctionDeployHandler {
 
     public static final String FAILED_TO_DEPLOY = "Failed to deploy to Azure Function (%s) : ";
-    public static final int STATUS_DELAY = 2;
-    public static final int STATUS_REPEAT_TIMES = 15;
+    public static final Duration HOST_STATUS_DELAY = Duration.ofSeconds(2);
+    public static final int HOST_STATUS_REPEAT = 15;
     public static final String INVALID_STATUS = "Deployment was successful but the app appears to be unhealthy. Please check the app logs.";
+    public static final int DEPLOYMENT_REPEAT_TIMES = 450;
+    public static final Duration DEPLOYMENT_STATUS_DELAY = Duration.ofSeconds(2);
 
     @Override
     @Deprecated
@@ -40,7 +42,7 @@ public class FlexFunctionDeployHandler implements IFunctionDeployHandler {
         final AppServiceKuduClient kuduManager = functionAppBase.getKuduManager();
         try {
             Objects.requireNonNull(kuduManager).flexZipDeploy(file);
-            kuduManager.checkLatestDeploymentStatus(Duration.ofMillis(2), 500);
+            kuduManager.checkLatestDeploymentStatus(DEPLOYMENT_STATUS_DELAY, DEPLOYMENT_REPEAT_TIMES);
             checkFlexAppAfterDeployment(functionAppBase);
         } catch (final IOException | InterruptedException e) {
             throw new AzureToolkitRuntimeException(String.format(FAILED_TO_DEPLOY, ExceptionUtils.getRootCauseMessage(e)), e);
@@ -56,7 +58,7 @@ public class FlexFunctionDeployHandler implements IFunctionDeployHandler {
         AzureMessager.getMessager().info("Waiting for sync triggers, it may take some moments...");
         Thread.sleep(60 * 1000);
         AzureMessager.getMessager().info("Checking the health of the function app...");
-        final Boolean result = adminClient.getHostStatus(STATUS_DELAY, STATUS_REPEAT_TIMES);
+        final Boolean result = adminClient.getHostStatus(HOST_STATUS_DELAY, HOST_STATUS_REPEAT);
         if (BooleanUtils.isNotTrue(result)) {
             throw new AzureToolkitRuntimeException(INVALID_STATUS);
         }

@@ -123,7 +123,7 @@ public class AzureFunctionsAdminClient implements IFileClient {
             originPath : Paths.get(LINUX_ROOT, originPath).toString();
     }
 
-    public Boolean getHostStatus(final int delay, final int repeatTimes) {
+    public Boolean getHostStatus(final Duration delay, final int repeatTimes) {
         return Mono.fromCallable(() -> {
                 try {
                     final Response<Void> result = this.functionsService.getHostStatus(host).block();
@@ -132,7 +132,7 @@ public class AzureFunctionsAdminClient implements IFileClient {
                     return false;
                 }
             })
-            .delayElement(Duration.ofSeconds(delay))
+            .delayElement(delay)
             .subscribeOn(Schedulers.boundedElastic())
             .repeat(repeatTimes)
             .takeUntil(BooleanUtils::isTrue)

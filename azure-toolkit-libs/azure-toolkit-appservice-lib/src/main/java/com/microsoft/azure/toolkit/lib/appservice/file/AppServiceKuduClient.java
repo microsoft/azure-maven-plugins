@@ -33,6 +33,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.ProcessInfo;
 import com.microsoft.azure.toolkit.lib.appservice.model.TunnelStatus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import lombok.Data;
 import lombok.experimental.SuperBuilder;
@@ -166,6 +167,7 @@ public class AppServiceKuduClient implements IFileClient, IProcessClient {
     }
 
     @Nonnull
+    @AzureOperation(name = "azure/function.get_deployment_status.function", params = {"this.app.getName()"})
     private Integer getLatestDeploymentStatus(final AtomicBoolean hasResponseBefore) {
         final Response<BinaryData> response = kuduService.latestDeployment(host).block();
         if (Objects.isNull(response)) {
@@ -189,12 +191,12 @@ public class AppServiceKuduClient implements IFileClient, IProcessClient {
             case 5:
                 throw new AzureToolkitRuntimeException("Deployment was cancelled and another deployment is in progress.");
             case 6:
-                final String warningMessage = String.format("Deployment was partially successful. These are the deployment logs:\\n%s", getDeploymentLog());
-                AzureMessager.getMessager().warning(warningMessage);
+                final String partSuccessMessage = String.format("Deployment was partially successful. These are the deployment logs:\\n%s", getDeploymentLog());
+                throw new AzureToolkitRuntimeException(partSuccessMessage);
             default:
-                if (value.has("progress")) {
-                    AzureMessager.getMessager().debug(value.get("progress").asText());
-                }
+                Optional.ofNullable(value.get("progress")).map(JsonNode::asText)
+                    .filter(StringUtils::isNotBlank)
+                    .ifPresent(progress -> AzureMessager.getMessager().debug(progress));
             case 4:
                 return statusCode;
         }
