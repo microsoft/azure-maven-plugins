@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-libs</artifactId>
-    <version>0.35.0</version>
+    <version>0.35.1</version>
     <packaging>pom</packaging>
     <name>Libs for Azure Toolkits</name>
     <description>Wrapped libs for Microsoft Azure Toolkits</description>
@@ -82,7 +82,7 @@
         <reactor-core.version>3.5.5</reactor-core.version>
         <httpcore.version>4.4.15</httpcore.version>
         <applicationinsights.version>2.6.4</applicationinsights.version>
-        <azure.resourcemanager.version>2.28.0</azure.resourcemanager.version>
+        <azure.resourcemanager.version>2.29.0</azure.resourcemanager.version>
         <azure-arm-client-runtime.version>1.7.14</azure-arm-client-runtime.version>
         <azure-resourcemanager-applicationinsights.version>1.0.0-beta.5</azure-resourcemanager-applicationinsights.version>
         <azure-resourcemanager-appcontainers.version>1.0.0-beta.4</azure-resourcemanager-appcontainers.version>
