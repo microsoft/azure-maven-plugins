@@ -10,8 +10,11 @@ import com.azure.resourcemanager.cosmos.fluent.CosmosDBManagementClient;
 import com.azure.resourcemanager.cosmos.fluent.models.CassandraKeyspaceGetResultsInner;
 import com.azure.resourcemanager.cosmos.models.CassandraKeyspaceCreateUpdateParameters;
 import com.azure.resourcemanager.cosmos.models.CassandraKeyspaceResource;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabaseDraft;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseConfig;
@@ -52,7 +55,8 @@ public class CassandraKeyspaceDraft extends CassandraKeyspace implements
         AzureMessager.getMessager().info(AzureString.format("Start creating Cassandra keyspace({0})...", this.getName()));
         final CassandraKeyspaceGetResultsInner result = cosmosDBManagementClient.getCassandraResources().createUpdateCassandraKeyspace(this.getResourceGroupName(), this.getParent().getName(),
                 this.getName(), parameters, Context.NONE);
-        AzureMessager.getMessager().success(AzureString.format("Cassandra keyspace({0}) is successfully created.", this.getName()));
+        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(Action.CONNECT_RESOURCE).bind(this);
+        AzureMessager.getMessager().success(AzureString.format("Cassandra keyspace({0}) is successfully created.", this.getName()), connect);
         return result;
     }
 

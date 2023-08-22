@@ -7,6 +7,8 @@ package com.microsoft.azure.toolkit.lib.mysql;
 
 import com.azure.resourcemanager.mysqlflexibleserver.MySqlManager;
 import com.azure.resourcemanager.mysqlflexibleserver.models.*;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -102,7 +104,8 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating MySQL server ({0})...", this.getName()));
         final Server remote = create.create();
-        messager.success(AzureString.format("MySQL server({0}) is successfully created.", this.getName()));
+        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(Action.CONNECT_RESOURCE).bind(this);
+        messager.success(AzureString.format("MySQL server({0}) is successfully created.", this.getName()), connect);
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
             AzureTaskManager.getInstance().runInBackground(AzureString.format("Update firewall rules of MySQL server({0}).", this.getName()), () -> {
