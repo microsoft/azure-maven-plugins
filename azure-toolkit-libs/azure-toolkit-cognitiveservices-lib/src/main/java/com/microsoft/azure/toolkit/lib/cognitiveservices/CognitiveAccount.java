@@ -14,6 +14,7 @@ import com.azure.resourcemanager.cognitiveservices.models.ApiKeys;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.model.AccountModel;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.model.AccountSku;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 
 public class CognitiveAccount extends AbstractAzResource<CognitiveAccount, CognitiveServicesSubscription, Account>
     implements Deletable {
+    public static final Action.Id<CognitiveAccount> CREATE_DEPLOYMENT = Action.Id.of("user/cognitiveservices.create_deployment.account");
 
     private final CognitiveDeploymentModule deploymentModule;
 

@@ -79,8 +79,10 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Storage Account({0})...", name));
         final com.azure.resourcemanager.storage.models.StorageAccount account = withCreate.create();
-        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(Action.CONNECT_RESOURCE).bind(this);
-        messager.success(AzureString.format("Storage Account({0}) is successfully created.", name), connect);
+        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE).bind(this);
+        final Action<Object> createContainer = AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE).bind(this.blobContainerModule);
+        final Action<Object> createShare = AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE).bind(this.shareModule);
+        messager.success(AzureString.format("Storage Account({0}) is successfully created.", name), connect, createContainer, createShare);
         return account;
     }
 
@@ -161,7 +163,7 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
             Objects.isNull(this.config.getPerformance()) || Objects.equals(this.config.getPerformance(), super.getPerformance()) ||
             Objects.isNull(this.config.getKind()) || Objects.equals(this.config.getKind(), super.getKind()) ||
             Objects.isNull(this.config.getRedundancy()) || Objects.equals(this.config.getRedundancy(), super.getRedundancy()) ||
-            Objects.isNull(this.config.getAccessTier()) || Objects.equals(this.config.getAccessTier(), super.getAccessTier());
+            Objects.isNull(this.config.getAccessTier()) || this.config.getAccessTier() == super.getAccessTier();
         return !notModified;
     }
 

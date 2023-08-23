@@ -82,7 +82,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
             .withKind("web")
             .withWorkspaceResourceId(workspaceResourceId)
             .withApplicationType(ApplicationType.WEB).create();
-        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(Action.CONNECT_RESOURCE).bind(this);
+        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE).bind(this);
         messager.success(AzureString.format(APPLICATION_INSIGHTS_CREATED, getName(), getPortalUrl()), connect);
         return result;
     }

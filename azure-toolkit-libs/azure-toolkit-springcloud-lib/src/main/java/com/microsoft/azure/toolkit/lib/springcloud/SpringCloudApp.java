@@ -9,6 +9,7 @@ import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.TestKeys;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.Cache1;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -30,6 +31,8 @@ import java.util.Optional;
 @Getter
 public class SpringCloudApp extends AbstractAzResource<SpringCloudApp, SpringCloudCluster, SpringApp>
     implements Startable, Deletable {
+    public static final Action.Id<SpringCloudApp> OPEN_PUBLIC_URL = Action.Id.of("user/springcloud.open_public_url.app");
+    public static final Action.Id<SpringCloudApp> OPEN_TEST_URL = Action.Id.of("user/springcloud.open_test_url.app");
 
     @Nonnull
     private final SpringCloudDeploymentModule deploymentModule;

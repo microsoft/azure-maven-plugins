@@ -10,9 +10,12 @@ import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.azure.resourcemanager.appplatform.models.BuilderProvisioningState;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.resources.fluentcore.utils.ResourceManagerUtils;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupDraft;
@@ -94,7 +97,8 @@ public class SpringCloudClusterDraft extends SpringCloudCluster implements Draft
             }
         }
 
-        messager.success(AzureString.format("Spring apps ({0}) is successfully created.", serviceName));
+        final Action<Object> create = AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE).bind(this).withLabel("Create app");
+        messager.success(AzureString.format("Spring apps ({0}) is successfully created.", serviceName), create);
         return manager.springServices().getByResourceGroup(rgName, this.getName());
     }
 

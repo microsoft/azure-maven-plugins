@@ -9,16 +9,16 @@ import com.azure.resourcemanager.appcontainers.models.AppLogsConfiguration;
 import com.azure.resourcemanager.appcontainers.models.LogAnalyticsConfiguration;
 import com.azure.resourcemanager.appcontainers.models.ManagedEnvironment;
 import com.azure.resourcemanager.appcontainers.models.ManagedEnvironments;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
-import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.monitor.LogAnalyticsWorkspace;
-import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.monitor.LogAnalyticsWorkspaceDraft;
 import lombok.Data;
@@ -27,7 +27,6 @@ import lombok.Setter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -83,7 +82,8 @@ public class ContainerAppsEnvironmentDraft extends ContainerAppsEnvironment impl
                 .withRegion(com.azure.core.management.Region.fromName(config.getRegion().getName()))
                 .withExistingResourceGroup(Objects.requireNonNull(config.getResourceGroup(), "Resource Group is required to create Container app.").getResourceGroupName())
                 .withAppLogsConfiguration(appLogsConfiguration).create();
-        messager.success(AzureString.format("Azure Container Apps Environment({0}) is successfully created.", this.getName()));
+        final Action<ContainerAppsEnvironment> create = AzureActionManager.getInstance().getAction(CREATE_CONTAINER_APP).bind(this).withLabel("Create app");
+        messager.success(AzureString.format("Azure Container Apps Environment({0}) is successfully created.", this.getName()), create);
         return managedEnvironment;
     }
 

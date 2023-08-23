@@ -13,6 +13,8 @@ import com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentP
 import com.azure.resourcemanager.containerservice.models.LoadBalancerSku;
 import com.azure.resourcemanager.containerservice.models.NetworkPlugin;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -103,9 +105,10 @@ public class KubernetesClusterDraft extends KubernetesCluster implements
         withCreate.withDnsPrefix(dnsPrefix);
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Kubernetes service ({0})...", getName()));
-        com.azure.resourcemanager.containerservice.models.KubernetesCluster cluster =
-                Objects.requireNonNull(withCreate.create());
-        messager.success(AzureString.format("Kubernetes service ({0}) is successfully created", getName()));
+        final com.azure.resourcemanager.containerservice.models.KubernetesCluster cluster = Objects.requireNonNull(withCreate.create());
+        final Action<KubernetesCluster> downloadUser = AzureActionManager.getInstance().getAction(DOWNLOAD_CONFIG_USER).bind(this);
+        final Action<KubernetesCluster> downloadAdmin = AzureActionManager.getInstance().getAction(DOWNLOAD_CONFIG_ADMIN).bind(this);
+        messager.success(AzureString.format("Kubernetes service ({0}) is successfully created", getName()), downloadUser, downloadAdmin);
         return cluster;
     }
 

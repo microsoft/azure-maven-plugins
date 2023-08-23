@@ -9,12 +9,15 @@ import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.appservice.models.WebApp.DefinitionStages;
 import com.azure.resourcemanager.appservice.models.WebApp.Update;
 import com.azure.resourcemanager.appservice.models.WebApp.UpdateStages;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -78,7 +81,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.
         final Runtime newRuntime = Objects.requireNonNull(getRuntime(), "'runtime' is required to create Azure Web App");
         final AppServicePlan newPlan = Objects.requireNonNull(getAppServicePlan(), "'service plan' is required to create Azure Web App");
         final OperatingSystem os = newRuntime.isDocker() ? OperatingSystem.LINUX : newRuntime.getOperatingSystem();
-        if (!Objects.equals(os, newPlan.getOperatingSystem())) {
+        if (os != newPlan.getOperatingSystem()) {
             throw new AzureToolkitRuntimeException(String.format("Could not create %s app service in %s service plan", newRuntime.getOperatingSystem(), newPlan.getOperatingSystem()));
         }
         final Map<String, String> newAppSettings = getAppSettings();
@@ -111,8 +114,10 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.
         }
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Web App({0})...", name));
-        com.azure.resourcemanager.appservice.models.WebApp webApp = Objects.requireNonNull(withCreate.create());
-        messager.success(AzureString.format("Web App({0}) is successfully created", name));
+        final com.azure.resourcemanager.appservice.models.WebApp webApp = Objects.requireNonNull(withCreate.create());
+        final Action<AzResource> deploy = AzureActionManager.getInstance().getAction(AzResource.DEPLOY).bind(this);
+        final Action<AppServiceAppBase<?, ?, ?>> open = AzureActionManager.getInstance().getAction(AppServiceAppBase.OPEN_IN_BROWSER).bind(this);
+        messager.success(AzureString.format("Web App({0}) is successfully created", name), deploy, open);
         return webApp;
     }
 
@@ -156,7 +161,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.
         final boolean planModified = Objects.nonNull(newPlan) && !Objects.equals(newPlan, oldPlan);
         final boolean runtimeModified = !Objects.requireNonNull(oldRuntime).isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
         final boolean dockerModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
-        boolean modified = planModified || runtimeModified || dockerModified ||
+        final boolean modified = planModified || runtimeModified || dockerModified ||
             MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove) || Objects.nonNull(newDiagnosticConfig);
 
         if (modified) {
@@ -171,7 +176,8 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating Web App({0})...", remote.name()));
             remote = update.apply();
-            messager.success(AzureString.format("Web App({0}) is successfully updated", remote.name()));
+            final Action<AppServiceAppBase<?, ?, ?>> open = AzureActionManager.getInstance().getAction(AppServiceAppBase.OPEN_IN_BROWSER).bind(this);
+            messager.success(AzureString.format("Web App({0}) is successfully updated", remote.name()), open);
         }
         return remote;
     }
@@ -179,7 +185,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.
     private void updateAppServicePlan(@Nonnull Update update, @Nonnull AppServicePlan newPlan) {
         Objects.requireNonNull(newPlan.getRemote(), "Target app service plan doesn't exist");
         final OperatingSystem os = Objects.requireNonNull(getRuntime()).isDocker() ? OperatingSystem.LINUX : getRuntime().getOperatingSystem();
-        if (!Objects.equals(os, newPlan.getOperatingSystem())) {
+        if (os != newPlan.getOperatingSystem()) {
             throw new AzureToolkitRuntimeException(String.format("Could not migrate %s app service to %s service plan", getRuntime().getOperatingSystem(), newPlan.getOperatingSystem()));
         }
         update.withExistingAppServicePlan(newPlan.getRemote());

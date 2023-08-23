@@ -14,6 +14,8 @@ import com.azure.resourcemanager.appplatform.models.Scale;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.azure.resourcemanager.appplatform.models.UserSourceType;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -135,7 +137,8 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating deployment({0})...", name));
         final SpringAppDeployment deployment = create.create();
-        messager.success(AzureString.format("Deployment({0}) is successfully created", name));
+        final Action<AzResource> deploy = AzureActionManager.getInstance().getAction(AzResource.DEPLOY).bind(this.getParent());
+        messager.success(AzureString.format("Deployment({0}) is successfully created", name), deploy);
         AzureTaskManager.getInstance().runOnPooledThread(() -> this.getParent().refresh()); // ask parent to refresh active deployment
         return Objects.requireNonNull(deployment);
     }
@@ -164,7 +167,9 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
             final File artifact = Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(config).artifact).getFile());
             messager.info(AzureString.format("Start deploying artifact(%s) to deployment(%s) of app(%s)...", artifact.getName(), deployment.name(), deployment.parent().name()));
             deployment = update.apply();
-            messager.success(AzureString.format("Artifact(%s) is successfully deployed to deployment(%s) of app(%s).", artifact.getName(), deployment.name(), deployment.parent().name()));
+            final Action<SpringCloudApp> openPublicUrl = AzureActionManager.getInstance().getAction(SpringCloudApp.OPEN_PUBLIC_URL).bind(this.getParent());
+            final Action<SpringCloudApp> openTestUrl = AzureActionManager.getInstance().getAction(SpringCloudApp.OPEN_TEST_URL).bind(this.getParent());
+            messager.success(AzureString.format("Artifact(%s) is successfully deployed to deployment(%s) of app(%s).", artifact.getName(), deployment.name(), deployment.parent().name()), openPublicUrl, openTestUrl);
         }
         this.getSubModules().forEach(AbstractAzResourceModule::refresh);
         return deployment;

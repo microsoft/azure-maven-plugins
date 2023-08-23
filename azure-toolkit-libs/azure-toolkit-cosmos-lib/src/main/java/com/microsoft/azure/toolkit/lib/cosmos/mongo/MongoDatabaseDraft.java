@@ -55,8 +55,9 @@ public class MongoDatabaseDraft extends MongoDatabase implements
         AzureMessager.getMessager().info(AzureString.format("Start creating MongoDB database({0})...", this.getName()));
         final MongoDBDatabaseGetResultsInner result = cosmosDBManagementClient.getMongoDBResources().createUpdateMongoDBDatabase(this.getResourceGroupName(), this.getParent().getName(),
                 this.getName(), parameters, Context.NONE);
-        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(Action.CONNECT_RESOURCE).bind(this);
-        AzureMessager.getMessager().success(AzureString.format("MongoDB database({0}) is successfully created.", this.getName()), connect);
+        final Action<Object> create = AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE).bind(this).withLabel("Create collection");
+        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE).bind(this);
+        AzureMessager.getMessager().success(AzureString.format("MongoDB database({0}) is successfully created.", this.getName()), connect, create);
         return result;
     }
 

@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.compute.virtualmachine;
 import com.azure.resourcemanager.compute.models.LinuxConfiguration;
 import com.azure.resourcemanager.compute.models.OSProfile;
 import com.azure.resourcemanager.network.models.PublicIpAddress;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -29,6 +30,8 @@ import java.util.Optional;
 
 public class VirtualMachine extends AbstractAzResource<VirtualMachine, ComputeServiceSubscription, com.azure.resourcemanager.compute.models.VirtualMachine>
     implements Startable, Deletable {
+    public static final Action.Id<VirtualMachine> CONNECT_SSH = Action.Id.of("user/vm.connect_using_ssh.vm");
+    public static final Action.Id<VirtualMachine> BROWSE_FILES = Action.Id.of("user/vm.browse_files_sftp.vm");
 
     protected VirtualMachine(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull VirtualMachineModule module) {
         super(name, resourceGroupName, module);

@@ -10,6 +10,8 @@ import com.azure.resourcemanager.cosmos.models.CosmosDBAccount.DefinitionStages.
 import com.azure.resourcemanager.cosmos.models.CosmosDBAccount.DefinitionStages.WithKind;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -74,7 +76,9 @@ public class CosmosDBAccountDraft extends CosmosDBAccount implements
         final com.azure.resourcemanager.cosmos.models.CosmosDBAccount account = withConsistencyPolicy.withSessionConsistency()
                 .withWriteReplication(com.azure.core.management.Region.fromName(region.getName()))
                 .create();
-        AzureMessager.getMessager().success(AzureString.format(" Azure Cosmos DB account({0}) is successfully created.", this.getName()));
+        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE).bind(this);
+        final Action<Object> create = AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE).bind(this).withLabel("Create database");
+        AzureMessager.getMessager().success(AzureString.format(" Azure Cosmos DB account({0}) is successfully created.", this.getName()), create, connect);
         return account;
     }
 

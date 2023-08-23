@@ -71,8 +71,9 @@ public class RedisCacheDraft extends RedisCache implements AzResource.Draft<Redi
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Redis Cache({0})...", redisName));
         final com.azure.resourcemanager.redis.models.RedisCache redis = withCreate.create();
-        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(Action.CONNECT_RESOURCE).bind(this);
-        messager.success(AzureString.format("Redis Cache({0}) is successfully created.", redisName), connect);
+        final Action<AzResource> openExplorer = AzureActionManager.getInstance().getAction(OPEN_EXPLORER).bind(this);
+        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE).bind(this);
+        messager.success(AzureString.format("Redis Cache({0}) is successfully created.", redisName), connect, openExplorer);
         return redis;
     }
 

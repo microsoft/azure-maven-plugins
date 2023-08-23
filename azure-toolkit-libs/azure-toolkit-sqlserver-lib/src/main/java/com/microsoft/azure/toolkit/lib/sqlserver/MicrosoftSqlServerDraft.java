@@ -78,7 +78,7 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating SQL server ({0})...", this.getName()));
         final SqlServer remote = create.create();
-        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(Action.CONNECT_RESOURCE).bind(this);
+        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE).bind(this);
         messager.success(AzureString.format("SQL server({0}) is successfully created.", this.getName()), connect);
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {

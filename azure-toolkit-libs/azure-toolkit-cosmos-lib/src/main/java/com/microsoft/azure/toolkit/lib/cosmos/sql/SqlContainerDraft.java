@@ -12,11 +12,14 @@ import com.azure.resourcemanager.cosmos.models.SqlContainerCreateUpdateParameter
 import com.azure.resourcemanager.cosmos.models.SqlContainerResource;
 import com.azure.resourcemanager.cosmos.models.UniqueKey;
 import com.azure.resourcemanager.cosmos.models.UniqueKeyPolicy;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentContainer;
 import com.microsoft.azure.toolkit.lib.cosmos.model.ThroughputConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -64,7 +67,9 @@ public class SqlContainerDraft extends SqlContainer implements
         AzureMessager.getMessager().info(AzureString.format("Start creating SQL container({0})...", this.getName()));
         final SqlContainerGetResultsInner result = sqlResourcesClient.createUpdateSqlContainer(this.getResourceGroupName(), this.getParent().getParent().getName(),
                 this.getParent().getName(), this.getName(), parameters, Context.NONE);
-        AzureMessager.getMessager().success(AzureString.format("SQL container({0}) is successfully created.", this.getName()));
+        final Action<ICosmosDocumentContainer<?>> create = AzureActionManager.getInstance().getAction(CREATE_DOCUMENT).bind(this);
+        final Action<ICosmosDocumentContainer<?>> upload = AzureActionManager.getInstance().getAction(IMPORT_DOCUMENT).bind(this);
+        AzureMessager.getMessager().success(AzureString.format("SQL container({0}) is successfully created.", this.getName()), create, upload);
         return result;
     }
 

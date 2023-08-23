@@ -12,6 +12,8 @@ import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.TemporaryDisk;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -113,7 +115,8 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating app({0})...", appName));
         service.manager().serviceClient().getApps().createOrUpdate(this.getResourceGroupName(), service.name(), appName, appResource);
-        messager.success(AzureString.format("App({0}) is successfully created.", appName));
+        final Action<AzResource> deploy = AzureActionManager.getInstance().getAction(AzResource.DEPLOY).bind(this);
+        messager.success(AzureString.format("App({0}) is successfully created.", appName), deploy);
         return service.apps().getByName(appName);
     }
 
@@ -145,7 +148,9 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
                 service.manager().serviceClient().getApps().setActiveDeployments(this.getResourceGroupName(), service.name(), origin.name(), new ActiveDeploymentCollection()
                     .withActiveDeploymentNames(Collections.singletonList(newActiveDeploymentName)));
             }
-            messager.success(AzureString.format("App({0}) is successfully updated.", origin.name()));
+            final Action<AzResource> deploy = AzureActionManager.getInstance().getAction(AzResource.DEPLOY).bind(this);
+            final Action<SpringCloudApp> openPublicUrl = AzureActionManager.getInstance().getAction(SpringCloudApp.OPEN_PUBLIC_URL).bind(this);
+            messager.success(AzureString.format("App({0}) is successfully updated.", origin.name()), deploy, openPublicUrl);
             messager.warning(UPDATE_APP_WARNING);
             return service.apps().getByName(origin.name());
         }

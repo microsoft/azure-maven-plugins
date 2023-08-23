@@ -104,7 +104,7 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating MySQL server ({0})...", this.getName()));
         final Server remote = create.create();
-        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(Action.CONNECT_RESOURCE).bind(this);
+        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE).bind(this);
         messager.success(AzureString.format("MySQL server({0}) is successfully created.", this.getName()), connect);
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {

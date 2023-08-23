@@ -7,12 +7,15 @@ package com.microsoft.azure.toolkit.lib.storage.share;
 
 import com.azure.storage.file.share.ShareClient;
 import com.azure.storage.file.share.ShareServiceClient;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -51,7 +54,10 @@ public class ShareDraft extends Share implements AzResource.Draft<Share, ShareCl
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating File Share ({0}).", this.getName()));
         final ShareClient share = client.createShare(this.getName());
-        messager.success(AzureString.format("File Share ({0}) is successfully created.", this.getName()));
+        final Action<StorageFile> createFile = AzureActionManager.getInstance().getAction(CREATE_FILE).bind(this);
+        final Action<StorageFile> createDir = AzureActionManager.getInstance().getAction(CREATE_DIRECTORY).bind(this);
+        final Action<StorageFile> upload = AzureActionManager.getInstance().getAction(UPLOAD_FILES).bind(this);
+        messager.success(AzureString.format("File Share ({0}) is successfully created.", this.getName()), createFile, createDir, upload);
         return share;
     }
 

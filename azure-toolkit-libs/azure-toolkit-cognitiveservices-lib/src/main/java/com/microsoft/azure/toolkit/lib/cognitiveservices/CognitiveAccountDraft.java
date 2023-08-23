@@ -6,6 +6,8 @@ import com.azure.resourcemanager.cognitiveservices.models.Accounts;
 import com.azure.resourcemanager.cognitiveservices.models.PublicNetworkAccess;
 import com.azure.resourcemanager.cognitiveservices.models.Sku;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.model.AccountSku;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -77,7 +79,8 @@ public class CognitiveAccountDraft extends CognitiveAccount
             .withSku(new Sku().withName(sku.getName()))
             .withProperties(properties)
             .create();
-        AzureMessager.getMessager().success(AzureString.format("Cognitive account({0}) is successfully created.", this.getName()));
+        final Action<CognitiveAccount> create = AzureActionManager.getInstance().getAction(CREATE_DEPLOYMENT).bind(this);
+        AzureMessager.getMessager().success(AzureString.format("Cognitive account({0}) is successfully created.", this.getName()), create);
         return result;
     }
 
