@@ -154,7 +154,7 @@
         <java-driver-core.version>4.15.0</java-driver-core.version>
         <azure-containers-containerregistry.version>1.0.9</azure-containers-containerregistry.version>
         <maven-shade-plugin.version>3.4.1</maven-shade-plugin.version>
-        <azure-ai-openai.version>1.0.0-beta.2</azure-ai-openai.version>
+        <azure-ai-openai.version>1.0.0-beta.3</azure-ai-openai.version>
         <azure-resourcemanager-cognitiveservices.version>1.1.0-beta.1</azure-resourcemanager-cognitiveservices.version>
     </properties>
 
