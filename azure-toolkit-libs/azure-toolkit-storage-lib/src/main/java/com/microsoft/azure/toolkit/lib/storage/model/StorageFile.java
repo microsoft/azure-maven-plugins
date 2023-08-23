@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.storage.model;
 
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
@@ -18,6 +19,10 @@ import java.time.OffsetDateTime;
 import java.util.Objects;
 
 public interface StorageFile extends AzResource {
+    public static final Action.Id<StorageFile> OPEN_FILE = Action.Id.of("user/storage.open_file.file");
+    public static final Action.Id<StorageFile> CREATE_FILE = Action.Id.of("user/storage.create_file.file");
+    public static final Action.Id<StorageFile> CREATE_DIRECTORY = Action.Id.of("user/storage.create_directory.dir");
+    public static final Action.Id<StorageFile> UPLOAD_FILES = Action.Id.of("user/storage.upload_files.dir");
 
     AbstractAzResourceModule<? extends StorageFile, ? extends StorageFile, ?> getSubFileModule();
 

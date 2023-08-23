@@ -7,12 +7,15 @@ package com.microsoft.azure.toolkit.lib.storage.blob;
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -51,7 +54,9 @@ public class BlobContainerDraft extends BlobContainer implements AzResource.Draf
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Blob Container ({0}).", this.getName()));
         final BlobContainerClient container = client.createBlobContainer(this.getName());
-        messager.success(AzureString.format("Blob Container ({0}) is successfully created.", this.getName()));
+        final Action<IBlobFile> create = AzureActionManager.getInstance().getAction(CREATE_BLOB).bind(this);
+        final Action<StorageFile> upload = AzureActionManager.getInstance().getAction(UPLOAD_FILES).bind(this);
+        messager.success(AzureString.format("Blob Container ({0}) is successfully created.", this.getName()), create, upload);
         return container;
     }
 

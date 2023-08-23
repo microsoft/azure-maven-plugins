@@ -14,6 +14,8 @@ import com.azure.resourcemanager.appcontainers.models.EnvironmentVar;
 import com.azure.resourcemanager.appcontainers.models.RegistryCredentials;
 import com.azure.resourcemanager.appcontainers.models.Secret;
 import com.azure.resourcemanager.appcontainers.models.Template;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -94,7 +96,10 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
             .withConfiguration(configuration)
             .withTemplate(template)
             .create();
-        AzureMessager.getMessager().success(AzureString.format("Azure Container App({0}) is successfully created.", this.getName()));
+        final Action<ContainerApp> updateImage = AzureActionManager.getInstance().getAction(ContainerApp.UPDATE_IMAGE).bind(this);
+        final Action<ContainerApp> browse = AzureActionManager.getInstance().getAction(ContainerApp.BROWSE).bind(this);
+        final Action<Object> create = AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE).bind(this).withLabel("Create app");
+        AzureMessager.getMessager().success(AzureString.format("Azure Container App({0}) is successfully created.", this.getName()), browse, updateImage, create);
         return result;
     }
 
@@ -166,7 +171,8 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         update.withConfiguration(configuration);
         messager.info(AzureString.format("Start updating Container App({0})...", getName()));
         final com.azure.resourcemanager.appcontainers.models.ContainerApp result = update.apply();
-        messager.success(AzureString.format("Container App({0}) is successfully updated.", getName()));
+        final Action<ContainerApp> browse = AzureActionManager.getInstance().getAction(ContainerApp.BROWSE).bind(this);
+        messager.success(AzureString.format("Container App({0}) is successfully updated.", getName()), browse);
         if (isImageModified) {
             AzureTaskManager.getInstance().runOnPooledThread(() -> this.getRevisionModule().refresh());
         }

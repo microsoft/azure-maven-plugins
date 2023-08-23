@@ -39,8 +39,6 @@ public class ActionInstance<D> extends OperationBase {
     private final D target;
     @Nullable
     private final Object event;
-    @Nonnull
-    private final BiConsumer<D, Object> handler;
 
     private Function<D, String> iconProvider;
     private Function<D, String> labelProvider;
@@ -57,9 +55,15 @@ public class ActionInstance<D> extends OperationBase {
     @Override
     public Callable<?> getBody() {
         return () -> {
-            this.handler.accept(this.target, this.event);
+            final BiConsumer<D, Object> handler = this.action.getHandler(target, event);
+            Optional.ofNullable(handler).ifPresent(h -> h.accept(target, event));
+            //noinspection ReturnOfNull
             return null;
         };
+    }
+
+    public boolean isPerformable() {
+        return Objects.nonNull(this.action.getHandler(target, event));
     }
 
     @Nullable
@@ -101,7 +105,7 @@ public class ActionInstance<D> extends OperationBase {
             if (visible) {
                 final String label = labelProvider.apply(this.target);
                 final String icon = Optional.ofNullable(iconProvider).map(p -> p.apply(this.target)).orElse(null);
-                final boolean enabled = enableWhen.test(this.target);
+                final boolean enabled = enableWhen.test(this.target) && isPerformable();
                 final AzureString title = getDescription();
                 return new Action.View(label, icon, enabled, title);
             }

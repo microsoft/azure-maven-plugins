@@ -4,9 +4,13 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.task;
 
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -22,7 +26,10 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
@@ -92,7 +99,23 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
         if (!StringUtils.equalsIgnoreCase(target.getStatus(), RUNNING)) {
             target.start();
         }
-        messager.info(String.format(DEPLOY_FINISH));
+        if (target instanceof FunctionApp) {
+            final List<FunctionEntity> triggers = ((FunctionApp) target).listFunctions(true);
+            final Action<AppServiceAppBase<?, ?, ?>> streamingLog = AzureActionManager.getInstance().getAction(AppServiceAppBase.START_STREAM_LOG).bind(target);
+            final List<Action<?>> actions = triggers.stream().map(trigger -> {
+                if (trigger.isHttpTrigger()) {
+                    return AzureActionManager.getInstance().getAction(FunctionEntity.TRIGGER_FUNCTION_IN_BROWSER).bind(trigger)
+                        .withLabel(String.format("Trigger \"%s\"", trigger.getName()));
+                } else {
+                    return AzureActionManager.getInstance().getAction(FunctionEntity.TRIGGER_FUNCTION).bind(trigger)
+                        .withLabel(String.format("Trigger \"%s\"", trigger.getName()));
+                }
+            }).collect(Collectors.toCollection(LinkedList::new));
+            actions.add(0, streamingLog);
+            messager.info(String.format(DEPLOY_FINISH), actions.toArray());
+        } else {
+            messager.info(String.format(DEPLOY_FINISH));
+        }
     }
 
     private File packageStagingDirectory() {

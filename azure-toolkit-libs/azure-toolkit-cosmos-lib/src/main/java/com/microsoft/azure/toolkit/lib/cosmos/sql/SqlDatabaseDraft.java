@@ -10,8 +10,11 @@ import com.azure.resourcemanager.cosmos.fluent.CosmosDBManagementClient;
 import com.azure.resourcemanager.cosmos.fluent.models.SqlDatabaseGetResultsInner;
 import com.azure.resourcemanager.cosmos.models.SqlDatabaseCreateUpdateParameters;
 import com.azure.resourcemanager.cosmos.models.SqlDatabaseResource;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabaseDraft;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseConfig;
@@ -52,7 +55,9 @@ public class SqlDatabaseDraft extends SqlDatabase implements
         AzureMessager.getMessager().info(AzureString.format("Start creating SQL database({0})...", this.getName()));
         final SqlDatabaseGetResultsInner result = cosmosDBManagementClient.getSqlResources().createUpdateSqlDatabase(this.getResourceGroupName(), this.getParent().getName(),
                 this.getName(), parameters, Context.NONE);
-        AzureMessager.getMessager().success(AzureString.format("SQL database({0}) is successfully created.", this.getName()));
+        final Action<Object> create = AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE).bind(this).withLabel("Create container");
+        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE).bind(this);
+        AzureMessager.getMessager().success(AzureString.format("SQL database({0}) is successfully created.", this.getName()), connect, create);
         return result;
     }
 

@@ -8,6 +8,8 @@ package com.microsoft.azure.toolkit.lib.storage.share;
 import com.azure.storage.file.share.ShareDirectoryClient;
 import com.azure.storage.file.share.ShareFileClient;
 import com.azure.storage.file.share.models.ShareFileItem;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -61,12 +63,16 @@ public class ShareFileDraft extends ShareFile implements StorageFile.Draft<Share
         if (this.isDirectory()) {
             messager.info(AzureString.format("Start creating directory ({0}).", this.getName()));
             client.createSubdirectory(this.getName());
-            messager.success(AzureString.format("Directory ({0}) is successfully created.", this.getName()));
+            final Action<StorageFile> createFile = AzureActionManager.getInstance().getAction(CREATE_FILE).bind(this);
+            final Action<StorageFile> createDir = AzureActionManager.getInstance().getAction(CREATE_DIRECTORY).bind(this);
+            final Action<StorageFile> upload = AzureActionManager.getInstance().getAction(UPLOAD_FILES).bind(this);
+            messager.success(AzureString.format("Directory ({0}) is successfully created.", this.getName()), createFile, createDir, upload);
         } else {
             if (Objects.nonNull(sourceFile)) {
                 messager.info(AzureString.format("Start uploading file ({0}).", sourceFile.getFileName()));
                 client.createFile(this.getName(), FileUtils.sizeOf(sourceFile.toFile())).uploadFromFile(sourceFile.toString());
-                messager.success(AzureString.format("File ({0}) is successfully uploaded.", sourceFile.getFileName()));
+                final Action<StorageFile> open = AzureActionManager.getInstance().getAction(OPEN_FILE).bind(this);
+                messager.success(AzureString.format("File ({0}) is successfully uploaded.", sourceFile.getFileName()), open);
             } else {
                 messager.info(AzureString.format("Start creating file ({0}).", this.getName()));
                 client.createFile(this.getName(), 0);

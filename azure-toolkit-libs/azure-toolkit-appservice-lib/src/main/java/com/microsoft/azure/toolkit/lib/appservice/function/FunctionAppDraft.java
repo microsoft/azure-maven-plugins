@@ -20,6 +20,8 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -98,7 +100,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         final Runtime newRuntime = Objects.requireNonNull(getRuntime(), "'runtime' is required to create a Function App");
         final AppServicePlan newPlan = Objects.requireNonNull(getAppServicePlan(), "'service plan' is required to create a Function App");
         final OperatingSystem os = newRuntime.isDocker() ? OperatingSystem.LINUX : newRuntime.getOperatingSystem();
-        if (!Objects.equals(os, newPlan.getOperatingSystem())) {
+        if (os != newPlan.getOperatingSystem()) {
             throw new AzureToolkitRuntimeException(String.format("Could not create %s app service in %s service plan", newRuntime.getOperatingSystem(), newPlan.getOperatingSystem()));
         }
         final Map<String, String> newAppSettings = getAppSettings();
@@ -148,7 +150,8 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             }
             return app;
         }, Status.CREATING));
-        messager.success(AzureString.format("Function App({0}) is successfully created", name));
+        final Action<AzResource> deploy = AzureActionManager.getInstance().getAction(AzResource.DEPLOY).bind(this);
+        messager.success(AzureString.format("Function App({0}) is successfully created", name), deploy);
         return functionApp;
     }
 
@@ -244,7 +247,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     private void updateAppServicePlan(@Nonnull Update update, @Nonnull AppServicePlan newPlan) {
         Objects.requireNonNull(newPlan.getRemote(), "Target app service plan doesn't exist");
         final OperatingSystem os = Objects.requireNonNull(getRuntime()).isDocker() ? OperatingSystem.LINUX : getRuntime().getOperatingSystem();
-        if (!Objects.equals(os, newPlan.getOperatingSystem())) {
+        if (os != newPlan.getOperatingSystem()) {
             throw new AzureToolkitRuntimeException(String.format("Could not migrate %s app service to %s service plan", getRuntime().getOperatingSystem(), newPlan.getOperatingSystem()));
         }
         update.withExistingAppServicePlan(newPlan.getRemote());

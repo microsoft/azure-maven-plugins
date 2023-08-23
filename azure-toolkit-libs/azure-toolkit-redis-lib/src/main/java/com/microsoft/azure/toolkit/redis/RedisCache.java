@@ -6,9 +6,11 @@
 package com.microsoft.azure.toolkit.redis;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -24,6 +26,8 @@ import java.util.Objects;
 
 public class RedisCache extends AbstractAzResource<RedisCache, RedisServiceSubscription, com.azure.resourcemanager.redis.models.RedisCache>
     implements Deletable {
+    public static final Action.Id<AzResource> OPEN_EXPLORER = Action.Id.of("user/redis.open_redis_explorer.redis");
+
     private static final int JEDIS_TIMEOUT = 500;
 
     private JedisPool jedisPool;

@@ -10,6 +10,7 @@ import com.azure.storage.blob.sas.BlobContainerSasPermission;
 import com.azure.storage.blob.sas.BlobSasPermission;
 import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
 import com.azure.storage.common.sas.SasProtocol;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
 
@@ -18,6 +19,7 @@ import java.time.OffsetDateTime;
 import java.util.Objects;
 
 public interface IBlobFile extends StorageFile {
+    public static final Action.Id<IBlobFile> CREATE_BLOB = Action.Id.of("user/storage.create_blob.blob");
 
     BlobContainer getContainer();
 

@@ -7,6 +7,8 @@ package com.microsoft.azure.toolkit.lib.sqlserver;
 
 import com.azure.resourcemanager.sql.SqlServerManager;
 import com.azure.resourcemanager.sql.models.SqlServer;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -76,7 +78,8 @@ public class MicrosoftSqlServerDraft extends MicrosoftSqlServer implements AzRes
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating SQL server ({0})...", this.getName()));
         final SqlServer remote = create.create();
-        messager.success(AzureString.format("SQL server({0}) is successfully created.", this.getName()));
+        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE).bind(this);
+        messager.success(AzureString.format("SQL server({0}) is successfully created.", this.getName()), connect);
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
             AzureTaskManager.getInstance().runInBackground(AzureString.format("Update firewall rules of SQL server({0}).", this.getName()), () -> {

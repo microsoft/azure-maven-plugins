@@ -10,6 +10,7 @@ import com.google.common.collect.Sets;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,6 +22,10 @@ import java.util.List;
 import java.util.Objects;
 
 public interface AzResource extends Refreshable {
+    public static final Action.Id<AzResource> CONNECT_RESOURCE = Action.Id.of("user/$resource.connect_resource.resource");
+    public static final Action.Id<Object> CREATE_RESOURCE = Action.Id.of("user/$resource.create_resource.type");
+    public static final Action.Id<AzResource> DEPLOY = Action.Id.of("user/$resource.deploy_resource.resource");
+
     long CACHE_LIFETIME = 30 * 60 * 1000; // 30 minutes
 
     None NONE = new None();

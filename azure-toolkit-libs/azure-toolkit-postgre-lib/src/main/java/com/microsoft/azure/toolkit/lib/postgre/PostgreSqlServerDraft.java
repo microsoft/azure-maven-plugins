@@ -12,6 +12,8 @@ import com.azure.resourcemanager.postgresqlflexibleserver.models.Sku;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.SkuTier;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.Storage;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.VcoreCapability;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -106,7 +108,8 @@ public class PostgreSqlServerDraft extends PostgreSqlServer implements AzResourc
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating PostgreSQL flexible server ({0})...", this.getName()));
         final Server remote = create.create();
-        messager.success(AzureString.format("PostgreSQL flexible server({0}) is successfully created.", this.getName()));
+        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE).bind(this);
+        messager.success(AzureString.format("PostgreSQL flexible server({0}) is successfully created.", this.getName()), connect);
         if (this.isAzureServiceAccessAllowed() != super.isAzureServiceAccessAllowed() ||
             this.isLocalMachineAccessAllowed() != super.isLocalMachineAccessAllowed()) {
             AzureTaskManager.getInstance().runInBackground(AzureString.format("Update firewall rules of PostgreSQL server({0}).", this.getName()), () -> {

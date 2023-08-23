@@ -6,10 +6,13 @@
 package com.microsoft.azure.toolkit.lib.compute.virtualmachine;
 
 import com.azure.resourcemanager.compute.ComputeManager;
+import com.azure.resourcemanager.compute.models.SharingState;
 import com.azure.resourcemanager.compute.models.VirtualMachine.DefinitionStages;
 import com.azure.resourcemanager.network.models.NetworkInterface;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -174,7 +177,9 @@ public class VirtualMachineDraft extends VirtualMachine implements AzResource.Dr
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start creating Virtual machine ({0})...", name));
             final com.azure.resourcemanager.compute.models.VirtualMachine vm = withCreate.create();
-            messager.success(AzureString.format("Virtual machine ({0}) is successfully created", name));
+            final Action<VirtualMachine> browse = AzureActionManager.getInstance().getAction(BROWSE_FILES).bind(this);
+            final Action<VirtualMachine> connect = AzureActionManager.getInstance().getAction(CONNECT_SSH).bind(this);
+            messager.success(AzureString.format("Virtual machine ({0}) is successfully created", name), connect, browse);
             return Objects.requireNonNull(vm);
         } catch (Exception e) {
             // clean up resource once creation failed

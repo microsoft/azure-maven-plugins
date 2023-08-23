@@ -10,8 +10,11 @@ import com.azure.resourcemanager.cosmos.fluent.CosmosDBManagementClient;
 import com.azure.resourcemanager.cosmos.fluent.models.MongoDBDatabaseGetResultsInner;
 import com.azure.resourcemanager.cosmos.models.MongoDBDatabaseCreateUpdateParameters;
 import com.azure.resourcemanager.cosmos.models.MongoDBDatabaseResource;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabaseDraft;
 import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseConfig;
@@ -52,7 +55,9 @@ public class MongoDatabaseDraft extends MongoDatabase implements
         AzureMessager.getMessager().info(AzureString.format("Start creating MongoDB database({0})...", this.getName()));
         final MongoDBDatabaseGetResultsInner result = cosmosDBManagementClient.getMongoDBResources().createUpdateMongoDBDatabase(this.getResourceGroupName(), this.getParent().getName(),
                 this.getName(), parameters, Context.NONE);
-        AzureMessager.getMessager().success(AzureString.format("MongoDB database({0}) is successfully created.", this.getName()));
+        final Action<Object> create = AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE).bind(this).withLabel("Create collection");
+        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE).bind(this);
+        AzureMessager.getMessager().success(AzureString.format("MongoDB database({0}) is successfully created.", this.getName()), connect, create);
         return result;
     }
 

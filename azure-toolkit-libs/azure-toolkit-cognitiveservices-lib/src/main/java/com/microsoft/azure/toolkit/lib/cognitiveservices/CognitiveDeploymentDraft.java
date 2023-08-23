@@ -10,6 +10,8 @@ import com.azure.resourcemanager.cognitiveservices.models.Deployment;
 import com.azure.resourcemanager.cognitiveservices.models.DeploymentProperties;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.model.DeploymentModel;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.model.DeploymentSku;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -66,7 +68,8 @@ public class CognitiveDeploymentDraft extends CognitiveDeployment
             .withSku(sku.toSku())
             .withProperties(deploymentProperties)
             .create();
-        AzureMessager.getMessager().success(AzureString.format("Cognitive deployment({0}) is successfully created.", this.getName()));
+        final Action<CognitiveDeployment> open = AzureActionManager.getInstance().getAction(OPEN_DEPLOYMENT_IN_PLAYGROUND).bind(this);
+        AzureMessager.getMessager().success(AzureString.format("Cognitive deployment({0}) is successfully created.", this.getName()), open);
         return deployment;
     }
 

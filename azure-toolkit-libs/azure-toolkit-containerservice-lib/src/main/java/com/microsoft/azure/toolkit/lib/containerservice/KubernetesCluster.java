@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.containerservice;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
@@ -25,6 +26,8 @@ import java.util.Optional;
 
 public class KubernetesCluster extends AbstractAzResource<KubernetesCluster, ContainerServiceSubscription,
         com.azure.resourcemanager.containerservice.models.KubernetesCluster> implements Startable, Deletable {
+    public static final Action.Id<KubernetesCluster> DOWNLOAD_CONFIG_ADMIN = Action.Id.of("user/kubernetes.kubu_config_admin.kubernetes");
+    public static final Action.Id<KubernetesCluster> DOWNLOAD_CONFIG_USER = Action.Id.of("user/kubernetes.kubu_config_user.kubernetes");
 
     private final KubernetesClusterAgentPoolModule agentPoolModule;
 

@@ -11,6 +11,7 @@ import com.azure.resourcemanager.cognitiveservices.models.DeploymentProperties;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.model.DeploymentModel;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.model.DeploymentSku;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -22,6 +23,7 @@ import java.util.Optional;
 
 public class CognitiveDeployment extends AbstractAzResource<CognitiveDeployment, CognitiveAccount, Deployment>
     implements Deletable {
+    public static final Action.Id<CognitiveDeployment> OPEN_DEPLOYMENT_IN_PLAYGROUND = Action.Id.of("user/cognitiveservices.open_playground.deployment");
 
     protected CognitiveDeployment(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull CognitiveDeploymentModule module) {
         super(name, resourceGroupName, module);
