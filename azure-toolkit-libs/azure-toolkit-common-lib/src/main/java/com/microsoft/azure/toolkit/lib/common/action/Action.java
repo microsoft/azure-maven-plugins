@@ -86,7 +86,7 @@ public class Action<D> implements Cloneable {
     @Nonnull
     public IView.Label getView(D s, final String place) {
         final ActionInstance<D> instance = this.instantiate(s, null);
-        return Optional.ofNullable(instance).map(i -> i.getView(place)).orElse(View.INVISIBLE);
+        return instance.getView(place);
     }
 
     /**
@@ -101,7 +101,7 @@ public class Action<D> implements Cloneable {
      */
     public void handle(D s, Object e) {
         final ActionInstance<D> instance = this.instantiate(s, e);
-        Optional.ofNullable(instance).ifPresent(ActionInstance::performAsync);
+        instance.performAsync();
     }
 
     /**
@@ -116,7 +116,7 @@ public class Action<D> implements Cloneable {
      */
     public void handleSync(D s, Object e) {
         final ActionInstance<D> instance = this.instantiate(s, e);
-        Optional.ofNullable(instance).ifPresent(ActionInstance::perform);
+        instance.perform();
     }
 
     public Action<D> enableWhen(@Nonnull Predicate<D> enableWhen) {
@@ -216,7 +216,7 @@ public class Action<D> implements Cloneable {
 
     @Nullable
     @SuppressWarnings("unchecked")
-    private BiConsumer<D, Object> getHandler(D s, Object e) {
+    BiConsumer<D, Object> getHandler(D s, Object e) {
         if (!this.visibleWhen.test(s, COMMON_PLACE) && !this.enableWhen.test(s)) {
             return null;
         }
@@ -247,16 +247,15 @@ public class Action<D> implements Cloneable {
         }
     }
 
-    @Nullable
+    @Nonnull
     public ActionInstance<D> instantiate(D s) {
         return this.instantiate(s, null);
     }
 
-    @Nullable
+    @Nonnull
     public ActionInstance<D> instantiate(D s, Object event) {
         final D target = Optional.ofNullable(this.target).orElse(s);
-        final BiConsumer<D, Object> handler = getHandler(target, event);
-        return Optional.ofNullable(handler).map(h -> new ActionInstance<>(this, target, event, h)).orElse(null);
+        return new ActionInstance<>(this, target, event);
     }
 
     public void register(AzureActionManager am) {
