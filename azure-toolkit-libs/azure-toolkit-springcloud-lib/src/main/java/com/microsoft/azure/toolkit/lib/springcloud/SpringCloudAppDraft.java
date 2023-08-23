@@ -115,8 +115,7 @@ public class SpringCloudAppDraft extends SpringCloudApp implements AzResource.Dr
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating app({0})...", appName));
         service.manager().serviceClient().getApps().createOrUpdate(this.getResourceGroupName(), service.name(), appName, appResource);
-        final Action<AzResource> deploy = AzureActionManager.getInstance().getAction(AzResource.DEPLOY).bind(this);
-        messager.success(AzureString.format("App({0}) is successfully created.", appName), deploy);
+        messager.success(AzureString.format("App({0}) is successfully created.", appName));
         return service.apps().getByName(appName);
     }
 
