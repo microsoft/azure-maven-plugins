@@ -173,7 +173,9 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
             draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
             draft.setStorageAccount(storageAccount);
-            return draft.createIfNotExist();
+            final FunctionApp result = draft.createIfNotExist();
+            Thread.sleep(10 * 1000); // workaround for service initialization
+            return result;
         });
     }
 
