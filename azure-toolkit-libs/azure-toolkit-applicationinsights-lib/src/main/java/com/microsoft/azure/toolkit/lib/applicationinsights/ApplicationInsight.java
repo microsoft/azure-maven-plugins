@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.applicationinsights;
 
 import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsComponent;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -20,6 +21,9 @@ import java.util.Optional;
 
 public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, ApplicationInsightsServiceSubscription, ApplicationInsightsComponent>
         implements Deletable {
+    public static final Action.Id<ApplicationInsight> OPEN_LIVE_METRICS = Action.Id.of("user/ai.open_live_metrics.ai");
+    public static final Action.Id<ApplicationInsight> COPY_CONNECTION_STRING = Action.Id.of("user/ai.copy_connection_string.ai");
+
     protected ApplicationInsight(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull ApplicationInsightsModule module) {
         super(name, resourceGroupName, module);
     }
