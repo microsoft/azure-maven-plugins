@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.cognitiveservices.model;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 
@@ -44,5 +45,17 @@ public class DeploymentModel {
             .withFormat(format)
             .withSource(source)
             .withVersion(version);
+    }
+
+    public boolean isGPTModel() {
+        return StringUtils.startsWith(this.name, "gpt");
+    }
+
+    public boolean isCodeModel() {
+        return StringUtils.startsWith(this.name, "code");
+    }
+
+    public boolean isTextModel() {
+        return StringUtils.startsWith(this.name, "text");
     }
 }
