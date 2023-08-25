@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class CognitiveDeployment extends AbstractAzResource<CognitiveDeployment, CognitiveAccount, Deployment>
@@ -41,6 +42,11 @@ public class CognitiveDeployment extends AbstractAzResource<CognitiveDeployment,
     @Override
     protected String loadStatus(@Nonnull Deployment remote) {
         return remote.innerModel().properties().provisioningState().toString();
+    }
+
+    public String getEndpoint() {
+        final String apiVersion = Objects.requireNonNull(this.getParent().getParent().getRemote()).serviceClient().getApiVersion();
+        return String.format("%sopenai/deployments/%s/chat/completions?api-version=%s", this.getParent().getEndpoint(), this.getName(), apiVersion);
     }
 
     @Nonnull

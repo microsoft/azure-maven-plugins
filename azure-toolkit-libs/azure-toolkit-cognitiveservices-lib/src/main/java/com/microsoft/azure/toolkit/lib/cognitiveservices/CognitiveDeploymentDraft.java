@@ -68,8 +68,12 @@ public class CognitiveDeploymentDraft extends CognitiveDeployment
             .withSku(sku.toSku())
             .withProperties(deploymentProperties)
             .create();
-        final Action<CognitiveDeployment> open = AzureActionManager.getInstance().getAction(OPEN_DEPLOYMENT_IN_PLAYGROUND).bind(this);
-        AzureMessager.getMessager().success(AzureString.format("Cognitive deployment({0}) is successfully created.", this.getName()), open);
+        if (this.getModel().isGPTModel()) {
+            final Action<CognitiveDeployment> open = AzureActionManager.getInstance().getAction(OPEN_DEPLOYMENT_IN_PLAYGROUND).bind(this);
+            AzureMessager.getMessager().success(AzureString.format("Cognitive deployment({0}) is successfully created.", this.getName()), open);
+        } else {
+            AzureMessager.getMessager().success(AzureString.format("Cognitive deployment({0}) is successfully created.", this.getName()));
+        }
         return deployment;
     }
 
