@@ -10,6 +10,7 @@ import com.azure.ai.openai.OpenAIClientBuilder;
 import com.azure.core.credential.AzureKeyCredential;
 import com.azure.resourcemanager.cognitiveservices.models.Account;
 import com.azure.resourcemanager.cognitiveservices.models.AccountProperties;
+import com.azure.resourcemanager.cognitiveservices.models.Accounts;
 import com.azure.resourcemanager.cognitiveservices.models.ApiKeys;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.model.AccountModel;
@@ -19,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -75,10 +77,14 @@ public class CognitiveAccount extends AbstractAzResource<CognitiveAccount, Cogni
 
     @Nonnull
     public List<AccountModel> listModels() {
-        return Optional.ofNullable(((CognitiveAccountModule) getModule()).getClient())
-            .map(client -> client.listModels(this.getResourceGroupName(), this.getName()))
-            .map(models -> models.stream().map(AccountModel::fromModel).collect(Collectors.toList()))
-            .orElse(Collections.emptyList());
+        final Accounts accounts = ((CognitiveAccountModule) getModule()).getClient();
+        if (Objects.isNull(accounts)) {
+            return Collections.emptyList();
+        }
+        return accounts.listModels(this.getResourceGroupName(), this.getName()).stream()
+            .map(AccountModel::fromModel)
+            .filter(model -> CollectionUtils.isNotEmpty(model.getSkus()))
+            .collect(Collectors.toList());
     }
 
     @Nullable
