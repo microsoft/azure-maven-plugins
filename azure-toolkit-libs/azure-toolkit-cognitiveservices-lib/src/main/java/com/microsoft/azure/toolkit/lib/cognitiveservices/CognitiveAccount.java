@@ -21,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -29,6 +30,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.azure.resourcemanager.cognitiveservices.models.ModelLifecycleStatus.GENERALLY_AVAILABLE;
 
 public class CognitiveAccount extends AbstractAzResource<CognitiveAccount, CognitiveServicesSubscription, Account>
     implements Deletable {
@@ -82,8 +85,8 @@ public class CognitiveAccount extends AbstractAzResource<CognitiveAccount, Cogni
             return Collections.emptyList();
         }
         return accounts.listModels(this.getResourceGroupName(), this.getName()).stream()
+            .filter(model -> CollectionUtils.isNotEmpty(model.skus()) && model.lifecycleStatus() == GENERALLY_AVAILABLE)
             .map(AccountModel::fromModel)
-            .filter(model -> CollectionUtils.isNotEmpty(model.getSkus()))
             .collect(Collectors.toList());
     }
 
