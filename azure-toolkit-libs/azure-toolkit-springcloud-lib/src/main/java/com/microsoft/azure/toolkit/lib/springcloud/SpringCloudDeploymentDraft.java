@@ -99,7 +99,6 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
         this.config.setCapacity(1);
         this.config.setCpu(1d);
         this.config.setMemoryInGB(2d);
-        this.config.setRuntimeVersion(DEFAULT_RUNTIME_VERSION.toString());
     }
 
     @Nonnull
