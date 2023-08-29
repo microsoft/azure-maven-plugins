@@ -79,7 +79,7 @@ public class AzureCognitiveServices extends AbstractAzService<CognitiveServicesS
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "Azure Open AI";
+        return "Azure OpenAI";
     }
 
     @Override
