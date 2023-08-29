@@ -165,6 +165,7 @@ public class AzureAccount implements IAzureAccount {
         candidates.add(new OAuthAccount(config));
         final Account account = candidates.stream().parallel().filter(Account::checkAvailable).findFirst().orElseGet(() -> new DeviceCodeAccount(config));
         config.setType(account.getType());
+        account.setPersistenceEnabled(Azure.az().config().isAuthPersistenceEnabled());
         return account;
     }
 
