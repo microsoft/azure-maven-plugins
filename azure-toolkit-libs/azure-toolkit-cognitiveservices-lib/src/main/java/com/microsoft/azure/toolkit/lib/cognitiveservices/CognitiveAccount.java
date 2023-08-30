@@ -35,7 +35,7 @@ import static com.azure.resourcemanager.cognitiveservices.models.ModelLifecycleS
 
 public class CognitiveAccount extends AbstractAzResource<CognitiveAccount, CognitiveServicesSubscription, Account>
     implements Deletable {
-    public static final Action.Id<CognitiveAccount> CREATE_DEPLOYMENT = Action.Id.of("user/cognitiveservices.create_deployment.account");
+    public static final Action.Id<CognitiveAccount> CREATE_DEPLOYMENT = Action.Id.of("user/openai.create_deployment.account");
 
     private final CognitiveDeploymentModule deploymentModule;
 

@@ -89,7 +89,7 @@ public class DeployMojo extends AbstractMojoBase {
         final SpringCloudDeploymentConfig deploymentConfig = appConfig.getDeployment();
         final File file = Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getArtifact).map(IArtifact::getFile)
                 .orElseThrow(() -> new AzureToolkitRuntimeException("No artifact is specified to deploy."));
-        final String javaVersion = Optional.ofNullable(deploymentConfig).map(SpringCloudDeploymentConfig::getJavaVersion)
+        final String javaVersion = Optional.of(deploymentConfig).map(SpringCloudDeploymentConfig::getJavaVersion)
                 .map(version -> StringUtils.removeStart(version, "Java_")).orElse(StringUtils.EMPTY);
         final SpringCloudCluster springCloudCluster = Azure.az(AzureSpringCloud.class).clusters(clusterConfig.getSubscriptionId()).get(clusterConfig.getClusterName(), clusterConfig.getResourceGroup());
         final Sku sku = Optional.ofNullable(springCloudCluster).map(SpringCloudCluster::getSku).orElseGet(() -> Sku.fromString(clusterConfig.getSku()));
