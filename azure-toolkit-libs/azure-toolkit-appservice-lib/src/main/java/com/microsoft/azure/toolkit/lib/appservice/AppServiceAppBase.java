@@ -189,7 +189,7 @@ public abstract class AppServiceAppBase<
             String.format("%s/slots/%s", resourceId.parent().name(), resourceId.name()) : resourceId.name();
         final CsmPublishingProfileOptions csmPublishingProfileOptions = new CsmPublishingProfileOptions().withFormat(PublishingProfileFormat.FTP);
         return Objects.requireNonNull(getFullRemote()).manager().serviceClient().getWebApps()
-            .listPublishingProfileXmlWithSecrets(resourceId.resourceGroupName(), resourceName, csmPublishingProfileOptions);
+            .listPublishingProfileXmlWithSecrets(resourceId.resourceGroupName(), resourceName, csmPublishingProfileOptions).toStream();
     }
 
     @Nullable
