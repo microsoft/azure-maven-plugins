@@ -68,7 +68,7 @@ public class AzureMessage implements IAzureMessage {
         final List<Operation> operations = this.getOperations();
         final String failure = operations.stream().findFirst().map(Operation::getDescription)
             .map(azureString -> "Failed to " + this.decorateText(azureString, azureString::getString)).orElse("Failed to proceed");
-        final String cause = Optional.ofNullable(this.getCause(throwable)).map(c -> ", " + c).orElse("");
+        final String cause = Optional.ofNullable(this.getCause(throwable)).map(c -> ". " + c).orElse("");
         final String tips = Optional.ofNullable(this.getExceptionTips(throwable)).map(c -> System.lineSeparator() + c).orElse("");
         return failure + cause + tips;
     }
@@ -102,7 +102,7 @@ public class AzureMessage implements IAzureMessage {
     @Nullable
     protected String getCause(@Nonnull Throwable throwable) {
         final Throwable cause = ExceptionUtils.getRootCause(throwable);
-        AtomicReference<String> causeMessage = new AtomicReference<>(null);
+        final AtomicReference<String> causeMessage = new AtomicReference<>(null);
         if (cause instanceof ManagementException) {
             causeMessage.set(Optional.of((ManagementException) cause)
                     .map(ManagementException::getValue)
@@ -118,7 +118,7 @@ public class AzureMessage implements IAzureMessage {
         final String causeMsg = StringUtils.firstNonBlank(causeMessage.get(), cause.getMessage());
         return Optional.ofNullable(causeMsg)
             .filter(StringUtils::isNotBlank)
-            .map(StringUtils::uncapitalize)
+            .map(StringUtils::capitalize)
             .map(c -> c.endsWith(".") ? c : c + '.')
             .orElse(null);
     }
