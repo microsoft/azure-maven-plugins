@@ -9,6 +9,8 @@ import com.azure.core.util.BinaryData;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.models.BlobItem;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -67,7 +69,8 @@ public class BlobFileDraft extends BlobFile implements StorageFile.Draft<BlobFil
         if (Objects.nonNull(this.sourceFile)) {
             messager.info(AzureString.format("Start uploading file ({0}).", sourceFile.getFileName()));
             client.uploadFromFile(this.sourceFile.toString());
-            messager.success(AzureString.format("File ({0}) is successfully uploaded.", sourceFile.getFileName()));
+            final Action<StorageFile> open = AzureActionManager.getInstance().getAction(OPEN_FILE).bind(this);
+            messager.success(AzureString.format("File ({0}) is successfully uploaded.", sourceFile.getFileName()), open);
         } else {
             messager.info(AzureString.format("Start creating Blob ({0}).", fullPath));
             client.upload(BinaryData.fromString(""));

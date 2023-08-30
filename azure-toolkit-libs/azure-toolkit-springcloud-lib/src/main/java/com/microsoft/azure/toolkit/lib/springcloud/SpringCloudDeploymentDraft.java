@@ -207,9 +207,9 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     boolean updateProperties(@Nonnull SpringAppDeploymentImpl deployment) {
         final boolean updated = this.toUpdate();
         if (updated) {
-            final Map<String, String> newEnv = Utils.emptyToNull(this.getEnvironmentVariables());
-            final String newJvmOptions = Utils.emptyToNull(this.getJvmOptions());
-            final String newVersion = Utils.emptyToNull(this.getRuntimeVersion());
+            final Map<String, String> newEnv = this.getEnvironmentVariables();
+            final String newJvmOptions = this.getJvmOptions();
+            final String newVersion = this.getRuntimeVersion();
 
             final Map<String, String> oldEnv = Utils.emptyToNull(super.getEnvironmentVariables());
             if (Objects.nonNull(newEnv)) {
