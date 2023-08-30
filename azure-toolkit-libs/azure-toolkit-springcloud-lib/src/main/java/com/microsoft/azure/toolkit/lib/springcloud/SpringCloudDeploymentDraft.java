@@ -291,17 +291,17 @@ public class SpringCloudDeploymentDraft extends SpringCloudDeployment
     }
 
     public boolean toUpdate() {
-        final Map<String, String> newEnv = Utils.emptyToNull(this.getEnvironmentVariables());
-        final String newJvmOptions = Utils.emptyToNull(this.getJvmOptions());
-        final String newVersion = Utils.emptyToNull(this.getRuntimeVersion());
+        final Map<String, String> newEnv = this.getEnvironmentVariables();
+        final String newJvmOptions = this.getJvmOptions();
+        final String newVersion = this.getRuntimeVersion();
 
         final Map<String, String> oldEnv = Utils.emptyToNull(super.getEnvironmentVariables());
         final String oldJvmOptions = Utils.emptyToNull(super.getJvmOptions());
         final String oldVersion = Utils.emptyToNull(super.getRuntimeVersion());
 
-        return (!Objects.equals(newEnv, oldEnv) && Objects.nonNull(newEnv)) ||
-            (!Objects.equals(newJvmOptions, oldJvmOptions) && Objects.nonNull(newJvmOptions)) ||
-            (!Objects.equals(newVersion, oldVersion) && Objects.nonNull(newVersion));
+        return (!Objects.equals(Utils.emptyToNull(newEnv), oldEnv) && Objects.nonNull(newEnv)) ||
+            (!Objects.equals(Utils.emptyToNull(newJvmOptions), oldJvmOptions) && Objects.nonNull(newJvmOptions)) ||
+            (!Objects.equals(Utils.emptyToNull(newVersion), oldVersion) && Objects.nonNull(newVersion));
     }
 
     public boolean toDeploy() {
