@@ -62,7 +62,7 @@ public class CognitiveDeploymentDraft extends CognitiveDeployment
         final DeploymentModel model = Objects.requireNonNull(getModel(), "Model is required to create Cognitive deployment.");
         final DeploymentSku sku = Objects.requireNonNull(getSku(), "Sku is required to create Cognitive deployment.");
         final DeploymentProperties deploymentProperties = new DeploymentProperties().withModel(model.toModel());
-        AzureMessager.getMessager().info(AzureString.format("Start creating Cognitive deployment({0})...", this.getName()));
+        AzureMessager.getMessager().info(AzureString.format("Start creating Azure OpenAI deployment({0})...", this.getName()));
         final Deployment deployment = manager.deployments().define(this.getName())
             .withExistingAccount(account.getResourceGroupName(), account.getName())
             .withSku(sku.toSku())
@@ -70,9 +70,9 @@ public class CognitiveDeploymentDraft extends CognitiveDeployment
             .create();
         if (this.getModel().isGPTModel()) {
             final Action<CognitiveDeployment> open = AzureActionManager.getInstance().getAction(OPEN_DEPLOYMENT_IN_PLAYGROUND).bind(this);
-            AzureMessager.getMessager().success(AzureString.format("Cognitive deployment({0}) is successfully created.", this.getName()), open);
+            AzureMessager.getMessager().success(AzureString.format("Azure OpenAI deployment({0}) is successfully created.", this.getName()), open);
         } else {
-            AzureMessager.getMessager().success(AzureString.format("Cognitive deployment({0}) is successfully created.", this.getName()));
+            AzureMessager.getMessager().success(AzureString.format("Azure OpenAI deployment({0}) is successfully created.", this.getName()));
         }
         return deployment;
     }
