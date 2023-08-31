@@ -71,7 +71,7 @@ public class CognitiveAccountDraft extends CognitiveAccount
         final AccountProperties properties = new AccountProperties();
         // may support set access limit later
         properties.withPublicNetworkAccess(PublicNetworkAccess.ENABLED);
-        AzureMessager.getMessager().info(AzureString.format("Start creating Cognitive account({0})...", this.getName()));
+        AzureMessager.getMessager().info(AzureString.format("Start creating Azure OpenAI service({0})...", this.getName()));
         final Account result = client.define(this.getName())
             .withExistingResourceGroup(resourceGroup.getName())
             .withKind(OPEN_AI)
@@ -80,7 +80,7 @@ public class CognitiveAccountDraft extends CognitiveAccount
             .withProperties(properties)
             .create();
         final Action<CognitiveAccount> create = AzureActionManager.getInstance().getAction(CREATE_DEPLOYMENT).bind(this);
-        AzureMessager.getMessager().success(AzureString.format("Cognitive account({0}) is successfully created.", this.getName()), create);
+        AzureMessager.getMessager().success(AzureString.format("Azure OpenAI service({0}) is successfully created.", this.getName()), create);
         return result;
     }
 
