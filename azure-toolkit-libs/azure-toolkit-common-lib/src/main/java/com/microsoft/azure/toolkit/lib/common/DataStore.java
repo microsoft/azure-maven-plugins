@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -103,7 +104,7 @@ public interface DataStore {
     }
 
     final class Impl {
-        static final WeakHashMap<Object, Map<Object, Object>> STORE = new WeakHashMap<>();
+        static final Map<Object, Map<Object, Object>> STORE = Collections.synchronizedMap(new WeakHashMap<>());
     }
 
     @EqualsAndHashCode
