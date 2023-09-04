@@ -80,8 +80,8 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
         messager.info(AzureString.format("Start creating Storage Account({0})...", name));
         final com.azure.resourcemanager.storage.models.StorageAccount account = withCreate.create();
         final Action<AzResource> connect = AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE).bind(this);
-        final Action<Object> createContainer = AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE).bind(this.blobContainerModule);
-        final Action<Object> createShare = AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE).bind(this.shareModule);
+        final Action<Object> createContainer = AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE).bind(this.blobContainerModule).withLabel("Create Blob Container");
+        final Action<Object> createShare = AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE).bind(this.shareModule).withLabel("Create File Share");
         messager.success(AzureString.format("Storage Account({0}) is successfully created.", name), connect, createContainer, createShare);
         return account;
     }

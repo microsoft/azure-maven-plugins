@@ -118,4 +118,10 @@ public class CognitiveAccountModule extends AbstractAzResourceModule<CognitiveAc
             .filter(s -> StringUtils.equalsIgnoreCase(s.kind(), "OpenAI") && StringUtils.equalsIgnoreCase(s.resourceType(), "accounts"))
             .collect(Collectors.toList());
     }
+
+    @Nonnull
+    @Override
+    public String getResourceTypeName() {
+        return "Azure OpenAI service";
+    }
 }

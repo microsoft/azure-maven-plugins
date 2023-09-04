@@ -77,4 +77,10 @@ public class CognitiveDeploymentModule extends
         return Optional.ofNullable(this.getParent().getParent().getRemote())
             .map(CognitiveServicesManager::deployments).orElse(null);
     }
+
+    @Nonnull
+    @Override
+    public String getResourceTypeName() {
+        return "Azure OpenAI deployment";
+    }
 }

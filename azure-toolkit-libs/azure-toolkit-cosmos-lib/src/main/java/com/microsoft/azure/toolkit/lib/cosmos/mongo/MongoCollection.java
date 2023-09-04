@@ -76,9 +76,11 @@ public class MongoCollection extends AbstractAzResource<MongoCollection, MongoDa
         if (StringUtils.isNotEmpty(sharedKey) && !IteratorUtils.contains(node.fieldNames(), sharedKey)) {
             throw new AzureToolkitRuntimeException(String.format("Document does not contain shard key at '%s'", sharedKey));
         }
-        final MongoDocumentDraft documentDraft = this.documentModule.create(id, getResourceGroupName());
+        final boolean existing = this.getDocumentModule().exists(id, getResourceGroupName());
+        final MongoDocumentDraft documentDraft = existing ?
+            (MongoDocumentDraft) Objects.requireNonNull(this.documentModule.get(id, getResourceGroupName())).update() :
+            this.documentModule.create(id, getResourceGroupName());
         documentDraft.setDraftDocument(document);
-        final boolean existing = this.getDocumentModule().exists(documentDraft.getName(), documentDraft.getResourceGroupName());
         final MongoDocument result = documentDraft.commit();
         final AzureString importMessage = AzureString.format("Import document to Mongo collection %s successfully.", this.getName());
         final AzureString updateMessage = AzureString.format("Update document %s in Mongo collection %s successfully.", id, this.getName());

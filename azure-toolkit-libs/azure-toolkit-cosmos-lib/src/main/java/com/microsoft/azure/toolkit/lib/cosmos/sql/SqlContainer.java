@@ -65,9 +65,12 @@ public class SqlContainer extends AbstractAzResource<SqlContainer, SqlDatabase, 
         }
         final String id = node.get(ID).asText();
         final String partitionKey = SqlDocumentModule.getSqlDocumentPartitionValue(node, getPartitionKey());
-        final SqlDocumentDraft documentDraft = this.documentModule.create(SqlDocumentModule.getSqlDocumentResourceName(id, partitionKey), getResourceGroupName());
+        final String resourceName = SqlDocumentModule.getSqlDocumentResourceName(id, partitionKey);
+        final boolean existing = this.getDocumentModule().exists(resourceName, getResourceGroupName());
+        final SqlDocumentDraft documentDraft = existing ?
+            (SqlDocumentDraft) Objects.requireNonNull(this.documentModule.get(resourceName, getResourceGroupName())).update() :
+            this.documentModule.create(resourceName, getResourceGroupName());
         documentDraft.setDraftDocument(node);
-        final boolean existing = this.getDocumentModule().exists(documentDraft.getName(), documentDraft.getResourceGroupName());
         final SqlDocument result = documentDraft.commit();
         final AzureString importMessage = AzureString.format("Import document to Cosmos container %s successfully.", this.getName());
         final AzureString updateMessage = AzureString.format("Update document %s in Cosmos container %s successfully.", id, this.getName());

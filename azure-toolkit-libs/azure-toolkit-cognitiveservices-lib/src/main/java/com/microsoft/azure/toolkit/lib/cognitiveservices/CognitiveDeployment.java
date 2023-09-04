@@ -24,7 +24,7 @@ import java.util.Optional;
 
 public class CognitiveDeployment extends AbstractAzResource<CognitiveDeployment, CognitiveAccount, Deployment>
     implements Deletable {
-    public static final Action.Id<CognitiveDeployment> OPEN_DEPLOYMENT_IN_PLAYGROUND = Action.Id.of("user/cognitiveservices.open_playground.deployment");
+    public static final Action.Id<CognitiveDeployment> OPEN_DEPLOYMENT_IN_PLAYGROUND = Action.Id.of("user/openai.open_playground.deployment");
 
     protected CognitiveDeployment(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull CognitiveDeploymentModule module) {
         super(name, resourceGroupName, module);

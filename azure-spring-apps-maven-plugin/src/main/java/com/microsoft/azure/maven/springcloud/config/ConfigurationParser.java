@@ -9,6 +9,7 @@ import com.microsoft.azure.maven.springcloud.AbstractMojoBase;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudClusterConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
@@ -62,14 +63,14 @@ public class ConfigurationParser {
         final File artifact = MavenArtifactUtils.getExecutableJarFiles(artifacts);
         return SpringCloudDeploymentConfig.builder()
             .cpu(rawConfig.getCpu())
-            .deploymentName(rawConfig.getDeploymentName())
+            .deploymentName(Utils.emptyToNull(rawConfig.getDeploymentName()))
             .artifact(artifact != null ? IArtifact.fromFile(artifact) : null)
             .enablePersistentStorage(rawConfig.isEnablePersistentStorage())
-            .environment(rawConfig.getEnvironment())
+            .environment(Utils.emptyToNull(rawConfig.getEnvironment()))
             .capacity(rawConfig.getInstanceCount())
-            .jvmOptions(rawConfig.getJvmOptions())
+            .jvmOptions(Utils.emptyToNull(rawConfig.getJvmOptions()))
             .memoryInGB(rawConfig.getMemoryInGB())
-            .runtimeVersion(StringUtils.firstNonEmpty(rawConfig.getRuntimeVersion(), mojo.getRuntimeVersion()))
+            .runtimeVersion(Utils.emptyToNull(StringUtils.firstNonEmpty(rawConfig.getRuntimeVersion(), mojo.getRuntimeVersion())))
             .build();
     }
 
