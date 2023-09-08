@@ -12,6 +12,7 @@ import com.azure.storage.queue.QueueClient;
 import com.azure.storage.queue.QueueServiceClient;
 import com.azure.storage.queue.QueueServiceClientBuilder;
 import com.azure.storage.queue.models.QueuesSegmentOptions;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -43,7 +44,7 @@ public class QueueModule extends AbstractEmulatableAzResourceModule<Queue, Stora
     synchronized QueueServiceClient getQueueServiceClient() {
         if (Objects.isNull(this.client) && this.parent.exists()) {
             final String connectionString = this.parent.getConnectionString();
-            this.client = new QueueServiceClientBuilder().connectionString(connectionString).buildClient();
+            this.client = new QueueServiceClientBuilder().addPolicy(AbstractAzServiceSubscription.getUserAgentPolicy()).connectionString(connectionString).buildClient();
         }
         return this.client;
     }

@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import lombok.SneakyThrows;
 
@@ -48,6 +49,7 @@ public class RepositoryModule extends AbstractAzResourceModule<Repository, Conta
             this.client = new ContainerRegistryClientBuilder()
                 .endpoint(endpoint)
                 .audience(getAudience())
+                .addPolicy(AbstractAzServiceSubscription.getUserAgentPolicy())
                 .credential(account.getTokenCredential(this.getSubscriptionId()))
                 .buildClient();
         }
