@@ -9,6 +9,7 @@ import com.azure.cosmos.ConsistencyLevel;
 import com.azure.cosmos.CosmosClient;
 import com.azure.cosmos.CosmosClientBuilder;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccountModule;
@@ -96,6 +97,7 @@ public class SqlCosmosDBAccount extends CosmosDBAccount {
                     .key(connectionString.getKey())
                     .preferredRegions(Collections.singletonList(Objects.requireNonNull(this.getRegion()).getName()))
                     .consistencyLevel(ConsistencyLevel.EVENTUAL)
+                    .userAgentSuffix(Azure.az().config().getUserAgent())
                     .buildClient();
         } catch (Throwable e) {
             // swallow exception to load data client

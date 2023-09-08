@@ -5,11 +5,13 @@
 
 package com.microsoft.azure.toolkit.lib.storage.blob;
 
+import com.azure.core.http.policy.UserAgentPolicy;
 import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -40,7 +42,7 @@ public class BlobContainerModule extends AbstractEmulatableAzResourceModule<Blob
     synchronized BlobServiceClient getBlobServiceClient() {
         if (Objects.isNull(this.client) && this.parent.exists()) {
             final String connectionString = this.parent.getConnectionString();
-            this.client = new BlobServiceClientBuilder().connectionString(connectionString).buildClient();
+            this.client = new BlobServiceClientBuilder().addPolicy(new UserAgentPolicy(Azure.az().config().getUserAgent())).connectionString(connectionString).buildClient();
         }
         return this.client;
     }
