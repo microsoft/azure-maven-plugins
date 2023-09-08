@@ -27,7 +27,7 @@ public class AzureTelemetry {
         OP_START,
         OP_END,
         STEP,
-        INFO,
+        OP_INFO,
         WARNING,
         ERROR
     }
