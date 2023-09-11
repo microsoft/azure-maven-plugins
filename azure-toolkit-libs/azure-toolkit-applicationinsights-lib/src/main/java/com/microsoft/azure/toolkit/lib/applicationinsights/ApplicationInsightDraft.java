@@ -36,8 +36,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
 
     private static final String REGION_IS_REQUIRED = "'region' is required to create Application Insights.";
     private static final String START_CREATING_APPLICATION_INSIGHT = "Start creating Application Insights ({0})...";
-    private static final String APPLICATION_INSIGHTS_CREATED = "Application Insights ({0}) is successfully created. " +
-        "You can visit {1} to view your Application Insights component.";
+    private static final String APPLICATION_INSIGHTS_CREATED = "Application Insights ({0}) is successfully created.";
 
     @Setter
     @Nullable
@@ -83,7 +82,9 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
             .withWorkspaceResourceId(workspaceResourceId)
             .withApplicationType(ApplicationType.WEB).create();
         final Action<AzResource> connect = AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE).bind(this);
-        messager.success(AzureString.format(APPLICATION_INSIGHTS_CREATED, getName(), getPortalUrl()), connect);
+        final Action<ApplicationInsight> liveMetrics = AzureActionManager.getInstance().getAction(OPEN_LIVE_METRICS).bind(this);
+        final Action<ApplicationInsight> copyConnectionString = AzureActionManager.getInstance().getAction(COPY_CONNECTION_STRING).bind(this);
+        messager.success(AzureString.format(APPLICATION_INSIGHTS_CREATED, getName(), getPortalUrl()), connect, copyConnectionString, liveMetrics);
         return result;
     }
 
