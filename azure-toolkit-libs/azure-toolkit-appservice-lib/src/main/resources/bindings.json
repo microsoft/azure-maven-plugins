@@ -528,9 +528,9 @@
       ]
     },
     {
-      "type": "daprBindingTrigger",
-      "displayName": "$daprBindingTrigger_displayName",
-      "direction": "trigger",
+      "type": "daprPublish",
+      "displayName": "$daprPublishOutput_displayName",
+      "direction": "out",
       "enabledInTryMode": true,
       "settings": [
         

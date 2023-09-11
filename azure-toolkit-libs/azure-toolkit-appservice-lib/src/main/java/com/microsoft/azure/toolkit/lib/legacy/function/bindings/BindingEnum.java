@@ -32,7 +32,7 @@ public enum BindingEnum {
     ServiceBusTopicOutput("serviceBus", Direction.OUT),
     SqlInput("sql", Direction.IN),
     SqlOutput("sql", Direction.OUT),
-    DaprBindingTrigger("daprBindingTrigger", Direction.IN),
+    DaprPublishOutput("daprPublish", Direction.OUT),
     DaprServiceInvocationTrigger("daprServiceInvocationTrigger", Direction.IN),
     DaprTopicTrigger("daprTopicTrigger", Direction.IN),
     TableInput("table", Direction.IN, true),
