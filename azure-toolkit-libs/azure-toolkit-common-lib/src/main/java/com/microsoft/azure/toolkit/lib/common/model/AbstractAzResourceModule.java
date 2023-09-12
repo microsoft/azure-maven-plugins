@@ -21,7 +21,10 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.Operation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import com.microsoft.azure.toolkit.lib.resource.GenericResource;
@@ -62,6 +65,10 @@ import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource.isNotFoundException;
 import static com.microsoft.azure.toolkit.lib.common.model.AzResource.RESOURCE_GROUP_PLACEHOLDER;
+import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.OPERATION_NAME;
+import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.OP_NAME;
+import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.OP_TYPE;
+import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.SERVICE_NAME;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -145,6 +152,18 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         try {
             log.debug("[{}]:reloadResources->loadResourcePagesFromAzure()", this.name);
             final Map<String, R> loadedResources = getResourcesFromAzure();
+
+            final Map<String, String> properties = new HashMap<>();
+            final String service = this.getServiceNameForTelemetry();
+            properties.put(SERVICE_NAME, service);
+            properties.put(OPERATION_NAME, "count_resources");
+            properties.put(OP_NAME, service + ".count_resources");
+            properties.put(OP_TYPE, Operation.Type.AZURE);
+            properties.put("resourceType", this.getFullResourceType());
+            properties.put("subscriptionId", this.getSubscriptionId());
+            properties.put("count", loadedResources.size() + "");
+            AzureTelemeter.log(AzureTelemetry.Type.OP_END, properties);
+
             log.debug("[{}]:reloadResources->setResources(xxx)", this.name);
             this.setResources(loadedResources);
         } catch (final Exception e) {
