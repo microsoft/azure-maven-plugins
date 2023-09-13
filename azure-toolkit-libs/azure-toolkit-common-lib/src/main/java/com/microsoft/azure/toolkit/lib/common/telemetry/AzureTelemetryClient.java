@@ -6,14 +6,14 @@
 package com.microsoft.azure.toolkit.lib.common.telemetry;
 
 import com.microsoft.applicationinsights.TelemetryClient;
+import com.microsoft.azure.toolkit.lib.Azure;
 import lombok.Getter;
-import lombok.Setter;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -44,20 +44,17 @@ public class AzureTelemetryClient {
         put(GOOGLE_API_KEY, "<REDACTED: Google API Key>");
     }};
 
-    private final TelemetryClient client;
-    @Setter
-    private Map<String, String> defaultProperties;
-    private boolean isEnabled = true;     // Telemetry is enabled by default.
+    @Nonnull
+    private final TelemetryClient client = new TelemetryClient();
+    @Nonnull
+    private final Map<String, String> defaultProperties = new HashMap<String, String>() {
+        {
+            put(ARCH_KEY, System.getProperty("os.arch"));
+            put(JDK_KEY, System.getProperty("java.version"));
+        }
+    };
 
     public AzureTelemetryClient() {
-        this(Collections.emptyMap());
-    }
-
-    public AzureTelemetryClient(@Nonnull final Map<String, String> defaultProperties) {
-        this.client = new TelemetryClient();
-        this.defaultProperties = new HashMap<>();
-        initDefaultProperties();
-        this.defaultProperties.putAll(defaultProperties);
     }
 
     public void addDefaultProperty(@Nonnull String key, @Nonnull String value) {
@@ -67,12 +64,12 @@ public class AzureTelemetryClient {
         defaultProperties.put(key, value);
     }
 
-    public void enable() {
-        this.isEnabled = true;
+    public void addDefaultProperties(@Nonnull Map<String, String> properties) {
+        defaultProperties.putAll(properties);
     }
 
-    public void disable() {
-        this.isEnabled = false;
+    public boolean isEnabled() {
+        return BooleanUtils.isNotFalse(Azure.az().config().getTelemetryEnabled());
     }
 
     public void trackEvent(@Nonnull final String eventName) {
@@ -135,10 +132,5 @@ public class AzureTelemetryClient {
             }
         }
         return result;
-    }
-
-    private void initDefaultProperties() {
-        this.addDefaultProperty(ARCH_KEY, System.getProperty("os.arch"));
-        this.addDefaultProperty(JDK_KEY, System.getProperty("java.version"));
     }
 }

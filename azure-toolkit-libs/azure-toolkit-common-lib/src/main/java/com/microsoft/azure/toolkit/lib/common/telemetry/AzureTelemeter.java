@@ -49,17 +49,15 @@ public class AzureTelemeter {
     @Nullable
     private static String eventNamePrefix;
     @Getter
-    @Setter
-    @Nullable
-    private static AzureTelemetryClient client;
+    @Nonnull
+    private static final AzureTelemetryClient client = new AzureTelemetryClient();
 
-    @Nullable
-    public static Map<String, String> getCommonProperties() {
-        return Optional.ofNullable(client).map(AzureTelemetryClient::getDefaultProperties).orElse(null);
+    public static void addCommonProperties(@Nonnull Map<String, String> commonProperties) {
+        client.addDefaultProperties(commonProperties);
     }
 
-    public static void setCommonProperties(@Nullable Map<String, String> commonProperties) {
-        Optional.ofNullable(client).ifPresent(client -> client.setDefaultProperties(commonProperties));
+    public static void addCommonProperty(@Nonnull String key, @Nonnull String value) {
+        client.addDefaultProperty(key, value);
     }
 
     public static void afterCreate(@Nonnull final Operation op) {
@@ -96,8 +94,7 @@ public class AzureTelemeter {
     }
 
     public static void log(final AzureTelemetry.Type type, final Map<String, String> properties) {
-        if (client != null && !StringUtils.equals(properties.get(OP_NAME), Operation.UNKNOWN_NAME)) {
-            properties.putAll(Optional.ofNullable(getCommonProperties()).orElse(new HashMap<>()));
+        if (!StringUtils.equals(properties.get(OP_NAME), Operation.UNKNOWN_NAME)) {
             final String eventName = Optional.ofNullable(getEventNamePrefix()).orElse("AzurePlugin") + "/" + type.getName();
             client.trackEvent(eventName, properties, null);
         }
