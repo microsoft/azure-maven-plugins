@@ -98,7 +98,7 @@ public class AzureTelemeter {
     public static void log(final AzureTelemetry.Type type, final Map<String, String> properties) {
         if (client != null && !StringUtils.equals(properties.get(OP_NAME), Operation.UNKNOWN_NAME)) {
             properties.putAll(Optional.ofNullable(getCommonProperties()).orElse(new HashMap<>()));
-            final String eventName = Optional.ofNullable(getEventNamePrefix()).orElse("AzurePlugin") + "/" + type.name();
+            final String eventName = Optional.ofNullable(getEventNamePrefix()).orElse("AzurePlugin") + "/" + type.getName();
             client.trackEvent(eventName, properties, null);
         }
     }

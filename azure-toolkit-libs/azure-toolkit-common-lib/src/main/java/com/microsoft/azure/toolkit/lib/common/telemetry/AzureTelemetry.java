@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.telemetry;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -24,12 +25,19 @@ public class AzureTelemetry {
     public static final String OP_EXIT_AT = "op_exit_at";
 
     public enum Type {
-        OP_START,
-        OP_END,
-        STEP,
-        INFO,
-        WARNING,
-        ERROR
+        OP_START("OP_START"),
+        OP_END("OP_END"),
+        STEP("STEP"),
+        INFO("INFORMATION"),
+        WARNING("WARNING"),
+        ERROR("ERROR");
+
+        @Getter
+        private final String name;
+
+        Type(final String name) {
+            this.name = name;
+        }
     }
 
     @Retention(RetentionPolicy.RUNTIME)
