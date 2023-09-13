@@ -310,6 +310,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             Azure.az().config().setUserAgent(getUserAgent());
             Azure.az().config().setProduct(getPluginName());
             Azure.az().config().setVersion(getPluginVersion());
+            Azure.az().config().setTelemetryEnabled(BooleanUtils.isNotFalse(allowTelemetry));
             // init proxy manager
             initMavenSettingsProxy(Optional.ofNullable(this.session).map(MavenSession::getRequest).orElse(null));
             ProxyManager.getInstance().applyProxy();
@@ -469,12 +470,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
 
     protected void initTelemetryProxy() {
         final Map<String, String> properties = getTelemetryProperties();
-        telemetryProxy = new AzureTelemetryClient(properties);
-        AzureTelemeter.setClient(telemetryProxy);
+        AzureTelemeter.addCommonProperties(properties);
         AzureTelemeter.setEventNamePrefix("AzurePlugin.Maven");
         if (!BooleanUtils.isNotFalse(allowTelemetry)) {
             telemetryProxy.trackEvent(TELEMETRY_NOT_ALLOWED);
-            telemetryProxy.disable();
         }
     }
 
