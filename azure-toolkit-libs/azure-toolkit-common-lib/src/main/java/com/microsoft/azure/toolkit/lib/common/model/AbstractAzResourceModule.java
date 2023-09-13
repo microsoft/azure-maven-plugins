@@ -152,18 +152,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         try {
             log.debug("[{}]:reloadResources->loadResourcePagesFromAzure()", this.name);
             final Map<String, R> loadedResources = getResourcesFromAzure();
-
-            final Map<String, String> properties = new HashMap<>();
-            final String service = this.getServiceNameForTelemetry();
-            properties.put(SERVICE_NAME, service);
-            properties.put(OPERATION_NAME, "count_resources");
-            properties.put(OP_NAME, service + ".count_resources");
-            properties.put(OP_TYPE, Operation.Type.AZURE);
-            properties.put("resourceType", this.getFullResourceType());
-            properties.put("subscriptionId", this.getSubscriptionId());
-            properties.put("count", loadedResources.size() + "");
-            AzureTelemeter.log(AzureTelemetry.Type.OP_END, properties);
-
+            this.telemeterResourceCount(loadedResources);
             log.debug("[{}]:reloadResources->setResources(xxx)", this.name);
             this.setResources(loadedResources);
         } catch (final Exception e) {
@@ -178,6 +167,19 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
                 throw e;
             }
         }
+    }
+
+    private void telemeterResourceCount(final Map<String, R> loadedResources) {
+        final Map<String, String> properties = new HashMap<>();
+        final String service = this.getServiceNameForTelemetry();
+        properties.put(SERVICE_NAME, service);
+        properties.put(OPERATION_NAME, "count_resources");
+        properties.put(OP_NAME, service + ".count_resources");
+        properties.put(OP_TYPE, Operation.Type.AZURE);
+        properties.put("resourceType", this.getFullResourceType());
+        properties.put("subscriptionId", this.getSubscriptionId());
+        properties.put("count", loadedResources.size() + "");
+        AzureTelemeter.log(AzureTelemetry.Type.INFO, properties);
     }
 
     protected Map<String, R> getResourcesFromAzure() {
