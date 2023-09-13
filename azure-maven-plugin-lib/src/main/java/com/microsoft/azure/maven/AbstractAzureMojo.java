@@ -471,6 +471,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     protected void initTelemetryProxy() {
         final Map<String, String> properties = getTelemetryProperties();
         AzureTelemeter.addCommonProperties(properties);
+        this.telemetryProxy = AzureTelemeter.getClient();
         AzureTelemeter.setEventNamePrefix("AzurePlugin.Maven");
         if (!BooleanUtils.isNotFalse(allowTelemetry)) {
             telemetryProxy.trackEvent(TELEMETRY_NOT_ALLOWED);

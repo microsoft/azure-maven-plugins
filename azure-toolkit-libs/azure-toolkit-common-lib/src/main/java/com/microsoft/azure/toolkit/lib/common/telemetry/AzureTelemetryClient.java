@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.telemetry;
 import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.azure.toolkit.lib.Azure;
 import lombok.Getter;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -68,7 +69,7 @@ public class AzureTelemetryClient {
     }
 
     public boolean isEnabled() {
-        return Azure.az().config().getTelemetryEnabled();
+        return BooleanUtils.isNotFalse(Azure.az().config().getTelemetryEnabled());
     }
 
     public void trackEvent(@Nonnull final String eventName) {

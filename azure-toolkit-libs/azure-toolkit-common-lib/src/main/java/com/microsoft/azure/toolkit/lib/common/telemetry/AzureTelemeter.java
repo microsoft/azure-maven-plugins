@@ -48,6 +48,7 @@ public class AzureTelemeter {
     @Setter
     @Nullable
     private static String eventNamePrefix;
+    @Getter
     @Nonnull
     private static final AzureTelemetryClient client = new AzureTelemetryClient();
 
