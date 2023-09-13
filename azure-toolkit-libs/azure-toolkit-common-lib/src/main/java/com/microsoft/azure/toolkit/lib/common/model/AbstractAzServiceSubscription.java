@@ -10,6 +10,7 @@ import com.azure.core.http.ProxyOptions;
 import com.azure.core.http.netty.NettyAsyncHttpClientBuilder;
 import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpPipelinePolicy;
+import com.azure.core.http.policy.UserAgentPolicy;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.resources.ResourceManager;
 import com.azure.resourcemanager.resources.fluentcore.policy.ProviderRegistrationPolicy;
@@ -105,12 +106,14 @@ public abstract class AbstractAzServiceSubscription<T extends AbstractAzResource
     }
 
     @Nonnull
+    @Deprecated
     public static HttpPipelinePolicy getUserAgentPolicy(@Nonnull String userAgent) {
-        return (httpPipelineCallContext, httpPipelineNextPolicy) -> {
-            final String previousUserAgent = httpPipelineCallContext.getHttpRequest().getHeaders().getValue("User-Agent");
-            httpPipelineCallContext.getHttpRequest().setHeader("User-Agent", String.format("%s %s", userAgent, previousUserAgent));
-            return httpPipelineNextPolicy.process();
-        };
+        return new UserAgentPolicy(userAgent);
+    }
+
+    @Nonnull
+    public static HttpPipelinePolicy getUserAgentPolicy() {
+        return new UserAgentPolicy(Azure.az().config().getUserAgent());
     }
 
     public static class HttpClientHolder {

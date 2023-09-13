@@ -18,10 +18,10 @@ import com.microsoft.azure.toolkit.lib.cognitiveservices.model.AccountSku;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -99,6 +99,7 @@ public class CognitiveAccount extends AbstractAzResource<CognitiveAccount, Cogni
     @Nonnull
     public OpenAIClient getOpenAIClient() {
         return new OpenAIClientBuilder()
+            .addPolicy(AbstractAzServiceSubscription.getUserAgentPolicy())
             .credential(new AzureKeyCredential(Objects.requireNonNull(this.getPrimaryKey(), String.format("Failed to get primary key for account %s", getName()))))
             .endpoint(getEndpoint())
             .buildClient();
