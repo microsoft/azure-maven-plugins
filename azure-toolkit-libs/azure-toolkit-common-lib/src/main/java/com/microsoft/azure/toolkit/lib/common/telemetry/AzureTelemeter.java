@@ -5,9 +5,11 @@
 
 package com.microsoft.azure.toolkit.lib.common.telemetry;
 
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.operation.MethodOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
+import com.microsoft.azure.toolkit.lib.common.operation.SimpleOperation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Properties;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Property;
 import lombok.Getter;
@@ -78,6 +80,14 @@ public class AzureTelemeter {
         AzureTelemeter.log(AzureTelemetry.Type.ERROR, serialize(op), error);
     }
 
+    public static void log(final AzureTelemetry.Type type, final AzureString op) {
+        AzureTelemeter.log(type, serialize(new SimpleOperation(op, () -> null, null)));
+    }
+
+    public static void log(final AzureTelemetry.Type type, final AzureString op, final Throwable e) {
+        AzureTelemeter.log(type, serialize(new SimpleOperation(op, () -> null, null)), e);
+    }
+
     public static void log(final AzureTelemetry.Type type, final Map<String, String> properties, final Throwable e) {
         if (Objects.nonNull(e)) {
             properties.putAll(serialize(e));
@@ -88,7 +98,7 @@ public class AzureTelemeter {
     public static void log(final AzureTelemetry.Type type, final Map<String, String> properties) {
         if (client != null && !StringUtils.equals(properties.get(OP_NAME), Operation.UNKNOWN_NAME)) {
             properties.putAll(Optional.ofNullable(getCommonProperties()).orElse(new HashMap<>()));
-            final String eventName = Optional.ofNullable(getEventNamePrefix()).orElse("AzurePlugin") + "/" + type.name();
+            final String eventName = Optional.ofNullable(getEventNamePrefix()).orElse("AzurePlugin") + "/" + type.getName();
             client.trackEvent(eventName, properties, null);
         }
     }
