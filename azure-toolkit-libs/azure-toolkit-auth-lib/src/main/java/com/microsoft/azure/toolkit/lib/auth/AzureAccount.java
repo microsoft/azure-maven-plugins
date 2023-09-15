@@ -94,7 +94,7 @@ public class AzureAccount implements IAzureAccount {
         final AzureEnvironment env = Azure.az(AzureCloud.class).getOrDefault();
         final AzureEnvironment configEnv = AzureEnvironmentUtils.stringToAzureEnvironment(config.getEnvironment());
         if (Objects.nonNull(configEnv) && env != configEnv) {
-            String msg = String.format("you have switched to Azure Cloud '%s' since the last time you signed in.", AzureEnvironmentUtils.getCloudName(env));
+            final String msg = String.format("you have switched to Azure Cloud '%s' since the last time you signed in.", AzureEnvironmentUtils.getCloudName(env));
             this.logout();
             throw new AzureToolkitAuthenticationException(msg);
         }
@@ -125,7 +125,8 @@ public class AzureAccount implements IAzureAccount {
         AzureEventBus.emit("account.logging_in.type", account.getType());
         try {
             account.login();
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
+            this.accountRef = null;
             AzureEventBus.emit("account.failed_logging_in.type", account.getType());
             final Throwable rootCause = ExceptionUtils.getRootCause(t);
             if (rootCause instanceof UnsatisfiedLinkError || rootCause instanceof NoClassDefFoundError) {
