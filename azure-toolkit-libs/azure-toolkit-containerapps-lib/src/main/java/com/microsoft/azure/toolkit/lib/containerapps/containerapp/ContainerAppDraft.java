@@ -98,8 +98,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
             .create();
         final Action<ContainerApp> updateImage = AzureActionManager.getInstance().getAction(ContainerApp.UPDATE_IMAGE).bind(this);
         final Action<ContainerApp> browse = AzureActionManager.getInstance().getAction(ContainerApp.BROWSE).bind(this);
-        final Action<Object> create = AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE).bind(this).withLabel("Create app");
-        AzureMessager.getMessager().success(AzureString.format("Azure Container App({0}) is successfully created.", this.getName()), browse, updateImage, create);
+        AzureMessager.getMessager().success(AzureString.format("Azure Container App({0}) is successfully created.", this.getName()), browse, updateImage);
         return result;
     }
 
@@ -203,6 +202,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         return update.withTemplate(origin.template().withContainers(getContainers(config)));
     }
 
+    @Nullable
     private static Secret getSecret(final ImageConfig config) {
         final ContainerRegistry registry = config.getContainerRegistry();
         if (Objects.nonNull(registry)) {
@@ -214,6 +214,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         return null;
     }
 
+    @Nullable
     private static RegistryCredentials getRegistryCredential(final ImageConfig config) {
         final ContainerRegistry registry = config.getContainerRegistry();
         if (Objects.nonNull(registry)) {
