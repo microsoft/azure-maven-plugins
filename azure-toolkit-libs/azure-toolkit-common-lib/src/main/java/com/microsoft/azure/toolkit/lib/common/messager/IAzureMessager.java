@@ -23,6 +23,10 @@ public interface IAzureMessager {
         this.show(this.buildMessage(IAzureMessage.Type.SUCCESS, AzureString.fromString(message), null, actions, null));
     }
 
+    default IAzureMessage buildSuccessMessage(@Nonnull String message, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.SUCCESS, AzureString.fromString(message), null, actions, null);
+    }
+
     /**
      * @param actions array of action id or
      *                {@link com.microsoft.azure.toolkit.lib.common.action.Action} or
@@ -30,6 +34,10 @@ public interface IAzureMessager {
      */
     default void success(@Nonnull String message, String title, Object... actions) {
         this.show(this.buildMessage(IAzureMessage.Type.SUCCESS, AzureString.fromString(message), title, actions, null));
+    }
+
+    default IAzureMessage buildSuccessMessage(@Nonnull String message, String title, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.SUCCESS, AzureString.fromString(message), title, actions, null);
     }
 
     /**
@@ -41,6 +49,10 @@ public interface IAzureMessager {
         this.show(this.buildMessage(IAzureMessage.Type.SUCCESS, message, null, actions, null));
     }
 
+    default IAzureMessage buildSuccessMessage(@Nonnull AzureString message, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.SUCCESS, message, null, actions, null);
+    }
+
     /**
      * @param actions array of action id or
      *                {@link com.microsoft.azure.toolkit.lib.common.action.Action} or
@@ -48,6 +60,10 @@ public interface IAzureMessager {
      */
     default void success(@Nonnull AzureString message, String title, Object... actions) {
         this.show(this.buildMessage(IAzureMessage.Type.SUCCESS, message, title, actions, null));
+    }
+
+    default IAzureMessage buildSuccessMessage(@Nonnull AzureString message, String title, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.SUCCESS, message, title, actions, null);
     }
 
     /**
@@ -59,6 +75,10 @@ public interface IAzureMessager {
         this.show(this.buildMessage(IAzureMessage.Type.INFO, AzureString.fromString(message), null, actions, null));
     }
 
+    default IAzureMessage buildInfoMessage(@Nonnull String message, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.INFO, AzureString.fromString(message), null, actions, null);
+    }
+
     /**
      * @param actions array of action id or
      *                {@link com.microsoft.azure.toolkit.lib.common.action.Action} or
@@ -66,6 +86,10 @@ public interface IAzureMessager {
      */
     default void info(@Nonnull String message, String title, Object... actions) {
         this.show(this.buildMessage(IAzureMessage.Type.INFO, AzureString.fromString(message), title, actions, null));
+    }
+
+    default IAzureMessage buildInfoMessage(@Nonnull String message, String title, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.INFO, AzureString.fromString(message), title, actions, null);
     }
 
     /**
@@ -77,6 +101,10 @@ public interface IAzureMessager {
         this.show(this.buildMessage(IAzureMessage.Type.INFO, message, null, actions, null));
     }
 
+    default IAzureMessage buildInfoMessage(@Nonnull AzureString message, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.INFO, message, null, actions, null);
+    }
+
     /**
      * @param actions array of action id or
      *                {@link com.microsoft.azure.toolkit.lib.common.action.Action} or
@@ -84,6 +112,10 @@ public interface IAzureMessager {
      */
     default void info(@Nonnull AzureString message, String title, Object... actions) {
         this.show(this.buildMessage(IAzureMessage.Type.INFO, message, title, actions, null));
+    }
+
+    default IAzureMessage buildInfoMessage(@Nonnull AzureString message, String title, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.INFO, message, title, actions, null);
     }
 
     /**
@@ -95,6 +127,10 @@ public interface IAzureMessager {
         this.show(this.buildMessage(IAzureMessage.Type.WARNING, AzureString.fromString(message), null, actions, null));
     }
 
+    default IAzureMessage buildWarningMessage(@Nonnull String message, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.WARNING, AzureString.fromString(message), null, actions, null);
+    }
+
     /**
      * @param actions array of action id or
      *                {@link com.microsoft.azure.toolkit.lib.common.action.Action} or
@@ -102,6 +138,10 @@ public interface IAzureMessager {
      */
     default void warning(@Nonnull String message, String title, Object... actions) {
         this.show(this.buildMessage(IAzureMessage.Type.WARNING, AzureString.fromString(message), title, actions, null));
+    }
+
+    default IAzureMessage buildWarningMessage(@Nonnull String message, String title, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.WARNING, AzureString.fromString(message), title, actions, null);
     }
 
     /**
@@ -113,6 +153,10 @@ public interface IAzureMessager {
         this.show(this.buildMessage(IAzureMessage.Type.WARNING, message, null, actions, null));
     }
 
+    default IAzureMessage buildWarningMessage(@Nonnull AzureString message, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.WARNING, message, null, actions, null);
+    }
+
     /**
      * @param actions array of action id or
      *                {@link com.microsoft.azure.toolkit.lib.common.action.Action} or
@@ -120,6 +164,10 @@ public interface IAzureMessager {
      */
     default void warning(@Nonnull AzureString message, String title, Object... actions) {
         this.show(this.buildMessage(IAzureMessage.Type.WARNING, message, title, actions, null));
+    }
+
+    default IAzureMessage buildWarningMessage(@Nonnull AzureString message, String title, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.WARNING, message, title, actions, null);
     }
 
     /**
@@ -131,6 +179,10 @@ public interface IAzureMessager {
         this.show(this.buildMessage(IAzureMessage.Type.ERROR, AzureString.fromString(message), null, actions, null));
     }
 
+    default IAzureMessage buildErrorMessage(@Nonnull String message, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.ERROR, AzureString.fromString(message), null, actions, null);
+    }
+
     /**
      * @param actions array of action id or
      *                {@link com.microsoft.azure.toolkit.lib.common.action.Action} or
@@ -138,6 +190,10 @@ public interface IAzureMessager {
      */
     default void error(@Nonnull String message, String title, Object... actions) {
         this.show(this.buildMessage(IAzureMessage.Type.ERROR, AzureString.fromString(message), title, actions, null));
+    }
+
+    default IAzureMessage buildErrorMessage(@Nonnull String message, String title, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.ERROR, AzureString.fromString(message), title, actions, null);
     }
 
     /**
@@ -149,6 +205,10 @@ public interface IAzureMessager {
         this.show(this.buildMessage(IAzureMessage.Type.ERROR, message, null, actions, null));
     }
 
+    default IAzureMessage buildErrorMessage(@Nonnull AzureString message, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.ERROR, message, null, actions, null);
+    }
+
     /**
      * @param actions array of action id or
      *                {@link com.microsoft.azure.toolkit.lib.common.action.Action} or
@@ -156,6 +216,10 @@ public interface IAzureMessager {
      */
     default void error(@Nonnull AzureString message, String title, Object... actions) {
         this.show(this.buildMessage(IAzureMessage.Type.ERROR, message, title, actions, null));
+    }
+
+    default IAzureMessage buildErrorMessage(@Nonnull AzureString message, String title, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.ERROR, message, title, actions, null);
     }
 
     /**
@@ -168,6 +232,11 @@ public interface IAzureMessager {
         this.show(this.buildMessage(IAzureMessage.Type.ERROR, AzureString.fromString(message), null, actions, throwable));
     }
 
+    default IAzureMessage buildErrorMessage(@Nonnull Throwable throwable, Object... actions) {
+        final String message = Optional.ofNullable(throwable.getMessage()).orElse(throwable.getClass().getSimpleName());
+        return this.buildMessage(IAzureMessage.Type.ERROR, AzureString.fromString(message), null, actions, throwable);
+    }
+
     /**
      * @param actions array of action id or
      *                {@link com.microsoft.azure.toolkit.lib.common.action.Action} or
@@ -176,6 +245,11 @@ public interface IAzureMessager {
     default void error(@Nonnull Throwable throwable, String title, Object... actions) {
         final String message = Optional.ofNullable(throwable.getMessage()).orElse(throwable.getClass().getSimpleName());
         this.show(this.buildMessage(IAzureMessage.Type.ERROR, AzureString.fromString(message), title, actions, throwable));
+    }
+
+    default IAzureMessage buildErrorMessage(@Nonnull Throwable throwable, String title, Object... actions) {
+        final String message = Optional.ofNullable(throwable.getMessage()).orElse(throwable.getClass().getSimpleName());
+        return this.buildMessage(IAzureMessage.Type.ERROR, AzureString.fromString(message), title, actions, throwable);
     }
 
     /**
@@ -187,6 +261,10 @@ public interface IAzureMessager {
         this.show(this.buildMessage(IAzureMessage.Type.DEBUG, AzureString.fromString(message), null, actions, null));
     }
 
+    default IAzureMessage buildDebugMessage(@Nonnull String message, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.DEBUG, AzureString.fromString(message), null, actions, null);
+    }
+
     /**
      * @param actions array of action id or
      *                {@link com.microsoft.azure.toolkit.lib.common.action.Action} or
@@ -194,6 +272,10 @@ public interface IAzureMessager {
      */
     default void debug(@Nonnull String message, String title, Object... actions) {
         this.show(this.buildMessage(IAzureMessage.Type.DEBUG, AzureString.fromString(message), title, actions, null));
+    }
+
+    default IAzureMessage buildDebugMessage(@Nonnull String message, String title, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.DEBUG, AzureString.fromString(message), title, actions, null);
     }
 
     /**
@@ -205,6 +287,10 @@ public interface IAzureMessager {
         this.show(this.buildMessage(IAzureMessage.Type.DEBUG, message, null, actions, null));
     }
 
+    default IAzureMessage buildDebugMessage(@Nonnull AzureString message, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.DEBUG, message, null, actions, null);
+    }
+
     /**
      * @param actions array of action id or
      *                {@link com.microsoft.azure.toolkit.lib.common.action.Action} or
@@ -214,20 +300,40 @@ public interface IAzureMessager {
         this.show(this.buildMessage(IAzureMessage.Type.DEBUG, message, title, actions, null));
     }
 
+    default IAzureMessage buildDebugMessage(@Nonnull AzureString message, String title, Object... actions) {
+        return this.buildMessage(IAzureMessage.Type.DEBUG, message, title, actions, null);
+    }
+
     default boolean confirm(@Nonnull String message, String title) {
         return this.show(this.buildMessage(IAzureMessage.Type.CONFIRM, AzureString.fromString(message), title, null, null));
+    }
+
+    default IAzureMessage buildConfirmMessage(@Nonnull String message, String title) {
+        return this.buildMessage(IAzureMessage.Type.CONFIRM, AzureString.fromString(message), title, null, null);
     }
 
     default boolean confirm(@Nonnull AzureString message, String title) {
         return this.show(this.buildMessage(IAzureMessage.Type.CONFIRM, message, title, null, null));
     }
 
+    default IAzureMessage buildConfirmMessage(@Nonnull AzureString message, String title) {
+        return this.buildMessage(IAzureMessage.Type.CONFIRM, message, title, null, null);
+    }
+
     default void alert(@Nonnull String message, String title) {
         this.show(this.buildMessage(IAzureMessage.Type.ALERT, AzureString.fromString(message), title, null, null));
     }
 
+    default IAzureMessage buildAlertMessage(@Nonnull String message, String title) {
+        return this.buildMessage(IAzureMessage.Type.ALERT, AzureString.fromString(message), title, null, null);
+    }
+
     default void alert(@Nonnull AzureString message, String title) {
         this.show(this.buildMessage(IAzureMessage.Type.ALERT, message, title, null, null));
+    }
+
+    default IAzureMessage buildAlertMessage(@Nonnull AzureString message, String title) {
+        return this.buildMessage(IAzureMessage.Type.ALERT, message, title, null, null);
     }
 
     default boolean confirm(@Nonnull String message) {
@@ -290,7 +396,7 @@ public interface IAzureMessager {
         this.debug(message, (Object[]) null);
     }
 
-    default IAzureMessage buildMessage(@Nonnull IAzureMessage.Type type, @Nonnull AzureString content,
+    default AzureMessage buildMessage(@Nonnull IAzureMessage.Type type, @Nonnull AzureString content,
                                        @Nullable String title, @Nullable Object[] actions, @Nullable Object payload) {
         final AzureMessage message = new AzureMessage(type, content).setPayload(payload).setActions(actions).setTitle(title);
         if (this instanceof IAzureMessage.ValueDecorator) {
