@@ -6,37 +6,59 @@
 package com.microsoft.azure.toolkit.lib.common.messager;
 
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
-import java.util.Optional;
+import javax.annotation.Nullable;
+import java.util.Iterator;
+import java.util.ServiceLoader;
 
-public abstract class AzureMessager implements IAzureMessager {
+public abstract class AzureMessager {
     private static IAzureMessager defaultMessager;
 
-    public static synchronized void setDefaultMessager(@Nonnull IAzureMessager messager) {
-        if (AzureMessager.defaultMessager == null) { // not allow overwriting...
-            AzureMessager.defaultMessager = messager;
+    @Nonnull
+    public static IAzureMessager getDefaultMessager() {
+        if (defaultMessager == null) {
+            synchronized (AzureTaskManager.class) {
+                if (defaultMessager == null) {
+                    defaultMessager = loadMessager();
+                    if (defaultMessager == null) {
+                        defaultMessager = new DummyMessager();
+                    }
+                }
+            }
+        }
+        return defaultMessager;
+    }
+
+    @Nullable
+    private static IAzureMessager loadMessager() {
+        final ClassLoader current = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(AzureMessager.class.getClassLoader());
+            // don't use "IAzureMessager" as SPI interface to be compatible with IntelliJ's "Service" mechanism.
+            final ServiceLoader<AzureMessagerProvider> loader = ServiceLoader.load(AzureMessagerProvider.class, AzureMessager.class.getClassLoader());
+            final Iterator<AzureMessagerProvider> iterator = loader.iterator();
+            if (iterator.hasNext()) {
+                return iterator.next().getMessager();
+            }
+            return null;
+        } finally {
+            Thread.currentThread().setContextClassLoader(current);
         }
     }
 
     @Nonnull
-    public static IAzureMessager getDefaultMessager() {
-        return Optional.ofNullable(AzureMessager.defaultMessager)
-            .orElse(new DummyMessager());
-    }
-
-    @Nonnull
     public static IAzureMessager getMessager() {
-        return Optional.ofNullable(OperationContext.current()).map(OperationContext::getMessager)
-            .orElseGet(AzureMessager::getDefaultMessager);
+        return OperationContext.current().getMessager();
     }
 
     @Slf4j
     public static class DummyMessager implements IAzureMessager {
         @Override
         public boolean show(IAzureMessage message) {
-            log.info("DUMMY MESSAGE:{}", message);
+            log.info(message.getContent());
             return false;
         }
     }

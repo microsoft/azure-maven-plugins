@@ -10,7 +10,12 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationAspect;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationThreadContext;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
+import javax.annotation.Nullable;
+import java.util.Iterator;
+import java.util.ServiceLoader;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
@@ -19,17 +24,37 @@ import static com.microsoft.azure.toolkit.lib.common.operation.Operation.UNKNOWN
 
 @Slf4j
 public abstract class AzureTaskManager {
-
     private static AzureTaskManager instance;
 
-    public static synchronized void register(AzureTaskManager manager) {
-        if (AzureTaskManager.instance == null) {
-            AzureTaskManager.instance = manager;
+    public static AzureTaskManager getInstance() {
+        if (instance == null) {
+            synchronized (AzureTaskManager.class) {
+                if (instance == null) {
+                    instance = AzureTaskManager.loadTaskManager();
+                    if (instance == null) {
+                        instance = new DummyTaskManager();
+                    }
+                }
+            }
         }
+        return AzureTaskManager.instance;
     }
 
-    public static AzureTaskManager getInstance() {
-        return AzureTaskManager.instance;
+    @Nullable
+    private static AzureTaskManager loadTaskManager() {
+        final ClassLoader current = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(AzureTaskManager.class.getClassLoader());
+            // don't use "IAzureMessager" as SPI interface to be compatible with IntelliJ's "Service" mechanism.
+            final ServiceLoader<AzureTaskManagerProvider> loader = ServiceLoader.load(AzureTaskManagerProvider.class, AzureTaskManager.class.getClassLoader());
+            final Iterator<AzureTaskManagerProvider> iterator = loader.iterator();
+            if (iterator.hasNext()) {
+                return iterator.next().getTaskManager();
+            }
+            return null;
+        } finally {
+            Thread.currentThread().setContextClassLoader(current);
+        }
     }
 
     public final CompletableFuture<Void> read(Runnable task) {
@@ -291,4 +316,41 @@ public abstract class AzureTaskManager {
     protected abstract void doRunInBackground(Runnable runnable, AzureTask<?> task);
 
     protected abstract void doRunInModal(Runnable runnable, AzureTask<?> task);
+
+    public static class DummyTaskManager extends AzureTaskManager {
+        @Override
+        protected void doRead(Runnable runnable, AzureTask<?> task) {
+            throw new UnsupportedOperationException("not support");
+        }
+
+        @Override
+        protected void doWrite(Runnable runnable, AzureTask<?> task) {
+            throw new UnsupportedOperationException("not support");
+        }
+
+        @Override
+        protected void doRunLater(Runnable runnable, AzureTask<?> task) {
+            throw new UnsupportedOperationException("not support");
+        }
+
+        @Override
+        protected void doRunOnPooledThread(Runnable runnable, AzureTask<?> task) {
+            Mono.fromRunnable(runnable).subscribeOn(Schedulers.boundedElastic()).subscribe();
+        }
+
+        @Override
+        protected void doRunAndWait(Runnable runnable, AzureTask<?> task) {
+            runnable.run();
+        }
+
+        @Override
+        protected void doRunInBackground(Runnable runnable, AzureTask<?> task) {
+            doRunOnPooledThread(runnable, task);
+        }
+
+        @Override
+        protected void doRunInModal(Runnable runnable, AzureTask<?> task) {
+            throw new UnsupportedOperationException("not support");
+        }
+    }
 }

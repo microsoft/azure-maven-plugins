@@ -19,8 +19,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 
 /**
  * copied from: https://github.com/microsoft/azure-tools-for-java/blob/
@@ -35,7 +37,22 @@ public class CommandUtils {
     private static final String DEFAULT_WINDOWS_SYSTEM_ROOT = System.getenv("SystemRoot");
     private static final String DEFAULT_MAC_LINUX_PATH = "/bin/";
 
-    private static final Map<String, String> ENV = new HashMap<>(System.getenv());
+    private static final Map<String, String> ENV = new HashMap<>(loadProcessEnvironment());
+
+    private static Map<String, String> loadProcessEnvironment() {
+        final ClassLoader current = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(CommandUtils.class.getClassLoader());
+            final ServiceLoader<ProcessEnvironmentProvider> loader = ServiceLoader.load(ProcessEnvironmentProvider.class, CommandUtils.class.getClassLoader());
+            final Iterator<ProcessEnvironmentProvider> iterator = loader.iterator();
+            if (iterator.hasNext()) {
+                return iterator.next().getEnvironment();
+            }
+            return System.getenv();
+        } finally {
+            Thread.currentThread().setContextClassLoader(current);
+        }
+    }
 
     public static void setEnv(Map<String, String> env) {
         ENV.clear();

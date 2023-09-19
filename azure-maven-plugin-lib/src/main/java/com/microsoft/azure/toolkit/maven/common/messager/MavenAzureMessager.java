@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.maven.common.messager;
 
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessagerProvider;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
@@ -40,5 +41,11 @@ public class MavenAzureMessager implements IAzureMessager, IAzureMessage.ValueDe
     @Override
     public String decorateValue(@Nonnull Object p, @Nullable IAzureMessage message) {
         return TextUtils.cyan(p.toString());
+    }
+
+    public static class Provider implements AzureMessagerProvider {
+        public MavenAzureMessager getMessager() {
+            return new MavenAzureMessager();
+        }
     }
 }

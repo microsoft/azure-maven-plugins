@@ -7,7 +7,9 @@ package com.microsoft.azure.toolkit.lib.common.telemetry;
 
 import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.azure.toolkit.lib.Azure;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -15,7 +17,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
+import java.util.ServiceLoader;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -29,7 +34,7 @@ public class AzureTelemetryClient {
     private static final String[] SYSTEM_PROPERTIES = new String[]{RESOURCE_TYPE};
     // refers https://github.com/microsoft/vscode-extension-telemetry/blob/main/src/telemetryReporter.ts
     private static final String FILE_PATH_REGEX =
-            "(file://)?([a-zA-Z]:(\\\\\\\\|\\\\|/)|(\\\\\\\\|\\\\|/))?([\\w-._]+(\\\\\\\\|\\\\|/))+[\\w-._]*";
+        "(file://)?([a-zA-Z]:(\\\\\\\\|\\\\|/)|(\\\\\\\\|\\\\|/))?([\\w-._]+(\\\\\\\\|\\\\|/))+[\\w-._]*";
     private static final Pattern FILE_PATH_PATTERN = Pattern.compile(FILE_PATH_REGEX);
     // refers https://github.com/microsoft/vscode-extension-telemetry/blob/v0.6.2/src/common/baseTelemetryReporter.ts#L241
     private static final Pattern GOOGLE_API_KEY = Pattern.compile("AIza[a-zA-Z0-9_\\\\-]{35}");
@@ -46,6 +51,9 @@ public class AzureTelemetryClient {
 
     @Nonnull
     private final TelemetryClient client = new TelemetryClient();
+    @Getter
+    @Setter(AccessLevel.PACKAGE)
+    private String eventNamePrefix;
     @Nonnull
     private final Map<String, String> defaultProperties = new HashMap<String, String>() {
         {
@@ -55,6 +63,29 @@ public class AzureTelemetryClient {
     };
 
     public AzureTelemetryClient() {
+        final AzureTelemetryConfigProvider provider = loadConfigProvider();
+        if (Objects.nonNull(provider)) {
+            this.defaultProperties.putAll(provider.getCommonProperties());
+            this.eventNamePrefix = provider.getEventNamePrefix();
+        } else {
+            this.eventNamePrefix = "AzurePlugin";
+        }
+    }
+
+    @Nullable
+    private static AzureTelemetryConfigProvider loadConfigProvider() {
+        final ClassLoader current = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(AzureTelemetryClient.class.getClassLoader());
+            final ServiceLoader<AzureTelemetryConfigProvider> loader = ServiceLoader.load(AzureTelemetryConfigProvider.class, AzureTelemetryClient.class.getClassLoader());
+            final Iterator<AzureTelemetryConfigProvider> iterator = loader.iterator();
+            if (iterator.hasNext()) {
+                return iterator.next();
+            }
+            return null;
+        } finally {
+            Thread.currentThread().setContextClassLoader(current);
+        }
     }
 
     public void addDefaultProperty(@Nonnull String key, @Nonnull String value) {

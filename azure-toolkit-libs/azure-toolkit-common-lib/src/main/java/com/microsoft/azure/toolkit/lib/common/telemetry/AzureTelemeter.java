@@ -13,14 +13,12 @@ import com.microsoft.azure.toolkit.lib.common.operation.SimpleOperation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Properties;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Property;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Triple;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.reflect.Parameter;
 import java.time.Instant;
 import java.util.HashMap;
@@ -45,10 +43,6 @@ public class AzureTelemeter {
     public static final String ERROR_ROOT_CLASSNAME = "error.root_error_class_name";
     public static final String ERROR_STACKTRACE = "error.error_stack_trace";
     @Getter
-    @Setter
-    @Nullable
-    private static String eventNamePrefix;
-    @Getter
     @Nonnull
     private static final AzureTelemetryClient client = new AzureTelemetryClient();
 
@@ -58,6 +52,10 @@ public class AzureTelemeter {
 
     public static void addCommonProperty(@Nonnull String key, @Nonnull String value) {
         client.addDefaultProperty(key, value);
+    }
+
+    public static void setEventNamePrefix(@Nonnull String prefix) {
+        client.setEventNamePrefix(prefix);
     }
 
     public static void afterCreate(@Nonnull final Operation op) {
@@ -95,7 +93,7 @@ public class AzureTelemeter {
 
     public static void log(final AzureTelemetry.Type type, final Map<String, String> properties) {
         if (!StringUtils.equals(properties.get(OP_NAME), Operation.UNKNOWN_NAME)) {
-            final String eventName = Optional.ofNullable(getEventNamePrefix()).orElse("AzurePlugin") + "/" + type.getName();
+            final String eventName = Optional.ofNullable(client.getEventNamePrefix()).orElse("AzurePlugin") + "/" + type.getName();
             client.trackEvent(eventName, properties, null);
         }
     }
