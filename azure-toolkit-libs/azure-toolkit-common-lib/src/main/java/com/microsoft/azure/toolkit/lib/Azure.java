@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib;
 
+import com.azure.core.implementation.http.HttpClientProviders;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.utils.ResourceManagerUtils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -25,7 +26,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -131,21 +131,31 @@ public class Azure {
     }
 
     private static class ServiceManager {
-        private static final ServiceLoader<AzService> loader = ServiceLoader.load(AzService.class, Azure.class.getClassLoader());
         private static final List<AzService> services = new ArrayList<>();
 
         public static synchronized List<AzService> getServices() {
             if (services.isEmpty()) {
-                ResourceManagerUtils.InternalRuntimeContext.setDelayProvider(duration -> Duration.ofSeconds(5));
-                reload();
+                // fix the class load problem for intellij plugin
+                final ClassLoader current = Thread.currentThread().getContextClassLoader();
+                try {
+                    Thread.currentThread().setContextClassLoader(Azure.class.getClassLoader());
+                    ResourceManagerUtils.InternalRuntimeContext.setDelayProvider(duration -> Duration.ofSeconds(5));
+                    HttpClientProviders.createInstance();
+                    reload();
+                } catch (final Throwable e) {
+                    log.error(e.getMessage(), e);
+                } finally {
+                    Thread.currentThread().setContextClassLoader(current);
+                }
             }
             return services;
         }
 
         public static synchronized void reload() {
-            ServiceManager.loader.reload();
+            final ServiceLoader<AzService> loader = ServiceLoader.load(AzService.class, Azure.class.getClassLoader());
+            loader.reload();
             services.clear();
-            ServiceManager.loader.forEach(services::add);
+            loader.forEach(services::add);
         }
     }
 }
