@@ -21,6 +21,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -38,7 +39,27 @@ public class Azure {
     private static final Azure defaultInstance = new Azure();
 
     private Azure() {
-        this.configuration = new AzureConfiguration();
+        this.configuration = Holder.configuration;
+    }
+
+    private static class Holder {
+        private static final AzureConfiguration configuration = loadAzureConfiguration();
+
+        @Nonnull
+        private static AzureConfiguration loadAzureConfiguration() {
+            final ClassLoader current = Thread.currentThread().getContextClassLoader();
+            try {
+                Thread.currentThread().setContextClassLoader(Azure.class.getClassLoader());
+                final ServiceLoader<AzureConfigurationProvider> loader = ServiceLoader.load(AzureConfigurationProvider.class, Azure.class.getClassLoader());
+                final Iterator<AzureConfigurationProvider> iterator = loader.iterator();
+                if (iterator.hasNext()) {
+                    return iterator.next().getConfiguration();
+                }
+                return new AzureConfiguration.Default();
+            } finally {
+                Thread.currentThread().setContextClassLoader(current);
+            }
+        }
     }
 
     public static synchronized <T extends AzService> T az(final Class<T> clazz) {
