@@ -14,6 +14,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.Authenticator;
 import java.net.InetSocketAddress;
@@ -24,6 +25,7 @@ import java.net.SocketAddress;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.regex.Pattern;
@@ -38,7 +40,8 @@ public class ProxyManager {
     private final ProxySelector defaultProxySelector = ProxySelector.getDefault();
 
     public boolean isProxyEnabled() {
-        return StringUtils.isNotBlank(Azure.az().config().getProxySource());
+        final ProxyInfo proxy = Azure.az().config().getProxyInfo();
+        return Optional.ofNullable(proxy).map(ProxyInfo::getSource).filter(StringUtils::isNotBlank).isPresent();
     }
 
     private static class ProxyManagerHolder {
@@ -51,22 +54,18 @@ public class ProxyManager {
 
     public void applyProxy() {
         final AzureConfiguration config = Azure.az().config();
-        String source = config.getProxySource();
-        if (StringUtils.isBlank(source)) {
-            ProxyInfo proxy = ObjectUtils.firstNonNull(
+        final ProxyInfo proxyInfo = Optional.ofNullable(config.getProxyInfo())
+            .filter(i -> StringUtils.isNotBlank(i.getSource()))
+            .orElseGet(() -> ObjectUtils.firstNonNull(
                 getProxyFromProgramArgument("http"),
                 getProxyFromProgramArgument("https"),
                 getSystemProxy()
-            );
-
-            if (proxy != null) {
-                config.setProxyInfo(proxy);
-                source = config.getProxySource();
-            }
-        }
-        if (StringUtils.isNotBlank(source)) {
-            final String proxyHost = config.getHttpProxyHost();
-            final int proxyPort = config.getHttpProxyPort();
+            ));
+        if (Objects.nonNull(proxyInfo) && StringUtils.isNotBlank(proxyInfo.getSource())) {
+            config.setProxyInfo(proxyInfo);
+            final String proxyHost = proxyInfo.getHost();
+            final int proxyPort = proxyInfo.getPort();
+            final String source = proxyInfo.getSource();
             AzureMessager.getMessager().info(AzureString.format("Use %s proxy: %s", source, proxyHost + ":" + proxyPort));
             if (!StringUtils.equals(source, "system") && !StringUtils.equals(source, "intellij")) {
                 final Proxy proxy = createHttpProxy(proxyHost, proxyPort);
@@ -76,13 +75,13 @@ public class ProxyManager {
                         if (uri == null) {
                             throw new IllegalArgumentException("URI can't be null.");
                         }
-                        String protocol = uri.getScheme();
-                        String host = uri.getHost();
+                        final String protocol = uri.getScheme();
+                        final String host = uri.getHost();
                         if (protocol == null || host == null) {
-                            throw new IllegalArgumentException("protocol = "+protocol+" host = "+host);
+                            throw new IllegalArgumentException("protocol = " + protocol + " host = " + host);
                         }
-                        if (shouldNotUseProxyFor(toPattern(Optional.ofNullable(config.getNonProxyHosts()).orElse(StringUtils.EMPTY)),
-                                host.toLowerCase())) {
+                        if (shouldNotUseProxyFor(toPattern(Optional.ofNullable(proxyInfo.getNonProxyHosts()).orElse(StringUtils.EMPTY)),
+                            host.toLowerCase())) {
                             return Collections.singletonList(Proxy.NO_PROXY);
                         }
                         return Collections.singletonList(proxy);
@@ -94,20 +93,19 @@ public class ProxyManager {
                 });
                 // Java ignores http.proxyUser. Here comes the workaround.
                 // see https://stackoverflow.com/questions/1626549/authenticated-http-proxy-with-java
-                if (StringUtils.isNoneBlank(config.getProxyUsername(), config.getProxyPassword())) {
-                    Authenticator.setDefault(
-                        new Authenticator() {
-                            @Override
-                            public PasswordAuthentication getPasswordAuthentication() {
-                                if (getRequestorType() == RequestorType.PROXY) {
-                                    if (getRequestingHost().equalsIgnoreCase(proxyHost)) {
-                                        return new PasswordAuthentication(config.getProxyUsername(), config.getProxyPassword().toCharArray());
-                                    }
+                if (StringUtils.isNoneBlank(proxyInfo.getUsername(), proxyInfo.getPassword())) {
+                    Authenticator.setDefault(new Authenticator() {
+                        @Nullable
+                        @Override
+                        public PasswordAuthentication getPasswordAuthentication() {
+                            if (getRequestorType() == RequestorType.PROXY) {
+                                if (getRequestingHost().equalsIgnoreCase(proxyHost)) {
+                                    return new PasswordAuthentication(proxyInfo.getUsername(), proxyInfo.getPassword().toCharArray());
                                 }
-                                return null;
                             }
+                            return null;
                         }
-                    );
+                    });
                 }
             }
         }
@@ -130,6 +128,7 @@ public class ProxyManager {
         return proxy;
     }
 
+    @Nullable
     private static ProxyInfo getProxyFromProgramArgument(String prefix) {
         final String proxyHost = System.getProperty(prefix + ".proxyHost");
         final String proxyPort = System.getProperty(prefix + ".proxyPort");
@@ -149,11 +148,13 @@ public class ProxyManager {
         return null;
     }
 
+    @Nullable
     private static Proxy createHttpProxy(String httpProxyHost, Integer httpProxyPort) {
         return StringUtils.isNotBlank(httpProxyHost) ? new Proxy(Proxy.Type.HTTP, new InetSocketAddress(httpProxyHost,
             httpProxyPort)) : null;
     }
 
+    @Nullable
     @SneakyThrows
     private static ProxyInfo getSystemProxyInner() {
         final URI uri = new URI("https://login.microsoft.com");
@@ -171,32 +172,34 @@ public class ProxyManager {
 
     /**
      * refer sun.net.spi.DefaultProxySelector
+     *
      * @return {@code true} if given this pattern for non-proxy hosts and this
-     *         urlhost the proxy should NOT be used to access this urlhost
+     * urlhost the proxy should NOT be used to access this urlhost
      */
     private static boolean shouldNotUseProxyFor(Pattern pattern, String urlhost) {
         if (pattern == null || urlhost.isEmpty()) {
             return false;
         }
-        boolean matches = pattern.matcher(urlhost).matches();
-        return matches;
+        return pattern.matcher(urlhost).matches();
     }
 
     /**
      * refer to sun.net.spi.DefaultProxySelector
+     *
      * @param mask non-null mask
      * @return {@link java.util.regex.Pattern} corresponding to this mask
-     *         or {@code null} in case mask should not match anything
+     * or {@code null} in case mask should not match anything
      */
+    @Nullable
     private static Pattern toPattern(String mask) {
         boolean disjunctionEmpty = true;
-        StringJoiner joiner = new StringJoiner("|");
-        for (String disjunct : mask.split("\\|")) {
+        final StringJoiner joiner = new StringJoiner("|");
+        for (final String disjunct : mask.split("\\|")) {
             if (disjunct.isEmpty()) {
                 continue;
             }
             disjunctionEmpty = false;
-            String regex = disjunctToRegex(disjunct.toLowerCase());
+            final String regex = disjunctToRegex(disjunct.toLowerCase());
             joiner.add(regex);
         }
         return disjunctionEmpty ? null : Pattern.compile(joiner.toString());
@@ -204,11 +207,12 @@ public class ProxyManager {
 
     /**
      * refer to sun.net.spi.DefaultProxySelector
+     *
      * @param disjunct non-null mask disjunct
      * @return java regex string corresponding to this mask
      */
     private static String disjunctToRegex(String disjunct) {
-        String regex;
+        final String regex;
         if ("*".equals(disjunct)) {
             regex = ".*";
         } else if (disjunct.startsWith("*") && disjunct.endsWith("*")) {

@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.containerservice;
 
-import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.containerservice.ContainerServiceManager;
@@ -18,7 +17,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscriptio
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Optional;
 
 public class AzureContainerService extends AbstractAzService<ContainerServiceSubscription, ContainerServiceManager> {
     public AzureContainerService() {
@@ -43,14 +41,12 @@ public class AzureContainerService extends AbstractAzService<ContainerServiceSub
     protected ContainerServiceManager loadResourceFromAzure(@Nonnull String subscriptionId, @Nullable String resourceGroup) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
-        final String userAgent = config.getUserAgent();
-        final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         return ContainerServiceManager.configure()
-                .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
-                .withLogOptions(new HttpLogOptions().setLogLevel(logLevel))
-                .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent))
-                .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
+            .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
+            .withLogOptions(new HttpLogOptions().setLogLevel(config.getLogLevel()))
+            .withPolicy(config.getUserAgentPolicy())
+            .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
     @Nonnull

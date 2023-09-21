@@ -1,5 +1,6 @@
 package com.microsoft.azure.toolkit.lib.monitor;
 
+import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.monitor.query.LogsQueryClient;
 import com.azure.monitor.query.LogsQueryClientBuilder;
 import com.azure.resourcemanager.loganalytics.LogAnalyticsManager;
@@ -11,7 +12,8 @@ import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 @Getter
 public class LogAnalyticsServiceWorkspaceSubscription extends AbstractAzServiceSubscription<LogAnalyticsServiceWorkspaceSubscription, LogAnalyticsManager> {
@@ -26,7 +28,11 @@ public class LogAnalyticsServiceWorkspaceSubscription extends AbstractAzServiceS
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.logAnalyticsWorkspaceModule = new LogAnalyticsWorkspaceModule(this);
-        this.logsQueryClient = new LogsQueryClientBuilder().credential(Azure.az(AzureAccount.class).account().getTokenCredential(subscriptionId)).buildClient();
+        this.logsQueryClient = new LogsQueryClientBuilder()
+            .httpLogOptions(new HttpLogOptions().setLogLevel(Azure.az().config().getLogLevel()))
+            .addPolicy(Azure.az().config().getUserAgentPolicy())
+            .credential(Azure.az(AzureAccount.class).account().getTokenCredential(subscriptionId))
+            .buildClient();
     }
 
     public LogAnalyticsWorkspaceModule logAnalyticsWorkspaces() {

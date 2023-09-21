@@ -9,6 +9,7 @@ import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.core.http.policy.FixedDelay;
+import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.http.policy.RetryPolicy;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
@@ -117,7 +118,7 @@ public abstract class Account implements IAccount {
             return this.buildDefaultTokenCredential().getToken(request)
                 .onErrorResume(Exception.class, t -> Mono.empty())
                 .blockOptional();
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             return Optional.empty();
         }
     }
@@ -142,6 +143,7 @@ public abstract class Account implements IAccount {
         this.defaultTokenCredential = null;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     @AzureOperation(name = "azure/account.reload_subscriptions")
     public List<Subscription> reloadSubscriptions() {
         final List<String> selected = Optional.ofNullable(this.subscriptions).orElse(Collections.emptyList())
@@ -262,11 +264,10 @@ public abstract class Account implements IAccount {
     }
 
     private static ResourceManager.Configurable configureAzure() {
-        // disable retry for getting tenant and subscriptions
-        final String userAgent = Azure.az().config().getUserAgent();
         return ResourceManager.configure()
             .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
-            .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent))
+            .withLogOptions(new HttpLogOptions().setLogLevel(Azure.az().config().getLogLevel()))
+            .withPolicy(Azure.az().config().getUserAgentPolicy())
             .withRetryPolicy(new RetryPolicy(new FixedDelay(0, Duration.ofSeconds(0))));
     }
 

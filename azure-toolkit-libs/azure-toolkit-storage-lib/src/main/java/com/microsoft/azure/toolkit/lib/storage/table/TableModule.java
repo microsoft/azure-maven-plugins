@@ -5,12 +5,13 @@
 
 package com.microsoft.azure.toolkit.lib.storage.table;
 
+import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.util.paging.ContinuablePage;
 import com.azure.data.tables.TableClient;
 import com.azure.data.tables.TableServiceClient;
 import com.azure.data.tables.TableServiceClientBuilder;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -42,7 +43,10 @@ public class TableModule extends AbstractEmulatableAzResourceModule<Table, Stora
     synchronized TableServiceClient getTableServiceClient() {
         if (Objects.isNull(this.client) && this.parent.exists()) {
             final String connectionString = this.parent.getConnectionString();
-            this.client = new TableServiceClientBuilder().addPolicy(AbstractAzServiceSubscription.getUserAgentPolicy()).connectionString(connectionString).buildClient();
+            this.client = new TableServiceClientBuilder()
+                .httpLogOptions(new HttpLogOptions().setLogLevel(Azure.az().config().getLogLevel()))
+                .addPolicy(Azure.az().config().getUserAgentPolicy())
+                .connectionString(connectionString).buildClient();
         }
         return this.client;
     }

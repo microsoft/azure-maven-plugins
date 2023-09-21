@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice;
 
-import com.azure.core.http.policy.HttpLogDetailLevel;
+import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.appservice.AppServiceManager;
@@ -58,13 +58,11 @@ public class AzureAppService extends AbstractAzService<AppServiceServiceSubscrip
     protected AppServiceManager loadResourceFromAzure(@Nonnull String subscriptionId, String resourceGroup) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
-        final String userAgent = config.getUserAgent();
-        final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         return AppServiceManager.configure()
             .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
-            .withLogLevel(logLevel)
-            .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent)) // set user agent with policy
+            .withLogOptions(new HttpLogOptions().setLogLevel(config.getLogLevel()))
+            .withPolicy(config.getUserAgentPolicy())
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 

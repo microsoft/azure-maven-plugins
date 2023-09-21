@@ -5,12 +5,13 @@
 
 package com.microsoft.azure.toolkit.lib.storage.share;
 
+import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.storage.file.share.ShareClient;
 import com.azure.storage.file.share.ShareServiceClient;
 import com.azure.storage.file.share.ShareServiceClientBuilder;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -42,7 +43,10 @@ public class ShareModule extends AbstractEmulatableAzResourceModule<Share, Stora
     synchronized ShareServiceClient getFileShareServiceClient() {
         if (Objects.isNull(this.client) && this.parent.exists()) {
             final String connectionString = this.parent.getConnectionString();
-            this.client = new ShareServiceClientBuilder().addPolicy(AbstractAzServiceSubscription.getUserAgentPolicy()).connectionString(connectionString).buildClient();
+            this.client = new ShareServiceClientBuilder()
+                .httpLogOptions(new HttpLogOptions().setLogLevel(Azure.az().config().getLogLevel()))
+                .addPolicy(Azure.az().config().getUserAgentPolicy())
+                .connectionString(connectionString).buildClient();
         }
         return this.client;
     }

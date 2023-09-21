@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.cosmos;
 
-import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.cosmos.CosmosManager;
@@ -20,7 +19,6 @@ import com.microsoft.azure.toolkit.lib.cosmos.model.DatabaseAccountKind;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class AzureCosmosService extends AbstractAzService<CosmosServiceSubscription, CosmosManager> {
@@ -57,13 +55,11 @@ public class AzureCosmosService extends AbstractAzService<CosmosServiceSubscript
     protected CosmosManager loadResourceFromAzure(@Nonnull String subscriptionId, @Nullable String resourceGroup) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
-        final String userAgent = config.getUserAgent();
-        final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         return CosmosManager.configure()
             .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
-            .withLogOptions(new HttpLogOptions().setLogLevel(logLevel))
-            .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent))
+            .withLogOptions(new HttpLogOptions().setLogLevel(config.getLogLevel()))
+            .withPolicy(config.getUserAgentPolicy())
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 

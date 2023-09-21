@@ -9,13 +9,13 @@ import com.azure.containers.containerregistry.ContainerRegistryClient;
 import com.azure.containers.containerregistry.ContainerRegistryClientBuilder;
 import com.azure.containers.containerregistry.ContainerRepository;
 import com.azure.containers.containerregistry.models.ContainerRegistryAudience;
+import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.util.paging.ContinuablePage;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import lombok.SneakyThrows;
 
@@ -49,7 +49,8 @@ public class RepositoryModule extends AbstractAzResourceModule<Repository, Conta
             this.client = new ContainerRegistryClientBuilder()
                 .endpoint(endpoint)
                 .audience(getAudience())
-                .addPolicy(AbstractAzServiceSubscription.getUserAgentPolicy())
+                .httpLogOptions(new HttpLogOptions().setLogLevel(Azure.az().config().getLogLevel()))
+                .addPolicy(Azure.az().config().getUserAgentPolicy())
                 .credential(account.getTokenCredential(this.getSubscriptionId()))
                 .buildClient();
         }

@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.storage;
 
 import com.azure.core.http.policy.FixedDelayOptions;
+import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.http.policy.RetryOptions;
 import com.azure.core.util.paging.ContinuablePage;
 import com.azure.data.tables.TableServiceClient;
@@ -129,7 +130,12 @@ public class AzuriteStorageAccount extends StorageAccount {
 
     public boolean canHaveQueues() {
         try {
-            final QueueServiceClient client = new QueueServiceClientBuilder().retryOptions(TEST_CONNECTION_RETRY_OPTIONS).connectionString(AZURITE_CONNECTION_STRING).buildClient();
+            final QueueServiceClient client = new QueueServiceClientBuilder()
+                .httpLogOptions(new HttpLogOptions().setLogLevel(Azure.az().config().getLogLevel()))
+                .addPolicy(Azure.az().config().getUserAgentPolicy())
+                .retryOptions(TEST_CONNECTION_RETRY_OPTIONS)
+                .connectionString(AZURITE_CONNECTION_STRING)
+                .buildClient();
             client.getProperties();
             return true;
         } catch (final Exception e) {
@@ -140,7 +146,12 @@ public class AzuriteStorageAccount extends StorageAccount {
 
     public boolean canHaveTables() {
         try {
-            final TableServiceClient client = new TableServiceClientBuilder().retryOptions(TEST_CONNECTION_RETRY_OPTIONS).connectionString(AZURITE_CONNECTION_STRING).buildClient();
+            final TableServiceClient client = new TableServiceClientBuilder()
+                .httpLogOptions(new HttpLogOptions().setLogLevel(Azure.az().config().getLogLevel()))
+                .addPolicy(Azure.az().config().getUserAgentPolicy())
+                .retryOptions(TEST_CONNECTION_RETRY_OPTIONS)
+                .connectionString(AZURITE_CONNECTION_STRING)
+                .buildClient();
             client.getProperties();
             return true;
         } catch (final Exception e) {
@@ -151,7 +162,12 @@ public class AzuriteStorageAccount extends StorageAccount {
 
     public boolean canHaveBlobs() {
         try {
-            final BlobServiceClient client = new BlobServiceClientBuilder().retryOptions(TEST_CONNECTION_RETRY_OPTIONS).connectionString(AZURITE_CONNECTION_STRING).buildClient();
+            final BlobServiceClient client = new BlobServiceClientBuilder()
+                .httpLogOptions(new HttpLogOptions().setLogLevel(Azure.az().config().getLogLevel()))
+                .addPolicy(Azure.az().config().getUserAgentPolicy())
+                .retryOptions(TEST_CONNECTION_RETRY_OPTIONS)
+                .connectionString(AZURITE_CONNECTION_STRING)
+                .buildClient();
             client.getProperties();
             return true;
         } catch (final Exception e) {

@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.storage;
 
-import com.azure.core.http.policy.HttpLogDetailLevel;
+import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.storage.StorageManager;
@@ -27,7 +27,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -74,13 +73,11 @@ public class AzureStorageAccount extends AbstractAzService<StorageServiceSubscri
     protected StorageManager loadResourceFromAzure(@Nonnull String subscriptionId, @Nullable String resourceGroup) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
-        final String userAgent = config.getUserAgent();
-        final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         return StorageManager.configure()
             .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
-            .withLogLevel(logLevel)
-            .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent)) // set user agent with policy
+            .withLogOptions(new HttpLogOptions().setLogLevel(config.getLogLevel()))
+            .withPolicy(config.getUserAgentPolicy())
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 

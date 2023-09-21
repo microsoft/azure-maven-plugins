@@ -5,19 +5,18 @@
 
 package com.microsoft.azure.toolkit.redis;
 
-import com.azure.core.http.policy.HttpLogDetailLevel;
+import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.redis.RedisManager;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
-import java.util.Optional;
 
 @Slf4j
 public class AzureRedis extends AbstractAzService<RedisServiceSubscription, RedisManager> {
@@ -37,13 +36,11 @@ public class AzureRedis extends AbstractAzService<RedisServiceSubscription, Redi
     protected RedisManager loadResourceFromAzure(@Nonnull String subscriptionId, String resourceGroup) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
-        final String userAgent = config.getUserAgent();
-        final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
         return RedisManager.configure()
             .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
-            .withLogLevel(logLevel)
-            .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent)) // set user agent with policy
+            .withLogOptions(new HttpLogOptions().setLogLevel(config.getLogLevel()))
+            .withPolicy(config.getUserAgentPolicy())
             .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 

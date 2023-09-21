@@ -8,17 +8,18 @@ package com.microsoft.azure.toolkit.lib.cognitiveservices;
 import com.azure.ai.openai.OpenAIClient;
 import com.azure.ai.openai.OpenAIClientBuilder;
 import com.azure.core.credential.AzureKeyCredential;
+import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.resourcemanager.cognitiveservices.models.Account;
 import com.azure.resourcemanager.cognitiveservices.models.AccountProperties;
 import com.azure.resourcemanager.cognitiveservices.models.Accounts;
 import com.azure.resourcemanager.cognitiveservices.models.ApiKeys;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.model.AccountModel;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.model.AccountSku;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.collections4.CollectionUtils;
@@ -99,7 +100,8 @@ public class CognitiveAccount extends AbstractAzResource<CognitiveAccount, Cogni
     @Nonnull
     public OpenAIClient getOpenAIClient() {
         return new OpenAIClientBuilder()
-            .addPolicy(AbstractAzServiceSubscription.getUserAgentPolicy())
+            .httpLogOptions(new HttpLogOptions().setLogLevel(Azure.az().config().getLogLevel()))
+            .addPolicy(Azure.az().config().getUserAgentPolicy())
             .credential(new AzureKeyCredential(Objects.requireNonNull(this.getPrimaryKey(), String.format("Failed to get primary key for account %s", getName()))))
             .endpoint(getEndpoint())
             .buildClient();

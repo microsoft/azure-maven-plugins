@@ -52,7 +52,7 @@ public class AzureCliAccount extends Account {
     @Nonnull
     @Override
     protected List<Subscription> loadSubscriptions() {
-        final List<AzureCliSubscription> cliSubs = AzureCliUtils.listSubscriptions();
+        final List<Subscription> cliSubs = AzureCliUtils.listSubscriptions();
         if (cliSubs.isEmpty()) {
             throw new AzureToolkitAuthenticationException("Cannot find any subscriptions in current account.");
         }
@@ -61,7 +61,7 @@ public class AzureCliAccount extends Account {
 
     @Override
     protected void setupAfterLogin(TokenCredential defaultTokenCredential) {
-        List<Subscription> subscriptions = this.getSubscriptions();
+        final List<Subscription> subscriptions = this.getSubscriptions();
         final AzureCliSubscription defaultSub = (AzureCliSubscription) subscriptions.stream().filter(Subscription::isSelected).findFirst().orElse(subscriptions.get(0));
         final AzureEnvironment configuredEnv = Azure.az(AzureCloud.class).get();
         if (configuredEnv != null && defaultSub.getEnvironment() != configuredEnv) {
@@ -85,7 +85,7 @@ public class AzureCliAccount extends Account {
     public boolean checkAvailable() {
         try {
             return this.getManagementToken().isPresent();
-        } catch (Throwable e) {
+        } catch (final Throwable e) {
             return false;
         }
     }

@@ -4,7 +4,6 @@
  */
 package com.microsoft.azure.toolkit.lib.servicelinker;
 
-import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.resources.ResourceManager;
@@ -19,10 +18,10 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscriptio
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ServiceLinkerConsumer extends AzResource {
     ServiceLinkerModule getServiceLinkerModule();
+
     default List<ServiceLinker> getServiceLinkers() {
         return getServiceLinkerModule().list();
     }
@@ -32,21 +31,19 @@ public interface ServiceLinkerConsumer extends AzResource {
         final Account account = Azure.az(AzureAccount.class).account();
         final String tenantId = account.getSubscription(subscriptionId).getTenantId();
         final AzureConfiguration config = Azure.az().config();
-        final String userAgent = config.getUserAgent();
-        final HttpLogOptions logOptions = new HttpLogOptions();
-        logOptions.setLogLevel(Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE));
         final AzureProfile azureProfile = new AzureProfile(tenantId, subscriptionId, account.getEnvironment());
         final Providers providers = ResourceManager.configure()
-                .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
-                .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent))
-                .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
-                .withSubscription(subscriptionId).providers();
+            .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
+            .withLogOptions(new HttpLogOptions().setLogLevel(config.getLogLevel()))
+            .withPolicy(config.getUserAgentPolicy())
+            .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
+            .withSubscription(subscriptionId).providers();
         return ServiceLinkerManager
-                .configure()
-                .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
-                .withLogOptions(logOptions)
-                .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent))
-                .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers
-                .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
+            .configure()
+            .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
+            .withLogOptions(new HttpLogOptions().setLogLevel(config.getLogLevel()))
+            .withPolicy(config.getUserAgentPolicy())
+            .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers
+            .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 }

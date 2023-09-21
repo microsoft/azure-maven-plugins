@@ -67,10 +67,10 @@ public class SqlCosmosDBAccount extends CosmosDBAccount {
     @Nonnull
     public SqlDatabaseAccountConnectionString getSqlAccountConnectionString() {
         return SqlDatabaseAccountConnectionString.builder()
-                .connectionString(listConnectionStrings().getPrimaryConnectionString())
-                .key(listKeys().getPrimaryMasterKey())
-                .uri(getDocumentEndpoint())
-                .build();
+            .connectionString(listConnectionStrings().getPrimaryConnectionString())
+            .key(listKeys().getPrimaryMasterKey())
+            .uri(getDocumentEndpoint())
+            .build();
     }
 
     @Override
@@ -92,13 +92,13 @@ public class SqlCosmosDBAccount extends CosmosDBAccount {
         try {
             final SqlDatabaseAccountConnectionString connectionString = this.getSqlAccountConnectionString();
             return new CosmosClientBuilder()
-                    .endpointDiscoveryEnabled(false)
-                    .endpoint(this.getDocumentEndpoint())
-                    .key(connectionString.getKey())
-                    .preferredRegions(Collections.singletonList(Objects.requireNonNull(this.getRegion()).getName()))
-                    .consistencyLevel(ConsistencyLevel.EVENTUAL)
-                    .userAgentSuffix(Azure.az().config().getUserAgent())
-                    .buildClient();
+                .endpointDiscoveryEnabled(false)
+                .endpoint(this.getDocumentEndpoint())
+                .key(connectionString.getKey())
+                .preferredRegions(Collections.singletonList(Objects.requireNonNull(this.getRegion()).getName()))
+                .consistencyLevel(ConsistencyLevel.EVENTUAL)
+                .userAgentSuffix(Azure.az().config().getString("common.user_agent"))
+                .buildClient();
         } catch (Throwable e) {
             // swallow exception to load data client
             return null;
