@@ -15,37 +15,29 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public abstract class AzureActionManager {
-    private static AzureActionManager instance;
 
-    public static AzureActionManager getInstance() {
-        if (instance == null) {
-            synchronized (AzureActionManager.class) {
-                if (instance == null) {
-                    instance = AzureActionManager.loadActionManager();
-                    if (instance == null) {
-                        instance = new DummyActionManager();
-                    }
+    private static final class Holder {
+        private static final AzureActionManager instance = loadActionManager();
+
+        @Nullable
+        private static AzureActionManager loadActionManager() {
+            final ClassLoader current = Thread.currentThread().getContextClassLoader();
+            try {
+                Thread.currentThread().setContextClassLoader(AzureActionManager.class.getClassLoader());
+                final ServiceLoader<AzureActionManagerProvider> loader = ServiceLoader.load(AzureActionManagerProvider.class, AzureActionManager.class.getClassLoader());
+                final Iterator<AzureActionManagerProvider> iterator = loader.iterator();
+                if (iterator.hasNext()) {
+                    return iterator.next().getActionManager();
                 }
+                return new DummyActionManager();
+            } finally {
+                Thread.currentThread().setContextClassLoader(current);
             }
         }
-        return AzureActionManager.instance;
     }
 
-    @Nullable
-    private static AzureActionManager loadActionManager() {
-        final ClassLoader current = Thread.currentThread().getContextClassLoader();
-        try {
-            Thread.currentThread().setContextClassLoader(AzureActionManager.class.getClassLoader());
-            // don't use "IAzureMessager" as SPI interface to be compatible with IntelliJ's "Service" mechanism.
-            final ServiceLoader<AzureActionManagerProvider> loader = ServiceLoader.load(AzureActionManagerProvider.class, AzureActionManager.class.getClassLoader());
-            final Iterator<AzureActionManagerProvider> iterator = loader.iterator();
-            if (iterator.hasNext()) {
-                return iterator.next().getActionManager();
-            }
-            return null;
-        } finally {
-            Thread.currentThread().setContextClassLoader(current);
-        }
+    public static AzureActionManager getInstance() {
+        return Holder.instance;
     }
 
     public abstract <D> void registerAction(Action<D> action);

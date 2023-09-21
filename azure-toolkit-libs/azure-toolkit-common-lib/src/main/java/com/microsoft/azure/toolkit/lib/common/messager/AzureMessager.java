@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.common.messager;
 
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
@@ -15,21 +14,31 @@ import java.util.Iterator;
 import java.util.ServiceLoader;
 
 public abstract class AzureMessager {
-    private static IAzureMessager defaultMessager;
+
+    private static final class Holder {
+        private static final IAzureMessager defaultMessager = loadMessager();
+
+        @Nonnull
+        private static IAzureMessager loadMessager() {
+            final ClassLoader current = Thread.currentThread().getContextClassLoader();
+            try {
+                Thread.currentThread().setContextClassLoader(AzureMessager.class.getClassLoader());
+                // don't use "IAzureMessager" as SPI interface to be compatible with IntelliJ's "Service" mechanism.
+                final ServiceLoader<AzureMessagerProvider> loader = ServiceLoader.load(AzureMessagerProvider.class, AzureMessager.class.getClassLoader());
+                final Iterator<AzureMessagerProvider> iterator = loader.iterator();
+                if (iterator.hasNext()) {
+                    return iterator.next().getMessager();
+                }
+                return new DummyMessager();
+            } finally {
+                Thread.currentThread().setContextClassLoader(current);
+            }
+        }
+    }
 
     @Nonnull
     public static IAzureMessager getDefaultMessager() {
-        if (defaultMessager == null) {
-            synchronized (AzureTaskManager.class) {
-                if (defaultMessager == null) {
-                    defaultMessager = loadMessager();
-                    if (defaultMessager == null) {
-                        defaultMessager = new DummyMessager();
-                    }
-                }
-            }
-        }
-        return defaultMessager;
+        return Holder.defaultMessager;
     }
 
     @Nullable

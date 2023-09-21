@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 import java.util.concurrent.Callable;
@@ -24,37 +24,29 @@ import static com.microsoft.azure.toolkit.lib.common.operation.Operation.UNKNOWN
 
 @Slf4j
 public abstract class AzureTaskManager {
-    private static AzureTaskManager instance;
 
-    public static AzureTaskManager getInstance() {
-        if (instance == null) {
-            synchronized (AzureTaskManager.class) {
-                if (instance == null) {
-                    instance = AzureTaskManager.loadTaskManager();
-                    if (instance == null) {
-                        instance = new DummyTaskManager();
-                    }
+    private static class Holder {
+        private static final AzureTaskManager instance = loadTaskManager();
+
+        @Nonnull
+        private static AzureTaskManager loadTaskManager() {
+            final ClassLoader current = Thread.currentThread().getContextClassLoader();
+            try {
+                Thread.currentThread().setContextClassLoader(AzureTaskManager.class.getClassLoader());
+                final ServiceLoader<AzureTaskManagerProvider> loader = ServiceLoader.load(AzureTaskManagerProvider.class, AzureTaskManager.class.getClassLoader());
+                final Iterator<AzureTaskManagerProvider> iterator = loader.iterator();
+                if (iterator.hasNext()) {
+                    return iterator.next().getTaskManager();
                 }
+                return new DummyTaskManager();
+            } finally {
+                Thread.currentThread().setContextClassLoader(current);
             }
         }
-        return AzureTaskManager.instance;
     }
 
-    @Nullable
-    private static AzureTaskManager loadTaskManager() {
-        final ClassLoader current = Thread.currentThread().getContextClassLoader();
-        try {
-            Thread.currentThread().setContextClassLoader(AzureTaskManager.class.getClassLoader());
-            // don't use "IAzureMessager" as SPI interface to be compatible with IntelliJ's "Service" mechanism.
-            final ServiceLoader<AzureTaskManagerProvider> loader = ServiceLoader.load(AzureTaskManagerProvider.class, AzureTaskManager.class.getClassLoader());
-            final Iterator<AzureTaskManagerProvider> iterator = loader.iterator();
-            if (iterator.hasNext()) {
-                return iterator.next().getTaskManager();
-            }
-            return null;
-        } finally {
-            Thread.currentThread().setContextClassLoader(current);
-        }
+    public static AzureTaskManager getInstance() {
+        return Holder.instance;
     }
 
     public final CompletableFuture<Void> read(Runnable task) {

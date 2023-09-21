@@ -44,6 +44,7 @@ public class MavenAzureMessager implements IAzureMessager, IAzureMessage.ValueDe
     }
 
     public static class Provider implements AzureMessagerProvider {
+        @Nonnull
         public MavenAzureMessager getMessager() {
             return new MavenAzureMessager();
         }

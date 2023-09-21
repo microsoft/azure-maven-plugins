@@ -6,7 +6,10 @@
 
 package com.microsoft.azure.toolkit.lib.common.task;
 
+import javax.annotation.Nonnull;
+
 @FunctionalInterface
 public interface AzureTaskManagerProvider {
+    @Nonnull
     AzureTaskManager getTaskManager();
 }
