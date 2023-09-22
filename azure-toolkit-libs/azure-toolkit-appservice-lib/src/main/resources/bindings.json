@@ -526,6 +526,33 @@
           "help": "$sql_input_connection_help"
         }
       ]
+    },
+    {
+      "type": "daprPublish",
+      "displayName": "$daprPublishOutput_displayName",
+      "direction": "out",
+      "enabledInTryMode": true,
+      "settings": [
+        
+      ]
+    },
+    {
+      "type": "daprServiceInvocationTrigger",
+      "displayName": "$daprServiceInvocationTrigger_displayName",
+      "direction": "trigger",
+      "enabledInTryMode": true,
+      "settings": [
+        
+      ]
+    },
+    {
+      "type": "daprTopicTrigger",
+      "displayName": "$daprTopicTrigger_displayName",
+      "direction": "trigger",
+      "enabledInTryMode": true,
+      "settings": [
+        
+      ]
     }
   ]
 }
