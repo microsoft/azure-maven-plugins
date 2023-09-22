@@ -71,7 +71,7 @@ public class AzureCloud implements AzService {
             Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTPS_PROXY, host);
         }
         final String cloud = AzureEnvironmentUtils.getCloudName(environment);
-        config.set("common.cloud", cloud);
+        config.set("account.azure_environment", cloud);
         return this;
     }
 

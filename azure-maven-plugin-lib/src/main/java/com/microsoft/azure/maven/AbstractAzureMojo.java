@@ -304,8 +304,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             config.set("common.log_level", HttpLogDetailLevel.NONE.name());
             config.set("common.user_agent", getUserAgent());
             config.set("common.product_name", getPluginName());
-            config.set("common.product_version", getPluginVersion());
-            config.set("telemetry.enabled", BooleanUtils.isNotFalse(allowTelemetry));
+            config.set("telemetry.telemetry_plugin_version", getPluginVersion());
+            config.set("telemetry.telemetry_allow_telemetry", BooleanUtils.isNotFalse(allowTelemetry));
             // init proxy manager
             initMavenSettingsProxy(Optional.ofNullable(this.session).map(MavenSession::getRequest).orElse(null));
             ProxyManager.getInstance().applyProxy();
