@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure Function" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.28.0](#1280)
   - [1.27.0](#1270)
   - [1.13.0](#1130)
   - [1.12.0](#1120)
@@ -22,6 +23,12 @@ All notable changes to the "Maven Plugin for Azure Function" will be documented 
   - [1.2.2](#122)
   - [1.2.1](#121)
   - [1.2.0](#120)
+
+## 1.27.0
+- Support distributed tracing for Java Function app, please refer [Monitor Azure Functions with Azure Monitor Application Insights
+  ](https://learn.microsoft.com/en-us/azure/azure-monitor/app/monitor-functions#distributed-tracing-for-java-applications) for details
+  - Add new parameter `enableDistributedTracing` to enable distributed tracing
+  - If `enableDistributedTracing` is not set, it will be enabled by default for non consumption function apps
 
 ## 1.27.0
 - Support specify existing storage account during function creation

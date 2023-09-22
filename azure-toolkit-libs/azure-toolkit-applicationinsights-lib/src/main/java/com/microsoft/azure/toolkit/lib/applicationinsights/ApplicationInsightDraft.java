@@ -31,6 +31,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class ApplicationInsightDraft extends ApplicationInsight implements AzResource.Draft<ApplicationInsight, ApplicationInsightsComponent> {
 
@@ -81,10 +82,14 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
             .withKind("web")
             .withWorkspaceResourceId(workspaceResourceId)
             .withApplicationType(ApplicationType.WEB).create();
-        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE).bind(this);
-        final Action<ApplicationInsight> liveMetrics = AzureActionManager.getInstance().getAction(OPEN_LIVE_METRICS).bind(this);
-        final Action<ApplicationInsight> copyConnectionString = AzureActionManager.getInstance().getAction(COPY_CONNECTION_STRING).bind(this);
-        messager.success(AzureString.format(APPLICATION_INSIGHTS_CREATED, getName(), getPortalUrl()), connect, copyConnectionString, liveMetrics);
+        final Action<AzResource> connect = Optional.ofNullable(AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE))
+            .map(action -> action.bind(this)).orElse(null);
+        final Action<ApplicationInsight> liveMetrics = Optional.ofNullable(AzureActionManager.getInstance().getAction(OPEN_LIVE_METRICS))
+            .map(action -> action.bind(this)).orElse(null);
+        final Action<ApplicationInsight> copyConnectionString = Optional.ofNullable(AzureActionManager.getInstance().getAction(COPY_CONNECTION_STRING))
+            .map(action -> action.bind(this)).orElse(null);
+        final Object[] actions = Stream.of(connect, liveMetrics, copyConnectionString).filter(Objects::nonNull).toArray();
+        messager.success(AzureString.format(APPLICATION_INSIGHTS_CREATED, getName(), getPortalUrl()), actions);
         return result;
     }
 

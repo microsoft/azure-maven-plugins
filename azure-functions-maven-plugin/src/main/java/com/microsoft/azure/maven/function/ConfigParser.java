@@ -34,6 +34,7 @@ public class ConfigParser {
         return (FunctionAppConfig) new FunctionAppConfig()
                 .flexConsumptionConfiguration(getFlexConsumptionConfiguration())
                 .disableAppInsights(mojo.isDisableAppInsights())
+                .enableDistributedTracing(mojo.getEnableDistributedTracing())
                 .appInsightsKey(mojo.getAppInsightsKey())
                 .appInsightsInstance(mojo.getAppInsightsInstance())
                 .storageAccountName(mojo.getStorageAccountName())

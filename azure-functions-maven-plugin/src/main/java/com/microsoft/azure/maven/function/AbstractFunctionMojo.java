@@ -159,6 +159,13 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     protected Boolean disableAppInsights;
 
     /**
+     * Boolean flag to control whether to enable distributed tracing for function app
+     */
+    @Getter
+    @Parameter(property = "functions.enableDistributedTracing")
+    protected Boolean enableDistributedTracing;
+
+    /**
      * Path for host.json file
      *
      * @since 1.22.0

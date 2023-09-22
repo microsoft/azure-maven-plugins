@@ -62,6 +62,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     public static final String APP_SETTING_DISABLE_WEBSITES_APP_SERVICE_STORAGE = "false";
     public static final String APP_SETTING_FUNCTION_APP_EDIT_MODE = "FUNCTION_APP_EDIT_MODE";
     public static final String APP_SETTING_FUNCTION_APP_EDIT_MODE_READONLY = "readOnly";
+    public static final String APPLICATIONINSIGHTS_ENABLE_AGENT = "APPLICATIONINSIGHTS_ENABLE_AGENT";
 
     @Getter
     @Nullable
@@ -137,6 +138,12 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         if (Objects.nonNull(newDiagnosticConfig)) {
             AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, newDiagnosticConfig);
         }
+        final Boolean enableDistributedTracing = ensureConfig().getEnableDistributedTracing();
+        if (Objects.nonNull(enableDistributedTracing)) {
+            withCreate.withAppSetting(APPLICATIONINSIGHTS_ENABLE_AGENT, String.valueOf(enableDistributedTracing));
+        } else if (shouldEnableDistributedTracing(newPlan, newAppSettings)) {
+            withCreate.withAppSetting(APPLICATIONINSIGHTS_ENABLE_AGENT, "true");
+        }
         final IAzureMessager messager = AzureMessager.getMessager();
         final boolean updateFlexConsumptionConfiguration = Objects.nonNull(newFlexConsumptionConfiguration) && getAppServicePlan().getPricingTier().isFlexConsumption();
         if (updateFlexConsumptionConfiguration) {
@@ -150,9 +157,16 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             }
             return app;
         }, Status.CREATING));
-        final Action<AzResource> deploy = AzureActionManager.getInstance().getAction(AzResource.DEPLOY).bind(this);
+        final Action<AzResource> deploy = Optional.ofNullable(AzureActionManager.getInstance().getAction(AzResource.DEPLOY))
+            .map(action -> action.bind(this)).orElse(null);
         messager.success(AzureString.format("Function App({0}) is successfully created", name), deploy);
         return functionApp;
+    }
+
+    private boolean shouldEnableDistributedTracing(@Nonnull final AppServicePlan servicePlan, @Nullable final Map<String, String> appSettings) {
+        final boolean isConsumptionPlan = servicePlan.getPricingTier().isConsumption();
+        final boolean isSetInAppSettings = MapUtils.isNotEmpty(appSettings) && appSettings.containsKey(APPLICATIONINSIGHTS_ENABLE_AGENT);
+        return !(isConsumptionPlan || isSetInAppSettings);
     }
 
     DefinitionStages.WithCreate createDockerApp(@Nonnull DefinitionStages.Blank blank, @Nonnull AppServicePlan plan) {
@@ -365,6 +379,10 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         this.ensureConfig().setFlexConsumptionConfiguration(flexConsumptionConfiguration);
     }
 
+    public void setEnableDistributedTracing(@Nullable final Boolean enableDistributedTracing) {
+        this.ensureConfig().setEnableDistributedTracing(enableDistributedTracing);
+    }
+
     @Nullable
     public FlexConsumptionConfiguration getFlexConsumptionConfiguration() {
         return Optional.ofNullable(config).map(Config::getFlexConsumptionConfiguration).orElseGet(super::getFlexConsumptionConfiguration);
@@ -391,6 +409,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         private Runtime runtime;
         private AppServicePlan plan = null;
         private StorageAccount storageAccount = null;
+        private Boolean enableDistributedTracing = null;
         private DiagnosticConfig diagnosticConfig = null;
         private Set<String> appSettingsToRemove = new HashSet<>();
         private Map<String, String> appSettings = new HashMap<>();
