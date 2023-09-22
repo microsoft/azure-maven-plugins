@@ -24,7 +24,7 @@ All notable changes to the "Maven Plugin for Azure Function" will be documented 
   - [1.2.1](#121)
   - [1.2.0](#120)
 
-## 1.27.0
+## 1.28.0
 - Support distributed tracing for Java Function app, please refer [Monitor Azure Functions with Azure Monitor Application Insights
   ](https://learn.microsoft.com/en-us/azure/azure-monitor/app/monitor-functions#distributed-tracing-for-java-applications) for details
   - Add new parameter `enableDistributedTracing` to enable distributed tracing
