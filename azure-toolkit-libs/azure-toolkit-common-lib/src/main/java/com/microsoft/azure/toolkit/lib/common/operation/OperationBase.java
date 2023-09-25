@@ -80,7 +80,7 @@ public abstract class OperationBase implements Operation {
         return this.getIdObject().getOperation();
     }
 
-    private static class Id {
+    public static class Id {
         private final String id;
         @Getter
         private String type;

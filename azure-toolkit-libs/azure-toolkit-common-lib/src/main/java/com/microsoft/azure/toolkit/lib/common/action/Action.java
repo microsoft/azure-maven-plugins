@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.action;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.model.Emulatable;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBase;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.AllArgsConstructor;
@@ -268,11 +269,12 @@ public class Action<D> implements Cloneable {
     }
 
     @Getter
-    public static class Id<D> {
+    public static class Id<D> extends OperationBase.Id {
         @Nonnull
         private final String id;
 
         private Id(@Nonnull String id) {
+            super(id);
             this.id = id;
         }
 
