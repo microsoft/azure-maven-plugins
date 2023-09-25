@@ -41,8 +41,10 @@ public class Action<D> implements Cloneable {
     public static final String RESOURCE_TYPE = "resourceType";
     public static final Id<Object> AUTHENTICATE = Id.of("user/account.authenticate");
     public static final Id<Consumer<IAccount>> REQUIRE_AUTH = Id.of("user/common.authorize_action");
-    public static final Action.Id<Object> OPEN_AZURE_SETTINGS = Action.Id.of("user/common.open_azure_settings");
-    public static final Action.Id<Object> DISABLE_AUTH_CACHE = Action.Id.of("user/account.disable_auth_cache");
+    public static final Id<Object> TRY_AZURE = Action.Id.of("user/account.try_azure");
+    public static final Id<Object> SELECT_SUBS = Action.Id.of("user/account.select_subs");
+    public static final Id<Object> OPEN_AZURE_SETTINGS = Action.Id.of("user/common.open_azure_settings");
+    public static final Id<Object> DISABLE_AUTH_CACHE = Action.Id.of("user/account.disable_auth_cache");
 
     public static final String COMMON_PLACE = "common";
 
