@@ -5,10 +5,16 @@
 
 package com.microsoft.azure.toolkit.lib.common.exception;
 
+import com.azure.core.http.HttpResponse;
+import com.azure.core.management.exception.ManagementException;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import lombok.Getter;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
+import java.util.Optional;
 
 @Getter
 public class AzureToolkitRuntimeException extends RuntimeException {
@@ -87,5 +93,25 @@ public class AzureToolkitRuntimeException extends RuntimeException {
         super(error, cause);
         this.actions = actions;
         this.tips = tips;
+    }
+
+    public static RuntimeException addDefaultActions(final RuntimeException e) {
+        if (!(e instanceof AzureToolkitRuntimeException)) {
+            Action.Id<?>[] defaultActions = null;
+            final Throwable rootCause = ExceptionUtils.getRootCause(e);
+            if (rootCause instanceof ManagementException) {
+                final int errorCode = Optional.ofNullable((ManagementException) rootCause).map(ManagementException::getResponse)
+                    .map(HttpResponse::getStatusCode).orElse(0);
+                if (errorCode == 403) {
+                    defaultActions = new Action.Id[]{Action.SELECT_SUBS};
+                } else if (errorCode == 401) {
+                    defaultActions = new Action.Id[]{Action.AUTHENTICATE};
+                }
+            }
+            if (Objects.nonNull(defaultActions)) {
+                throw new AzureToolkitRuntimeException(e.getMessage(), e, (Object[]) defaultActions);
+            }
+        }
+        return e;
     }
 }

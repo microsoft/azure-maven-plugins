@@ -428,7 +428,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             } catch (final RuntimeException e) {
                 resource.setStatus(AzResource.Status.ERROR);
                 resource.deleteFromCache();
-                throw e;
+                throw AzureToolkitRuntimeException.addDefaultActions(e);
             }
             AzureEventBus.emit("azure.explorer.highlight_resource", resource);
             return resource;
