@@ -19,7 +19,6 @@ import com.azure.identity.TokenCachePersistenceOptions;
 import com.azure.identity.implementation.MsalToken;
 import com.azure.identity.implementation.util.ScopeUtil;
 import com.azure.resourcemanager.resources.ResourceManager;
-import com.azure.resourcemanager.resources.models.Tenant;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -30,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
@@ -142,6 +142,7 @@ public abstract class Account implements IAccount {
         this.defaultTokenCredential = null;
     }
 
+    @AzureOperation(name = "azure/account.reload_subscriptions")
     public List<Subscription> reloadSubscriptions() {
         final List<String> selected = Optional.ofNullable(this.subscriptions).orElse(Collections.emptyList())
             .stream().filter(Subscription::isSelected)
@@ -156,17 +157,18 @@ public abstract class Account implements IAccount {
         return this.getSubscriptions();
     }
 
+    @AzureOperation(name = "azure/account.load_subscriptions")
     protected List<Subscription> loadSubscriptions() {
         final TokenCredential credential = this.defaultTokenCredential;
         final ResourceManager.Authenticated client = configureAzure().authenticate(credential, new AzureProfile(this.getEnvironment()));
-        final List<Tenant> tenants = client.tenants().list().stream().collect(Collectors.toList());
-        return tenants.stream()
-            .flatMap(t -> this.loadSubscriptions(t.tenantId()).stream())
+        return client.tenants().listAsync()
+            .flatMapIterable(t -> this.loadSubscriptions(t.tenantId()))
             .filter(Utils.distinctByKey(Subscription::getId))
-            .collect(Collectors.toList());
+            .collectList().block();
     }
 
     @Nonnull
+    @AzureOperation(name = "azure/account.load_subscriptions.tenant", params = "$tenantId")
     private List<Subscription> loadSubscriptions(String tenantId) {
         final TokenCredential credential = this.getTenantTokenCredential(tenantId);
         final AzureProfile profile = new AzureProfile(tenantId, null, this.getEnvironment());

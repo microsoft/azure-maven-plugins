@@ -5,10 +5,10 @@
 
 package com.microsoft.azure.toolkit.lib.common.action;
 
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
-import lombok.Getter;
-
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Iterator;
+import java.util.ServiceLoader;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -16,15 +16,28 @@ import java.util.function.Predicate;
 
 public abstract class AzureActionManager {
 
-    @Getter
-    private static AzureActionManager instance;
+    private static final class Holder {
+        private static final AzureActionManager instance = loadActionManager();
 
-    protected static void register(AzureActionManager manager) {
-        if (instance != null) {
-            AzureMessager.getDefaultMessager().warning("ActionManager is already registered", null);
-            return;
+        @Nullable
+        private static AzureActionManager loadActionManager() {
+            final ClassLoader current = Thread.currentThread().getContextClassLoader();
+            try {
+                Thread.currentThread().setContextClassLoader(AzureActionManager.class.getClassLoader());
+                final ServiceLoader<AzureActionManagerProvider> loader = ServiceLoader.load(AzureActionManagerProvider.class, AzureActionManager.class.getClassLoader());
+                final Iterator<AzureActionManagerProvider> iterator = loader.iterator();
+                if (iterator.hasNext()) {
+                    return iterator.next().getActionManager();
+                }
+                return new DummyActionManager();
+            } finally {
+                Thread.currentThread().setContextClassLoader(current);
+            }
         }
-        instance = manager;
+    }
+
+    public static AzureActionManager getInstance() {
+        return Holder.instance;
     }
 
     public abstract <D> void registerAction(Action<D> action);
@@ -107,6 +120,27 @@ public abstract class AzureActionManager {
         }
 
         default Object paste() {
+            return null;
+        }
+    }
+
+    public static class DummyActionManager extends AzureActionManager {
+        @Override
+        public <D> void registerAction(Action<D> action) {
+        }
+
+        @Override
+        public <D> Action<D> getAction(Action.Id<D> id) {
+            return null;
+        }
+
+        @Override
+        public void registerGroup(String id, ActionGroup group) {
+
+        }
+
+        @Override
+        public ActionGroup getGroup(String id) {
             return null;
         }
     }

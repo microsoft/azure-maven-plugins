@@ -40,9 +40,6 @@ import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetryClient;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
-import com.microsoft.azure.toolkit.maven.common.action.MavenActionManager;
-import com.microsoft.azure.toolkit.maven.common.messager.MavenAzureMessager;
-import com.microsoft.azure.toolkit.maven.common.task.MavenAzureTaskManager;
 import lombok.extern.slf4j.Slf4j;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -303,9 +300,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         final String originalReflectionLogLevel = System.getProperty("org.slf4j.simpleLogger.log.org.reflections.Reflections");
         try {
             System.setProperty("org.slf4j.simpleLogger.log.org.reflections.Reflections", "warn");
-            MavenActionManager.register();
-            AzureTaskManager.register(new MavenAzureTaskManager());
-            AzureMessager.setDefaultMessager(new MavenAzureMessager());
             Azure.az().config().setLogLevel(HttpLogDetailLevel.NONE.name());
             Azure.az().config().setUserAgent(getUserAgent());
             Azure.az().config().setProduct(getPluginName());
