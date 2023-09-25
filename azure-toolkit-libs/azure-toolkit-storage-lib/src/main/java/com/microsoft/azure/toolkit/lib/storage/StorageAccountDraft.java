@@ -29,6 +29,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class StorageAccountDraft extends StorageAccount implements AzResource.Draft<StorageAccount, com.azure.resourcemanager.storage.models.StorageAccount> {
     @Getter
@@ -79,10 +80,14 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Storage Account({0})...", name));
         final com.azure.resourcemanager.storage.models.StorageAccount account = withCreate.create();
-        final Action<AzResource> connect = AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE).bind(this);
-        final Action<Object> createContainer = AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE).bind(this.blobContainerModule).withLabel("Create Blob Container");
-        final Action<Object> createShare = AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE).bind(this.shareModule).withLabel("Create File Share");
-        messager.success(AzureString.format("Storage Account({0}) is successfully created.", name), connect, createContainer, createShare);
+        final Action<AzResource> connect = Optional.ofNullable(AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE))
+            .map(action -> action.bind(this)).orElse(null);
+        final Action<Object> createContainer = Optional.ofNullable(AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE))
+            .map(action -> action.bind(this.blobContainerModule).withLabel("Create Blob Container")).orElse(null);
+        final Action<Object> createShare = Optional.ofNullable(AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE))
+            .map(action -> action.bind(this.shareModule).withLabel("Create File Share")).orElse(null);
+        final Object[] actions = Stream.of(connect, createContainer, createShare).filter(Objects::nonNull).toArray();
+        messager.success(AzureString.format("Storage Account({0}) is successfully created.", name), actions);
         return account;
     }
 

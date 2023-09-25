@@ -17,6 +17,7 @@ public class FunctionAppConfig extends AppServiceConfig {
     private String appInsightsInstance;
     private String appInsightsKey;
     private boolean disableAppInsights;
+    private Boolean enableDistributedTracing;
     private String storageAccountName;
     private String storageAccountResourceGroup;
     private LogAnalyticsWorkspaceConfig workspaceConfig;

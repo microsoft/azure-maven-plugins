@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -101,7 +102,8 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
         }
         if (target instanceof FunctionApp) {
             final List<FunctionEntity> triggers = ((FunctionApp) target).listFunctions(true);
-            final Action<AppServiceAppBase<?, ?, ?>> streamingLog = AzureActionManager.getInstance().getAction(AppServiceAppBase.START_STREAM_LOG).bind(target);
+            final Action<AppServiceAppBase<?, ?, ?>> streamingLog = Optional.ofNullable(AzureActionManager.getInstance().getAction(AppServiceAppBase.START_STREAM_LOG))
+                    .map(action -> action.bind(target)).orElse(null);
             final List<Action<?>> actions = triggers.stream().map(trigger -> {
                 if (trigger.isHttpTrigger()) {
                     return AzureActionManager.getInstance().getAction(FunctionEntity.TRIGGER_FUNCTION_IN_BROWSER).bind(trigger)
@@ -110,8 +112,8 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
                     return AzureActionManager.getInstance().getAction(FunctionEntity.TRIGGER_FUNCTION).bind(trigger)
                         .withLabel(String.format("Trigger \"%s\"", trigger.getName()));
                 }
-            }).collect(Collectors.toCollection(LinkedList::new));
-            actions.add(0, streamingLog);
+            }).filter(Objects::nonNull).collect(Collectors.toCollection(LinkedList::new));
+            Optional.ofNullable(streamingLog).ifPresent(action -> actions.add(0, action));
             messager.info(String.format(DEPLOY_FINISH), actions.toArray());
         } else {
             messager.info(String.format(DEPLOY_FINISH));
