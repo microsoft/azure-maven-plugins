@@ -162,26 +162,24 @@ public abstract class Account implements IAccount {
         final TokenCredential credential = this.defaultTokenCredential;
         final ResourceManager.Authenticated client = configureAzure().authenticate(credential, new AzureProfile(this.getEnvironment()));
         return client.tenants().listAsync()
-            .flatMapIterable(t -> this.loadSubscriptions(t.tenantId()))
+            .flatMap(t -> this.loadSubscriptions(t.tenantId()))
             .filter(Utils.distinctByKey(Subscription::getId))
             .collectList().block();
     }
 
     @Nonnull
-    @AzureOperation(name = "azure/account.load_subscriptions.tenant", params = "$tenantId")
-    private List<Subscription> loadSubscriptions(String tenantId) {
+    @AzureOperation(name = "azure/account.load_subscriptions.tenant", params = "tenantId")
+    private Flux<Subscription> loadSubscriptions(String tenantId) {
         final TokenCredential credential = this.getTenantTokenCredential(tenantId);
         final AzureProfile profile = new AzureProfile(tenantId, null, this.getEnvironment());
         final ResourceManager.Authenticated client = configureAzure().authenticate(credential, profile);
-        final List<Subscription> subscriptions = client.subscriptions().listAsync().onErrorResume(ex -> {
+        return client.subscriptions().listAsync().onErrorResume(ex -> {
                 AzureMessager.getMessager().warning(AzureString.format(
                     "Failed to get subscriptions for tenant %s, please confirm you have sufficient permissions." +
                         " Use %s to explicitly login to a tenant if it requires Multi-Factor Authentication (MFA)." +
                         " Message: %s", tenantId, "-Dauth.tenant=TENANT_ID", ex.getMessage()));
                 return Flux.fromIterable(new ArrayList<>());
-            }).map(Subscription::new)
-            .collect(Collectors.toList()).flatMapIterable(s -> s).collectList().block();
-        return Optional.ofNullable(subscriptions).orElse(Collections.emptyList());
+        }).map(Subscription::new);
     }
 
     @Nonnull
