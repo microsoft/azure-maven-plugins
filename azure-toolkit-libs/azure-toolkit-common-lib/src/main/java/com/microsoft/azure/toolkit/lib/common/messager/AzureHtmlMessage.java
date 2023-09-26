@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.common.messager;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -25,26 +24,26 @@ public class AzureHtmlMessage extends AzureMessage {
     static final Pattern URL_PATTERN = compile("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)");
 
     static final Pattern HREF_PATTERN = compile("<a href=(.*)>(.*)</a>");
+    private IAzureMessage rawMessage;
+
     public AzureHtmlMessage(@Nonnull Type type, @Nonnull AzureString message) {
         super(type, message);
     }
 
-    public AzureHtmlMessage(IAzureMessage raw) {
-        super(raw.getType(), raw.getMessage());
-        if (raw instanceof AzureMessage) {
-            this.setValueDecorator(((AzureMessage) raw).getValueDecorator());
+    public AzureHtmlMessage(IAzureMessage origin) {
+        super(origin.getType(), origin.getMessage());
+        this.rawMessage = origin.getRawMessage();
+        if (origin instanceof AzureMessage) {
+            this.setValueDecorator(((AzureMessage) origin).getValueDecorator());
         }
-        this.setTitle(raw.getTitle());
-        this.setPayload(raw.getPayload());
-        this.setActions(raw.getActions());
+        this.setTitle(origin.getTitle());
+        this.setPayload(origin.getPayload());
+        this.setActions(origin.getActions());
     }
 
     @Nonnull
     @Override
     public String getContent() {
-        if (StringUtils.isBlank(this.getTitle())) {
-            return "<b>Azure: </b>" + transformURLIntoLinks(super.getContent());
-        }
         return transformURLIntoLinks(super.getContent());
     }
 
@@ -71,6 +70,10 @@ public class AzureHtmlMessage extends AzureMessage {
             result = String.format("<span style=\"color: %s;font-family: %s;\">%s</span>", color, font, p);
         }
         return Objects.isNull(result) && Objects.nonNull(dft) ? dft.get() : result;
+    }
+
+    public IAzureMessage getRawMessage() {
+        return Optional.ofNullable(this.rawMessage).orElse(this);
     }
 
     private static String transformURLIntoLinks(String text) {

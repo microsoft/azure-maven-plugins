@@ -38,6 +38,10 @@ public interface IAzureMessage {
     @Nullable
     Action<?>[] getActions();
 
+    default IAzureMessage getRawMessage() {
+        return this;
+    }
+
     default boolean show() {
         return AzureMessager.getMessager().show(this);
     }
