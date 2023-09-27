@@ -208,7 +208,11 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     public com.azure.resourcemanager.appservice.models.FunctionApp updateResourceInAzure(@Nonnull com.azure.resourcemanager.appservice.models.FunctionApp remote) {
         assert origin != null : "updating target is not specified.";
         final Map<String, String> oldAppSettings = Objects.requireNonNull(origin.getAppSettings());
-        final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();
+        final Map<String, String> settingsToAdd = Optional.ofNullable(this.ensureConfig().getAppSettings()).orElseGet(HashMap::new);
+        final Boolean enableDistributedTracing = ensureConfig().getEnableDistributedTracing();
+        if (Objects.nonNull(enableDistributedTracing)) {
+            settingsToAdd.put(APPLICATIONINSIGHTS_ENABLE_AGENT, String.valueOf(enableDistributedTracing));
+        }
         if (ObjectUtils.allNotNull(oldAppSettings, settingsToAdd)) {
             settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
         }

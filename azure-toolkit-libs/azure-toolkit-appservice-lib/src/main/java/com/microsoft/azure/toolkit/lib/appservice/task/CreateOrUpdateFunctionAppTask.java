@@ -219,6 +219,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
             draft.removeAppSettings(functionAppConfig.appSettingsToRemove());
             draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
+            draft.setEnableDistributedTracing(functionAppConfig.enableDistributedTracing());
             draft.setStorageAccount(storageAccount);
             return draft.updateIfExist();
         });
