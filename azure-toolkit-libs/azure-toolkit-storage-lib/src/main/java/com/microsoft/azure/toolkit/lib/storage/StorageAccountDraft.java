@@ -81,10 +81,13 @@ public class StorageAccountDraft extends StorageAccount implements AzResource.Dr
         messager.info(AzureString.format("Start creating Storage Account({0})...", name));
         final com.azure.resourcemanager.storage.models.StorageAccount account = withCreate.create();
         final Action<AzResource> connect = Optional.ofNullable(AzureActionManager.getInstance().getAction(AzResource.CONNECT_RESOURCE))
+            .filter(a -> Objects.equals(Kind.FILE_STORAGE, kind) || Objects.equals(Kind.BLOB_STORAGE, kind))
             .map(action -> action.bind(this)).orElse(null);
         final Action<Object> createContainer = Optional.ofNullable(AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE))
+            .filter(a -> Objects.equals(Kind.BLOB_STORAGE, kind))
             .map(action -> action.bind(this.blobContainerModule).withLabel("Create Blob Container")).orElse(null);
         final Action<Object> createShare = Optional.ofNullable(AzureActionManager.getInstance().getAction(AzResource.CREATE_RESOURCE))
+            .filter(a -> Objects.equals(Kind.FILE_STORAGE, kind))
             .map(action -> action.bind(this.shareModule).withLabel("Create File Share")).orElse(null);
         final Object[] actions = Stream.of(connect, createContainer, createShare).filter(Objects::nonNull).toArray();
         messager.success(AzureString.format("Storage Account({0}) is successfully created.", name), actions);
