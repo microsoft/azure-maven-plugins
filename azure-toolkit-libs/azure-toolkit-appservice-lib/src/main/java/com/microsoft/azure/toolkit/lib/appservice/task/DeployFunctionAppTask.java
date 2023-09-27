@@ -106,11 +106,12 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
                     .map(action -> action.bind(target)).orElse(null);
             final List<Action<?>> actions = triggers.stream().map(trigger -> {
                 if (trigger.isHttpTrigger()) {
-                    return AzureActionManager.getInstance().getAction(FunctionEntity.TRIGGER_FUNCTION_IN_BROWSER).bind(trigger)
-                        .withLabel(String.format("Trigger \"%s\"", trigger.getName()));
+                    return Optional.ofNullable(AzureActionManager.getInstance().getAction(FunctionEntity.TRIGGER_FUNCTION_IN_BROWSER))
+                        .map(action -> action.bind(trigger).withLabel(String.format("Trigger \"%s\"", trigger.getName()))).orElse(null);
                 } else {
-                    return AzureActionManager.getInstance().getAction(FunctionEntity.TRIGGER_FUNCTION).bind(trigger)
-                        .withLabel(String.format("Trigger \"%s\"", trigger.getName()));
+                    return Optional.ofNullable(AzureActionManager.getInstance().getAction(FunctionEntity.TRIGGER_FUNCTION))
+                        .map(action -> action.bind(trigger)
+                            .withLabel(String.format("Trigger \"%s\"", trigger.getName()))).orElse(null);
                 }
             }).filter(Objects::nonNull).collect(Collectors.toCollection(LinkedList::new));
             Optional.ofNullable(streamingLog).ifPresent(action -> actions.add(0, action));
