@@ -205,7 +205,7 @@ public class AppServiceKuduClient implements IFileClient, IProcessClient {
     private JsonNode tryParseJson(final String string, final JsonNode fallback) {
         try {
             return JsonUtils.fromJson(string, JsonNode.class);
-        } catch (RuntimeException e) {
+        } catch (final Exception e) {
             AzureMessager.getMessager().debug("Failed to parse json string: " + string, e);
             return fallback;
         }
