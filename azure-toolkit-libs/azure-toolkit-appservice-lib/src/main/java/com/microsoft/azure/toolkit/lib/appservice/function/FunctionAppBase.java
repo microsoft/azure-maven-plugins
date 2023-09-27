@@ -77,7 +77,7 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
         getDeployHandlerByType(functionDeployType).deploy(targetFile, this);
     }
 
-    protected AzureFunctionsAdminClient getAdminClient() {
+    public AzureFunctionsAdminClient getAdminClient() {
         if (fileClient == null) {
             fileClient = Optional.ofNullable(this.getRemote()).map(r -> AzureFunctionsAdminClient.getClient(r, this)).orElse(null);
         }
