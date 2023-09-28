@@ -122,7 +122,7 @@ public class VirtualMachineDraft extends VirtualMachine implements AzResource.Dr
         final VmImage historyImage = CacheManager.getUsageHistory(VmImage.class).peek();
         final VmSize historySize = CacheManager.getUsageHistory(VmSize.class).peek();
 
-        this.setImage(Optional.ofNullable(historyImage).orElse(VmImage.UBUNTU_SERVER_18_04_LTS));
+        this.setImage(Optional.ofNullable(historyImage).orElse(VmImage.UBUNTU_SERVER_22_04_LTS));
         this.setSize(Optional.ofNullable(historySize).orElse(VmSize.Standard_D2s_v3));
         final String subs = this.getSubscriptionId();
         final String rg = this.getResourceGroupName();
@@ -159,6 +159,12 @@ public class VirtualMachineDraft extends VirtualMachine implements AzResource.Dr
         final SpotConfig spotConfig = this.getSpotConfig();
 
         final NetworkInterface networkInterface = createNetworkInterface();
+        try {
+            // workaround to resolve new created network interface is not available immediately
+            Thread.sleep(30 * 1000);
+        } catch (InterruptedException e) {
+            // swallow exception
+        }
         final DefinitionStages.WithProximityPlacementGroup createVm = manager.virtualMachines()
             .define(this.getName())
             .withRegion(networkInterface.region().name())
