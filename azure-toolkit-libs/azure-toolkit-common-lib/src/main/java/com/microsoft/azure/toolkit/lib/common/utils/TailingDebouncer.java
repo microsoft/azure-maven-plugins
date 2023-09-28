@@ -5,6 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.common.utils;
 
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import rx.Observable;
 import rx.Subscription;
 import rx.schedulers.Schedulers;
@@ -31,7 +33,14 @@ public class TailingDebouncer implements Debouncer {
         this.timer = Observable.timer(delay, TimeUnit.MILLISECONDS)
             .subscribeOn(Schedulers.io())
             .subscribe(ignore -> {
-                this.debounced.run();
+                try {
+                    this.debounced.run();
+                } catch (final Throwable e) {
+                    final Throwable root = ExceptionUtils.getRootCause(e);
+                    if (!(root instanceof InterruptedException)) {
+                        AzureMessager.getMessager().error(e);
+                    }
+                }
                 this.clearTimer();
             }, (e) -> this.clearTimer());
     }
