@@ -121,7 +121,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         if (Objects.nonNull(newDiagnosticConfig)) {
             AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, newDiagnosticConfig);
         }
-        final boolean updateFlexConsumptionConfiguration = Objects.nonNull(newFlexConsumptionConfiguration) && Objects.requireNonNull(getAppServicePlan()).getPricingTier().isFlexConsumption();
+        final boolean updateFlexConsumptionConfiguration = Objects.nonNull(newFlexConsumptionConfiguration) && Objects.requireNonNull(getParent().getAppServicePlan()).getPricingTier().isFlexConsumption();
         if (updateFlexConsumptionConfiguration) {
             ((com.azure.resourcemanager.appservice.models.FunctionApp) withCreate).innerModel().withContainerSize(newFlexConsumptionConfiguration.getInstanceSize());
         }
@@ -171,14 +171,14 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         final DiagnosticConfig oldDiagnosticConfig = super.getDiagnosticConfig();
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
         final FlexConsumptionConfiguration newFlexConsumptionConfiguration = this.ensureConfig().getFlexConsumptionConfiguration();
-        final FlexConsumptionConfiguration oldFlexConsumptionConfiguration = origin.getFlexConsumptionConfiguration();
+        final FlexConsumptionConfiguration oldFlexConsumptionConfiguration = super.getFlexConsumptionConfiguration();
 
         final Runtime oldRuntime = AppServiceUtils.getRuntimeFromAppService(remote);
         final boolean isRuntimeModified =  !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
         final boolean isDockerConfigurationModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
         final boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
         final boolean isDiagnosticConfigModified = Objects.nonNull(newDiagnosticConfig) && !Objects.equals(newDiagnosticConfig, oldDiagnosticConfig);
-        final boolean flexConsumptionModified = getAppServicePlan().getPricingTier().isFlexConsumption() &&
+        final boolean flexConsumptionModified = getParent().getAppServicePlan().getPricingTier().isFlexConsumption() &&
             Objects.nonNull(newFlexConsumptionConfiguration) && !Objects.equals(newFlexConsumptionConfiguration, oldFlexConsumptionConfiguration);
         final boolean modified = isDiagnosticConfigModified || isAppSettingsModified || isRuntimeModified || isDockerConfigurationModified || flexConsumptionModified;
 

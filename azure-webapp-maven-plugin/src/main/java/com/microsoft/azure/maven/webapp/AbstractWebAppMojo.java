@@ -81,7 +81,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      */
     @Getter
     @JsonProperty
-    @Parameter(property = "webapp.stopAppDuringDeployment", defaultValue = "true")
+    @Parameter(property = "webapp.restartSite", defaultValue = "true")
     protected Boolean restartSite;
 
     /**

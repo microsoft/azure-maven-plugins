@@ -174,7 +174,9 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setEnableDistributedTracing(functionAppConfig.enableDistributedTracing());
             draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
             draft.setStorageAccount(storageAccount);
-            return draft.createIfNotExist();
+            final FunctionApp result = draft.createIfNotExist();
+            Thread.sleep(10 * 1000); // workaround for service initialization
+            return result;
         });
     }
 
@@ -217,6 +219,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
             draft.removeAppSettings(functionAppConfig.appSettingsToRemove());
             draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
+            draft.setEnableDistributedTracing(functionAppConfig.enableDistributedTracing());
             draft.setStorageAccount(storageAccount);
             return draft.updateIfExist();
         });
