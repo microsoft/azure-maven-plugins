@@ -115,4 +115,10 @@ public class BlobFile extends AbstractEmulatableAzResource<BlobFile, IBlobFile, 
     public boolean isDirectory() {
         return this.remoteOptional().map(r -> BooleanUtils.isTrue(r.isPrefix())).orElse(false);
     }
+
+    @Nonnull
+    @Override
+    public String getResourceTypeName() {
+        return isDirectory() ? "Directory" : super.getResourceTypeName();
+    }
 }

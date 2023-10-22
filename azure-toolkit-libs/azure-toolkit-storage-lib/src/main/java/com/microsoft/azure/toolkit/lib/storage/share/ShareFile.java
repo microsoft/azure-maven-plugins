@@ -126,4 +126,10 @@ public class ShareFile extends AbstractEmulatableAzResource<ShareFile, IShareFil
         }
         return this.isDirectory() ? parentClient.getSubdirectoryClient(this.getName()).getDirectoryUrl() : parentClient.getFileClient(this.getName()).getFileUrl();
     }
+
+    @Nonnull
+    @Override
+    public String getResourceTypeName() {
+        return isDirectory() ? "Directory" : super.getResourceTypeName();
+    }
 }
