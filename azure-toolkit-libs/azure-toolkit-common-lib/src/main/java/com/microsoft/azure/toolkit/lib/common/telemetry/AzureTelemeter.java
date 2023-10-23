@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.telemetry;
 
+import com.google.common.collect.ImmutableMap;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.operation.MethodOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
@@ -17,6 +18,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Triple;
+import org.jetbrains.annotations.PropertyKey;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Parameter;
@@ -28,6 +30,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class AzureTelemeter {
+    public static final String INFO_BUNDLE = "bundles.com.microsoft.azure.toolkit.info";
+
     public static final String SERVICE_NAME = "serviceName";
     public static final String OPERATION_NAME = "operationName";
     public static final String OP_ID = "op_id";
@@ -35,6 +39,8 @@ public class AzureTelemeter {
     public static final String OP_TYPE = "op_type";
     public static final String OP_PARENT_ID = "op_parentId";
 
+    public static final String INFO_KEY = "info.key";
+    public static final String INFO_DETAILS = "info.details";
     public static final String ERROR_CODE = "error.error_code";
     public static final String ERROR_MSG = "error.error_msg";
     public static final String ERROR_ROOT_MSG = "error.root_error_message";
@@ -74,6 +80,20 @@ public class AzureTelemeter {
     public static void onError(@Nonnull final Operation op, Throwable error) {
         op.getContext().setTelemetryProperty(AzureTelemetry.OP_EXIT_AT, Instant.now().toString());
         AzureTelemeter.log(AzureTelemetry.Type.ERROR, serialize(op), error);
+    }
+
+    public static void info(@Nonnull @PropertyKey(resourceBundle = INFO_BUNDLE) final String key) {
+        AzureTelemeter.log(AzureTelemetry.Type.INFO, ImmutableMap.of(INFO_KEY, key));
+    }
+
+    public static void info(@Nonnull @PropertyKey(resourceBundle = INFO_BUNDLE) final String key, final String details) {
+        AzureTelemeter.log(AzureTelemetry.Type.INFO, ImmutableMap.of(INFO_KEY, key, INFO_DETAILS, details));
+    }
+
+    public static void info(@Nonnull @PropertyKey(resourceBundle = INFO_BUNDLE) final String key, Map<String, String> details) {
+        final HashMap<String, String> map = new HashMap<>(details);
+        map.put(INFO_KEY, key);
+        AzureTelemeter.log(AzureTelemetry.Type.INFO, map);
     }
 
     public static void log(final AzureTelemetry.Type type, final AzureString op) {
