@@ -234,7 +234,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         final boolean runtimeModified = !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
         final boolean dockerModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
         final boolean flexConsumptionModified = getAppServicePlan().getPricingTier().isFlexConsumption() &&
-            Objects.nonNull(newFlexConsumptionConfiguration) && !Objects.equals(newFlexConsumptionConfiguration, oldFlexConsumptionConfiguration);
+            Objects.nonNull(newFlexConsumptionConfiguration) && !newFlexConsumptionConfiguration.isEmpty() && !Objects.equals(newFlexConsumptionConfiguration, oldFlexConsumptionConfiguration);
         final boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
         final boolean isDiagnosticConfigModified = Objects.nonNull(newDiagnosticConfig) && !Objects.equals(newDiagnosticConfig, oldDiagnosticConfig);
         final boolean modified = planModified || runtimeModified || dockerModified || flexConsumptionModified ||
