@@ -14,7 +14,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public interface AzResourceModule<T extends AzResource> extends Refreshable {
+public interface AzResourceModule<T extends AzResource> extends Refreshable, AzComponent {
     @Nonnull
     None NONE = new None();
 
@@ -44,9 +44,6 @@ public interface AzResourceModule<T extends AzResource> extends Refreshable {
     T update(@Nonnull AzResource.Draft<T, ?> draft);
 
     void refresh();
-
-    @Nonnull
-    String getName();
 
     @Nonnull
     String getFullResourceType();
