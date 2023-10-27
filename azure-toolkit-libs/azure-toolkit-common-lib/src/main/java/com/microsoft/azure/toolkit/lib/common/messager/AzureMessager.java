@@ -16,7 +16,7 @@ import java.util.ServiceLoader;
 public abstract class AzureMessager {
 
     private static final class Holder {
-        private static final IAzureMessager defaultMessager = loadMessager();
+        private static IAzureMessager defaultMessager = loadMessager();
 
         @Nonnull
         private static IAzureMessager loadMessager() {
@@ -34,6 +34,11 @@ public abstract class AzureMessager {
                 Thread.currentThread().setContextClassLoader(current);
             }
         }
+
+    }
+
+    public static void setDefaultMessager(@Nonnull final IAzureMessager defaultMessager) {
+        Holder.defaultMessager = defaultMessager;
     }
 
     @Nonnull

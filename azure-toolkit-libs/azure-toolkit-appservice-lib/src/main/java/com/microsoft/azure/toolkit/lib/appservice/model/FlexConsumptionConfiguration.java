@@ -13,6 +13,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.ObjectUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
@@ -31,6 +32,10 @@ public class FlexConsumptionConfiguration {
     private Integer instanceSize;
     private Integer alwaysReadyInstances;
     private Integer maximumInstances;
+
+    public boolean isEmpty() {
+        return ObjectUtils.allNull(instanceSize, alwaysReadyInstances, maximumInstances);
+    }
 
     public static FlexConsumptionConfiguration fromWebAppBase(@Nonnull final WebAppBase app) {
         return FlexConsumptionConfiguration.builder()

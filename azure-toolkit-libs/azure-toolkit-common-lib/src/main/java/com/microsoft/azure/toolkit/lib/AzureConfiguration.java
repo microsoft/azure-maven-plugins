@@ -27,6 +27,7 @@ public class AzureConfiguration {
     private String machineId;
     private String product;
     private String version;
+    private String sessionId;
     private String databasePasswordSaveType;
     private Boolean telemetryEnabled; // null means true
     private String functionCoreToolsPath;
