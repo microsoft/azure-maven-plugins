@@ -115,8 +115,10 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Web App({0})...", name));
         final com.azure.resourcemanager.appservice.models.WebApp webApp = Objects.requireNonNull(withCreate.create());
-        final Action<AzResource> deploy = AzureActionManager.getInstance().getAction(AzResource.DEPLOY).bind(this);
-        final Action<AppServiceAppBase<?, ?, ?>> open = AzureActionManager.getInstance().getAction(AppServiceAppBase.OPEN_IN_BROWSER).bind(this);
+        final Action<AzResource> deploy = Optional.ofNullable(AzureActionManager.getInstance().getAction(AzResource.DEPLOY))
+            .map(action -> action.bind(this)).orElse(null);
+        final Action<AppServiceAppBase<?, ?, ?>> open = Optional.ofNullable(AzureActionManager.getInstance().getAction(AppServiceAppBase.OPEN_IN_BROWSER))
+            .map(action -> action.bind(this)).orElse(null);
         messager.success(AzureString.format("Web App({0}) is successfully created", name), deploy, open);
         return webApp;
     }
@@ -176,7 +178,8 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating Web App({0})...", remote.name()));
             remote = update.apply();
-            final Action<AppServiceAppBase<?, ?, ?>> open = AzureActionManager.getInstance().getAction(AppServiceAppBase.OPEN_IN_BROWSER).bind(this);
+            final Action<AppServiceAppBase<?, ?, ?>> open = Optional.ofNullable(AzureActionManager.getInstance().getAction(AppServiceAppBase.OPEN_IN_BROWSER))
+                .map(action -> action.bind(this)).orElse(null);
             messager.success(AzureString.format("Web App({0}) is successfully updated", remote.name()), open);
         }
         return remote;
