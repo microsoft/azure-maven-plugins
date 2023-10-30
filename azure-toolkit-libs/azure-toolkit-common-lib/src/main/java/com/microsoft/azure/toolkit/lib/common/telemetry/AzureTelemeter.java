@@ -5,9 +5,11 @@
 
 package com.microsoft.azure.toolkit.lib.common.telemetry;
 
+import com.google.common.collect.ImmutableMap;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.operation.MethodOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.operation.SimpleOperation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Properties;
@@ -17,6 +19,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Triple;
+import org.jetbrains.annotations.PropertyKey;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Parameter;
@@ -28,6 +31,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class AzureTelemeter {
+    public static final String INFO_BUNDLE = "bundles.com.microsoft.azure.toolkit.info";
+
     public static final String SERVICE_NAME = "serviceName";
     public static final String OPERATION_NAME = "operationName";
     public static final String OP_ID = "op_id";
@@ -35,6 +40,9 @@ public class AzureTelemeter {
     public static final String OP_TYPE = "op_type";
     public static final String OP_PARENT_ID = "op_parentId";
 
+    public static final String INFO_NAME = "info.name";
+    public static final String INFO_SERVICE = "info.service";
+    public static final String INFO_DETAILS = "info.details";
     public static final String ERROR_CODE = "error.error_code";
     public static final String ERROR_MSG = "error.error_msg";
     public static final String ERROR_ROOT_MSG = "error.root_error_message";
@@ -76,8 +84,31 @@ public class AzureTelemeter {
         AzureTelemeter.log(AzureTelemetry.Type.ERROR, serialize(op), error);
     }
 
+    public static void info(@Nonnull @PropertyKey(resourceBundle = INFO_BUNDLE) final String key) {
+        AzureTelemeter.log(AzureTelemetry.Type.INFO, ImmutableMap.of(INFO_NAME, StringUtils.substringAfter(key, "."), INFO_SERVICE, StringUtils.substringBefore(key, ".")));
+    }
+
+    public static void info(@Nonnull @PropertyKey(resourceBundle = INFO_BUNDLE) final String key, final String details) {
+        AzureTelemeter.log(AzureTelemetry.Type.INFO, ImmutableMap.of(INFO_NAME, StringUtils.substringAfter(key, "."), INFO_SERVICE, StringUtils.substringBefore(key, "."), INFO_DETAILS, details));
+    }
+
+    public static void info(@Nonnull @PropertyKey(resourceBundle = INFO_BUNDLE) final String key, Map<String, String> details) {
+        final HashMap<String, String> map = new HashMap<>(details);
+        map.put(INFO_NAME, StringUtils.substringAfter(key, "."));
+        map.put(INFO_SERVICE, StringUtils.substringBefore(key, "."));
+        AzureTelemeter.log(AzureTelemetry.Type.INFO, map);
+    }
+
+    public static void log(final AzureTelemetry.Type type, final String opId) {
+        AzureTelemeter.log(type, serialize(new SimpleOperation(OperationBundle.description(opId), () -> null, null)));
+    }
+
     public static void log(final AzureTelemetry.Type type, final AzureString op) {
         AzureTelemeter.log(type, serialize(new SimpleOperation(op, () -> null, null)));
+    }
+
+    public static void log(final AzureTelemetry.Type type, final String opId, final Throwable e) {
+        AzureTelemeter.log(type, serialize(new SimpleOperation(OperationBundle.description(opId), () -> null, null)), e);
     }
 
     public static void log(final AzureTelemetry.Type type, final AzureString op, final Throwable e) {

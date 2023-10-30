@@ -21,7 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
-public interface AzResource extends Refreshable {
+public interface AzResource extends Refreshable, AzComponent {
     public static final Action.Id<AzResource> CONNECT_RESOURCE = Action.Id.of("user/$resource.connect_resource.resource");
     public static final Action.Id<Object> CREATE_RESOURCE = Action.Id.of("user/$resource.create_resource.type");
     public static final Action.Id<AzResource> DEPLOY = Action.Id.of("user/$resource.deploy_resource.resource");
@@ -37,12 +37,6 @@ public interface AzResource extends Refreshable {
 
     @Nonnull
     AzResourceModule<?> getModule();
-
-    @Nonnull
-    String getName();
-
-    @Nonnull
-    String getId();
 
     @Nonnull
     default String getFullResourceType() {

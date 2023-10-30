@@ -82,7 +82,7 @@ public final class AzureOperationAspect {
         // TODO: this cannot ensure same operation actually, considering recursive call
         assert Objects.equals(current, operation) :
             String.format("popped operation[%s] is not the operation[%s] throwing exception", current, operation);
-        if (e instanceof OperationException) {
+        if (e instanceof OperationException || e.getClass().getName().contains("com.intellij.openapi.progress.ProcessCanceledException")) {
             throw e;
         } else {
             OperationManager.getInstance().fireAfterThrowing(e, operation);

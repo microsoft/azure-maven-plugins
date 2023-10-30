@@ -641,6 +641,11 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     @Nonnull
+    public String getId() {
+        return this.toResourceId("", null);
+    }
+
+    @Nonnull
     protected <D> D cast(@Nonnull Object origin) {
         //noinspection unchecked
         return (D) origin;
