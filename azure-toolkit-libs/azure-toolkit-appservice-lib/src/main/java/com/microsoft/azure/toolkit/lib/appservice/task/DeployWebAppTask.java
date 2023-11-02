@@ -5,7 +5,12 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.task;
 
-import com.microsoft.azure.toolkit.lib.appservice.model.*;
+import com.microsoft.azure.toolkit.lib.appservice.model.CsmDeploymentStatus;
+import com.microsoft.azure.toolkit.lib.appservice.model.DeployOptions;
+import com.microsoft.azure.toolkit.lib.appservice.model.DeploymentBuildStatus;
+import com.microsoft.azure.toolkit.lib.appservice.model.ErrorEntity;
+import com.microsoft.azure.toolkit.lib.appservice.model.KuduDeploymentResult;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -119,8 +124,8 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
             return false;
         }
         final AtomicReference<CsmDeploymentStatus> status = new AtomicReference<>(null);
-        final Timer timer = new Timer();
-        timer.schedule(new TrackDeploymentStatusTask(status), 0, DEPLOYMENT_STATUS_DISPLAY_REFRESH_INTERVAL);
+        final Timer timer = Objects.isNull(deploymentStatusStream) ? null : new Timer();
+        Optional.ofNullable(timer).ifPresent(t -> t.schedule(new TrackDeploymentStatusTask(status), 0, DEPLOYMENT_STATUS_DISPLAY_REFRESH_INTERVAL));
         final CsmDeploymentStatus result = Mono.fromCallable(() -> {
                 final CsmDeploymentStatus deploymentStatus = webApp.getDeploymentStatus(trackId);
                 status.set(deploymentStatus);
@@ -131,7 +136,7 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
             .repeat(deploymentStatusMaxRefreshTimes)
             .takeUntil(csmDeploymentStatus -> !csmDeploymentStatus.getStatus().isRunning())
             .blockLast();
-        timer.cancel();
+        Optional.ofNullable(timer).ifPresent(Timer::cancel);
         final DeploymentBuildStatus buildStatus = Optional.ofNullable(result).map(CsmDeploymentStatus::getStatus).orElse(null);
         if (buildStatus == null || buildStatus.isSucceed()) {
             return true;
@@ -186,13 +191,12 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
 
         private void printMessage(final String message) {
             if (Objects.isNull(deploymentStatusStream)) {
-                messager.info(message.toString());
-            } else {
-                deploymentStatusStream.print(CLEAR_MESSAGE_STRING);
-                deploymentStatusStream.print(message);
-                deploymentStatusStream.print('\r');
-                deploymentStatusStream.flush();
+                return;
             }
+            deploymentStatusStream.print(CLEAR_MESSAGE_STRING);
+            deploymentStatusStream.print(message);
+            deploymentStatusStream.print('\r');
+            deploymentStatusStream.flush();
         }
 
         private String getDeploymentStatus(final CsmDeploymentStatus deploymentStatus) {
