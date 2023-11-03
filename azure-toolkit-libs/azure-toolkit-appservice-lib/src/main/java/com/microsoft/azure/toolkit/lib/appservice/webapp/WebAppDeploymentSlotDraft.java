@@ -10,6 +10,7 @@ import com.azure.core.util.Context;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
 import com.azure.resourcemanager.appservice.models.WebApp;
+import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
@@ -159,12 +160,12 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
 
         if (modified) {
             final DeploymentSlotBase.Update<DeploymentSlot> update = remote.update();
-            Optional.ofNullable(settingsToAdd).ifPresent(update::withAppSettings);
-            Optional.ofNullable(settingsToRemove).ifPresent(s -> s.forEach(update::withoutAppSetting));
-            Optional.ofNullable(newRuntime).ifPresent(r -> updateRuntime(update, r));
-            Optional.ofNullable(newDockerConfig)
+            Optional.ofNullable(settingsToAdd).filter(ignore -> isAppSettingsModified).ifPresent(update::withAppSettings);
+            Optional.of(settingsToRemove).filter(ignore -> isAppSettingsModified).ifPresent(s -> s.forEach(update::withoutAppSetting));
+            Optional.ofNullable(newRuntime).filter(ignore -> isRuntimeModified).ifPresent(r -> updateRuntime(update, r));
+            Optional.ofNullable(newDockerConfig).filter(ignore -> isDockerConfigurationModified)
                     .ifPresent(dockerConfiguration -> updateDockerConfiguration(update, dockerConfiguration));
-            Optional.ofNullable(newDiagnosticConfig)
+            Optional.ofNullable(newDiagnosticConfig).filter(ignore -> isDiagnosticConfigModified)
                     .ifPresent(diagnosticConfig -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, diagnosticConfig));
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating Web App deployment slot({0})...", remote.name()));
@@ -175,12 +176,12 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
     }
 
     private void updateRuntime(@Nonnull DeploymentSlotBase.Update<?> update, @Nonnull Runtime newRuntime) {
-        final Runtime oldRuntime = Objects.requireNonNull(super.getRuntime());
-        if (newRuntime.getOperatingSystem() != null && Objects.requireNonNull(oldRuntime).getOperatingSystem() != newRuntime.getOperatingSystem()) {
+        final Runtime oldRuntime = AppServiceUtils.getRuntimeFromAppService((WebAppBase) update);
+        if (newRuntime.getOperatingSystem() != null && oldRuntime.getOperatingSystem() != newRuntime.getOperatingSystem()) {
             throw new AzureToolkitRuntimeException(CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS);
         }
         final OperatingSystem operatingSystem =
-                ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), Objects.requireNonNull(oldRuntime).getOperatingSystem());
+                ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), oldRuntime.getOperatingSystem());
         if (operatingSystem == OperatingSystem.LINUX) {
             AzureMessager.getMessager().warning("Update runtime is not supported for Linux app service");
         } else if (operatingSystem == OperatingSystem.WINDOWS) {
