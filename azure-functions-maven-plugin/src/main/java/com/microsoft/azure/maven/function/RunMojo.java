@@ -25,7 +25,7 @@ import java.io.File;
 @Mojo(name = "run")
 public class RunMojo extends AbstractFunctionMojo {
     protected static final String FUNC_CMD = "func -v";
-    protected static final String FUNC_HOST_START_CMD = "func host start -p %s";
+    protected static final String FUNC_HOST_START_CMD = "func host start %s";
     protected static final String RUN_FUNCTIONS_FAILURE = "Failed to run Azure Functions. Please checkout console output.";
     protected static final String RUNTIME_NOT_FOUND = "Azure Functions Core Tools not found. " +
             "Please go to https://aka.ms/azfunc-install to install Azure Functions Core Tools first.";
@@ -33,7 +33,7 @@ public class RunMojo extends AbstractFunctionMojo {
     private static final String STAGE_DIR_NOT_FOUND =
             "Stage directory not found. Please run mvn package first.";
     private static final String RUNTIME_FOUND = "Azure Functions Core Tools found.";
-    private static final String FUNC_HOST_START_WITH_DEBUG_CMD = "func host start -p %s --language-worker -- " +
+    private static final String FUNC_HOST_START_WITH_DEBUG_CMD = "func host start %s --language-worker -- " +
             "\"-agentlib:jdwp=%s\"";
     private static final ComparableVersion JAVA_9 = new ComparableVersion("9");
     private static final ComparableVersion FUNC_3 = new ComparableVersion("3");
@@ -58,6 +58,14 @@ public class RunMojo extends AbstractFunctionMojo {
      */
     @Parameter(property = "funcPort", defaultValue = "7071")
     protected Integer funcPort;
+
+    /**
+     * Config String for other start options than port and local debug
+     *
+     * @since 1.29.0
+     */
+    @Parameter(property = "startOptions", defaultValue = "")
+    protected String startOptions;
     //region Getter
 
     public String getLocalDebugConfig() {
@@ -146,12 +154,22 @@ public class RunMojo extends AbstractFunctionMojo {
         if (StringUtils.isNotEmpty(enableDebug) && enableDebug.equalsIgnoreCase("true")) {
             return getStartFunctionHostWithDebugCommand();
         } else {
-            return String.format(FUNC_HOST_START_CMD, funcPort);
+            return String.format(FUNC_HOST_START_CMD, allStartOptions());
         }
     }
 
     protected String getStartFunctionHostWithDebugCommand() {
-        return String.format(FUNC_HOST_START_WITH_DEBUG_CMD, funcPort, this.getLocalDebugConfig());
+        return String.format(FUNC_HOST_START_WITH_DEBUG_CMD, allStartOptions(), this.getLocalDebugConfig());
+    }
+
+    // Put together port and other start options
+    protected String allStartOptions() {
+        final String startOptionsCli = System.getProperty("startOptions");
+        if (StringUtils.isNotEmpty(startOptionsCli)) {
+            // override startOptions from maven plugin configuration
+            startOptions = startOptionsCli;
+        }
+        return " -p " + funcPort + " " + startOptions;
     }
 
     //endregion
