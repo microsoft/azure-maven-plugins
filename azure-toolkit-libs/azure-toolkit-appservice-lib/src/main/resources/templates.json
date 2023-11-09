@@ -394,6 +394,35 @@
       }
     },
     {
+      "id": "SqlTrigger-Java",
+      "metadata": {
+        "name": "SqlTrigger",
+        "description": "$SqlTrigger_description",
+        "defaultFunctionName": "SqlTriggerBindingJava",
+        "language": "Java",
+        "userPrompt": [
+          "table",
+          "SqlConnectionString"
+        ]
+      },
+      "bundle":["~4"],
+      "function": {
+        "disabled": false,
+        "bindings": [
+          {
+            "type": "sqlTrigger",
+            "name": "changes",
+            "direction": "in",
+            "tableName": "[dbo].[table1]",
+            "connectionStringSetting": "SqlConnectionString"
+          }
+        ]
+      },
+      "files": {
+        "function.java": "package $packageName$;\n\nimport com.google.gson.Gson;\nimport com.google.gson.annotations.SerializedName;\nimport com.microsoft.azure.functions.ExecutionContext;\nimport com.microsoft.azure.functions.annotation.FunctionName;\nimport com.microsoft.azure.functions.sql.annotation.SQLTrigger;\n\nimport java.util.logging.Level;\n\npublic class $className$ {\n    // Visit https://aka.ms/sqltrigger to learn how to use this trigger binding\n    @FunctionName(\"$functionName$\")\n    public void run(\n            @SQLTrigger(\n                    name = \"changes\",\n                    tableName = \"$table$\",\n                    connectionStringSetting = \"$SqlConnectionString$\")\n            SqlChangeToDoItem[] changes,\n            ExecutionContext context) {\n\n        context.getLogger().log(Level.INFO, \"SQL Changes: \" + new Gson().toJson(changes));\n    }\n\n    static class SqlChangeToDoItem {\n        private SqlChangeOperation Operation;\n        private TodoItem Item;\n\n        public SqlChangeToDoItem() {\n        }\n\n        public SqlChangeToDoItem(SqlChangeOperation operation, TodoItem item) {\n            this.Operation = operation;\n            this.Item = item;\n        }\n\n        public SqlChangeOperation getOperation() {\n            return Operation;\n        }\n\n        public void setOperation(SqlChangeOperation operation) {\n            this.Operation = operation;\n        }\n\n        public TodoItem getItem() {\n            return Item;\n        }\n\n        public void setItem(TodoItem item) {\n            this.Item = item;\n        }\n    }\n\n    static enum SqlChangeOperation {\n        @SerializedName(\"0\")\n        Insert,\n        @SerializedName(\"1\")\n        Update,\n        @SerializedName(\"2\")\n        Delete\n    }\n\n    class TodoItem {\n        public String Id;\n        public int Priority;\n        public String Description;\n\n        public TodoItem(String id, int priority, String description) {\n            Id = id;\n            Priority = priority;\n            Description = description;\n        }\n\n        public String getId() {\n            return Id;\n        }\n\n        public void setId(String id) {\n            Id = id;\n        }\n\n        public int getPriority() {\n            return Priority;\n        }\n\n        public void setPriority(int priority) {\n            Priority = priority;\n        }\n\n        public String getDescription() {\n            return Description;\n        }\n\n        public void setDescription(String description) {\n            Description = description;\n        }\n    }\n}\n"
+      }
+    },
+    {
       "id": "SqlOutputBinding-Java",
       "metadata": {
         "name": "SqlOutputBinding",
