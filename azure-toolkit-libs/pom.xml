@@ -58,6 +58,7 @@
         <module>azure-toolkit-servicebus-lib</module>
         <module>azure-toolkit-servicelinker-lib</module>
         <module>azure-toolkit-cognitiveservices-lib</module>
+        <module>azure-toolkit-keyvaults-lib</module>
     </modules>
 
     <properties>
@@ -156,6 +157,7 @@
         <maven-shade-plugin.version>3.4.1</maven-shade-plugin.version>
         <azure-ai-openai.version>1.0.0-beta.3</azure-ai-openai.version>
         <azure-resourcemanager-cognitiveservices.version>1.1.0-beta.1</azure-resourcemanager-cognitiveservices.version>
+        <azure-security-keyvault-certificates.version>4.5.7</azure-security-keyvault-certificates.version>
     </properties>
 
     <dependencyManagement>
@@ -287,6 +289,11 @@
                 <artifactId>azure-toolkit-servicelinker-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-keyvault-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
             <!-- azure data management sdk -->
             <dependency>
                 <groupId>com.azure</groupId>
@@ -327,6 +334,11 @@
                 <groupId>com.azure</groupId>
                 <artifactId>azure-ai-openai</artifactId>
                 <version>${azure-ai-openai.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-security-keyvault-certificates</artifactId>
+                <version>${azure-security-keyvault-certificates.version}</version>
             </dependency>
             <!-- azure resource management sdk -->
             <dependency>
@@ -444,6 +456,11 @@
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-cosmos</artifactId>
+                <version>${azure.resourcemanager.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-keyvault</artifactId>
                 <version>${azure.resourcemanager.version}</version>
             </dependency>
             <dependency>
