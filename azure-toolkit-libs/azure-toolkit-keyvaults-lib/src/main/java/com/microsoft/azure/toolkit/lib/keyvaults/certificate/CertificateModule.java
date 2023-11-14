@@ -6,19 +6,18 @@
 package com.microsoft.azure.toolkit.lib.keyvaults.certificate;
 
 import com.azure.core.util.paging.ContinuablePage;
-import com.azure.core.util.polling.SyncPoller;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.azure.security.keyvault.certificates.CertificateClient;
+import com.azure.security.keyvault.certificates.CertificateAsyncClient;
 import com.azure.security.keyvault.certificates.models.CertificateProperties;
-import com.azure.security.keyvault.certificates.models.DeletedCertificate;
 import com.azure.security.keyvault.certificates.models.KeyVaultCertificate;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.keyvaults.KeyVault;
+import org.apache.commons.collections4.IteratorUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
@@ -33,10 +32,12 @@ public class CertificateModule extends AbstractAzResourceModule<Certificate, Key
     @Nonnull
     @Override
     protected Iterator<? extends ContinuablePage<String, CertificateProperties>> loadResourcePagesFromAzure() {
-        final CertificateClient client = getClient();
+        final CertificateAsyncClient client = getClient();
         return Optional.ofNullable(client)
-            .map(c -> c.listPropertiesOfCertificates().iterableByPage(getPageSize()).iterator())
-            .orElse(Collections.emptyIterator());
+            .map(c -> c.listPropertiesOfCertificates().collectList().block())
+            .map(ItemPage::new)
+            .map(IteratorUtils::singletonIterator)
+            .orElseGet(IteratorUtils::emptyIterator);
     }
 
     @Nullable
@@ -44,7 +45,7 @@ public class CertificateModule extends AbstractAzResourceModule<Certificate, Key
     @AzureOperation(name = "azure/keyvaults.load_key_vault.key_vault", params = {"name"})
     protected CertificateProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         return Optional.ofNullable(this.getClient())
-            .map(client -> client.getCertificate(name))
+            .map(client -> client.getCertificate(name).block())
             .map(KeyVaultCertificate::getProperties)
             .orElse(null);
     }
@@ -52,13 +53,12 @@ public class CertificateModule extends AbstractAzResourceModule<Certificate, Key
     @Override
     @AzureOperation(name = "azure/keyvaults.delete_key_vault.key_vault", params = {"nameFromResourceId(resourceId)"})
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
-        final CertificateClient client = getClient();
+        final CertificateAsyncClient client = getClient();
         if (Objects.isNull(client)) {
             return;
         }
         final ResourceId id = ResourceId.fromString(resourceId);
-        final SyncPoller<DeletedCertificate, Void> deletedCertificateVoidSyncPoller = client.beginDeleteCertificate(id.name());
-        deletedCertificateVoidSyncPoller.waitForCompletion();
+        client.deleteCertificateOperation(id.name()).block();
     }
 
     @Nonnull
@@ -75,7 +75,7 @@ public class CertificateModule extends AbstractAzResourceModule<Certificate, Key
 
     @Nullable
     @Override
-    protected CertificateClient getClient() {
+    protected CertificateAsyncClient getClient() {
         return getParent().getCertificateClient();
     }
 

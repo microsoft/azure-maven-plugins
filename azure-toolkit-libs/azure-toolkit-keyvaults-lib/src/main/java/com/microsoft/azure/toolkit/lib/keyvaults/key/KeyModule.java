@@ -7,15 +7,17 @@ package com.microsoft.azure.toolkit.lib.keyvaults.key;
 
 import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.azure.security.keyvault.keys.KeyClient;
+import com.azure.security.keyvault.keys.KeyAsyncClient;
 import com.azure.security.keyvault.keys.models.KeyProperties;
+import com.azure.security.keyvault.keys.models.KeyVaultKey;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.keyvaults.KeyVault;
+import org.apache.commons.collections4.IteratorUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,15 +33,20 @@ public class KeyModule extends AbstractAzResourceModule<Key, KeyVault, KeyProper
     @Override
     protected Iterator<? extends ContinuablePage<String, KeyProperties>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient())
-            .map(c -> c.listPropertiesOfKeys().iterableByPage(getPageSize()).iterator())
-            .orElse(Collections.emptyIterator());
+            .map(c -> c.listPropertiesOfKeys().collectList().block())
+            .map(ItemPage::new)
+            .map(IteratorUtils::singletonIterator)
+            .orElseGet(IteratorUtils::emptyIterator);
     }
 
     @Nullable
     @Override
     @AzureOperation(name = "azure/keyvaults.load_key_vault.key_vault", params = {"name"})
     protected KeyProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        return Optional.ofNullable(getClient()).map(c -> c.getKey(name).getProperties()).orElse(null);
+        return Optional.ofNullable(getClient())
+            .map(c -> c.getKey(name).block())
+            .map(KeyVaultKey::getProperties)
+            .orElse(null);
     }
 
     @Override
@@ -47,7 +54,7 @@ public class KeyModule extends AbstractAzResourceModule<Key, KeyVault, KeyProper
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(this.getClient())
-            .ifPresent(client -> client.beginDeleteKey(id.name()).waitForCompletion().getValue());
+            .ifPresent(client -> client.beginDeleteKey(id.name()).blockLast());
     }
 
     @Nonnull
@@ -64,7 +71,7 @@ public class KeyModule extends AbstractAzResourceModule<Key, KeyVault, KeyProper
 
     @Nullable
     @Override
-    protected KeyClient getClient() {
+    protected KeyAsyncClient getClient() {
         return this.getParent().getKeyClient();
     }
 

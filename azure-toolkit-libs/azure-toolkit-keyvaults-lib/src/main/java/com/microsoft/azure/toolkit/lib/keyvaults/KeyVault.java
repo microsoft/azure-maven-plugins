@@ -7,12 +7,10 @@ package com.microsoft.azure.toolkit.lib.keyvaults;
 
 import com.azure.resourcemanager.keyvault.models.Vault;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.azure.security.keyvault.certificates.CertificateClient;
+import com.azure.security.keyvault.certificates.CertificateAsyncClient;
 import com.azure.security.keyvault.certificates.CertificateClientBuilder;
-import com.azure.security.keyvault.keys.KeyClient;
-import com.azure.security.keyvault.keys.KeyClientBuilder;
-import com.azure.security.keyvault.secrets.SecretClient;
-import com.azure.security.keyvault.secrets.SecretClientBuilder;
+import com.azure.security.keyvault.keys.KeyAsyncClient;
+import com.azure.security.keyvault.secrets.SecretAsyncClient;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
@@ -38,11 +36,7 @@ public class KeyVault extends AbstractAzResource<KeyVault, KeyVaultSubscription,
     private final CertificateModule certificateModule;
 
     @Nullable
-    private volatile CertificateClient certificateClient;
-    @Nullable
-    private volatile SecretClient secretClient;
-    @Nullable
-    private volatile KeyClient keyClient;
+    private volatile CertificateAsyncClient certificateClient;
 
     protected KeyVault(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull KeyVaultModule module) {
         super(name, resourceGroupName, module);
@@ -101,7 +95,7 @@ public class KeyVault extends AbstractAzResource<KeyVault, KeyVaultSubscription,
         return this.certificateModule;
     }
 
-    public CertificateClient getCertificateClient() {
+    public CertificateAsyncClient getCertificateClient() {
         if (certificateClient == null) {
             synchronized (this) {
                 if (certificateClient == null && Objects.nonNull(getVaultUri())) {
@@ -109,42 +103,19 @@ public class KeyVault extends AbstractAzResource<KeyVault, KeyVaultSubscription,
                     certificateClient = new CertificateClientBuilder()
                         .vaultUrl(getVaultUri())
                         .credential(account.getTokenCredential(getSubscriptionId()))
-                        .buildClient();
+                        .buildAsyncClient();
                 }
             }
         }
         return certificateClient;
     }
 
-    public SecretClient getSecretClient() {
-//        return Optional.ofNullable(getRemote()).map(Vault::secretClient).orElse(null);
-        if (secretClient == null) {
-            synchronized (this) {
-                if (secretClient == null && Objects.nonNull(getVaultUri())) {
-                    final Account account = Azure.az(AzureAccount.class).account();
-                    secretClient = new SecretClientBuilder()
-                        .vaultUrl(getVaultUri())
-                        .credential(account.getTokenCredential(getSubscriptionId()))
-                        .buildClient();
-                }
-            }
-        }
-        return secretClient;
+    public SecretAsyncClient getSecretClient() {
+        return Optional.ofNullable(getRemote()).map(Vault::secretClient).orElse(null);
     }
 
-    public KeyClient getKeyClient() {
-        if (keyClient == null) {
-            synchronized (this) {
-                if (keyClient == null && Objects.nonNull(getVaultUri())) {
-                    final Account account = Azure.az(AzureAccount.class).account();
-                    keyClient = new KeyClientBuilder()
-                        .vaultUrl(getVaultUri())
-                        .credential(account.getTokenCredential(getSubscriptionId()))
-                        .buildClient();
-                }
-            }
-        }
-        return keyClient;
+    public KeyAsyncClient getKeyClient() {
+        return Optional.ofNullable(getRemote()).map(Vault::keyClient).orElse(null);
     }
 }
 

@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.keyvaults.secret;
 
+import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -40,6 +41,10 @@ public class SecretVersion extends AbstractAzResource<SecretVersion, Secret, Sec
     @Override
     protected String loadStatus(@Nonnull SecretProperties remote) {
         return remote.isEnabled() ? FormalStatus.RUNNING.name() : FormalStatus.STOPPED.name();
+    }
+
+    public Boolean isEnabled() {
+        return Optional.ofNullable(getRemote()).map(SecretProperties::isEnabled).orElse(false);
     }
 
     @Nullable

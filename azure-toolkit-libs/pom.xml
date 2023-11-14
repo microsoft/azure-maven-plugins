@@ -291,7 +291,7 @@
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-toolkit-keyvault-lib</artifactId>
+                <artifactId>azure-toolkit-keyvaults-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
             <!-- azure data management sdk -->

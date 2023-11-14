@@ -6,14 +6,16 @@
 package com.microsoft.azure.toolkit.lib.keyvaults.key;
 
 import com.azure.core.util.paging.ContinuablePage;
-import com.azure.security.keyvault.keys.KeyClient;
+import com.azure.security.keyvault.keys.KeyAsyncClient;
 import com.azure.security.keyvault.keys.models.KeyProperties;
+import com.azure.security.keyvault.keys.models.KeyVaultKey;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import org.apache.commons.collections4.IteratorUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,8 +31,10 @@ public class KeyVersionModule extends AbstractAzResourceModule<KeyVersion, Key, 
     @Override
     protected Iterator<? extends ContinuablePage<String, KeyProperties>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient())
-            .map(keys -> keys.listPropertiesOfKeyVersions(getParent().getName()).iterableByPage(getPageSize()).iterator())
-            .orElse(Collections.emptyIterator());
+            .map(keys -> keys.listPropertiesOfKeyVersions(getParent().getName()).collectList().block())
+            .map(ItemPage::new)
+            .map(IteratorUtils::singletonIterator)
+            .orElseGet(IteratorUtils::emptyIterator);
     }
 
     @Nullable
@@ -38,7 +42,8 @@ public class KeyVersionModule extends AbstractAzResourceModule<KeyVersion, Key, 
     @AzureOperation(name = "azure/keyvaults.load_key_vault.key_vault", params = {"name"})
     protected KeyProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         return Optional.ofNullable(getClient())
-            .map(keys -> keys.getKey(getParent().getName(), name).getProperties())
+            .map(keys -> keys.getKey(getParent().getName(), name).block())
+            .map(KeyVaultKey::getProperties)
             .orElse(null);
     }
 
@@ -56,7 +61,7 @@ public class KeyVersionModule extends AbstractAzResourceModule<KeyVersion, Key, 
 
     @Nullable
     @Override
-    protected KeyClient getClient() {
+    protected KeyAsyncClient getClient() {
         return this.getParent().getParent().getKeyClient();
     }
 

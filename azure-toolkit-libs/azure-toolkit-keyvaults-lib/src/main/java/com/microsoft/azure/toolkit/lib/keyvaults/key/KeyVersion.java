@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.keyvaults.key;
 
+import com.azure.security.keyvault.certificates.models.CertificateProperties;
 import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -39,6 +40,10 @@ public class KeyVersion extends AbstractAzResource<KeyVersion, Key, KeyPropertie
     @Override
     protected String loadStatus(@Nonnull KeyProperties remote) {
         return remote.isEnabled() ? FormalStatus.RUNNING.name() : FormalStatus.STOPPED.name();
+    }
+
+    public Boolean isEnabled() {
+        return Optional.ofNullable(getRemote()).map(KeyProperties::isEnabled).orElse(false);
     }
 
     public String getVersion() {

@@ -42,6 +42,10 @@ public class CertificateVersion extends AbstractAzResource<CertificateVersion, C
         return remote.isEnabled() ? FormalStatus.RUNNING.name() : FormalStatus.STOPPED.name();
     }
 
+    public Boolean isEnabled() {
+        return Optional.ofNullable(getRemote()).map(CertificateProperties::isEnabled).orElse(false);
+    }
+
     public String getVersion() {
         return Optional.ofNullable(getRemote()).map(CertificateProperties::getVersion).orElse(null);
     }

@@ -6,14 +6,16 @@
 package com.microsoft.azure.toolkit.lib.keyvaults.secret;
 
 import com.azure.core.util.paging.ContinuablePage;
-import com.azure.security.keyvault.secrets.SecretClient;
+import com.azure.security.keyvault.secrets.SecretAsyncClient;
+import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import org.apache.commons.collections4.IteratorUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,8 +31,10 @@ public class SecretVersionModule extends AbstractAzResourceModule<SecretVersion,
     @Override
     protected Iterator<? extends ContinuablePage<String, SecretProperties>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient())
-            .map(client -> client.listPropertiesOfSecretVersions(getParent().getName()).iterableByPage(getPageSize()).iterator())
-            .orElse(Collections.emptyIterator());
+            .map(client -> client.listPropertiesOfSecretVersions(getParent().getName()).collectList().block())
+            .map(ItemPage::new)
+            .map(IteratorUtils::singletonIterator)
+            .orElseGet(IteratorUtils::emptyIterator);
     }
 
     @Nullable
@@ -38,7 +42,8 @@ public class SecretVersionModule extends AbstractAzResourceModule<SecretVersion,
     @AzureOperation(name = "azure/keyvaults.load_key_vault.key_vault", params = {"name"})
     protected SecretProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         return Optional.ofNullable(getClient())
-            .map(client -> client.getSecret(getParent().getName(), name).getProperties()).orElse(null);
+            .map(client -> client.getSecret(getParent().getName(), name).block())
+            .map(KeyVaultSecret::getProperties).orElse(null);
     }
 
     @Nonnull
@@ -55,7 +60,7 @@ public class SecretVersionModule extends AbstractAzResourceModule<SecretVersion,
 
     @Nullable
     @Override
-    protected SecretClient getClient() {
+    protected SecretAsyncClient getClient() {
         return getParent().getParent().getSecretClient();
     }
 
