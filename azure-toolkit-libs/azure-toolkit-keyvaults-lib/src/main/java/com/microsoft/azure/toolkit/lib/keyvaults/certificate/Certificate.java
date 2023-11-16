@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.keyvaults.certificate;
 
 import com.azure.security.keyvault.certificates.models.CertificateProperties;
+import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -68,6 +69,15 @@ public class Certificate extends AbstractAzResource<Certificate, KeyVault, Certi
         if (StringUtils.isNotBlank(version)) {
             super.setRemote(remote);
         }
+    }
+
+    public Boolean isEnabled() {
+        return Optional.ofNullable(getRemote()).map(CertificateProperties::isEnabled).orElse(false);
+    }
+
+    @Nullable
+    public CertificateProperties getProperties(){
+        return getRemote();
     }
 }
 

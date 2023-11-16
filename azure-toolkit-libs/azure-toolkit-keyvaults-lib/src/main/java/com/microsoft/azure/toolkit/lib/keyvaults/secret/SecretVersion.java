@@ -5,10 +5,11 @@
 
 package com.microsoft.azure.toolkit.lib.keyvaults.secret;
 
-import com.azure.security.keyvault.keys.models.KeyProperties;
+import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.keyvaults.KeyVault;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -55,6 +56,23 @@ public class SecretVersion extends AbstractAzResource<SecretVersion, Secret, Sec
     public boolean isCurrentVersion() {
         return StringUtils.equals(getVersion(), getParent().getCurrentVersionId());
     }
+
+    @Nullable
+    public String getSecretValue() {
+        return Optional.ofNullable(getSecret()).map(KeyVaultSecret::getValue).orElse(null);
+    }
+
+    @Nullable
+    public KeyVaultSecret getSecret() {
+        final Secret secret = getParent();
+        final KeyVault keyVault = secret.getParent();
+        return Optional.ofNullable(keyVault.getSecretClient())
+            .map(client -> client.getSecret(secret.getName(), getVersion()).block())
+            .orElse(null);
+    }
+
+    @Nullable
+    public SecretProperties getProperties() {
+        return getRemote();
+    }
 }
-
-

@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.keyvaults.key;
 
 import com.azure.security.keyvault.keys.models.KeyProperties;
+import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -68,6 +69,20 @@ public class Key extends AbstractAzResource<Key, KeyVault, KeyProperties> implem
         if (StringUtils.isNotBlank(version)) {
             super.setRemote(remote);
         }
+    }
+
+    @Nullable
+    public Boolean isManaged() {
+        return Optional.ofNullable(getRemote()).map(KeyProperties::isManaged).orElse(null);
+    }
+
+    public Boolean isEnabled() {
+        return Optional.ofNullable(getRemote()).map(KeyProperties::isEnabled).orElse(false);
+    }
+
+    @Nullable
+    public KeyProperties getProperties(){
+        return getRemote();
     }
 }
 

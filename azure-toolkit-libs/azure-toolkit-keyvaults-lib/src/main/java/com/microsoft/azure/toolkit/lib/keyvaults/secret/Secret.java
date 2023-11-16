@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.keyvaults.secret;
 
+import com.azure.security.keyvault.certificates.models.CertificateProperties;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -74,6 +75,15 @@ public class Secret extends AbstractAzResource<Secret, KeyVault, SecretPropertie
         if (StringUtils.isNotBlank(version)) {
             super.setRemote(remote);
         }
+    }
+
+    public Boolean isEnabled() {
+        return Optional.ofNullable(getRemote()).map(SecretProperties::isEnabled).orElse(false);
+    }
+
+    @Nullable
+    public SecretProperties getProperties() {
+        return getRemote();
     }
 }
 
