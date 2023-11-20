@@ -30,9 +30,16 @@ public class AzureKeyVault extends AbstractAzService<KeyVaultSubscription, KeyVa
     }
 
     @Nonnull
+    public KeyVaultModule keyVaults(@Nonnull String subscriptionId) {
+        final KeyVaultSubscription rm = get(subscriptionId, null);
+        assert rm != null;
+        return rm.getKeyVaultModule();
+    }
+
+    @Nonnull
     @Override
-    protected KeyVaultSubscription newResource(@Nonnull KeyVaultManager eventHubsManager) {
-        return new KeyVaultSubscription(eventHubsManager.serviceClient().getSubscriptionId(), this);
+    protected KeyVaultSubscription newResource(@Nonnull KeyVaultManager keyVaultManager) {
+        return new KeyVaultSubscription(keyVaultManager.serviceClient().getSubscriptionId(), this);
     }
 
     @Nullable
