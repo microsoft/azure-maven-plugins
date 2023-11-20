@@ -59,6 +59,12 @@ public class CertificateVersionModule extends AbstractAzResourceModule<Certifica
         return new CertificateVersion(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
+    @Nonnull
+    @Override
+    protected CertificateVersionDraft newDraftForUpdate(@Nonnull CertificateVersion version) {
+        return new CertificateVersionDraft(version);
+    }
+
     @Nullable
     @Override
     protected CertificateAsyncClient getClient() {

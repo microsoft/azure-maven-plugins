@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.keyvaults.secret;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.keyvaults.Credential;
 import com.microsoft.azure.toolkit.lib.keyvaults.CredentialVersion;
 import org.apache.commons.lang3.StringUtils;
@@ -57,18 +56,16 @@ public class SecretVersion extends AbstractAzResource<SecretVersion, Secret, Sec
 
     @Override
     public void enable() {
-        // todo: migrate to use draft
-        final SecretProperties remote = getRemote();
-        remote.setEnabled(true);
-        doModify(() -> getKeyVault().getSecretClient().updateSecretProperties(remote).block(), AzResource.Status.UPDATING);
+        final SecretVersionDraft update = (SecretVersionDraft) this.update();
+        update.setEnabled(true);
+        update.commit();
     }
 
     @Override
     public void disable() {
-        // todo: migrate to use draft
-        final SecretProperties remote = getRemote();
-        remote.setEnabled(false);
-        doModify(() -> getKeyVault().getSecretClient().updateSecretProperties(remote).block(), AzResource.Status.UPDATING);
+        final SecretVersionDraft update = (SecretVersionDraft) this.update();
+        update.setEnabled(false);
+        update.commit();
     }
 
     public Boolean isEnabled() {

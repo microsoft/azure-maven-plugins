@@ -10,6 +10,7 @@ import com.azure.security.keyvault.secrets.SecretAsyncClient;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.collections4.IteratorUtils;
@@ -56,6 +57,12 @@ public class SecretVersionModule extends AbstractAzResourceModule<SecretVersion,
     @Override
     protected SecretVersion newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         return new SecretVersion(name, Objects.requireNonNull(resourceGroupName), this);
+    }
+
+    @Nonnull
+    @Override
+    protected AzResource.Draft<SecretVersion, SecretProperties> newDraftForUpdate(@Nonnull SecretVersion version) {
+        return new SecretVersionDraft(version);
     }
 
     @Nullable

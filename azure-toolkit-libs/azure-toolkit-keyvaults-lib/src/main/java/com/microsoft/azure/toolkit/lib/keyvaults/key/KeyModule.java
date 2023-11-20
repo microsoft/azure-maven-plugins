@@ -69,6 +69,12 @@ public class KeyModule extends AbstractAzResourceModule<Key, KeyVault, KeyProper
         return new Key(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
+    @Nonnull
+    @Override
+    protected KeyDraft newDraftForCreate(@Nonnull String name, @Nullable String rgName) {
+        return new KeyDraft(name, Objects.requireNonNull(rgName), this);
+    }
+
     @Nullable
     @Override
     protected KeyAsyncClient getClient() {

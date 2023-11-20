@@ -11,12 +11,10 @@ import com.azure.security.keyvault.secrets.SecretAsyncClient;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.keyvaults.KeyVault;
 import org.apache.commons.collections4.IteratorUtils;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -75,9 +73,9 @@ public class SecretModule extends AbstractAzResourceModule<Secret, KeyVault, Sec
         return getParent().getSecretClient();
     }
 
-    @NotNull
+    @Nonnull
     @Override
-    protected AzResource.Draft<Secret, SecretProperties> newDraftForCreate(@NotNull String name, @org.jetbrains.annotations.Nullable String rgName) {
+    protected SecretDraft newDraftForCreate(@Nonnull String name, @org.jetbrains.annotations.Nullable String rgName) {
         return new SecretDraft(name, rgName, this);
     }
 

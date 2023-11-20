@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.keyvaults.key;
 import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.keyvaults.Credential;
 import com.microsoft.azure.toolkit.lib.keyvaults.CredentialVersion;
 import org.apache.commons.lang3.StringUtils;
@@ -56,20 +55,17 @@ public class KeyVersion extends AbstractAzResource<KeyVersion, Key, KeyPropertie
 
     @Override
     public void enable() {
-        // todo: migrate to use draft
-        final KeyProperties remote = getRemote();
-        remote.setEnabled(true);
-        doModify(() -> getKeyVault().getKeyClient().updateKeyProperties(remote).block(), AzResource.Status.UPDATING);
+        final KeyVersionDraft update = (KeyVersionDraft) this.update();
+        update.setEnabled(true);
+        update.commit();
     }
 
     @Override
     public void disable() {
-        // todo: migrate to use draft
-        final KeyProperties remote = getRemote();
-        remote.setEnabled(false);
-        doModify(() -> getKeyVault().getKeyClient().updateKeyProperties(remote).block(), AzResource.Status.UPDATING);
+        final KeyVersionDraft update = (KeyVersionDraft) this.update();
+        update.setEnabled(false);
+        update.commit();
     }
-
     public Boolean isEnabled() {
         return Optional.ofNullable(getRemote()).map(KeyProperties::isEnabled).orElse(false);
     }
@@ -83,7 +79,6 @@ public class KeyVersion extends AbstractAzResource<KeyVersion, Key, KeyPropertie
     public String getDownloadCredentialCommand(@Nonnull final String path) {
         return String.format(DOWNLOAD_SECRET_COMMAND, getCredential().getName(), getKeyVault().getName(), getName(), path);
     }
-
 
     public String getVersion() {
         return Optional.ofNullable(getRemote()).map(KeyProperties::getVersion).orElse(null);

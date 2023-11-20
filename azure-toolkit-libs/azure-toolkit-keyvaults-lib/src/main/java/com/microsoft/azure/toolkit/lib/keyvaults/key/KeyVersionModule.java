@@ -10,6 +10,7 @@ import com.azure.security.keyvault.keys.KeyAsyncClient;
 import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.azure.security.keyvault.keys.models.KeyVaultKey;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.collections4.IteratorUtils;
@@ -57,6 +58,12 @@ public class KeyVersionModule extends AbstractAzResourceModule<KeyVersion, Key, 
     @Override
     protected KeyVersion newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         return new KeyVersion(name, Objects.requireNonNull(resourceGroupName), this);
+    }
+
+    @Nonnull
+    @Override
+    protected AzResource.Draft<KeyVersion, KeyProperties> newDraftForUpdate(@Nonnull KeyVersion version) {
+        return new KeyVersionDraft(version);
     }
 
     @Nullable

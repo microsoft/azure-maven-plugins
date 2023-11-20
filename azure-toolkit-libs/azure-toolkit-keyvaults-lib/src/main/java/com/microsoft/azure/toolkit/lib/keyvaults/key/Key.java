@@ -5,8 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.keyvaults.key;
 
+import com.azure.security.keyvault.keys.KeyAsyncClient;
 import com.azure.security.keyvault.keys.models.KeyProperties;
-import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -93,8 +93,15 @@ public class Key extends AbstractAzResource<Key, KeyVault, KeyProperties> implem
     }
 
     @Nullable
-    public KeyProperties getProperties(){
+    public KeyProperties getProperties() {
         return getRemote();
+    }
+
+    @Nullable
+    public KeyVersion addNewKeyVersion(final KeyDraft.Config config) {
+        final KeyAsyncClient client = getKeyVault().getKeyClient();
+        final KeyProperties newProperties = KeyDraft.createOrUpdateKey(client, config);
+        return Optional.of(newProperties).map(secret -> this.versionModule.get(newProperties.getVersion(), getResourceGroupName())).orElse(null);
     }
 }
 

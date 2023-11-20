@@ -73,6 +73,12 @@ public class CertificateModule extends AbstractAzResourceModule<Certificate, Key
         return new Certificate(name, Objects.requireNonNull(resourceGroupName), this);
     }
 
+    @Nonnull
+    @Override
+    protected CertificateDraft newDraftForCreate(@Nonnull String name, @org.jetbrains.annotations.Nullable String rgName) {
+        return new CertificateDraft(name, rgName, this);
+    }
+
     @Nullable
     @Override
     protected CertificateAsyncClient getClient() {

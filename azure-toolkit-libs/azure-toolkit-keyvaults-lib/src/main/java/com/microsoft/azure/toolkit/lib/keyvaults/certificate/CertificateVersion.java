@@ -7,10 +7,8 @@ package com.microsoft.azure.toolkit.lib.keyvaults.certificate;
 
 import com.azure.security.keyvault.certificates.models.CertificatePolicy;
 import com.azure.security.keyvault.certificates.models.CertificateProperties;
-import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.keyvaults.Credential;
 import com.microsoft.azure.toolkit.lib.keyvaults.CredentialVersion;
 import org.apache.commons.lang3.StringUtils;
@@ -60,18 +58,16 @@ public class CertificateVersion extends AbstractAzResource<CertificateVersion, C
 
     @Override
     public void enable() {
-        // todo: migrate to use draft
-        final CertificateProperties remote = getRemote();
-        remote.setEnabled(true);
-        doModify(() -> getKeyVault().getCertificateClient().updateCertificateProperties(remote).block(), AzResource.Status.UPDATING);
+        final CertificateVersionDraft update = (CertificateVersionDraft) this.update();
+        update.setEnabled(true);
+        update.commit();
     }
 
     @Override
     public void disable() {
-        // todo: migrate to use draft
-        final CertificateProperties remote = getRemote();
-        remote.setEnabled(false);
-        doModify(() -> getKeyVault().getCertificateClient().updateCertificateProperties(remote).block(), AzResource.Status.UPDATING);
+        final CertificateVersionDraft update = (CertificateVersionDraft) this.update();
+        update.setEnabled(false);
+        update.commit();
     }
 
     public Boolean isEnabled() {
