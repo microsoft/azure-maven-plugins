@@ -5,25 +5,28 @@
 
 package com.microsoft.azure.toolkit.lib.keyvaults.certificate;
 
-import com.azure.security.keyvault.certificates.CertificateAsyncClient;
 import com.azure.security.keyvault.certificates.models.CertificatePolicy;
 import com.azure.security.keyvault.certificates.models.CertificateProperties;
-import com.azure.security.keyvault.certificates.models.KeyVaultCertificate;
-import com.azure.security.keyvault.certificates.models.KeyVaultCertificateWithPolicy;
+import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.keyvaults.Credential;
+import com.microsoft.azure.toolkit.lib.keyvaults.CredentialVersion;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
-public class CertificateVersion extends AbstractAzResource<CertificateVersion, Certificate, CertificateProperties> {
-    private KeyVaultCertificateWithPolicy keyVaultCertificateWithPolicy;
+public class CertificateVersion extends AbstractAzResource<CertificateVersion, Certificate, CertificateProperties> implements CredentialVersion {
+
+    public static final String SHOW_SECRET_COMMAND = "az keyvault certificate show --name %s --vault-name %s --version %s";
+    public static final String DOWNLOAD_SECRET_COMMAND = "az keyvault certificate download --name %s --vault-name %s --version %s --file %s";
+
 
     protected CertificateVersion(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull CertificateVersionModule module) {
         super(name, resourceGroupName, module);
@@ -49,8 +52,40 @@ public class CertificateVersion extends AbstractAzResource<CertificateVersion, C
         return remote.isEnabled() ? FormalStatus.RUNNING.name() : FormalStatus.STOPPED.name();
     }
 
+    @NotNull
+    @Override
+    public Credential getCredential() {
+        return getParent();
+    }
+
+    @Override
+    public void enable() {
+        // todo: migrate to use draft
+        final CertificateProperties remote = getRemote();
+        remote.setEnabled(true);
+        doModify(() -> getKeyVault().getCertificateClient().updateCertificateProperties(remote).block(), AzResource.Status.UPDATING);
+    }
+
+    @Override
+    public void disable() {
+        // todo: migrate to use draft
+        final CertificateProperties remote = getRemote();
+        remote.setEnabled(false);
+        doModify(() -> getKeyVault().getCertificateClient().updateCertificateProperties(remote).block(), AzResource.Status.UPDATING);
+    }
+
     public Boolean isEnabled() {
         return Optional.ofNullable(getRemote()).map(CertificateProperties::isEnabled).orElse(false);
+    }
+
+    @Override
+    public String getShowCredentialCommand() {
+        return String.format(SHOW_SECRET_COMMAND, getCredential().getName(), getKeyVault().getName(), getName());
+    }
+
+    @Override
+    public String getDownloadCredentialCommand(@Nonnull final String path) {
+        return String.format(DOWNLOAD_SECRET_COMMAND, getCredential().getName(), getKeyVault().getName(), getName(), path);
     }
 
     public String getVersion() {
@@ -62,31 +97,8 @@ public class CertificateVersion extends AbstractAzResource<CertificateVersion, C
     }
 
     @Nullable
-    public byte[] getCertificateCer() {
-        return Optional.ofNullable(getCertificate()).map(KeyVaultCertificate::getCer).orElse(null);
-    }
-
-    public byte[] getCertificatePem() {
-        final byte[] cer = getCertificateCer();
-        return Optional.ofNullable(cer).map(c -> Base64.getEncoder().encode(c)).orElse(null);
-    }
-
-    @Nullable
-    public KeyVaultCertificate getCertificate() {
-        final CertificateAsyncClient client = getParent().getParent().getCertificateClient();
-        if (Objects.isNull(client)) {
-            return null;
-        }
-        return client.getCertificateVersion(getParent().getName(), getVersion()).block();
-    }
-
-    @Nullable
     public CertificatePolicy getPolicy() {
-        final CertificateAsyncClient client = getParent().getParent().getCertificateClient();
-        if (Objects.isNull(client)) {
-            return null;
-        }
-        return client.getCertificatePolicy(getParent().getName()).block();
+        return getParent().getPolicy();
     }
 
     @Nullable

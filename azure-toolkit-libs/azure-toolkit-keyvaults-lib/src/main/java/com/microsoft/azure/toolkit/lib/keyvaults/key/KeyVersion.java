@@ -5,28 +5,24 @@
 
 package com.microsoft.azure.toolkit.lib.keyvaults.key;
 
-import com.azure.security.keyvault.keys.models.JsonWebKey;
 import com.azure.security.keyvault.keys.models.KeyProperties;
-import com.azure.security.keyvault.keys.models.KeyType;
-import com.azure.security.keyvault.keys.models.KeyVaultKey;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.keyvaults.KeyVault;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.keyvaults.Credential;
+import com.microsoft.azure.toolkit.lib.keyvaults.CredentialVersion;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
-public class KeyVersion extends AbstractAzResource<KeyVersion, Key, KeyProperties> {
-
-    public static final String BEGIN_PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----";
-    public static final String END_PUBLIC_KEY = "-----END PUBLIC KEY-----";
+public class KeyVersion extends AbstractAzResource<KeyVersion, Key, KeyProperties> implements CredentialVersion {
+    public static final String SHOW_SECRET_COMMAND = "az keyvault key show --name %s --vault-name %s --version %s";
+    public static final String DOWNLOAD_SECRET_COMMAND = "az keyvault key download --name %s --vault-name %s --version %s --file %s";
 
     protected KeyVersion(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull KeyVersionModule module) {
         super(name, resourceGroupName, module);
@@ -52,9 +48,42 @@ public class KeyVersion extends AbstractAzResource<KeyVersion, Key, KeyPropertie
         return remote.isEnabled() ? FormalStatus.RUNNING.name() : FormalStatus.STOPPED.name();
     }
 
+    @NotNull
+    @Override
+    public Credential getCredential() {
+        return getParent();
+    }
+
+    @Override
+    public void enable() {
+        // todo: migrate to use draft
+        final KeyProperties remote = getRemote();
+        remote.setEnabled(true);
+        doModify(() -> getKeyVault().getKeyClient().updateKeyProperties(remote).block(), AzResource.Status.UPDATING);
+    }
+
+    @Override
+    public void disable() {
+        // todo: migrate to use draft
+        final KeyProperties remote = getRemote();
+        remote.setEnabled(false);
+        doModify(() -> getKeyVault().getKeyClient().updateKeyProperties(remote).block(), AzResource.Status.UPDATING);
+    }
+
     public Boolean isEnabled() {
         return Optional.ofNullable(getRemote()).map(KeyProperties::isEnabled).orElse(false);
     }
+
+    @Override
+    public String getShowCredentialCommand() {
+        return String.format(SHOW_SECRET_COMMAND, getCredential().getName(), getKeyVault().getName(), getName());
+    }
+
+    @Override
+    public String getDownloadCredentialCommand(@Nonnull final String path) {
+        return String.format(DOWNLOAD_SECRET_COMMAND, getCredential().getName(), getKeyVault().getName(), getName(), path);
+    }
+
 
     public String getVersion() {
         return Optional.ofNullable(getRemote()).map(KeyProperties::getVersion).orElse(null);
@@ -67,41 +96,6 @@ public class KeyVersion extends AbstractAzResource<KeyVersion, Key, KeyPropertie
     @Nullable
     public KeyProperties getProperties() {
         return getRemote();
-    }
-
-    @Nullable
-    public KeyVaultKey getSecret() {
-        final Key key = getParent();
-        final KeyVault keyVault = key.getParent();
-
-        return Optional.ofNullable(keyVault.getKeyClient())
-            .map(client -> client.getKey(key.getName(), getVersion()).block())
-            .orElse(null);
-    }
-
-    @Nullable
-    public byte[] getEncodedPublicKey() {
-        final KeyVaultKey secret = getSecret();
-        if (Objects.isNull(secret)) {
-            return null;
-        }
-        final KeyType keyType = secret.getKeyType();
-        final JsonWebKey key = secret.getKey();
-        if (keyType == KeyType.RSA || keyType == KeyType.RSA_HSM) {
-            return key.toRsa().getPublic().getEncoded();
-        } else if (keyType == KeyType.EC || keyType == KeyType.EC_HSM) {
-            return key.toEc().getPublic().getEncoded();
-        }
-        throw new AzureToolkitRuntimeException("Unsupported key type: " + keyType);
-    }
-
-    @Nullable
-    public String getPublicKeyPem() {
-        final byte[] encodedPublicKey = getEncodedPublicKey();
-        if (Objects.isNull(encodedPublicKey)) {
-            return null;
-        }
-        return BEGIN_PUBLIC_KEY + "\n" + Base64.getEncoder().encodeToString(encodedPublicKey) + "\n" + END_PUBLIC_KEY;
     }
 }
 

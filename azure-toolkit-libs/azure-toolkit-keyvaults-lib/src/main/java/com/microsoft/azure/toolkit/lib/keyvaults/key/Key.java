@@ -10,6 +10,8 @@ import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.keyvaults.Credential;
+import com.microsoft.azure.toolkit.lib.keyvaults.CredentialVersion;
 import com.microsoft.azure.toolkit.lib.keyvaults.KeyVault;
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class Key extends AbstractAzResource<Key, KeyVault, KeyProperties> implements Deletable {
+public class Key extends AbstractAzResource<Key, KeyVault, KeyProperties> implements Deletable, Credential {
     private final KeyVersionModule versionModule;
 
     protected Key(@Nonnull String name, @Nonnull String resourceGroupName, @Nonnull KeyModule module) {
@@ -53,9 +55,19 @@ public class Key extends AbstractAzResource<Key, KeyVault, KeyProperties> implem
         return this.versionModule;
     }
 
+    @Override
+    public KeyVault getKeyVault() {
+        return getParent();
+    }
+
     @Nullable
     public KeyVersion getCurrentVersion() {
         return Optional.ofNullable(getCurrentVersionId()).map(id -> this.versionModule.get(id, getResourceGroupName())).orElse(null);
+    }
+
+    @Override
+    public List<? extends CredentialVersion> listVersions() {
+        return versions().list();
     }
 
     @Nullable

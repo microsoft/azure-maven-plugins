@@ -20,6 +20,8 @@ import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.keyvaults.certificate.CertificateModule;
 import com.microsoft.azure.toolkit.lib.keyvaults.key.KeyModule;
+import com.microsoft.azure.toolkit.lib.keyvaults.secret.Secret;
+import com.microsoft.azure.toolkit.lib.keyvaults.secret.SecretDraft;
 import com.microsoft.azure.toolkit.lib.keyvaults.secret.SecretModule;
 
 import javax.annotation.Nonnull;
@@ -108,6 +110,12 @@ public class KeyVault extends AbstractAzResource<KeyVault, KeyVaultSubscription,
             }
         }
         return certificateClient;
+    }
+
+    public Secret createNewSecret(@Nonnull final String key, @Nonnull final String value) {
+        final SecretDraft draft = secretModule.create(key, this.getResourceGroupName());
+        draft.setValue(value);
+        return draft.commit();
     }
 
     public SecretAsyncClient getSecretClient() {

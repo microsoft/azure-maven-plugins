@@ -5,12 +5,15 @@
 
 package com.microsoft.azure.toolkit.lib.keyvaults.secret;
 
-import com.azure.security.keyvault.certificates.models.CertificateProperties;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.keyvaults.Credential;
+import com.microsoft.azure.toolkit.lib.keyvaults.CredentialVersion;
 import com.microsoft.azure.toolkit.lib.keyvaults.KeyVault;
+import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -19,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class Secret extends AbstractAzResource<Secret, KeyVault, SecretProperties> implements Deletable {
+public class Secret extends AbstractAzResource<Secret, KeyVault, SecretProperties> implements Deletable, Credential {
 
     private final SecretVersionModule versionModule;
 
@@ -50,9 +53,19 @@ public class Secret extends AbstractAzResource<Secret, KeyVault, SecretPropertie
         return remote.isEnabled() ? FormalStatus.RUNNING.name() : FormalStatus.STOPPED.name();
     }
 
+    @Override
+    public KeyVault getKeyVault() {
+        return getParent();
+    }
+
     @Nullable
     public SecretVersion getCurrentVersion() {
         return Optional.ofNullable(getCurrentVersionId()).map(id -> this.versionModule.get(id, getResourceGroupName())).orElse(null);
+    }
+
+    @Override
+    public List<? extends CredentialVersion> listVersions() {
+        return versions().list();
     }
 
     @Nullable
@@ -84,6 +97,11 @@ public class Secret extends AbstractAzResource<Secret, KeyVault, SecretPropertie
     @Nullable
     public SecretProperties getProperties() {
         return getRemote();
+    }
+
+    @Data
+    private static class Config {
+        private boolean enabled;
     }
 }
 
