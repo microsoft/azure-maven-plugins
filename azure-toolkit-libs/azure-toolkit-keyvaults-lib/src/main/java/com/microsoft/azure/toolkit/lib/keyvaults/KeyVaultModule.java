@@ -11,11 +11,13 @@ import com.azure.resourcemanager.keyvault.models.Vault;
 import com.azure.resourcemanager.keyvault.models.Vaults;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupModule;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -71,6 +73,12 @@ public class KeyVaultModule extends AbstractAzResourceModule<KeyVault, KeyVaultS
     @Override
     protected KeyVault newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         return new KeyVault(name, Objects.requireNonNull(resourceGroupName), this);
+    }
+
+    @NotNull
+    @Override
+    protected AzResource.Draft<KeyVault, Vault> newDraftForCreate(@NotNull String name, @org.jetbrains.annotations.Nullable String rgName) {
+        return new KeyVaultDraft(name, Objects.requireNonNull(rgName), this);
     }
 
     @Nullable
