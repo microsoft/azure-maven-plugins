@@ -14,7 +14,6 @@ import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.azure.security.keyvault.keys.models.KeyType;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.keyvaults.secret.Secret;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -62,7 +61,8 @@ public class KeyDraft extends Key implements AzResource.Draft<Key, KeyProperties
     }
 
     private Config ensureConfig() {
-        return Optional.ofNullable(config).orElseGet(Config::new);
+        this.config = Optional.ofNullable(config).orElseGet(KeyDraft.Config::new);
+        return this.config;
     }
 
     public static KeyProperties createOrUpdateKey(@Nonnull final KeyAsyncClient keyClient, @Nonnull final Config config) {
@@ -89,10 +89,12 @@ public class KeyDraft extends Key implements AzResource.Draft<Key, KeyProperties
     public static class Config {
         private String name;
         private KeyType keyType;
-        private OffsetDateTime activationDate;
-        private OffsetDateTime expirationDate;
         private Integer rasKeySize;
         private KeyCurveName curveName;
         private Boolean enabled = Boolean.TRUE;
+        private Boolean enableActivationDate = Boolean.FALSE;
+        private OffsetDateTime activationDate;
+        private Boolean enableExpirationDate = Boolean.FALSE;
+        private OffsetDateTime expirationDate;
     }
 }

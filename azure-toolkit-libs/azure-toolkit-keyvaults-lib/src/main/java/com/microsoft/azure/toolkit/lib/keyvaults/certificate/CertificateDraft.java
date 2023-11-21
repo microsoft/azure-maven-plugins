@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -57,7 +58,8 @@ public class CertificateDraft extends Certificate implements AzResource.Draft<Ce
     }
 
     private Config ensureConfig() {
-        return Optional.ofNullable(config).orElseGet(Config::new);
+        this.config = Optional.ofNullable(config).orElseGet(CertificateDraft.Config::new);
+        return this.config;
     }
 
     @Override
@@ -90,5 +92,7 @@ public class CertificateDraft extends Certificate implements AzResource.Draft<Ce
         private Path path;
         private String password;
         private Boolean enabled = Boolean.TRUE;
+        private OffsetDateTime activationDate;
+        private OffsetDateTime expirationDate;
     }
 }

@@ -9,10 +9,7 @@ import com.azure.security.keyvault.keys.KeyAsyncClient;
 import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.annotation.Nonnull;
@@ -26,7 +23,7 @@ public class KeyVersionDraft extends KeyVersion
     private final KeyVersion origin;
 
     @Setter
-    private Config config;
+    private KeyDraft.Config config;
 
     protected KeyVersionDraft(@Nonnull KeyVersion origin) {
         super(origin);
@@ -63,19 +60,13 @@ public class KeyVersionDraft extends KeyVersion
         return Objects.nonNull(config);
     }
 
-    private Config ensureConfig() {
-        return Optional.ofNullable(config).orElseGet(Config::new);
+    private KeyDraft.Config ensureConfig() {
+        this.config = Optional.ofNullable(config).orElseGet(KeyDraft.Config::new);
+        return this.config;
     }
 
     public void setEnabled(boolean b) {
         ensureConfig().setEnabled(b);
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    static class Config {
-        private Boolean enabled;
     }
 }
 

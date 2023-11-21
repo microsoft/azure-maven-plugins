@@ -9,10 +9,7 @@ import com.azure.security.keyvault.certificates.CertificateAsyncClient;
 import com.azure.security.keyvault.certificates.models.CertificateProperties;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.annotation.Nonnull;
@@ -26,7 +23,7 @@ public class CertificateVersionDraft extends CertificateVersion
     private final CertificateVersion origin;
 
     @Setter
-    private Config config;
+    private CertificateDraft.Config config;
 
     protected CertificateVersionDraft(@Nonnull CertificateVersion origin) {
         super(origin);
@@ -52,7 +49,7 @@ public class CertificateVersionDraft extends CertificateVersion
         final boolean isModified = Objects.nonNull(isEnabled) && !Objects.equals(isEnabled, origin.isEnabled());
         if (isModified) {
             origin.setEnabled(isEnabled);
-            return Objects.requireNonNull(secretClient.updateCertificateProperties(origin).block().getProperties(), "failed to update secret");
+            return Objects.requireNonNull(secretClient.updateCertificateProperties(origin).block(), "failed to update secret").getProperties();
         }
         return origin;
     }
@@ -62,19 +59,13 @@ public class CertificateVersionDraft extends CertificateVersion
         return Objects.nonNull(config);
     }
 
-    private Config ensureConfig() {
-        return Optional.ofNullable(config).orElseGet(Config::new);
+    private CertificateDraft.Config ensureConfig() {
+        this.config = Optional.ofNullable(config).orElseGet(CertificateDraft.Config::new);
+        return this.config;
     }
 
     public void setEnabled(boolean b) {
         ensureConfig().setEnabled(b);
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    static class Config {
-        private Boolean enabled;
     }
 }
 

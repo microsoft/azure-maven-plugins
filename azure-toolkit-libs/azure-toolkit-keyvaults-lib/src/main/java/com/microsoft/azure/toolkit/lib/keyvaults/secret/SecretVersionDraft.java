@@ -9,10 +9,7 @@ import com.azure.security.keyvault.secrets.SecretAsyncClient;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.annotation.Nonnull;
@@ -26,7 +23,7 @@ public class SecretVersionDraft extends SecretVersion
     private final SecretVersion origin;
 
     @Setter
-    private Config config;
+    private SecretDraft.Config config;
 
     protected SecretVersionDraft(@Nonnull SecretVersion origin) {
         super(origin);
@@ -63,19 +60,13 @@ public class SecretVersionDraft extends SecretVersion
         return Objects.nonNull(config);
     }
 
-    private Config ensureConfig() {
-        return Optional.ofNullable(config).orElseGet(Config::new);
+    private SecretDraft.Config ensureConfig() {
+        this.config = Optional.ofNullable(config).orElseGet(SecretDraft.Config::new);
+        return this.config;
     }
 
     public void setEnabled(boolean b) {
         ensureConfig().setEnabled(b);
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    static class Config {
-        private Boolean enabled;
     }
 }
 

@@ -9,12 +9,17 @@ import com.azure.security.keyvault.secrets.SecretAsyncClient;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.time.OffsetDateTime;
 import java.util.Objects;
+import java.util.Optional;
 
 public class SecretDraft extends Secret implements AzResource.Draft<Secret, SecretProperties> {
 
@@ -22,10 +27,10 @@ public class SecretDraft extends Secret implements AzResource.Draft<Secret, Secr
     private Secret origin;
 
     @Setter
-    private String value;
+    private Config config;
 
     protected SecretDraft(@Nonnull String name, @Nullable String resourceGroup, @Nonnull SecretModule module) {
-        super(name, resourceGroup, module);
+        super(name, Objects.requireNonNull(resourceGroup), module);
     }
 
     protected SecretDraft(@Nonnull Secret origin) {
@@ -36,14 +41,15 @@ public class SecretDraft extends Secret implements AzResource.Draft<Secret, Secr
 
     @Override
     public void reset() {
-        this.value = null;
+        this.config = null;
     }
 
     @Nonnull
     @Override
     public SecretProperties createResourceInAzure() {
         final SecretAsyncClient secretClient = getKeyVault().getSecretClient();
-        return secretClient.setSecret(this.getName(), this.value).block().getProperties();
+        final String value = ensureConfig().getValue();
+        return Objects.requireNonNull(secretClient.setSecret(this.getName(), value).block()).getProperties();
     }
 
     @Nonnull
@@ -54,6 +60,28 @@ public class SecretDraft extends Secret implements AzResource.Draft<Secret, Secr
 
     @Override
     public boolean isModified() {
-        return Objects.nonNull(value);
+        return Objects.nonNull(config);
+    }
+
+    private Config ensureConfig() {
+        this.config = Optional.ofNullable(config).orElseGet(SecretDraft.Config::new);
+        return this.config;
+    }
+
+    public void setValue(String value) {
+        ensureConfig().setValue(value);
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Config {
+        private String name;
+        private String value;
+        private Boolean enabled = Boolean.TRUE;
+        private Boolean enableActivationDate = Boolean.FALSE;
+        private OffsetDateTime activationDate;
+        private Boolean enableExpirationDate = Boolean.FALSE;
+        private OffsetDateTime expirationDate;
     }
 }
