@@ -33,6 +33,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 
 @Slf4j
 @ToString(onlyExplicitlyIncluded = true)
@@ -123,7 +124,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
             return this.getModule().loadResourceFromAzure(this.getName(), this.getResourceGroupName());
         } catch (final Exception e) {
             log.debug("[{}:{}]:loadRemote()=EXCEPTION", this.module.getName(), this.getName(), e);
-            if (isNotFoundException(e)) {
+            if (is404(e)) {
                 return null;
             }
             throw e;
@@ -232,7 +233,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         try {
             this.getModule().deleteResourceFromAzure(this.getId());
         } catch (final Exception e) {
-            if (isNotFoundException(e)) {
+            if (is404(e)) {
                 log.debug("[{}]:delete()->deleteResourceFromAzure()=SC_NOT_FOUND", this.name, e);
             } else {
                 this.getCachedSubModules().stream().flatMap(m -> m.listCachedResources().stream()).forEach(r -> r.setStatus(Status.UNKNOWN));
@@ -333,13 +334,27 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return true;
     }
 
-    public static boolean isNotFoundException(Throwable t) {
+    public static boolean is404(Throwable t) {
+        return isHttpException(t, HttpStatus.SC_NOT_FOUND);
+    }
+
+    public static boolean is400(Throwable t) {
+        return isHttpException(t, HttpStatus.SC_BAD_REQUEST);
+    }
+
+    /**
+     * @param httpStatusCode {@link HttpStatus}
+     */
+    public static boolean isHttpException(Throwable t, int httpStatusCode) {
+        return isHttpException(t, r -> r.getStatusCode() == httpStatusCode);
+    }
+
+    public static boolean isHttpException(Throwable t, Predicate<HttpResponse> predicate) {
         final Throwable cause = t instanceof HttpResponseException ? t : ExceptionUtils.getRootCause(t);
         return Optional.ofNullable(cause).filter(c -> cause instanceof HttpResponseException)
             .map(c -> ((HttpResponseException) c))
             .map(HttpResponseException::getResponse)
-            .map(HttpResponse::getStatusCode)
-            .filter(c -> c == HttpStatus.SC_NOT_FOUND)
+            .filter(predicate)
             .isPresent();
     }
 }

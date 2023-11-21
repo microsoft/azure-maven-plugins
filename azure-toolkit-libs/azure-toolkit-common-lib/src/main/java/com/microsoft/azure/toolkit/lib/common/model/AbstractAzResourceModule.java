@@ -63,7 +63,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import static com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource.isNotFoundException;
+import static com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource.is400;
+import static com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource.is404;
 import static com.microsoft.azure.toolkit.lib.common.model.AzResource.RESOURCE_GROUP_PLACEHOLDER;
 import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.OPERATION_NAME;
 import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.OP_NAME;
@@ -157,7 +158,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             this.setResources(loadedResources);
         } catch (final Exception e) {
             log.debug("[{}]:reloadResources->setResources([])", this.name);
-            if (isNotFoundException(e)) {
+            if (is404(e)) {
                 log.debug("[{}]:reloadResources->loadResourceFromAzure()=SC_NOT_FOUND", this.name, e);
                 this.setResources(Collections.emptyMap());
             } else {
@@ -287,11 +288,9 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
             } catch (final Exception e) {
                 log.debug("[{}]:get({}, {})->loadResourceFromAzure()=EXCEPTION", this.name, name, resourceGroup, e);
                 final Throwable cause = e instanceof HttpResponseException ? e : ExceptionUtils.getRootCause(e);
-                if (cause instanceof HttpResponseException) {
-                    if (!isNotFoundException(e)) {
-                        log.debug("[{}]:get({}, {})->loadResourceFromAzure()=SC_NOT_FOUND", this.name, name, resourceGroup, e);
-                        throw e;
-                    }
+                if (cause instanceof HttpResponseException && !is404(e) && !is400(e)) {
+                    log.debug("[{}]:get({}, {})->loadResourceFromAzure()=SC_NOT_FOUND", this.name, name, resourceGroup, e);
+                    throw e;
                 }
             }
             if (Objects.isNull(remote)) {
