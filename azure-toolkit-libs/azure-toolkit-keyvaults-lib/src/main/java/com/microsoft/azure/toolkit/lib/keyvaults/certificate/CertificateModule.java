@@ -9,12 +9,12 @@ import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.security.keyvault.certificates.CertificateAsyncClient;
 import com.azure.security.keyvault.certificates.models.CertificateProperties;
-import com.azure.security.keyvault.certificates.models.KeyVaultCertificate;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.keyvaults.KeyVault;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -44,10 +44,13 @@ public class CertificateModule extends AbstractAzResourceModule<Certificate, Key
     @Override
     @AzureOperation(name = "azure/keyvaults.load_key_vault.key_vault", params = {"name"})
     protected CertificateProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        return Optional.ofNullable(this.getClient())
-            .map(client -> client.getCertificate(name).block())
-            .map(KeyVaultCertificate::getProperties)
-            .orElse(null);
+        final CertificateAsyncClient client = this.getClient();
+        if (Objects.isNull(client)) {
+            return null;
+        }
+        return client.listPropertiesOfCertificates().toStream()
+            .filter(c -> StringUtils.equalsIgnoreCase(c.getName(), name))
+            .findFirst().orElse(null);
     }
 
     @Override
@@ -76,7 +79,7 @@ public class CertificateModule extends AbstractAzResourceModule<Certificate, Key
     @Nonnull
     @Override
     protected CertificateDraft newDraftForCreate(@Nonnull String name, @org.jetbrains.annotations.Nullable String rgName) {
-        return new CertificateDraft(name, rgName, this);
+        return new CertificateDraft(name, Objects.requireNonNull(rgName), this);
     }
 
     @Nullable

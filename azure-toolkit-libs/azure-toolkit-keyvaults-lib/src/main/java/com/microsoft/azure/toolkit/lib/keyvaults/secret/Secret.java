@@ -14,11 +14,11 @@ import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.keyvaults.Credential;
 import com.microsoft.azure.toolkit.lib.keyvaults.CredentialVersion;
 import com.microsoft.azure.toolkit.lib.keyvaults.KeyVault;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -71,7 +71,10 @@ public class Secret extends AbstractAzResource<Secret, KeyVault, SecretPropertie
 
     @Nullable
     public String getCurrentVersionId() {
-        return Optional.ofNullable(getRemote()).map(SecretProperties::getVersion).orElse(null);
+        return this.versions().list().stream()
+            .filter(version -> Objects.nonNull(version.getProperties()))
+            .max(Comparator.comparing(version -> version.getProperties().getCreatedOn()))
+            .map(SecretVersion::getVersion).orElse(null);
     }
 
     public SecretVersionModule versions() {
@@ -81,14 +84,6 @@ public class Secret extends AbstractAzResource<Secret, KeyVault, SecretPropertie
     @Nullable
     public Boolean isManaged() {
         return Optional.ofNullable(getRemote()).map(SecretProperties::isManaged).orElse(null);
-    }
-
-    @Override
-    protected void setRemote(@Nullable SecretProperties remote) {
-        final String version = Optional.ofNullable(remote).map(SecretProperties::getVersion).orElse(null);
-        if (StringUtils.isNotBlank(version)) {
-            super.setRemote(remote);
-        }
     }
 
     public Boolean isEnabled() {

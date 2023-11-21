@@ -8,12 +8,12 @@ package com.microsoft.azure.toolkit.lib.keyvaults.key;
 import com.azure.core.util.paging.ContinuablePage;
 import com.azure.security.keyvault.keys.KeyAsyncClient;
 import com.azure.security.keyvault.keys.models.KeyProperties;
-import com.azure.security.keyvault.keys.models.KeyVaultKey;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,10 +42,13 @@ public class KeyVersionModule extends AbstractAzResourceModule<KeyVersion, Key, 
     @Override
     @AzureOperation(name = "azure/keyvaults.load_key_vault.key_vault", params = {"name"})
     protected KeyProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        return Optional.ofNullable(getClient())
-            .map(keys -> keys.getKey(getParent().getName(), name).block())
-            .map(KeyVaultKey::getProperties)
-            .orElse(null);
+        final KeyAsyncClient client = this.getClient();
+        if (Objects.isNull(client)) {
+            return null;
+        }
+        return client.listPropertiesOfKeyVersions(getParent().getName()).toStream()
+            .filter(c -> StringUtils.equalsIgnoreCase(c.getVersion(), name))
+            .findFirst().orElse(null);
     }
 
     @Nonnull

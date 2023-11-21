@@ -8,19 +8,21 @@ package com.microsoft.azure.toolkit.lib.keyvaults.secret;
 import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.security.keyvault.secrets.SecretAsyncClient;
-import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.keyvaults.KeyVault;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class SecretModule extends AbstractAzResourceModule<Secret, KeyVault, SecretProperties> {
     public static final String NAME = "secrets";
@@ -33,7 +35,7 @@ public class SecretModule extends AbstractAzResourceModule<Secret, KeyVault, Sec
     @Override
     protected Iterator<? extends ContinuablePage<String, SecretProperties>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient())
-            .map(c -> c.listPropertiesOfSecrets().collectList().block())
+            .map(c -> c.listPropertiesOfSecrets().toStream().filter(p -> BooleanUtils.isNotTrue(p.isManaged())).collect(Collectors.toList()))
             .map(ItemPage::new)
             .map(IteratorUtils::singletonIterator)
             .orElseGet(IteratorUtils::emptyIterator);
@@ -43,9 +45,13 @@ public class SecretModule extends AbstractAzResourceModule<Secret, KeyVault, Sec
     @Override
     @AzureOperation(name = "azure/keyvaults.load_key_vault.key_vault", params = {"name"})
     protected SecretProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        return Optional.ofNullable(this.getClient())
-            .map(vaults -> vaults.getSecret(name).block())
-            .map(KeyVaultSecret::getProperties).orElse(null);
+        final SecretAsyncClient client = this.getClient();
+        if (Objects.isNull(client)) {
+            return null;
+        }
+        return client.listPropertiesOfSecrets().toStream()
+            .filter(c -> StringUtils.equalsIgnoreCase(c.getName(), name))
+            .findFirst().orElse(null);
     }
 
     @Override

@@ -18,7 +18,11 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.keyvaults.certificate.Certificate;
+import com.microsoft.azure.toolkit.lib.keyvaults.certificate.CertificateDraft;
 import com.microsoft.azure.toolkit.lib.keyvaults.certificate.CertificateModule;
+import com.microsoft.azure.toolkit.lib.keyvaults.key.Key;
+import com.microsoft.azure.toolkit.lib.keyvaults.key.KeyDraft;
 import com.microsoft.azure.toolkit.lib.keyvaults.key.KeyModule;
 import com.microsoft.azure.toolkit.lib.keyvaults.secret.Secret;
 import com.microsoft.azure.toolkit.lib.keyvaults.secret.SecretDraft;
@@ -115,6 +119,18 @@ public class KeyVault extends AbstractAzResource<KeyVault, KeyVaultSubscription,
     public Secret createNewSecret(@Nonnull final String key, @Nonnull final String value) {
         final SecretDraft draft = secretModule.create(key, this.getResourceGroupName());
         draft.setValue(value);
+        return draft.commit();
+    }
+
+    public Certificate createNewCertificate(@Nonnull final CertificateDraft.Config config) {
+        final CertificateDraft draft = certificateModule.create(config.getName(), this.getResourceGroupName());
+        draft.setConfig(config);
+        return draft.commit();
+    }
+
+    public Key createNewKey(@Nonnull final KeyDraft.Config config) {
+        final KeyDraft draft = keyModule.create(config.getName(), this.getResourceGroupName());
+        draft.setConfig(config);
         return draft.commit();
     }
 

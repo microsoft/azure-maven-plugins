@@ -13,12 +13,13 @@ import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.keyvaults.Credential;
 import com.microsoft.azure.toolkit.lib.keyvaults.CredentialVersion;
 import com.microsoft.azure.toolkit.lib.keyvaults.KeyVault;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class Key extends AbstractAzResource<Key, KeyVault, KeyProperties> implements Deletable, Credential {
@@ -72,15 +73,10 @@ public class Key extends AbstractAzResource<Key, KeyVault, KeyProperties> implem
 
     @Nullable
     public String getCurrentVersionId() {
-        return Optional.ofNullable(getRemote()).map(KeyProperties::getVersion).orElse(null);
-    }
-
-    @Override
-    protected void setRemote(@Nullable KeyProperties remote) {
-        final String version = Optional.ofNullable(remote).map(KeyProperties::getVersion).orElse(null);
-        if (StringUtils.isNotBlank(version)) {
-            super.setRemote(remote);
-        }
+        return this.versions().list().stream()
+            .filter(version -> Objects.nonNull(version.getProperties()))
+            .max(Comparator.comparing(version -> version.getProperties().getCreatedOn()))
+            .map(KeyVersion::getVersion).orElse(null);
     }
 
     @Nullable
@@ -101,6 +97,7 @@ public class Key extends AbstractAzResource<Key, KeyVault, KeyProperties> implem
     public KeyVersion addNewKeyVersion(final KeyDraft.Config config) {
         final KeyAsyncClient client = getKeyVault().getKeyClient();
         final KeyProperties newProperties = KeyDraft.createOrUpdateKey(client, config);
+        this.versionModule.refresh();
         return Optional.of(newProperties).map(secret -> this.versionModule.get(newProperties.getVersion(), getResourceGroupName())).orElse(null);
     }
 }

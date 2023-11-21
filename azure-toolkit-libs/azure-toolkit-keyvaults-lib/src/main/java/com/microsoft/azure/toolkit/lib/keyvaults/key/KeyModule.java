@@ -9,18 +9,20 @@ import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.security.keyvault.keys.KeyAsyncClient;
 import com.azure.security.keyvault.keys.models.KeyProperties;
-import com.azure.security.keyvault.keys.models.KeyVaultKey;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.keyvaults.KeyVault;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class KeyModule extends AbstractAzResourceModule<Key, KeyVault, KeyProperties> {
     public static final String NAME = "keys";
@@ -33,7 +35,7 @@ public class KeyModule extends AbstractAzResourceModule<Key, KeyVault, KeyProper
     @Override
     protected Iterator<? extends ContinuablePage<String, KeyProperties>> loadResourcePagesFromAzure() {
         return Optional.ofNullable(getClient())
-            .map(c -> c.listPropertiesOfKeys().collectList().block())
+            .map(c -> c.listPropertiesOfKeys().toStream().filter(p -> BooleanUtils.isNotTrue(p.isManaged())).collect(Collectors.toList()))
             .map(ItemPage::new)
             .map(IteratorUtils::singletonIterator)
             .orElseGet(IteratorUtils::emptyIterator);
@@ -43,10 +45,13 @@ public class KeyModule extends AbstractAzResourceModule<Key, KeyVault, KeyProper
     @Override
     @AzureOperation(name = "azure/keyvaults.load_key_vault.key_vault", params = {"name"})
     protected KeyProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        return Optional.ofNullable(getClient())
-            .map(c -> c.getKey(name).block())
-            .map(KeyVaultKey::getProperties)
-            .orElse(null);
+        final KeyAsyncClient client = this.getClient();
+        if (Objects.isNull(client)) {
+            return null;
+        }
+        return client.listPropertiesOfKeys().toStream()
+            .filter(c -> StringUtils.equalsIgnoreCase(c.getName(), name))
+            .findFirst().orElse(null);
     }
 
     @Override

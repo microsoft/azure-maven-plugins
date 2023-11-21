@@ -14,11 +14,11 @@ import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.keyvaults.Credential;
 import com.microsoft.azure.toolkit.lib.keyvaults.CredentialVersion;
 import com.microsoft.azure.toolkit.lib.keyvaults.KeyVault;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -74,15 +74,10 @@ public class Certificate extends AbstractAzResource<Certificate, KeyVault, Certi
 
     @Nullable
     public String getCurrentVersionId() {
-        return Optional.ofNullable(getRemote()).map(CertificateProperties::getVersion).orElse(null);
-    }
-
-    @Override
-    protected void setRemote(@Nullable CertificateProperties remote) {
-        final String version = Optional.ofNullable(remote).map(CertificateProperties::getVersion).orElse(null);
-        if (StringUtils.isNotBlank(version)) {
-            super.setRemote(remote);
-        }
+        return this.versions().list().stream()
+            .filter(version -> Objects.nonNull(version.getProperties()))
+            .max(Comparator.comparing(version -> version.getProperties().getCreatedOn()))
+            .map(CertificateVersion::getVersion).orElse(null);
     }
 
     @Nullable
@@ -108,6 +103,7 @@ public class Certificate extends AbstractAzResource<Certificate, KeyVault, Certi
     public CertificateVersion addNewCertificateVersion(final CertificateDraft.Config config) {
         final CertificateAsyncClient client = getKeyVault().getCertificateClient();
         final CertificateProperties certificate = CertificateDraft.createOrUpdateCertificate(client, config);
+        this.versionModule.refresh();
         return Optional.of(certificate).map(secret -> this.versionModule.get(certificate.getVersion(), getResourceGroupName())).orElse(null);
     }
 }

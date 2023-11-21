@@ -7,13 +7,13 @@ package com.microsoft.azure.toolkit.lib.keyvaults.secret;
 
 import com.azure.core.util.paging.ContinuablePage;
 import com.azure.security.keyvault.secrets.SecretAsyncClient;
-import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,9 +42,13 @@ public class SecretVersionModule extends AbstractAzResourceModule<SecretVersion,
     @Override
     @AzureOperation(name = "azure/keyvaults.load_key_vault.key_vault", params = {"name"})
     protected SecretProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        return Optional.ofNullable(getClient())
-            .map(client -> client.getSecret(getParent().getName(), name).block())
-            .map(KeyVaultSecret::getProperties).orElse(null);
+        final SecretAsyncClient client = this.getClient();
+        if (Objects.isNull(client)) {
+            return null;
+        }
+        return client.listPropertiesOfSecretVersions(getParent().getName()).toStream()
+            .filter(c -> StringUtils.equalsIgnoreCase(c.getVersion(), name))
+            .findFirst().orElse(null);
     }
 
     @Nonnull
@@ -76,6 +80,5 @@ public class SecretVersionModule extends AbstractAzResourceModule<SecretVersion,
     public String getResourceTypeName() {
         return "Secret Version";
     }
-
 }
 
