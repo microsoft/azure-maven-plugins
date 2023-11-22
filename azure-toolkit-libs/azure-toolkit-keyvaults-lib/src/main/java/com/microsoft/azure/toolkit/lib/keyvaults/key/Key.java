@@ -97,7 +97,7 @@ public class Key extends AbstractAzResource<Key, KeyVault, KeyProperties> implem
     public KeyVersion addNewKeyVersion(final KeyDraft.Config config) {
         final KeyAsyncClient client = getKeyVault().getKeyClient();
         final KeyProperties newProperties = KeyDraft.createOrUpdateKey(client, config);
-        this.versionModule.refresh();
+        this.refresh();
         return Optional.of(newProperties).map(secret -> this.versionModule.get(newProperties.getVersion(), getResourceGroupName())).orElse(null);
     }
 }

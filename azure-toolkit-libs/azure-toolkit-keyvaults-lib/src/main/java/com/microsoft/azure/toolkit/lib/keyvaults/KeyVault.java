@@ -122,6 +122,12 @@ public class KeyVault extends AbstractAzResource<KeyVault, KeyVaultSubscription,
         return draft.commit();
     }
 
+    public Secret createNewSecret(@Nonnull final SecretDraft.Config config) {
+        final SecretDraft draft = secretModule.create(config.getName(), this.getResourceGroupName());
+        draft.setConfig(config);
+        return draft.commit();
+    }
+
     public Certificate createNewCertificate(@Nonnull final CertificateDraft.Config config) {
         final CertificateDraft draft = certificateModule.create(config.getName(), this.getResourceGroupName());
         draft.setConfig(config);

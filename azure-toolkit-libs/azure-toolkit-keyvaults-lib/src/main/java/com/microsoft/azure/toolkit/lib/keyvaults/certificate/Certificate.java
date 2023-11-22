@@ -103,7 +103,7 @@ public class Certificate extends AbstractAzResource<Certificate, KeyVault, Certi
     public CertificateVersion addNewCertificateVersion(final CertificateDraft.Config config) {
         final CertificateAsyncClient client = getKeyVault().getCertificateClient();
         final CertificateProperties certificate = CertificateDraft.createOrUpdateCertificate(client, config);
-        this.versionModule.refresh();
+        this.refresh();
         return Optional.of(certificate).map(secret -> this.versionModule.get(certificate.getVersion(), getResourceGroupName())).orElse(null);
     }
 }

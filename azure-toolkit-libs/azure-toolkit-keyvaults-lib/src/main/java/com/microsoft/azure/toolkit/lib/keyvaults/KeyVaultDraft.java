@@ -112,6 +112,6 @@ public class KeyVaultDraft extends KeyVault implements AzResource.Draft<KeyVault
         private String name;
         private Region region;
         private SkuName sku;
-        private boolean useAzureRBAC;
+        private boolean useAzureRBAC = true;
     }
 }
