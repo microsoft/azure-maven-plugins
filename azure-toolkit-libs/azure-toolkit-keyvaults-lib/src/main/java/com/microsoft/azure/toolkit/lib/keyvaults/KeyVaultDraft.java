@@ -58,13 +58,13 @@ public class KeyVaultDraft extends KeyVault implements AzResource.Draft<KeyVault
     @Override
     @AzureOperation(name = "azure/keyvaults.create_keyvault.keyvault", params = {"this.getName()"})
     public Vault createResourceInAzure() {
-        final Vaults client = Objects.requireNonNull(((KeyVaultModule) getModule()).getClient(), "could not get key vault clients");
+        final Vaults client = Objects.requireNonNull(((KeyVaultModule) getModule()).getClient(), "could not get Key Vault clients");
         final Region region = Objects.requireNonNull(ensureConfig().getRegion(),
-            "'region' is required to create key vault.");
+            "'region' is required to create Key Vault.");
         final ResourceGroup resourceGroup = Objects.requireNonNull(ensureConfig().getResourceGroup(),
-            "'resourceGroup' is required to create key vault.");
+            "'resourceGroup' is required to create Key Vault.");
         final SkuName sku = Objects.requireNonNull(ensureConfig().getSku(),
-            "'sku' is required to create key vault.");
+            "'sku' is required to create Key Vault.");
         final boolean useAzureRBAC = ensureConfig().isUseAzureRBAC();
         if (resourceGroup.isDraftForCreating()) {
             ((ResourceGroupDraft) resourceGroup).setRegion(region);
