@@ -14,6 +14,7 @@ import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.azure.security.keyvault.keys.models.KeyType;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -44,6 +45,7 @@ public class KeyDraft extends Key implements AzResource.Draft<Key, KeyProperties
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/keyvaults.create_key.key", params = {"this.getName()"})
     public KeyProperties createResourceInAzure() {
         final KeyAsyncClient keyClient = getKeyVault().getKeyClient();
         return createOrUpdateKey(keyClient, ensureConfig());
@@ -51,6 +53,7 @@ public class KeyDraft extends Key implements AzResource.Draft<Key, KeyProperties
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/keyvaults.update_key.key", params = {"this.getName()"})
     public KeyProperties updateResourceInAzure(@Nonnull KeyProperties origin) {
         throw new AzureToolkitRuntimeException("Not support update secret");
     }

@@ -17,6 +17,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupDraft;
 import lombok.AllArgsConstructor;
@@ -55,6 +56,7 @@ public class KeyVaultDraft extends KeyVault implements AzResource.Draft<KeyVault
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/keyvaults.create_keyvault.keyvault", params = {"this.getName()"})
     public Vault createResourceInAzure() {
         final Vaults client = Objects.requireNonNull(((KeyVaultModule) getModule()).getClient(), "could not get key vault clients");
         final Region region = Objects.requireNonNull(ensureConfig().getRegion(),
@@ -88,6 +90,7 @@ public class KeyVaultDraft extends KeyVault implements AzResource.Draft<KeyVault
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/keyvaults.update_keyvault.keyvault", params = {"this.getName()"})
     public Vault updateResourceInAzure(@Nonnull Vault origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

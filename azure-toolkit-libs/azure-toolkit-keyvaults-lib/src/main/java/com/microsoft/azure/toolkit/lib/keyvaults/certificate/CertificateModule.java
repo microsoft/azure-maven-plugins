@@ -42,7 +42,7 @@ public class CertificateModule extends AbstractAzResourceModule<Certificate, Key
 
     @Nullable
     @Override
-    @AzureOperation(name = "azure/keyvaults.load_key_vault.key_vault", params = {"name"})
+    @AzureOperation(name = "azure/keyvaults.load_certificate.certificate", params = {"name"})
     protected CertificateProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         final CertificateAsyncClient client = this.getClient();
         if (Objects.isNull(client)) {
@@ -54,7 +54,7 @@ public class CertificateModule extends AbstractAzResourceModule<Certificate, Key
     }
 
     @Override
-    @AzureOperation(name = "azure/keyvaults.delete_key_vault.key_vault", params = {"nameFromResourceId(resourceId)"})
+    @AzureOperation(name = "azure/keyvaults.delete_certificate.certificate", params = {"nameFromResourceId(resourceId)"})
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final CertificateAsyncClient client = getClient();
         if (Objects.isNull(client)) {

@@ -40,7 +40,7 @@ public class KeyVersionModule extends AbstractAzResourceModule<KeyVersion, Key, 
 
     @Nullable
     @Override
-    @AzureOperation(name = "azure/keyvaults.load_key_vault.key_vault", params = {"name"})
+    @AzureOperation(name = "azure/keyvaults.load_key_version.version", params = {"name"})
     protected KeyProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         final KeyAsyncClient client = this.getClient();
         if (Objects.isNull(client)) {

@@ -10,6 +10,7 @@ import com.azure.security.keyvault.certificates.models.CertificateProperties;
 import com.azure.security.keyvault.certificates.models.ImportCertificateOptions;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -46,6 +47,7 @@ public class CertificateDraft extends Certificate implements AzResource.Draft<Ce
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/keyvaults.create_certificate.certificate", params = {"this.getName()"})
     public CertificateProperties createResourceInAzure() {
         final CertificateAsyncClient secretClient = getKeyVault().getCertificateClient();
         return createOrUpdateCertificate(secretClient, ensureConfig());
@@ -53,6 +55,7 @@ public class CertificateDraft extends Certificate implements AzResource.Draft<Ce
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/keyvaults.update_certificate.certificate", params = {"this.getName()"})
     public CertificateProperties updateResourceInAzure(@Nonnull CertificateProperties origin) {
         throw new AzureToolkitRuntimeException("Not support update secret");
     }

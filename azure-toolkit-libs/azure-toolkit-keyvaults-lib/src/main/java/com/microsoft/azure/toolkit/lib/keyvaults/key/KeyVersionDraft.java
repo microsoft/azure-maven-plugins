@@ -9,6 +9,7 @@ import com.azure.security.keyvault.keys.KeyAsyncClient;
 import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -38,12 +39,14 @@ public class KeyVersionDraft extends KeyVersion
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/keyvaults.create_key_version.version", params = {"this.getName()"})
     public KeyProperties createResourceInAzure() {
         throw new AzureToolkitRuntimeException("Not support update secret");
     }
 
     @Nonnull
     @Override
+    @AzureOperation(name = "azure/keyvaults.update_key_version.version", params = {"this.getName()"})
     public KeyProperties updateResourceInAzure(@Nonnull KeyProperties origin) {
         final KeyAsyncClient client = Objects.requireNonNull(getKeyVault().getKeyClient());
         final Boolean isEnabled = ensureConfig().getEnabled();

@@ -39,7 +39,7 @@ public class CertificateVersionModule extends AbstractAzResourceModule<Certifica
 
     @Nullable
     @Override
-    @AzureOperation(name = "azure/keyvaults.load_key_vault.key_vault", params = {"name"})
+    @AzureOperation(name = "azure/keyvaults.load_certificate_version.version", params = {"name"})
     protected CertificateProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         final CertificateAsyncClient client = this.getClient();
         if (Objects.isNull(client)) {
