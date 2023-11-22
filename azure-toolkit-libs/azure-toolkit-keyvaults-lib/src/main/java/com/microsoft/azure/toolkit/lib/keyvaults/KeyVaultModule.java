@@ -90,7 +90,7 @@ public class KeyVaultModule extends AbstractAzResourceModule<KeyVault, KeyVaultS
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "Key vault";
+        return "Key Vault";
     }
 }
 

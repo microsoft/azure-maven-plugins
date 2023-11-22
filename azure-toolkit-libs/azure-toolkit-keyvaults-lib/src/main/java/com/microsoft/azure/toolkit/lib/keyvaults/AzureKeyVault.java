@@ -69,7 +69,7 @@ public class AzureKeyVault extends AbstractAzService<KeyVaultSubscription, KeyVa
     @Nonnull
     @Override
     public String getResourceTypeName() {
-        return "Key vaults";
+        return "Key Vault";
     }
 
     @Nonnull
