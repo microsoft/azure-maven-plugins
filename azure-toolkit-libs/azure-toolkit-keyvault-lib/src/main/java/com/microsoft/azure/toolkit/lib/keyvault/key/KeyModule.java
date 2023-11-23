@@ -43,7 +43,7 @@ public class KeyModule extends AbstractAzResourceModule<Key, KeyVault, KeyProper
 
     @Nullable
     @Override
-    @AzureOperation(name = "azure/keyvaults.load_key.key", params = {"name"})
+    @AzureOperation(name = "azure/keyvault.load_key.key", params = {"name"})
     protected KeyProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         final KeyAsyncClient client = this.getClient();
         if (Objects.isNull(client)) {
@@ -55,7 +55,7 @@ public class KeyModule extends AbstractAzResourceModule<Key, KeyVault, KeyProper
     }
 
     @Override
-    @AzureOperation(name = "azure/keyvaults.delete_key.key", params = {"nameFromResourceId(resourceId)"})
+    @AzureOperation(name = "azure/keyvault.delete_key.key", params = {"nameFromResourceId(resourceId)"})
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(this.getClient())

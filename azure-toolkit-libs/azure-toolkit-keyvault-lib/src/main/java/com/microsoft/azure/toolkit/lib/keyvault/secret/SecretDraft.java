@@ -48,7 +48,7 @@ public class SecretDraft extends Secret implements AzResource.Draft<Secret, Secr
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/keyvaults.create_secret.secret", params = {"this.getName()"})
+    @AzureOperation(name = "azure/keyvault.create_secret.secret", params = {"this.getName()"})
     public SecretProperties createResourceInAzure() {
         final SecretAsyncClient secretClient = getKeyVault().getSecretClient();
         return createOrUpdateSecret(secretClient, ensureConfig());
@@ -66,7 +66,7 @@ public class SecretDraft extends Secret implements AzResource.Draft<Secret, Secr
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/keyvaults.update_secret.secret", params = {"this.getName()"})
+    @AzureOperation(name = "azure/keyvault.update_secret.secret", params = {"this.getName()"})
     public SecretProperties updateResourceInAzure(@Nonnull SecretProperties origin) {
         throw new AzureToolkitRuntimeException("Not support update secret");
     }

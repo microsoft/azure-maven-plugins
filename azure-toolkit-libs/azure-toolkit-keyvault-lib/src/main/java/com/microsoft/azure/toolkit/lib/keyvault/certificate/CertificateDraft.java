@@ -47,7 +47,7 @@ public class CertificateDraft extends Certificate implements AzResource.Draft<Ce
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/keyvaults.create_certificate.certificate", params = {"this.getName()"})
+    @AzureOperation(name = "azure/keyvault.create_certificate.certificate", params = {"this.getName()"})
     public CertificateProperties createResourceInAzure() {
         final CertificateAsyncClient secretClient = getKeyVault().getCertificateClient();
         return createOrUpdateCertificate(secretClient, ensureConfig());
@@ -55,7 +55,7 @@ public class CertificateDraft extends Certificate implements AzResource.Draft<Ce
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/keyvaults.update_certificate.certificate", params = {"this.getName()"})
+    @AzureOperation(name = "azure/keyvault.update_certificate.certificate", params = {"this.getName()"})
     public CertificateProperties updateResourceInAzure(@Nonnull CertificateProperties origin) {
         throw new AzureToolkitRuntimeException("Not support update secret");
     }

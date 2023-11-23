@@ -39,14 +39,14 @@ public class KeyVersionDraft extends KeyVersion
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/keyvaults.create_key_version.version", params = {"this.getName()"})
+    @AzureOperation(name = "azure/keyvault.create_key_version.version", params = {"this.getName()"})
     public KeyProperties createResourceInAzure() {
         throw new AzureToolkitRuntimeException("Not support update secret");
     }
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/keyvaults.update_key_version.version", params = {"this.getName()"})
+    @AzureOperation(name = "azure/keyvault.update_key_version.version", params = {"this.getName()"})
     public KeyProperties updateResourceInAzure(@Nonnull KeyProperties origin) {
         final KeyAsyncClient client = Objects.requireNonNull(getKeyVault().getKeyClient());
         final Boolean isEnabled = ensureConfig().getEnabled();

@@ -43,7 +43,7 @@ public class SecretModule extends AbstractAzResourceModule<Secret, KeyVault, Sec
 
     @Nullable
     @Override
-    @AzureOperation(name = "azure/keyvaults.load_secret.secret", params = {"name"})
+    @AzureOperation(name = "azure/keyvault.load_secret.secret", params = {"name"})
     protected SecretProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         final SecretAsyncClient client = this.getClient();
         if (Objects.isNull(client)) {
@@ -55,7 +55,7 @@ public class SecretModule extends AbstractAzResourceModule<Secret, KeyVault, Sec
     }
 
     @Override
-    @AzureOperation(name = "azure/keyvaults.delete_secret.secret", params = {"nameFromResourceId(resourceId)"})
+    @AzureOperation(name = "azure/keyvault.delete_secret.secret", params = {"nameFromResourceId(resourceId)"})
     protected void deleteResourceFromAzure(@Nonnull String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         Optional.ofNullable(this.getClient()).ifPresent(vaults -> vaults.beginDeleteSecret(id.name()).blockLast());

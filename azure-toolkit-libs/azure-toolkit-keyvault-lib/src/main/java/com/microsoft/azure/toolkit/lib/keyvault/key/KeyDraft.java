@@ -45,7 +45,7 @@ public class KeyDraft extends Key implements AzResource.Draft<Key, KeyProperties
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/keyvaults.create_key.key", params = {"this.getName()"})
+    @AzureOperation(name = "azure/keyvault.create_key.key", params = {"this.getName()"})
     public KeyProperties createResourceInAzure() {
         final KeyAsyncClient keyClient = getKeyVault().getKeyClient();
         return createOrUpdateKey(keyClient, ensureConfig());
@@ -53,7 +53,7 @@ public class KeyDraft extends Key implements AzResource.Draft<Key, KeyProperties
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/keyvaults.update_key.key", params = {"this.getName()"})
+    @AzureOperation(name = "azure/keyvault.update_key.key", params = {"this.getName()"})
     public KeyProperties updateResourceInAzure(@Nonnull KeyProperties origin) {
         throw new AzureToolkitRuntimeException("Not support update secret");
     }

@@ -56,7 +56,7 @@ public class KeyVaultDraft extends KeyVault implements AzResource.Draft<KeyVault
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/keyvaults.create_keyvault.keyvault", params = {"this.getName()"})
+    @AzureOperation(name = "azure/keyvault.create_keyvault.keyvault", params = {"this.getName()"})
     public Vault createResourceInAzure() {
         final Vaults client = Objects.requireNonNull(((KeyVaultModule) getModule()).getClient(), "could not get Key Vault clients");
         final Region region = Objects.requireNonNull(ensureConfig().getRegion(),
@@ -90,7 +90,7 @@ public class KeyVaultDraft extends KeyVault implements AzResource.Draft<KeyVault
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/keyvaults.update_keyvault.keyvault", params = {"this.getName()"})
+    @AzureOperation(name = "azure/keyvault.update_keyvault.keyvault", params = {"this.getName()"})
     public Vault updateResourceInAzure(@Nonnull Vault origin) {
         throw new AzureToolkitRuntimeException("not supported");
     }

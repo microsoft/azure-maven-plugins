@@ -38,14 +38,14 @@ public class SecretVersionDraft extends SecretVersion
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/keyvaults.create_secret_version.version", params = {"this.getName()"})
+    @AzureOperation(name = "azure/keyvault.create_secret_version.version", params = {"this.getName()"})
     public SecretProperties createResourceInAzure() {
         throw new AzureToolkitRuntimeException("Not support update secret");
     }
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/keyvaults.update_secret_version.version", params = {"this.getName()"})
+    @AzureOperation(name = "azure/keyvault.update_secret_version.version", params = {"this.getName()"})
     public SecretProperties updateResourceInAzure(@Nonnull SecretProperties origin) {
         final SecretAsyncClient secretClient = Objects.requireNonNull(getKeyVault().getSecretClient());
         final Boolean isEnabled = ensureConfig().getEnabled();

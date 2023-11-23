@@ -74,6 +74,6 @@ public class AzureKeyVault extends AbstractAzService<KeyVaultSubscription, KeyVa
 
     @Nonnull
     public String getServiceNameForTelemetry() {
-        return "keyvaults";
+        return "keyvault";
     }
 }

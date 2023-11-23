@@ -40,7 +40,7 @@ public class SecretVersionModule extends AbstractAzResourceModule<SecretVersion,
 
     @Nullable
     @Override
-    @AzureOperation(name = "azure/keyvaults.load_secret_version.version", params = {"name"})
+    @AzureOperation(name = "azure/keyvault.load_secret_version.version", params = {"name"})
     protected SecretProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
         final SecretAsyncClient client = this.getClient();
         if (Objects.isNull(client)) {

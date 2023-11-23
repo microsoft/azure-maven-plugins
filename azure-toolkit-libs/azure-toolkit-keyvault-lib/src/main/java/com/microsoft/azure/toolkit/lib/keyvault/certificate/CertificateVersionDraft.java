@@ -38,14 +38,14 @@ public class CertificateVersionDraft extends CertificateVersion
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/keyvaults.create_certificate_version.version", params = {"this.getName()"})
+    @AzureOperation(name = "azure/keyvault.create_certificate_version.version", params = {"this.getName()"})
     public CertificateProperties createResourceInAzure() {
         throw new AzureToolkitRuntimeException("Not support update secret");
     }
 
     @Nonnull
     @Override
-    @AzureOperation(name = "azure/keyvaults.update_certificate_version.version", params = {"this.getName()"})
+    @AzureOperation(name = "azure/keyvault.update_certificate_version.version", params = {"this.getName()"})
     public CertificateProperties updateResourceInAzure(@Nonnull CertificateProperties origin) {
         final CertificateAsyncClient secretClient = Objects.requireNonNull(getKeyVault().getCertificateClient());
         final Boolean isEnabled = ensureConfig().getEnabled();
