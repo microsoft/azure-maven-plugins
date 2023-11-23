@@ -74,16 +74,18 @@ public class CertificateDraft extends Certificate implements AzResource.Draft<Ce
     public static CertificateProperties createOrUpdateCertificate(@Nonnull final CertificateAsyncClient secretClient,
                                                                   @Nonnull Config config) {
         final Path path = Objects.requireNonNull(config.getPath(), "'path' is required");
-        final String password = config.getPassword();
-        final Boolean isEnabled = config.getEnabled();
         try (final FileInputStream inputStream = new FileInputStream(path.toFile())) {
+            final String password = config.getPassword();
+            final Boolean isEnabled = config.getEnabled();
             final byte[] byteArray = IOUtils.toByteArray(inputStream);
             final ImportCertificateOptions options = new ImportCertificateOptions(config.getName(), byteArray);
             options.setEnabled(BooleanUtils.isNotFalse(isEnabled));
             Optional.ofNullable(password).filter(StringUtils::isNoneEmpty).ifPresent(options::setPassword);
             return Objects.requireNonNull(secretClient.importCertificate(options).block(), "failed to import certificate").getProperties();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new AzureToolkitRuntimeException(e);
+        } catch (final Throwable t) {
+            throw new AzureToolkitRuntimeException("failed to create certificate, please check whether you have correct permission and try again");
         }
     }
 

@@ -56,12 +56,16 @@ public class SecretDraft extends Secret implements AzResource.Draft<Secret, Secr
 
     @Nonnull
     public static SecretProperties createOrUpdateSecret(@Nonnull final SecretAsyncClient secretClient, @Nonnull final Config config) {
-        final String value = config.getValue();
-        final KeyVaultSecret secret = secretClient.setSecret(config.getName(), value).block();
-        final SecretProperties properties = Objects.requireNonNull(secret).getProperties();
-        Optional.ofNullable(config.getEnabled()).ifPresent(properties::setEnabled);
-        Optional.ofNullable(config.getContentType()).ifPresent(properties::setContentType);
-        return Objects.requireNonNull(secretClient.updateSecretProperties(properties).block());
+        try {
+            final String value = config.getValue();
+            final KeyVaultSecret secret = secretClient.setSecret(config.getName(), value).block();
+            final SecretProperties properties = Objects.requireNonNull(secret).getProperties();
+            Optional.ofNullable(config.getEnabled()).ifPresent(properties::setEnabled);
+            Optional.ofNullable(config.getContentType()).ifPresent(properties::setContentType);
+            return Objects.requireNonNull(secretClient.updateSecretProperties(properties).block());
+        } catch (final Throwable e) {
+            throw new AzureToolkitRuntimeException("failed to create secret, please check whether you have correct permission and try again");
+        }
     }
 
     @Nonnull

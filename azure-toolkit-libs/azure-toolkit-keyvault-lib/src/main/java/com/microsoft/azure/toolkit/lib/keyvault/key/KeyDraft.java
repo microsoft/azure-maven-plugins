@@ -69,21 +69,25 @@ public class KeyDraft extends Key implements AzResource.Draft<Key, KeyProperties
     }
 
     public static KeyProperties createOrUpdateKey(@Nonnull final KeyAsyncClient keyClient, @Nonnull final Config config) {
-        final KeyType keyType = Objects.requireNonNull(config.getKeyType(), "Type is required to create a key");
-        final CreateKeyOptions options;
-        if (keyType == KeyType.RSA) {
-            options = new CreateRsaKeyOptions(config.getName())
-                .setKeySize(config.getRasKeySize());
-        } else if (keyType == KeyType.EC) {
-            options = new CreateEcKeyOptions(config.getName())
-                .setCurveName(config.getCurveName());
-        } else {
-            throw new AzureToolkitRuntimeException("Not support key type: " + keyType);
+        try {
+            final KeyType keyType = Objects.requireNonNull(config.getKeyType(), "Type is required to create a key");
+            final CreateKeyOptions options;
+            if (keyType == KeyType.RSA) {
+                options = new CreateRsaKeyOptions(config.getName())
+                    .setKeySize(config.getRasKeySize());
+            } else if (keyType == KeyType.EC) {
+                options = new CreateEcKeyOptions(config.getName())
+                    .setCurveName(config.getCurveName());
+            } else {
+                throw new AzureToolkitRuntimeException("Not support key type: " + keyType);
+            }
+            options.setEnabled(config.getEnabled());
+            options.setNotBefore(config.getActivationDate());
+            options.setExpiresOn(config.getExpirationDate());
+            return Objects.requireNonNull(keyClient.createKey(options).block(), "failed to create key").getProperties();
+        } catch (final Throwable t) {
+            throw new AzureToolkitRuntimeException("failed to create key, please check whether you have correct permission and try again");
         }
-        options.setEnabled(config.getEnabled());
-        options.setNotBefore(config.getActivationDate());
-        options.setExpiresOn(config.getExpirationDate());
-        return Objects.requireNonNull(keyClient.createKey(options).block(), "failed to create key").getProperties();
     }
 
     @Data
