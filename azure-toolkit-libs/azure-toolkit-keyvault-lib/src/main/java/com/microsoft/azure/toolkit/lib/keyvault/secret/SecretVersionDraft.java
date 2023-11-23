@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.keyvault.secret;
 
 import com.azure.security.keyvault.secrets.SecretAsyncClient;
+import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
@@ -48,13 +49,38 @@ public class SecretVersionDraft extends SecretVersion
     @AzureOperation(name = "azure/keyvault.update_secret_version.version", params = {"this.getName()"})
     public SecretProperties updateResourceInAzure(@Nonnull SecretProperties origin) {
         final SecretAsyncClient secretClient = Objects.requireNonNull(getKeyVault().getSecretClient());
-        final Boolean isEnabled = ensureConfig().getEnabled();
+        final SecretDraft.Config config = ensureConfig();
+        final Boolean isEnabled = config.getEnabled();
         final boolean isModified = Objects.nonNull(isEnabled) && !Objects.equals(isEnabled, origin.isEnabled());
         if (isModified) {
-            origin.setEnabled(isEnabled);
-            return Objects.requireNonNull(secretClient.updateSecretProperties(origin).block(), "failed to update secret");
+            return updateSecretVersion(secretClient, origin, config);
         }
         return origin;
+    }
+
+    @Nonnull
+    public static SecretProperties createSecretVersion(@Nonnull final SecretAsyncClient secretClient, @Nonnull final SecretDraft.Config config) {
+        try {
+            final String value = config.getValue();
+            final KeyVaultSecret secret = secretClient.setSecret(config.getName(), value).block();
+            final SecretProperties properties = Objects.requireNonNull(secret).getProperties();
+            Optional.ofNullable(config.getEnabled()).ifPresent(properties::setEnabled);
+            Optional.ofNullable(config.getContentType()).ifPresent(properties::setContentType);
+            return Objects.requireNonNull(secretClient.updateSecretProperties(properties).block());
+        } catch (final Throwable e) {
+            throw new AzureToolkitRuntimeException("failed to create secret, please check whether you have correct permission and try again");
+        }
+    }
+
+    public static SecretProperties updateSecretVersion(@Nonnull final SecretAsyncClient client,
+                                                       @Nonnull SecretProperties origin,
+                                                       @Nonnull final SecretDraft.Config config) {
+        try {
+            origin.setEnabled(config.getEnabled());
+            return Objects.requireNonNull(client.updateSecretProperties(origin).block(), "failed to update secret");
+        } catch (final Throwable t) {
+            throw new AzureToolkitRuntimeException("failed to update key, please check whether you have correct permission and try again");
+        }
     }
 
     @Override

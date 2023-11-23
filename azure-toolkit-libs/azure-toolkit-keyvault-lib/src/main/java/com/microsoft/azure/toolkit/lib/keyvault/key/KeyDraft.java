@@ -6,9 +6,6 @@
 package com.microsoft.azure.toolkit.lib.keyvault.key;
 
 import com.azure.security.keyvault.keys.KeyAsyncClient;
-import com.azure.security.keyvault.keys.models.CreateEcKeyOptions;
-import com.azure.security.keyvault.keys.models.CreateKeyOptions;
-import com.azure.security.keyvault.keys.models.CreateRsaKeyOptions;
 import com.azure.security.keyvault.keys.models.KeyCurveName;
 import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.azure.security.keyvault.keys.models.KeyType;
@@ -48,7 +45,7 @@ public class KeyDraft extends Key implements AzResource.Draft<Key, KeyProperties
     @AzureOperation(name = "azure/keyvault.create_key.key", params = {"this.getName()"})
     public KeyProperties createResourceInAzure() {
         final KeyAsyncClient keyClient = getKeyVault().getKeyClient();
-        return createOrUpdateKey(keyClient, ensureConfig());
+        return KeyVersionDraft.createKeyVersion(keyClient, ensureConfig());
     }
 
     @Nonnull
@@ -66,28 +63,6 @@ public class KeyDraft extends Key implements AzResource.Draft<Key, KeyProperties
     private Config ensureConfig() {
         this.config = Optional.ofNullable(config).orElseGet(KeyDraft.Config::new);
         return this.config;
-    }
-
-    public static KeyProperties createOrUpdateKey(@Nonnull final KeyAsyncClient keyClient, @Nonnull final Config config) {
-        try {
-            final KeyType keyType = Objects.requireNonNull(config.getKeyType(), "Type is required to create a key");
-            final CreateKeyOptions options;
-            if (keyType == KeyType.RSA) {
-                options = new CreateRsaKeyOptions(config.getName())
-                    .setKeySize(config.getRasKeySize());
-            } else if (keyType == KeyType.EC) {
-                options = new CreateEcKeyOptions(config.getName())
-                    .setCurveName(config.getCurveName());
-            } else {
-                throw new AzureToolkitRuntimeException("Not support key type: " + keyType);
-            }
-            options.setEnabled(config.getEnabled());
-            options.setNotBefore(config.getActivationDate());
-            options.setExpiresOn(config.getExpirationDate());
-            return Objects.requireNonNull(keyClient.createKey(options).block(), "failed to create key").getProperties();
-        } catch (final Throwable t) {
-            throw new AzureToolkitRuntimeException("failed to create key, please check whether you have correct permission and try again");
-        }
     }
 
     @Data
