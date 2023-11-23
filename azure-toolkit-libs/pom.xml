@@ -58,7 +58,7 @@
         <module>azure-toolkit-servicebus-lib</module>
         <module>azure-toolkit-servicelinker-lib</module>
         <module>azure-toolkit-cognitiveservices-lib</module>
-        <module>azure-toolkit-keyvaults-lib</module>
+        <module>azure-toolkit-keyvault-lib</module>
     </modules>
 
     <properties>
@@ -291,7 +291,7 @@
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-toolkit-keyvaults-lib</artifactId>
+                <artifactId>azure-toolkit-keyvault-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
             <!-- azure data management sdk -->
