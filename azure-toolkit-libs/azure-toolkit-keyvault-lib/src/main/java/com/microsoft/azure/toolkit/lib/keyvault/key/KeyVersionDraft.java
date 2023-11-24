@@ -11,9 +11,11 @@ import com.azure.security.keyvault.keys.models.CreateKeyOptions;
 import com.azure.security.keyvault.keys.models.CreateRsaKeyOptions;
 import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.azure.security.keyvault.keys.models.KeyType;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.keyvault.KeyVault;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,11 +23,14 @@ import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.microsoft.azure.toolkit.lib.keyvault.KeyVault.getAccessPolicyConfiureAction;
+import static com.microsoft.azure.toolkit.lib.keyvault.KeyVault.getAccessPolicyLearnMoreAction;
+
 public class KeyVersionDraft extends KeyVersion
     implements AzResource.Draft<KeyVersion, KeyProperties> {
-    public static final String KEY_CREATION_FORBIDDEN_MESSAGE = "failed to create key %s, access denied";
+    public static final String KEY_CREATION_FORBIDDEN_MESSAGE = "failed to create key %s, access denied, please make sure that you have access policy defined to do this operation";
     public static final String KEY_CREATION_FAILED_MESSAGE = "failed to create key %s, an unexpected error occurred";
-    public static final String KEY_UPDATE_FORBIDDEN_MESSAGE = "failed to create key %s, access denied";
+    public static final String KEY_UPDATE_FORBIDDEN_MESSAGE = "failed to create key %s, access denied, please make sure that you have access policy defined to do this operation";
     public static final String KEY_UPDATE_FAILED_MESSAGE = "failed to create key %s, an unexpected error occurred";
 
     @Getter
@@ -56,17 +61,17 @@ public class KeyVersionDraft extends KeyVersion
     @Override
     @AzureOperation(name = "azure/keyvault.update_key_version.version", params = {"this.getName()"})
     public KeyProperties updateResourceInAzure(@Nonnull KeyProperties origin) {
-        final KeyAsyncClient client = Objects.requireNonNull(getKeyVault().getKeyClient());
         final KeyDraft.Config config = ensureConfig();
         final Boolean isEnabled = config.getEnabled();
         final boolean isModified = Objects.nonNull(isEnabled) && !Objects.equals(isEnabled, origin.isEnabled());
         if (isModified) {
-            return updateKeyVersion(client, origin, config);
+            return updateKeyVersion(getKeyVault(), origin, config);
         }
         return origin;
     }
 
-    public static KeyProperties createKeyVersion(@Nonnull final KeyAsyncClient keyClient, @Nonnull final KeyDraft.Config config) {
+    public static KeyProperties createKeyVersion(@Nonnull final KeyVault keyVault, @Nonnull final KeyDraft.Config config) {
+        final KeyAsyncClient keyClient = keyVault.getKeyClient();
         try {
             final KeyType keyType = Objects.requireNonNull(config.getKeyType(), "Type is required to create a key");
             final CreateKeyOptions options;
@@ -84,24 +89,31 @@ public class KeyVersionDraft extends KeyVersion
             options.setExpiresOn(config.getExpirationDate());
             return Objects.requireNonNull(keyClient.createKey(options).block(), "failed to create key").getProperties();
         } catch (final Throwable t) {
+            // swallow all exceptions to prevent credential leakage
+            final Action<String> configure = getAccessPolicyConfiureAction(keyVault);
+            final Action<String> learnMore = getAccessPolicyLearnMoreAction();
             if (isHttpException(t, 403)) {
-                throw new AzureToolkitRuntimeException(String.format(KEY_CREATION_FORBIDDEN_MESSAGE, config.getName()));
+                throw new AzureToolkitRuntimeException(String.format(KEY_CREATION_FORBIDDEN_MESSAGE, config.getName()), configure, learnMore);
             }
             throw new AzureToolkitRuntimeException(String.format(KEY_CREATION_FAILED_MESSAGE, config.getName()));
         }
     }
 
-    public static KeyProperties updateKeyVersion(@Nonnull final KeyAsyncClient client,
+    public static KeyProperties updateKeyVersion(@Nonnull final KeyVault keyVault,
                                                  @Nonnull final KeyProperties origin,
                                                  @Nonnull final KeyDraft.Config config) {
+        final KeyAsyncClient client = keyVault.getKeyClient();
         try {
             origin.setEnabled(config.getEnabled());
             return Objects.requireNonNull(client.updateKeyProperties(origin).block(), "failed to update secret").getProperties();
         } catch (final Throwable t) {
+            // swallow all exceptions to prevent credential leakage
+            final Action<String> configure = getAccessPolicyConfiureAction(keyVault);
+            final Action<String> learnMore = getAccessPolicyLearnMoreAction();
             if (isHttpException(t, 403)) {
-                throw new AzureToolkitRuntimeException(String.format(KEY_CREATION_FORBIDDEN_MESSAGE, config.getName()));
+                throw new AzureToolkitRuntimeException(String.format(KEY_UPDATE_FORBIDDEN_MESSAGE, config.getName()), configure, learnMore);
             }
-            throw new AzureToolkitRuntimeException(String.format(KEY_CREATION_FAILED_MESSAGE, config.getName()));
+            throw new AzureToolkitRuntimeException(String.format(KEY_UPDATE_FAILED_MESSAGE, config.getName()));
         }
     }
 

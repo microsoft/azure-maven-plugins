@@ -14,6 +14,8 @@ import com.azure.security.keyvault.secrets.SecretAsyncClient;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -34,6 +36,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.microsoft.azure.toolkit.lib.common.action.Action.OPEN_URL;
 
 public class KeyVault extends AbstractAzResource<KeyVault, KeyVaultSubscription, Vault> implements Deletable {
 
@@ -146,6 +150,20 @@ public class KeyVault extends AbstractAzResource<KeyVault, KeyVaultSubscription,
 
     public KeyAsyncClient getKeyClient() {
         return Optional.ofNullable(getRemote()).map(Vault::keyClient).orElse(null);
+    }
+
+    @Nullable
+    public static Action<String> getAccessPolicyConfiureAction(@Nonnull KeyVault vault) {
+        final String url = vault.getPortalUrl() + "/access_configuration";
+        final Action<String> action = AzureActionManager.getInstance().getAction(OPEN_URL);
+        return Optional.ofNullable(action).map(a -> a.bind(url)).orElse(null);
+    }
+
+    @Nullable
+    public static Action<String> getAccessPolicyLearnMoreAction() {
+        final String url = "https://aka.ms/keyvault-access";
+        final Action<String> action = AzureActionManager.getInstance().getAction(OPEN_URL);
+        return Optional.ofNullable(action).map(a -> a.bind(url)).orElse(null);
     }
 }
 

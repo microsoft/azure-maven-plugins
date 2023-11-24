@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.keyvault.key;
 
-import com.azure.security.keyvault.keys.KeyAsyncClient;
 import com.azure.security.keyvault.keys.models.KeyCurveName;
 import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.azure.security.keyvault.keys.models.KeyType;
@@ -44,8 +43,7 @@ public class KeyDraft extends Key implements AzResource.Draft<Key, KeyProperties
     @Override
     @AzureOperation(name = "azure/keyvault.create_key.key", params = {"this.getName()"})
     public KeyProperties createResourceInAzure() {
-        final KeyAsyncClient keyClient = getKeyVault().getKeyClient();
-        return KeyVersionDraft.createKeyVersion(keyClient, ensureConfig());
+        return KeyVersionDraft.createKeyVersion(getKeyVault(), ensureConfig());
     }
 
     @Nonnull

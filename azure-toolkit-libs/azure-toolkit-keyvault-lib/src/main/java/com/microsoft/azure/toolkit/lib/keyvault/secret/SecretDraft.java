@@ -49,8 +49,7 @@ public class SecretDraft extends Secret implements AzResource.Draft<Secret, Secr
     @Override
     @AzureOperation(name = "azure/keyvault.create_secret.secret", params = {"this.getName()"})
     public SecretProperties createResourceInAzure() {
-        final SecretAsyncClient secretClient = getKeyVault().getSecretClient();
-        return SecretVersionDraft.createSecretVersion(secretClient, ensureConfig());
+        return SecretVersionDraft.createSecretVersion(getKeyVault(), ensureConfig());
     }
 
     @Nonnull

@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.keyvault.certificate;
 
-import com.azure.security.keyvault.certificates.CertificateAsyncClient;
 import com.azure.security.keyvault.certificates.models.CertificateProperties;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
@@ -43,8 +42,7 @@ public class CertificateDraft extends Certificate implements AzResource.Draft<Ce
     @Override
     @AzureOperation(name = "azure/keyvault.create_certificate.certificate", params = {"this.getName()"})
     public CertificateProperties createResourceInAzure() {
-        final CertificateAsyncClient secretClient = getKeyVault().getCertificateClient();
-        return CertificateVersionDraft.createCertificateVersion(secretClient, ensureConfig());
+        return CertificateVersionDraft.createCertificateVersion(getKeyVault(), ensureConfig());
     }
 
     @Nonnull
