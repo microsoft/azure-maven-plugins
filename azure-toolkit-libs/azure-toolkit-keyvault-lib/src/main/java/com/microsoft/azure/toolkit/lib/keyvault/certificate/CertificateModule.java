@@ -44,13 +44,10 @@ public class CertificateModule extends AbstractAzResourceModule<Certificate, Key
     @Override
     @AzureOperation(name = "azure/keyvault.load_certificate.certificate", params = {"name"})
     protected CertificateProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        final CertificateAsyncClient client = this.getClient();
-        if (Objects.isNull(client)) {
-            return null;
-        }
-        return client.listPropertiesOfCertificates().toStream()
-            .filter(c -> StringUtils.equalsIgnoreCase(c.getName(), name))
-            .findFirst().orElse(null);
+        return this.list().stream().filter(s -> StringUtils.equalsIgnoreCase(s.getName(), name))
+            .findFirst()
+            .map(Certificate::getRemote)
+            .orElse(null);
     }
 
     @Override

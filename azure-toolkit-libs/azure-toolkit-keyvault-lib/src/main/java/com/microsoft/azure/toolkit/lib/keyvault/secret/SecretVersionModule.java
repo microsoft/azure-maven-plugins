@@ -42,13 +42,10 @@ public class SecretVersionModule extends AbstractAzResourceModule<SecretVersion,
     @Override
     @AzureOperation(name = "azure/keyvault.load_secret_version.version", params = {"name"})
     protected SecretProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        final SecretAsyncClient client = this.getClient();
-        if (Objects.isNull(client)) {
-            return null;
-        }
-        return client.listPropertiesOfSecretVersions(getParent().getName()).toStream()
-            .filter(c -> StringUtils.equalsIgnoreCase(c.getVersion(), name))
-            .findFirst().orElse(null);
+        return this.list().stream().filter(s -> StringUtils.equalsIgnoreCase(s.getName(), name))
+            .findFirst()
+            .map(SecretVersion::getRemote)
+            .orElse(null);
     }
 
     @Nonnull

@@ -45,13 +45,10 @@ public class KeyModule extends AbstractAzResourceModule<Key, KeyVault, KeyProper
     @Override
     @AzureOperation(name = "azure/keyvault.load_key.key", params = {"name"})
     protected KeyProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        final KeyAsyncClient client = this.getClient();
-        if (Objects.isNull(client)) {
-            return null;
-        }
-        return client.listPropertiesOfKeys().toStream()
-            .filter(c -> StringUtils.equalsIgnoreCase(c.getName(), name))
-            .findFirst().orElse(null);
+        return this.list().stream().filter(s -> StringUtils.equalsIgnoreCase(s.getName(), name))
+            .findFirst()
+            .map(Key::getRemote)
+            .orElse(null);
     }
 
     @Override
