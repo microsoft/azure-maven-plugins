@@ -20,6 +20,10 @@ import java.util.Optional;
 
 public class SecretVersionDraft extends SecretVersion
     implements AzResource.Draft<SecretVersion, SecretProperties> {
+    public static final String SECRET_CREATION_FORBIDDEN_MESSAGE = "failed to create secret %s, access denied";
+    public static final String SECRET_CREATION_FAILED_MESSAGE = "failed to create secret %s, an unexpected error occurred";
+    public static final String SECRET_UPDATE_FORBIDDEN_MESSAGE = "failed to create secret %s, access denied";
+    public static final String SECRET_UPDATE_FAILED_MESSAGE = "failed to create secret %s, an unexpected error occurred";
 
     @Getter
     private final SecretVersion origin;
@@ -67,19 +71,25 @@ public class SecretVersionDraft extends SecretVersion
             Optional.ofNullable(config.getEnabled()).ifPresent(properties::setEnabled);
             Optional.ofNullable(config.getContentType()).ifPresent(properties::setContentType);
             return Objects.requireNonNull(secretClient.updateSecretProperties(properties).block());
-        } catch (final Throwable e) {
-            throw new AzureToolkitRuntimeException("failed to create secret, please check whether you have correct permission and try again");
+        } catch (final Throwable t) {
+            if (isHttpException(t, 403)) {
+                throw new AzureToolkitRuntimeException(String.format(SECRET_CREATION_FORBIDDEN_MESSAGE, config.getName()));
+            }
+            throw new AzureToolkitRuntimeException(String.format(SECRET_CREATION_FAILED_MESSAGE, config.getName()));
         }
     }
 
     public static SecretProperties updateSecretVersion(@Nonnull final SecretAsyncClient client,
-                                                       @Nonnull SecretProperties origin,
+                                                       @Nonnull final SecretProperties origin,
                                                        @Nonnull final SecretDraft.Config config) {
         try {
             origin.setEnabled(config.getEnabled());
             return Objects.requireNonNull(client.updateSecretProperties(origin).block(), "failed to update secret");
         } catch (final Throwable t) {
-            throw new AzureToolkitRuntimeException("failed to update key, please check whether you have correct permission and try again");
+            if (isHttpException(t, 403)) {
+                throw new AzureToolkitRuntimeException(String.format(SECRET_UPDATE_FORBIDDEN_MESSAGE, config.getName()));
+            }
+            throw new AzureToolkitRuntimeException(String.format(SECRET_UPDATE_FAILED_MESSAGE, config.getName()));
         }
     }
 

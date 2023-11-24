@@ -23,6 +23,10 @@ import java.util.Optional;
 
 public class KeyVersionDraft extends KeyVersion
     implements AzResource.Draft<KeyVersion, KeyProperties> {
+    public static final String KEY_CREATION_FORBIDDEN_MESSAGE = "failed to create key %s, access denied";
+    public static final String KEY_CREATION_FAILED_MESSAGE = "failed to create key %s, an unexpected error occurred";
+    public static final String KEY_UPDATE_FORBIDDEN_MESSAGE = "failed to create key %s, access denied";
+    public static final String KEY_UPDATE_FAILED_MESSAGE = "failed to create key %s, an unexpected error occurred";
 
     @Getter
     private final KeyVersion origin;
@@ -80,18 +84,24 @@ public class KeyVersionDraft extends KeyVersion
             options.setExpiresOn(config.getExpirationDate());
             return Objects.requireNonNull(keyClient.createKey(options).block(), "failed to create key").getProperties();
         } catch (final Throwable t) {
-            throw new AzureToolkitRuntimeException("failed to create key, please check whether you have correct permission and try again");
+            if (isHttpException(t, 403)) {
+                throw new AzureToolkitRuntimeException(String.format(KEY_CREATION_FORBIDDEN_MESSAGE, config.getName()));
+            }
+            throw new AzureToolkitRuntimeException(String.format(KEY_CREATION_FAILED_MESSAGE, config.getName()));
         }
     }
 
     public static KeyProperties updateKeyVersion(@Nonnull final KeyAsyncClient client,
-                                                 @Nonnull KeyProperties origin,
+                                                 @Nonnull final KeyProperties origin,
                                                  @Nonnull final KeyDraft.Config config) {
         try {
             origin.setEnabled(config.getEnabled());
             return Objects.requireNonNull(client.updateKeyProperties(origin).block(), "failed to update secret").getProperties();
         } catch (final Throwable t) {
-            throw new AzureToolkitRuntimeException("failed to update key, please check whether you have correct permission and try again");
+            if (isHttpException(t, 403)) {
+                throw new AzureToolkitRuntimeException(String.format(KEY_CREATION_FORBIDDEN_MESSAGE, config.getName()));
+            }
+            throw new AzureToolkitRuntimeException(String.format(KEY_CREATION_FAILED_MESSAGE, config.getName()));
         }
     }
 

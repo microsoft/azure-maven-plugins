@@ -27,6 +27,10 @@ import java.util.Optional;
 public class CertificateVersionDraft extends CertificateVersion
     implements AzResource.Draft<CertificateVersion, CertificateProperties> {
 
+    public static final String CERTIFICATE_CREATION_FORBIDDEN_MESSAGE = "failed to create certificate %s, access denied";
+    public static final String CERTIFICATE_CREATION_FAILED_MESSAGE = "failed to create certificate %s, an unexpected error occurred";
+    public static final String CERTIFICATE_UPDATE_FORBIDDEN_MESSAGE = "failed to update certificate %s, access denied";
+    public static final String CERTIFICATE_UPDATE_FAILED_MESSAGE = "failed to update certificate %s, an unexpected error occurred";
     @Getter
     private final CertificateVersion origin;
 
@@ -66,7 +70,7 @@ public class CertificateVersionDraft extends CertificateVersion
 
     @Nonnull
     public static CertificateProperties createCertificateVersion(@Nonnull final CertificateAsyncClient secretClient,
-                                                                 @Nonnull CertificateDraft.Config config) {
+                                                                 @Nonnull final CertificateDraft.Config config) {
         final Path path = Objects.requireNonNull(config.getPath(), "'path' is required");
         try (final FileInputStream inputStream = new FileInputStream(path.toFile())) {
             final String password = config.getPassword();
@@ -79,7 +83,10 @@ public class CertificateVersionDraft extends CertificateVersion
         } catch (final IOException e) {
             throw new AzureToolkitRuntimeException(e);
         } catch (final Throwable t) {
-            throw new AzureToolkitRuntimeException("failed to create certificate, please check whether you have correct permission and try again");
+            if (isHttpException(t, 403)) {
+                throw new AzureToolkitRuntimeException(String.format(CERTIFICATE_CREATION_FORBIDDEN_MESSAGE, config.getName()));
+            }
+            throw new AzureToolkitRuntimeException(String.format(CERTIFICATE_CREATION_FAILED_MESSAGE, config.getName()));
         }
     }
 
@@ -90,7 +97,10 @@ public class CertificateVersionDraft extends CertificateVersion
             origin.setEnabled(config.getEnabled());
             return Objects.requireNonNull(client.updateCertificateProperties(origin).block(), "failed to update secret").getProperties();
         } catch (final Throwable t) {
-            throw new AzureToolkitRuntimeException("failed to update key, please check whether you have correct permission and try again");
+            if (isHttpException(t, 403)) {
+                throw new AzureToolkitRuntimeException(String.format(CERTIFICATE_UPDATE_FORBIDDEN_MESSAGE, config.getName()));
+            }
+            throw new AzureToolkitRuntimeException(String.format(CERTIFICATE_UPDATE_FAILED_MESSAGE, config.getName()));
         }
     }
 
