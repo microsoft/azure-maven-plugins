@@ -41,13 +41,10 @@ public class CertificateVersionModule extends AbstractAzResourceModule<Certifica
     @Override
     @AzureOperation(name = "azure/keyvault.load_certificate_version.version", params = {"name"})
     protected CertificateProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        final CertificateAsyncClient client = this.getClient();
-        if (Objects.isNull(client)) {
-            return null;
-        }
-        return client.listPropertiesOfCertificateVersions(getParent().getName()).toStream()
-            .filter(c -> StringUtils.equalsIgnoreCase(c.getVersion(), name))
-            .findFirst().orElse(null);
+        return this.list().stream().filter(s -> StringUtils.equalsIgnoreCase(s.getName(), name))
+            .findFirst()
+            .map(CertificateVersion::getRemote)
+            .orElse(null);
     }
 
     @Nonnull

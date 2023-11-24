@@ -45,13 +45,10 @@ public class SecretModule extends AbstractAzResourceModule<Secret, KeyVault, Sec
     @Override
     @AzureOperation(name = "azure/keyvault.load_secret.secret", params = {"name"})
     protected SecretProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        final SecretAsyncClient client = this.getClient();
-        if (Objects.isNull(client)) {
-            return null;
-        }
-        return client.listPropertiesOfSecrets().toStream()
-            .filter(c -> StringUtils.equalsIgnoreCase(c.getName(), name))
-            .findFirst().orElse(null);
+        return this.list().stream().filter(s -> StringUtils.equalsIgnoreCase(s.getName(), name))
+            .findFirst()
+            .map(Secret::getRemote)
+            .orElse(null);
     }
 
     @Override

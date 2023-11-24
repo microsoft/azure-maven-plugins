@@ -42,13 +42,10 @@ public class KeyVersionModule extends AbstractAzResourceModule<KeyVersion, Key, 
     @Override
     @AzureOperation(name = "azure/keyvault.load_key_version.version", params = {"name"})
     protected KeyProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        final KeyAsyncClient client = this.getClient();
-        if (Objects.isNull(client)) {
-            return null;
-        }
-        return client.listPropertiesOfKeyVersions(getParent().getName()).toStream()
-            .filter(c -> StringUtils.equalsIgnoreCase(c.getVersion(), name))
-            .findFirst().orElse(null);
+        return this.list().stream().filter(s -> StringUtils.equalsIgnoreCase(s.getName(), name))
+            .findFirst()
+            .map(KeyVersion::getRemote)
+            .orElse(null);
     }
 
     @Nonnull
