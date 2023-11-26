@@ -9,13 +9,11 @@ import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.keyvault.KeyVaultManager;
 import com.azure.resourcemanager.keyvault.models.Vault;
 import com.azure.resourcemanager.keyvault.models.Vaults;
-import com.microsoft.azure.toolkit.lib.Azure;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.resource.AzureResources;
-import com.microsoft.azure.toolkit.lib.resource.ResourceGroupModule;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,10 +21,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class KeyVaultModule extends AbstractAzResourceModule<KeyVault, KeyVaultSubscription, Vault> {
     public static final String NAME = "vaults";
@@ -39,14 +35,16 @@ public class KeyVaultModule extends AbstractAzResourceModule<KeyVault, KeyVaultS
     @Override
     protected Iterator<? extends ContinuablePage<String, Vault>> loadResourcePagesFromAzure() {
         final Vaults client = getClient();
-        if (Objects.isNull(client)) {
+        final KeyVaultManager manager = this.parent.getRemote();
+        if (Objects.isNull(client) || Objects.isNull(manager)) {
             return Collections.emptyIterator();
         }
-        final ResourceGroupModule groups = Azure.az(AzureResources.class).groups(getSubscriptionId());
-        final List<Vault> results = groups.list().stream()
-            .flatMap(g -> client.listByResourceGroup(g.getResourceGroupName()).stream())
-            .collect(Collectors.toList());
-        return Collections.singleton(new ItemPage<>(results)).iterator();
+        return manager.serviceClient().getVaults().list().streamByPage(getPageSize())
+            .map(p -> new ItemPage<>(p.getValue().stream()
+                .map(r -> ResourceId.fromString(r.id()))
+                .parallel()
+                .map(id -> loadResourceFromAzure(id.name(), id.resourceGroupName()))))
+            .iterator();
     }
 
     @Nullable
