@@ -33,8 +33,8 @@ public class KeyVersionDraft extends KeyVersion
     implements AzResource.Draft<KeyVersion, KeyProperties> {
     public static final String KEY_CREATION_FORBIDDEN_MESSAGE = "failed to create key %s, access denied, please make sure that you have access policy defined to do this operation";
     public static final String KEY_CREATION_FAILED_MESSAGE = "failed to create key %s, an unexpected error occurred";
-    public static final String KEY_UPDATE_FORBIDDEN_MESSAGE = "failed to create key %s, access denied, please make sure that you have access policy defined to do this operation";
-    public static final String KEY_UPDATE_FAILED_MESSAGE = "failed to create key %s, an unexpected error occurred";
+    public static final String KEY_UPDATE_FORBIDDEN_MESSAGE = "failed to update key %s, access denied, please make sure that you have access policy defined to do this operation";
+    public static final String KEY_UPDATE_FAILED_MESSAGE = "failed to update key %s, an unexpected error occurred";
 
     @Getter
     private final KeyVersion origin;
@@ -71,7 +71,7 @@ public class KeyVersionDraft extends KeyVersion
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start updating Key Version ({0}).", this.getVersion()));
             final KeyProperties keyProperties = updateKeyVersion(getKeyVault(), origin, config);
-            messager.info(AzureString.format("Key Version ({0}) is successfully created.", this.getVersion()));
+            messager.info(AzureString.format("Key Version ({0}) is successfully updated.", this.getVersion()));
             return keyProperties;
         }
         return origin;

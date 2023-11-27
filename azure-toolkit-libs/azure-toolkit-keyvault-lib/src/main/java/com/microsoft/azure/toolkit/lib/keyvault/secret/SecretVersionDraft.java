@@ -30,8 +30,8 @@ public class SecretVersionDraft extends SecretVersion
     implements AzResource.Draft<SecretVersion, SecretProperties> {
     public static final String SECRET_CREATION_FORBIDDEN_MESSAGE = "failed to create secret %s, access denied, please make sure that you have access policy defined to do this operation";
     public static final String SECRET_CREATION_FAILED_MESSAGE = "failed to create secret %s, an unexpected error occurred";
-    public static final String SECRET_UPDATE_FORBIDDEN_MESSAGE = "failed to create secret %s, access denied, please make sure that you have access policy defined to do this operation";
-    public static final String SECRET_UPDATE_FAILED_MESSAGE = "failed to create secret %s, an unexpected error occurred";
+    public static final String SECRET_UPDATE_FORBIDDEN_MESSAGE = "failed to update secret %s, access denied, please make sure that you have access policy defined to do this operation";
+    public static final String SECRET_UPDATE_FAILED_MESSAGE = "failed to update secret %s, an unexpected error occurred";
 
     @Getter
     private final SecretVersion origin;
