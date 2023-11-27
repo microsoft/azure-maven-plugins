@@ -31,6 +31,7 @@ public class AzureConfiguration {
     private String databasePasswordSaveType;
     private Boolean telemetryEnabled; // null means true
     private String functionCoreToolsPath;
+    private String azureCliPath;
     private String dotnetRuntimePath;
     private String storageExplorerPath;
     private String proxySource;

@@ -51,7 +51,7 @@ public class CosmosDBAccountModule extends AbstractAzResourceModule<CosmosDBAcco
                 try {
                     return c.getByResourceGroup(resourceGroupName, name);
                 } catch (Throwable e) {
-                    if (AbstractAzResource.isNotFoundException(e)) {
+                    if (AbstractAzResource.is404(e)) {
                         return null;
                     }
                     throw e;

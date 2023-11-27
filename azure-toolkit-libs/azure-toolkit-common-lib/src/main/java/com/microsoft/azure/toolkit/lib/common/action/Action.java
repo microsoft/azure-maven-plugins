@@ -46,6 +46,7 @@ public class Action<D> implements Cloneable {
     public static final Id<Object> SELECT_SUBS = Action.Id.of("user/account.select_subs");
     public static final Id<Object> OPEN_AZURE_SETTINGS = Action.Id.of("user/common.open_azure_settings");
     public static final Id<Object> DISABLE_AUTH_CACHE = Action.Id.of("user/account.disable_auth_cache");
+    public static final Action.Id<String> OPEN_URL = Action.Id.of("user/common.open_url.url");
 
     public static final String COMMON_PLACE = "common";
 
