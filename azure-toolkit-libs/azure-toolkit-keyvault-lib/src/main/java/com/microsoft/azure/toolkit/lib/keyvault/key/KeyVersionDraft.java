@@ -112,6 +112,8 @@ public class KeyVersionDraft extends KeyVersion
         final KeyAsyncClient client = keyVault.getKeyClient();
         try {
             origin.setEnabled(config.getEnabled());
+            // workaround to fix issue that exportable is also included in request, which is only support with API 7.3-preview
+            origin.setExportable(null);
             return Objects.requireNonNull(client.updateKeyProperties(origin).block(), "failed to update secret").getProperties();
         } catch (final Throwable t) {
             // swallow all exceptions to prevent credential leakage
