@@ -5,9 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.keyvault.certificate;
 
-import com.azure.security.keyvault.certificates.CertificateAsyncClient;
 import com.azure.security.keyvault.certificates.models.CertificateProperties;
-import com.azure.security.keyvault.certificates.models.ImportCertificateOptions;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -16,13 +14,8 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.Objects;
@@ -49,8 +42,7 @@ public class CertificateDraft extends Certificate implements AzResource.Draft<Ce
     @Override
     @AzureOperation(name = "azure/keyvault.create_certificate.certificate", params = {"this.getName()"})
     public CertificateProperties createResourceInAzure() {
-        final CertificateAsyncClient secretClient = getKeyVault().getCertificateClient();
-        return createOrUpdateCertificate(secretClient, ensureConfig());
+        return CertificateVersionDraft.createCertificateVersion(getKeyVault(), ensureConfig());
     }
 
     @Nonnull
@@ -68,23 +60,6 @@ public class CertificateDraft extends Certificate implements AzResource.Draft<Ce
     @Override
     public boolean isModified() {
         return Objects.nonNull(config);
-    }
-
-    @Nonnull
-    public static CertificateProperties createOrUpdateCertificate(@Nonnull final CertificateAsyncClient secretClient,
-                                                                  @Nonnull Config config) {
-        final Path path = Objects.requireNonNull(config.getPath(), "'path' is required");
-        final String password = config.getPassword();
-        final Boolean isEnabled = config.getEnabled();
-        try (final FileInputStream inputStream = new FileInputStream(path.toFile())) {
-            final byte[] byteArray = IOUtils.toByteArray(inputStream);
-            final ImportCertificateOptions options = new ImportCertificateOptions(config.getName(), byteArray);
-            options.setEnabled(BooleanUtils.isNotFalse(isEnabled));
-            Optional.ofNullable(password).filter(StringUtils::isNoneEmpty).ifPresent(options::setPassword);
-            return Objects.requireNonNull(secretClient.importCertificate(options).block(), "failed to import certificate").getProperties();
-        } catch (IOException e) {
-            throw new AzureToolkitRuntimeException(e);
-        }
     }
 
     @Data

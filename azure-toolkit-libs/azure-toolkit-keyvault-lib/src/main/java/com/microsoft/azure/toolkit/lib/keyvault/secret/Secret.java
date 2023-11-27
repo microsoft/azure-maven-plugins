@@ -110,11 +110,7 @@ public class Secret extends AbstractAzResource<Secret, KeyVault, SecretPropertie
 
     @Nullable
     public SecretVersion addNewSecretVersion(final SecretDraft.Config value) {
-        final SecretAsyncClient secretClient = getKeyVault().getSecretClient();
-        if (Objects.isNull(secretClient)) {
-            return null;
-        }
-        final SecretProperties secret = SecretDraft.createOrUpdateSecret(secretClient, value);
+        final SecretProperties secret = SecretVersionDraft.createSecretVersion(getKeyVault(), value);
         this.refresh();
         return Optional.of(secret).map(s -> this.versionModule.get(s.getVersion(), getResourceGroupName())).orElse(null);
     }

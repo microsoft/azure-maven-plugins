@@ -7,19 +7,35 @@ package com.microsoft.azure.toolkit.lib.keyvault.certificate;
 
 import com.azure.security.keyvault.certificates.CertificateAsyncClient;
 import com.azure.security.keyvault.certificates.models.CertificateProperties;
+import com.azure.security.keyvault.certificates.models.ImportCertificateOptions;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.keyvault.KeyVault;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.microsoft.azure.toolkit.lib.keyvault.KeyVault.getAccessPolicyConfiureAction;
+import static com.microsoft.azure.toolkit.lib.keyvault.KeyVault.getAccessPolicyLearnMoreAction;
 
 public class CertificateVersionDraft extends CertificateVersion
     implements AzResource.Draft<CertificateVersion, CertificateProperties> {
 
+    public static final String CERTIFICATE_CREATION_FORBIDDEN_MESSAGE = "failed to create certificate %s, access denied, please make sure that you have access policy defined to do this operation";
+    public static final String CERTIFICATE_CREATION_FAILED_MESSAGE = "failed to create certificate %s, an unexpected error occurred";
+    public static final String CERTIFICATE_UPDATE_FORBIDDEN_MESSAGE = "failed to update certificate %s, access denied, please make sure that you have access policy defined to do this operation";
+    public static final String CERTIFICATE_UPDATE_FAILED_MESSAGE = "failed to update certificate %s, an unexpected error occurred";
     @Getter
     private final CertificateVersion origin;
 
@@ -47,14 +63,55 @@ public class CertificateVersionDraft extends CertificateVersion
     @Override
     @AzureOperation(name = "azure/keyvault.update_certificate_version.version", params = {"this.getName()"})
     public CertificateProperties updateResourceInAzure(@Nonnull CertificateProperties origin) {
-        final CertificateAsyncClient secretClient = Objects.requireNonNull(getKeyVault().getCertificateClient());
-        final Boolean isEnabled = ensureConfig().getEnabled();
+        final CertificateDraft.Config config = ensureConfig();
+        final Boolean isEnabled = config.getEnabled();
         final boolean isModified = Objects.nonNull(isEnabled) && !Objects.equals(isEnabled, origin.isEnabled());
         if (isModified) {
-            origin.setEnabled(isEnabled);
-            return Objects.requireNonNull(secretClient.updateCertificateProperties(origin).block(), "failed to update secret").getProperties();
+            return updateCertificateVersion(getKeyVault(), origin, config);
         }
         return origin;
+    }
+
+    @Nonnull
+    public static CertificateProperties createCertificateVersion(@Nonnull final KeyVault keyVault,
+                                                                 @Nonnull final CertificateDraft.Config config) {
+        final CertificateAsyncClient secretClient = keyVault.getCertificateClient();
+        final Path path = Objects.requireNonNull(config.getPath(), "'path' is required");
+        try (final FileInputStream inputStream = new FileInputStream(path.toFile())) {
+            final String password = config.getPassword();
+            final Boolean isEnabled = config.getEnabled();
+            final byte[] byteArray = IOUtils.toByteArray(inputStream);
+            final ImportCertificateOptions options = new ImportCertificateOptions(config.getName(), byteArray);
+            options.setEnabled(BooleanUtils.isNotFalse(isEnabled));
+            Optional.ofNullable(password).filter(StringUtils::isNoneEmpty).ifPresent(options::setPassword);
+            return Objects.requireNonNull(secretClient.importCertificate(options).block(), "failed to import certificate").getProperties();
+        } catch (final Throwable t) {
+            // swallow all exceptions to prevent credential leakage
+            final Action<String> configure = getAccessPolicyConfiureAction(keyVault);
+            final Action<String> learnMore = getAccessPolicyLearnMoreAction();
+            if (isHttpException(t, 403)) {
+                throw new AzureToolkitRuntimeException(String.format(CERTIFICATE_CREATION_FORBIDDEN_MESSAGE, config.getName()), configure, learnMore);
+            }
+            throw new AzureToolkitRuntimeException(String.format(CERTIFICATE_CREATION_FAILED_MESSAGE, config.getName()));
+        }
+    }
+
+    public static CertificateProperties updateCertificateVersion(@Nonnull final KeyVault keyVault,
+                                                                 @Nonnull final CertificateProperties origin,
+                                                                 @Nonnull final CertificateDraft.Config config) {
+        final CertificateAsyncClient client = keyVault.getCertificateClient();
+        try {
+            origin.setEnabled(config.getEnabled());
+            return Objects.requireNonNull(client.updateCertificateProperties(origin).block(), "failed to update secret").getProperties();
+        } catch (final Throwable t) {
+            // swallow all exceptions to prevent credential leakage
+            if (isHttpException(t, 403)) {
+                final Action<String> configure = getAccessPolicyConfiureAction(keyVault);
+                final Action<String> learnMore = getAccessPolicyLearnMoreAction();
+                throw new AzureToolkitRuntimeException(String.format(CERTIFICATE_UPDATE_FORBIDDEN_MESSAGE, config.getName()), configure, learnMore);
+            }
+            throw new AzureToolkitRuntimeException(String.format(CERTIFICATE_UPDATE_FAILED_MESSAGE, config.getName()));
+        }
     }
 
     @Override

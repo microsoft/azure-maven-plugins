@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.keyvault.secret;
 
 import com.azure.security.keyvault.secrets.SecretAsyncClient;
-import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
@@ -50,18 +49,7 @@ public class SecretDraft extends Secret implements AzResource.Draft<Secret, Secr
     @Override
     @AzureOperation(name = "azure/keyvault.create_secret.secret", params = {"this.getName()"})
     public SecretProperties createResourceInAzure() {
-        final SecretAsyncClient secretClient = getKeyVault().getSecretClient();
-        return createOrUpdateSecret(secretClient, ensureConfig());
-    }
-
-    @Nonnull
-    public static SecretProperties createOrUpdateSecret(@Nonnull final SecretAsyncClient secretClient, @Nonnull final Config config) {
-        final String value = config.getValue();
-        final KeyVaultSecret secret = secretClient.setSecret(config.getName(), value).block();
-        final SecretProperties properties = Objects.requireNonNull(secret).getProperties();
-        Optional.ofNullable(config.getEnabled()).ifPresent(properties::setEnabled);
-        Optional.ofNullable(config.getContentType()).ifPresent(properties::setContentType);
-        return Objects.requireNonNull(secretClient.updateSecretProperties(properties).block());
+        return SecretVersionDraft.createSecretVersion(getKeyVault(), ensureConfig());
     }
 
     @Nonnull
