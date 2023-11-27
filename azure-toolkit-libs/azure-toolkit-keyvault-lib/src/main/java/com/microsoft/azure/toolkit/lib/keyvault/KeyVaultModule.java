@@ -7,10 +7,12 @@ package com.microsoft.azure.toolkit.lib.keyvault;
 
 import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.keyvault.KeyVaultManager;
+import com.azure.resourcemanager.keyvault.models.CheckNameAvailabilityResult;
 import com.azure.resourcemanager.keyvault.models.Vault;
 import com.azure.resourcemanager.keyvault.models.Vaults;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -77,6 +79,11 @@ public class KeyVaultModule extends AbstractAzResourceModule<KeyVault, KeyVaultS
     @Override
     protected AzResource.Draft<KeyVault, Vault> newDraftForCreate(@NotNull String name, @org.jetbrains.annotations.Nullable String rgName) {
         return new KeyVaultDraft(name, Objects.requireNonNull(rgName), this);
+    }
+
+    public Availability checkNameAvailability(String name) {
+        final CheckNameAvailabilityResult result = getClient().checkNameAvailability(name);
+        return new Availability(result.nameAvailable(), result.message());
     }
 
     @Nullable
