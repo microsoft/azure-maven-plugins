@@ -5,15 +5,20 @@
 
 package com.microsoft.azure.toolkit.lib.keyvault.secret;
 
+import com.azure.security.keyvault.certificates.models.CertificateProperties;
 import com.azure.security.keyvault.secrets.SecretAsyncClient;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.keyvault.Credential;
 import com.microsoft.azure.toolkit.lib.keyvault.CredentialVersion;
 import com.microsoft.azure.toolkit.lib.keyvault.KeyVault;
+import com.microsoft.azure.toolkit.lib.keyvault.certificate.CertificateVersionDraft;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -110,9 +115,12 @@ public class Secret extends AbstractAzResource<Secret, KeyVault, SecretPropertie
 
     @Nullable
     public SecretVersion addNewSecretVersion(final SecretDraft.Config value) {
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Start creating new Secret Version for Secret ({0}).", this.getName()));
         final SecretProperties secret = SecretVersionDraft.createSecretVersion(getKeyVault(), value);
+        messager.info(AzureString.format("New Secret Version ({0}) is successfully created for Secret ({1}).", secret.getVersion(), this.getName()));
         this.refresh();
-        return Optional.of(secret).map(s -> this.versionModule.get(s.getVersion(), getResourceGroupName())).orElse(null);
+        return this.versionModule.get(secret.getVersion(), getResourceGroupName());
     }
 }
 

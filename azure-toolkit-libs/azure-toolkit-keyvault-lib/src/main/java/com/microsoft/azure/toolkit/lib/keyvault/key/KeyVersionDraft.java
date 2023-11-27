@@ -12,7 +12,10 @@ import com.azure.security.keyvault.keys.models.CreateRsaKeyOptions;
 import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.azure.security.keyvault.keys.models.KeyType;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.keyvault.KeyVault;
@@ -65,7 +68,11 @@ public class KeyVersionDraft extends KeyVersion
         final Boolean isEnabled = config.getEnabled();
         final boolean isModified = Objects.nonNull(isEnabled) && !Objects.equals(isEnabled, origin.isEnabled());
         if (isModified) {
-            return updateKeyVersion(getKeyVault(), origin, config);
+            final IAzureMessager messager = AzureMessager.getMessager();
+            messager.info(AzureString.format("Start updating Key Version ({0}).", this.getVersion()));
+            final KeyProperties keyProperties = updateKeyVersion(getKeyVault(), origin, config);
+            messager.info(AzureString.format("Key Version ({0}) is successfully created.", this.getVersion()));
+            return keyProperties;
         }
         return origin;
     }

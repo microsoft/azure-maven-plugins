@@ -9,7 +9,10 @@ import com.azure.security.keyvault.secrets.SecretAsyncClient;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.keyvault.KeyVault;
@@ -61,7 +64,11 @@ public class SecretVersionDraft extends SecretVersion
         final Boolean isEnabled = config.getEnabled();
         final boolean isModified = Objects.nonNull(isEnabled) && !Objects.equals(isEnabled, origin.isEnabled());
         if (isModified) {
-            return updateSecretVersion(getKeyVault(), origin, config);
+            final IAzureMessager messager = AzureMessager.getMessager();
+            messager.info(AzureString.format("Start updating Secret Version ({0}).", this.getVersion()));
+            final SecretProperties secretProperties = updateSecretVersion(getKeyVault(), origin, config);
+            messager.info(AzureString.format("Secret Version ({0}) is successfully updated.", this.getVersion()));
+            return secretProperties;
         }
         return origin;
     }

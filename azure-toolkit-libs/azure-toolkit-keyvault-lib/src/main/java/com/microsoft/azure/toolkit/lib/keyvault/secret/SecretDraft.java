@@ -5,9 +5,11 @@
 
 package com.microsoft.azure.toolkit.lib.keyvault.secret;
 
-import com.azure.security.keyvault.secrets.SecretAsyncClient;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.AllArgsConstructor;
@@ -49,7 +51,11 @@ public class SecretDraft extends Secret implements AzResource.Draft<Secret, Secr
     @Override
     @AzureOperation(name = "azure/keyvault.create_secret.secret", params = {"this.getName()"})
     public SecretProperties createResourceInAzure() {
-        return SecretVersionDraft.createSecretVersion(getKeyVault(), ensureConfig());
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Start creating Secret ({0}).", this.getName()));
+        final SecretProperties secretVersion = SecretVersionDraft.createSecretVersion(getKeyVault(), ensureConfig());
+        messager.info(AzureString.format("Secret ({0}) is successfully created.", this.getName()));
+        return secretVersion;
     }
 
     @Nonnull
