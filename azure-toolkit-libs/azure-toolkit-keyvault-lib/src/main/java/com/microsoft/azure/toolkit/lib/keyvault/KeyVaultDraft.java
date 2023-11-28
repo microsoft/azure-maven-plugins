@@ -13,7 +13,10 @@ import com.azure.resourcemanager.keyvault.models.Vaults;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -85,7 +88,11 @@ public class KeyVaultDraft extends KeyVault implements AzResource.Draft<KeyVault
                 .allowSecretAllPermissions()
                 .allowStorageAllPermissions().attach();
         }
-        return withCreate.withSku(sku).create();
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Start creating Key Vault ({0}).", this.getName()));
+        final Vault vault = withCreate.withSku(sku).create();
+        messager.info(AzureString.format("Key Vault ({0}) is successfully created.", this.getName()));
+        return vault;
     }
 
     @Nonnull

@@ -9,7 +9,10 @@ import com.azure.security.keyvault.certificates.CertificateAsyncClient;
 import com.azure.security.keyvault.certificates.models.CertificateProperties;
 import com.azure.security.keyvault.certificates.models.ImportCertificateOptions;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.keyvault.KeyVault;
@@ -21,7 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
@@ -67,7 +69,11 @@ public class CertificateVersionDraft extends CertificateVersion
         final Boolean isEnabled = config.getEnabled();
         final boolean isModified = Objects.nonNull(isEnabled) && !Objects.equals(isEnabled, origin.isEnabled());
         if (isModified) {
-            return updateCertificateVersion(getKeyVault(), origin, config);
+            final IAzureMessager messager = AzureMessager.getMessager();
+            messager.info(AzureString.format("Start updating Certificate Version ({0}).", this.getVersion()));
+            final CertificateProperties properties = updateCertificateVersion(getKeyVault(), origin, config);
+            messager.info(AzureString.format("Certificate Version ({0}) is successfully updated.", this.getVersion()));
+            return properties;
         }
         return origin;
     }
