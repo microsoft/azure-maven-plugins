@@ -11,7 +11,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocument;
-import org.apache.commons.lang3.ObjectUtils;
 import org.bson.Document;
 
 import javax.annotation.Nonnull;
@@ -48,7 +47,7 @@ public class MongoDocument extends AbstractAzResource<MongoDocument, MongoCollec
     @Override
     public ObjectNode getDocument() {
         return Optional.ofNullable(getRemote()).map(Document::toJson)
-                .map(json -> JsonUtils.fromJson(json, ObjectNode.class)).orElse(null);
+            .map(json -> JsonUtils.fromJson(json, ObjectNode.class)).orElse(null);
     }
 
     @Override
@@ -60,8 +59,8 @@ public class MongoDocument extends AbstractAzResource<MongoDocument, MongoCollec
 
     public String getSharedKey() {
         final String sharedKey = getParent().getSharedKey();
-        final ObjectNode document = Objects.requireNonNull(getDocument());
-        return ObjectUtils.allNotNull(sharedKey, document) ? document.get(sharedKey).asText() : null;
+        final ObjectNode document = getDocument();
+        return Objects.nonNull(sharedKey) && Objects.nonNull(document) ? document.get(sharedKey).asText() : null;
     }
 
     @Nonnull

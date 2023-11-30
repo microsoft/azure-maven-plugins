@@ -155,14 +155,14 @@ public class KeyVault extends AbstractAzResource<KeyVault, KeyVaultSubscription,
     @Nullable
     public static Action<String> getAccessPolicyConfiureAction(@Nonnull KeyVault vault) {
         final String url = vault.getPortalUrl() + "/access_configuration";
-        final Action<String> action = AzureActionManager.getInstance().getAction(OPEN_URL);
+        final Action<String> action = AzureActionManager.getInstance().getAction(OPEN_URL).withLabel("Config Access Policy");
         return Optional.ofNullable(action).map(a -> a.bind(url)).orElse(null);
     }
 
     @Nullable
     public static Action<String> getAccessPolicyLearnMoreAction() {
         final String url = "https://aka.ms/keyvault-access";
-        final Action<String> action = AzureActionManager.getInstance().getAction(OPEN_URL);
+        final Action<String> action = AzureActionManager.getInstance().getAction(OPEN_URL).withLabel("Learn More");
         return Optional.ofNullable(action).map(a -> a.bind(url)).orElse(null);
     }
 }
