@@ -8,18 +8,26 @@ package com.microsoft.azure.toolkit.lib.keyvault.secret;
 import com.azure.core.util.paging.ContinuablePage;
 import com.azure.security.keyvault.secrets.SecretAsyncClient;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource.isHttpException;
+import static com.microsoft.azure.toolkit.lib.keyvault.KeyVault.getAccessPolicyConfiureAction;
+import static com.microsoft.azure.toolkit.lib.keyvault.KeyVault.getAccessPolicyLearnMoreAction;
 
 public class SecretVersionModule extends AbstractAzResourceModule<SecretVersion, Secret, SecretProperties> {
     public static final String NAME = "versions";
@@ -31,21 +39,42 @@ public class SecretVersionModule extends AbstractAzResourceModule<SecretVersion,
     @Nonnull
     @Override
     protected Iterator<? extends ContinuablePage<String, SecretProperties>> loadResourcePagesFromAzure() {
-        return Optional.ofNullable(getClient())
-            .map(client -> client.listPropertiesOfSecretVersions(getParent().getName()).collectList().block())
-            .map(ItemPage::new)
-            .map(IteratorUtils::singletonIterator)
-            .orElseGet(IteratorUtils::emptyIterator);
+        try {
+            return Optional.ofNullable(getClient())
+                .map(keys -> keys.listPropertiesOfSecretVersions(getParent().getName()).collectList().block())
+                .map(ItemPage::new)
+                .map(IteratorUtils::singletonIterator)
+                .orElseGet(IteratorUtils::emptyIterator);
+        } catch (final Throwable t) {
+            if (isHttpException(t, 403)) {
+                final Action<String> configure = getAccessPolicyConfiureAction(getParent().getKeyVault());
+                final Action<String> learnMore = getAccessPolicyLearnMoreAction();
+                throw new AzureToolkitRuntimeException(ExceptionUtils.getRootCauseMessage(t), configure, learnMore);
+            }
+            throw t;
+        }
     }
 
     @Nullable
     @Override
     @AzureOperation(name = "azure/keyvault.load_secret_version.version", params = {"name"})
     protected SecretProperties loadResourceFromAzure(@Nonnull String name, @Nullable String resourceGroup) {
-        return this.list().stream().filter(s -> StringUtils.equalsIgnoreCase(s.getName(), name))
-            .findFirst()
-            .map(SecretVersion::getRemote)
-            .orElse(null);
+        try {
+            final List<SecretProperties> versions = Optional.ofNullable(getClient())
+                .map(keys -> keys.listPropertiesOfSecretVersions(getParent().getName()).collectList().block())
+                .orElse(null);
+            return Objects.isNull(versions) ? null : versions.stream()
+                .filter(s -> StringUtils.equalsIgnoreCase(s.getVersion(), name))
+                .findFirst()
+                .orElse(null);
+        } catch (final Throwable t) {
+            if (isHttpException(t, 403)) {
+                final Action<String> configure = getAccessPolicyConfiureAction(getParent().getKeyVault());
+                final Action<String> learnMore = getAccessPolicyLearnMoreAction();
+                throw new AzureToolkitRuntimeException(ExceptionUtils.getRootCauseMessage(t), configure, learnMore);
+            }
+            throw t;
+        }
     }
 
     @Nonnull
