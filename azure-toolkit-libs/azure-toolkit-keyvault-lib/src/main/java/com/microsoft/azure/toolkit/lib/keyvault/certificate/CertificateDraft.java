@@ -48,7 +48,7 @@ public class CertificateDraft extends Certificate implements AzResource.Draft<Ce
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Certificate ({0}).", this.getName()));
         final CertificateProperties certificateVersion = CertificateVersionDraft.createCertificateVersion(getKeyVault(), ensureConfig());
-        messager.info(AzureString.format("Certificate ({0}) is successfully created.", this.getName()));
+        messager.info(AzureString.format("Certificate ({0}) is successfully created in Key Vault ({1}).", this.getName(), this.getKeyVault().getName()));
         return certificateVersion;
     }
 
