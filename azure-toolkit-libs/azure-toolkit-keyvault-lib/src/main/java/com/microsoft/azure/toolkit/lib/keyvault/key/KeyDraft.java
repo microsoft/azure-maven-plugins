@@ -49,7 +49,7 @@ public class KeyDraft extends Key implements AzResource.Draft<Key, KeyProperties
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Key ({0}).", this.getName()));
         final KeyProperties keyVersion = KeyVersionDraft.createKeyVersion(getKeyVault(), ensureConfig());
-        messager.info(AzureString.format("Key ({0}) is successfully created.", this.getName()));
+        messager.info(AzureString.format("Key ({0}) is successfully created in Key Vault ({1}).", this.getName(), this.getKeyVault().getName()));
         return keyVersion;
     }
 

@@ -54,7 +54,7 @@ public class SecretDraft extends Secret implements AzResource.Draft<Secret, Secr
         final IAzureMessager messager = AzureMessager.getMessager();
         messager.info(AzureString.format("Start creating Secret ({0}).", this.getName()));
         final SecretProperties secretVersion = SecretVersionDraft.createSecretVersion(getKeyVault(), ensureConfig());
-        messager.info(AzureString.format("Secret ({0}) is successfully created.", this.getName()));
+        messager.info(AzureString.format("Secret ({0}) is successfully created in Key Vault ({1}).", this.getName(), this.getKeyVault().getName()));
         return secretVersion;
     }
 
