@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.keyvault.KeyVault;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -25,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource.isHttpException;
 import static com.microsoft.azure.toolkit.lib.keyvault.KeyVault.getAccessPolicyConfiureAction;
@@ -42,7 +44,7 @@ public class SecretModule extends AbstractAzResourceModule<Secret, KeyVault, Sec
     protected Iterator<? extends ContinuablePage<String, SecretProperties>> loadResourcePagesFromAzure() {
         try {
             return Optional.ofNullable(getClient())
-                .map(keys -> keys.listPropertiesOfSecrets().collectList().block())
+                .map(c -> c.listPropertiesOfSecrets().toStream().filter(p -> BooleanUtils.isNotTrue(p.isManaged())).collect(Collectors.toList()))
                 .map(ItemPage::new)
                 .map(IteratorUtils::singletonIterator)
                 .orElseGet(IteratorUtils::emptyIterator);
