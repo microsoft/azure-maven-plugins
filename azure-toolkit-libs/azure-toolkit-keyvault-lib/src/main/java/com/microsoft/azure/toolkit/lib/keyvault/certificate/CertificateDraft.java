@@ -6,7 +6,10 @@
 package com.microsoft.azure.toolkit.lib.keyvault.certificate;
 
 import com.azure.security.keyvault.certificates.models.CertificateProperties;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.AllArgsConstructor;
@@ -42,7 +45,11 @@ public class CertificateDraft extends Certificate implements AzResource.Draft<Ce
     @Override
     @AzureOperation(name = "azure/keyvault.create_certificate.certificate", params = {"this.getName()"})
     public CertificateProperties createResourceInAzure() {
-        return CertificateVersionDraft.createCertificateVersion(getKeyVault(), ensureConfig());
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Start creating Certificate ({0}).", this.getName()));
+        final CertificateProperties certificateVersion = CertificateVersionDraft.createCertificateVersion(getKeyVault(), ensureConfig());
+        messager.info(AzureString.format("Certificate ({0}) is successfully created in Key Vault ({1}).", this.getName(), this.getKeyVault().getName()));
+        return certificateVersion;
     }
 
     @Nonnull

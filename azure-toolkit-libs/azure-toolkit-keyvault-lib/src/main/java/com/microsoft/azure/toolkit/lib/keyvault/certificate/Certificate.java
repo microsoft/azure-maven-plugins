@@ -8,6 +8,9 @@ package com.microsoft.azure.toolkit.lib.keyvault.certificate;
 import com.azure.security.keyvault.certificates.CertificateAsyncClient;
 import com.azure.security.keyvault.certificates.models.CertificatePolicy;
 import com.azure.security.keyvault.certificates.models.CertificateProperties;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -101,9 +104,12 @@ public class Certificate extends AbstractAzResource<Certificate, KeyVault, Certi
 
     @Nullable
     public CertificateVersion addNewCertificateVersion(final CertificateDraft.Config config) {
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Start creating new Certificate Version for Certificate ({0}).", this.getName()));
         final CertificateProperties certificate = CertificateVersionDraft.createCertificateVersion(getKeyVault(), config);
+        messager.info(AzureString.format("New Certificate Version ({0}) is successfully created for Certificate ({1}).", certificate.getVersion(), this.getName()));
         this.refresh();
-        return Optional.of(certificate).map(secret -> this.versionModule.get(certificate.getVersion(), getResourceGroupName())).orElse(null);
+        return this.versionModule.get(certificate.getVersion(), getResourceGroupName());
     }
 }
 

@@ -12,7 +12,10 @@ import com.azure.security.keyvault.keys.models.CreateRsaKeyOptions;
 import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.azure.security.keyvault.keys.models.KeyType;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.keyvault.KeyVault;
@@ -30,8 +33,8 @@ public class KeyVersionDraft extends KeyVersion
     implements AzResource.Draft<KeyVersion, KeyProperties> {
     public static final String KEY_CREATION_FORBIDDEN_MESSAGE = "failed to create key %s, access denied, please make sure that you have access policy defined to do this operation";
     public static final String KEY_CREATION_FAILED_MESSAGE = "failed to create key %s, an unexpected error occurred";
-    public static final String KEY_UPDATE_FORBIDDEN_MESSAGE = "failed to create key %s, access denied, please make sure that you have access policy defined to do this operation";
-    public static final String KEY_UPDATE_FAILED_MESSAGE = "failed to create key %s, an unexpected error occurred";
+    public static final String KEY_UPDATE_FORBIDDEN_MESSAGE = "failed to update key %s, access denied, please make sure that you have access policy defined to do this operation";
+    public static final String KEY_UPDATE_FAILED_MESSAGE = "failed to update key %s, an unexpected error occurred";
 
     @Getter
     private final KeyVersion origin;
@@ -65,7 +68,11 @@ public class KeyVersionDraft extends KeyVersion
         final Boolean isEnabled = config.getEnabled();
         final boolean isModified = Objects.nonNull(isEnabled) && !Objects.equals(isEnabled, origin.isEnabled());
         if (isModified) {
-            return updateKeyVersion(getKeyVault(), origin, config);
+            final IAzureMessager messager = AzureMessager.getMessager();
+            messager.info(AzureString.format("Start updating Key Version ({0}).", this.getVersion()));
+            final KeyProperties keyProperties = updateKeyVersion(getKeyVault(), origin, config);
+            messager.info(AzureString.format("Key Version ({0}) is successfully updated.", this.getVersion()));
+            return keyProperties;
         }
         return origin;
     }
@@ -105,6 +112,8 @@ public class KeyVersionDraft extends KeyVersion
         final KeyAsyncClient client = keyVault.getKeyClient();
         try {
             origin.setEnabled(config.getEnabled());
+            // workaround to fix issue that exportable is also included in request, which is only support with API 7.3-preview
+            origin.setExportable(null);
             return Objects.requireNonNull(client.updateKeyProperties(origin).block(), "failed to update secret").getProperties();
         } catch (final Throwable t) {
             // swallow all exceptions to prevent credential leakage

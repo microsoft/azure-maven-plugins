@@ -8,7 +8,10 @@ package com.microsoft.azure.toolkit.lib.keyvault.key;
 import com.azure.security.keyvault.keys.models.KeyCurveName;
 import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.azure.security.keyvault.keys.models.KeyType;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.AllArgsConstructor;
@@ -43,7 +46,11 @@ public class KeyDraft extends Key implements AzResource.Draft<Key, KeyProperties
     @Override
     @AzureOperation(name = "azure/keyvault.create_key.key", params = {"this.getName()"})
     public KeyProperties createResourceInAzure() {
-        return KeyVersionDraft.createKeyVersion(getKeyVault(), ensureConfig());
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Start creating Key ({0}).", this.getName()));
+        final KeyProperties keyVersion = KeyVersionDraft.createKeyVersion(getKeyVault(), ensureConfig());
+        messager.info(AzureString.format("Key ({0}) is successfully created in Key Vault ({1}).", this.getName(), this.getKeyVault().getName()));
+        return keyVersion;
     }
 
     @Nonnull

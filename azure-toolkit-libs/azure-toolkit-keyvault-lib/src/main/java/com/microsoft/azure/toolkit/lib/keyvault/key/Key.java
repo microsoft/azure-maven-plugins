@@ -6,6 +6,9 @@
 package com.microsoft.azure.toolkit.lib.keyvault.key;
 
 import com.azure.security.keyvault.keys.models.KeyProperties;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
@@ -94,9 +97,12 @@ public class Key extends AbstractAzResource<Key, KeyVault, KeyProperties> implem
 
     @Nullable
     public KeyVersion addNewKeyVersion(final KeyDraft.Config config) {
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(AzureString.format("Start creating new Key Version for Key ({0}).", this.getName()));
         final KeyProperties newProperties = KeyVersionDraft.createKeyVersion(getKeyVault(), config);
+        messager.info(AzureString.format("New Key Version ({0}) is successfully created for Key ({1}).", newProperties.getVersion(), this.getName()));
         this.refresh();
-        return Optional.of(newProperties).map(secret -> this.versionModule.get(newProperties.getVersion(), getResourceGroupName())).orElse(null);
+        return this.versionModule.get(newProperties.getVersion(), getResourceGroupName());
     }
 }
 
