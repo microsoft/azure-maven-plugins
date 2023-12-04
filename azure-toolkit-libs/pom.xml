@@ -917,8 +917,7 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <!-- https://mvnrepository.com/artifact/org.codehaus.mojo/aspectj-maven-plugin -->
-                    <!-- http://www.quabr.com/62976155/aspectj-maven-plugin-1-11-missing-tools-jar-issue-with-jdk-11 -->
+                    <!--https://www.baeldung.com/maven-plugin-override-parent-->
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>aspectj-maven-plugin</artifactId>
                     <version>${aspectj-maven-plugin.version}</version>
