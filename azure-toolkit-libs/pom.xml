@@ -74,36 +74,41 @@
         <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
         <maven-jar-plugin.version>3.0.2</maven-jar-plugin.version>
         <maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
-        <aspectj-maven-plugin.version>1.12.6</aspectj-maven-plugin.version>
+        <aspectj-maven-plugin.version>1.14.0</aspectj-maven-plugin.version>
 
-        <azure-core.version>1.42.0</azure-core.version>
-        <azure-core-management.version>1.11.4</azure-core-management.version>
-        <azure-identity.version>1.10.0</azure-identity.version>
-        <azure-core-http-netty.version>1.13.6</azure-core-http-netty.version>
-        <reactor-netty.version>1.0.33</reactor-netty.version>
-        <reactor-core.version>3.5.5</reactor-core.version>
+        <azure-core.version>1.45.1</azure-core.version>
+        <azure-core-management.version>1.11.9</azure-core-management.version>
+        <azure-identity.version>1.11.1</azure-identity.version>
+        <azure-core-http-netty.version>1.13.11</azure-core-http-netty.version>
+        <reactor-netty.version>1.1.13</reactor-netty.version>
+        <reactor-core.version>3.6.0</reactor-core.version>
         <httpcore.version>4.4.15</httpcore.version>
         <applicationinsights.version>2.6.4</applicationinsights.version>
-        <azure.resourcemanager.version>2.30.0</azure.resourcemanager.version>
+        <azure.resourcemanager.version>2.33.0</azure.resourcemanager.version>
         <azure-arm-client-runtime.version>1.7.14</azure-arm-client-runtime.version>
-        <azure-resourcemanager-applicationinsights.version>1.0.0-beta.5</azure-resourcemanager-applicationinsights.version>
-        <azure-resourcemanager-appcontainers.version>1.0.0-beta.4</azure-resourcemanager-appcontainers.version>
+        <azure-resourcemanager-applicationinsights.version>1.0.0</azure-resourcemanager-applicationinsights.version>
+        <azure-resourcemanager-appcontainers.version>1.0.0-beta.6</azure-resourcemanager-appcontainers.version>
         <azure-resourcemanager-mysqlflexibleserver.version>1.0.0-beta.2</azure-resourcemanager-mysqlflexibleserver.version>
         <azure-resourcemanager-postgresqlflexibleserver.version>1.0.0-beta.5</azure-resourcemanager-postgresqlflexibleserver.version>
         <azure-resourcemanager-mysql.version>1.0.2</azure-resourcemanager-mysql.version>
         <azure-resourcemanager-postgre.version>1.0.2</azure-resourcemanager-postgre.version>
-        <azure-resourcemanager-loganalytics.version>1.0.0-beta.3</azure-resourcemanager-loganalytics.version>
+        <azure-resourcemanager-loganalytics.version>1.0.0</azure-resourcemanager-loganalytics.version>
         <azure-resourcemanager-servicelinker.version>1.0.0-beta.2</azure-resourcemanager-servicelinker.version>
-        <azure-messaging-eventhubs.version>5.15.2</azure-messaging-eventhubs.version>
-        <azure-messaging-servicebus.version>7.13.3</azure-messaging-servicebus.version>
-        <azure-monitor-query.version>1.0.10</azure-monitor-query.version>
-        <azure-storage-blob.version>12.19.1</azure-storage-blob.version>
-        <azure-storage-file-share.version>12.15.1</azure-storage-file-share.version>
-        <azure-storage-queue.version>12.14.2</azure-storage-queue.version>
-        <azure-storage-tables.version>12.3.4</azure-storage-tables.version>
+        <azure-messaging-eventhubs.version>5.17.0</azure-messaging-eventhubs.version>
+        <azure-messaging-servicebus.version>7.15.0-beta.5</azure-messaging-servicebus.version>
+        <azure-monitor-query.version>1.3.0-beta.3</azure-monitor-query.version>
+        <azure-storage-blob.version>12.25.0</azure-storage-blob.version>
+        <azure-storage-file-share.version>12.21.0</azure-storage-file-share.version>
+        <azure-storage-queue.version>12.20.0</azure-storage-queue.version>
+        <azure-storage-tables.version>12.3.17</azure-storage-tables.version>
+        <azure-cosmos.version>4.53.0</azure-cosmos.version>
+        <azure-containers-containerregistry.version>1.2.3</azure-containers-containerregistry.version>
+        <azure-ai-openai.version>1.0.0-beta.5</azure-ai-openai.version>
+        <azure-resourcemanager-cognitiveservices.version>1.1.0-beta.1</azure-resourcemanager-cognitiveservices.version>
+        <azure-security-keyvault-certificates.version>4.5.8</azure-security-keyvault-certificates.version>
 
         <azure-functions-java-library.version>2.2.0</azure-functions-java-library.version>
-        <aspectj.version>1.9.9.1</aspectj.version>
+        <aspectj.version>1.9.20.1</aspectj.version>
         <plexus-utils.version>3.4.2</plexus-utils.version>
         <commons-codec.version>1.15</commons-codec.version>
         <commons-collections4.version>4.4</commons-collections4.version>
@@ -151,13 +156,8 @@
         <jedis.version>3.6.3</jedis.version>
         <asm.version>9.3</asm.version>
         <mongo-java-driver.version>3.12.11</mongo-java-driver.version>
-        <azure-cosmos.version>4.38.0</azure-cosmos.version>
         <java-driver-core.version>4.15.0</java-driver-core.version>
-        <azure-containers-containerregistry.version>1.0.9</azure-containers-containerregistry.version>
         <maven-shade-plugin.version>3.4.1</maven-shade-plugin.version>
-        <azure-ai-openai.version>1.0.0-beta.3</azure-ai-openai.version>
-        <azure-resourcemanager-cognitiveservices.version>1.1.0-beta.1</azure-resourcemanager-cognitiveservices.version>
-        <azure-security-keyvault-certificates.version>4.5.7</azure-security-keyvault-certificates.version>
     </properties>
 
     <dependencyManagement>
@@ -917,11 +917,61 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <!-- https://mvnrepository.com/artifact/org.codehaus.mojo/aspectj-maven-plugin -->
-                    <!-- http://www.quabr.com/62976155/aspectj-maven-plugin-1-11-missing-tools-jar-issue-with-jdk-11 -->
-                    <groupId>com.nickwongdev</groupId>
+                    <!--https://www.baeldung.com/maven-plugin-override-parent-->
+                    <groupId>org.codehaus.mojo</groupId>
                     <artifactId>aspectj-maven-plugin</artifactId>
                     <version>${aspectj-maven-plugin.version}</version>
+                    <configuration>
+                        <showWeaveInfo>false</showWeaveInfo>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                        <Xlint>ignore</Xlint>
+                        <complianceLevel>1.8</complianceLevel>
+                        <encoding>UTF-8</encoding>
+                        <verbose>false</verbose>
+                        <outxml>true</outxml>
+                        <forceAjcCompile>true</forceAjcCompile>
+                        <sources/><!-- this is important!-->
+                        <aspectLibraries>
+                            <aspectLibrary>
+                                <groupId>com.microsoft.azure</groupId>
+                                <artifactId>azure-toolkit-common-lib</artifactId>
+                            </aspectLibrary>
+                        </aspectLibraries>
+                    </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.aspectj</groupId>
+                            <artifactId>aspectjrt</artifactId>
+                            <version>${aspectj.version}</version>
+                        </dependency>
+                    </dependencies>
+                    <executions>
+                        <execution>
+                            <id>compile-with-aspectj</id>
+                            <phase>process-classes</phase>
+                            <configuration>
+                                <weaveDirectories>
+                                    <weaveDirectory>${project.build.directory}/classes</weaveDirectory>
+                                </weaveDirectories>
+                            </configuration>
+                            <goals>
+                                <goal>compile</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>test-compile-with-aspectj</id>
+                            <phase>process-test-classes</phase>
+                            <configuration>
+                                <weaveDirectories>
+                                    <weaveDirectory>${project.build.directory}/test-classes</weaveDirectory>
+                                </weaveDirectories>
+                            </configuration>
+                            <goals>
+                                <goal>test-compile</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -937,21 +987,6 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>${maven-javadoc-plugin.version}</version>
-                    <configuration>
-                        <show>private</show>
-                        <failOnError>false</failOnError>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>attach-javadocs</id>
-                            <goals>
-                                <goal>jar</goal>
-                            </goals>
-                            <configuration>
-                                <additionalparam>${javadoc.opts}</additionalparam>
-                            </configuration>
-                        </execution>
-                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -993,5 +1028,31 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <show>private</show>
+                    <failOnError>false</failOnError>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 </project>
