@@ -74,7 +74,7 @@
         <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
         <maven-jar-plugin.version>3.0.2</maven-jar-plugin.version>
         <maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
-        <aspectj-maven-plugin.version>1.14.0</aspectj-maven-plugin.version>
+        <aspectj-maven-plugin.version>1.12.6</aspectj-maven-plugin.version>
 
         <azure-core.version>1.45.1</azure-core.version>
         <azure-core-management.version>1.11.9</azure-core-management.version>
