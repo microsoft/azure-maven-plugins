@@ -45,6 +45,7 @@ public class DeviceCodeAccount extends Account {
         return new DeviceCodeCredentialBuilder()
             .clientId(this.getClientId())
             .tenantId(config.getTenant())
+            .additionallyAllowedTenants("*")
             .tokenCachePersistenceOptions(this.getPersistenceOptions())
             .executorService(config.getExecutorService())
             .challengeConsumer(config.getDeviceCodeConsumer())
