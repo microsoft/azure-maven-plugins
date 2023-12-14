@@ -41,6 +41,7 @@ public class OAuthAccount extends Account {
         return new InteractiveBrowserCredentialBuilder()
             .clientId(this.getClientId())
             .tenantId(tenantId)
+            .additionallyAllowedTenants("*")
             .tokenCachePersistenceOptions(getPersistenceOptions())
             .redirectUrl("http://localhost:" + FreePortFinder.findFreeLocalPort())
             .executorService(this.getConfig().getExecutorService())

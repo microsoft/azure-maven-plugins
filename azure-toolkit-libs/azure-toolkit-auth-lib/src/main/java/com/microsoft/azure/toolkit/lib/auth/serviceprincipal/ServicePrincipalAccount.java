@@ -39,12 +39,16 @@ public class ServicePrincipalAccount extends Account {
                 .tenantId(config.getTenant())
                 .clientId(config.getClient())
                 .pfxCertificate(config.getCertificate(), config.getCertificatePassword())
+                .additionallyAllowedTenants("*")
+                .tokenCachePersistenceOptions(getPersistenceOptions())
                 .executorService(config.getExecutorService())
                 .build() :
             new ClientSecretCredentialBuilder()
                 .tenantId(config.getTenant())
                 .clientId(config.getClient())
                 .clientSecret(config.getKey())
+                .additionallyAllowedTenants("*")
+                .tokenCachePersistenceOptions(getPersistenceOptions())
                 .executorService(config.getExecutorService())
                 .build();
     }

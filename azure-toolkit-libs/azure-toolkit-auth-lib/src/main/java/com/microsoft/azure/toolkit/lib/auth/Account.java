@@ -261,10 +261,9 @@ public abstract class Account implements IAccount {
 
     private static ResourceManager.Configurable configureAzure() {
         // disable retry for getting tenant and subscriptions
-        final String userAgent = Azure.az().config().getUserAgent();
         return ResourceManager.configure()
             .withHttpClient(AbstractAzServiceSubscription.getDefaultHttpClient())
-            .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy(userAgent))
+            .withPolicy(AbstractAzServiceSubscription.getUserAgentPolicy())
             .withRetryPolicy(new RetryPolicy(new FixedDelay(0, Duration.ofSeconds(0))));
     }
 
