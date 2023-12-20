@@ -9,6 +9,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
@@ -100,7 +101,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private WebApp create() {
         OperationContext.action().setTelemetryProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
         final Region region = this.config.region();
-        final AppServicePlanConfig planConfig = config.getServicePlanConfig();
+        final AppServicePlanConfig planConfig = FunctionAppConfig.getServicePlanConfig(config);
 
         new CreateResourceGroupTask(this.config.subscriptionId(), this.config.resourceGroup(), region).doExecute();
 
@@ -120,7 +121,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     @AzureOperation(name = "azure/webapp.update_app.app", params = {"this.config.appName()"})
     private WebApp update(final WebApp webApp) {
         final WebAppDraft draft = (WebAppDraft) webApp.update();
-        final AppServicePlanConfig servicePlanConfig = config.getServicePlanConfig();
+        final AppServicePlanConfig servicePlanConfig = AppServiceConfig.getServicePlanConfig(config);
         final WebAppRuntime runtime = getRuntime(config.runtime());
 
         final AppServicePlanDraft planDraft = Azure.az(AzureAppService.class).plans(servicePlanConfig.getSubscriptionId())

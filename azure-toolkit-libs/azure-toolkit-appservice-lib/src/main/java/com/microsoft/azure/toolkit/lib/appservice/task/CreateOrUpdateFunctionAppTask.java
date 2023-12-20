@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlotDraft;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDraft;
+import com.microsoft.azure.toolkit.lib.appservice.model.ApplicationInsightsConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppDockerRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppLinuxRuntime;
@@ -99,6 +100,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             // create new storage account when create function app
             registerSubTask(getStorageAccountTask(), result -> this.storageAccount = result);
         }
+        final ApplicationInsightsConfig insightsConfig = functionAppConfig.applicationInsightsConfig();
         // get/create AI instances only if user didn't specify AI connection string in app settings
         if (!functionAppConfig.disableAppInsights() && !functionAppConfig.appSettings().containsKey(APPINSIGHTS_INSTRUMENTATION_KEY)) {
             if (StringUtils.isNotEmpty(functionAppConfig.appInsightsKey())) {
@@ -332,7 +334,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
         }
         return new AzureTask<>(() -> {
             final AzureAppService az = Azure.az(AzureAppService.class);
-            final AppServicePlanConfig config = functionAppConfig.getServicePlanConfig();
+            final AppServicePlanConfig config = FunctionAppConfig.getServicePlanConfig(functionAppConfig);
             final AppServicePlanDraft draft = az.plans(config.getSubscriptionId())
                 .updateOrCreate(config.getName(), config.getResourceGroupName());
             draft.setOperatingSystem(config.getOs());
