@@ -11,10 +11,8 @@ import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
@@ -39,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.lib.appservice.utils.Utils.throwForbidCreateResourceWarning;
 
@@ -76,7 +75,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
                 final Availability result = Objects.requireNonNull(az.get(config.subscriptionId(), null)).checkNameAvailability(config.appName());
                 if (!result.isAvailable()) {
                     throw new AzureToolkitRuntimeException(AzureString.format("Cannot create webapp {0} due to error: {1}",
-                            config.appName(), result.getUnavailabilityReason()).getString());
+                        config.appName(), result.getUnavailabilityReason()).getString());
                 }
                 return create();
             } else {
@@ -120,9 +119,9 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private WebApp update(final WebApp webApp) {
         final WebAppDraft draft = (WebAppDraft) webApp.update();
         final AppServicePlanConfig servicePlanConfig = config.getServicePlanConfig();
-        final Runtime runtime = getRuntime(config.runtime());
+        final WebAppRuntime runtime = getRuntime(config.runtime());
 
-        AppServicePlanDraft planDraft = Azure.az(AzureAppService.class).plans(servicePlanConfig.getSubscriptionId())
+        final AppServicePlanDraft planDraft = Azure.az(AzureAppService.class).plans(servicePlanConfig.getSubscriptionId())
             .updateOrCreate(servicePlanConfig.getName(), servicePlanConfig.getResourceGroupName());
         if (skipCreateAzureResource && !planDraft.exists()) {
             throwForbidCreateResourceWarning("Service plan", servicePlanConfig.getResourceGroupName() + "/" + servicePlanConfig.getName());
@@ -177,15 +176,8 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
 
     }
 
-    private Runtime getRuntime(RuntimeConfig runtime) {
-        if (runtime != null && OperatingSystem.DOCKER != runtime.os()) {
-            return Runtime.getRuntime(runtime.os(),
-                runtime.webContainer(),
-                runtime.javaVersion());
-        } else if (runtime != null && OperatingSystem.DOCKER == runtime.os()) {
-            return Runtime.getRuntime(OperatingSystem.DOCKER, WebContainer.JAVA_OFF, JavaVersion.OFF);
-        }
-        return null;
+    private WebAppRuntime getRuntime(RuntimeConfig config) {
+        return (WebAppRuntime) Optional.ofNullable(config).map(RuntimeConfig::runtime).orElse(null);
     }
 
     @Override

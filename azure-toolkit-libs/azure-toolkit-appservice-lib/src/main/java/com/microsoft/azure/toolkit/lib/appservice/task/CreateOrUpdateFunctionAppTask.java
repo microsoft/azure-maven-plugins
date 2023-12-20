@@ -20,10 +20,8 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeployment
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlotDraft;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDraft;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -67,7 +65,6 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
     private static final String FUNCTION_APP_NOT_EXIST_FOR_SLOT = "The Function App specified in pom.xml does not exist. " +
             "Please make sure the Function App name is correct.";
 
-    public static final JavaVersion DEFAULT_FUNCTION_JAVA_VERSION = Runtime.DEFAULT_FUNCTION_RUNTIME.getJavaVersion();
     public static final String FLEX_CONSUMPTION_SLOT_NOT_SUPPORT = "Deployment slot is not supported for function app with consumption plan.";
 
     private final FunctionAppConfig functionAppConfig;
@@ -307,10 +304,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
         });
     }
 
-    private Runtime getRuntime(RuntimeConfig runtime) {
-        return Runtime.getRuntime(runtime.os(),
-            WebContainer.JAVA_OFF,
-            OperatingSystem.DOCKER != runtime.os() ? runtime.javaVersion() : JavaVersion.OFF);
+    private FunctionAppRuntime getRuntime(RuntimeConfig runtime) {
+        return (FunctionAppRuntime) Optional.ofNullable(runtime).map(RuntimeConfig::runtime).orElse(null);
     }
 
     // todo: remove duplicated with Create Web App Task

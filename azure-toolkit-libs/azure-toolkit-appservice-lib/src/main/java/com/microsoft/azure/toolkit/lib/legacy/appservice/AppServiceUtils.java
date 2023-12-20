@@ -14,17 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AppServiceUtils {
-    public static List<PricingTier> getAvailablePricingTiers(OperatingSystem operatingSystem) {
-        // This is a workaround for https://github.com/Azure/azure-libraries-for-java/issues/660
-        // Linux app service didn't support P1,P2,P3 pricing tier.
-        final List<PricingTier> result = new ArrayList<>(PricingTier.values());
-        if (operatingSystem == OperatingSystem.LINUX || operatingSystem == OperatingSystem.DOCKER) {
-            result.remove(PricingTier.PREMIUM_P1);
-            result.remove(PricingTier.PREMIUM_P2);
-            result.remove(PricingTier.PREMIUM_P3);
-        }
-        return result;
-    }
 
     public static DockerImageType getDockerImageType(final String imageName, final boolean hasCredential,
                                                      final String registryUrl) {

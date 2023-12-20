@@ -13,8 +13,6 @@ import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
-import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -22,7 +20,6 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,7 +45,7 @@ public class AppServiceConfigUtils {
         return fromAppService(app, servicePlan, new AppServiceConfig());
     }
 
-    public static AppServiceConfig fromAppService(@Nonnull AppServiceAppBase<?, ?, ?> app, @Nonnull AppServicePlan servicePlan, @Nullable AppServiceConfig config) {
+    public static AppServiceConfig fromAppService(@Nonnull AppServiceAppBase<?, ?, ?> app, @Nonnull AppServicePlan servicePlan, @Nonnull AppServiceConfig config) {
         config.appName(app.getName());
 
         config.resourceGroup(app.getResourceGroupName());
@@ -56,9 +53,9 @@ public class AppServiceConfigUtils {
         config.region(app.getRegion());
         final Runtime runtime = app.getRuntime();
 
-        RuntimeConfig runtimeConfig = new RuntimeConfig();
+        final RuntimeConfig runtimeConfig = new RuntimeConfig();
+        runtimeConfig.runtime(runtime);
         if (runtime != null && runtime.isDocker()) {
-            runtimeConfig.os(OperatingSystem.DOCKER);
             final Map<String, String> settings = app.getAppSettings();
 
             final String imageSetting = settings.get(SETTING_DOCKER_IMAGE);
@@ -71,20 +68,16 @@ public class AppServiceConfigUtils {
             if (StringUtils.isNotBlank(registryServerSetting)) {
                 runtimeConfig.registryUrl(registryServerSetting);
             }
-        } else {
-            runtimeConfig.os(runtime.getOperatingSystem());
-            runtimeConfig.webContainer(runtime.getWebContainer());
-            runtimeConfig.javaVersion(runtime.getJavaVersion());
         }
         config.runtime(runtimeConfig);
         config.pricingTier(servicePlan.getPricingTier());
-        config.servicePlanName(servicePlan.name());
+        config.servicePlanName(servicePlan.getName());
         config.servicePlanResourceGroup(servicePlan.getResourceGroupName());
         return config;
     }
 
-    public static AppServiceConfig buildDefaultWebAppConfig(String subscriptionId, String resourceGroup, String appName, String packaging, JavaVersion javaVersion) {
-        final AppServiceConfig appServiceConfig = AppServiceConfig.buildDefaultWebAppConfig(resourceGroup, appName, packaging, javaVersion);
+    public static AppServiceConfig buildDefaultWebAppConfig(String subscriptionId, String resourceGroup, String appName, String packaging) {
+        final AppServiceConfig appServiceConfig = AppServiceConfig.buildDefaultWebAppConfig(resourceGroup, appName, packaging);
         final List<Region> regions = Azure.az(AzureAppService.class).forSubscription(subscriptionId).listSupportedRegions();
         // replace with first region when the default region is not present
         appServiceConfig.region(selectFirstOptionIfCurrentInvalid("region", regions, appServiceConfig.region()));

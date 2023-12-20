@@ -7,11 +7,9 @@ package com.microsoft.azure.toolkit.lib.appservice.config;
 
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
-import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
@@ -60,16 +58,17 @@ public class AppServiceConfig {
             .resourceGroupName(servicePlanResourceGroup())
             .name(servicePlanName())
             .region(region())
-            .os(runtime().os())
+            .os(runtime().runtime().getOperatingSystem())
             .pricingTier(pricingTier())
             .build();
     }
 
-    public static AppServiceConfig buildDefaultWebAppConfig(String resourceGroup, String appName, String packaging, JavaVersion javaVersion) {
-        RuntimeConfig runtimeConfig = new RuntimeConfig().os(OperatingSystem.LINUX).webContainer(StringUtils.equalsIgnoreCase(packaging, "war") ?
-            WebContainer.TOMCAT_85 : (StringUtils.equalsIgnoreCase(packaging, "ear") ? WebContainer.JBOSS_7 : WebContainer.JAVA_SE))
-            .javaVersion(javaVersion);
-        AppServiceConfig appServiceConfig = buildDefaultAppServiceConfig(resourceGroup, appName);
+    public static AppServiceConfig buildDefaultWebAppConfig(String resourceGroup, String appName, String packaging) {
+        final RuntimeConfig runtimeConfig = new RuntimeConfig().runtime(
+            StringUtils.equalsIgnoreCase(packaging, "war") ? WebAppRuntime.DEFAULT_TOMCAT_RUNTIME :
+                StringUtils.equalsIgnoreCase(packaging, "ear") ? WebAppRuntime.DEFAULT_JBOSS_RUNTIME :
+                    WebAppRuntime.DEFAULT_JAVASE_RUNTIME);
+        final AppServiceConfig appServiceConfig = buildDefaultAppServiceConfig(resourceGroup, appName);
         appServiceConfig.runtime(runtimeConfig);
         return appServiceConfig;
     }
@@ -78,10 +77,7 @@ public class AppServiceConfig {
         final FunctionAppConfig result = new FunctionAppConfig();
         final AppServiceConfig appServiceConfig = buildDefaultAppServiceConfig(resourceGroup, appName);
         AppServiceConfigUtils.mergeAppServiceConfig(result, appServiceConfig);
-        RuntimeConfig runtimeConfig = new RuntimeConfig()
-            .os(Runtime.DEFAULT_FUNCTION_RUNTIME.getOperatingSystem())
-            .webContainer(Runtime.DEFAULT_FUNCTION_RUNTIME.getWebContainer())
-            .javaVersion(Runtime.DEFAULT_FUNCTION_RUNTIME.getJavaVersion());
+        final RuntimeConfig runtimeConfig = new RuntimeConfig().runtime(FunctionAppRuntime.DEFAULT);
         result.runtime(runtimeConfig);
         result.pricingTier(PricingTier.CONSUMPTION);
         result.flexConsumptionConfiguration(FlexConsumptionConfiguration.DEFAULT);
@@ -90,7 +86,7 @@ public class AppServiceConfig {
 
     @Nonnull
     private static AppServiceConfig buildDefaultAppServiceConfig(String resourceGroup, String appName) {
-        AppServiceConfig appServiceConfig = new AppServiceConfig();
+        final AppServiceConfig appServiceConfig = new AppServiceConfig();
         appServiceConfig.region(Region.US_CENTRAL);
 
         appServiceConfig.resourceGroup(resourceGroup);

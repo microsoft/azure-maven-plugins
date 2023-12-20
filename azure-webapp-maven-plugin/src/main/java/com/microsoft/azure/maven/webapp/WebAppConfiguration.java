@@ -9,10 +9,8 @@ import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -20,7 +18,6 @@ import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
@@ -37,8 +34,6 @@ public class WebAppConfiguration {
 
     public static final PricingTier DEFAULT_JBOSS_PRICING_TIER = PricingTier.PREMIUM_P1V3;
     public static final PricingTier DEFAULT_PRICINGTIER = PricingTier.PREMIUM_P1V2;
-    public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_17;
-    public static final WebContainer DEFAULT_CONTAINER = WebContainer.TOMCAT_10;
 
     // artifact deploy related configurations
     protected String subscriptionId;
@@ -84,14 +79,6 @@ public class WebAppConfiguration {
             }
         }
         return DEFAULT_REGION;
-    }
-
-    public String getJavaVersionOrDefault() {
-        return Objects.toString(ObjectUtils.firstNonNull(javaVersion, DEFAULT_JAVA_VERSION));
-    }
-
-    public String getWebContainerOrDefault() {
-        return Objects.toString(ObjectUtils.firstNonNull(webContainer, DEFAULT_CONTAINER));
     }
 
     public abstract static class WebAppConfigurationBuilder<

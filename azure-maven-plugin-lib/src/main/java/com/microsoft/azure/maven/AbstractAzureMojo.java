@@ -652,27 +652,29 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         }
     }
 
-    @Nullable
+    /**
+     * @return java compile level, e.g. '8', '11', '17'
+     */
+    @Nonnull
     protected String getCompileLevel() {
         // order compile, target
         // refers https://github.com/apache/maven-compiler-plugin/blob/maven-compiler-plugin-3.11.0/src/main/java/org/apache/maven/plugin/compiler/AbstractCompilerMojo.java#L1286-L1291
         final String rawLevel = Stream.of("release", "target").map(this::getCompilerPluginConfigurationByName)
-                .filter(StringUtils::isNotEmpty).findFirst().orElse(null);
+                .filter(StringUtils::isNotEmpty).findFirst().orElse("5");
         // refers https://github.com/apache/maven-compiler-plugin/blob/maven-compiler-plugin-3.11.0/src/main/java/org/apache/maven/plugin/compiler/AbstractCompilerMojo.java#L1293-L1295
         return StringUtils.startsWithIgnoreCase(rawLevel, "1.") ? StringUtils.substring(rawLevel, 2) : rawLevel;
     }
 
     @Nonnull
-    protected <T> List<T> getValidRuntimes(final List<T> runtimes, final Function<T, Integer> levelGetter) {
+    protected <T> List<T> getValidRuntimes(final List<T> runtimes, final Function<T, Integer> levelGetter, final Function<T, String> stringGetter) {
         try {
             final String compileLevel = getCompileLevel();
             final Integer level = Integer.valueOf(compileLevel);
             final List<T> result = runtimes.stream()
                     .filter(t -> levelGetter.apply(t) >= level)
-                    .sorted(Comparator.comparing(levelGetter))
                     .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(result)) {
-                final String supportedRuntimes = runtimes.stream().map(Object::toString).collect(Collectors.joining(", "));
+                final String supportedRuntimes = runtimes.stream().map(stringGetter).collect(Collectors.joining(", "));
                 AzureMessager.getMessager().warning(AzureString.format(COMPILE_LEVEL_NOT_SUPPORTED, compileLevel, supportedRuntimes));
                 return runtimes;
             } else {

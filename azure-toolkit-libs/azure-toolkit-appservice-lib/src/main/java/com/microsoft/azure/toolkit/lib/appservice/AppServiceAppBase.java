@@ -17,11 +17,11 @@ import com.microsoft.azure.toolkit.lib.appservice.file.AppServiceKuduClient;
 import com.microsoft.azure.toolkit.lib.appservice.file.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.file.IProcessClient;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.CommandOutput;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.ProcessInfo;
 import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.TunnelStatus;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanModule;
@@ -195,9 +195,7 @@ public abstract class AppServiceAppBase<
     }
 
     @Nullable
-    public Runtime getRuntime() {
-        return Optional.ofNullable(this.getRemote()).map(AppServiceUtils::getRuntimeFromAppService).orElse(null);
-    }
+    public abstract Runtime getRuntime();
 
     @Nonnull
     @Override

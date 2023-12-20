@@ -10,10 +10,11 @@ import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppLinuxRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppWindowsRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -73,9 +74,10 @@ public class ConfigParser {
             return null;
         }
         final OperatingSystem os = Optional.ofNullable(runtime.getOs()).map(OperatingSystem::fromString)
-                .orElseGet(() -> Optional.ofNullable(getServicePlan()).map(AppServicePlan::getOperatingSystem).orElse(null));
-        final JavaVersion javaVersion = Optional.ofNullable(runtime.getJavaVersion()).map(JavaVersion::fromString).orElse(null);
-        final RuntimeConfig result = new RuntimeConfig().os(os).javaVersion(javaVersion).webContainer(WebContainer.JAVA_OFF)
+                .orElseGet(() -> Optional.ofNullable(getServicePlan()).map(AppServicePlan::getOperatingSystem).orElse(OperatingSystem.LINUX));
+        final RuntimeConfig result = new RuntimeConfig().runtime(os == OperatingSystem.DOCKER ? FunctionAppRuntime.DOCKER :
+                os == OperatingSystem.WINDOWS ? FunctionAppWindowsRuntime.fromJavaVersionUserText(runtime.getJavaVersion()) :
+                    FunctionAppLinuxRuntime.fromJavaVersionUserText(runtime.getJavaVersion()))
                 .image(runtime.getImage()).registryUrl(runtime.getRegistryUrl());
         if (StringUtils.isNotEmpty(runtime.getServerId())) {
             final MavenDockerCredentialProvider credentialProvider = MavenDockerCredentialProvider.fromMavenSettings(mojo.getSettings(), runtime.getServerId());

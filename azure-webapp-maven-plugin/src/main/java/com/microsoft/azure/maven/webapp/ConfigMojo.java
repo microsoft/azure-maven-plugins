@@ -19,12 +19,11 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppDockerRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -44,19 +43,16 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.dom4j.DocumentException;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.microsoft.azure.maven.webapp.utils.Utils.findStringInCollectionIgnoreCase;
 import static com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils.fromAppService;
 
 /**
@@ -77,8 +73,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     public static final String SLOT_NAME_PATTERN = "[A-Za-z0-9-]{1,60}";
 
     private static final String CONFIG_ONLY_SUPPORT_V2 = "Config only support V2 schema";
-    private static final String CHANGE_OS_WARNING = "The plugin may not work if you change the os of an existing " +
-            "webapp.";
+    private static final String CHANGE_OS_WARNING = "The plugin may not work if you change the os of an existing webapp.";
     private static final String CONFIGURATION_NO_RUNTIME = "No runtime configuration, skip it.";
     private static final String SAVING_TO_POM = "Saving configuration to pom.";
 
@@ -90,14 +85,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private static final String SERVER_ID_TEMPLATE = "Please add a server in Maven settings.xml related to username: %s and put the serverId here";
 
     private static final List<String> WEB_APP_PROPERTIES = Arrays.asList("resourceGroup", "appName", "runtime", "deployment", "region",
-            "appServicePlanResourceGroup", "appServicePlanName", "deploymentSlot");
-    private static final Map<String, Integer> JAVA_RUNTIMES = new LinkedHashMap<String, Integer>() {
-        {
-            put(JavaVersion.JAVA_8.toString(), 8);
-            put(JavaVersion.JAVA_11.toString(), 11);
-            put(JavaVersion.JAVA_17.toString(), 17);
-        }
-    };
+        "appServicePlanResourceGroup", "appServicePlanName", "deploymentSlot");
     private MavenPluginQueryer queryer;
     private WebAppPomHandler pomHandler;
 
@@ -105,18 +93,18 @@ public class ConfigMojo extends AbstractWebAppMojo {
     @AzureOperation(name = "user/webapp.config")
     protected void doExecute() {
         if (!(Utils.isJarPackagingProject(this.project.getPackaging()) ||
-                Utils.isEarPackagingProject(this.project.getPackaging()) ||
-                Utils.isWarPackagingProject(this.project.getPackaging()))) {
+            Utils.isEarPackagingProject(this.project.getPackaging()) ||
+            Utils.isWarPackagingProject(this.project.getPackaging()))) {
             throw new UnsupportedOperationException(
-                    String.format("The project (%s) with packaging %s is not supported for azure app service.",
-                            this.project.getName(), this.project.getPackaging()));
+                String.format("The project (%s) with packaging %s is not supported for azure app service.",
+                    this.project.getName(), this.project.getPackaging()));
         }
 
         queryer = QueryFactory.getQueryer(settings);
         try {
             pomHandler = new WebAppPomHandler(project.getFile().getAbsolutePath());
             final WebAppConfiguration configuration = pomHandler.getConfiguration() == null ? null :
-                    getWebAppConfiguration();
+                getWebAppConfiguration();
             if (!isV2Configuration(configuration)) {
                 log.warn(CONFIG_ONLY_SUPPORT_V2);
             } else {
@@ -155,7 +143,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             if (configuration == null || !isProjectConfigured()) {
                 try {
                     final String createNewConfiguration =
-                            queryer.assureInputFromUser("confirm", "Y", BOOLEAN_REGEX, "Create new run configuration (Y/N)", null);
+                        queryer.assureInputFromUser("confirm", "Y", BOOLEAN_REGEX, "Create new run configuration (Y/N)", null);
                     if (StringUtils.equalsIgnoreCase(createNewConfiguration, "Y")) {
                         result = initConfig();
                     } else {
@@ -219,7 +207,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     protected WebAppConfiguration initConfig() {
         final WebAppConfiguration result = getDefaultConfiguration();
-        return getRuntimeConfiguration(result, true);
+        return setRuntimeConfiguration(result, true);
     }
 
     private WebAppConfiguration getDefaultConfiguration() {
@@ -230,24 +218,24 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final Region defaultRegion = WebAppConfiguration.getDefaultRegion();
 
         return builder.appName(defaultName)
-                .subscriptionId(subscriptionId)
-                .resourceGroup(resourceGroup)
-                .region(defaultRegion)
-                .resources(Deployment.getDefaultDeploymentConfiguration(getProject().getPackaging()).getResources())
-                .schemaVersion(defaultSchemaVersion)
-                .subscriptionId(this.subscriptionId)
-                .build();
+            .subscriptionId(subscriptionId)
+            .resourceGroup(resourceGroup)
+            .region(defaultRegion)
+            .resources(Deployment.getDefaultDeploymentConfiguration(getProject().getPackaging()).getResources())
+            .schemaVersion(defaultSchemaVersion)
+            .subscriptionId(this.subscriptionId)
+            .build();
     }
 
     protected WebAppConfiguration updateConfiguration(WebAppConfiguration configuration) {
         final String selection = queryer.assureInputFromUser("selection", configTypes[0], Arrays.asList(configTypes),
-                String.format("Please choose which part to config [%s]:", configTypes[0]));
+            String.format("Please choose which part to config [%s]:", configTypes[0]));
         switch (selection) {
             case "Application":
                 return getWebAppConfiguration(configuration);
             case "Runtime":
                 log.warn(CHANGE_OS_WARNING);
-                return getRuntimeConfiguration(configuration, false);
+                return setRuntimeConfiguration(configuration, false);
             case "DeploymentSlot":
                 return getSlotConfiguration(configuration);
             default:
@@ -260,49 +248,46 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
         final String defaultSubscriptionId = StringUtils.isNotBlank(configuration.subscriptionId) ? configuration.subscriptionId : null;
         final String subscriptionId = StringUtils.isNotBlank(defaultSubscriptionId) ? queryer.assureInputFromUser("subscriptionId", defaultSubscriptionId,
-                SUBSCRIPTION_ID_PATTERN, null, null) : null;
+            SUBSCRIPTION_ID_PATTERN, null, null) : null;
 
         final String defaultAppName =
-                getDefaultValue(configuration.appName, getProject().getArtifactId(), APP_NAME_PATTERN);
+            getDefaultValue(configuration.appName, getProject().getArtifactId(), APP_NAME_PATTERN);
         final String appName = queryer.assureInputFromUser("appName", defaultAppName,
-                APP_NAME_PATTERN, null, null);
+            APP_NAME_PATTERN, null, null);
 
         final String defaultResourceGroup = getDefaultValue(configuration.resourceGroup,
-                String.format("%s-rg", appName), RESOURCE_GROUP_PATTERN);
+            String.format("%s-rg", appName), RESOURCE_GROUP_PATTERN);
         final String resourceGroup = queryer.assureInputFromUser("resourceGroup",
-                defaultResourceGroup,
-                RESOURCE_GROUP_PATTERN, null, null);
+            defaultResourceGroup,
+            RESOURCE_GROUP_PATTERN, null, null);
 
         final String defaultRegion = configuration.getRegionOrDefault();
-        final String region = queryer.assureInputFromUser("region", defaultRegion, NOT_EMPTY_REGEX,
-                null, null);
+        final String region = queryer.assureInputFromUser("region", defaultRegion, NOT_EMPTY_REGEX, null, null);
 
-        final boolean isJBoss = isJBossRuntime(WebContainer.fromString(configuration.getWebContainer()));
-        final PricingTier defaultPricingTierFromRuntime = isJBoss ?
-                WebAppConfiguration.DEFAULT_JBOSS_PRICING_TIER : WebAppConfiguration.DEFAULT_PRICINGTIER;
-        final String currentPricingTier = configuration.getPricingTier();
-        final List<String> availablePriceList = getAvailablePricingTierList(configuration.getOs(), WebContainer.fromString(configuration.getWebContainer()));
-        String defaultPricingTier = currentPricingTier;
-        if (availablePriceList.stream().noneMatch(price -> StringUtils.equalsIgnoreCase(price, currentPricingTier))) {
-            defaultPricingTier = defaultPricingTierFromRuntime.toString();
-            if (StringUtils.isNotBlank(currentPricingTier)) {
-                log.warn(String.format(PRICE_TIER_NOT_AVAIL, currentPricingTier, defaultPricingTier));
-            }
+        final List<PricingTier> tiers = WebAppRuntime.getPricingTiers(configuration.getOs(), configuration.getWebContainer());
+        PricingTier defaultTier = PricingTier.fromString(configuration.getPricingTier());
+        if (Objects.isNull(defaultTier)) {
+            defaultTier = isJBossRuntime(configuration.getWebContainer()) ? WebAppConfiguration.DEFAULT_JBOSS_PRICING_TIER : WebAppConfiguration.DEFAULT_PRICINGTIER;
         }
-
-        final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier,
-                availablePriceList, String.format(PRICING_TIER_PROMPT, defaultPricingTier));
+        final List<PricingTier> validTiers = new ArrayList<>(WebAppRuntime.getPricingTiers(configuration.getOs(), configuration.getWebContainer()));
+        final List<String> validTierTexts = validTiers.stream().map(PricingTier::getSize).collect(Collectors.toList());
+        if (!validTiers.contains(defaultTier)) {
+            log.warn(String.format("'%s' is not supported for runtime('%s')", defaultTier.getSize(), configuration.getWebContainer()));
+            defaultTier = validTiers.contains(PricingTier.PREMIUM_P1V2) ? PricingTier.PREMIUM_P1V2 : validTiers.get(0);
+        }
+        final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultTier.getSize(), validTierTexts,
+            String.format(PRICING_TIER_PROMPT, defaultTier.getSize()));
         return builder
-                .subscriptionId(subscriptionId)
-                .appName(appName)
-                .resourceGroup(resourceGroup)
-                .region(Region.fromName(region))
-                .pricingTier(pricingTier)
-                .build();
+            .subscriptionId(subscriptionId)
+            .appName(appName)
+            .resourceGroup(resourceGroup)
+            .region(Region.fromName(region))
+            .pricingTier(pricingTier)
+            .build();
     }
 
-    private static boolean isJBossRuntime(WebContainer runtimeStack) {
-        return runtimeStack != null && StringUtils.startsWithIgnoreCase(runtimeStack.getValue(), "JBOSSEAP");
+    private static boolean isJBossRuntime(String container) {
+        return container != null && StringUtils.startsWithIgnoreCase(container, "JBOSS");
     }
 
     private WebAppConfiguration getSlotConfiguration(WebAppConfiguration configuration) {
@@ -311,20 +296,20 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final DeploymentSlotSetting deploymentSlotSetting = configuration.getDeploymentSlotSetting();
         final String defaultIsSlotDeploy = deploymentSlotSetting == null ? "N" : "Y";
         final String isSlotDeploy = queryer.assureInputFromUser("isSlotDeploy", defaultIsSlotDeploy, BOOLEAN_REGEX,
-                "Deploy to slot?(Y/N)", null);
+            "Deploy to slot?(Y/N)", null);
         if (StringUtils.equalsIgnoreCase(isSlotDeploy, "n")) {
             return builder.deploymentSlotSetting(null).build();
         }
 
         final String defaultSlotName = deploymentSlotSetting == null ? String.format("%s-slot",
-                configuration.getAppName()) : deploymentSlotSetting.getName();
+            configuration.getAppName()) : deploymentSlotSetting.getName();
         final String slotName = queryer.assureInputFromUser("slotName", defaultSlotName, SLOT_NAME_PATTERN,
-                null, null);
+            null, null);
 
         final String defaultConfigurationSource = deploymentSlotSetting == null ? null :
-                deploymentSlotSetting.getConfigurationSource();
+            deploymentSlotSetting.getConfigurationSource();
         final String configurationSource = queryer.assureInputFromUser("configurationSource",
-                defaultConfigurationSource, null, null, null);
+            defaultConfigurationSource, null, null, null);
 
         final DeploymentSlotSetting result = new DeploymentSlotSetting();
         result.setName(slotName);
@@ -332,139 +317,120 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return builder.deploymentSlotSetting(result).build();
     }
 
-    private WebAppConfiguration getRuntimeConfiguration(WebAppConfiguration configuration, boolean initial) {
+    private WebAppConfiguration setRuntimeConfiguration(WebAppConfiguration configuration, boolean initialize) {
         WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder = configuration.toBuilder();
         final OperatingSystem defaultOs = ObjectUtils.defaultIfNull(configuration.getOs(), OperatingSystem.LINUX);
 
-        final String os = queryer.assureInputFromUser("OS", defaultOs, String.format("Define value for OS [%s]:", defaultOs));
-        final OperatingSystem osEnu = OperatingSystem.fromString(os);
-        WebContainer webContainer = null;
-        builder.os(osEnu);
-        switch (osEnu) {
-            case LINUX:
-            case WINDOWS:
-                webContainer = getRuntimeConfigurationForWindowsOrLinux(osEnu, builder, configuration);
-                break;
-            case DOCKER:
-                builder = getRuntimeConfigurationOfDocker(builder, configuration);
-                break;
-            default:
-                throw new AzureToolkitRuntimeException("The value of <os> is unknown.");
-        }
-        final boolean isJBoss = isJBossRuntime(webContainer);
-        if (initial || pricingTierNotSupport(osEnu, configuration.getPricingTier(), webContainer)) {
-            final PricingTier defaultPricingTierEnu = isJBoss ? WebAppConfiguration.DEFAULT_JBOSS_PRICING_TIER : WebAppConfiguration.DEFAULT_PRICINGTIER;
-            String defaultPricingTier = ObjectUtils.firstNonNull(configuration.getPricingTier(), defaultPricingTierEnu.getSize());
-            final List<String> availablePriceList = getAvailablePricingTierList(osEnu, webContainer);
-            if (!availablePriceList.contains(defaultPricingTier)) {
-                log.warn(String.format("'%s' is not supported in current os('%s') and runtime('%s')", defaultPricingTier, os, webContainer));
-                defaultPricingTier = defaultPricingTierEnu.getSize();
+        final String osUserInput = queryer.assureInputFromUser("OS", defaultOs, String.format("Define value for OS [%s]:", defaultOs));
+        final OperatingSystem os = OperatingSystem.fromString(osUserInput);
+        Optional.ofNullable(os).orElseThrow(() -> new AzureToolkitRuntimeException("The value of <os> is unknown."));
+        builder.os(os);
+        final WebAppRuntime runtime = os == OperatingSystem.DOCKER ? setupRuntimeForDocker(builder, configuration) : setupRuntimeForWindowsOrLinux(os, builder, configuration, initialize);
+        if (initialize || pricingTierNotSupport(configuration.getPricingTier(), runtime)) {
+            PricingTier defaultTier = runtime.isJBoss() ? WebAppConfiguration.DEFAULT_JBOSS_PRICING_TIER : WebAppConfiguration.DEFAULT_PRICINGTIER;
+            final List<PricingTier> validTiers = runtime.getPricingTiers();
+            final List<String> validTierTexts = validTiers.stream().map(PricingTier::getSize).collect(Collectors.toList());
+            if (!validTiers.contains(defaultTier)) {
+                log.warn(String.format("'%s' is not supported in current os('%s') and runtime('%s')", defaultTier.getSize(), osUserInput, runtime.getContainerUserText()));
+                defaultTier = validTiers.contains(PricingTier.PREMIUM_P1V2) ? PricingTier.PREMIUM_P1V2 : validTiers.get(0);
             }
-            final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier, availablePriceList,
-                    String.format(PRICING_TIER_PROMPT, defaultPricingTier));
+            final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultTier.getSize(), validTierTexts,
+                String.format(PRICING_TIER_PROMPT, defaultTier.getSize()));
             builder.pricingTier(pricingTier);
         }
         return builder.build();
     }
 
-    private static boolean pricingTierNotSupport(@Nonnull OperatingSystem parseOperationSystem, String pricingTier, WebContainer webContainer) {
+    private static boolean pricingTierNotSupport(String pricingTier, WebAppRuntime runtime) {
         if (StringUtils.isBlank(pricingTier)) {
             return false;
         }
-        final PricingTier pricingTierEnum = PricingTier.fromString(pricingTier);
-        if (pricingTierEnum == null) {
+        final PricingTier tier = PricingTier.fromString(pricingTier);
+        if (tier == null) {
             return true;
         }
-        final List<String> availablePriceList = getAvailablePricingTierList(parseOperationSystem, webContainer);
-        return Objects.isNull(findStringInCollectionIgnoreCase(availablePriceList, pricingTierEnum.getSize()));
+        final List<PricingTier> tiers = runtime.getPricingTiers();
+        return !tiers.contains(tier);
     }
 
-    private WebContainer getRuntimeConfigurationForWindowsOrLinux(OperatingSystem os,
-                                                                  WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder,
-                                                                  WebAppConfiguration configuration) {
-        final List<String> validJavaVersions = getValidJavaVersions();
-        String defaultJavaVersion = ObjectUtils.firstNonNull(configuration.getJavaVersion(), WebAppConfiguration.DEFAULT_JAVA_VERSION.toString());
-        if (!validJavaVersions.contains(defaultJavaVersion)) {
-            log.warn(String.format("'%s' is not supported for your artifact, supported values are %s.", defaultJavaVersion, String.join(", ", validJavaVersions)));
-            defaultJavaVersion = validJavaVersions.get(0);
+    private WebAppRuntime setupRuntimeForWindowsOrLinux(OperatingSystem os,
+                                                        WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder,
+                                                        WebAppConfiguration configuration, final boolean initializing) {
+        // filter runtimes by os
+        List<WebAppRuntime> runtimes = WebAppRuntime.getMajorRuntimes().stream()
+            .filter(runtime -> runtime.getOperatingSystem() == os)
+            .collect(Collectors.toList());
+
+        // filter runtimes by java version (java target/release level)
+        runtimes = getValidRuntimes(runtimes, WebAppRuntime::getJavaMajorVersionNumber, WebAppRuntime::getJavaVersionUserText);
+
+        final Set<Integer> validJavaMajorVersionNumbers = runtimes.stream().map(WebAppRuntime::getJavaMajorVersionNumber).collect(Collectors.toSet());
+        final List<String> validJavaVersionUserTexts = runtimes.stream().map(WebAppRuntime::getJavaVersionUserText).distinct().collect(Collectors.toList());
+        String defaultJavaVersion = configuration.getJavaVersion();
+        if (StringUtils.isBlank(defaultJavaVersion) || !validJavaMajorVersionNumbers.contains(Runtime.getJavaMajorVersionNumber(defaultJavaVersion))) {
+            if (!initializing) {
+                log.warn(String.format("'%s' is not supported for your artifact, supported values are %s.", defaultJavaVersion, String.join(", ", validJavaVersionUserTexts)));
+            }
+            defaultJavaVersion = validJavaVersionUserTexts.get(0);
         }
 
-        final String javaVersionInput = queryer.assureInputFromUser(JAVA_VERSION, defaultJavaVersion,
-                validJavaVersions, String.format(COMMON_PROMPT, JAVA_VERSION, defaultJavaVersion));
-        final JavaVersion javaVersion = JavaVersion.fromString(javaVersionInput);
-        if (javaVersion == null) {
-            throw new AzureToolkitRuntimeException(String.format("Cannot handle java version: '%s'", javaVersionInput));
+        // ask user to select java version
+        final String javaVersionUserInput = queryer.assureInputFromUser(JAVA_VERSION, defaultJavaVersion,
+            validJavaVersionUserTexts, String.format(COMMON_PROMPT, JAVA_VERSION, defaultJavaVersion));
+        if (!validJavaVersionUserTexts.contains(javaVersionUserInput)) {
+            throw new AzureToolkitRuntimeException(String.format("Cannot handle java version: '%s'", javaVersionUserInput));
         }
-        // For project which package is jar, use java se runtime
-        if (isJarProject()) {
-            builder.javaVersion(javaVersionInput).webContainer(WebContainer.JAVA_SE.toString());
-            return WebContainer.JAVA_SE;
+        builder.javaVersion(javaVersionUserInput);
+        final boolean isJarPackaging = Utils.isJarPackagingProject(project.getPackaging());
+        if (isJarPackaging) {
+            builder.webContainer(WebAppRuntime.CONTAINER_JAVA_SE);
+            runtimes = runtimes.stream().filter(r -> StringUtils.equalsIgnoreCase(r.getContainerUserText(), WebAppRuntime.CONTAINER_JAVA_SE)).collect(Collectors.toList());
+            return runtimes.get(0);
         }
-        String webContainerOrDefault = configuration.getWebContainerOrDefault();
-        final List<String> validWebContainers = getAvailableWebContainer(os, javaVersion,
-                Utils.isJarPackagingProject(this.project.getPackaging()));
-        if (!validWebContainers.contains(webContainerOrDefault)) {
-            log.warn(String.format("'%s' is not supported.", webContainerOrDefault));
-            final String defaultWebContainer = WebAppConfiguration.DEFAULT_CONTAINER.toString();
-            webContainerOrDefault = validWebContainers.contains(defaultWebContainer) ? defaultWebContainer : validWebContainers.get(0);
+
+        // filter runtimes by java version (user selection)
+        runtimes = runtimes.stream().filter(r -> StringUtils.equalsIgnoreCase(r.getJavaVersionUserText(), javaVersionUserInput)).collect(Collectors.toList());
+
+        // filter runtimes by web container (packaging)
+        runtimes = runtimes.stream().filter(r -> !StringUtils.equalsIgnoreCase(r.getContainerName(), "java")).collect(Collectors.toList());
+        if (Utils.isEarPackagingProject(project.getPackaging())) {
+            runtimes = runtimes.stream().filter(r -> StringUtils.equalsIgnoreCase(r.getContainerName(), "ear")).collect(Collectors.toList());
         }
-        final String webContainerInput = queryer.assureInputFromUser(WEB_CONTAINER, webContainerOrDefault,
-                validWebContainers,
-                String.format(COMMON_PROMPT, WEB_CONTAINER, webContainerOrDefault));
-        builder.javaVersion(javaVersion.toString()).webContainer(webContainerInput);
-        return WebContainer.fromString(webContainerInput);
+
+        final List<String> validContainerUserTexts = runtimes.stream().map(WebAppRuntime::getContainerUserText).distinct().collect(Collectors.toList());
+        String defaultContainer = configuration.getWebContainer();
+        if (StringUtils.isBlank(defaultContainer) || !validContainerUserTexts.contains(defaultContainer)) {
+            if (!initializing) {
+                log.warn(String.format("'%s' is not supported.", defaultContainer));
+            }
+            defaultContainer = validContainerUserTexts.get(0);
+        }
+
+        final String containerUserInput = queryer.assureInputFromUser(WEB_CONTAINER, defaultContainer,
+            validContainerUserTexts,
+            String.format(COMMON_PROMPT, WEB_CONTAINER, defaultContainer));
+        if (!validContainerUserTexts.contains(containerUserInput)) {
+            throw new AzureToolkitRuntimeException(String.format("Cannot handle web container: '%s'", containerUserInput));
+        }
+        builder.webContainer(containerUserInput);
+
+        // filter runtimes by java version (user selection)
+        runtimes = runtimes.stream().filter(r -> StringUtils.equalsIgnoreCase(r.getContainerUserText(), containerUserInput)).collect(Collectors.toList());
+        return runtimes.get(0);
     }
 
-    private WebAppConfiguration.WebAppConfigurationBuilder<?, ?> getRuntimeConfigurationOfDocker(
-            WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder, WebAppConfiguration configuration) {
+    private WebAppDockerRuntime setupRuntimeForDocker(
+        WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder, WebAppConfiguration configuration) {
         final String image = queryer.assureInputFromUser("image", configuration.image, NOT_EMPTY_REGEX, null, null);
         final String serverId = queryer.assureInputFromUser("serverId", configuration.serverId, null, null, null);
         final String registryUrl = queryer.assureInputFromUser("registryUrl", configuration.registryUrl, null, null,
-                null);
-        return builder.image(image).serverId(serverId).registryUrl(registryUrl);
-    }
-
-    private static List<String> getAvailablePricingTierList(OperatingSystem operatingSystem, WebContainer webContainer) {
-        final List<String> pricingTierList = new ArrayList<>();
-        if (isJBossRuntime(webContainer)) {
-            pricingTierList.add("P1v3");
-            pricingTierList.add("P2v3");
-            pricingTierList.add("P3v3");
-            return pricingTierList;
-        }
-        // Linux and docker app service uses linux as the os of app service plan.
-        final List<PricingTier> availablePricingTier = AppServiceUtils.getAvailablePricingTiers(operatingSystem);
-        for (final PricingTier pricingTier : availablePricingTier) {
-            pricingTierList.add(pricingTier.getSize());
-        }
-        return pricingTierList.stream().distinct().sorted().collect(Collectors.toList());
-    }
-
-    private static List<String> getAvailableWebContainer(@Nonnull OperatingSystem os, @Nonnull JavaVersion javaVersion, boolean isJarPacking) {
-        final List<String> result = new ArrayList<>();
-        if (isJarPacking) {
-            result.add(WebContainer.JAVA_SE.toString());
-        } else {
-            for (final Runtime runtime : Azure.az(AzureWebApp.class).listWebAppRuntimes(os, javaVersion)) {
-                result.add(runtime.getWebContainer().toString());
-            }
-            result.remove(WebContainer.JAVA_SE.toString());
-        }
-
-        Collections.sort(result);
-        return result;
-    }
-
-    public List<String> getValidJavaVersions() {
-        return getValidRuntimes(new ArrayList<>(JAVA_RUNTIMES.keySet()), JAVA_RUNTIMES::get);
+            null);
+        builder.image(image).serverId(serverId).registryUrl(registryUrl);
+        return WebAppDockerRuntime.INSTANCE;
     }
 
     private String getDefaultValue(String defaultValue, String fallBack, String pattern) {
         return StringUtils.isNotEmpty(defaultValue) && defaultValue.matches(pattern) ? defaultValue : fallBack;
-    }
-
-    private boolean isJarProject() {
-        return Utils.isJarPackagingProject(project.getPackaging());
     }
 
     private WebAppConfiguration getWebAppConfiguration() {
@@ -473,7 +439,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     }
 
     private WebAppConfiguration chooseExistingWebappForConfiguration()
-            throws AzureAuthFailureException {
+        throws AzureAuthFailureException {
         try {
             final AzureAppService az = initAzureAppServiceClient();
             if (Objects.isNull(az)) {
@@ -486,8 +452,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
             // load configuration to detecting java or docker
             log.info(LONG_LOADING_HINT);
             final List<WebAppOption> webAppOptionList = az.list().stream().flatMap(m -> m.webApps().list().stream())
-                    .map(WebAppOption::new)
-                    .collect(Collectors.toList());
+                .map(WebAppOption::new)
+                .collect(Collectors.toList());
 
             // check empty: first time
             if (webAppOptionList.isEmpty()) {
@@ -497,8 +463,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
             final boolean isContainer = !Utils.isJarPackagingProject(this.project.getPackaging());
             final boolean isDockerOnly = Utils.isPomPackagingProject(this.project.getPackaging());
             final List<WebAppOption> javaOrDockerWebapps = webAppOptionList.stream().parallel().filter(app -> app.isJavaWebApp() || app.isDockerWebapp())
-                    .filter(app -> checkWebAppVisible(isContainer, isDockerOnly, app.isJavaSE(), app.isDockerWebapp())).sorted()
-                    .collect(Collectors.toList());
+                .filter(app -> checkWebAppVisible(isContainer, isDockerOnly, app.isJavaSE(), app.isDockerWebapp())).sorted()
+                .collect(Collectors.toList());
             final WebAppOption selectedApp = selectAzureWebApp(javaOrDockerWebapps, getWebAppTypeByPackaging(this.project.getPackaging()), defaultSubs);
             if (selectedApp == null) {
                 return null;
@@ -527,9 +493,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
         }
         options.addAll(javaOrDockerWebapps);
         return new CustomTextIoStringListReader<WebAppOption>(TextIOUtils::getTextTerminal, null)
-                .withCustomPrompt(String.format("Please choose a %sWeb App: ", webAppType))
-                .withNumberedPossibleValues(options)
-                .read(String.format("%sWeb Apps in subscription %s:", webAppType, TextUtils.blue(targetSubscription.getName())));
+            .withCustomPrompt(String.format("Please choose a %sWeb App: ", webAppType))
+            .withNumberedPossibleValues(options)
+            .read(String.format("%sWeb Apps in subscription %s:", webAppType, TextUtils.blue(targetSubscription.getName())));
     }
 
     private WebAppConfiguration getConfigurationFromExisting(WebApp webapp,
@@ -537,9 +503,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final AppServiceConfig appServiceConfig = fromAppService(webapp, webapp.getAppServicePlan());
         // common configuration
         builder.appName(appServiceConfig.appName())
-                .resourceGroup(appServiceConfig.resourceGroup())
-                .subscriptionId(appServiceConfig.subscriptionId())
-                .region(appServiceConfig.region());
+            .resourceGroup(appServiceConfig.resourceGroup())
+            .subscriptionId(appServiceConfig.subscriptionId())
+            .region(appServiceConfig.region());
         builder.os(appServiceConfig.runtime().os());
         if (AppServiceUtils.isDockerAppService(webapp)) {
             final Map<String, String> settings = webapp.getAppSettings();
@@ -550,8 +516,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 builder.serverId(String.format(SERVER_ID_TEMPLATE, dockerUsernameSetting));
             }
         } else {
-            builder.webContainer(Objects.toString(appServiceConfig.runtime().webContainer()));
-            builder.javaVersion(Objects.toString(appServiceConfig.runtime().javaVersion()));
+            final WebAppRuntime runtime = webapp.getRuntime();
+            if (runtime != null) {
+                builder.webContainer(runtime.getContainerUserText());
+                builder.javaVersion(runtime.getJavaVersionUserText());
+            }
         }
         builder.servicePlanName(appServiceConfig.servicePlanName());
         builder.servicePlanResourceGroup(appServiceConfig.servicePlanResourceGroup());

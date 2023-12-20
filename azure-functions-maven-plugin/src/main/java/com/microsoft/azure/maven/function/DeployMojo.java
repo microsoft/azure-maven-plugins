@@ -16,13 +16,15 @@ import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionsServiceSubscription;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.StreamingLogTask;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -40,7 +42,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
@@ -107,7 +108,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         this.mergeCommandLineConfig();
         doValidate();
         initAzureAppServiceClient();
-
+        ((FunctionsServiceSubscription) Objects.requireNonNull(Azure.az(AzureWebApp.class).get(subscriptionId, null), "You are not signed-in")).loadRuntimes();
         final ConfigParser parser = getParser();
         final FunctionAppConfig config = parser.parseConfig();
         final FunctionApp app = Azure.az(AzureFunctions.class).functionApps(config.subscriptionId()).updateOrCreate(config.appName(), config.resourceGroup());
@@ -127,7 +128,7 @@ public class DeployMojo extends AbstractFunctionMojo {
             mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
             final DeployMojo commandLineConfig = mapper.readSystemPropertiesAs(JavaPropsSchema.emptySchema(), DeployMojo.class);
             Utils.copyProperties(this, commandLineConfig, false);
-        } catch (IOException | IllegalAccessException e) {
+        } catch (final IOException | IllegalAccessException e) {
             throw new AzureToolkitRuntimeException("failed to merge command line configuration", e);
         }
     }
@@ -141,7 +142,8 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     private void validateArtifactCompileVersion() throws AzureExecutionException {
         final RuntimeConfig runtimeConfig = getParser().getRuntimeConfig();
-        final String javaVersion = Optional.ofNullable(runtimeConfig).map(RuntimeConfig::javaVersion).map(JavaVersion::getValue).orElse(StringUtils.EMPTY);
+        final FunctionAppRuntime runtime = (FunctionAppRuntime) runtimeConfig.runtime();
+        final String javaVersion = runtime.getJavaVersionNumber();
         validateArtifactCompileVersion(javaVersion, getArtifact(), getFailsOnRuntimeValidationError());
     }
 
@@ -184,10 +186,6 @@ public class DeployMojo extends AbstractFunctionMojo {
         // os
         if (StringUtils.isNotEmpty(runtime.getOs()) && OperatingSystem.fromString(runtime.getOs()) == null) {
             throw new AzureToolkitRuntimeException(INVALID_OS);
-        }
-        // java version
-        if (StringUtils.isNotEmpty(runtime.getJavaVersion()) && JavaVersion.fromString(runtime.getJavaVersion()).isExpandedValue()) {
-            AzureMessager.getMessager().warning(String.format(EXPANDABLE_JAVA_VERSION_WARNING, runtime.getJavaVersion()));
         }
         // pricing tier
         if (StringUtils.isNotEmpty(pricingTier) && PricingTier.fromString(pricingTier).isExpandedValue()) {

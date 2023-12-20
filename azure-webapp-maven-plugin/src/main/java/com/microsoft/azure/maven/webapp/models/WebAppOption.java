@@ -6,16 +6,17 @@
 
 package com.microsoft.azure.maven.webapp.models;
 
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
 import lombok.Getter;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
+import java.util.Optional;
 
 public class WebAppOption implements Comparable<WebAppOption> {
     @Getter
@@ -68,32 +69,22 @@ public class WebAppOption implements Comparable<WebAppOption> {
     }
 
     public boolean isJavaWebApp() {
-        return ObjectUtils.notEqual(getJavaVersion(), JavaVersion.OFF);
+        return !isDockerWebapp() && !isJavaSE();
     }
 
     public boolean isJavaSE() {
         if (webappInner == null) {
             return false;
         }
-        if (!isJavaWebApp() || isDockerWebapp()) {
-            return false;
+        final Runtime runtime = webappInner.getRuntime();
+        if (runtime instanceof WebAppRuntime) {
+            return ((WebAppRuntime) runtime).isJavaSE();
         }
-
-        return Objects.equals(webappInner.getRuntime().getWebContainer(), WebContainer.JAVA_SE);
-    }
-
-    public JavaVersion getJavaVersion() {
-        if (webappInner == null || webappInner.getRuntime() == null) {
-            return JavaVersion.OFF;
-        }
-        return ObjectUtils.firstNonNull(webappInner.getRuntime().getJavaVersion(), JavaVersion.OFF);
+        return false;
     }
 
     public OperatingSystem getOperatingSystem() {
-        if (webappInner == null) {
-            return null;
-        }
-        return webappInner.getRuntime().getOperatingSystem();
+        return Optional.ofNullable(webappInner).map(WebAppBase::getRuntime).map(Runtime::getOperatingSystem).orElse(null);
     }
 
     public String getDescription() {

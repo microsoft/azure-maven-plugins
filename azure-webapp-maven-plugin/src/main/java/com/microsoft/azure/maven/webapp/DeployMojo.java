@@ -11,11 +11,9 @@ import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.task.DeployExternalResourcesTask;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateWebAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.StreamingLogTask;
@@ -23,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -32,7 +31,6 @@ import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -84,6 +82,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         doValidate();
         // initialize library client
         az = initAzureAppServiceClient();
+        ((WebAppServiceSubscription) Objects.requireNonNull(Azure.az(AzureWebApp.class).get(subscriptionId, null), "You are not signed-in")).loadRuntimes();
         final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
         final WebApp app = Azure.az(AzureWebApp.class).webApps(appServiceConfig.subscriptionId())
                 .getOrDraft(appServiceConfig.appName(), appServiceConfig.resourceGroup());
@@ -105,13 +104,13 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void validateArtifactCompileVersion() throws AzureExecutionException {
-        final Runtime runtime = getConfigParser().getRuntime();
+        final WebAppRuntime runtime = getConfigParser().getRuntime();
         final List<WebAppArtifact> artifacts = Optional.ofNullable(getConfigParser().getArtifacts())
                 .orElse(Collections.emptyList());
         if (Objects.isNull(runtime) || runtime.isDocker() || CollectionUtils.isEmpty(artifacts)) {
             return;
         }
-        final String javaVersion = Optional.ofNullable(runtime.getJavaVersion()).map(JavaVersion::getValue).orElse(StringUtils.EMPTY);
+        final String javaVersion = runtime.getJavaVersionNumber();
         artifacts.stream().map(WebAppArtifact::getFile).filter(Objects::nonNull)
                 .forEach(artifact -> validateArtifactCompileVersion(javaVersion, artifact, getFailsOnRuntimeValidationError()));
     }
@@ -134,8 +133,9 @@ public class DeployMojo extends AbstractWebAppMojo {
                 buildDefaultConfig(appServiceConfig.subscriptionId(), appServiceConfig.resourceGroup(), appServiceConfig.appName());
         mergeAppServiceConfig(appServiceConfig, defaultConfig);
         if (appServiceConfig.pricingTier() == null) {
-            appServiceConfig.pricingTier(appServiceConfig.runtime().webContainer() == WebContainer.JBOSS_7 ?
-                    PricingTier.PREMIUM_P1V3 : PricingTier.PREMIUM_P1V2);
+            final WebAppRuntime runtime = (WebAppRuntime) appServiceConfig.runtime().runtime();
+            appServiceConfig.pricingTier(runtime != null && runtime.isJBoss() ?
+                PricingTier.PREMIUM_P1V3 : PricingTier.PREMIUM_P1V2);
         }
         final CreateOrUpdateWebAppTask task = new CreateOrUpdateWebAppTask(appServiceConfig);
         task.setSkipCreateAzureResource(skipCreate);
@@ -143,7 +143,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private AppServiceConfig buildDefaultConfig(String subscriptionId, String resourceGroup, String appName) {
-        return AppServiceConfigUtils.buildDefaultWebAppConfig(subscriptionId, resourceGroup, appName, this.project.getPackaging(), JavaVersion.JAVA_17);
+        return AppServiceConfigUtils.buildDefaultWebAppConfig(subscriptionId, resourceGroup, appName, this.project.getPackaging());
     }
 
     private void deploy(WebAppBase<?, ?, ?> target, List<WebAppArtifact> artifacts) {

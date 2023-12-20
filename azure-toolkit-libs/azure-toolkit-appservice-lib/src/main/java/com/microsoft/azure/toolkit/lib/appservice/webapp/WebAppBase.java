@@ -5,6 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.webapp;
 
+import com.azure.resourcemanager.appservice.models.JavaVersion;
+import com.azure.resourcemanager.appservice.models.OperatingSystem;
 import com.azure.resourcemanager.appservice.models.SupportsOneDeploy;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
@@ -69,6 +71,26 @@ public abstract class WebAppBase<T extends WebAppBase<T, P, F>, P extends Abstra
         } else {
             return null;
         }
+    }
+
+    @Override
+    public WebAppRuntime getRuntime() {
+        return Optional.ofNullable(this.getRemote()).map(r -> {
+            if (r.operatingSystem() == OperatingSystem.WINDOWS) {
+                final String container = r.javaContainer();
+                final String containerVersion = r.javaContainerVersion();
+                final JavaVersion javaVersion = r.javaVersion();
+                return WebAppWindowsRuntime.fromContainerAndJavaVersion(container, containerVersion, javaVersion);
+            } else {
+                final String fxString = r.linuxFxVersion();
+                if (StringUtils.isEmpty(fxString)) {
+                    return null;
+                } else if (StringUtils.startsWithIgnoreCase(fxString, "docker")) {
+                    return WebAppDockerRuntime.INSTANCE;
+                }
+                return WebAppLinuxRuntime.fromFxString(fxString);
+            }
+        }).orElse(null);
     }
 
     @Override

@@ -16,12 +16,13 @@ import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppLinuxRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppWindowsRuntime;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -48,11 +49,11 @@ import java.util.stream.Collectors;
 public class ConfigParser {
 
     private static final String EXPANDABLE_PRICING_TIER_WARNING = "'%s' may not be a valid pricing tier, " +
-            "please refer to https://aka.ms/maven_webapp_runtime#pricingtier for valid values";
+        "please refer to https://aka.ms/maven_webapp_runtime#pricingtier for valid values";
     private static final String EXPANDABLE_REGION_WARNING = "'%s' may not be a valid region, " +
-            "please refer to https://aka.ms/maven_webapp_runtime#region for valid values";
+        "please refer to https://aka.ms/maven_webapp_runtime#region for valid values";
     private static final String EXPANDABLE_WEB_CONTAINER_WARNING = "'%s' may not be a valid web container, " +
-            "please refer to https://aka.ms/maven_webapp_runtime#webcontainer for valid values";
+        "please refer to https://aka.ms/maven_webapp_runtime#webcontainer for valid values";
     private static final String EXPANDABLE_JAVA_VERSION_WARNING = "'%s' may not be a valid java version, recommended values are `Java 8`, `Java 11` and `Java 17`";
 
     protected AbstractWebAppMojo mojo;
@@ -63,23 +64,23 @@ public class ConfigParser {
 
     public AppServiceConfig getAppServiceConfig() throws AzureExecutionException {
         return new AppServiceConfig()
-                .subscriptionId(getSubscriptionId())
-                .resourceGroup(getResourceGroup())
-                .appName(getAppName())
-                .servicePlanName(getAppServicePlanName())
-                .servicePlanResourceGroup(getAppServicePlanResourceGroup())
-                .deploymentSlotName(getDeploymentSlotName())
-                .deploymentSlotConfigurationSource(getDeploymentSlotConfigurationSource())
-                .pricingTier(getPricingTier())
-                .region(getRegion())
-                .runtime(getRuntimeConfig())
-                .appSettings(mojo.getAppSettings());
+            .subscriptionId(getSubscriptionId())
+            .resourceGroup(getResourceGroup())
+            .appName(getAppName())
+            .servicePlanName(getAppServicePlanName())
+            .servicePlanResourceGroup(getAppServicePlanResourceGroup())
+            .deploymentSlotName(getDeploymentSlotName())
+            .deploymentSlotConfigurationSource(getDeploymentSlotConfigurationSource())
+            .pricingTier(getPricingTier())
+            .region(getRegion())
+            .runtime(getRuntimeConfig())
+            .appSettings(mojo.getAppSettings());
     }
 
     // todo: replace WebAppConfiguration with WebAppConfig
     public WebAppConfiguration getWebAppConfiguration() {
         WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder = WebAppConfiguration.builder();
-        final Runtime runtime = getRuntime();
+        final WebAppRuntime runtime = getRuntime();
         final OperatingSystem os = Optional.ofNullable(runtime).map(Runtime::getOperatingSystem).orElse(null);
         if (os == null) {
             log.debug("No runtime related config is specified. It will cause error if creating a new web app.");
@@ -87,7 +88,7 @@ public class ConfigParser {
             switch (os) {
                 case WINDOWS:
                 case LINUX:
-                    builder = builder.javaVersion(Objects.toString(runtime.getJavaVersion())).webContainer(Objects.toString(runtime.getWebContainer()));
+                    builder = builder.javaVersion(runtime.getJavaVersionUserText()).webContainer(runtime.getContainerUserText());
                     break;
                 case DOCKER:
                     final MavenRuntimeConfig runtimeConfig = mojo.getRuntime();
@@ -98,33 +99,33 @@ public class ConfigParser {
             }
         }
         return builder.appName(getAppName())
-                .resourceGroup(getResourceGroup())
-                .region(getRegion())
-                .pricingTier(Optional.ofNullable(getPricingTier()).map(PricingTier::getSize).orElse(null))
-                .servicePlanName(mojo.getAppServicePlanName())
-                .servicePlanResourceGroup(mojo.getAppServicePlanResourceGroup())
-                .deploymentSlotSetting(mojo.getDeploymentSlotSetting())
-                .os(os)
-                .mavenSettings(mojo.getSettings())
-                .resources(Optional.ofNullable(mojo.getDeployment()).map(Deployment::getResources).orElse(null))
-                .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
-                .buildDirectoryAbsolutePath(mojo.getBuildDirectoryAbsolutePath())
-                .project(mojo.getProject())
-                .session(mojo.getSession())
-                .filtering(mojo.getMavenResourcesFiltering())
-                .schemaVersion("v2")
-                .build();
+            .resourceGroup(getResourceGroup())
+            .region(getRegion())
+            .pricingTier(Optional.ofNullable(getPricingTier()).map(PricingTier::getSize).orElse(null))
+            .servicePlanName(mojo.getAppServicePlanName())
+            .servicePlanResourceGroup(mojo.getAppServicePlanResourceGroup())
+            .deploymentSlotSetting(mojo.getDeploymentSlotSetting())
+            .os(os)
+            .mavenSettings(mojo.getSettings())
+            .resources(Optional.ofNullable(mojo.getDeployment()).map(Deployment::getResources).orElse(null))
+            .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
+            .buildDirectoryAbsolutePath(mojo.getBuildDirectoryAbsolutePath())
+            .project(mojo.getProject())
+            .session(mojo.getSession())
+            .filtering(mojo.getMavenResourcesFiltering())
+            .schemaVersion("v2")
+            .build();
     }
 
     public DeploymentSlotConfig getDeploymentSlotConfig() {
         return DeploymentSlotConfig.builder()
-                .subscriptionId(getSubscriptionId())
-                .resourceGroup(getResourceGroup())
-                .appName(getAppName())
-                .name(getDeploymentSlotName())
-                .configurationSource(getDeploymentSlotConfigurationSource())
-                .appSettings(mojo.getAppSettings())
-                .build();
+            .subscriptionId(getSubscriptionId())
+            .resourceGroup(getResourceGroup())
+            .appName(getAppName())
+            .name(getDeploymentSlotName())
+            .configurationSource(getDeploymentSlotConfigurationSource())
+            .appSettings(mojo.getAppSettings())
+            .build();
     }
 
     public List<WebAppArtifact> getArtifacts() throws AzureExecutionException {
@@ -139,7 +140,7 @@ public class ConfigParser {
             return Collections.emptyList();
         }
         return mojo.getDeployment().getResources().stream()
-                .filter(DeploymentResource::isExternalResource).collect(Collectors.toList());
+            .filter(DeploymentResource::isExternalResource).collect(Collectors.toList());
     }
 
     public String getAppName() {
@@ -191,20 +192,20 @@ public class ConfigParser {
         return parseExpandableParameter(Region::fromName, mojo.getRegion(), EXPANDABLE_REGION_WARNING);
     }
 
-    public Runtime getRuntime() {
+    public WebAppRuntime getRuntime() {
         final MavenRuntimeConfig runtime = mojo.getRuntime();
         if (runtime == null || runtime.isEmpty()) {
             return null;
         }
         final OperatingSystem os = getOs(runtime);
         if (os == OperatingSystem.DOCKER) {
-            return Runtime.DOCKER;
+            return WebAppRuntime.DOCKER;
+        } else if (os == OperatingSystem.LINUX) {
+            return WebAppLinuxRuntime.fromContainerAndJavaVersionUserText(runtime.getWebContainer(), runtime.getJavaVersion());
+        } else if (os == OperatingSystem.WINDOWS) {
+            return WebAppWindowsRuntime.fromContainerAndJavaVersionUserText(runtime.getWebContainer(), runtime.getJavaVersion());
         }
-        final JavaVersion javaVersion = StringUtils.isEmpty(runtime.getJavaVersion()) ? null :
-                parseExpandableParameter(JavaVersion::fromString, runtime.getJavaVersion(), EXPANDABLE_JAVA_VERSION_WARNING);
-        final WebContainer webContainer = StringUtils.isEmpty(runtime.getWebContainer()) ? null :
-                parseExpandableParameter(WebContainer::fromString, runtime.getWebContainer(), EXPANDABLE_WEB_CONTAINER_WARNING);
-        return Runtime.getRuntime(os, webContainer, javaVersion);
+        return null;
     }
 
     private OperatingSystem getOs(final MavenRuntimeConfig runtime) {
@@ -216,13 +217,8 @@ public class ConfigParser {
         if (runtime == null || runtime.isEmpty()) {
             return null;
         }
-        final OperatingSystem os = getOs(runtime);
-        final JavaVersion javaVersion = StringUtils.isEmpty(runtime.getJavaVersion()) ? null :
-                parseExpandableParameter(JavaVersion::fromString, runtime.getJavaVersion(), EXPANDABLE_JAVA_VERSION_WARNING);
-        final WebContainer webContainer = StringUtils.isEmpty(runtime.getWebContainer()) ? null :
-                parseExpandableParameter(WebContainer::fromString, runtime.getWebContainer(), EXPANDABLE_WEB_CONTAINER_WARNING);
-        final RuntimeConfig result = new RuntimeConfig().os(os).javaVersion(javaVersion).webContainer(webContainer)
-                .image(runtime.getImage()).registryUrl(runtime.getRegistryUrl());
+        final RuntimeConfig result = new RuntimeConfig().runtime(this.getRuntime())
+            .image(runtime.getImage()).registryUrl(runtime.getRegistryUrl());
         if (StringUtils.isNotEmpty(runtime.getServerId())) {
             final MavenDockerCredentialProvider credentialProvider = getDockerCredential(runtime.getServerId());
             result.username(credentialProvider.getUsername()).password(credentialProvider.getPassword());
@@ -237,10 +233,10 @@ public class ConfigParser {
     protected static List<WebAppArtifact> convertResourceToArtifacts(List<DeploymentResource> resources) throws AzureExecutionException {
         try {
             return CollectionUtils.isEmpty(resources) ? Collections.emptyList() :
-                    resources.stream()
-                            // filter out external resources
-                            .filter(resource -> !resource.isExternalResource())
-                            .flatMap(resource -> convertResourceToArtifacts(resource).stream()).collect(Collectors.toList());
+                resources.stream()
+                    // filter out external resources
+                    .filter(resource -> !resource.isExternalResource())
+                    .flatMap(resource -> convertResourceToArtifacts(resource).stream()).collect(Collectors.toList());
         } catch (Throwable ex) {
             throw new AzureExecutionException(String.format("Cannot parse deployment resources due to error: %s.", ex.getMessage()), ex);
         }
@@ -265,8 +261,8 @@ public class ConfigParser {
     private static List<WebAppArtifact> convertLegacyResourceToArtifacts(DeploymentResource resource) {
         final List<File> artifacts = MavenArtifactUtils.getArtifacts(resource);
         return artifacts.stream()
-                .map(file -> WebAppArtifact.builder().file(file).deployType(DeployType.getDeployTypeFromFile(file)).path(resource.getTargetPath()).build())
-                .collect(Collectors.toList());
+            .map(file -> WebAppArtifact.builder().file(file).deployType(DeployType.getDeployTypeFromFile(file)).path(resource.getTargetPath()).build())
+            .collect(Collectors.toList());
     }
 
     private static List<WebAppArtifact> convertOneDeployResourceToArtifacts(Resource resource) {
@@ -274,10 +270,10 @@ public class ConfigParser {
         final String typeString = ((DeploymentResource) resource).getType();
         final DeployType type = DeployType.fromString(typeString);
         Objects.requireNonNull(type, () -> String.format("Unsupported resource type '%s', please change to one from this list: %s", typeString,
-                DeployType.values().stream().map(Object::toString).map(StringUtils::lowerCase).collect(Collectors.joining(", "))));
+            DeployType.values().stream().map(Object::toString).map(StringUtils::lowerCase).collect(Collectors.joining(", "))));
         if (type.requireSingleFile() && artifacts.size() > 1) {
             throw new AzureToolkitRuntimeException(String.format("Multiple files are found for resource type('%s'), only one file is allowed.",
-                    type));
+                type));
         }
 
         if (artifacts.isEmpty()) {
@@ -291,13 +287,13 @@ public class ConfigParser {
             for (final File file : artifacts) {
                 if (!StringUtils.equalsIgnoreCase(FilenameUtils.getExtension(file.getName()), expectFileExtension)) {
                     throw new AzureToolkitRuntimeException(String.format("Wrong file '%s' Deployable type('%s'), expected file type '%s'",
-                            file, type, expectFileExtension));
+                        file, type, expectFileExtension));
                 }
             }
         }
         return artifacts.stream()
-                .map(file -> WebAppArtifact.builder().file(file).deployType(type).path(getRemotePath(type, resource, file)).build())
-                .collect(Collectors.toList());
+            .map(file -> WebAppArtifact.builder().file(file).deployType(type).path(getRemotePath(type, resource, file)).build())
+            .collect(Collectors.toList());
 
     }
 
@@ -308,7 +304,7 @@ public class ConfigParser {
         if (StringUtils.isNotBlank(resource.getTargetPath()) || type.requirePath()) {
             // remove the prefix like '/' and '/home/site/libs'
             final String toDir = normalizePathString(StringUtils.defaultString(resource.getTargetPath()),
-                    type.getTargetPathPrefix(), "/");
+                type.getTargetPathPrefix(), "/");
             return normalizePath(Paths.get(StringUtils.defaultString(toDir), file.getName()).toString());
         } else {
             return null;
