@@ -106,9 +106,9 @@ public class DeployMojo extends AbstractFunctionMojo {
     @AzureOperation("user/functionapp.deploy_app")
     protected void doExecute() throws Throwable {
         this.mergeCommandLineConfig();
-        doValidate();
         initAzureAppServiceClient();
         ((FunctionsServiceSubscription) Objects.requireNonNull(Azure.az(AzureWebApp.class).get(subscriptionId, null), "You are not signed-in")).loadRuntimes();
+        doValidate();
         final ConfigParser parser = getParser();
         final FunctionAppConfig config = parser.parseConfig();
         final FunctionApp app = Azure.az(AzureFunctions.class).functionApps(config.subscriptionId()).updateOrCreate(config.appName(), config.resourceGroup());

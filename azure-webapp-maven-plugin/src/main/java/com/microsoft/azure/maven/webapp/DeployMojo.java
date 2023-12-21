@@ -79,10 +79,10 @@ public class DeployMojo extends AbstractWebAppMojo {
     @AzureOperation(name = "user/webapp.deploy_app")
     protected void doExecute() throws AzureExecutionException {
         mergeCommandLineConfig();
-        doValidate();
         // initialize library client
         az = initAzureAppServiceClient();
         ((WebAppServiceSubscription) Objects.requireNonNull(Azure.az(AzureWebApp.class).get(subscriptionId, null), "You are not signed-in")).loadRuntimes();
+        doValidate();
         final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
         final WebApp app = Azure.az(AzureWebApp.class).webApps(appServiceConfig.subscriptionId())
                 .getOrDraft(appServiceConfig.appName(), appServiceConfig.resourceGroup());
