@@ -10,6 +10,7 @@ import com.azure.resourcemanager.appservice.models.FunctionAppMinorVersion;
 import com.azure.resourcemanager.appservice.models.FunctionAppRuntimeSettings;
 import com.azure.resourcemanager.appservice.models.FunctionAppRuntimes;
 import com.azure.resourcemanager.appservice.models.FunctionRuntimeStack;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apache.commons.lang3.BooleanUtils;
@@ -21,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
@@ -55,6 +58,14 @@ public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
         this.javaVersionNumber = this.fxString.split("\\|", 2)[1];
         this.javaVersionDisplayText = javaVersion.displayText();
         this.deprecatedOrHidden = BooleanUtils.isTrue(settings.isDeprecated()) || BooleanUtils.isTrue(settings.isHidden());
+    }
+
+    public FunctionAppLinuxRuntime(final Map<String, Object> javaVersion) {
+        final Map<String, Object> settings = Utils.get(javaVersion, "$.stackSettings.linuxRuntimeSettings");
+        this.fxString = Utils.get(settings, "$.runtimeVersion");
+        this.javaVersionNumber = Objects.requireNonNull(this.fxString).split("\\|", 2)[1];
+        this.javaVersionDisplayText = Utils.get(javaVersion, "$.displayText");
+        this.deprecatedOrHidden = BooleanUtils.isTrue(Utils.get(settings, "$.isDeprecated")) || BooleanUtils.isTrue(Utils.get(settings, "$.isHidden"));
     }
 
     FunctionAppLinuxRuntime(@Nonnull String javaVersionUserText, @Nonnull String fxString) {
@@ -111,6 +122,27 @@ public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
             .map(FunctionAppRuntimeSettings::runtimeVersion)
             .ifPresent(s -> RUNTIMES.add(new FunctionAppLinuxRuntime(javaMinorVersion)))
         );
+        loaded.compareAndSet(null, Boolean.TRUE);
+    }
+
+    @SuppressWarnings("DataFlowIssue")
+    public static void loadAllFunctionAppLinuxRuntimesFromMap(final List<Map<String, Object>> javaVersions) {
+        if (!loaded.compareAndSet(Boolean.FALSE, null)) {
+            return;
+        }
+        final Pattern EXCLUDE_PATTERN = Pattern.compile("\\..*\\.");
+        final List<Map<String, Object>> javaMinorVersions = javaVersions.stream()
+            .flatMap(majorVersion -> Utils.<List<Map<String, Object>>>get(majorVersion, "$.minorVersions").stream()
+                .filter(minorVersion -> !EXCLUDE_PATTERN.matcher(Utils.get(minorVersion, "$.value")).matches()))
+            .collect(Collectors.toList());
+
+        RUNTIMES.clear();
+        javaMinorVersions.forEach(javaMinorVersion -> {
+            final String runtimeVersion = Utils.get(javaMinorVersion, "$.stackSettings.linuxRuntimeSettings.runtimeVersion");
+            if (StringUtils.isNotBlank(runtimeVersion)) {
+                RUNTIMES.add(new FunctionAppLinuxRuntime(javaMinorVersion));
+            }
+        });
         loaded.compareAndSet(null, Boolean.TRUE);
     }
 

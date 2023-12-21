@@ -13,6 +13,7 @@ import com.azure.resourcemanager.appservice.models.WebAppRuntimes;
 import com.azure.resourcemanager.appservice.models.WebContainer;
 import com.azure.resourcemanager.appservice.models.WindowsJavaContainerSettings;
 import com.google.common.collect.Sets;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apache.commons.lang3.BooleanUtils;
@@ -24,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -87,6 +90,20 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : containerSettings.javaContainerVersion().toUpperCase();
         this.javaVersionNumber = javaSettings.runtimeVersion().toUpperCase();
         this.javaVersionDisplayText = javaMinorVersion.displayText();
+    }
+
+    @SuppressWarnings("DataFlowIssue")
+    public WebAppWindowsRuntime(final Map<String, Object> webContainer, final Map<String, Object> javaMinorVersion) {
+        final Map<String, Object> containerSettings = Utils.get(webContainer, "$.stackSettings.windowsContainerSettings");
+        final Map<String, Object> javaSettings = Utils.get(javaMinorVersion, "$.stackSettings.windowsRuntimeSettings");
+        this.deprecatedOrHidden = BooleanUtils.isTrue(Utils.get(containerSettings, "$.isHidden"))
+            || BooleanUtils.isTrue(Utils.get(javaSettings, "$.isHidden"))
+            || BooleanUtils.isTrue(Utils.get(containerSettings, "$.isDeprecated"))
+            || BooleanUtils.isTrue(Utils.get(javaSettings, "$.isDeprecated"));
+        this.containerName = ((String) Utils.get(containerSettings, "$.javaContainer")).toUpperCase();
+        this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : ((String) Utils.get(containerSettings, "$.javaContainerVersion")).toUpperCase();
+        this.javaVersionNumber = ((String) Utils.get(javaSettings, "$.runtimeVersion")).toUpperCase();
+        this.javaVersionDisplayText = Utils.get(javaMinorVersion, "$.displayText");
     }
 
     WebAppWindowsRuntime(final String containerUserText, final String javaVersionUserText) {
@@ -156,6 +173,28 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
                             .map(WebAppRuntimes::windowsContainerSettings).map(WindowsJavaContainerSettings::javaContainer).isPresent();
                         final boolean javaSettings = Optional.ofNullable(javaMinorVersion).map(WebAppMinorVersion::stackSettings)
                             .map(WebAppRuntimes::windowsRuntimeSettings).map(WebAppRuntimeSettings::runtimeVersion).isPresent();
+                        if (containerSettings && javaSettings) {
+                            RUNTIMES.add(new WebAppWindowsRuntime(containerMinorVersion, javaMinorVersion));
+                        }
+                    }
+                }
+            }
+        }
+        loaded.compareAndSet(null, Boolean.TRUE);
+    }
+
+    @SuppressWarnings("DataFlowIssue")
+    public static void loadAllWebAppWindowsRuntimesFromMap(final List<Map<String, Object>> javaVersions, final List<Map<String, Object>> containerVersions) {
+        if (!loaded.compareAndSet(Boolean.FALSE, null)) {
+            return;
+        }
+        RUNTIMES.clear();
+        for (final Map<String, Object> javaMajorVersion : javaVersions) {
+            for (final Map<String, Object> javaMinorVersion : Utils.<List<Map<String, Object>>>get(javaMajorVersion, "$.minorVersions")) {
+                for (final Map<String, Object> containerMajorVersion : containerVersions) {
+                    for (final Map<String, Object> containerMinorVersion : Utils.<List<Map<String, Object>>>get(containerMajorVersion, "$.minorVersions")) {
+                        final boolean containerSettings = Objects.nonNull(Utils.get(containerMinorVersion, "$.stackSettings.windowsContainerSettings.javaContainer"));
+                        final boolean javaSettings = Objects.nonNull(Utils.get(javaMinorVersion, "$.stackSettings.windowsRuntimeSettings.runtimeVersion"));
                         if (containerSettings && javaSettings) {
                             RUNTIMES.add(new WebAppWindowsRuntime(containerMinorVersion, javaMinorVersion));
                         }

@@ -11,6 +11,7 @@ import com.azure.resourcemanager.appservice.models.FunctionAppRuntimeSettings;
 import com.azure.resourcemanager.appservice.models.FunctionAppRuntimes;
 import com.azure.resourcemanager.appservice.models.JavaVersion;
 import com.google.common.collect.Sets;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apache.commons.lang3.BooleanUtils;
@@ -22,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -104,6 +105,25 @@ public class FunctionAppWindowsRuntime implements FunctionAppRuntime {
             .map(FunctionAppRuntimeSettings::runtimeVersion)
             .ifPresent(s -> RUNTIMES.add(new FunctionAppWindowsRuntime(javaMinorVersion)))
         );
+        loaded.compareAndSet(null, Boolean.TRUE);
+    }
+
+    @SuppressWarnings("DataFlowIssue")
+    public static void loadAllFunctionAppWindowsRuntimesFromMap(final List<Map<String, Object>> javaVersions) {
+        if (!loaded.compareAndSet(Boolean.FALSE, null)) {
+            return;
+        }
+        final List<Map<String, Object>> javaMinorVersions = javaVersions.stream()
+            .flatMap(majorVersion -> Utils.<List<Map<String, Object>>>get(majorVersion, "$.minorVersions").stream())
+            .collect(Collectors.toList());
+
+        RUNTIMES.clear();
+        javaMinorVersions.forEach(javaMinorVersion -> {
+            final String runtimeVersion = Utils.get(javaMinorVersion, "$.stackSettings.windowsRuntimeSettings.runtimeVersion");
+            if (StringUtils.isNotBlank(runtimeVersion)) {
+                RUNTIMES.add(new FunctionAppWindowsRuntime(runtimeVersion));
+            }
+        });
         loaded.compareAndSet(null, Boolean.TRUE);
     }
 

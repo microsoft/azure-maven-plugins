@@ -10,6 +10,7 @@ import com.azure.resourcemanager.appservice.models.RuntimeStack;
 import com.azure.resourcemanager.appservice.models.WebAppMajorVersion;
 import com.azure.resourcemanager.appservice.models.WebAppMinorVersion;
 import com.google.common.collect.Sets;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apache.commons.lang3.BooleanUtils;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -91,6 +93,18 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
         this.javaVersionDisplayText = javaVersion.displayText();
     }
 
+    public WebAppLinuxRuntime(final Map<String, Object> container, final Map<String, Object> javaVersion, final String fxString) {
+        final Map<String, Object> containerSettings = Utils.get(container, "$.stackSettings.linuxContainerSettings");
+        final String[] parts = fxString.split("\\|", 2);
+        this.fxString = fxString;
+        this.deprecatedOrHidden = BooleanUtils.isTrue(Utils.get(containerSettings, "$.isHidden"))
+            || BooleanUtils.isTrue(Utils.get(containerSettings, "$.isDeprecated"));
+        this.containerName = parts[0].toUpperCase();
+        this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : ((String) Utils.get(container, "$.value")).toUpperCase();
+        this.javaVersionNumber = ((String) Utils.get(javaVersion, "$.value")).toUpperCase();
+        this.javaVersionDisplayText = Utils.get(javaVersion, "$.displayText");
+    }
+
     WebAppLinuxRuntime(final String fxString, final String javaVersionUserText) {
         this.fxString = fxString;
         final String[] fxStringParts = fxString.split("[|-]", 3);
@@ -157,6 +171,29 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
                                 RUNTIMES.add(new WebAppLinuxRuntime(container, java, fxString));
                             }
                         } catch (final NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
+                        }
+                    }
+                }
+            }
+        }
+        loaded.compareAndSet(null, Boolean.TRUE);
+    }
+
+    public static void loadAllWebAppLinuxRuntimesFromMap(List<Map<String, Object>> javaVersions, List<Map<String, Object>> containerVersions) {
+        if (!loaded.compareAndSet(Boolean.FALSE, null)) {
+            return;
+        }
+
+        RUNTIMES.clear();
+        for (final Map<String, Object> containerMajorVersion : containerVersions) {
+            //noinspection DataFlowIssue
+            for (final Map<String, Object> container : Utils.<List<Map<String, Object>>>get(containerMajorVersion, "$.minorVersions")) {
+                for (final Map<String, Object> java : javaVersions) {
+                    final Map<String, Object> containerSettings = Utils.get(container, "$.stackSettings.linuxContainerSettings");
+                    if (Objects.nonNull(containerSettings) && StringUtils.isNotBlank(Utils.get(java, "$.value"))) {
+                        final String fxString = (String) containerSettings.get(String.format("java%sRuntime", java.get("value").toString()));
+                        if (StringUtils.isNotBlank(fxString)) {
+                            RUNTIMES.add(new WebAppLinuxRuntime(container, java, fxString));
                         }
                     }
                 }
