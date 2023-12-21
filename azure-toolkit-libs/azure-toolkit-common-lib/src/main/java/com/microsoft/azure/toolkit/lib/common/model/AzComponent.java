@@ -9,4 +9,10 @@ public interface AzComponent {
 
     @Nonnull
     String getId();
+
+    @Nonnull
+    String getResourceTypeName();
+
+    @Nonnull
+    String getFullResourceType();
 }
