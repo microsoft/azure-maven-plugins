@@ -9,6 +9,7 @@ import com.azure.resourcemanager.appservice.models.JavaVersion;
 import com.azure.resourcemanager.appservice.models.WebAppMajorVersion;
 import com.azure.resourcemanager.appservice.models.WebAppMinorVersion;
 import com.azure.resourcemanager.appservice.models.WebAppRuntimeSettings;
+import com.azure.resourcemanager.appservice.models.WebAppRuntimes;
 import com.azure.resourcemanager.appservice.models.WebContainer;
 import com.azure.resourcemanager.appservice.models.WindowsJavaContainerSettings;
 import com.google.common.collect.Sets;
@@ -23,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -83,7 +84,7 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
             || BooleanUtils.isTrue(containerSettings.isDeprecated())
             || BooleanUtils.isTrue(javaSettings.isDeprecated());
         this.containerName = containerSettings.javaContainer().toUpperCase();
-        this.containerVersionNumber = containerSettings.javaContainerVersion().toUpperCase();
+        this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : containerSettings.javaContainerVersion().toUpperCase();
         this.javaVersionNumber = javaSettings.runtimeVersion().toUpperCase();
         this.javaVersionDisplayText = javaMinorVersion.displayText();
     }
@@ -93,7 +94,7 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
         final String[] javaParts = javaVersionUserText.split(" ");
         this.deprecatedOrHidden = false;
         this.containerName = containerParts[0];
-        this.containerVersionNumber = containerParts[1];
+        this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : containerParts[1].toUpperCase();
         this.javaVersionNumber = javaParts[1];
         this.javaVersionDisplayText = javaVersionUserText;
     }
@@ -107,7 +108,8 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
     }
 
     @Nullable
-    public static WebAppWindowsRuntime fromContainerAndJavaVersion(final String containerName, final String containerVersionNumber, final JavaVersion javaVersion) {
+    public static WebAppWindowsRuntime fromContainerAndJavaVersion(final String containerName, String containerVersionNumber, final JavaVersion javaVersion) {
+        containerVersionNumber = StringUtils.equalsIgnoreCase(containerName, "java") ? "SE" : containerVersionNumber;
         final String containerUserText = String.format("%s %s", containerName, containerVersionNumber);
         final String javaVersionUserText = String.format("java %s", javaVersion.toString());
         return fromContainerAndJavaVersionUserText(containerUserText, javaVersionUserText);
@@ -115,14 +117,15 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
 
     @Nullable
     public static WebAppWindowsRuntime fromContainerAndJavaVersionUserText(final String containerUserText, final String javaVersionUserText) {
+        final String finalContainerUserText = StringUtils.startsWithIgnoreCase(containerUserText, "java ") ? "Java SE" : containerUserText;
         return RUNTIMES.stream().filter(r -> {
             final String containerText = String.format("%s %s", r.containerName, r.containerVersionNumber);
             final String javaVersionText = String.format("java %s", r.javaVersionNumber);
             if (StringUtils.equalsAnyIgnoreCase(r.javaVersionNumber, "8", "1.8")) {
-                return StringUtils.equalsIgnoreCase(containerUserText, containerText) &&
+                return StringUtils.equalsIgnoreCase(finalContainerUserText, containerText) &&
                     StringUtils.equalsAnyIgnoreCase(javaVersionUserText, "java 1.8", "java 8");
             }
-            return StringUtils.equalsIgnoreCase(containerUserText, containerText) &&
+            return StringUtils.equalsIgnoreCase(finalContainerUserText, containerText) &&
                 StringUtils.equalsAnyIgnoreCase(javaVersionUserText, javaVersionText, r.javaVersionDisplayText);
         }).findFirst().orElse(null);
     }
@@ -149,9 +152,11 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
             for (final WebAppMinorVersion javaMinorVersion : javaMajorVersion.minorVersions()) {
                 for (final WebAppMajorVersion containerMajorVersion : containerVersions) {
                     for (final WebAppMinorVersion containerMinorVersion : containerMajorVersion.minorVersions()) {
-                        final WindowsJavaContainerSettings containerSettings = containerMinorVersion.stackSettings().windowsContainerSettings();
-                        final WebAppRuntimeSettings javaSettings = javaMinorVersion.stackSettings().windowsRuntimeSettings();
-                        if (Objects.nonNull(containerSettings) && Objects.nonNull(javaSettings)) {
+                        final boolean containerSettings = Optional.ofNullable(containerMinorVersion).map(WebAppMinorVersion::stackSettings)
+                            .map(WebAppRuntimes::windowsContainerSettings).map(WindowsJavaContainerSettings::javaContainer).isPresent();
+                        final boolean javaSettings = Optional.ofNullable(javaMinorVersion).map(WebAppMinorVersion::stackSettings)
+                            .map(WebAppRuntimes::windowsRuntimeSettings).map(WebAppRuntimeSettings::runtimeVersion).isPresent();
+                        if (containerSettings && javaSettings) {
                             RUNTIMES.add(new WebAppWindowsRuntime(containerMinorVersion, javaMinorVersion));
                         }
                     }
@@ -161,7 +166,7 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
         loaded.compareAndSet(null, Boolean.TRUE);
     }
 
-    public String toString(){
+    public String toString() {
         return String.format("Windows: %s - %s", this.getContainerUserText(), this.getJavaVersionUserText());
     }
 }

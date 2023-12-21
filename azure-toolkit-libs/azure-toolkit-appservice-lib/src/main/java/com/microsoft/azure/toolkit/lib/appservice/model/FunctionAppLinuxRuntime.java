@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.appservice.model;
 import com.azure.resourcemanager.appservice.models.FunctionAppMajorVersion;
 import com.azure.resourcemanager.appservice.models.FunctionAppMinorVersion;
 import com.azure.resourcemanager.appservice.models.FunctionAppRuntimeSettings;
+import com.azure.resourcemanager.appservice.models.FunctionAppRuntimes;
 import com.azure.resourcemanager.appservice.models.FunctionRuntimeStack;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -20,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -104,12 +105,12 @@ public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
             .collect(Collectors.toList());
 
         RUNTIMES.clear();
-        for (final FunctionAppMinorVersion javaMinorVersion : javaMinorVersions) {
-            final FunctionAppRuntimeSettings javaSettings = javaMinorVersion.stackSettings().linuxRuntimeSettings();
-            if (Objects.nonNull(javaSettings)) {
-                RUNTIMES.add(new FunctionAppLinuxRuntime(javaMinorVersion));
-            }
-        }
+        javaMinorVersions.forEach(javaMinorVersion -> Optional.ofNullable(javaMinorVersion)
+            .map(FunctionAppMinorVersion::stackSettings)
+            .map(FunctionAppRuntimes::linuxRuntimeSettings)
+            .map(FunctionAppRuntimeSettings::runtimeVersion)
+            .ifPresent(s -> RUNTIMES.add(new FunctionAppLinuxRuntime(javaMinorVersion)))
+        );
         loaded.compareAndSet(null, Boolean.TRUE);
     }
 

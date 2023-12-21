@@ -86,7 +86,7 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
         this.deprecatedOrHidden = BooleanUtils.isTrue(containerSettings.isHidden())
             || BooleanUtils.isTrue(containerSettings.isDeprecated());
         this.containerName = parts[0].toUpperCase();
-        this.containerVersionNumber = container.value().toUpperCase();
+        this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : container.value().toUpperCase();
         this.javaVersionNumber = javaVersion.value().toUpperCase();
         this.javaVersionDisplayText = javaVersion.displayText();
     }
@@ -114,14 +114,15 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
 
     @Nullable
     public static WebAppLinuxRuntime fromContainerAndJavaVersionUserText(final String containerUserText, String javaVersionUserText) {
+        final String finalContainerUserText = StringUtils.startsWithIgnoreCase(containerUserText, "java ") ? "Java SE" : containerUserText;
         return RUNTIMES.stream().filter(r -> {
             final String containerText = String.format("%s %s", r.containerName, r.containerVersionNumber);
             final String javaVersionText = String.format("java %s", r.javaVersionNumber);
             if (StringUtils.equalsAnyIgnoreCase(r.javaVersionNumber, "8", "1.8")) {
-                return StringUtils.equalsIgnoreCase(containerUserText, containerText) &&
+                return StringUtils.equalsIgnoreCase(finalContainerUserText, containerText) &&
                     StringUtils.equalsAnyIgnoreCase(javaVersionUserText, "java 1.8", "java 8");
             }
-            return StringUtils.equalsIgnoreCase(containerUserText, containerText) &&
+            return StringUtils.equalsIgnoreCase(finalContainerUserText, containerText) &&
                 StringUtils.equalsAnyIgnoreCase(javaVersionUserText, javaVersionText, r.javaVersionDisplayText);
         }).findFirst().orElse(null);
     }
@@ -152,7 +153,9 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
                     if (Objects.nonNull(containerSettings) && StringUtils.isNotBlank(java.value())) {
                         try {
                             final String fxString = (String) MethodUtils.invokeMethod(containerSettings, String.format("java%sRuntime", java.value()));
-                            RUNTIMES.add(new WebAppLinuxRuntime(container, java, fxString));
+                            if (StringUtils.isNotBlank(fxString)) {
+                                RUNTIMES.add(new WebAppLinuxRuntime(container, java, fxString));
+                            }
                         } catch (final NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
                         }
                     }
