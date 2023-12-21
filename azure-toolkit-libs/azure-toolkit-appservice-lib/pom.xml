@@ -54,6 +54,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-toolkit-containerapps-lib</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.microsoft.azure.functions</groupId>
             <artifactId>azure-functions-java-library</artifactId>
             <version>1.4.2</version>

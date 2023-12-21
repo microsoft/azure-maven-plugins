@@ -7,11 +7,15 @@ package com.microsoft.azure.toolkit.lib.applicationinsights;
 
 import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsComponent;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.monitor.AzureLogAnalyticsWorkspace;
+import com.microsoft.azure.toolkit.lib.monitor.LogAnalyticsWorkspace;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -58,6 +62,17 @@ public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, A
 
     public String getConnectionString() {
         return Optional.ofNullable(getRemote()).map(ApplicationInsightsComponent::connectionString).orElse(null);
+    }
+
+    @Nullable
+    public String getWorkspaceResourceId() {
+        return Optional.ofNullable(getRemote()).map(a -> a.workspaceResourceId()).orElse(null);
+    }
+
+    @Nullable
+    public LogAnalyticsWorkspace getWorkspace() {
+        final String workspaceResourceId = getWorkspaceResourceId();
+        return StringUtils.isBlank(workspaceResourceId) ? null : Azure.az(AzureLogAnalyticsWorkspace.class).getById(workspaceResourceId);
     }
 
     @Nonnull

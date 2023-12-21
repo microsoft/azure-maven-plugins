@@ -32,6 +32,10 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
+import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
+import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
+import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironmentDraft;
+import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironmentModule;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
 import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
@@ -76,7 +80,9 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
     private ResourceGroup resourceGroup;
     private AppServicePlan appServicePlan;
     private StorageAccount storageAccount;
+    private ContainerAppsEnvironment environment;
     private String instrumentationKey;
+    private ApplicationInsight applicationInsight;
     private FunctionAppBase<?, ?, ?> functionApp;
 
 
@@ -89,7 +95,6 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
         final FunctionAppDraft appDraft = Azure.az(AzureFunctions.class).functionApps(functionAppConfig.subscriptionId())
             .updateOrCreate(functionAppConfig.appName(), functionAppConfig.resourceGroup());
         registerSubTask(getResourceGroupTask(), result -> this.resourceGroup = result);
-        registerSubTask(getServicePlanTask(), result -> this.appServicePlan = result);
         if (appDraft.isDraftForCreating()) {
             // create new storage account when create function app
             registerSubTask(getStorageAccountTask(), result -> this.storageAccount = result);
@@ -100,9 +105,16 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
                 this.instrumentationKey = functionAppConfig.appInsightsKey();
             } else if (StringUtils.isNotEmpty(functionAppConfig.appInsightsInstance()) || !appDraft.exists()) {
                 // create AI instance by default when create new function
-                registerSubTask(getApplicationInsightsTask(),
-                    result -> this.instrumentationKey = Optional.ofNullable(result).map(ApplicationInsight::getInstrumentationKey).orElse(null));
+                registerSubTask(getApplicationInsightsTask(), result -> {
+                    this.applicationInsight = result;
+                    this.instrumentationKey = Optional.ofNullable(result).map(ApplicationInsight::getInstrumentationKey).orElse(null);
+                });
             }
+        }
+        if (StringUtils.isNotBlank(functionAppConfig.environment())) {
+            registerSubTask(getContainerAppEnvironmentTask(), result -> this.environment = result);
+        } else {
+            registerSubTask(getServicePlanTask(), result -> this.appServicePlan = result);
         }
         if (StringUtils.isEmpty(functionAppConfig.deploymentSlotName())) {
             final AzureTask<FunctionApp> functionTask = appDraft.exists() ? getUpdateFunctionAppTask(appDraft) : getCreateFunctionAppTask(appDraft);
@@ -113,6 +125,26 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
                 getUpdateFunctionSlotTask(slotDraft) : getCreateFunctionSlotTask(slotDraft);
             registerSubTask(slotTask, result -> this.functionApp = result);
         }
+    }
+
+    private AzureTask<ContainerAppsEnvironment> getContainerAppEnvironmentTask() {
+        return new AzureTask<>(() -> {
+            final String environmentName = functionAppConfig.environment();
+            final String resourceGroupName = functionAppConfig.resourceGroup();
+            final ContainerAppsEnvironmentModule environments = Azure.az(AzureContainerApps.class).environments(functionAppConfig.subscriptionId());
+            final ContainerAppsEnvironment environment = environments.get(environmentName, resourceGroupName);
+            if (environment != null && environment.exists()) {
+                return environment;
+            }
+            final ContainerAppsEnvironmentDraft draft = environments.create(environmentName, resourceGroupName);
+            final ContainerAppsEnvironmentDraft.Config config = new ContainerAppsEnvironmentDraft.Config();
+            config.setName(environmentName);
+            config.setRegion(getNonStageRegion(functionAppConfig.region()));
+            config.setResourceGroup(this.resourceGroup);
+            config.setLogAnalyticsWorkspace(Optional.ofNullable(this.applicationInsight).map(ApplicationInsight::getWorkspace).orElse(null));
+            draft.setConfig(config);
+            return draft.commit();
+        });
     }
 
     private AzureTask<StorageAccount> getStorageAccountTask() {
@@ -167,6 +199,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             Optional.ofNullable(instrumentationKey).filter(StringUtils::isNoneEmpty).ifPresent(key ->
                 appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, key));
             draft.setAppServicePlan(appServicePlan);
+            draft.setRegion(functionAppConfig.region());
             draft.setRuntime(getRuntime(functionAppConfig.runtime()));
             draft.setDockerConfiguration(getDockerConfiguration(functionAppConfig.runtime()));
             draft.setAppSettings(appSettings);
@@ -174,6 +207,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setEnableDistributedTracing(functionAppConfig.enableDistributedTracing());
             draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
             draft.setStorageAccount(storageAccount);
+            draft.setEnvironment(environment);
+            draft.setContainerConfiguration(functionAppConfig.containerConfiguration());
             final FunctionApp result = draft.createIfNotExist();
             Thread.sleep(10 * 1000); // workaround for service initialization
             return result;

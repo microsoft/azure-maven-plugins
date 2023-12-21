@@ -138,6 +138,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         validateFunctionCompatibility();
         validateArtifactCompileVersion();
         validateApplicationInsightsConfiguration();
+        // validate container apps hosting of function app
     }
 
     private void validateArtifactCompileVersion() throws AzureExecutionException {
@@ -218,12 +219,13 @@ public class DeployMojo extends AbstractFunctionMojo {
         final FunctionAppConfig config = parser.parseConfig();
         final boolean newFunctionApp = !app.exists();
         final FunctionAppConfig defaultConfig = !newFunctionApp ?
-            fromFunctionApp(app, Objects.requireNonNull(app.getAppServicePlan())) :
-            buildDefaultConfig(config.subscriptionId(), config.resourceGroup(), config.appName());
+            fromFunctionApp(app) : buildDefaultConfig(config.subscriptionId(), config.resourceGroup(), config.appName());
         mergeAppServiceConfig(config, defaultConfig);
         if (!newFunctionApp && !config.disableAppInsights() && StringUtils.isEmpty(config.appInsightsKey())) {
             // fill ai key from existing app settings
-            config.appInsightsKey(Objects.requireNonNull(app.getAppSettings()).get(CreateOrUpdateFunctionAppTask.APPINSIGHTS_INSTRUMENTATION_KEY));
+            Optional.ofNullable(app.getAppSettings())
+                .map(map -> map.get(CreateOrUpdateFunctionAppTask.APPINSIGHTS_INSTRUMENTATION_KEY))
+                .ifPresent(config::appInsightsKey);
         }
         return new CreateOrUpdateFunctionAppTask(config).doExecute();
     }

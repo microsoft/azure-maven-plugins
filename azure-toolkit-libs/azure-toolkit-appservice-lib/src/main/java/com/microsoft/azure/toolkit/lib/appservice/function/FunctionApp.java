@@ -7,9 +7,12 @@ package com.microsoft.azure.toolkit.lib.appservice.function;
 
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
+import com.azure.resourcemanager.appservice.models.NameValuePair;
 import com.azure.resourcemanager.appservice.models.PlatformArchitecture;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
+import com.microsoft.azure.toolkit.lib.appservice.model.ContainerAppFunctionConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -18,6 +21,8 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
+import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +52,7 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     private final FunctionAppDeploymentSlotModule deploymentModule;
     private static final String SYNC_TRIGGERS = "Syncing triggers and fetching function information";
     private static final String UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS = "Some http trigger urls cannot be displayed " +
-            "because they are non-anonymous. To access the non-anonymous triggers, please refer to https://aka.ms/azure-functions-key.";
+        "because they are non-anonymous. To access the non-anonymous triggers, please refer to https://aka.ms/azure-functions-key.";
     private static final String HTTP_TRIGGER_URLS = "HTTP Trigger Urls:";
     private static final String NO_ANONYMOUS_HTTP_TRIGGER = "No anonymous HTTP Triggers found in deployed function app, skip list triggers.";
     private static final String AUTH_LEVEL = "authLevel";
@@ -57,7 +62,7 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     private static final String LIST_TRIGGERS = "Querying triggers...";
     private static final String LIST_TRIGGERS_WITH_RETRY = "Querying triggers (Attempt {0}/{1})...";
     private static final String NO_TRIGGERS_FOUNDED = "No triggers found in deployed function app, " +
-            "please try recompile the project by `mvn clean package` and deploy again.";
+        "please try recompile the project by `mvn clean package` and deploy again.";
     private static final int LIST_TRIGGERS_MAX_RETRY = 5;
     private static final int LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS = 10;
 
@@ -97,10 +102,10 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
         final Map<String, String> appSettings = Optional.ofNullable(this.getAppSettings()).orElseGet(HashMap::new);
         final String debugPort = appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, getRemoteDebugPort());
         doModify(() -> Objects.requireNonNull(getRemote()).update()
-                .withWebSocketsEnabled(true)
-                .withPlatformArchitecture(PlatformArchitecture.X64)
-                .withAppSetting(HTTP_PLATFORM_DEBUG_PORT, appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, getRemoteDebugPort()))
-                .withAppSetting(JAVA_OPTS, getJavaOptsWithRemoteDebugEnabled(appSettings, debugPort)).apply(), Status.UPDATING);
+            .withWebSocketsEnabled(true)
+            .withPlatformArchitecture(PlatformArchitecture.X64)
+            .withAppSetting(HTTP_PLATFORM_DEBUG_PORT, appSettings.getOrDefault(HTTP_PLATFORM_DEBUG_PORT, getRemoteDebugPort()))
+            .withAppSetting(JAVA_OPTS, getJavaOptsWithRemoteDebugEnabled(appSettings, debugPort)).apply(), Status.UPDATING);
     }
 
     @Override
@@ -115,6 +120,17 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
                 Objects.requireNonNull(getRemote()).update().withoutAppSetting(HTTP_PLATFORM_DEBUG_PORT).withAppSetting(JAVA_OPTS, javaOpts).apply();
             }
         }, Status.UPDATING);
+    }
+
+    @Nullable
+    @Override
+    public Map<String, String> getAppSettings() {
+        if (StringUtils.isBlank(getEnvironmentId())) {
+            return super.getAppSettings();
+        }
+        return Optional.ofNullable(getRemote())
+            .map(remote -> remote.manager().serviceClient().getWebApps().listApplicationSettings(getResourceGroupName(), getName()).properties())
+            .orElse(null);
     }
 
     @Nonnull
@@ -158,13 +174,13 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
         trySyncTriggers();
         final List<FunctionEntity> triggers = trySyncListFunctions();
         final List<FunctionEntity> httpFunction = triggers.stream()
-                .filter(function -> function.getTrigger() != null &&
-                        StringUtils.equalsIgnoreCase(function.getTrigger().getType(), HTTP_TRIGGER))
-                .collect(Collectors.toList());
+            .filter(function -> function.getTrigger() != null &&
+                StringUtils.equalsIgnoreCase(function.getTrigger().getType(), HTTP_TRIGGER))
+            .collect(Collectors.toList());
         final List<FunctionEntity> anonymousTriggers = httpFunction.stream()
-                .filter(bindingResource -> bindingResource.getTrigger() != null &&
-                        StringUtils.equalsIgnoreCase(bindingResource.getTrigger().getProperty(AUTH_LEVEL), ANONYMOUS))
-                .collect(Collectors.toList());
+            .filter(bindingResource -> bindingResource.getTrigger() != null &&
+                StringUtils.equalsIgnoreCase(bindingResource.getTrigger().getProperty(AUTH_LEVEL), ANONYMOUS))
+            .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(httpFunction) || CollectionUtils.isEmpty(anonymousTriggers)) {
             messager.info(NO_ANONYMOUS_HTTP_TRIGGER);
             return;
@@ -183,28 +199,28 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
         AzureMessager.getMessager().info(SYNC_TRIGGERS);
         Thread.sleep(5 * 1000);
         Mono.fromRunnable(() -> {
-                    try {
-                        this.syncTriggers();
-                    } catch (ManagementException e) {
-                        if (e.getResponse().getStatusCode() != 200) { // Java SDK throw exception with 200 response, swallow exception in this case
-                            throw e;
-                        }
+                try {
+                    this.syncTriggers();
+                } catch (ManagementException e) {
+                    if (e.getResponse().getStatusCode() != 200) { // Java SDK throw exception with 200 response, swallow exception in this case
+                        throw e;
                     }
-                }).subscribeOn(Schedulers.boundedElastic())
-                .retryWhen(Retry.fixedDelay(SYNC_FUNCTION_MAX_ATTEMPTS - 1, Duration.ofSeconds(SYNC_FUNCTION_DELAY))).block();
+                }
+            }).subscribeOn(Schedulers.boundedElastic())
+            .retryWhen(Retry.fixedDelay(SYNC_FUNCTION_MAX_ATTEMPTS - 1, Duration.ofSeconds(SYNC_FUNCTION_DELAY))).block();
     }
 
     private List<FunctionEntity> trySyncListFunctions() {
         final int[] count = {0};
         final IAzureMessager messager = AzureMessager.getMessager();
         return Mono.fromCallable(() -> {
-                    final AzureString message = count[0]++ == 0 ? AzureString.fromString(LIST_TRIGGERS) : AzureString.format(LIST_TRIGGERS_WITH_RETRY, count[0], LIST_TRIGGERS_MAX_RETRY);
-                    messager.info(message);
-                    return Optional.of(this.listFunctions())
-                            .filter(CollectionUtils::isNotEmpty)
-                            .orElseThrow(() -> new AzureToolkitRuntimeException(NO_TRIGGERS_FOUNDED));
-                }).subscribeOn(Schedulers.boundedElastic())
-                .retryWhen(Retry.fixedDelay(LIST_TRIGGERS_MAX_RETRY - 1, Duration.ofSeconds(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS))).block();
+                final AzureString message = count[0]++ == 0 ? AzureString.fromString(LIST_TRIGGERS) : AzureString.format(LIST_TRIGGERS_WITH_RETRY, count[0], LIST_TRIGGERS_MAX_RETRY);
+                messager.info(message);
+                return Optional.of(this.listFunctions())
+                    .filter(CollectionUtils::isNotEmpty)
+                    .orElseThrow(() -> new AzureToolkitRuntimeException(NO_TRIGGERS_FOUNDED));
+            }).subscribeOn(Schedulers.boundedElastic())
+            .retryWhen(Retry.fixedDelay(LIST_TRIGGERS_MAX_RETRY - 1, Duration.ofSeconds(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS))).block();
     }
 
     @Nullable
@@ -212,5 +228,19 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     protected com.azure.resourcemanager.appservice.models.FunctionApp doModify(@Nonnull Callable<com.azure.resourcemanager.appservice.models.FunctionApp> body, @Nullable String status) {
         // override only to provide package visibility
         return super.doModify(body, status);
+    }
+
+    public String getEnvironmentId() {
+        return Optional.ofNullable(this.getRemote()).map(com.azure.resourcemanager.appservice.models.FunctionApp::managedEnvironmentId).orElse(null);
+    }
+
+    public ContainerAppsEnvironment getEnvironment() {
+        return Optional.ofNullable(this.getEnvironmentId())
+            .filter(StringUtils::isNotBlank)
+            .map(id -> (ContainerAppsEnvironment) Azure.az(AzureContainerApps.class).getById(id)).orElse(null);
+    }
+
+    public ContainerAppFunctionConfiguration getContainerConfiguration() {
+        return Optional.ofNullable(this.getRemote()).map(ContainerAppFunctionConfiguration::fromFunctionApp).orElse(null);
     }
 }

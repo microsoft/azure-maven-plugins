@@ -9,6 +9,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
+import com.microsoft.azure.toolkit.lib.appservice.model.ContainerAppFunctionConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
@@ -37,6 +38,8 @@ public class ConfigParser {
                 .appInsightsInstance(mojo.getAppInsightsInstance())
                 .storageAccountName(mojo.getStorageAccountName())
                 .storageAccountResourceGroup(StringUtils.firstNonBlank(mojo.getStorageAccountResourceGroup(), mojo.getResourceGroup()))
+                .environment(mojo.getEnvironment())
+                .containerConfiguration(getContainerConfiguration())
                 .subscriptionId(mojo.getSubscriptionId())
                 .resourceGroup(mojo.getResourceGroup())
                 .appName(mojo.getAppName())
@@ -48,6 +51,13 @@ public class ConfigParser {
                 .region(getParsedRegion())
                 .runtime(getRuntimeConfig())
                 .appSettings(mojo.getAppSettings());
+    }
+
+    private ContainerAppFunctionConfiguration getContainerConfiguration() {
+        return ContainerAppFunctionConfiguration.builder()
+            .minReplicas(mojo.getMinReplicas())
+            .maxReplicas(mojo.getMaxReplicas())
+            .build();
     }
 
     public FlexConsumptionConfiguration getFlexConsumptionConfiguration() {

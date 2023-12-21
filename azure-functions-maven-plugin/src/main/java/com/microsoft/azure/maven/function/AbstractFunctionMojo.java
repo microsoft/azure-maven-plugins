@@ -221,6 +221,30 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter
     protected String storageAccountResourceGroup;
 
+    /**
+     * Name of the container app environment. It will be created if it doesn't exist.
+     */
+    @JsonProperty
+    @Getter
+    @Parameter
+    protected String environment;
+
+    /**
+     * The minimum number of replicas when create function app on container app.
+     */
+    @JsonProperty
+    @Getter
+    @Parameter
+    protected Integer minReplicas;
+
+    /**
+     * The maximum number of replicas when create function app on container app.
+     */
+    @JsonProperty
+    @Getter
+    @Parameter
+    protected Integer maxReplicas;
+
     @Getter
     protected final ConfigParser parser = new ConfigParser(this);
 
