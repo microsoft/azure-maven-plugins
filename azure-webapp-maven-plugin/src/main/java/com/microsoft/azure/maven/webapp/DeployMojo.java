@@ -133,7 +133,7 @@ public class DeployMojo extends AbstractWebAppMojo {
                 buildDefaultConfig(appServiceConfig.subscriptionId(), appServiceConfig.resourceGroup(), appServiceConfig.appName());
         mergeAppServiceConfig(appServiceConfig, defaultConfig);
         if (appServiceConfig.pricingTier() == null) {
-            final WebAppRuntime runtime = (WebAppRuntime) appServiceConfig.runtime().runtime();
+            final WebAppRuntime runtime = (WebAppRuntime) Optional.ofNullable(appServiceConfig.runtime()).map(r -> r.runtime()).orElse(null);
             appServiceConfig.pricingTier(runtime != null && runtime.isJBoss() ?
                 PricingTier.PREMIUM_P1V3 : PricingTier.PREMIUM_P1V2);
         }

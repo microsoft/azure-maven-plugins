@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @Getter
@@ -58,7 +59,7 @@ public class AppServiceConfig {
             .resourceGroupName(servicePlanResourceGroup())
             .name(servicePlanName())
             .region(region())
-            .os(runtime().runtime().getOperatingSystem())
+            .os(Optional.ofNullable(runtime()).map(RuntimeConfig::os).orElse(null))
             .pricingTier(pricingTier())
             .build();
     }

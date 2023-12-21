@@ -143,8 +143,10 @@ public class DeployMojo extends AbstractFunctionMojo {
     private void validateArtifactCompileVersion() throws AzureExecutionException {
         final RuntimeConfig runtimeConfig = getParser().getRuntimeConfig();
         final FunctionAppRuntime runtime = (FunctionAppRuntime) runtimeConfig.runtime();
-        final String javaVersion = runtime.getJavaVersionNumber();
-        validateArtifactCompileVersion(javaVersion, getArtifact(), getFailsOnRuntimeValidationError());
+        if (Objects.nonNull(runtime)) {
+            final String javaVersion = runtime.getJavaVersionNumber();
+            validateArtifactCompileVersion(javaVersion, getArtifact(), getFailsOnRuntimeValidationError());
+        }
     }
 
     // todo: Extract validator for all maven toolkits

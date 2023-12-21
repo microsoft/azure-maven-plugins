@@ -193,19 +193,23 @@ public class ConfigParser {
     }
 
     public WebAppRuntime getRuntime() {
-        final MavenRuntimeConfig runtime = mojo.getRuntime();
-        if (runtime == null || runtime.isEmpty()) {
+        final MavenRuntimeConfig runtimeConfig = mojo.getRuntime();
+        if (runtimeConfig == null || runtimeConfig.isEmpty()) {
             return null;
         }
-        final OperatingSystem os = getOs(runtime);
+        final OperatingSystem os = getOs(runtimeConfig);
+        WebAppRuntime runtime = null;
         if (os == OperatingSystem.DOCKER) {
-            return WebAppRuntime.DOCKER;
+            runtime = WebAppRuntime.DOCKER;
         } else if (os == OperatingSystem.LINUX) {
-            return WebAppLinuxRuntime.fromContainerAndJavaVersionUserText(runtime.getWebContainer(), runtime.getJavaVersion());
+            runtime = WebAppLinuxRuntime.fromContainerAndJavaVersionUserText(runtimeConfig.getWebContainer(), runtimeConfig.getJavaVersion());
         } else if (os == OperatingSystem.WINDOWS) {
-            return WebAppWindowsRuntime.fromContainerAndJavaVersionUserText(runtime.getWebContainer(), runtime.getJavaVersion());
+            runtime = WebAppWindowsRuntime.fromContainerAndJavaVersionUserText(runtimeConfig.getWebContainer(), runtimeConfig.getJavaVersion());
         }
-        return null;
+        if (Objects.isNull(runtime) && (StringUtils.isNotBlank(runtimeConfig.getWebContainer()) || StringUtils.isNotBlank(runtimeConfig.getJavaVersion()))) {
+            throw new AzureToolkitRuntimeException("invalid runtime configuration, please refer to https://aka.ms/maven_webapp_runtime for valid values");
+        }
+        return runtime;
     }
 
     private OperatingSystem getOs(final MavenRuntimeConfig runtime) {
