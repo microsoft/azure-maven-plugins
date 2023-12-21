@@ -42,4 +42,15 @@ public interface FunctionAppRuntime extends Runtime {
         }
         return JavaVersion.fromString(this.getJavaVersionNumber());
     }
+
+    static FunctionAppRuntime fromUserText(final String os, String javaVersionUserText) {
+        if (StringUtils.equalsIgnoreCase(os, "docker")) {
+            return FunctionAppRuntime.DOCKER;
+        }
+        if (StringUtils.equalsIgnoreCase(os, "windows")) {
+            return FunctionAppWindowsRuntime.fromJavaVersionUserText(javaVersionUserText);
+        }
+        return FunctionAppLinuxRuntime.fromJavaVersionUserText(javaVersionUserText);
+    }
+
 }

@@ -105,6 +105,16 @@ public interface WebAppRuntime extends Runtime {
         return getPricingTiers(this.getOperatingSystem(), this.getContainerUserText());
     }
 
+    static WebAppRuntime fromUserText(final String os, final String containerUserText, String javaVersionUserText) {
+        if (StringUtils.equalsIgnoreCase(os, "docker")) {
+            return WebAppDockerRuntime.INSTANCE;
+        }
+        if (StringUtils.equalsIgnoreCase(os, "windows")) {
+            return WebAppWindowsRuntime.fromContainerAndJavaVersionUserText(containerUserText, javaVersionUserText);
+        }
+        return WebAppLinuxRuntime.fromContainerAndJavaVersionUserText(containerUserText, javaVersionUserText);
+    }
+
     static List<WebAppRuntime> getMajorRuntimes() {
         return Stream.concat(
                 Stream.of(WebAppDockerRuntime.INSTANCE), Stream.concat(
