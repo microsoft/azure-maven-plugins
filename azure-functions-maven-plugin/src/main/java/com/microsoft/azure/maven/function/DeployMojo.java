@@ -24,7 +24,6 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.StreamingLogTask;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -107,7 +106,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected void doExecute() throws Throwable {
         this.mergeCommandLineConfig();
         initAzureAppServiceClient();
-        ((FunctionsServiceSubscription) Objects.requireNonNull(Azure.az(AzureWebApp.class).get(subscriptionId, null), "You are not signed-in")).loadRuntimes();
+        ((FunctionsServiceSubscription) Objects.requireNonNull(Azure.az(AzureFunctions.class).get(subscriptionId, null), "You are not signed-in")).loadRuntimes();
         doValidate();
         final ConfigParser parser = getParser();
         final FunctionAppConfig config = parser.parseConfig();
