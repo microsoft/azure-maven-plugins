@@ -175,8 +175,8 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         final FlexConsumptionConfiguration oldFlexConsumptionConfiguration = super.getFlexConsumptionConfiguration();
 
         final Runtime oldRuntime = super.getRuntime();
-        final boolean isRuntimeModified = !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
-        final boolean isDockerConfigurationModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
+        final boolean isRuntimeModified = (Objects.isNull(oldRuntime) || !oldRuntime.isDocker()) && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
+        final boolean isDockerConfigurationModified = Objects.nonNull(oldRuntime) && oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
         final boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
         final boolean isDiagnosticConfigModified = Objects.nonNull(newDiagnosticConfig) && !Objects.equals(newDiagnosticConfig, oldDiagnosticConfig);
         final boolean flexConsumptionModified = getParent().getAppServicePlan().getPricingTier().isFlexConsumption() &&
@@ -205,11 +205,11 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
 
     private void updateRuntime(@Nonnull FunctionDeploymentSlot.Update<?> update, @Nonnull Runtime newRuntime) {
         final Runtime oldRuntime = Objects.requireNonNull(super.getRuntime());
-        if (newRuntime.getOperatingSystem() != null && Objects.requireNonNull(oldRuntime).getOperatingSystem() != newRuntime.getOperatingSystem()) {
+        if (newRuntime.getOperatingSystem() != null && oldRuntime.getOperatingSystem() != newRuntime.getOperatingSystem()) {
             throw new AzureToolkitRuntimeException(CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS);
         }
         final OperatingSystem operatingSystem =
-                ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), Objects.requireNonNull(oldRuntime).getOperatingSystem());
+                ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), oldRuntime.getOperatingSystem());
         if (operatingSystem == OperatingSystem.LINUX) {
             AzureMessager.getMessager().warning("Update runtime is not supported for Linux app service");
         } else if (operatingSystem == OperatingSystem.WINDOWS) {

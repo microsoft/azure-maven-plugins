@@ -107,7 +107,7 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
                 final DeploymentSlot sourceSlot = webApp.deploymentSlots().getByName(newConfigurationSource);
                 Objects.requireNonNull(sourceSlot, CONFIGURATION_SOURCE_DOES_NOT_EXISTS);
                 withCreate = blank.withConfigurationFromDeploymentSlot(sourceSlot);
-            } catch (ManagementException e) {
+            } catch (final ManagementException e) {
                 throw new AzureToolkitRuntimeException(FAILED_TO_GET_CONFIGURATION_SOURCE, e);
             }
         }
@@ -153,11 +153,11 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
 
         final Runtime oldRuntime = super.getRuntime();
-        boolean isRuntimeModified =  !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
-        boolean isDockerConfigurationModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
-        boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
-        boolean isDiagnosticConfigModified = Objects.nonNull(newDiagnosticConfig) && !Objects.equals(newDiagnosticConfig, oldDiagnosticConfig);
-        boolean modified = isDiagnosticConfigModified || isAppSettingsModified || isRuntimeModified || isDockerConfigurationModified;
+        final boolean isRuntimeModified =  (Objects.isNull(oldRuntime) || !oldRuntime.isDocker()) && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
+        final boolean isDockerConfigurationModified = Objects.nonNull(oldRuntime) && oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
+        final boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
+        final boolean isDiagnosticConfigModified = Objects.nonNull(newDiagnosticConfig) && !Objects.equals(newDiagnosticConfig, oldDiagnosticConfig);
+        final boolean modified = isDiagnosticConfigModified || isAppSettingsModified || isRuntimeModified || isDockerConfigurationModified;
 
         if (modified) {
             final DeploymentSlotBase.Update<DeploymentSlot> update = remote.update();
@@ -177,7 +177,7 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
     }
 
     private void updateRuntime(@Nonnull DeploymentSlotBase.Update<?> update, @Nonnull Runtime newRuntime) {
-        final Runtime oldRuntime = super.getRuntime();
+        final Runtime oldRuntime = Objects.requireNonNull(super.getRuntime());
         if (newRuntime.getOperatingSystem() != null && oldRuntime.getOperatingSystem() != newRuntime.getOperatingSystem()) {
             throw new AzureToolkitRuntimeException(CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS);
         }
@@ -189,7 +189,7 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
             update.withJavaVersion(newRuntime.getJavaVersion())
                 .withWebContainer(((WebAppWindowsRuntime) newRuntime).getWebContainer());
         } else if (operatingSystem == OperatingSystem.DOCKER) {
-            return; // skip for docker, as docker configuration will be handled in `updateDockerConfiguration`
+            // skip for docker, as docker configuration will be handled in `updateDockerConfiguration`
         } else {
             throw new AzureToolkitRuntimeException(String.format(UNSUPPORTED_OPERATING_SYSTEM, newRuntime.getOperatingSystem()));
         }
