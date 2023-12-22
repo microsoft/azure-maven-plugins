@@ -383,8 +383,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
         builder.javaVersion(javaVersionUserInput);
         final boolean isJarPackaging = Utils.isJarPackagingProject(project.getPackaging());
         if (isJarPackaging) {
-            builder.webContainer(WebAppRuntime.CONTAINER_JAVA_SE);
-            runtimes = runtimes.stream().filter(r -> StringUtils.equalsIgnoreCase(r.getContainerUserText(), WebAppRuntime.CONTAINER_JAVA_SE)).collect(Collectors.toList());
+            builder.webContainer(WebAppRuntime.JAVA_SE.toString());
+            runtimes = runtimes.stream().filter(r -> StringUtils.equalsIgnoreCase(r.getContainerUserText(), WebAppRuntime.JAVA_SE.toString())).collect(Collectors.toList());
             return runtimes.get(0);
         }
 

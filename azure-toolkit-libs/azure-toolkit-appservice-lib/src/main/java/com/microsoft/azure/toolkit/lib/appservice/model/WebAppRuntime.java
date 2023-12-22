@@ -2,11 +2,13 @@ package com.microsoft.azure.toolkit.lib.appservice.model;
 
 import com.azure.resourcemanager.appservice.models.JavaVersion;
 import com.azure.resourcemanager.appservice.models.WebContainer;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -18,7 +20,7 @@ public interface WebAppRuntime extends Runtime {
     WebAppRuntime DEFAULT_TOMCAT_RUNTIME = WebAppLinuxRuntime.TOMCAT10_JAVA17;
     WebAppRuntime DEFAULT_JAVASE_RUNTIME = WebAppLinuxRuntime.JAVASE_JAVA17;
     WebAppRuntime DEFAULT_JBOSS_RUNTIME = WebAppLinuxRuntime.JBOSS7_JAVA17;
-    String CONTAINER_JAVA_SE = "Java SE";
+    WebContainer JAVA_SE = WebContainer.fromString("Java SE");
 
     /**
      * @return container name in upper case, e.g. 'JAVA', 'TOMCAT', 'JBOSS', 'JETTY'
@@ -82,6 +84,13 @@ public interface WebAppRuntime extends Runtime {
 
     default boolean isTomcat() {
         return StringUtils.startsWithIgnoreCase(this.getContainerName(), "tomcat");
+    }
+
+    default String getDisplayName() {
+        if (this.isDocker()) {
+            return "Docker";
+        }
+        return String.format("%s-%s-%s", this.getOperatingSystem().toString(), this.getJavaVersionUserText(), this.getContainerUserText());
     }
 
     default String getJavaVersionUserText() {

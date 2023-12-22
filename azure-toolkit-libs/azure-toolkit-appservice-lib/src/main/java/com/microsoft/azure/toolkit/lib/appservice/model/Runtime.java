@@ -7,8 +7,10 @@ public interface Runtime {
 
     OperatingSystem getOperatingSystem();
 
+    String getDisplayName();
+
     default JavaVersion getJavaVersion() {
-        return JavaVersion.fromString("<null>");
+        return JavaVersion.OFF;
     }
 
     default boolean isDeprecatedOrHidden() {

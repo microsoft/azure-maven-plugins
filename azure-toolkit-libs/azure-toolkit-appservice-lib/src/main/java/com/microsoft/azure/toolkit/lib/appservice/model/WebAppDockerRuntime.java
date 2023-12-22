@@ -26,12 +26,12 @@ public class WebAppDockerRuntime implements WebAppRuntime {
     @Nonnull
     @Override
     public String getContainerVersionNumber() {
-        return "0";
+        return "null";
     }
 
     @Nonnull
     @Override
     public String getJavaVersionNumber() {
-        return "0";
+        return "null";
     }
 }

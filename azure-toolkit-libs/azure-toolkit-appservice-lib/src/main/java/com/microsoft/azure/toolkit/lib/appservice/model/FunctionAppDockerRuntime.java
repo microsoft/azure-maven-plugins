@@ -20,6 +20,6 @@ public class FunctionAppDockerRuntime implements FunctionAppRuntime {
     @Nonnull
     @Override
     public String getJavaVersionNumber() {
-        return "0";
+        return "null";
     }
 }

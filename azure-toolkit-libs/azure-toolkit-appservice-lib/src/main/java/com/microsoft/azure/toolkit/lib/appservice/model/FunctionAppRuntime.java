@@ -4,7 +4,10 @@ import com.azure.resourcemanager.appservice.models.JavaVersion;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public interface FunctionAppRuntime extends Runtime {
     FunctionAppRuntime DOCKER = FunctionAppDockerRuntime.INSTANCE;
@@ -15,6 +18,13 @@ public interface FunctionAppRuntime extends Runtime {
      */
     @Nonnull
     String getJavaVersionNumber();
+
+    default String getDisplayName() {
+        if (this.isDocker()) {
+            return "Docker";
+        }
+        return String.format("%s-%s", this.getOperatingSystem().toString(), this.getJavaVersionUserText());
+    }
 
     default String getJavaVersionUserText() {
         if (this.isDocker()) {
@@ -41,6 +51,22 @@ public interface FunctionAppRuntime extends Runtime {
             return JavaVersion.fromString("docker");
         }
         return JavaVersion.fromString(this.getJavaVersionNumber());
+    }
+
+    static List<FunctionAppRuntime> getMajorRuntimes() {
+        return Stream.concat(
+                Stream.of(FunctionAppDockerRuntime.INSTANCE), Stream.concat(
+                    FunctionAppWindowsRuntime.getMajorRuntimes().stream(),
+                    FunctionAppLinuxRuntime.getMajorRuntimes().stream()))
+            .collect(Collectors.toList());
+    }
+
+    static List<FunctionAppRuntime> getAllRuntimes() {
+        return Stream.concat(
+                Stream.of(FunctionAppDockerRuntime.INSTANCE), Stream.concat(
+                    FunctionAppWindowsRuntime.getAllRuntimes().stream(),
+                    FunctionAppLinuxRuntime.getAllRuntimes().stream()))
+            .collect(Collectors.toList());
     }
 
     static FunctionAppRuntime fromUserText(final String os, String javaVersionUserText) {
