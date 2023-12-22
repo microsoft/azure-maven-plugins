@@ -75,7 +75,7 @@ public abstract class WebAppBase<T extends WebAppBase<T, P, F>, P extends Abstra
 
     @Override
     public WebAppRuntime getRuntime() {
-        return Optional.ofNullable(this.getRemote()).map(r -> {
+        return this.remoteOptional().map(r -> {
             if (r.operatingSystem() == OperatingSystem.WINDOWS) {
                 final String container = r.javaContainer();
                 final String containerVersion = r.javaContainerVersion();
