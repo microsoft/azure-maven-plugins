@@ -60,7 +60,7 @@ public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
         this.deprecatedOrHidden = BooleanUtils.isTrue(settings.isDeprecated()) || BooleanUtils.isTrue(settings.isHidden());
     }
 
-    public FunctionAppLinuxRuntime(final Map<String, Object> javaVersion) {
+    private FunctionAppLinuxRuntime(final Map<String, Object> javaVersion) {
         final Map<String, Object> settings = Utils.get(javaVersion, "$.stackSettings.linuxRuntimeSettings");
         this.fxString = Utils.get(settings, "$.runtimeVersion");
         this.javaVersionNumber = Objects.requireNonNull(this.fxString).split("\\|", 2)[1];
@@ -68,7 +68,7 @@ public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
         this.deprecatedOrHidden = BooleanUtils.isTrue(Utils.get(settings, "$.isDeprecated")) || BooleanUtils.isTrue(Utils.get(settings, "$.isHidden"));
     }
 
-    FunctionAppLinuxRuntime(@Nonnull String javaVersionUserText, @Nonnull String fxString) {
+    private FunctionAppLinuxRuntime(@Nonnull String javaVersionUserText, @Nonnull String fxString) {
         this.fxString = fxString;
         this.javaVersionNumber = this.fxString.split("\\|", 2)[1];
         this.javaVersionDisplayText = javaVersionUserText;
@@ -85,7 +85,8 @@ public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
     }
 
     @Nullable
-    public static FunctionAppLinuxRuntime fromJavaVersionUserText(final String version) {
+    public static FunctionAppLinuxRuntime fromJavaVersionUserText(final String v) {
+        final String version = StringUtils.startsWithIgnoreCase(v, "Java")? v : String.format("Java %s", v);
         return RUNTIMES.stream().filter(runtime -> {
             final String javaVersionUserText = String.format("Java %s", runtime.getJavaVersionNumber());
             return StringUtils.equalsAnyIgnoreCase(version, javaVersionUserText, runtime.javaVersionDisplayText);
@@ -102,7 +103,7 @@ public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
     }
 
     public static boolean isLoaded() {
-        return loaded.get() == Boolean.FALSE;
+        return loaded.get() == Boolean.TRUE;
     }
 
     public static void loadAllFunctionAppLinuxRuntimes(List<FunctionAppMajorVersion> javaVersions) {

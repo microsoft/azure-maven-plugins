@@ -93,7 +93,7 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
     }
 
     @SuppressWarnings("DataFlowIssue")
-    public WebAppWindowsRuntime(final Map<String, Object> webContainer, final Map<String, Object> javaMinorVersion) {
+    private WebAppWindowsRuntime(final Map<String, Object> webContainer, final Map<String, Object> javaMinorVersion) {
         final Map<String, Object> containerSettings = Utils.get(webContainer, "$.stackSettings.windowsContainerSettings");
         final Map<String, Object> javaSettings = Utils.get(javaMinorVersion, "$.stackSettings.windowsRuntimeSettings");
         this.deprecatedOrHidden = BooleanUtils.isTrue(Utils.get(containerSettings, "$.isHidden"))
@@ -106,7 +106,7 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
         this.javaVersionDisplayText = Utils.get(javaMinorVersion, "$.displayText");
     }
 
-    WebAppWindowsRuntime(final String containerUserText, final String javaVersionUserText) {
+    private WebAppWindowsRuntime(final String containerUserText, final String javaVersionUserText) {
         final String[] containerParts = containerUserText.split(" ");
         final String[] javaParts = javaVersionUserText.split(" ");
         this.deprecatedOrHidden = false;
@@ -134,16 +134,17 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
 
     @Nullable
     public static WebAppWindowsRuntime fromContainerAndJavaVersionUserText(final String containerUserText, final String javaVersionUserText) {
+        final String finalJavaVersionUserText = StringUtils.startsWithIgnoreCase(javaVersionUserText, "java")? javaVersionUserText : String.format("Java %s", javaVersionUserText);
         final String finalContainerUserText = StringUtils.startsWithIgnoreCase(containerUserText, "java ") ? "Java SE" : containerUserText;
         return RUNTIMES.stream().filter(r -> {
             final String containerText = String.format("%s %s", r.containerName, r.containerVersionNumber);
             final String javaVersionText = String.format("java %s", r.javaVersionNumber);
             if (StringUtils.equalsAnyIgnoreCase(r.javaVersionNumber, "8", "1.8")) {
                 return StringUtils.equalsIgnoreCase(finalContainerUserText, containerText) &&
-                    StringUtils.equalsAnyIgnoreCase(javaVersionUserText, "java 1.8", "java 8");
+                    StringUtils.equalsAnyIgnoreCase(finalJavaVersionUserText, "java 1.8", "java 8");
             }
             return StringUtils.equalsIgnoreCase(finalContainerUserText, containerText) &&
-                StringUtils.equalsAnyIgnoreCase(javaVersionUserText, javaVersionText, r.javaVersionDisplayText);
+                StringUtils.equalsAnyIgnoreCase(finalJavaVersionUserText, javaVersionText, r.javaVersionDisplayText);
         }).findFirst().orElse(null);
     }
 

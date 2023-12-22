@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -57,7 +58,14 @@ public class FunctionAppWindowsRuntime implements FunctionAppRuntime {
         this.deprecatedOrHidden = BooleanUtils.isTrue(settings.isDeprecated()) || BooleanUtils.isTrue(settings.isHidden());
     }
 
-    FunctionAppWindowsRuntime(@Nonnull String javaVersionUserText) {
+    private FunctionAppWindowsRuntime(@Nonnull Map<String, Object> javaVersion) {
+        final Map<String, Object> settings = Utils.get(javaVersion, "$.stackSettings.windowsRuntimeSettings");
+        this.javaVersionNumber = Objects.requireNonNull(Utils.get(settings, "$.runtimeVersion"));
+        this.javaVersionDisplayText = Utils.get(javaVersion, "$.displayText");
+        this.deprecatedOrHidden = BooleanUtils.isTrue(Utils.get(settings, "$.isDeprecated")) || BooleanUtils.isTrue(Utils.get(settings, "$.isHidden"));
+    }
+
+    private FunctionAppWindowsRuntime(@Nonnull String javaVersionUserText) {
         final String[] javaParts = javaVersionUserText.split(" ");
         this.javaVersionNumber = javaParts[1];
         this.javaVersionDisplayText = javaVersionUserText;
@@ -70,7 +78,8 @@ public class FunctionAppWindowsRuntime implements FunctionAppRuntime {
     }
 
     @Nullable
-    public static FunctionAppWindowsRuntime fromJavaVersionUserText(final String version) {
+    public static FunctionAppWindowsRuntime fromJavaVersionUserText(String v) {
+        final String version = StringUtils.startsWithIgnoreCase(v, "Java")? v : String.format("Java %s", v);
         return RUNTIMES.stream().filter(runtime -> {
             final String javaVersionUserText = String.format("Java %s", runtime.getJavaVersionNumber());
             return StringUtils.equalsAnyIgnoreCase(version, javaVersionUserText, runtime.javaVersionDisplayText);
@@ -87,7 +96,7 @@ public class FunctionAppWindowsRuntime implements FunctionAppRuntime {
     }
 
     public static boolean isLoaded() {
-        return loaded.get() == Boolean.FALSE;
+        return loaded.get() == Boolean.TRUE;
     }
 
     public static void loadAllFunctionAppWindowsRuntimes(List<FunctionAppMajorVersion> javaVersions) {
@@ -121,7 +130,7 @@ public class FunctionAppWindowsRuntime implements FunctionAppRuntime {
         javaMinorVersions.forEach(javaMinorVersion -> {
             final String runtimeVersion = Utils.get(javaMinorVersion, "$.stackSettings.windowsRuntimeSettings.runtimeVersion");
             if (StringUtils.isNotBlank(runtimeVersion)) {
-                RUNTIMES.add(new FunctionAppWindowsRuntime(runtimeVersion));
+                RUNTIMES.add(new FunctionAppWindowsRuntime(javaMinorVersion));
             }
         });
         loaded.compareAndSet(null, Boolean.TRUE);

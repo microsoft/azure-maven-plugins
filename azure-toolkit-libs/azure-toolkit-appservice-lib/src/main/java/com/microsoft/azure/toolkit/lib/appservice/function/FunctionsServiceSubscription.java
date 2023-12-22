@@ -97,9 +97,9 @@ public class FunctionsServiceSubscription extends AppServiceServiceSubscription 
             return;
         }
         final List<Map<String, Object>> stacksList = Utils.get(result, "$.value");
-        final List<Map<String, Object>> javaStacks = (List<Map<String, Object>>) stacksList.stream()
+        final List<Map<String, Object>> javaStacks = (List<Map<String, Object>>) Objects.requireNonNull(stacksList).stream()
             .filter(s -> StringUtils.equalsIgnoreCase(Utils.get(s, "$.name"), "java"))
-            .findFirst().map(j -> Utils.get(j, "$.majorVersions")).orElse(Collections.emptyList());
+            .findFirst().map(j -> Utils.get(j, "$.properties.majorVersions")).orElse(Collections.emptyList());
 
         // fill `Runtime` only with major versions
         FunctionAppLinuxRuntime.loadAllFunctionAppLinuxRuntimesFromMap(javaStacks);
@@ -110,12 +110,12 @@ public class FunctionsServiceSubscription extends AppServiceServiceSubscription 
         final HttpPipeline pipeline = appServiceManager.httpPipeline();
         final String apiVersion = appServiceManager.serviceClient().getApiVersion();
         final HttpRequest request = new HttpRequest(HttpMethod.GET, String.format("%s/providers/Microsoft.Web/functionAppStacks?api-version=%s", appServiceManager.serviceClient().getEndpoint(), apiVersion));
-        try (HttpResponse response = pipeline.send(request).block()) {
+        try (final HttpResponse response = pipeline.send(request).block()) {
             if (Objects.nonNull(response) && response.getStatusCode() == 200) {
                 final String responseBodyString = response.getBodyAsString().block();
                 return mapper.readValue(responseBodyString, typeRef);
             }
-        } catch (JsonProcessingException e) {
+        } catch (final JsonProcessingException e) {
             throw new RuntimeException(e);
         }
         return Collections.emptyMap();

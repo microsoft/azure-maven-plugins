@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 public interface FunctionAppRuntime extends Runtime {
     FunctionAppRuntime DOCKER = FunctionAppDockerRuntime.INSTANCE;
-    FunctionAppRuntime DEFAULT = FunctionAppWindowsRuntime.fromJavaVersion(JavaVersion.fromString("17"));
+    FunctionAppRuntime DEFAULT = FunctionAppWindowsRuntime.FUNCTION_JAVA17;
 
     /**
      * @return java version number, e.g. '1.8'(windows only), '8', '11', '17'

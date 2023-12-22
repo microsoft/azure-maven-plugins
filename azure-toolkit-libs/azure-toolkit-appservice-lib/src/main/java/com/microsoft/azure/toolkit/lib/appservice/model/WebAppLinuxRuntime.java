@@ -93,7 +93,8 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
         this.javaVersionDisplayText = javaVersion.displayText();
     }
 
-    public WebAppLinuxRuntime(final Map<String, Object> container, final Map<String, Object> javaVersion, final String fxString) {
+    @SuppressWarnings("DataFlowIssue")
+    private WebAppLinuxRuntime(final Map<String, Object> container, final Map<String, Object> javaVersion, final String fxString) {
         final Map<String, Object> containerSettings = Utils.get(container, "$.stackSettings.linuxContainerSettings");
         final String[] parts = fxString.split("\\|", 2);
         this.fxString = fxString;
@@ -105,7 +106,7 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
         this.javaVersionDisplayText = Utils.get(javaVersion, "$.displayText");
     }
 
-    WebAppLinuxRuntime(final String fxString, final String javaVersionUserText) {
+    private WebAppLinuxRuntime(final String fxString, final String javaVersionUserText) {
         this.fxString = fxString;
         final String[] fxStringParts = fxString.split("[|-]", 3);
         final String[] javaParts = javaVersionUserText.split(" ");
@@ -128,16 +129,17 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
 
     @Nullable
     public static WebAppLinuxRuntime fromContainerAndJavaVersionUserText(final String containerUserText, String javaVersionUserText) {
+        final String finalJavaVersionUserText = StringUtils.startsWithIgnoreCase(javaVersionUserText, "java")? javaVersionUserText : String.format("Java %s", javaVersionUserText);
         final String finalContainerUserText = StringUtils.startsWithIgnoreCase(containerUserText, "java ") ? "Java SE" : containerUserText;
         return RUNTIMES.stream().filter(r -> {
             final String containerText = String.format("%s %s", r.containerName, r.containerVersionNumber);
             final String javaVersionText = String.format("java %s", r.javaVersionNumber);
             if (StringUtils.equalsAnyIgnoreCase(r.javaVersionNumber, "8", "1.8")) {
                 return StringUtils.equalsIgnoreCase(finalContainerUserText, containerText) &&
-                    StringUtils.equalsAnyIgnoreCase(javaVersionUserText, "java 1.8", "java 8");
+                    StringUtils.equalsAnyIgnoreCase(finalJavaVersionUserText, "java 1.8", "java 8");
             }
             return StringUtils.equalsIgnoreCase(finalContainerUserText, containerText) &&
-                StringUtils.equalsAnyIgnoreCase(javaVersionUserText, javaVersionText, r.javaVersionDisplayText);
+                StringUtils.equalsAnyIgnoreCase(finalJavaVersionUserText, javaVersionText, r.javaVersionDisplayText);
         }).findFirst().orElse(null);
     }
 
