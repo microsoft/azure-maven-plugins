@@ -1,6 +1,5 @@
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
-import com.azure.resourcemanager.appservice.models.JavaVersion;
 import com.azure.resourcemanager.appservice.models.WebContainer;
 import org.apache.commons.lang3.StringUtils;
 
@@ -32,35 +31,11 @@ public interface WebAppRuntime extends Runtime {
     @Nonnull
     String getContainerVersionNumber();
 
-    /**
-     * @return java version number, e.g. '17', '17.0.4', '1.8.0_202', '1.8.0_202_ZULU'
-     */
-    @Nonnull
-    String getJavaVersionNumber();
-
-    /**
-     * @return java major version number, e.g. '7', '8', '11', '17'
-     */
-    default int getJavaMajorVersionNumber() {
-        if (this.isDocker()) {
-            return 0;
-        }
-        final String v = this.getJavaVersionNumber();
-        return Integer.parseInt(StringUtils.startsWithIgnoreCase(v, "1.") ? String.valueOf(v.charAt(2)) : v);
-    }
-
     default WebContainer getWebContainer() {
         if (this.isDocker()) {
             return WebContainer.fromString("docker");
         }
         return WebContainer.fromString(String.format("%s %s", getContainerName().toLowerCase(), getContainerVersionNumber()));
-    }
-
-    default JavaVersion getJavaVersion() {
-        if (this.isDocker()) {
-            return JavaVersion.fromString("docker");
-        }
-        return JavaVersion.fromString(this.getJavaVersionNumber());
     }
 
     @Override
@@ -89,16 +64,6 @@ public interface WebAppRuntime extends Runtime {
             return "Docker";
         }
         return String.format("%s-%s-%s", this.getOperatingSystem().toString(), this.getJavaVersionUserText(), this.getContainerUserText());
-    }
-
-    default String getJavaVersionUserText() {
-        if (this.isDocker()) {
-            return "";
-        }
-        if (StringUtils.equalsAnyIgnoreCase(getJavaVersionNumber(), "1.8", "8")) {
-            return "Java 8";
-        }
-        return String.format("Java %s", getJavaVersionNumber());
     }
 
     default String getContainerUserText() {
