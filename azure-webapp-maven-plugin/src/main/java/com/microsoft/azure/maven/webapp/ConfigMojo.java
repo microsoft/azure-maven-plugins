@@ -368,8 +368,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final List<String> validJavaVersionUserTexts = runtimes.stream().map(WebAppRuntime::getJavaVersionUserText).distinct().collect(Collectors.toList());
         String defaultJavaVersion = configuration.getJavaVersion();
         if (StringUtils.isBlank(defaultJavaVersion) || !validJavaMajorVersionNumbers.contains(Runtime.getJavaMajorVersionNumber(defaultJavaVersion))) {
-            if (!initializing) {
-                log.warn(String.format("'%s' is not supported for your artifact, supported values are %s.", defaultJavaVersion, String.join(", ", validJavaVersionUserTexts)));
+            if (!initializing && StringUtils.isNotBlank(defaultJavaVersion)) {
+                log.warn(String.format("'%s' is not supported for your project.", defaultJavaVersion));
             }
             defaultJavaVersion = validJavaVersionUserTexts.get(0);
         }
@@ -378,11 +378,13 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String javaVersionUserInput = queryer.assureInputFromUser(JAVA_VERSION, defaultJavaVersion,
             validJavaVersionUserTexts, String.format(COMMON_PROMPT, JAVA_VERSION, defaultJavaVersion));
         if (!validJavaVersionUserTexts.contains(javaVersionUserInput)) {
-            throw new AzureToolkitRuntimeException(String.format("Cannot handle java version: '%s'", javaVersionUserInput));
+            final String message = String.format("'%s' is not a valid java runtime, supported values are %s.", javaVersionUserInput, String.join(", ", validJavaVersionUserTexts));
+            throw new AzureToolkitRuntimeException(message);
         }
         builder.javaVersion(javaVersionUserInput);
         final boolean isJarPackaging = Utils.isJarPackagingProject(project.getPackaging());
         if (isJarPackaging) {
+            log.info("Skip web container selection for \"jar\" project.");
             builder.webContainer(WebAppRuntime.JAVA_SE.toString());
             runtimes = runtimes.stream().filter(r -> StringUtils.equalsIgnoreCase(r.getContainerUserText(), WebAppRuntime.JAVA_SE.toString())).collect(Collectors.toList());
             return runtimes.get(0);
@@ -400,8 +402,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final List<String> validContainerUserTexts = runtimes.stream().map(WebAppRuntime::getContainerUserText).distinct().collect(Collectors.toList());
         String defaultContainer = configuration.getWebContainer();
         if (StringUtils.isBlank(defaultContainer) || !validContainerUserTexts.contains(defaultContainer)) {
-            if (!initializing) {
-                log.warn(String.format("'%s' is not supported.", defaultContainer));
+            if (!initializing && StringUtils.isNotBlank(defaultContainer)) {
+                log.warn(String.format("'%s' is not supported for your project.", defaultContainer));
             }
             defaultContainer = validContainerUserTexts.get(0);
         }
@@ -410,7 +412,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
             validContainerUserTexts,
             String.format(COMMON_PROMPT, WEB_CONTAINER, defaultContainer));
         if (!validContainerUserTexts.contains(containerUserInput)) {
-            throw new AzureToolkitRuntimeException(String.format("Cannot handle web container: '%s'", containerUserInput));
+            final String message = String.format("'%s' is not a valid web container, supported values are %s.", containerUserInput, String.join(", ", validContainerUserTexts));
+            throw new AzureToolkitRuntimeException(message);
         }
         builder.webContainer(containerUserInput);
 
