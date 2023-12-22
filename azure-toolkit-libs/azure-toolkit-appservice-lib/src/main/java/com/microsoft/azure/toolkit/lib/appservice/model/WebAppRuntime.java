@@ -2,13 +2,11 @@ package com.microsoft.azure.toolkit.lib.appservice.model;
 
 import com.azure.resourcemanager.appservice.models.JavaVersion;
 import com.azure.resourcemanager.appservice.models.WebContainer;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -126,18 +124,20 @@ public interface WebAppRuntime extends Runtime {
 
     static List<WebAppRuntime> getMajorRuntimes() {
         return Stream.concat(
-                Stream.of(WebAppDockerRuntime.INSTANCE), Stream.concat(
-                    WebAppWindowsRuntime.getMajorRuntimes().stream(),
-                    WebAppLinuxRuntime.getMajorRuntimes().stream()))
-            .collect(Collectors.toList());
+            Stream.concat(
+                WebAppLinuxRuntime.getMajorRuntimes().stream(),
+                WebAppWindowsRuntime.getMajorRuntimes().stream()),
+            Stream.of(WebAppDockerRuntime.INSTANCE)
+        ).collect(Collectors.toList());
     }
 
     static List<WebAppRuntime> getAllRuntimes() {
         return Stream.concat(
-                Stream.of(WebAppDockerRuntime.INSTANCE), Stream.concat(
-                    WebAppWindowsRuntime.getAllRuntimes().stream(),
-                    WebAppLinuxRuntime.getAllRuntimes().stream()))
-            .collect(Collectors.toList());
+            Stream.concat(
+                WebAppLinuxRuntime.getAllRuntimes().stream(),
+                WebAppWindowsRuntime.getAllRuntimes().stream()),
+            Stream.of(WebAppDockerRuntime.INSTANCE)
+        ).collect(Collectors.toList());
     }
 
     static List<PricingTier> getPricingTiers(OperatingSystem os, String containerUserText) {

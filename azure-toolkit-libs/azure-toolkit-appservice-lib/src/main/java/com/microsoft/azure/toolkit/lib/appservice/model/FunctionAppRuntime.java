@@ -55,18 +55,20 @@ public interface FunctionAppRuntime extends Runtime {
 
     static List<FunctionAppRuntime> getMajorRuntimes() {
         return Stream.concat(
-                Stream.of(FunctionAppDockerRuntime.INSTANCE), Stream.concat(
-                    FunctionAppWindowsRuntime.getMajorRuntimes().stream(),
-                    FunctionAppLinuxRuntime.getMajorRuntimes().stream()))
-            .collect(Collectors.toList());
+            Stream.concat(
+                FunctionAppLinuxRuntime.getMajorRuntimes().stream(),
+                FunctionAppWindowsRuntime.getMajorRuntimes().stream()),
+            Stream.of(FunctionAppDockerRuntime.INSTANCE)
+        ).collect(Collectors.toList());
     }
 
     static List<FunctionAppRuntime> getAllRuntimes() {
         return Stream.concat(
-                Stream.of(FunctionAppDockerRuntime.INSTANCE), Stream.concat(
-                    FunctionAppWindowsRuntime.getAllRuntimes().stream(),
-                    FunctionAppLinuxRuntime.getAllRuntimes().stream()))
-            .collect(Collectors.toList());
+            Stream.concat(
+                FunctionAppLinuxRuntime.getAllRuntimes().stream(),
+                FunctionAppWindowsRuntime.getAllRuntimes().stream()),
+            Stream.of(FunctionAppDockerRuntime.INSTANCE)
+        ).collect(Collectors.toList());
     }
 
     static FunctionAppRuntime fromUserText(final String os, String javaVersionUserText) {
