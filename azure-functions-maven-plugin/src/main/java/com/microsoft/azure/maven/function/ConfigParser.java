@@ -85,7 +85,7 @@ public class ConfigParser {
         } else if (os == OperatingSystem.WINDOWS) {
             runtime = FunctionAppWindowsRuntime.fromJavaVersionUserText(runtimeConfig.getJavaVersion());
         }
-        if (Objects.isNull(runtime) && StringUtils.isNotBlank(runtimeConfig.getJavaVersion())) {
+        if (Objects.isNull(runtime) && !StringUtils.isAllBlank(runtimeConfig.getOs(), runtimeConfig.getJavaVersion())) {
             throw new AzureToolkitRuntimeException("invalid runtime configuration, please refer to https://aka.ms/maven_function_configuration#supported-runtime for valid values");
         }
         final RuntimeConfig result = new RuntimeConfig().runtime(runtime)

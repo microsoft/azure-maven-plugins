@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public interface WebAppRuntime extends Runtime {
+    String DEFAULT_JAVA = "Java 17";
 
     WebAppRuntime DOCKER = WebAppDockerRuntime.INSTANCE;
     WebAppRuntime DEFAULT_TOMCAT_RUNTIME = WebAppLinuxRuntime.TOMCAT10_JAVA17;

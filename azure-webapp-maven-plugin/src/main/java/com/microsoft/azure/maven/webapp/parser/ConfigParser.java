@@ -206,7 +206,7 @@ public class ConfigParser {
         } else if (os == OperatingSystem.WINDOWS) {
             runtime = WebAppWindowsRuntime.fromContainerAndJavaVersionUserText(runtimeConfig.getWebContainer(), runtimeConfig.getJavaVersion());
         }
-        if (Objects.isNull(runtime) && (StringUtils.isNotBlank(runtimeConfig.getWebContainer()) || StringUtils.isNotBlank(runtimeConfig.getJavaVersion()))) {
+        if (Objects.isNull(runtime) && !StringUtils.isAllBlank(runtimeConfig.getOs(), runtimeConfig.getWebContainer(), runtimeConfig.getJavaVersion())) {
             throw new AzureToolkitRuntimeException("invalid runtime configuration, please refer to https://aka.ms/maven_webapp_runtime for valid values");
         }
         return runtime;

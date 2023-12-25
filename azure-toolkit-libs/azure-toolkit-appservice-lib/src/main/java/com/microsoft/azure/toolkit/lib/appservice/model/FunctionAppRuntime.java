@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public interface FunctionAppRuntime extends Runtime {
+    String DEFAULT_JAVA = "Java 17";
+
     FunctionAppRuntime DOCKER = FunctionAppDockerRuntime.INSTANCE;
     FunctionAppRuntime DEFAULT = FunctionAppWindowsRuntime.FUNCTION_JAVA17;
 

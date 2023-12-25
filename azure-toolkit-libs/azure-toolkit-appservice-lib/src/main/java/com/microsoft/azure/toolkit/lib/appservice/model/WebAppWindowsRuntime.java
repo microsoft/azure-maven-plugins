@@ -13,6 +13,7 @@ import com.azure.resourcemanager.appservice.models.WebAppRuntimes;
 import com.azure.resourcemanager.appservice.models.WebContainer;
 import com.azure.resourcemanager.appservice.models.WindowsJavaContainerSettings;
 import com.google.common.collect.Sets;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -133,7 +134,11 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
     }
 
     @Nullable
-    public static WebAppWindowsRuntime fromContainerAndJavaVersionUserText(final String containerUserText, final String javaVersionUserText) {
+    public static WebAppWindowsRuntime fromContainerAndJavaVersionUserText(final String containerUserText, String javaVersionUserText) {
+        if (StringUtils.isBlank(javaVersionUserText)) {
+            javaVersionUserText = DEFAULT_JAVA;
+            AzureMessager.getMessager().warning("The java version is not specified, use default version '%s'", DEFAULT_JAVA);
+        }
         final String finalJavaVersionUserText = StringUtils.startsWithIgnoreCase(javaVersionUserText, "java")? javaVersionUserText : String.format("Java %s", javaVersionUserText);
         final String finalContainerUserText = StringUtils.startsWithIgnoreCase(containerUserText, "java ") ? "Java SE" : containerUserText;
         return RUNTIMES.stream().filter(r -> {
