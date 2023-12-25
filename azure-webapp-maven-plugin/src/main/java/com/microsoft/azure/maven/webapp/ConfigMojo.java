@@ -24,6 +24,7 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppServiceSubscription;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -106,7 +107,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             } else {
                 config(configuration);
             }
-        } catch (final DocumentException | MojoFailureException | IOException | IllegalAccessException e) {
+        } catch (final DocumentException | MojoFailureException | IOException | IllegalAccessException | AzureExecutionException e) {
             throw new AzureToolkitRuntimeException(e.getMessage(), e);
         } finally {
             queryer.close();
@@ -260,7 +261,6 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String defaultRegion = configuration.getRegionOrDefault();
         final String region = queryer.assureInputFromUser("region", defaultRegion, NOT_EMPTY_REGEX, null, null);
 
-        final List<PricingTier> tiers = WebAppRuntime.getPricingTiers(configuration.getOs(), configuration.getWebContainer());
         PricingTier defaultTier = PricingTier.fromString(configuration.getPricingTier());
         if (Objects.isNull(defaultTier)) {
             defaultTier = isJBossRuntime(configuration.getWebContainer()) ? WebAppConfiguration.DEFAULT_JBOSS_PRICING_TIER : WebAppConfiguration.DEFAULT_PRICINGTIER;
@@ -432,7 +432,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return StringUtils.isNotEmpty(defaultValue) && defaultValue.matches(pattern) ? defaultValue : fallBack;
     }
 
-    private WebAppConfiguration getWebAppConfiguration() {
+    private WebAppConfiguration getWebAppConfiguration() throws AzureExecutionException {
         validateConfiguration(message -> AzureMessager.getMessager().warning(message.getMessage()), false);
         return getConfigParser().getWebAppConfiguration();
     }

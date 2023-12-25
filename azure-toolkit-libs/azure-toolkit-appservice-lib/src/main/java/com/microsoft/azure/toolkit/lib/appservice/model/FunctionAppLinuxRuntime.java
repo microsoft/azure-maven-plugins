@@ -10,6 +10,7 @@ import com.azure.resourcemanager.appservice.models.FunctionAppMinorVersion;
 import com.azure.resourcemanager.appservice.models.FunctionAppRuntimeSettings;
 import com.azure.resourcemanager.appservice.models.FunctionAppRuntimes;
 import com.azure.resourcemanager.appservice.models.FunctionRuntimeStack;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.EqualsAndHashCode;
@@ -89,7 +90,7 @@ public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
     public static FunctionAppLinuxRuntime fromJavaVersionUserText(String v) {
         if (StringUtils.isBlank(v)) {
             v = DEFAULT_JAVA;
-            AzureMessager.getMessager().warning("The java version is not specified, use default version '%s'", DEFAULT_JAVA);
+            AzureMessager.getMessager().warning(AzureString.format("The java version is not specified, use default version '%s'", DEFAULT_JAVA));
         }
         final String version = StringUtils.startsWithIgnoreCase(v, "Java")? v : String.format("Java %s", v);
         return RUNTIMES.stream().filter(runtime -> {

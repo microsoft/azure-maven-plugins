@@ -13,7 +13,9 @@ import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppLinuxRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -22,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.lib.common.utils.Utils.copyProperties;
@@ -54,8 +57,8 @@ public class AppServiceConfigUtils {
         final Runtime runtime = app.getRuntime();
 
         final RuntimeConfig runtimeConfig = new RuntimeConfig();
-        runtimeConfig.runtime(runtime);
         if (runtime != null && runtime.isDocker()) {
+            runtimeConfig.os(OperatingSystem.DOCKER);
             final Map<String, String> settings = app.getAppSettings();
 
             final String imageSetting = settings.get(SETTING_DOCKER_IMAGE);
@@ -67,6 +70,11 @@ public class AppServiceConfigUtils {
             final String registryServerSetting = settings.get(SETTING_REGISTRY_SERVER);
             if (StringUtils.isNotBlank(registryServerSetting)) {
                 runtimeConfig.registryUrl(registryServerSetting);
+            }
+        } else if (Objects.nonNull(runtime)) {
+            runtimeConfig.os(runtime.getOperatingSystem()).javaVersion(runtime.getJavaVersionUserText());
+            if (runtime instanceof WebAppLinuxRuntime) {
+                runtimeConfig.webContainer(((WebAppLinuxRuntime) runtime).getContainerUserText());
             }
         }
         config.runtime(runtimeConfig);

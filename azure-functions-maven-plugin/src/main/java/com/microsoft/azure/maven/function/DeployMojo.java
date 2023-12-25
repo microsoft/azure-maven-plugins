@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
@@ -141,11 +142,8 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     private void validateArtifactCompileVersion() throws AzureExecutionException {
         final RuntimeConfig runtimeConfig = getParser().getRuntimeConfig();
-        final FunctionAppRuntime runtime = (FunctionAppRuntime) runtimeConfig.runtime();
-        if (Objects.nonNull(runtime)) {
-            final String javaVersion = runtime.getJavaVersionNumber();
-            validateArtifactCompileVersion(javaVersion, getArtifact(), getFailsOnRuntimeValidationError());
-        }
+        final String javaVersion = Optional.ofNullable(runtimeConfig).map(RuntimeConfig::javaVersion).orElse(StringUtils.EMPTY);
+        validateArtifactCompileVersion(javaVersion, getArtifact(), getFailsOnRuntimeValidationError());
     }
 
     // todo: Extract validator for all maven toolkits

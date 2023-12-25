@@ -65,10 +65,12 @@ public class AppServiceConfig {
     }
 
     public static AppServiceConfig buildDefaultWebAppConfig(String resourceGroup, String appName, String packaging) {
-        final RuntimeConfig runtimeConfig = new RuntimeConfig().runtime(
-            StringUtils.equalsIgnoreCase(packaging, "war") ? WebAppRuntime.DEFAULT_TOMCAT_RUNTIME :
-                StringUtils.equalsIgnoreCase(packaging, "ear") ? WebAppRuntime.DEFAULT_JBOSS_RUNTIME :
-                    WebAppRuntime.DEFAULT_JAVASE_RUNTIME);
+        final WebAppRuntime defaultRuntime = StringUtils.equalsIgnoreCase(packaging, "war") ? WebAppRuntime.DEFAULT_TOMCAT_RUNTIME :
+            StringUtils.equalsIgnoreCase(packaging, "ear") ? WebAppRuntime.DEFAULT_JBOSS_RUNTIME : WebAppRuntime.DEFAULT_JAVASE_RUNTIME;
+        final RuntimeConfig runtimeConfig = new RuntimeConfig()
+            .os(defaultRuntime.getOperatingSystem())
+            .webContainer(defaultRuntime.getContainerUserText())
+            .javaVersion(defaultRuntime.getJavaVersionUserText());
         final AppServiceConfig appServiceConfig = buildDefaultAppServiceConfig(resourceGroup, appName);
         appServiceConfig.runtime(runtimeConfig);
         return appServiceConfig;
@@ -78,7 +80,9 @@ public class AppServiceConfig {
         final FunctionAppConfig result = new FunctionAppConfig();
         final AppServiceConfig appServiceConfig = buildDefaultAppServiceConfig(resourceGroup, appName);
         AppServiceConfigUtils.mergeAppServiceConfig(result, appServiceConfig);
-        final RuntimeConfig runtimeConfig = new RuntimeConfig().runtime(FunctionAppRuntime.DEFAULT);
+        RuntimeConfig runtimeConfig = new RuntimeConfig()
+            .os(FunctionAppRuntime.DEFAULT.getOperatingSystem())
+            .javaVersion(FunctionAppRuntime.DEFAULT.getJavaVersionUserText());
         result.runtime(runtimeConfig);
         result.pricingTier(PricingTier.CONSUMPTION);
         result.flexConsumptionConfiguration(FlexConsumptionConfiguration.DEFAULT);

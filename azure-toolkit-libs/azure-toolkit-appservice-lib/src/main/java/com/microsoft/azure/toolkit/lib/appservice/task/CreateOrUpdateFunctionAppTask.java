@@ -20,7 +20,9 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeployment
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlotDraft;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDraft;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppLinuxRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppWindowsRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft;
@@ -304,8 +306,23 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
         });
     }
 
-    private FunctionAppRuntime getRuntime(RuntimeConfig runtime) {
-        return (FunctionAppRuntime) Optional.ofNullable(runtime).map(RuntimeConfig::runtime).orElse(null);
+    private FunctionAppRuntime getRuntime(RuntimeConfig runtimeConfig) {
+        if (runtimeConfig == null) {
+            return null;
+        }
+        final OperatingSystem os = Optional.ofNullable(runtimeConfig.os()).orElse(OperatingSystem.LINUX);
+        FunctionAppRuntime runtime = null;
+        if (os == OperatingSystem.DOCKER) {
+            runtime = FunctionAppRuntime.DOCKER;
+        } else if (os == OperatingSystem.LINUX) {
+            runtime = FunctionAppLinuxRuntime.fromJavaVersionUserText(runtimeConfig.javaVersion());
+        } else if (os == OperatingSystem.WINDOWS) {
+            runtime = FunctionAppWindowsRuntime.fromJavaVersionUserText(runtimeConfig.javaVersion());
+        }
+        if (Objects.isNull(runtime) && Objects.nonNull(runtimeConfig.os()) || StringUtils.isNotBlank(runtimeConfig.javaVersion())) {
+            throw new AzureToolkitRuntimeException("invalid runtime configuration, please refer to https://aka.ms/maven_function_configuration#supported-runtime for valid values");
+        }
+        return runtime;
     }
 
     // todo: remove duplicated with Create Web App Task

@@ -10,20 +10,15 @@ import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
-import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppLinuxRuntime;
-import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
-import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppWindowsRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.RuntimeConfiguration;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Objects;
 import java.util.Optional;
 
 public class ConfigParser {
@@ -71,27 +66,17 @@ public class ConfigParser {
     }
 
     public RuntimeConfig getRuntimeConfig() throws AzureExecutionException {
-        final RuntimeConfiguration runtimeConfig = mojo.getRuntimeConfiguration();
-        if (runtimeConfig == null) {
+        final RuntimeConfiguration runtime = mojo.getRuntimeConfiguration();
+        if (runtime == null) {
             return null;
         }
-        final OperatingSystem os = Optional.ofNullable(runtimeConfig.getOs()).map(OperatingSystem::fromString)
-                .orElseGet(() -> Optional.ofNullable(getServicePlan()).map(AppServicePlan::getOperatingSystem).orElse(OperatingSystem.LINUX));
-        FunctionAppRuntime runtime = null;
-        if (os == OperatingSystem.DOCKER) {
-            runtime = FunctionAppRuntime.DOCKER;
-        } else if (os == OperatingSystem.LINUX) {
-            runtime = FunctionAppLinuxRuntime.fromJavaVersionUserText(runtimeConfig.getJavaVersion());
-        } else if (os == OperatingSystem.WINDOWS) {
-            runtime = FunctionAppWindowsRuntime.fromJavaVersionUserText(runtimeConfig.getJavaVersion());
-        }
-        if (Objects.isNull(runtime) && !StringUtils.isAllBlank(runtimeConfig.getOs(), runtimeConfig.getJavaVersion())) {
-            throw new AzureToolkitRuntimeException("invalid runtime configuration, please refer to https://aka.ms/maven_function_configuration#supported-runtime for valid values");
-        }
-        final RuntimeConfig result = new RuntimeConfig().runtime(runtime)
-                .image(runtimeConfig.getImage()).registryUrl(runtimeConfig.getRegistryUrl());
-        if (StringUtils.isNotEmpty(runtimeConfig.getServerId())) {
-            final MavenDockerCredentialProvider credentialProvider = MavenDockerCredentialProvider.fromMavenSettings(mojo.getSettings(), runtimeConfig.getServerId());
+        final OperatingSystem os = Optional.ofNullable(runtime.getOs()).map(OperatingSystem::fromString)
+            .orElseGet(() -> Optional.ofNullable(getServicePlan()).map(AppServicePlan::getOperatingSystem).orElse(null));
+        final String javaVersion = runtime.getJavaVersion();
+        final RuntimeConfig result = new RuntimeConfig().os(os).javaVersion(javaVersion)
+            .image(runtime.getImage()).registryUrl(runtime.getRegistryUrl());
+        if (StringUtils.isNotEmpty(runtime.getServerId())) {
+            final MavenDockerCredentialProvider credentialProvider = MavenDockerCredentialProvider.fromMavenSettings(mojo.getSettings(), runtime.getServerId());
             result.username(credentialProvider.getUsername()).password(credentialProvider.getPassword());
         }
         return result;

@@ -631,7 +631,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         }
     }
 
-    public static void validateArtifactCompileVersion(final String runtimeJavaVersion, final File artifact, final boolean failOnValidation) throws AzureToolkitRuntimeException {
+    public static void validateArtifactCompileVersion(String runtimeJavaVersion, final File artifact, final boolean failOnValidation) throws AzureToolkitRuntimeException {
+        runtimeJavaVersion = StringUtils.replaceIgnoreCase(runtimeJavaVersion, "java", "").trim();
         final int runtimeVersion;
         final int artifactCompileVersion;
         try {

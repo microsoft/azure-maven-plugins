@@ -18,11 +18,7 @@ import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebAppLinuxRuntime;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebAppWindowsRuntime;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -78,17 +74,17 @@ public class ConfigParser {
     }
 
     // todo: replace WebAppConfiguration with WebAppConfig
-    public WebAppConfiguration getWebAppConfiguration() {
+    public WebAppConfiguration getWebAppConfiguration() throws AzureExecutionException {
         WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder = WebAppConfiguration.builder();
-        final WebAppRuntime runtime = getRuntime();
-        final OperatingSystem os = Optional.ofNullable(runtime).map(Runtime::getOperatingSystem).orElse(null);
+        final RuntimeConfig runtime = getRuntimeConfig();
+        final OperatingSystem os = Optional.ofNullable(runtime).map(RuntimeConfig::os).orElse(null);
         if (os == null) {
             log.debug("No runtime related config is specified. It will cause error if creating a new web app.");
         } else {
             switch (os) {
                 case WINDOWS:
                 case LINUX:
-                    builder = builder.javaVersion(runtime.getJavaVersionUserText()).webContainer(runtime.getContainerUserText());
+                    builder = builder.javaVersion(runtime.javaVersion()).webContainer(runtime.webContainer());
                     break;
                 case DOCKER:
                     final MavenRuntimeConfig runtimeConfig = mojo.getRuntime();
@@ -192,36 +188,15 @@ public class ConfigParser {
         return parseExpandableParameter(Region::fromName, mojo.getRegion(), EXPANDABLE_REGION_WARNING);
     }
 
-    public WebAppRuntime getRuntime() {
-        final MavenRuntimeConfig runtimeConfig = mojo.getRuntime();
-        if (runtimeConfig == null || runtimeConfig.isEmpty()) {
-            return null;
-        }
-        final OperatingSystem os = getOs(runtimeConfig);
-        WebAppRuntime runtime = null;
-        if (os == OperatingSystem.DOCKER) {
-            runtime = WebAppRuntime.DOCKER;
-        } else if (os == OperatingSystem.LINUX) {
-            runtime = WebAppLinuxRuntime.fromContainerAndJavaVersionUserText(runtimeConfig.getWebContainer(), runtimeConfig.getJavaVersion());
-        } else if (os == OperatingSystem.WINDOWS) {
-            runtime = WebAppWindowsRuntime.fromContainerAndJavaVersionUserText(runtimeConfig.getWebContainer(), runtimeConfig.getJavaVersion());
-        }
-        if (Objects.isNull(runtime) && !StringUtils.isAllBlank(runtimeConfig.getOs(), runtimeConfig.getWebContainer(), runtimeConfig.getJavaVersion())) {
-            throw new AzureToolkitRuntimeException("invalid runtime configuration, please refer to https://aka.ms/maven_webapp_runtime for valid values");
-        }
-        return runtime;
-    }
-
-    private OperatingSystem getOs(final MavenRuntimeConfig runtime) {
-        return OperatingSystem.fromString(runtime.getOs());
-    }
-
-    private RuntimeConfig getRuntimeConfig() throws AzureExecutionException {
+    public RuntimeConfig getRuntimeConfig() throws AzureExecutionException {
         final MavenRuntimeConfig runtime = mojo.getRuntime();
         if (runtime == null || runtime.isEmpty()) {
             return null;
         }
-        final RuntimeConfig result = new RuntimeConfig().runtime(this.getRuntime())
+        final OperatingSystem os = OperatingSystem.fromString(runtime.getOs());
+        final String javaVersion = StringUtils.isBlank(runtime.getJavaVersion()) ? null : runtime.getJavaVersion();
+        final String webContainer = StringUtils.isEmpty(runtime.getWebContainer()) ? null : runtime.getWebContainer();
+        final RuntimeConfig result = new RuntimeConfig().os(os).javaVersion(javaVersion).webContainer(webContainer)
             .image(runtime.getImage()).registryUrl(runtime.getRegistryUrl());
         if (StringUtils.isNotEmpty(runtime.getServerId())) {
             final MavenDockerCredentialProvider credentialProvider = getDockerCredential(runtime.getServerId());
