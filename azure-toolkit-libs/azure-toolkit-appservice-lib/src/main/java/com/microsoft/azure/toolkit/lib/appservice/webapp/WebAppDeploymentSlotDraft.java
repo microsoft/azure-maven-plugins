@@ -10,11 +10,12 @@ import com.azure.core.util.Context;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
 import com.azure.resourcemanager.appservice.models.WebApp;
-import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppWindowsRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -106,7 +107,7 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
                 final DeploymentSlot sourceSlot = webApp.deploymentSlots().getByName(newConfigurationSource);
                 Objects.requireNonNull(sourceSlot, CONFIGURATION_SOURCE_DOES_NOT_EXISTS);
                 withCreate = blank.withConfigurationFromDeploymentSlot(sourceSlot);
-            } catch (ManagementException e) {
+            } catch (final ManagementException e) {
                 throw new AzureToolkitRuntimeException(FAILED_TO_GET_CONFIGURATION_SOURCE, e);
             }
         }
@@ -151,12 +152,12 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
         final DiagnosticConfig oldDiagnosticConfig = super.getDiagnosticConfig();
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
 
-        final Runtime oldRuntime = AppServiceUtils.getRuntimeFromAppService(remote);
-        boolean isRuntimeModified =  !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
-        boolean isDockerConfigurationModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
-        boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
-        boolean isDiagnosticConfigModified = Objects.nonNull(newDiagnosticConfig) && !Objects.equals(newDiagnosticConfig, oldDiagnosticConfig);
-        boolean modified = isDiagnosticConfigModified || isAppSettingsModified || isRuntimeModified || isDockerConfigurationModified;
+        final Runtime oldRuntime = super.getRuntime();
+        final boolean isRuntimeModified =  (Objects.isNull(oldRuntime) || !oldRuntime.isDocker()) && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
+        final boolean isDockerConfigurationModified = Objects.nonNull(oldRuntime) && oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
+        final boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
+        final boolean isDiagnosticConfigModified = Objects.nonNull(newDiagnosticConfig) && !Objects.equals(newDiagnosticConfig, oldDiagnosticConfig);
+        final boolean modified = isDiagnosticConfigModified || isAppSettingsModified || isRuntimeModified || isDockerConfigurationModified;
 
         if (modified) {
             final DeploymentSlotBase.Update<DeploymentSlot> update = remote.update();
@@ -176,7 +177,7 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
     }
 
     private void updateRuntime(@Nonnull DeploymentSlotBase.Update<?> update, @Nonnull Runtime newRuntime) {
-        final Runtime oldRuntime = AppServiceUtils.getRuntimeFromAppService((WebAppBase) update);
+        final Runtime oldRuntime = Objects.requireNonNull(super.getRuntime());
         if (newRuntime.getOperatingSystem() != null && oldRuntime.getOperatingSystem() != newRuntime.getOperatingSystem()) {
             throw new AzureToolkitRuntimeException(CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS);
         }
@@ -185,10 +186,10 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
         if (operatingSystem == OperatingSystem.LINUX) {
             AzureMessager.getMessager().warning("Update runtime is not supported for Linux app service");
         } else if (operatingSystem == OperatingSystem.WINDOWS) {
-            update.withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime.getJavaVersion()))
-                    .withWebContainer(AppServiceUtils.toWebContainer(newRuntime));
+            update.withJavaVersion(newRuntime.getJavaVersion())
+                .withWebContainer(((WebAppWindowsRuntime) newRuntime).getWebContainer());
         } else if (operatingSystem == OperatingSystem.DOCKER) {
-            return; // skip for docker, as docker configuration will be handled in `updateDockerConfiguration`
+            // skip for docker, as docker configuration will be handled in `updateDockerConfiguration`
         } else {
             throw new AzureToolkitRuntimeException(String.format(UNSUPPORTED_OPERATING_SYSTEM, newRuntime.getOperatingSystem()));
         }
@@ -251,11 +252,11 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
 
     @Nullable
     @Override
-    public Runtime getRuntime() {
+    public WebAppRuntime getRuntime() {
         return Optional.ofNullable(config).map(WebAppDeploymentSlotDraft.Config::getRuntime).orElseGet(super::getRuntime);
     }
 
-    public void setRuntime(final Runtime runtime) {
+    public void setRuntime(final WebAppRuntime runtime) {
         this.ensureConfig().setRuntime(runtime);
     }
 
@@ -282,7 +283,7 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
     @Data
     @Nullable
     private static class Config {
-        private Runtime runtime;
+        private WebAppRuntime runtime;
         private DockerConfiguration dockerConfiguration;
         private String configurationSource;
         private DiagnosticConfig diagnosticConfig = null;

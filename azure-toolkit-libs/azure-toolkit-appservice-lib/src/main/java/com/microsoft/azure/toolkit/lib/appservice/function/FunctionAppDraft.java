@@ -13,7 +13,8 @@ import com.azure.resourcemanager.appservice.models.FunctionApp.Update;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppLinuxRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
@@ -51,7 +52,6 @@ import java.util.stream.Collectors;
 public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<FunctionApp, com.azure.resourcemanager.appservice.models.FunctionApp> {
     private static final String CREATE_NEW_FUNCTION_APP = "isCreateNewFunctionApp";
     public static final String FUNCTIONS_EXTENSION_VERSION = "FUNCTIONS_EXTENSION_VERSION";
-    public static final JavaVersion DEFAULT_JAVA_VERSION = Runtime.DEFAULT_FUNCTION_RUNTIME.getJavaVersion();
     public static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     public static final String CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS = "Can not update the operation system of an existing app";
 
@@ -96,7 +96,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         OperationContext.action().setTelemetryProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
 
         final String name = getName();
-        final Runtime newRuntime = Objects.requireNonNull(getRuntime(), "'runtime' is required to create a Function App");
+        final FunctionAppRuntime newRuntime = Objects.requireNonNull(getRuntime(), "'runtime' is required to create a Function App");
         final AppServicePlan newPlan = Objects.requireNonNull(getAppServicePlan(), "'service plan' is required to create a Function App");
         final OperatingSystem os = newRuntime.isDocker() ? OperatingSystem.LINUX : newRuntime.getOperatingSystem();
         if (os != newPlan.getOperatingSystem()) {
@@ -114,12 +114,12 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         if (newRuntime.getOperatingSystem() == OperatingSystem.LINUX) {
             withCreate = blank.withExistingLinuxAppServicePlan(newPlan.getRemote())
                 .withExistingResourceGroup(getResourceGroupName())
-                .withBuiltInImage(AppServiceUtils.toFunctionRuntimeStack(newRuntime, funcExtVersion));
+                .withBuiltInImage(((FunctionAppLinuxRuntime) newRuntime).toFunctionRuntimeStack(funcExtVersion));
         } else if (newRuntime.getOperatingSystem() == OperatingSystem.WINDOWS) {
             withCreate = (DefinitionStages.WithCreate) blank
                 .withExistingAppServicePlan(newPlan.getRemote())
                 .withExistingResourceGroup(getResourceGroupName())
-                .withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime.getJavaVersion()))
+                .withJavaVersion(newRuntime.getJavaVersion())
                 .withWebContainer(null);
         } else if (newRuntime.getOperatingSystem() == OperatingSystem.DOCKER) {
             withCreate = createDockerApp(blank, newPlan);
@@ -278,15 +278,9 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         }
         final OperatingSystem operatingSystem = ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), oldRuntime.getOperatingSystem());
         if (operatingSystem == OperatingSystem.LINUX) {
-            update.withBuiltInImage(AppServiceUtils.toFunctionRuntimeStack(newRuntime, funcExtVersion));
+            update.withBuiltInImage(((FunctionAppLinuxRuntime) newRuntime).toFunctionRuntimeStack(funcExtVersion));
         } else if (operatingSystem == OperatingSystem.WINDOWS) {
-            if (Objects.equals(oldRuntime.getJavaVersion(), JavaVersion.OFF)) {
-                final JavaVersion javaVersion = Optional.ofNullable(newRuntime.getJavaVersion()).orElse(DEFAULT_JAVA_VERSION);
-                update.withJavaVersion(AppServiceUtils.toJavaVersion(javaVersion)).withWebContainer(null);
-            } else if (ObjectUtils.notEqual(newRuntime.getJavaVersion(), JavaVersion.OFF) &&
-                ObjectUtils.notEqual(newRuntime.getJavaVersion(), oldRuntime.getJavaVersion())) {
-                update.withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime.getJavaVersion())).withWebContainer(null);
-            }
+            update.withJavaVersion(newRuntime.getJavaVersion()).withWebContainer(null);
         } else if (newRuntime.getOperatingSystem() == OperatingSystem.DOCKER) {
             return; // skip for docker, as docker configuration will be handled in `updateDockerConfiguration`
         } else {
@@ -306,13 +300,13 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         }
     }
 
-    public void setRuntime(Runtime runtime) {
+    public void setRuntime(FunctionAppRuntime runtime) {
         this.ensureConfig().setRuntime(runtime);
     }
 
     @Nullable
     @Override
-    public Runtime getRuntime() {
+    public FunctionAppRuntime getRuntime() {
         return Optional.ofNullable(config).map(Config::getRuntime).orElseGet(super::getRuntime);
     }
 
@@ -410,7 +404,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     @Data
     @Nullable
     private static class Config {
-        private Runtime runtime;
+        private FunctionAppRuntime runtime;
         private AppServicePlan plan = null;
         private StorageAccount storageAccount = null;
         private Boolean enableDistributedTracing = null;

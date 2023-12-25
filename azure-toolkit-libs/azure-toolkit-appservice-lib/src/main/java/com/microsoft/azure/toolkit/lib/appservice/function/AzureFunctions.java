@@ -9,15 +9,10 @@ import com.azure.resourcemanager.appservice.AppServiceManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
-import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class AzureFunctions extends AzureAppService {
@@ -38,13 +33,6 @@ public class AzureFunctions extends AzureAppService {
     public FunctionApp functionApp(String resourceId) {
         final ResourceId id = ResourceId.fromString(resourceId);
         return this.functionApps(id.subscriptionId()).get(id.name(), id.resourceGroupName());
-    }
-
-    @Nonnull
-    public List<Runtime> listFunctionAppRuntimes(@Nonnull OperatingSystem os, @Nonnull JavaVersion version) {
-        return Runtime.FUNCTION_APP_RUNTIME.stream()
-            .filter(runtime -> os == runtime.getOperatingSystem() && Objects.equals(version, runtime.getJavaVersion()))
-            .collect(Collectors.toList());
     }
 
     @Nonnull

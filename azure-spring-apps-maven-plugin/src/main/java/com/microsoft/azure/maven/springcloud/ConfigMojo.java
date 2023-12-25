@@ -317,7 +317,7 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private void configureJavaVersion() throws IOException, InvalidConfigurationException {
-        final List<String> validRuntimes = getValidRuntimes(new ArrayList<>(JAVA_RUNTIMES.keySet()), JAVA_RUNTIMES::get);
+        final List<String> validRuntimes = getValidRuntimes(new ArrayList<>(JAVA_RUNTIMES.keySet()), JAVA_RUNTIMES::get, r -> r.toString());
         assert CollectionUtils.isNotEmpty(validRuntimes) : "No valid runtime found for current project.";
         this.wrapper.putCommonVariable("runtimes", validRuntimes);
         final String defaultRuntime = validRuntimes.contains(JAVA_11) ? JAVA_11 : validRuntimes.get(0);

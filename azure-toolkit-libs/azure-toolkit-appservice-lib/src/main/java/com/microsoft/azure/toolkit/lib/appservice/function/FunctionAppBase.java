@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.function;
 
+import com.azure.resourcemanager.appservice.models.JavaVersion;
 import com.azure.resourcemanager.appservice.models.PlatformArchitecture;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
@@ -19,6 +20,9 @@ import com.microsoft.azure.toolkit.lib.appservice.file.AzureFunctionsAdminClient
 import com.microsoft.azure.toolkit.lib.appservice.file.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppLinuxRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppWindowsRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
@@ -82,6 +86,24 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
             fileClient = Optional.ofNullable(this.getRemote()).map(r -> AzureFunctionsAdminClient.getClient(r, this)).orElse(null);
         }
         return fileClient;
+    }
+
+    @Override
+    public FunctionAppRuntime getRuntime() {
+        return Optional.ofNullable(this.getRemote()).map(r -> {
+            if (r.operatingSystem() == com.azure.resourcemanager.appservice.models.OperatingSystem.WINDOWS) {
+                final JavaVersion javaVersion = r.javaVersion();
+                return FunctionAppWindowsRuntime.fromJavaVersion(javaVersion);
+            } else {
+                final String fxString = r.linuxFxVersion();
+                if (StringUtils.isEmpty(fxString)) {
+                    return null;
+                } else if (StringUtils.startsWithIgnoreCase(fxString, "docker")) {
+                    return FunctionAppRuntime.DOCKER;
+                }
+                return FunctionAppLinuxRuntime.fromFxString(fxString);
+            }
+        }).orElse(null);
     }
 
     @Nullable

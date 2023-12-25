@@ -16,6 +16,7 @@ import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
@@ -110,7 +111,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
                 final FunctionDeploymentSlot sourceSlot = functionApp.deploymentSlots().getByName(newConfigurationSource);
                 Objects.requireNonNull(sourceSlot, CONFIGURATION_SOURCE_DOES_NOT_EXISTS);
                 withCreate = blank.withConfigurationFromDeploymentSlot(sourceSlot);
-            } catch (ManagementException e) {
+            } catch (final ManagementException e) {
                 throw new AzureToolkitRuntimeException(FAILED_TO_GET_CONFIGURATION_SOURCE, e);
             }
         }
@@ -173,9 +174,9 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
         final FlexConsumptionConfiguration newFlexConsumptionConfiguration = this.ensureConfig().getFlexConsumptionConfiguration();
         final FlexConsumptionConfiguration oldFlexConsumptionConfiguration = super.getFlexConsumptionConfiguration();
 
-        final Runtime oldRuntime = AppServiceUtils.getRuntimeFromAppService(remote);
-        final boolean isRuntimeModified =  !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
-        final boolean isDockerConfigurationModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
+        final Runtime oldRuntime = super.getRuntime();
+        final boolean isRuntimeModified = (Objects.isNull(oldRuntime) || !oldRuntime.isDocker()) && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
+        final boolean isDockerConfigurationModified = Objects.nonNull(oldRuntime) && oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
         final boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
         final boolean isDiagnosticConfigModified = Objects.nonNull(newDiagnosticConfig) && !Objects.equals(newDiagnosticConfig, oldDiagnosticConfig);
         final boolean flexConsumptionModified = getParent().getAppServicePlan().getPricingTier().isFlexConsumption() &&
@@ -204,16 +205,15 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
 
     private void updateRuntime(@Nonnull FunctionDeploymentSlot.Update<?> update, @Nonnull Runtime newRuntime) {
         final Runtime oldRuntime = Objects.requireNonNull(super.getRuntime());
-        if (newRuntime.getOperatingSystem() != null && Objects.requireNonNull(oldRuntime).getOperatingSystem() != newRuntime.getOperatingSystem()) {
+        if (newRuntime.getOperatingSystem() != null && oldRuntime.getOperatingSystem() != newRuntime.getOperatingSystem()) {
             throw new AzureToolkitRuntimeException(CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS);
         }
         final OperatingSystem operatingSystem =
-                ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), Objects.requireNonNull(oldRuntime).getOperatingSystem());
+                ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), oldRuntime.getOperatingSystem());
         if (operatingSystem == OperatingSystem.LINUX) {
             AzureMessager.getMessager().warning("Update runtime is not supported for Linux app service");
         } else if (operatingSystem == OperatingSystem.WINDOWS) {
-            update.withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime.getJavaVersion()))
-                    .withWebContainer(AppServiceUtils.toWebContainer(newRuntime));
+            update.withJavaVersion(newRuntime.getJavaVersion()).withWebContainer(null);
         } else if (operatingSystem == OperatingSystem.DOCKER) {
             return; // skip for docker, as docker configuration will be handled in `updateDockerConfiguration`
         } else {
@@ -278,11 +278,11 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
 
     @Nullable
     @Override
-    public Runtime getRuntime() {
+    public FunctionAppRuntime getRuntime() {
         return Optional.ofNullable(config).map(FunctionAppDeploymentSlotDraft.Config::getRuntime).orElseGet(super::getRuntime);
     }
 
-    public void setRuntime(final Runtime runtime) {
+    public void setRuntime(final FunctionAppRuntime runtime) {
         this.ensureConfig().setRuntime(runtime);
     }
 
@@ -319,7 +319,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
     @Data
     @Nullable
     private static class Config {
-        private Runtime runtime;
+        private FunctionAppRuntime runtime;
         private DockerConfiguration dockerConfiguration;
         private String configurationSource;
         private DiagnosticConfig diagnosticConfig = null;

@@ -14,6 +14,9 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppLinuxRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppWindowsRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
@@ -44,7 +47,6 @@ import java.util.stream.Collectors;
 public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.azure.resourcemanager.appservice.models.WebApp> {
     public static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     public static final String CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS = "Can not update the operation system for existing app service";
-    public static final Runtime DEFAULT_RUNTIME = Runtime.LINUX_JAVA17;
 
     @Getter
     @Nullable
@@ -93,13 +95,13 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.
         if (newRuntime.getOperatingSystem() == OperatingSystem.LINUX) {
             withCreate = blank.withExistingLinuxPlan(newPlan.getRemote())
                 .withExistingResourceGroup(getResourceGroupName())
-                .withBuiltInImage(AppServiceUtils.toRuntimeStack(newRuntime));
+                .withBuiltInImage(((WebAppLinuxRuntime) newRuntime).toRuntimeStack());
         } else if (newRuntime.getOperatingSystem() == OperatingSystem.WINDOWS) {
             withCreate = (DefinitionStages.WithCreate) blank
                 .withExistingWindowsPlan(newPlan.getRemote())
                 .withExistingResourceGroup(getResourceGroupName())
-                .withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime.getJavaVersion()))
-                .withWebContainer(AppServiceUtils.toWebContainer(newRuntime));
+                .withJavaVersion(newRuntime.getJavaVersion())
+                .withWebContainer(((WebAppWindowsRuntime) newRuntime).getWebContainer());
         } else if (newRuntime.getOperatingSystem() == OperatingSystem.DOCKER) {
             withCreate = createDockerWebApp(blank, newPlan);
         } else {
@@ -201,10 +203,10 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.
         }
         final OperatingSystem operatingSystem = ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), oldRuntime.getOperatingSystem());
         if (operatingSystem == OperatingSystem.LINUX) {
-            update.withBuiltInImage(AppServiceUtils.toRuntimeStack(newRuntime));
+            update.withBuiltInImage(((WebAppLinuxRuntime) newRuntime).toRuntimeStack());
         } else if (operatingSystem == OperatingSystem.WINDOWS) {
-            update.withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime.getJavaVersion()))
-                .withWebContainer(AppServiceUtils.toWebContainer(newRuntime));
+            update.withJavaVersion(newRuntime.getJavaVersion())
+                .withWebContainer(((WebAppWindowsRuntime) newRuntime).getWebContainer());
         } else if (operatingSystem == OperatingSystem.DOCKER) {
             return; // skip for docker, as docker configuration will be handled in `updateDockerConfiguration`
         } else {
@@ -226,13 +228,13 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.
         draft.withStartUpCommand(newConfig.getStartUpCommand());
     }
 
-    public void setRuntime(Runtime runtime) {
+    public void setRuntime(WebAppRuntime runtime) {
         this.ensureConfig().setRuntime(runtime);
     }
 
     @Nullable
     @Override
-    public Runtime getRuntime() {
+    public WebAppRuntime getRuntime() {
         return Optional.ofNullable(config).map(Config::getRuntime).orElseGet(super::getRuntime);
     }
 
@@ -305,7 +307,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.
     @Data
     @Nullable
     private static class Config {
-        private Runtime runtime;
+        private WebAppRuntime runtime;
         private AppServicePlan plan = null;
         private DiagnosticConfig diagnosticConfig = null;
         private Set<String> appSettingsToRemove = new HashSet<>();

@@ -285,4 +285,21 @@ public class Utils {
     public static boolean containsIgnoreCases(@Nonnull final String target, @Nonnull List<String> list) {
         return list.stream().anyMatch(item -> StringUtils.equalsIgnoreCase(target, item));
     }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T get(Map<String, Object> data, String path) {
+        if (!path.startsWith("$.")) {
+            throw new AzureToolkitRuntimeException("invalid json path");
+        }
+        final String[] parts = path.substring(2).split("\\.");
+        Object obj = data;
+        for (final String p : parts) {
+            if (Objects.isNull(obj)) {
+                return null;
+            }
+            final Map<?, ?> d = (Map<?, ?>) obj;
+            obj = d.get(p);
+        }
+        return (T) obj;
+    }
 }
