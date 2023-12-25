@@ -15,7 +15,7 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebAppLinuxRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -73,8 +73,8 @@ public class AppServiceConfigUtils {
             }
         } else if (Objects.nonNull(runtime)) {
             runtimeConfig.os(runtime.getOperatingSystem()).javaVersion(runtime.getJavaVersionUserText());
-            if (runtime instanceof WebAppLinuxRuntime) {
-                runtimeConfig.webContainer(((WebAppLinuxRuntime) runtime).getContainerUserText());
+            if (runtime instanceof WebAppRuntime) {
+                runtimeConfig.webContainer(((WebAppRuntime) runtime).getContainerUserText());
             }
         }
         config.runtime(runtimeConfig);
