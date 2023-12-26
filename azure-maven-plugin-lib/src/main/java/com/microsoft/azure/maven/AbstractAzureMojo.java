@@ -675,7 +675,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
                     .filter(t -> levelGetter.apply(t) >= level)
                     .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(result)) {
-                final String supportedRuntimes = runtimes.stream().map(stringGetter).collect(Collectors.joining(", "));
+                final String supportedRuntimes = runtimes.stream().map(stringGetter).distinct().collect(Collectors.joining(", "));
                 AzureMessager.getMessager().warning(AzureString.format(COMPILE_LEVEL_NOT_SUPPORTED, compileLevel, supportedRuntimes));
                 return runtimes;
             } else {
