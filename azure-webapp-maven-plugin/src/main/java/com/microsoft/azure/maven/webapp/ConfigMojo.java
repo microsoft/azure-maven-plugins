@@ -368,6 +368,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
             if (updating && StringUtils.isNotBlank(defaultJavaVersion)) {
                 log.warn(String.format("'%s' may not be a valid Java runtime. Refer to %s please.", defaultJavaVersion, WEB_APP_STACKS_API));
             }
+            if (validJavaVersionUserTexts.isEmpty()) {
+                throw new AzureToolkitRuntimeException("No valid runtime found, please check your configuration and try again.");
+            }
             defaultJavaVersion = validJavaVersionUserTexts.get(0);
         }
 
@@ -384,6 +387,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
             log.info("Skip web container selection for \"jar\" project.");
             builder.webContainer(WebAppRuntime.JAVA_SE.toString());
             runtimes = runtimes.stream().filter(r -> StringUtils.equalsIgnoreCase(r.getContainerUserText(), WebAppRuntime.JAVA_SE.toString())).collect(Collectors.toList());
+            if (runtimes.isEmpty()) {
+                throw new AzureToolkitRuntimeException("No valid runtime found, please check your configuration and try again.");
+            }
             return runtimes.get(0);
         }
 
@@ -393,7 +399,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         // filter runtimes by web container (packaging)
         runtimes = runtimes.stream().filter(r -> !StringUtils.equalsIgnoreCase(r.getContainerName(), "java")).collect(Collectors.toList());
         if (Utils.isEarPackagingProject(project.getPackaging())) {
-            runtimes = runtimes.stream().filter(r -> StringUtils.equalsIgnoreCase(r.getContainerName(), "ear")).collect(Collectors.toList());
+            runtimes = runtimes.stream().filter(r -> StringUtils.startsWithIgnoreCase(r.getContainerName(), "JBoss")).collect(Collectors.toList());
         }
 
         final List<String> validContainerUserTexts = runtimes.stream().map(WebAppRuntime::getContainerUserText).distinct().collect(Collectors.toList());
@@ -401,6 +407,10 @@ public class ConfigMojo extends AbstractWebAppMojo {
         if (StringUtils.isBlank(defaultContainer) || !validContainerUserTexts.contains(defaultContainer)) {
             if (updating && StringUtils.isNotBlank(defaultContainer)) {
                 log.warn(String.format("'%s' may not be a valid web container. Refer to %s please.", defaultContainer, WEB_APP_STACKS_API));
+            }
+            if (validContainerUserTexts.isEmpty()) {
+                final String message = String.format("No valid runtime found for '%s' + '%s', please check your java version and try again.", os, javaVersionUserInput);
+                throw new AzureToolkitRuntimeException(message);
             }
             defaultContainer = validContainerUserTexts.get(0);
         }
@@ -416,6 +426,10 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
         // filter runtimes by java version (user selection)
         runtimes = runtimes.stream().filter(r -> StringUtils.equalsIgnoreCase(r.getContainerUserText(), containerUserInput)).collect(Collectors.toList());
+        if (runtimes.isEmpty()) {
+            final String message = String.format("No valid runtime found for '%s' + '%s' + '%s', please check your configuration and try again.", os, javaVersionUserInput, containerUserInput);
+            throw new AzureToolkitRuntimeException(message);
+        }
         return runtimes.get(0);
     }
 
@@ -447,7 +461,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             }
             log.info(LONG_LOADING_HINT);
             ((WebAppServiceSubscription) Objects.requireNonNull(Azure.az(AzureWebApp.class).get(subscriptionId, null), "You are not signed-in")).loadRuntimes();
-            final List<WebApp> apps = az.list().stream().flatMap(m -> m.webApps().list().stream())
+            final List<WebApp> apps = az.list().stream().flatMap(m -> m.webApps().list().stream()).parallel()
                 .filter(webApp -> webApp.getRuntime() != null)
                 .filter(webApp -> {
                     final WebAppRuntime runtime = webApp.getRuntime();
