@@ -190,7 +190,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         } else if (os == OperatingSystem.WINDOWS) {
             runtime = WebAppWindowsRuntime.fromContainerAndJavaVersionUserText(runtimeConfig.webContainer(), runtimeConfig.javaVersion());
         }
-        if (Objects.isNull(runtime) && (Objects.nonNull(os) || !StringUtils.isAllBlank(runtimeConfig.webContainer(), runtimeConfig.javaVersion()))) {
+        if (Objects.isNull(runtime) && (Objects.nonNull(os) || StringUtils.isNotBlank(runtimeConfig.webContainer()) || StringUtils.isNotBlank(runtimeConfig.javaVersion()))) {
             throw new AzureToolkitRuntimeException("invalid runtime configuration, please refer to https://aka.ms/maven_webapp_runtime for valid values");
         }
         return runtime;

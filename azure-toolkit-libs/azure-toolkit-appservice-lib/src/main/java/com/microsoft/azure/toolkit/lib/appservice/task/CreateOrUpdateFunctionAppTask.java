@@ -319,7 +319,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
         } else if (os == OperatingSystem.WINDOWS) {
             runtime = FunctionAppWindowsRuntime.fromJavaVersionUserText(runtimeConfig.javaVersion());
         }
-        if (Objects.isNull(runtime) && Objects.nonNull(runtimeConfig.os()) || StringUtils.isNotBlank(runtimeConfig.javaVersion())) {
+        if (Objects.isNull(runtime) && (Objects.nonNull(runtimeConfig.os()) || StringUtils.isNotBlank(runtimeConfig.javaVersion()))) {
             throw new AzureToolkitRuntimeException("invalid runtime configuration, please refer to https://aka.ms/maven_function_configuration#supported-runtime for valid values");
         }
         return runtime;
