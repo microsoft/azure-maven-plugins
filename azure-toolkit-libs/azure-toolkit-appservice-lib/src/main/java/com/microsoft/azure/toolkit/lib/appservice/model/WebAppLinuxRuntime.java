@@ -35,18 +35,18 @@ import java.util.stream.Collectors;
 public class WebAppLinuxRuntime implements WebAppRuntime {
     public static final WebAppLinuxRuntime JAVASE_JAVA17 = new WebAppLinuxRuntime("JAVA|17-java17", "Java 17");
     public static final WebAppLinuxRuntime JAVASE_JAVA11 = new WebAppLinuxRuntime("JAVA|11-java11", "Java 11");
-    public static final WebAppLinuxRuntime JAVASE_JAVA8 = new WebAppLinuxRuntime("JAVA|8-jre8", "Java 8");
+    public static final WebAppLinuxRuntime JAVASE_JAVA8 = new WebAppLinuxRuntime("JAVA|8-jre8", "Java 1.8");
     public static final WebAppLinuxRuntime TOMCAT10_JAVA17 = new WebAppLinuxRuntime("TOMCAT|10.0-java17", "Java 17");
     public static final WebAppLinuxRuntime TOMCAT10_JAVA11 = new WebAppLinuxRuntime("TOMCAT|10.0-java11", "Java 11");
-    public static final WebAppLinuxRuntime TOMCAT10_JAVA8 = new WebAppLinuxRuntime("TOMCAT|10.0-jre8", "Java 8");
+    public static final WebAppLinuxRuntime TOMCAT10_JAVA8 = new WebAppLinuxRuntime("TOMCAT|10.0-jre8", "Java 1.8");
     public static final WebAppLinuxRuntime TOMCAT9_JAVA17 = new WebAppLinuxRuntime("TOMCAT|9.0-java17", "Java 17");
     public static final WebAppLinuxRuntime TOMCAT9_JAVA11 = new WebAppLinuxRuntime("TOMCAT|9.0-java11", "Java 11");
-    public static final WebAppLinuxRuntime TOMCAT9_JAVA8 = new WebAppLinuxRuntime("TOMCAT|9.0-jre8", "Java 8");
+    public static final WebAppLinuxRuntime TOMCAT9_JAVA8 = new WebAppLinuxRuntime("TOMCAT|9.0-jre8", "Java 1.8");
     public static final WebAppLinuxRuntime TOMCAT85_JAVA11 = new WebAppLinuxRuntime("TOMCAT|8.5-java11", "Java 11");
-    public static final WebAppLinuxRuntime TOMCAT85_JAVA8 = new WebAppLinuxRuntime("TOMCAT|8.5-jre8", "Java 8");
+    public static final WebAppLinuxRuntime TOMCAT85_JAVA8 = new WebAppLinuxRuntime("TOMCAT|8.5-jre8", "Java 1.8");
     public static final WebAppLinuxRuntime JBOSS7_JAVA17 = new WebAppLinuxRuntime("JBOSSEAP|7-java17", "Java 17");
     public static final WebAppLinuxRuntime JBOSS7_JAVA11 = new WebAppLinuxRuntime("JBOSSEAP|7-java11", "Java 11");
-    public static final WebAppLinuxRuntime JBOSS7_JAVA8 = new WebAppLinuxRuntime("JBOSSEAP|7-java8", "Java 8");
+    public static final WebAppLinuxRuntime JBOSS7_JAVA8 = new WebAppLinuxRuntime("JBOSSEAP|7-java8", "Java 1.8");
 
     private static final AtomicReference<Boolean> loaded = new AtomicReference<>(Boolean.FALSE);
     private static final LinkedHashSet<WebAppLinuxRuntime> RUNTIMES = Sets.newLinkedHashSet(Arrays.asList(
@@ -64,9 +64,8 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
     @EqualsAndHashCode.Include
     private final String containerName;
     /**
-     * container version number,
-     * e.g. '17', '17.0.4'; be careful of `SE`; container version value used instead of linux fx string,
-     * that is, '8u202'(linux fx string only) is translated to '1.8.202',
+     * container version number, e.g. 'SE', '8.5', '9.0', '10.0', '7'
+     * be careful of `SE`; container version value used instead of linux fx string,
      */
     @Getter
     @EqualsAndHashCode.Include
@@ -92,8 +91,8 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
         this.containerName = parts[0].toUpperCase();
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : container.value().toUpperCase();
         // it's major version if container value is "SE", minor version otherwise, when container name is "Java"
-        this.javaVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") && !StringUtils.equalsIgnoreCase(container.value(), "SE") ?
-            formalizeJavaVersion(parts[1]) : javaVersion.value().toUpperCase(); // minor version in fx string may be 8u202 (-> 1.8.0_202), 17.0.4, etc.
+        this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(StringUtils.equalsIgnoreCase(this.containerName, "Java") && !StringUtils.equalsIgnoreCase(container.value(), "SE") ?
+            parts[1] : javaVersion.value().toUpperCase());
         this.javaVersionDisplayText = StringUtils.equalsIgnoreCase(this.containerName, "Java") && !StringUtils.equalsIgnoreCase(container.value(), "SE") ?
             String.format("Java %s", this.javaVersionNumber) : javaVersion.displayText();
     }
@@ -107,8 +106,8 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
             || BooleanUtils.isTrue(Utils.get(containerSettings, "$.isDeprecated"));
         this.containerName = parts[0].toUpperCase();
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : ((String) Utils.get(container, "$.value")).toUpperCase();
-        this.javaVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") && !StringUtils.equalsIgnoreCase((String) container.get("value"), "SE") ?
-            formalizeJavaVersion(parts[1]) : ((String) javaVersion.get("value")).toUpperCase(); // minor version in fx string may be 8u202 (-> 1.8.0_202), 17.0.4, etc.
+        this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(StringUtils.equalsIgnoreCase(this.containerName, "Java") && !StringUtils.equalsIgnoreCase((String) container.get("value"), "SE") ?
+            parts[1] : ((String) javaVersion.get("value")).toUpperCase()); // minor version in fx string may be 8u202 (-> 1.8.0_202), 17.0.4, etc.
         this.javaVersionDisplayText = StringUtils.equalsIgnoreCase(this.containerName, "Java") && !StringUtils.equalsIgnoreCase((String) container.get("value"), "SE") ?
             String.format("Java %s", this.javaVersionNumber) : ((String) javaVersion.get("displayText"));
     }
@@ -120,7 +119,7 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
         this.deprecatedOrHidden = false;
         this.containerName = fxStringParts[0].toUpperCase();
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : fxStringParts[1].toUpperCase();
-        this.javaVersionNumber = javaParts[1].toUpperCase();
+        this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(javaParts[1].toUpperCase());
         this.javaVersionDisplayText = javaVersionUserText;
     }
 
@@ -135,23 +134,16 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
     }
 
     @Nullable
-    public static WebAppLinuxRuntime fromContainerAndJavaVersionUserText(final String containerUserText, String javaVersionUserText) {
-        if (StringUtils.isBlank(javaVersionUserText)) {
-            javaVersionUserText = DEFAULT_JAVA;
+    public static WebAppLinuxRuntime fromContainerAndJavaVersionUserText(final String pContainerUserText, String pJavaVersionUserText) {
+        if (StringUtils.isBlank(pJavaVersionUserText)) {
+            pJavaVersionUserText = DEFAULT_JAVA;
             AzureMessager.getMessager().warning(AzureString.format("The java version is not specified, use default version '%s'", DEFAULT_JAVA));
         }
-        final String finalJavaVersionUserText = StringUtils.startsWithIgnoreCase(javaVersionUserText, "java") ? javaVersionUserText : String.format("Java %s", javaVersionUserText);
-        final String finalContainerUserText = StringUtils.startsWithIgnoreCase(containerUserText, "java ") ? "Java SE" : containerUserText;
-        return RUNTIMES.stream().filter(r -> {
-            final String containerText = String.format("%s %s", r.containerName, r.containerVersionNumber);
-            final String javaVersionText = String.format("java %s", r.javaVersionNumber);
-            if (StringUtils.equalsAnyIgnoreCase(r.javaVersionNumber, "8", "1.8")) {
-                return StringUtils.equalsIgnoreCase(finalContainerUserText, containerText) &&
-                    StringUtils.equalsAnyIgnoreCase(finalJavaVersionUserText, "java 1.8", "java 8");
-            }
-            return StringUtils.equalsIgnoreCase(finalContainerUserText, containerText) &&
-                StringUtils.equalsAnyIgnoreCase(finalJavaVersionUserText, javaVersionText, r.javaVersionDisplayText);
-        }).findFirst().orElse(null);
+        final String javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(pJavaVersionUserText);
+        final String containerUserText = StringUtils.startsWithIgnoreCase(pContainerUserText, "java ") ? "Java SE" : pContainerUserText;
+        return RUNTIMES.stream().filter(r -> StringUtils.equalsAnyIgnoreCase(javaVersionNumber, r.javaVersionNumber) &&
+                StringUtils.equalsIgnoreCase(containerUserText, String.format("%s %s", r.containerName, r.containerVersionNumber)))
+            .findFirst().orElse(null);
     }
 
     public static List<WebAppLinuxRuntime> getAllRuntimes() {
@@ -221,13 +213,5 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
 
     public String toString() {
         return String.format("Linux: %s - %s (%s)", this.getContainerUserText(), this.getJavaVersionUserText(), this.fxString);
-    }
-
-    private static String formalizeJavaVersion(String javaVersion) {
-        if (javaVersion.contains("u")) {
-            String[] parts = javaVersion.split("u", 2);
-            return String.format("1.%s.0_%s", parts[0], parts[1]);
-        }
-        return javaVersion;
     }
 }

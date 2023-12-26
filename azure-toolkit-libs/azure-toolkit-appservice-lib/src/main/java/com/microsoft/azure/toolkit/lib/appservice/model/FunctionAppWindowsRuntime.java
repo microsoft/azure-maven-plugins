@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 public class FunctionAppWindowsRuntime implements FunctionAppRuntime {
     public static final FunctionAppWindowsRuntime FUNCTION_JAVA17 = new FunctionAppWindowsRuntime("Java 17");
     public static final FunctionAppWindowsRuntime FUNCTION_JAVA11 = new FunctionAppWindowsRuntime("Java 11");
-    public static final FunctionAppWindowsRuntime FUNCTION_JAVA8 = new FunctionAppWindowsRuntime("Java 8");
+    public static final FunctionAppWindowsRuntime FUNCTION_JAVA8 = new FunctionAppWindowsRuntime("Java 1.8");
     private static final LinkedHashSet<FunctionAppWindowsRuntime> RUNTIMES = Sets.newLinkedHashSet(Arrays.asList(FUNCTION_JAVA17, FUNCTION_JAVA11, FUNCTION_JAVA8));
 
     private static final AtomicReference<Boolean> loaded = new AtomicReference<>(Boolean.FALSE);
@@ -51,32 +51,30 @@ public class FunctionAppWindowsRuntime implements FunctionAppRuntime {
     private final String javaVersionNumber;
     @Getter
     private final boolean deprecatedOrHidden;
-    private final String javaVersionDisplayText;
 
     private FunctionAppWindowsRuntime(@Nonnull FunctionAppMinorVersion javaVersion) {
         final FunctionAppRuntimeSettings settings = javaVersion.stackSettings().windowsRuntimeSettings();
-        this.javaVersionNumber = settings.runtimeVersion();
-        this.javaVersionDisplayText = javaVersion.displayText();
+        this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(settings.runtimeVersion());
         this.deprecatedOrHidden = BooleanUtils.isTrue(settings.isDeprecated()) || BooleanUtils.isTrue(settings.isHidden());
     }
 
     private FunctionAppWindowsRuntime(@Nonnull Map<String, Object> javaVersion) {
         final Map<String, Object> settings = Utils.get(javaVersion, "$.stackSettings.windowsRuntimeSettings");
-        this.javaVersionNumber = Objects.requireNonNull(Utils.get(settings, "$.runtimeVersion"));
-        this.javaVersionDisplayText = Utils.get(javaVersion, "$.displayText");
+        this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(Objects.requireNonNull(Utils.get(settings, "$.runtimeVersion")));
         this.deprecatedOrHidden = BooleanUtils.isTrue(Utils.get(settings, "$.isDeprecated")) || BooleanUtils.isTrue(Utils.get(settings, "$.isHidden"));
     }
 
     private FunctionAppWindowsRuntime(@Nonnull String javaVersionUserText) {
         final String[] javaParts = javaVersionUserText.split(" ");
-        this.javaVersionNumber = javaParts[1];
-        this.javaVersionDisplayText = javaVersionUserText;
+        this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(javaParts[1]);
         this.deprecatedOrHidden = false;
     }
 
     @Nullable
     public static FunctionAppWindowsRuntime fromJavaVersion(final JavaVersion javaVersion) {
-        return fromJavaVersionUserText(String.format("Java %s", javaVersion.toString()));
+        return RUNTIMES.stream()
+            .filter(runtime -> StringUtils.equalsIgnoreCase(runtime.javaVersionNumber, javaVersion.toString()))
+            .findFirst().orElse(null);
     }
 
     @Nullable
@@ -85,11 +83,7 @@ public class FunctionAppWindowsRuntime implements FunctionAppRuntime {
             v = DEFAULT_JAVA;
             AzureMessager.getMessager().warning(AzureString.format("The java version is not specified, use default version '%s'", DEFAULT_JAVA));
         }
-        final String version = StringUtils.startsWithIgnoreCase(v, "Java") ? v : String.format("Java %s", v);
-        return RUNTIMES.stream().filter(runtime -> {
-            final String javaVersionUserText = String.format("Java %s", runtime.getJavaVersionNumber());
-            return StringUtils.equalsAnyIgnoreCase(version, javaVersionUserText, runtime.javaVersionDisplayText);
-        }).findFirst().orElse(null);
+        return fromJavaVersion(JavaVersion.fromString(Runtime.extractAndFormalizeJavaVersionNumber(v)));
     }
 
     public static List<FunctionAppWindowsRuntime> getAllRuntimes() {

@@ -12,11 +12,14 @@ public interface Runtime {
     String getDisplayName();
 
     /**
-     * @return java version number, e.g. '8', '11', '17', '17.0.4', '1.8.0_202', '1.8.0_202_ZULU', '1.8'(windows only)
+     * @return java version number, e.g. '1.8'(no '8'), '11', '17', '17.0.4', '1.8.0_202', '1.8.0_202_ZULU'
      */
     @Nonnull
     String getJavaVersionNumber();
 
+    /**
+     * @return java version user text, e.g. 'Java 8'(no 'Java 8'), 'Java 11', 'Java 17', 'Java 17.0.4', 'Java 1.8.0_202', 'Java 1.8.0_202_ZULU'
+     */
     default String getJavaVersionUserText() {
         if (this.isDocker()) {
             return "";
@@ -27,6 +30,9 @@ public interface Runtime {
         return String.format("Java %s", getJavaVersionNumber());
     }
 
+    /**
+     * @return java version, e.g. '1.8'(no '8'), '11', '17', 'docker'
+     */
     default JavaVersion getJavaVersion() {
         if (this.isDocker()) {
             return JavaVersion.fromString("docker");
@@ -69,5 +75,18 @@ public interface Runtime {
         final String v = StringUtils.replaceIgnoreCase(javaVersionUserText, "java", "").trim();
         final String[] parts = v.split("\\.", 3);
         return Integer.parseInt(StringUtils.startsWithIgnoreCase(v, "1.") ? parts[1] : parts[0]);
+    }
+
+    /**
+     * 8u202 => 1.8.0_202, 7 => 1.7, 8 => 1.8, 11 => 11, 17 => 17, 17.0.4 => 17.0.4, java 8 => 1.8
+     */
+    static String extractAndFormalizeJavaVersionNumber(String javaVersion) {
+        javaVersion = StringUtils.replaceIgnoreCase(javaVersion, "java", "").trim();
+        javaVersion = StringUtils.equalsAny(javaVersion, "8", "7") ? "1." + javaVersion : javaVersion;
+        if (javaVersion.contains("u")) {
+            String[] parts = javaVersion.split("u", 2);
+            return String.format("1.%s.0_%s", parts[0], parts[1]);
+        }
+        return javaVersion;
     }
 }

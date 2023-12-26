@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
     public static final FunctionAppLinuxRuntime FUNCTION_JAVA17 = new FunctionAppLinuxRuntime("Java 17", "Java|17");
     public static final FunctionAppLinuxRuntime FUNCTION_JAVA11 = new FunctionAppLinuxRuntime("Java 11", "Java|11");
-    public static final FunctionAppLinuxRuntime FUNCTION_JAVA8 = new FunctionAppLinuxRuntime("Java 8", "Java|8");
+    public static final FunctionAppLinuxRuntime FUNCTION_JAVA8 = new FunctionAppLinuxRuntime("Java 1.8", "Java|8");
     private static final LinkedHashSet<FunctionAppLinuxRuntime> RUNTIMES = new LinkedHashSet<>(Arrays.asList(FUNCTION_JAVA17, FUNCTION_JAVA11, FUNCTION_JAVA8));
 
     private static final AtomicReference<Boolean> loaded = new AtomicReference<>(Boolean.FALSE);
@@ -44,7 +44,7 @@ public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
     @EqualsAndHashCode.Include
     private final OperatingSystem operatingSystem = OperatingSystem.LINUX;
     /**
-     * java version number, e.g. '8', '11', '17'
+     * java version number, e.g. '1.8', '11', '17'
      */
     @Getter
     @Nonnull
@@ -52,28 +52,24 @@ public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
     private final String javaVersionNumber;
     @Getter
     private final boolean deprecatedOrHidden;
-    private final String javaVersionDisplayText;
 
     private FunctionAppLinuxRuntime(@Nonnull FunctionAppMinorVersion javaVersion) {
         final FunctionAppRuntimeSettings settings = javaVersion.stackSettings().linuxRuntimeSettings();
         this.fxString = settings.runtimeVersion();
-        this.javaVersionNumber = this.fxString.split("\\|", 2)[1];
-        this.javaVersionDisplayText = javaVersion.displayText();
+        this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(this.fxString.split("\\|", 2)[1]);
         this.deprecatedOrHidden = BooleanUtils.isTrue(settings.isDeprecated()) || BooleanUtils.isTrue(settings.isHidden());
     }
 
     private FunctionAppLinuxRuntime(final Map<String, Object> javaVersion) {
         final Map<String, Object> settings = Utils.get(javaVersion, "$.stackSettings.linuxRuntimeSettings");
         this.fxString = Utils.get(settings, "$.runtimeVersion");
-        this.javaVersionNumber = Objects.requireNonNull(this.fxString).split("\\|", 2)[1];
-        this.javaVersionDisplayText = Utils.get(javaVersion, "$.displayText");
+        this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(Objects.requireNonNull(this.fxString).split("\\|", 2)[1]);
         this.deprecatedOrHidden = BooleanUtils.isTrue(Utils.get(settings, "$.isDeprecated")) || BooleanUtils.isTrue(Utils.get(settings, "$.isHidden"));
     }
 
     private FunctionAppLinuxRuntime(@Nonnull String javaVersionUserText, @Nonnull String fxString) {
         this.fxString = fxString;
-        this.javaVersionNumber = this.fxString.split("\\|", 2)[1];
-        this.javaVersionDisplayText = javaVersionUserText;
+        this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(this.fxString.split("\\|", 2)[1]);
         this.deprecatedOrHidden = false;
     }
 
@@ -92,11 +88,10 @@ public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
             v = DEFAULT_JAVA;
             AzureMessager.getMessager().warning(AzureString.format("The java version is not specified, use default version '%s'", DEFAULT_JAVA));
         }
-        final String version = StringUtils.startsWithIgnoreCase(v, "Java")? v : String.format("Java %s", v);
-        return RUNTIMES.stream().filter(runtime -> {
-            final String javaVersionUserText = String.format("Java %s", runtime.getJavaVersionNumber());
-            return StringUtils.equalsAnyIgnoreCase(version, javaVersionUserText, runtime.javaVersionDisplayText);
-        }).findFirst().orElse(null);
+        final String javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(v);
+        return RUNTIMES.stream()
+            .filter(runtime -> StringUtils.equalsIgnoreCase(runtime.javaVersionNumber, javaVersionNumber))
+            .findFirst().orElse(null);
     }
 
     public static List<FunctionAppLinuxRuntime> getAllRuntimes() {

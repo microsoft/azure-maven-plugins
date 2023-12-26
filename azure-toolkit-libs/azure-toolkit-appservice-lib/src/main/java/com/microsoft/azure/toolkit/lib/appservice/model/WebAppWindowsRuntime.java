@@ -37,16 +37,16 @@ import java.util.stream.Collectors;
 public class WebAppWindowsRuntime implements WebAppRuntime {
     public static final WebAppWindowsRuntime JAVASE_JAVA17 = new WebAppWindowsRuntime("Java SE", "Java 17");
     public static final WebAppWindowsRuntime JAVASE_JAVA11 = new WebAppWindowsRuntime("Java SE", "Java 11");
-    public static final WebAppWindowsRuntime JAVASE_JAVA8 = new WebAppWindowsRuntime("Java SE", "Java 8");
+    public static final WebAppWindowsRuntime JAVASE_JAVA8 = new WebAppWindowsRuntime("Java SE", "Java 1.8");
     public static final WebAppWindowsRuntime TOMCAT10_JAVA17 = new WebAppWindowsRuntime("Tomcat 10.0", "Java 17");
     public static final WebAppWindowsRuntime TOMCAT10_JAVA11 = new WebAppWindowsRuntime("Tomcat 10.0", "Java 11");
-    public static final WebAppWindowsRuntime TOMCAT10_JAVA8 = new WebAppWindowsRuntime("Tomcat 10.0", "Java 8");
+    public static final WebAppWindowsRuntime TOMCAT10_JAVA8 = new WebAppWindowsRuntime("Tomcat 10.0", "Java 1.8");
     public static final WebAppWindowsRuntime TOMCAT9_JAVA17 = new WebAppWindowsRuntime("Tomcat 9.0", "Java 17");
     public static final WebAppWindowsRuntime TOMCAT9_JAVA11 = new WebAppWindowsRuntime("Tomcat 9.0", "Java 11");
-    public static final WebAppWindowsRuntime TOMCAT9_JAVA8 = new WebAppWindowsRuntime("Tomcat 9.0", "Java 8");
+    public static final WebAppWindowsRuntime TOMCAT9_JAVA8 = new WebAppWindowsRuntime("Tomcat 9.0", "Java 1.8");
     public static final WebAppWindowsRuntime TOMCAT85_JAVA17 = new WebAppWindowsRuntime("Tomcat 8.5", "Java 17");
     public static final WebAppWindowsRuntime TOMCAT85_JAVA11 = new WebAppWindowsRuntime("Tomcat 8.5", "Java 11");
-    public static final WebAppWindowsRuntime TOMCAT85_JAVA8 = new WebAppWindowsRuntime("Tomcat 8.5", "Java 8");
+    public static final WebAppWindowsRuntime TOMCAT85_JAVA8 = new WebAppWindowsRuntime("Tomcat 8.5", "Java 1.8");
 
     private static final AtomicReference<Boolean> loaded = new AtomicReference<>(Boolean.FALSE);
     private static final LinkedHashSet<WebAppWindowsRuntime> RUNTIMES = Sets.newLinkedHashSet(Arrays.asList(
@@ -66,13 +66,13 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
     @EqualsAndHashCode.Include
     private final String containerName;
     /**
-     * container version number, e.g. '17', '17.0.4', '1.8.202'
+     * container version number, e.g. 'SE', '8.5', '9.0', '10.0', '7'
      */
     @Getter
     @EqualsAndHashCode.Include
     private final String containerVersionNumber;
     /**
-     * java version number, e.g. '17', '17.0.4', '1.8.0_202', '1.8.0_202_ZULU'
+     * java version number, e.g. '1.8', '17', '17.0.4', '1.8.0_202', '1.8.0_202_ZULU'
      */
     @Getter
     @EqualsAndHashCode.Include
@@ -90,7 +90,7 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
             || BooleanUtils.isTrue(javaSettings.isDeprecated());
         this.containerName = containerSettings.javaContainer().toUpperCase();
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : containerSettings.javaContainerVersion().toUpperCase();
-        this.javaVersionNumber = javaSettings.runtimeVersion().toUpperCase();
+        this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(javaSettings.runtimeVersion().toUpperCase());
         this.javaVersionDisplayText = javaMinorVersion.displayText();
     }
 
@@ -100,7 +100,7 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
             || BooleanUtils.isTrue(javaSettings.isDeprecated());
         this.containerName = "JAVA";
         this.containerVersionNumber = "SE";
-        this.javaVersionNumber = javaSettings.runtimeVersion().toUpperCase();
+        this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(javaSettings.runtimeVersion().toUpperCase());
         this.javaVersionDisplayText = javaMinorVersion.displayText();
     }
 
@@ -114,7 +114,7 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
             || BooleanUtils.isTrue(Utils.get(javaSettings, "$.isDeprecated"));
         this.containerName = ((String) Utils.get(containerSettings, "$.javaContainer")).toUpperCase();
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : ((String) Utils.get(containerSettings, "$.javaContainerVersion")).toUpperCase();
-        this.javaVersionNumber = ((String) Utils.get(javaSettings, "$.runtimeVersion")).toUpperCase();
+        this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(((String) Utils.get(javaSettings, "$.runtimeVersion")).toUpperCase());
         this.javaVersionDisplayText = Utils.get(javaMinorVersion, "$.displayText");
     }
 
@@ -125,7 +125,7 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
             || BooleanUtils.isTrue(Utils.get(javaSettings, "$.isDeprecated"));
         this.containerName = "JAVA";
         this.containerVersionNumber = "SE";
-        this.javaVersionNumber = ((String) Utils.get(javaSettings, "$.runtimeVersion")).toUpperCase();
+        this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(((String) Utils.get(javaSettings, "$.runtimeVersion")).toUpperCase());
         this.javaVersionDisplayText = Utils.get(javaMinorVersion, "$.displayText");
     }
 
@@ -135,7 +135,7 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
         this.deprecatedOrHidden = false;
         this.containerName = containerParts[0];
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : containerParts[1].toUpperCase();
-        this.javaVersionNumber = javaParts[1];
+        this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(javaParts[1]);
         this.javaVersionDisplayText = javaVersionUserText;
     }
 
@@ -148,31 +148,25 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
     }
 
     @Nullable
-    public static WebAppWindowsRuntime fromContainerAndJavaVersion(final String containerName, String containerVersionNumber, final JavaVersion javaVersion) {
-        containerVersionNumber = StringUtils.equalsIgnoreCase(containerName, "java") ? "SE" : containerVersionNumber;
-        final String containerUserText = String.format("%s %s", containerName, containerVersionNumber);
-        final String javaVersionUserText = String.format("java %s", javaVersion.toString());
-        return fromContainerAndJavaVersionUserText(containerUserText, javaVersionUserText);
+    public static WebAppWindowsRuntime fromContainerAndJavaVersion(final String containerName, String pContainerVersionNumber, final JavaVersion javaVersion) {
+        final String containerVersionNumber = StringUtils.equalsIgnoreCase(containerName, "java") ? "SE" : pContainerVersionNumber;
+        return RUNTIMES.stream().filter(r -> StringUtils.equalsAnyIgnoreCase(javaVersion.toString(), r.javaVersionNumber) &&
+                StringUtils.equalsIgnoreCase(containerName, r.containerName) &&
+                StringUtils.equalsIgnoreCase(containerVersionNumber, r.containerVersionNumber))
+            .findFirst().orElse(null);
     }
 
     @Nullable
-    public static WebAppWindowsRuntime fromContainerAndJavaVersionUserText(final String containerUserText, String javaVersionUserText) {
-        if (StringUtils.isBlank(javaVersionUserText)) {
-            javaVersionUserText = DEFAULT_JAVA;
+    public static WebAppWindowsRuntime fromContainerAndJavaVersionUserText(final String pContainerUserText, String pJavaVersionUserText) {
+        if (StringUtils.isBlank(pJavaVersionUserText)) {
+            pJavaVersionUserText = DEFAULT_JAVA;
             AzureMessager.getMessager().warning(AzureString.format("The java version is not specified, use default version '%s'", DEFAULT_JAVA));
         }
-        final String finalJavaVersionUserText = StringUtils.startsWithIgnoreCase(javaVersionUserText, "java") ? javaVersionUserText : String.format("Java %s", javaVersionUserText);
-        final String finalContainerUserText = StringUtils.startsWithIgnoreCase(containerUserText, "java ") ? "Java SE" : containerUserText;
-        return RUNTIMES.stream().filter(r -> {
-            final String containerText = String.format("%s %s", r.containerName, r.containerVersionNumber);
-            final String javaVersionText = String.format("java %s", r.javaVersionNumber);
-            if (StringUtils.equalsAnyIgnoreCase(r.javaVersionNumber, "8", "1.8")) {
-                return StringUtils.equalsIgnoreCase(finalContainerUserText, containerText) &&
-                    StringUtils.equalsAnyIgnoreCase(finalJavaVersionUserText, "java 1.8", "java 8");
-            }
-            return StringUtils.equalsIgnoreCase(finalContainerUserText, containerText) &&
-                StringUtils.equalsAnyIgnoreCase(finalJavaVersionUserText, javaVersionText, r.javaVersionDisplayText);
-        }).findFirst().orElse(null);
+        final String javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(pJavaVersionUserText);
+        final String containerUserText = StringUtils.startsWithIgnoreCase(pContainerUserText, "java ") ? "Java SE" : pContainerUserText;
+        return RUNTIMES.stream().filter(r -> StringUtils.equalsAnyIgnoreCase(javaVersionNumber, r.javaVersionNumber) &&
+                StringUtils.equalsIgnoreCase(containerUserText, String.format("%s %s", r.containerName, r.containerVersionNumber)))
+            .findFirst().orElse(null);
     }
 
     public static List<WebAppWindowsRuntime> getAllRuntimes() {
