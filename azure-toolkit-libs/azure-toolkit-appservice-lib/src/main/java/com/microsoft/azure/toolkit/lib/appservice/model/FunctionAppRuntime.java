@@ -10,9 +10,6 @@ import java.util.stream.Stream;
 public interface FunctionAppRuntime extends Runtime {
     String DEFAULT_JAVA = "Java 17";
 
-    FunctionAppRuntime DOCKER = FunctionAppDockerRuntime.INSTANCE;
-    FunctionAppRuntime DEFAULT = FunctionAppWindowsRuntime.FUNCTION_JAVA17;
-
     default String getDisplayName() {
         if (this.isDocker()) {
             return "Docker";
@@ -27,6 +24,12 @@ public interface FunctionAppRuntime extends Runtime {
         }
         final Pattern EXCLUDE_PATTERN = Pattern.compile("\\..*\\.");
         return EXCLUDE_PATTERN.matcher(this.getJavaVersionNumber()).matches();
+    }
+
+    static FunctionAppRuntime getDefault() {
+        // use static method instead of constant to avoid cyclic dependency
+        // https://stackoverflow.com/questions/41016957/java-interface-static-variable-is-not-initialized
+        return FunctionAppWindowsRuntime.FUNCTION_JAVA17;
     }
 
     static List<FunctionAppRuntime> getMajorRuntimes() {
@@ -49,7 +52,7 @@ public interface FunctionAppRuntime extends Runtime {
 
     static FunctionAppRuntime fromUserText(final String os, String javaVersionUserText) {
         if (StringUtils.equalsIgnoreCase(os, "docker")) {
-            return FunctionAppRuntime.DOCKER;
+            return FunctionAppDockerRuntime.INSTANCE;
         }
         if (StringUtils.equalsIgnoreCase(os, "windows")) {
             return FunctionAppWindowsRuntime.fromJavaVersionUserText(javaVersionUserText);

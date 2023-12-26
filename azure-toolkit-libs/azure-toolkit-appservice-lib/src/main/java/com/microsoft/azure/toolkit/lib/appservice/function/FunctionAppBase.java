@@ -20,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.appservice.file.AzureFunctionsAdminClient
 import com.microsoft.azure.toolkit.lib.appservice.file.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppDockerRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppLinuxRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppWindowsRuntime;
@@ -99,7 +100,7 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
                 if (StringUtils.isEmpty(fxString)) {
                     return null;
                 } else if (StringUtils.startsWithIgnoreCase(fxString, "docker")) {
-                    return FunctionAppRuntime.DOCKER;
+                    return FunctionAppDockerRuntime.INSTANCE;
                 }
                 return FunctionAppLinuxRuntime.fromFxString(fxString);
             }

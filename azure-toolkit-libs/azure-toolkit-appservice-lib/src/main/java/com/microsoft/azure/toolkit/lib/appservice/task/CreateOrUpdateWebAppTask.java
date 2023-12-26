@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppDockerRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppLinuxRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppWindowsRuntime;
@@ -184,7 +185,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         final OperatingSystem os = runtimeConfig.os();
         WebAppRuntime runtime = null;
         if (os == OperatingSystem.DOCKER) {
-            runtime = WebAppRuntime.DOCKER;
+            runtime = WebAppDockerRuntime.INSTANCE;
         } else if (os == OperatingSystem.LINUX) {
             runtime = WebAppLinuxRuntime.fromContainerAndJavaVersionUserText(runtimeConfig.webContainer(), runtimeConfig.javaVersion());
         } else if (os == OperatingSystem.WINDOWS) {

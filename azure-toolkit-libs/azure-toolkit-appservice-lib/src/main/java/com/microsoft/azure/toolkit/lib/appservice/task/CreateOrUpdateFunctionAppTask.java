@@ -20,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeployment
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlotDraft;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDraft;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppDockerRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppLinuxRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppWindowsRuntime;
@@ -313,7 +314,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
         final OperatingSystem os = Optional.ofNullable(runtimeConfig.os()).orElse(OperatingSystem.LINUX);
         FunctionAppRuntime runtime = null;
         if (os == OperatingSystem.DOCKER) {
-            runtime = FunctionAppRuntime.DOCKER;
+            runtime = FunctionAppDockerRuntime.INSTANCE;
         } else if (os == OperatingSystem.LINUX) {
             runtime = FunctionAppLinuxRuntime.fromJavaVersionUserText(runtimeConfig.javaVersion());
         } else if (os == OperatingSystem.WINDOWS) {

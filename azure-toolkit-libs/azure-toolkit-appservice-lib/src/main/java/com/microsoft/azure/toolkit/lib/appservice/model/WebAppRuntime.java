@@ -14,10 +14,6 @@ import java.util.stream.Stream;
 public interface WebAppRuntime extends Runtime {
     String DEFAULT_JAVA = "Java 17";
 
-    WebAppRuntime DOCKER = WebAppDockerRuntime.INSTANCE;
-    WebAppRuntime DEFAULT_TOMCAT_RUNTIME = WebAppLinuxRuntime.TOMCAT10_JAVA17;
-    WebAppRuntime DEFAULT_JAVASE_RUNTIME = WebAppLinuxRuntime.JAVASE_JAVA17;
-    WebAppRuntime DEFAULT_JBOSS_RUNTIME = WebAppLinuxRuntime.JBOSS7_JAVA17;
     WebContainer JAVA_SE = WebContainer.fromString("Java SE");
 
     /**
@@ -86,6 +82,24 @@ public interface WebAppRuntime extends Runtime {
             return WebAppWindowsRuntime.fromContainerAndJavaVersionUserText(containerUserText, javaVersionUserText);
         }
         return WebAppLinuxRuntime.fromContainerAndJavaVersionUserText(containerUserText, javaVersionUserText);
+    }
+
+    static WebAppRuntime getDefaultTomcatRuntime() {
+        // use static method instead of constant to avoid cyclic dependency
+        // https://stackoverflow.com/questions/41016957/java-interface-static-variable-is-not-initialized
+        return WebAppLinuxRuntime.TOMCAT10_JAVA17;
+    }
+
+    static WebAppRuntime getDefaultJavaseRuntime() {
+        // use static method instead of constant to avoid cyclic dependency
+        // https://stackoverflow.com/questions/41016957/java-interface-static-variable-is-not-initialized
+        return WebAppLinuxRuntime.JAVASE_JAVA17;
+    }
+
+    static WebAppRuntime getDefaultJbossRuntime() {
+        // use static method instead of constant to avoid cyclic dependency
+        // https://stackoverflow.com/questions/41016957/java-interface-static-variable-is-not-initialized
+        return WebAppLinuxRuntime.JBOSS7_JAVA17;
     }
 
     static List<WebAppRuntime> getMajorRuntimes() {
