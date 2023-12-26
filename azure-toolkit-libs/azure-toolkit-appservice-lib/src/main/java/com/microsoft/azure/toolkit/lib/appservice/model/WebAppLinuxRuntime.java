@@ -91,8 +91,11 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
             || BooleanUtils.isTrue(containerSettings.isDeprecated());
         this.containerName = parts[0].toUpperCase();
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : container.value().toUpperCase();
-        this.javaVersionNumber = javaVersion.value().toUpperCase();
-        this.javaVersionDisplayText = javaVersion.displayText();
+        // it's major version if container value is "SE", minor version otherwise, when container name is "Java"
+        this.javaVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") && !StringUtils.equalsIgnoreCase(container.value(), "SE") ?
+            formalizeJavaVersion(parts[1]) : javaVersion.value().toUpperCase(); // minor version in fx string may be 8u202 (-> 1.8.0_202), 17.0.4, etc.
+        this.javaVersionDisplayText = StringUtils.equalsIgnoreCase(this.containerName, "Java") && !StringUtils.equalsIgnoreCase(container.value(), "SE") ?
+            String.format("Java %s", this.javaVersionNumber) : javaVersion.displayText();
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -104,8 +107,10 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
             || BooleanUtils.isTrue(Utils.get(containerSettings, "$.isDeprecated"));
         this.containerName = parts[0].toUpperCase();
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : ((String) Utils.get(container, "$.value")).toUpperCase();
-        this.javaVersionNumber = ((String) Utils.get(javaVersion, "$.value")).toUpperCase();
-        this.javaVersionDisplayText = Utils.get(javaVersion, "$.displayText");
+        this.javaVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") && !StringUtils.equalsIgnoreCase((String) container.get("value"), "SE") ?
+            formalizeJavaVersion(parts[1]) : ((String) javaVersion.get("value")).toUpperCase(); // minor version in fx string may be 8u202 (-> 1.8.0_202), 17.0.4, etc.
+        this.javaVersionDisplayText = StringUtils.equalsIgnoreCase(this.containerName, "Java") && !StringUtils.equalsIgnoreCase((String) container.get("value"), "SE") ?
+            String.format("Java %s", this.javaVersionNumber) : ((String) javaVersion.get("displayText"));
     }
 
     private WebAppLinuxRuntime(final String fxString, final String javaVersionUserText) {
@@ -135,7 +140,7 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
             javaVersionUserText = DEFAULT_JAVA;
             AzureMessager.getMessager().warning(AzureString.format("The java version is not specified, use default version '%s'", DEFAULT_JAVA));
         }
-        final String finalJavaVersionUserText = StringUtils.startsWithIgnoreCase(javaVersionUserText, "java")? javaVersionUserText : String.format("Java %s", javaVersionUserText);
+        final String finalJavaVersionUserText = StringUtils.startsWithIgnoreCase(javaVersionUserText, "java") ? javaVersionUserText : String.format("Java %s", javaVersionUserText);
         final String finalContainerUserText = StringUtils.startsWithIgnoreCase(containerUserText, "java ") ? "Java SE" : containerUserText;
         return RUNTIMES.stream().filter(r -> {
             final String containerText = String.format("%s %s", r.containerName, r.containerVersionNumber);
@@ -162,23 +167,25 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
         return loaded.get() == Boolean.TRUE;
     }
 
-    public static void loadAllWebAppLinuxRuntimes(List<WebAppMajorVersion> javaVersions, List<WebAppMajorVersion> containerVersions) {
+    public static void loadAllWebAppLinuxRuntimes(List<WebAppMajorVersion> javaMajorVersions, List<WebAppMajorVersion> containerMajorVersions) {
         if (!loaded.compareAndSet(Boolean.FALSE, null)) {
             return;
         }
 
         RUNTIMES.clear();
-        for (final WebAppMajorVersion containerMajorVersion : containerVersions) {
-            for (final WebAppMinorVersion container : containerMajorVersion.minorVersions()) {
-                for (final WebAppMajorVersion java : javaVersions) {
-                    final LinuxJavaContainerSettings containerSettings = container.stackSettings().linuxContainerSettings();
-                    if (Objects.nonNull(containerSettings) && StringUtils.isNotBlank(java.value())) {
-                        try {
-                            final String fxString = (String) MethodUtils.invokeMethod(containerSettings, String.format("java%sRuntime", java.value()));
-                            if (StringUtils.isNotBlank(fxString)) {
-                                RUNTIMES.add(new WebAppLinuxRuntime(container, java, fxString));
+        for (final WebAppMajorVersion containerMajorVersion : containerMajorVersions) {
+            for (final WebAppMinorVersion containerMinorVersion : containerMajorVersion.minorVersions()) {
+                final LinuxJavaContainerSettings containerSettings = containerMinorVersion.stackSettings().linuxContainerSettings();
+                if (Objects.nonNull(containerSettings)) {
+                    for (final WebAppMajorVersion javaMajorVersion : javaMajorVersions) {
+                        if (StringUtils.isNotBlank(javaMajorVersion.value())) {
+                            try {
+                                final String fxString = (String) MethodUtils.invokeMethod(containerSettings, String.format("java%sRuntime", javaMajorVersion.value()));
+                                if (StringUtils.isNotBlank(fxString)) {
+                                    RUNTIMES.add(new WebAppLinuxRuntime(containerMinorVersion, javaMajorVersion, fxString));
+                                }
+                            } catch (final NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
                             }
-                        } catch (final NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
                         }
                     }
                 }
@@ -187,21 +194,23 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
         loaded.compareAndSet(null, Boolean.TRUE);
     }
 
-    public static void loadAllWebAppLinuxRuntimesFromMap(List<Map<String, Object>> javaVersions, List<Map<String, Object>> containerVersions) {
+    @SuppressWarnings("DataFlowIssue")
+    public static void loadAllWebAppLinuxRuntimesFromMap(List<Map<String, Object>> javaMajorVersions, List<Map<String, Object>> containerMajorVersions) {
         if (!loaded.compareAndSet(Boolean.FALSE, null)) {
             return;
         }
 
         RUNTIMES.clear();
-        for (final Map<String, Object> containerMajorVersion : containerVersions) {
-            //noinspection DataFlowIssue
-            for (final Map<String, Object> container : Utils.<List<Map<String, Object>>>get(containerMajorVersion, "$.minorVersions")) {
-                for (final Map<String, Object> java : javaVersions) {
-                    final Map<String, Object> containerSettings = Utils.get(container, "$.stackSettings.linuxContainerSettings");
-                    if (Objects.nonNull(containerSettings) && StringUtils.isNotBlank(Utils.get(java, "$.value"))) {
-                        final String fxString = (String) containerSettings.get(String.format("java%sRuntime", java.get("value").toString()));
-                        if (StringUtils.isNotBlank(fxString)) {
-                            RUNTIMES.add(new WebAppLinuxRuntime(container, java, fxString));
+        for (final Map<String, Object> containerMajorVersion : containerMajorVersions) {
+            for (final Map<String, Object> containerMinorVersion : Utils.<List<Map<String, Object>>>get(containerMajorVersion, "$.minorVersions")) {
+                final Map<String, Object> containerSettings = Utils.get(containerMinorVersion, "$.stackSettings.linuxContainerSettings");
+                if (Objects.nonNull(containerSettings)) {
+                    for (final Map<String, Object> javaMajorVersion : javaMajorVersions) {
+                        if (StringUtils.isNotBlank((CharSequence) javaMajorVersion.get("value"))) {
+                            final String fxString = (String) containerSettings.get(String.format("java%sRuntime", javaMajorVersion.get("value").toString()));
+                            if (StringUtils.isNotBlank(fxString)) {
+                                RUNTIMES.add(new WebAppLinuxRuntime(containerMinorVersion, javaMajorVersion, fxString));
+                            }
                         }
                     }
                 }
@@ -212,5 +221,13 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
 
     public String toString() {
         return String.format("Linux: %s - %s (%s)", this.getContainerUserText(), this.getJavaVersionUserText(), this.fxString);
+    }
+
+    private static String formalizeJavaVersion(String javaVersion) {
+        if (javaVersion.contains("u")) {
+            String[] parts = javaVersion.split("u", 2);
+            return String.format("1.%s.0_%s", parts[0], parts[1]);
+        }
+        return javaVersion;
     }
 }

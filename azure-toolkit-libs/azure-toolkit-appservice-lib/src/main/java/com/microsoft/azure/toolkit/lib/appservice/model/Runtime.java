@@ -42,7 +42,7 @@ public interface Runtime {
             return 0;
         }
         final String v = this.getJavaVersionNumber();
-        return Integer.parseInt(StringUtils.startsWithIgnoreCase(v, "1.") ? String.valueOf(v.charAt(2)) : v);
+        return Runtime.getJavaMajorVersionNumber(v);
     }
 
     default boolean isDeprecatedOrHidden() {
@@ -67,6 +67,7 @@ public interface Runtime {
 
     static int getJavaMajorVersionNumber(String javaVersionUserText) {
         final String v = StringUtils.replaceIgnoreCase(javaVersionUserText, "java", "").trim();
-        return Integer.parseInt(StringUtils.startsWithIgnoreCase(v, "1.") ? String.valueOf(v.charAt(2)) : v);
+        final String[] parts = v.split("\\.", 3);
+        return Integer.parseInt(StringUtils.startsWithIgnoreCase(v, "1.") ? parts[1] : parts[0]);
     }
 }

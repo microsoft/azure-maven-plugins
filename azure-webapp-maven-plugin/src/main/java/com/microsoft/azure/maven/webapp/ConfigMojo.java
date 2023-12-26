@@ -83,6 +83,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private static final List<String> WEB_APP_PROPERTIES = Arrays.asList("resourceGroup", "appName", "runtime", "deployment", "region",
         "appServicePlanResourceGroup", "appServicePlanName", "deploymentSlot");
+    public static final String WEB_APP_STACKS_API = "https://learn.microsoft.com/en-us/rest/api/appservice/provider/get-web-app-stacks";
     private MavenPluginQueryer queryer;
     private WebAppPomHandler pomHandler;
 
@@ -204,7 +205,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     protected WebAppConfiguration initConfig() {
         final WebAppConfiguration result = getDefaultConfiguration();
-        return setRuntimeConfiguration(result, true);
+        return setRuntimeConfiguration(result, false);
     }
 
     private WebAppConfiguration getDefaultConfiguration() {
@@ -232,7 +233,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 return getWebAppConfiguration(configuration);
             case "Runtime":
                 log.warn(CHANGE_OS_WARNING);
-                return setRuntimeConfiguration(configuration, false);
+                return setRuntimeConfiguration(configuration, true);
             case "DeploymentSlot":
                 return getSlotConfiguration(configuration);
             default:
@@ -313,7 +314,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return builder.deploymentSlotSetting(result).build();
     }
 
-    private WebAppConfiguration setRuntimeConfiguration(WebAppConfiguration configuration, boolean initialize) {
+    private WebAppConfiguration setRuntimeConfiguration(WebAppConfiguration configuration, boolean updating) {
         final WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder = configuration.toBuilder();
         final OperatingSystem defaultOs = ObjectUtils.defaultIfNull(configuration.getOs(), OperatingSystem.LINUX);
 
@@ -321,8 +322,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final OperatingSystem os = OperatingSystem.fromString(osUserInput);
         Optional.ofNullable(os).orElseThrow(() -> new AzureToolkitRuntimeException("The value of <os> is unknown."));
         builder.os(os);
-        final WebAppRuntime runtime = os == OperatingSystem.DOCKER ? setupRuntimeForDocker(builder, configuration) : setupRuntimeForWindowsOrLinux(os, builder, configuration, initialize);
-        if (initialize || pricingTierNotSupport(configuration.getPricingTier(), runtime)) {
+        final WebAppRuntime runtime = os == OperatingSystem.DOCKER ? setupRuntimeForDocker(builder, configuration) : setupRuntimeForWindowsOrLinux(os, builder, configuration, updating);
+        if (!updating || pricingTierNotSupport(configuration.getPricingTier(), runtime)) {
             PricingTier defaultTier = runtime.isJBoss() ? WebAppConfiguration.DEFAULT_JBOSS_PRICING_TIER : WebAppConfiguration.DEFAULT_PRICINGTIER;
             final List<PricingTier> validTiers = runtime.getPricingTiers();
             final List<String> validTierTexts = validTiers.stream().map(PricingTier::getSize).collect(Collectors.toList());
@@ -351,7 +352,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private WebAppRuntime setupRuntimeForWindowsOrLinux(OperatingSystem os,
                                                         WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder,
-                                                        WebAppConfiguration configuration, final boolean initializing) {
+                                                        WebAppConfiguration configuration, final boolean updating) {
         // filter runtimes by os
         List<WebAppRuntime> runtimes = WebAppRuntime.getMajorRuntimes().stream()
             .filter(runtime -> runtime.getOperatingSystem() == os)
@@ -360,12 +361,12 @@ public class ConfigMojo extends AbstractWebAppMojo {
         // filter runtimes by java version (java target/release level)
         runtimes = getValidRuntimes(runtimes, WebAppRuntime::getJavaMajorVersionNumber, WebAppRuntime::getJavaVersionUserText);
 
-        final Set<Integer> validJavaMajorVersionNumbers = runtimes.stream().map(WebAppRuntime::getJavaMajorVersionNumber).collect(Collectors.toSet());
         final List<String> validJavaVersionUserTexts = runtimes.stream().map(WebAppRuntime::getJavaVersionUserText).distinct().collect(Collectors.toList());
         String defaultJavaVersion = configuration.getJavaVersion();
-        if (StringUtils.isBlank(defaultJavaVersion) || !validJavaMajorVersionNumbers.contains(Runtime.getJavaMajorVersionNumber(defaultJavaVersion))) {
-            if (!initializing && StringUtils.isNotBlank(defaultJavaVersion)) {
-                log.warn(String.format("'%s' is not supported for your project.", defaultJavaVersion));
+        defaultJavaVersion = StringUtils.startsWithIgnoreCase(defaultJavaVersion, "java") ? StringUtils.capitalize(defaultJavaVersion) : String.format("Java %s", defaultJavaVersion);
+        if (StringUtils.isBlank(defaultJavaVersion) || !validJavaVersionUserTexts.contains(defaultJavaVersion)) {
+            if (updating && StringUtils.isNotBlank(defaultJavaVersion)) {
+                log.warn(String.format("'%s' may not be a valid Java runtime. Refer to %s please.", defaultJavaVersion, WEB_APP_STACKS_API));
             }
             defaultJavaVersion = validJavaVersionUserTexts.get(0);
         }
@@ -374,7 +375,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String javaVersionUserInput = queryer.assureInputFromUser(JAVA_VERSION, defaultJavaVersion,
             validJavaVersionUserTexts, String.format(COMMON_PROMPT, JAVA_VERSION, defaultJavaVersion));
         if (!validJavaVersionUserTexts.contains(javaVersionUserInput)) {
-            final String message = String.format("'%s' is not a valid java runtime, supported values are %s.", javaVersionUserInput, String.join(", ", validJavaVersionUserTexts));
+            final String message = String.format("'%s' may not be a valid Java runtime, recommended values are %s. Refer to %s please.", javaVersionUserInput, String.join(", ", validJavaVersionUserTexts), WEB_APP_STACKS_API);
             throw new AzureToolkitRuntimeException(message);
         }
         builder.javaVersion(javaVersionUserInput);
@@ -398,8 +399,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final List<String> validContainerUserTexts = runtimes.stream().map(WebAppRuntime::getContainerUserText).distinct().collect(Collectors.toList());
         String defaultContainer = configuration.getWebContainer();
         if (StringUtils.isBlank(defaultContainer) || !validContainerUserTexts.contains(defaultContainer)) {
-            if (!initializing && StringUtils.isNotBlank(defaultContainer)) {
-                log.warn(String.format("'%s' is not supported for your project.", defaultContainer));
+            if (updating && StringUtils.isNotBlank(defaultContainer)) {
+                log.warn(String.format("'%s' may not be a valid web container. Refer to %s please.", defaultContainer, WEB_APP_STACKS_API));
             }
             defaultContainer = validContainerUserTexts.get(0);
         }
@@ -408,7 +409,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             validContainerUserTexts,
             String.format(COMMON_PROMPT, WEB_CONTAINER, defaultContainer));
         if (!validContainerUserTexts.contains(containerUserInput)) {
-            final String message = String.format("'%s' is not a valid web container, supported values are %s.", containerUserInput, String.join(", ", validContainerUserTexts));
+            final String message = String.format("'%s' may not be a valid web container, recommended values are %s. Refer to %s please", containerUserInput, String.join(", ", validContainerUserTexts), WEB_APP_STACKS_API);
             throw new AzureToolkitRuntimeException(message);
         }
         builder.webContainer(containerUserInput);
