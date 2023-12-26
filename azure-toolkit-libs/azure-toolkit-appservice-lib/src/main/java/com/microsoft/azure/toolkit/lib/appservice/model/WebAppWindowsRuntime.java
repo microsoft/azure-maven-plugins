@@ -77,7 +77,6 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
     @Getter
     @EqualsAndHashCode.Include
     private final String javaVersionNumber;
-    private final String javaVersionDisplayText;
     @Getter
     private final boolean deprecatedOrHidden;
 
@@ -91,7 +90,6 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
         this.containerName = containerSettings.javaContainer().toUpperCase();
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : containerSettings.javaContainerVersion().toUpperCase();
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(javaSettings.runtimeVersion().toUpperCase());
-        this.javaVersionDisplayText = javaMinorVersion.displayText();
     }
 
     private WebAppWindowsRuntime(@Nonnull WebAppMinorVersion javaMinorVersion) {
@@ -101,7 +99,6 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
         this.containerName = "JAVA";
         this.containerVersionNumber = "SE";
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(javaSettings.runtimeVersion().toUpperCase());
-        this.javaVersionDisplayText = javaMinorVersion.displayText();
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -115,7 +112,6 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
         this.containerName = ((String) Utils.get(containerSettings, "$.javaContainer")).toUpperCase();
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : ((String) Utils.get(containerSettings, "$.javaContainerVersion")).toUpperCase();
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(((String) Utils.get(javaSettings, "$.runtimeVersion")).toUpperCase());
-        this.javaVersionDisplayText = Utils.get(javaMinorVersion, "$.displayText");
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -126,7 +122,6 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
         this.containerName = "JAVA";
         this.containerVersionNumber = "SE";
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(((String) Utils.get(javaSettings, "$.runtimeVersion")).toUpperCase());
-        this.javaVersionDisplayText = Utils.get(javaMinorVersion, "$.displayText");
     }
 
     private WebAppWindowsRuntime(final String containerUserText, final String javaVersionUserText) {
@@ -136,7 +131,6 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
         this.containerName = containerParts[0];
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : containerParts[1].toUpperCase();
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(javaParts[1]);
-        this.javaVersionDisplayText = javaVersionUserText;
     }
 
     @Override

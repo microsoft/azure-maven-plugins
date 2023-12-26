@@ -76,7 +76,6 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
     @Getter
     @EqualsAndHashCode.Include
     private final String javaVersionNumber;
-    private final String javaVersionDisplayText;
     @Nonnull
     private final String fxString;
     @Getter
@@ -93,8 +92,6 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
         // it's major version if container value is "SE", minor version otherwise, when container name is "Java"
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(StringUtils.equalsIgnoreCase(this.containerName, "Java") && !StringUtils.equalsIgnoreCase(container.value(), "SE") ?
             parts[1] : javaVersion.value().toUpperCase());
-        this.javaVersionDisplayText = StringUtils.equalsIgnoreCase(this.containerName, "Java") && !StringUtils.equalsIgnoreCase(container.value(), "SE") ?
-            String.format("Java %s", this.javaVersionNumber) : javaVersion.displayText();
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -108,8 +105,6 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : ((String) Utils.get(container, "$.value")).toUpperCase();
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(StringUtils.equalsIgnoreCase(this.containerName, "Java") && !StringUtils.equalsIgnoreCase((String) container.get("value"), "SE") ?
             parts[1] : ((String) javaVersion.get("value")).toUpperCase()); // minor version in fx string may be 8u202 (-> 1.8.0_202), 17.0.4, etc.
-        this.javaVersionDisplayText = StringUtils.equalsIgnoreCase(this.containerName, "Java") && !StringUtils.equalsIgnoreCase((String) container.get("value"), "SE") ?
-            String.format("Java %s", this.javaVersionNumber) : ((String) javaVersion.get("displayText"));
     }
 
     private WebAppLinuxRuntime(final String fxString, final String javaVersionUserText) {
@@ -120,7 +115,6 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
         this.containerName = fxStringParts[0].toUpperCase();
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : fxStringParts[1].toUpperCase();
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(javaParts[1].toUpperCase());
-        this.javaVersionDisplayText = javaVersionUserText;
     }
 
     public RuntimeStack toRuntimeStack() {
