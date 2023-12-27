@@ -17,7 +17,6 @@ import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppDockerRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
@@ -83,7 +82,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private static final List<String> WEB_APP_PROPERTIES = Arrays.asList("resourceGroup", "appName", "runtime", "deployment", "region",
         "appServicePlanResourceGroup", "appServicePlanName", "deploymentSlot");
-    public static final String WEB_APP_STACKS_API = "https://learn.microsoft.com/en-us/rest/api/appservice/provider/get-web-app-stacks";
+    public static final String WEB_APP_STACKS_API = "https://aka.ms/maven_webapp_runtime";
     private MavenPluginQueryer queryer;
     private WebAppPomHandler pomHandler;
 
@@ -173,7 +172,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         if (configuration.getOs() == null) {
             System.out.println(CONFIGURATION_NO_RUNTIME);
         } else {
-            System.out.println("OS : " + configuration.getOs().toString());
+            System.out.println("OS : " + configuration.getOs());
             switch (configuration.getOs()) {
                 case WINDOWS:
                 case LINUX:
@@ -363,7 +362,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
         final List<String> validJavaVersionUserTexts = runtimes.stream().map(WebAppRuntime::getJavaVersionUserText).distinct().collect(Collectors.toList());
         String defaultJavaVersion = configuration.getJavaVersion();
-        defaultJavaVersion = StringUtils.startsWithIgnoreCase(defaultJavaVersion, "java") ? StringUtils.capitalize(defaultJavaVersion) : String.format("Java %s", defaultJavaVersion);
+        if (StringUtils.isNotBlank(defaultJavaVersion)) {
+            defaultJavaVersion = StringUtils.startsWithIgnoreCase(defaultJavaVersion, "java") ? StringUtils.capitalize(defaultJavaVersion) : String.format("Java %s", defaultJavaVersion);
+        }
         if (StringUtils.isBlank(defaultJavaVersion) || !validJavaVersionUserTexts.contains(defaultJavaVersion)) {
             if (updating && StringUtils.isNotBlank(defaultJavaVersion)) {
                 log.warn(String.format("'%s' may not be a valid Java runtime. Refer to %s please.", defaultJavaVersion, WEB_APP_STACKS_API));

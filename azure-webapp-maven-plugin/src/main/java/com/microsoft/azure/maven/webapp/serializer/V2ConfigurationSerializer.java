@@ -9,6 +9,7 @@ import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.dom4j.Element;
 import org.dom4j.dom.DOMElement;
@@ -96,12 +97,12 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
 
         final String oldOS = formatOperationSystem(oldConfigs.getOs());
         createOrUpdateAttribute("os", newConfigs.getOs().toString(), oldOS, configurationElement);
-        if (newConfigs.getJavaVersion() != null) {
+        if (StringUtils.isNotBlank(newConfigs.getJavaVersion())) {
             final String oldJavaVersion = Objects.toString(oldConfigs.getJavaVersion(), null);
             createOrUpdateAttribute("javaVersion", Objects.toString(newConfigs.getJavaVersion(), null),
                     oldJavaVersion, configurationElement);
         }
-        if (newConfigs.getWebContainer() != null) {
+        if (StringUtils.isNotBlank(newConfigs.getWebContainer())) {
             final String oldWebContainer = Objects.toString(oldConfigs.getWebContainer());
             createOrUpdateAttribute("webContainer", Objects.toString(newConfigs.getWebContainer()), oldWebContainer,
                     configurationElement);
