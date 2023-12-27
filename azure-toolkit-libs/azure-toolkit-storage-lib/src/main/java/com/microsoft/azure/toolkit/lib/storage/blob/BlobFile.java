@@ -72,13 +72,19 @@ public class BlobFile extends AbstractEmulatableAzResource<BlobFile, IBlobFile, 
     @Override
     @Nullable
     public OffsetDateTime getLastModified() {
-        return this.remoteOptional().map(BlobItem::getProperties).map(BlobItemProperties::getLastModified).orElse(null);
+        if (!this.isDirectory()) {
+            return this.remoteOptional().map(BlobItem::getProperties).map(BlobItemProperties::getLastModified).orElse(null);
+        }
+        return null;
     }
 
     @Override
     @Nullable
     public OffsetDateTime getCreationTime() {
-        return this.remoteOptional().map(BlobItem::getProperties).map(BlobItemProperties::getCreationTime).orElse(null);
+        if (!this.isDirectory()) {
+            return this.remoteOptional().map(BlobItem::getProperties).map(BlobItemProperties::getCreationTime).orElse(null);
+        }
+        return null;
     }
 
     @Override
