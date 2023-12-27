@@ -88,7 +88,7 @@
         <azure-arm-client-runtime.version>1.7.14</azure-arm-client-runtime.version>
         <azure-resourcemanager-applicationinsights.version>1.0.0</azure-resourcemanager-applicationinsights.version>
         <azure-resourcemanager-appcontainers.version>1.0.0-beta.6</azure-resourcemanager-appcontainers.version>
-        <azure-resourcemanager-mysqlflexibleserver.version>1.0.0-beta.2</azure-resourcemanager-mysqlflexibleserver.version>
+        <azure-resourcemanager-mysqlflexibleserver.version>1.0.0-beta.4</azure-resourcemanager-mysqlflexibleserver.version>
         <azure-resourcemanager-postgresqlflexibleserver.version>1.0.0-beta.5</azure-resourcemanager-postgresqlflexibleserver.version>
         <azure-resourcemanager-mysql.version>1.0.2</azure-resourcemanager-mysql.version>
         <azure-resourcemanager-postgre.version>1.0.2</azure-resourcemanager-postgre.version>

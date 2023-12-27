@@ -6,7 +6,15 @@
 package com.microsoft.azure.toolkit.lib.mysql;
 
 import com.azure.resourcemanager.mysqlflexibleserver.MySqlManager;
-import com.azure.resourcemanager.mysqlflexibleserver.models.*;
+import com.azure.resourcemanager.mysqlflexibleserver.models.CapabilityProperties;
+import com.azure.resourcemanager.mysqlflexibleserver.models.EnableStatusEnum;
+import com.azure.resourcemanager.mysqlflexibleserver.models.Server;
+import com.azure.resourcemanager.mysqlflexibleserver.models.ServerEditionCapability;
+import com.azure.resourcemanager.mysqlflexibleserver.models.ServerVersion;
+import com.azure.resourcemanager.mysqlflexibleserver.models.Sku;
+import com.azure.resourcemanager.mysqlflexibleserver.models.SkuCapability;
+import com.azure.resourcemanager.mysqlflexibleserver.models.SkuTier;
+import com.azure.resourcemanager.mysqlflexibleserver.models.Storage;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -81,22 +89,35 @@ public class MySqlServerDraft extends MySqlServer implements AzResource.Draft<My
         final MySqlManager manager = Objects.requireNonNull(this.getParent().getRemote());
         final String region = Objects.requireNonNull(this.getRegion(), "'region' is required to create MySQL flexible server.").getName();
 
-        final List<SkuCapability> skus = Objects.requireNonNull(manager).locationBasedCapabilities().list(region).stream()
-            .flatMap(c -> c.supportedFlexibleServerEditions().stream())
-            .flatMap(e -> e.supportedServerVersions().stream())
+        // refer to https://learn.microsoft.com/en-us/rest/api/mysql/flexibleserver/location-based-capabilities/list?view=rest-mysql-flexibleserver-2023-06-01-preview&tabs=HTTP
+        final List<CapabilityProperties> zones = Objects.requireNonNull(manager).locationBasedCapabilities().list(region).stream()
+            .filter(c -> !c.zone().equalsIgnoreCase("none"))
+            .collect(Collectors.toList());
+        if (zones.isEmpty()) {
+            throw new AzureToolkitRuntimeException("No available zones for current subscription.");
+        }
+        final CapabilityProperties zone = zones.get(0);
+        final List<ServerEditionCapability> editions = zone.supportedFlexibleServerEditions();
+        if (editions.isEmpty()) {
+            throw new AzureToolkitRuntimeException("No available MySQL server editions.");
+        }
+        final ServerEditionCapability edition = editions.get(0);
+        final SkuTier tier = SkuTier.fromString(edition.name());
+        final List<SkuCapability> skus = edition.supportedServerVersions().stream()
             .filter(v -> StringUtils.equalsIgnoreCase(v.name(), this.getVersion()))
             .flatMap(v -> v.supportedSkus().stream())
             .collect(Collectors.toList());
         if (skus.isEmpty()) {
             throw new AzureToolkitRuntimeException(String.format("Version '%s' is not supported in region '%s'.", this.getVersion(), region));
         }
-        final Sku sku = new Sku().withName(skus.get(0).name()).withTier(SkuTier.BURSTABLE);
+        final SkuCapability skuCapability = skus.get(0);
+        final Sku sku = new Sku().withName(skuCapability.name()).withTier(tier);
         // create server
         final Server.DefinitionStages.WithCreate create = manager.servers().define(this.getName())
             .withRegion(region)
             .withExistingResourceGroup(this.getResourceGroupName())
-            .withStorage(new Storage().withIops(360).withStorageSizeGB(20).withAutoGrow(EnableStatusEnum.ENABLED))
-            .withAvailabilityZone("3")
+            .withStorage(new Storage().withIops(skuCapability.supportedIops().intValue()).withStorageSizeGB(20).withAutoGrow(EnableStatusEnum.ENABLED))
+            .withAvailabilityZone(zone.zone())
             .withAdministratorLogin(this.getAdminName())
             .withAdministratorLoginPassword(this.getAdminPassword())
             .withVersion(validateServerVersion(this.getVersion()))
