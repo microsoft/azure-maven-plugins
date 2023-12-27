@@ -34,10 +34,10 @@ import static com.microsoft.azure.toolkit.lib.keyvault.KeyVault.getAccessPolicyL
 public class CertificateVersionDraft extends CertificateVersion
     implements AzResource.Draft<CertificateVersion, CertificateProperties> {
 
-    public static final String CERTIFICATE_CREATION_FORBIDDEN_MESSAGE = "failed to create certificate %s, access denied, please make sure that you have access policy defined to do this operation";
-    public static final String CERTIFICATE_CREATION_FAILED_MESSAGE = "failed to create certificate %s, an unexpected error occurred";
-    public static final String CERTIFICATE_UPDATE_FORBIDDEN_MESSAGE = "failed to update certificate %s, access denied, please make sure that you have access policy defined to do this operation";
-    public static final String CERTIFICATE_UPDATE_FAILED_MESSAGE = "failed to update certificate %s, an unexpected error occurred";
+    public static final String CERTIFICATE_CREATION_FORBIDDEN_MESSAGE = "access denied, please make sure that you have access policy defined to do this operation";
+    public static final String CERTIFICATE_CREATION_FAILED_MESSAGE = "an unexpected error occurred";
+    public static final String CERTIFICATE_UPDATE_FORBIDDEN_MESSAGE = "access denied, please make sure that you have access policy defined to do this operation";
+    public static final String CERTIFICATE_UPDATE_FAILED_MESSAGE = "an unexpected error occurred";
     @Getter
     private final CertificateVersion origin;
 
@@ -96,9 +96,9 @@ public class CertificateVersionDraft extends CertificateVersion
             final Action<String> configure = getAccessPolicyConfiureAction(keyVault);
             final Action<String> learnMore = getAccessPolicyLearnMoreAction();
             if (isHttpException(t, 403)) {
-                throw new AzureToolkitRuntimeException(String.format(CERTIFICATE_CREATION_FORBIDDEN_MESSAGE, config.getName()), configure, learnMore);
+                throw new AzureToolkitRuntimeException(CERTIFICATE_CREATION_FORBIDDEN_MESSAGE, configure, learnMore);
             }
-            throw new AzureToolkitRuntimeException(String.format(CERTIFICATE_CREATION_FAILED_MESSAGE, config.getName()));
+            throw new AzureToolkitRuntimeException(CERTIFICATE_CREATION_FAILED_MESSAGE);
         }
     }
 
@@ -114,9 +114,9 @@ public class CertificateVersionDraft extends CertificateVersion
             if (isHttpException(t, 403)) {
                 final Action<String> configure = getAccessPolicyConfiureAction(keyVault);
                 final Action<String> learnMore = getAccessPolicyLearnMoreAction();
-                throw new AzureToolkitRuntimeException(String.format(CERTIFICATE_UPDATE_FORBIDDEN_MESSAGE, config.getName()), configure, learnMore);
+                throw new AzureToolkitRuntimeException(CERTIFICATE_UPDATE_FORBIDDEN_MESSAGE, configure, learnMore);
             }
-            throw new AzureToolkitRuntimeException(String.format(CERTIFICATE_UPDATE_FAILED_MESSAGE, config.getName()));
+            throw new AzureToolkitRuntimeException(CERTIFICATE_UPDATE_FAILED_MESSAGE);
         }
     }
 
