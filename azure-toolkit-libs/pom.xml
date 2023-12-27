@@ -95,7 +95,7 @@
         <azure-resourcemanager-loganalytics.version>1.0.0</azure-resourcemanager-loganalytics.version>
         <azure-resourcemanager-servicelinker.version>1.0.0-beta.2</azure-resourcemanager-servicelinker.version>
         <azure-messaging-eventhubs.version>5.17.0</azure-messaging-eventhubs.version>
-        <azure-messaging-servicebus.version>7.15.0-beta.5</azure-messaging-servicebus.version>
+        <azure-messaging-servicebus.version>7.14.6</azure-messaging-servicebus.version>
         <azure-monitor-query.version>1.3.0-beta.3</azure-monitor-query.version>
         <azure-storage-blob.version>12.25.0</azure-storage-blob.version>
         <azure-storage-file-share.version>12.21.0</azure-storage-file-share.version>
