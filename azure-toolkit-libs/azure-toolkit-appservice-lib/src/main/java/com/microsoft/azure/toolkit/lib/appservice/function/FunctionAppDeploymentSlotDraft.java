@@ -204,12 +204,12 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
     }
 
     private void updateRuntime(@Nonnull FunctionDeploymentSlot.Update<?> update, @Nonnull Runtime newRuntime) {
-        final Runtime oldRuntime = Objects.requireNonNull(super.getRuntime());
-        if (newRuntime.getOperatingSystem() != null && oldRuntime.getOperatingSystem() != newRuntime.getOperatingSystem()) {
+        final Optional<OperatingSystem> oldOp = Optional.ofNullable(super.getRuntime()).map(Runtime::getOperatingSystem);
+        if (newRuntime.getOperatingSystem() != null && oldOp.filter(r -> r != newRuntime.getOperatingSystem()).isPresent()) {
             throw new AzureToolkitRuntimeException(CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS);
         }
         final OperatingSystem operatingSystem =
-                ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), oldRuntime.getOperatingSystem());
+            ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), oldOp.orElse(null));
         if (operatingSystem == OperatingSystem.LINUX) {
             AzureMessager.getMessager().warning("Update runtime is not supported for Linux app service");
         } else if (operatingSystem == OperatingSystem.WINDOWS) {
