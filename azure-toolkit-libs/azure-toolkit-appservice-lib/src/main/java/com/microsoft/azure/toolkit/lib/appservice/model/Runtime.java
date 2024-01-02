@@ -4,6 +4,8 @@ import com.azure.resourcemanager.appservice.models.JavaVersion;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.time.OffsetDateTime;
 
 public interface Runtime {
 
@@ -51,12 +53,33 @@ public interface Runtime {
         return Runtime.getJavaMajorVersionNumber(v);
     }
 
-    default boolean isDeprecatedOrHidden() {
+    default boolean isDeprecated() {
         return false;
     }
 
-    default boolean isMinorVersion() {
+    default boolean isHidden() {
         return false;
+    }
+
+    default boolean isEarlyAccess() {
+        return false;
+    }
+
+    default boolean isAutoUpdate() {
+        return false;
+    }
+
+    default boolean isPreview() {
+        return false;
+    }
+
+    @Nullable
+    default OffsetDateTime getEndOfLifeDate(){
+        return null;
+    }
+
+    default boolean isMajorVersion() {
+        return true;
     }
 
     default boolean isWindows() {

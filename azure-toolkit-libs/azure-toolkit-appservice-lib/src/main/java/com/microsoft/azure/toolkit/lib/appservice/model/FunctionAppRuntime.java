@@ -18,12 +18,12 @@ public interface FunctionAppRuntime extends Runtime {
     }
 
     @Override
-    default boolean isMinorVersion() {
+    default boolean isMajorVersion() {
         if (isDocker()) {
-            return false;
+            return true;
         }
         final Pattern EXCLUDE_PATTERN = Pattern.compile("\\..*\\.");
-        return EXCLUDE_PATTERN.matcher(this.getJavaVersionNumber()).matches();
+        return !EXCLUDE_PATTERN.matcher(this.getJavaVersionNumber()).matches();
     }
 
     static FunctionAppRuntime getDefault() {

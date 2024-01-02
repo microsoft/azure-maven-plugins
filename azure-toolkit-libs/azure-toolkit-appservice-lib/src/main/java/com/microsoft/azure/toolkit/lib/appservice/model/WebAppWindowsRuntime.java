@@ -23,6 +23,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -33,6 +35,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+@Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class WebAppWindowsRuntime implements WebAppRuntime {
     public static final WebAppWindowsRuntime JAVASE_JAVA17 = new WebAppWindowsRuntime("Java SE", "Java 17");
@@ -56,37 +59,44 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
         TOMCAT85_JAVA17, TOMCAT85_JAVA11, TOMCAT85_JAVA8
     ));
 
-    @Getter
     @EqualsAndHashCode.Include
     private final OperatingSystem operatingSystem = OperatingSystem.WINDOWS;
     /**
      * container name in upper case, e.g. 'JAVA', 'TOMCAT', 'JBOSS', 'JETTY'
      */
-    @Getter
     @EqualsAndHashCode.Include
     private final String containerName;
     /**
      * container version number, e.g. 'SE', '8.5', '9.0', '10.0', '7'
      */
-    @Getter
     @EqualsAndHashCode.Include
     private final String containerVersionNumber;
     /**
      * java version number, e.g. '1.8', '17', '17.0.4', '1.8.0_202', '1.8.0_202_ZULU'
      */
-    @Getter
     @EqualsAndHashCode.Include
     private final String javaVersionNumber;
-    @Getter
-    private final boolean deprecatedOrHidden;
+    private final boolean deprecated;
+    private final boolean hidden;
+    private final boolean earlyAccess;
+    private final boolean autoUpdate;
+    private final boolean preview;
+    @Nullable
+    private final OffsetDateTime endOfLifeDate;
 
     private WebAppWindowsRuntime(@Nonnull WebAppMinorVersion webContainer, @Nonnull WebAppMinorVersion javaMinorVersion) {
         final WindowsJavaContainerSettings containerSettings = webContainer.stackSettings().windowsContainerSettings();
         final WebAppRuntimeSettings javaSettings = javaMinorVersion.stackSettings().windowsRuntimeSettings();
-        this.deprecatedOrHidden = BooleanUtils.isTrue(containerSettings.isHidden())
-            || BooleanUtils.isTrue(javaSettings.isHidden())
-            || BooleanUtils.isTrue(containerSettings.isDeprecated())
-            || BooleanUtils.isTrue(javaSettings.isDeprecated());
+        this.deprecated = BooleanUtils.isTrue(containerSettings.isDeprecated()) || BooleanUtils.isTrue(javaSettings.isDeprecated());
+        this.hidden = BooleanUtils.isTrue(containerSettings.isHidden()) || BooleanUtils.isTrue(javaSettings.isHidden());
+        this.earlyAccess = BooleanUtils.isTrue(containerSettings.isEarlyAccess()) || BooleanUtils.isTrue(javaSettings.isEarlyAccess());
+        this.autoUpdate = BooleanUtils.isTrue(containerSettings.isAutoUpdate()) || BooleanUtils.isTrue(javaSettings.isAutoUpdate());
+        this.preview = BooleanUtils.isTrue(containerSettings.isPreview()) || BooleanUtils.isTrue(javaSettings.isPreview());
+        final OffsetDateTime javaEndOfLifeDate = javaSettings.endOfLifeDate();
+        final OffsetDateTime containerEndOfLifeDate = containerSettings.endOfLifeDate();
+        this.endOfLifeDate = javaEndOfLifeDate == null ? containerEndOfLifeDate :
+            containerEndOfLifeDate == null ? javaEndOfLifeDate :
+                javaEndOfLifeDate.isAfter(containerEndOfLifeDate) ? containerEndOfLifeDate : javaEndOfLifeDate;
         this.containerName = containerSettings.javaContainer().toUpperCase();
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : containerSettings.javaContainerVersion().toUpperCase();
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(javaSettings.runtimeVersion().toUpperCase());
@@ -94,8 +104,12 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
 
     private WebAppWindowsRuntime(@Nonnull WebAppMinorVersion javaMinorVersion) {
         final WebAppRuntimeSettings javaSettings = javaMinorVersion.stackSettings().windowsRuntimeSettings();
-        this.deprecatedOrHidden = BooleanUtils.isTrue(javaSettings.isHidden())
-            || BooleanUtils.isTrue(javaSettings.isDeprecated());
+        this.deprecated = BooleanUtils.isTrue(javaSettings.isDeprecated());
+        this.hidden = BooleanUtils.isTrue(javaSettings.isHidden());
+        this.earlyAccess = BooleanUtils.isTrue(javaSettings.isEarlyAccess());
+        this.autoUpdate = BooleanUtils.isTrue(javaSettings.isAutoUpdate());
+        this.preview = BooleanUtils.isTrue(javaSettings.isPreview());
+        this.endOfLifeDate = javaSettings.endOfLifeDate();
         this.containerName = "JAVA";
         this.containerVersionNumber = "SE";
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(javaSettings.runtimeVersion().toUpperCase());
@@ -105,10 +119,18 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
     private WebAppWindowsRuntime(final Map<String, Object> webContainer, final Map<String, Object> javaMinorVersion) {
         final Map<String, Object> containerSettings = Utils.get(webContainer, "$.stackSettings.windowsContainerSettings");
         final Map<String, Object> javaSettings = Utils.get(javaMinorVersion, "$.stackSettings.windowsRuntimeSettings");
-        this.deprecatedOrHidden = BooleanUtils.isTrue(Utils.get(containerSettings, "$.isHidden"))
-            || BooleanUtils.isTrue(Utils.get(javaSettings, "$.isHidden"))
-            || BooleanUtils.isTrue(Utils.get(containerSettings, "$.isDeprecated"))
-            || BooleanUtils.isTrue(Utils.get(javaSettings, "$.isDeprecated"));
+        this.deprecated = BooleanUtils.isTrue(Utils.get(containerSettings, "$.isDeprecated")) || BooleanUtils.isTrue(Utils.get(javaSettings, "$.isDeprecated"));
+        this.hidden = BooleanUtils.isTrue(Utils.get(containerSettings, "$.isHidden")) || BooleanUtils.isTrue(Utils.get(javaSettings, "$.isHidden"));
+        this.earlyAccess = BooleanUtils.isTrue(Utils.get(containerSettings, "$.isEarlyAccess")) || BooleanUtils.isTrue(Utils.get(javaSettings, "$.isEarlyAccess"));
+        this.autoUpdate = BooleanUtils.isTrue(Utils.get(containerSettings, "$.isAutoUpdate")) || BooleanUtils.isTrue(Utils.get(javaSettings, "$.isAutoUpdate"));
+        this.preview = BooleanUtils.isTrue(Utils.get(containerSettings, "$.isPreview")) || BooleanUtils.isTrue(Utils.get(javaSettings, "$.isPreview"));
+        final CharSequence javaEndOfLifeDateStr = Utils.get(javaSettings, "$.endOfLifeDate");
+        final CharSequence containerEndOfLifeDateStr = Utils.get(containerSettings, "$.endOfLifeDate");
+        final OffsetDateTime javaEndOfLifeDate = StringUtils.isBlank(javaEndOfLifeDateStr) ? null : OffsetDateTime.parse(javaEndOfLifeDateStr, DateTimeFormatter.ISO_ZONED_DATE_TIME);
+        final OffsetDateTime containerEndOfLifeDate = StringUtils.isBlank(containerEndOfLifeDateStr) ? null : OffsetDateTime.parse(containerEndOfLifeDateStr, DateTimeFormatter.ISO_ZONED_DATE_TIME);
+        this.endOfLifeDate = javaEndOfLifeDate == null ? containerEndOfLifeDate :
+            containerEndOfLifeDate == null ? javaEndOfLifeDate :
+                javaEndOfLifeDate.isAfter(containerEndOfLifeDate) ? containerEndOfLifeDate : javaEndOfLifeDate;
         this.containerName = ((String) Utils.get(containerSettings, "$.javaContainer")).toUpperCase();
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : ((String) Utils.get(containerSettings, "$.javaContainerVersion")).toUpperCase();
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(((String) Utils.get(javaSettings, "$.runtimeVersion")).toUpperCase());
@@ -117,8 +139,13 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
     @SuppressWarnings("DataFlowIssue")
     private WebAppWindowsRuntime(final Map<String, Object> javaMinorVersion) {
         final Map<String, Object> javaSettings = Utils.get(javaMinorVersion, "$.stackSettings.windowsRuntimeSettings");
-        this.deprecatedOrHidden = BooleanUtils.isTrue(Utils.get(javaSettings, "$.isHidden"))
-            || BooleanUtils.isTrue(Utils.get(javaSettings, "$.isDeprecated"));
+        this.deprecated = BooleanUtils.isTrue(Utils.get(javaSettings, "$.isDeprecated"));
+        this.hidden = BooleanUtils.isTrue(Utils.get(javaSettings, "$.isHidden"));
+        this.earlyAccess = BooleanUtils.isTrue(Utils.get(javaSettings, "$.isEarlyAccess"));
+        this.autoUpdate = BooleanUtils.isTrue(Utils.get(javaSettings, "$.isAutoUpdate"));
+        this.preview = BooleanUtils.isTrue(Utils.get(javaSettings, "$.isPreview"));
+        final CharSequence endOfLifeDateStr = Utils.get(javaSettings, "$.endOfLifeDate");
+        this.endOfLifeDate = StringUtils.isBlank(endOfLifeDateStr) ? null : OffsetDateTime.parse(endOfLifeDateStr, DateTimeFormatter.ISO_ZONED_DATE_TIME);
         this.containerName = "JAVA";
         this.containerVersionNumber = "SE";
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(((String) Utils.get(javaSettings, "$.runtimeVersion")).toUpperCase());
@@ -127,7 +154,12 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
     private WebAppWindowsRuntime(final String containerUserText, final String javaVersionUserText) {
         final String[] containerParts = containerUserText.split(" ");
         final String[] javaParts = javaVersionUserText.split(" ");
-        this.deprecatedOrHidden = false;
+        this.deprecated = false;
+        this.hidden = false;
+        this.earlyAccess = false;
+        this.autoUpdate = false;
+        this.preview = false;
+        this.endOfLifeDate = null;
         this.containerName = containerParts[0];
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : containerParts[1].toUpperCase();
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(javaParts[1]);
@@ -169,7 +201,7 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
 
     @Nonnull
     public static List<WebAppWindowsRuntime> getMajorRuntimes() {
-        return RUNTIMES.stream().filter(r -> !r.isDeprecatedOrHidden() && !r.isMinorVersion()).collect(Collectors.toList());
+        return RUNTIMES.stream().filter(r -> !r.isDeprecated() && !r.isHidden() && r.isMajorVersion()).collect(Collectors.toList());
     }
 
     public static boolean isLoaded() {

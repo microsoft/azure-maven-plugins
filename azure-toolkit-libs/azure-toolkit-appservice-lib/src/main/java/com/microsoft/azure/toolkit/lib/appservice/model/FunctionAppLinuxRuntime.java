@@ -20,6 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -31,46 +33,66 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
-    public static final FunctionAppLinuxRuntime FUNCTION_JAVA17 = new FunctionAppLinuxRuntime("Java 17", "Java|17");
-    public static final FunctionAppLinuxRuntime FUNCTION_JAVA11 = new FunctionAppLinuxRuntime("Java 11", "Java|11");
-    public static final FunctionAppLinuxRuntime FUNCTION_JAVA8 = new FunctionAppLinuxRuntime("Java 1.8", "Java|8");
+    public static final FunctionAppLinuxRuntime FUNCTION_JAVA17 = new FunctionAppLinuxRuntime("Java|17");
+    public static final FunctionAppLinuxRuntime FUNCTION_JAVA11 = new FunctionAppLinuxRuntime("Java|11");
+    public static final FunctionAppLinuxRuntime FUNCTION_JAVA8 = new FunctionAppLinuxRuntime("Java|8");
     private static final LinkedHashSet<FunctionAppLinuxRuntime> RUNTIMES = new LinkedHashSet<>(Arrays.asList(FUNCTION_JAVA17, FUNCTION_JAVA11, FUNCTION_JAVA8));
 
     private static final AtomicReference<Boolean> loaded = new AtomicReference<>(Boolean.FALSE);
     private final String fxString;
-    @Getter
     @EqualsAndHashCode.Include
     private final OperatingSystem operatingSystem = OperatingSystem.LINUX;
     /**
      * java version number, e.g. '1.8', '11', '17'
      */
-    @Getter
     @Nonnull
     @EqualsAndHashCode.Include
     private final String javaVersionNumber;
-    @Getter
-    private final boolean deprecatedOrHidden;
+    private final boolean deprecated;
+    private final boolean hidden;
+    private final boolean earlyAccess;
+    private final boolean autoUpdate;
+    private final boolean preview;
+    @Nullable
+    private final OffsetDateTime endOfLifeDate;
 
     private FunctionAppLinuxRuntime(@Nonnull FunctionAppMinorVersion javaVersion) {
         final FunctionAppRuntimeSettings settings = javaVersion.stackSettings().linuxRuntimeSettings();
         this.fxString = settings.runtimeVersion();
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(this.fxString.split("\\|", 2)[1]);
-        this.deprecatedOrHidden = BooleanUtils.isTrue(settings.isDeprecated()) || BooleanUtils.isTrue(settings.isHidden());
+        this.deprecated = BooleanUtils.isTrue(settings.isDeprecated());
+        this.hidden = BooleanUtils.isTrue(settings.isHidden());
+        this.earlyAccess = BooleanUtils.isTrue(settings.isEarlyAccess());
+        this.autoUpdate = BooleanUtils.isTrue(settings.isAutoUpdate());
+        this.preview = BooleanUtils.isTrue(settings.isPreview());
+        this.endOfLifeDate = settings.endOfLifeDate();
     }
 
     private FunctionAppLinuxRuntime(final Map<String, Object> javaVersion) {
         final Map<String, Object> settings = Utils.get(javaVersion, "$.stackSettings.linuxRuntimeSettings");
         this.fxString = Utils.get(settings, "$.runtimeVersion");
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(Objects.requireNonNull(this.fxString).split("\\|", 2)[1]);
-        this.deprecatedOrHidden = BooleanUtils.isTrue(Utils.get(settings, "$.isDeprecated")) || BooleanUtils.isTrue(Utils.get(settings, "$.isHidden"));
+        this.deprecated = BooleanUtils.isTrue(Utils.get(settings, "$.isDeprecated"));
+        this.hidden = BooleanUtils.isTrue(Utils.get(settings, "$.isHidden"));
+        this.earlyAccess = BooleanUtils.isTrue(Utils.get(settings, "$.isEarlyAccess"));
+        this.autoUpdate = BooleanUtils.isTrue(Utils.get(settings, "$.isAutoUpdate"));
+        this.preview = BooleanUtils.isTrue(Utils.get(settings, "$.isPreview"));
+        final CharSequence endOfLifeDateStr = Utils.get(settings, "$.endOfLifeDate");
+        this.endOfLifeDate = StringUtils.isBlank(endOfLifeDateStr) ? null : OffsetDateTime.parse(endOfLifeDateStr, DateTimeFormatter.ISO_ZONED_DATE_TIME);
     }
 
-    private FunctionAppLinuxRuntime(@Nonnull String javaVersionUserText, @Nonnull String fxString) {
+    private FunctionAppLinuxRuntime(@Nonnull String fxString) {
         this.fxString = fxString;
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(this.fxString.split("\\|", 2)[1]);
-        this.deprecatedOrHidden = false;
+        this.deprecated = false;
+        this.hidden = false;
+        this.earlyAccess = false;
+        this.autoUpdate = false;
+        this.preview = false;
+        this.endOfLifeDate = null;
     }
 
     public FunctionRuntimeStack toFunctionRuntimeStack(String funcExtensionVersion) {
@@ -100,7 +122,7 @@ public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
 
     @Nonnull
     public static List<FunctionAppLinuxRuntime> getMajorRuntimes() {
-        return RUNTIMES.stream().filter(r -> !r.isDeprecatedOrHidden() && !r.isMinorVersion()).collect(Collectors.toList());
+        return RUNTIMES.stream().filter(r -> !r.isDeprecated() && !r.isHidden() && r.isMajorVersion()).collect(Collectors.toList());
     }
 
     public static boolean isLoaded() {

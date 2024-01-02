@@ -36,12 +36,12 @@ public interface WebAppRuntime extends Runtime {
     }
 
     @Override
-    default boolean isMinorVersion() {
+    default boolean isMajorVersion() {
         if (this.isDocker()) {
-            return false;
+            return true;
         }
         final Pattern EXCLUDE_PATTERN = Pattern.compile("\\..*\\.");
-        return EXCLUDE_PATTERN.matcher(this.getJavaVersionNumber()).matches() || EXCLUDE_PATTERN.matcher(this.getContainerVersionNumber()).matches();
+        return !EXCLUDE_PATTERN.matcher(this.getJavaVersionNumber()).matches() && !EXCLUDE_PATTERN.matcher(this.getContainerVersionNumber()).matches();
     }
 
     default boolean isJavaSE() {
