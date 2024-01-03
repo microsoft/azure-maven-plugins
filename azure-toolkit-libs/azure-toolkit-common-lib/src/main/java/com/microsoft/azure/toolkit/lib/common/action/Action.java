@@ -55,7 +55,7 @@ public class Action<D> implements Cloneable {
     private final Id<D> id;
     @Nonnull
     private List<Pair<BiPredicate<D, ?>, BiConsumer<D, ?>>> handlers = new ArrayList<>();
-    private D target;
+    protected D target;
     @Nonnull
     Predicate<D> enableWhen = o -> true;
     BiPredicate<Object, String> visibleWhen = (o, place) -> true;
