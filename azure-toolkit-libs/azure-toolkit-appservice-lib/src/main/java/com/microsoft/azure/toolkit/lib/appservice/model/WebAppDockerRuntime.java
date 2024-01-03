@@ -34,4 +34,9 @@ public class WebAppDockerRuntime implements WebAppRuntime {
     public String getJavaVersionNumber() {
         return "null";
     }
+
+    @Override
+    public String toString() {
+        return "Docker";
+    }
 }

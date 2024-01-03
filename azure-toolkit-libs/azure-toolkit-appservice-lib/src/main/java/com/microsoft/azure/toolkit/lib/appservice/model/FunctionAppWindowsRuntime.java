@@ -159,6 +159,6 @@ public class FunctionAppWindowsRuntime implements FunctionAppRuntime {
     }
 
     public String toString() {
-        return String.format("Windows: %s", this.getJavaVersionUserText());
+        return String.format("Windows | %s", this.getJavaVersionUserText());
     }
 }

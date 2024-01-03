@@ -1,11 +1,18 @@
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
 import com.azure.resourcemanager.appservice.models.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 public interface Runtime {
 
@@ -74,7 +81,7 @@ public interface Runtime {
     }
 
     @Nullable
-    default OffsetDateTime getEndOfLifeDate(){
+    default OffsetDateTime getEndOfLifeDate() {
         return null;
     }
 
@@ -111,5 +118,30 @@ public interface Runtime {
             return String.format("1.%s.0_%s", parts[0], parts[1]);
         }
         return javaVersion;
+    }
+
+    static void tryWarningDeprecation(@Nonnull final AppServiceAppBase<?, ?, ?> app) {
+        final Runtime runtime = app.getRuntime();
+        AzureString message = null;
+        if (Objects.nonNull(runtime)) {
+            if (runtime.isHidden() || runtime.isDeprecated()) {
+                if (Objects.nonNull(runtime.getEndOfLifeDate())) {
+                    message = AzureString.format("Upgrade the runtime of your app as \"%s\" has reached EOL on %s and is no longer supported.",
+                        runtime.toString(), runtime.getEndOfLifeDate().format(DateTimeFormatter.ISO_DATE));
+                } else {
+                    message = AzureString.format("Upgrade the runtime of your app as \"%s\" has reached EOL and is no longer supported.", runtime.toString());
+                }
+            } else if (runtime.isEarlyAccess()) {
+                message = AzureString.format("The runtime of your app \"%s\" is early access, please be careful to use it in production environment.", runtime.toString());
+            } else if (runtime.isPreview()) {
+                message = AzureString.format("The runtime of your app \"%s\" is preview, please be careful to use it in production environment.", runtime.toString());
+            } else if (Objects.nonNull(runtime.getEndOfLifeDate()) && runtime.getEndOfLifeDate().minusMonths(6).isBefore(OffsetDateTime.now())) {
+                message = AzureString.format("Upgrade the runtime of your app as \"%s\" will reach EOL on %s and will no longer be supported.", runtime.toString(), runtime.getEndOfLifeDate().format(DateTimeFormatter.ISO_DATE));
+            }
+        }
+        if (Objects.nonNull(message)) {
+            final Action<String> action = AzureActionManager.getInstance().getAction(Action.OPEN_URL).bind(String.format("%s/configuration", app.getPortalUrl())).withLabel("Configure runtime stack in Azure Portal");
+            AzureMessager.getMessager().warning(message, action);
+        }
     }
 }

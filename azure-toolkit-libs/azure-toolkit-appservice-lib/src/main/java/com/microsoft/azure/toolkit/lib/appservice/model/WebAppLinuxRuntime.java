@@ -224,6 +224,6 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
     }
 
     public String toString() {
-        return String.format("Linux: %s - %s (%s)", this.getContainerUserText(), this.getJavaVersionUserText(), this.fxString);
+        return String.format("Linux | %s | %s", this.getContainerUserText(), this.getJavaVersionUserText());
     }
 }

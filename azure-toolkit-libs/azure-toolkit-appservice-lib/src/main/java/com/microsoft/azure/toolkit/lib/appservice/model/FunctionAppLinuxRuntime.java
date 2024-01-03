@@ -171,6 +171,6 @@ public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
     }
 
     public String toString() {
-        return String.format("Linux: %s (%s)", this.getJavaVersionUserText(), this.fxString);
+        return String.format("Linux | %s", this.getJavaVersionUserText());
     }
 }

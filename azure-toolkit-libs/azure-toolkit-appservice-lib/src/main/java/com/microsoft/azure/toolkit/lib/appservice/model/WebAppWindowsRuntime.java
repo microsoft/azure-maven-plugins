@@ -260,6 +260,6 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
     }
 
     public String toString() {
-        return String.format("Windows: %s - %s", this.getContainerUserText(), this.getJavaVersionUserText());
+        return String.format("Windows | %s | %s", this.getContainerUserText(), this.getJavaVersionUserText());
     }
 }
