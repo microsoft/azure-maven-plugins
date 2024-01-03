@@ -79,6 +79,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.
     @Override
     @AzureOperation(name = "azure/webapp.create_app.app", params = {"this.getName()"})
     public com.azure.resourcemanager.appservice.models.WebApp createResourceInAzure() {
+        Runtime.tryWarningDeprecation(this);
         final String name = getName();
         final Runtime newRuntime = Objects.requireNonNull(getRuntime(), "'runtime' is required to create Azure Web App");
         final AppServicePlan newPlan = Objects.requireNonNull(getAppServicePlan(), "'service plan' is required to create Azure Web App");
@@ -147,6 +148,7 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.
     @AzureOperation(name = "azure/webapp.update_app.app", params = {"this.getName()"})
     public com.azure.resourcemanager.appservice.models.WebApp updateResourceInAzure(@Nonnull com.azure.resourcemanager.appservice.models.WebApp remote) {
         assert origin != null : "updating target is not specified.";
+        Runtime.tryWarningDeprecation(this);
         final Map<String, String> oldAppSettings = Objects.requireNonNull(origin.getAppSettings());
         final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();
         if (ObjectUtils.allNotNull(oldAppSettings, settingsToAdd)) {

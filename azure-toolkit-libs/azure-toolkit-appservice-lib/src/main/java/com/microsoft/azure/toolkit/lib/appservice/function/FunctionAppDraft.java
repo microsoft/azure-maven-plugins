@@ -93,6 +93,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     @Override
     @AzureOperation(name = "azure/function.create_app.app", params = {"this.getName()"})
     public com.azure.resourcemanager.appservice.models.FunctionApp createResourceInAzure() {
+        Runtime.tryWarningDeprecation(this);
         OperationContext.action().setTelemetryProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
 
         final String name = getName();
@@ -207,6 +208,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     @AzureOperation(name = "azure/function.update_app.app", params = {"this.getName()"})
     public com.azure.resourcemanager.appservice.models.FunctionApp updateResourceInAzure(@Nonnull com.azure.resourcemanager.appservice.models.FunctionApp remote) {
         assert origin != null : "updating target is not specified.";
+        Runtime.tryWarningDeprecation(this);
         final Map<String, String> oldAppSettings = Objects.requireNonNull(origin.getAppSettings());
         final Map<String, String> settingsToAdd = Optional.ofNullable(this.ensureConfig().getAppSettings()).orElseGet(HashMap::new);
         final Boolean enableDistributedTracing = ensureConfig().getEnableDistributedTracing();

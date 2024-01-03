@@ -16,6 +16,8 @@ import java.util.Objects;
 
 public interface Runtime {
 
+    String FUNCTION_UPGRADE_RUNTIME_LINK = "https://learn.microsoft.com/en-us/azure/azure-functions/update-java-versions?tabs=azure-portal&pivots=platform-linux";
+
     OperatingSystem getOperatingSystem();
 
     String getDisplayName();
@@ -124,23 +126,24 @@ public interface Runtime {
         final Runtime runtime = app.getRuntime();
         AzureString message = null;
         if (Objects.nonNull(runtime)) {
+            final String link = runtime instanceof FunctionAppRuntime ? String.format(" refer to %s.", FUNCTION_UPGRADE_RUNTIME_LINK) : "";
             if (runtime.isHidden() || runtime.isDeprecated()) {
                 if (Objects.nonNull(runtime.getEndOfLifeDate())) {
-                    message = AzureString.format("Upgrade the runtime of your app as \"%s\" has reached EOL on %s and is no longer supported.",
+                    message = AzureString.format("Upgrade the runtime of your app as \"%s\" has reached EOL on %s and is no longer supported." + link,
                         runtime.toString(), runtime.getEndOfLifeDate().format(DateTimeFormatter.ISO_DATE));
                 } else {
-                    message = AzureString.format("Upgrade the runtime of your app as \"%s\" has reached EOL and is no longer supported.", runtime.toString());
+                    message = AzureString.format("Upgrade the runtime of your app as \"%s\" has reached EOL and is no longer supported." + link, runtime.toString());
                 }
             } else if (runtime.isEarlyAccess()) {
-                message = AzureString.format("The runtime of your app \"%s\" is early access, please be careful to use it in production environment.", runtime.toString());
+                message = AzureString.format("The runtime of your app \"%s\" is early access, please be careful to use it in production environment." + link, runtime.toString());
             } else if (runtime.isPreview()) {
-                message = AzureString.format("The runtime of your app \"%s\" is preview, please be careful to use it in production environment.", runtime.toString());
+                message = AzureString.format("The runtime of your app \"%s\" is preview, please be careful to use it in production environment." + link, runtime.toString());
             } else if (Objects.nonNull(runtime.getEndOfLifeDate()) && runtime.getEndOfLifeDate().minusMonths(6).isBefore(OffsetDateTime.now())) {
-                message = AzureString.format("Upgrade the runtime of your app as \"%s\" will reach EOL on %s and will no longer be supported.", runtime.toString(), runtime.getEndOfLifeDate().format(DateTimeFormatter.ISO_DATE));
+                message = AzureString.format("Upgrade the runtime of your app as \"%s\" will reach EOL on %s and will no longer be supported." + link, runtime.toString(), runtime.getEndOfLifeDate().format(DateTimeFormatter.ISO_DATE));
             }
         }
         if (Objects.nonNull(message)) {
-            final Action<String> action = AzureActionManager.getInstance().getAction(Action.OPEN_URL).bind(String.format("%s/configuration", app.getPortalUrl())).withLabel("Configure runtime stack in Azure Portal");
+            final Action<String> action = app.exists() ? AzureActionManager.getInstance().getAction(Action.OPEN_URL).bind(String.format("%s/configuration", app.getPortalUrl())).withLabel("Configure in Azure Portal") : null;
             AzureMessager.getMessager().warning(message, action);
         }
     }
