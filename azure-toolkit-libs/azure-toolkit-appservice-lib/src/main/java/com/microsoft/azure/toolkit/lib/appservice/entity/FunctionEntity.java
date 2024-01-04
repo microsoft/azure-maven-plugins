@@ -39,7 +39,7 @@ public class FunctionEntity {
             return null;
         }
         return bindingList.stream()
-                .filter(bindingResource -> StringUtils.equals(bindingResource.getDirection(), "in") &&
+                .filter(bindingResource -> StringUtils.equalsIgnoreCase(bindingResource.getDirection(), "in") &&
                         StringUtils.containsIgnoreCase(bindingResource.getType(), "trigger"))
                 .findFirst().orElse(null);
     }

@@ -9,6 +9,7 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
 import com.azure.resourcemanager.appservice.models.NameValuePair;
 import com.azure.resourcemanager.appservice.models.PlatformArchitecture;
+import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
@@ -22,10 +23,12 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
+import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
 import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.retry.Retry;
@@ -232,6 +235,22 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
 
     public String getEnvironmentId() {
         return Optional.ofNullable(this.getRemote()).map(com.azure.resourcemanager.appservice.models.FunctionApp::managedEnvironmentId).orElse(null);
+    }
+
+    @NotNull
+    @Override
+    protected String loadStatus(@NotNull final WebAppBase remote) {
+        if (remote instanceof com.azure.resourcemanager.appservice.models.FunctionApp) {
+            final String environmentId = ((com.azure.resourcemanager.appservice.models.FunctionApp) remote).managedEnvironmentId();
+            if(StringUtils.isBlank(environmentId)){
+                return super.loadStatus(remote);
+            }
+            return Optional.ofNullable(getEnvironment())
+                .flatMap(env -> env.listContainerApps().stream().filter(app -> StringUtils.equalsIgnoreCase(app.getName(), this.getName())).findFirst())
+                .map(ContainerApp::getStatus)
+                .orElseGet(() -> super.loadStatus(remote));
+        }
+        return super.loadStatus(remote);
     }
 
     public ContainerAppsEnvironment getEnvironment() {
