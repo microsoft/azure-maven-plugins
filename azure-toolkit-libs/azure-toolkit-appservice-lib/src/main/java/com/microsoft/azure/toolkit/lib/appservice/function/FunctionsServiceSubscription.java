@@ -54,9 +54,6 @@ public class FunctionsServiceSubscription extends AppServiceServiceSubscription 
 
     @Nonnull
     public List<FunctionAppRuntime> listFunctionAppMajorRuntimes() {
-        if (!FunctionAppWindowsRuntime.isLoaded() && !FunctionAppLinuxRuntime.isLoaded()) {
-            loadRuntimes();
-        }
         return Stream.concat(FunctionAppWindowsRuntime.getMajorRuntimes().stream(), FunctionAppLinuxRuntime.getMajorRuntimes().stream()).collect(Collectors.toList());
     }
 

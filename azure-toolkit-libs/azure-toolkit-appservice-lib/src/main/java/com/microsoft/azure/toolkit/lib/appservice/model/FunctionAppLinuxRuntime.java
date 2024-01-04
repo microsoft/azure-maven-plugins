@@ -101,7 +101,7 @@ public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
 
     @Nullable
     public static FunctionAppLinuxRuntime fromFxString(final String fxString) {
-        return RUNTIMES.stream().filter(runtime -> StringUtils.equalsIgnoreCase(fxString, runtime.fxString)).findFirst().orElse(null);
+        return getAllRuntimes().stream().filter(runtime -> StringUtils.equalsIgnoreCase(fxString, runtime.fxString)).findFirst().orElse(null);
     }
 
     @Nullable
@@ -111,22 +111,27 @@ public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
             AzureMessager.getMessager().warning(AzureString.format("The java version is not specified, use default version '%s'", DEFAULT_JAVA));
         }
         final String javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(v);
-        return RUNTIMES.stream()
+        return getAllRuntimes().stream()
             .filter(runtime -> StringUtils.equalsIgnoreCase(runtime.javaVersionNumber, javaVersionNumber))
             .findFirst().orElse(null);
     }
 
     public static List<FunctionAppLinuxRuntime> getAllRuntimes() {
+        FunctionAppRuntime.tryLoadingAllRuntimes();
         return new ArrayList<>(RUNTIMES);
     }
 
     @Nonnull
     public static List<FunctionAppLinuxRuntime> getMajorRuntimes() {
-        return RUNTIMES.stream().filter(r -> !r.isDeprecated() && !r.isHidden() && r.isMajorVersion()).collect(Collectors.toList());
+        return getAllRuntimes().stream().filter(r -> !r.isDeprecated() && !r.isHidden() && r.isMajorVersion()).collect(Collectors.toList());
     }
 
     public static boolean isLoaded() {
         return loaded.get() == Boolean.TRUE;
+    }
+
+    public static boolean isLoading() {
+        return loaded.get() == null;
     }
 
     public static void loadAllFunctionAppLinuxRuntimes(List<FunctionAppMajorVersion> javaVersions) {

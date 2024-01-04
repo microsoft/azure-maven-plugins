@@ -107,7 +107,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected void doExecute() throws Throwable {
         this.mergeCommandLineConfig();
         initAzureAppServiceClient();
-        ((FunctionsServiceSubscription) Objects.requireNonNull(Azure.az(AzureFunctions.class).get(subscriptionId, null), "You are not signed-in")).loadRuntimes();
+        FunctionAppRuntime.tryLoadingAllRuntimes();
         doValidate();
         final ConfigParser parser = getParser();
         final FunctionAppConfig config = parser.parseConfig();

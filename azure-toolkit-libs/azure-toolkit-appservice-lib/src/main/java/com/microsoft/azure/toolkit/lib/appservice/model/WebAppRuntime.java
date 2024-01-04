@@ -1,12 +1,19 @@
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
 import com.azure.resourcemanager.appservice.models.WebContainer;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppServiceSubscription;
+import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -134,5 +141,21 @@ public interface WebAppRuntime extends Runtime {
             tiers.remove(PricingTier.PREMIUM_P3);
         }
         return tiers;
+    }
+
+    static void tryLoadingAllRuntimes() {
+        synchronized (WebAppRuntime.class) {
+            final Account account = Azure.az(AzureAccount.class).getAccount();
+            if (Objects.nonNull(account) && account.isLoggedIn()
+                && !WebAppWindowsRuntime.isLoaded()
+                && !WebAppWindowsRuntime.isLoading()
+                && !WebAppLinuxRuntime.isLoaded()
+                && !WebAppLinuxRuntime.isLoading()
+            ) {
+                final Subscription subscription = account.getSelectedSubscriptions().get(0);
+                ((WebAppServiceSubscription) Objects.requireNonNull(Azure.az(AzureWebApp.class)
+                    .get(subscription.getId(), null), "You are not signed-in")).loadRuntimes();
+            }
+        }
     }
 }

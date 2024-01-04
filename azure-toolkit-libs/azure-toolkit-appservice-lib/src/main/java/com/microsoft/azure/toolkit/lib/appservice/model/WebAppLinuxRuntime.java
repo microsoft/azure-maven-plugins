@@ -142,7 +142,7 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
 
     @Nullable
     public static WebAppLinuxRuntime fromFxString(final String fxString) {
-        return RUNTIMES.stream().filter(runtime -> StringUtils.equals(runtime.fxString, fxString)).findFirst().orElse(null);
+        return getAllRuntimes().stream().filter(runtime -> StringUtils.equals(runtime.fxString, fxString)).findFirst().orElse(null);
     }
 
     @Nullable
@@ -153,22 +153,27 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
         }
         final String javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(pJavaVersionUserText);
         final String containerUserText = StringUtils.startsWithIgnoreCase(pContainerUserText, "java ") ? "Java SE" : pContainerUserText;
-        return RUNTIMES.stream().filter(r -> StringUtils.equalsAnyIgnoreCase(javaVersionNumber, r.javaVersionNumber) &&
+        return getAllRuntimes().stream().filter(r -> StringUtils.equalsAnyIgnoreCase(javaVersionNumber, r.javaVersionNumber) &&
                 StringUtils.equalsIgnoreCase(containerUserText, String.format("%s %s", r.containerName, r.containerVersionNumber)))
             .findFirst().orElse(null);
     }
 
     public static List<WebAppLinuxRuntime> getAllRuntimes() {
+        WebAppRuntime.tryLoadingAllRuntimes();
         return new ArrayList<>(RUNTIMES);
     }
 
     @Nonnull
     public static List<WebAppLinuxRuntime> getMajorRuntimes() {
-        return RUNTIMES.stream().filter(r -> !r.isDeprecated() && !r.isHidden() && r.isMajorVersion()).collect(Collectors.toList());
+        return getAllRuntimes().stream().filter(r -> !r.isDeprecated() && !r.isHidden() && r.isMajorVersion()).collect(Collectors.toList());
     }
 
     public static boolean isLoaded() {
         return loaded.get() == Boolean.TRUE;
+    }
+
+    public static boolean isLoading() {
+        return loaded.get() == null;
     }
 
     public static void loadAllWebAppLinuxRuntimes(List<WebAppMajorVersion> javaMajorVersions, List<WebAppMajorVersion> containerMajorVersions) {

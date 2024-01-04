@@ -176,7 +176,7 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
     @Nullable
     public static WebAppWindowsRuntime fromContainerAndJavaVersion(final String containerName, String pContainerVersionNumber, final JavaVersion javaVersion) {
         final String containerVersionNumber = StringUtils.equalsIgnoreCase(containerName, "java") ? "SE" : pContainerVersionNumber;
-        return RUNTIMES.stream().filter(r -> StringUtils.equalsAnyIgnoreCase(javaVersion.toString(), r.javaVersionNumber) &&
+        return getAllRuntimes().stream().filter(r -> StringUtils.equalsAnyIgnoreCase(javaVersion.toString(), r.javaVersionNumber) &&
                 StringUtils.equalsIgnoreCase(containerName, r.containerName) &&
                 StringUtils.equalsIgnoreCase(containerVersionNumber, r.containerVersionNumber))
             .findFirst().orElse(null);
@@ -190,22 +190,27 @@ public class WebAppWindowsRuntime implements WebAppRuntime {
         }
         final String javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(pJavaVersionUserText);
         final String containerUserText = StringUtils.startsWithIgnoreCase(pContainerUserText, "java ") ? "Java SE" : pContainerUserText;
-        return RUNTIMES.stream().filter(r -> StringUtils.equalsAnyIgnoreCase(javaVersionNumber, r.javaVersionNumber) &&
+        return getAllRuntimes().stream().filter(r -> StringUtils.equalsAnyIgnoreCase(javaVersionNumber, r.javaVersionNumber) &&
                 StringUtils.equalsIgnoreCase(containerUserText, String.format("%s %s", r.containerName, r.containerVersionNumber)))
             .findFirst().orElse(null);
     }
 
     public static List<WebAppWindowsRuntime> getAllRuntimes() {
+        WebAppRuntime.tryLoadingAllRuntimes();
         return new ArrayList<>(RUNTIMES);
     }
 
     @Nonnull
     public static List<WebAppWindowsRuntime> getMajorRuntimes() {
-        return RUNTIMES.stream().filter(r -> !r.isDeprecated() && !r.isHidden() && r.isMajorVersion()).collect(Collectors.toList());
+        return getAllRuntimes().stream().filter(r -> !r.isDeprecated() && !r.isHidden() && r.isMajorVersion()).collect(Collectors.toList());
     }
 
     public static boolean isLoaded() {
         return loaded.get() == Boolean.TRUE;
+    }
+
+    public static boolean isLoading() {
+        return loaded.get() == null;
     }
 
     public static void loadAllWebAppWindowsRuntimes(List<WebAppMajorVersion> javaVersions, List<WebAppMajorVersion> containerVersions) {

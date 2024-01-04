@@ -94,7 +94,7 @@ public class FunctionAppWindowsRuntime implements FunctionAppRuntime {
 
     @Nullable
     public static FunctionAppWindowsRuntime fromJavaVersion(final JavaVersion javaVersion) {
-        return RUNTIMES.stream()
+        return getAllRuntimes().stream()
             .filter(runtime -> StringUtils.equalsIgnoreCase(runtime.javaVersionNumber, javaVersion.toString()))
             .findFirst().orElse(null);
     }
@@ -109,16 +109,21 @@ public class FunctionAppWindowsRuntime implements FunctionAppRuntime {
     }
 
     public static List<FunctionAppWindowsRuntime> getAllRuntimes() {
+        FunctionAppRuntime.tryLoadingAllRuntimes();
         return new ArrayList<>(RUNTIMES);
     }
 
     @Nonnull
     public static List<FunctionAppWindowsRuntime> getMajorRuntimes() {
-        return RUNTIMES.stream().filter(r -> !r.isDeprecated() && !r.isHidden() && r.isMajorVersion()).collect(Collectors.toList());
+        return getAllRuntimes().stream().filter(r -> !r.isDeprecated() && !r.isHidden() && r.isMajorVersion()).collect(Collectors.toList());
     }
 
     public static boolean isLoaded() {
         return loaded.get() == Boolean.TRUE;
+    }
+
+    public static boolean isLoading() {
+        return loaded.get() == null;
     }
 
     public static void loadAllFunctionAppWindowsRuntimes(List<FunctionAppMajorVersion> javaVersions) {
