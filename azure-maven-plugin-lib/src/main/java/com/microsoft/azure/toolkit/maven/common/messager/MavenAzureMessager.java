@@ -30,21 +30,21 @@ public class MavenAzureMessager implements IAzureMessager, IAzureMessage.ValueDe
             case CONFIRM:
             case WARNING:
                 log.warn(message.getContent());
-                actions.forEach(action -> log.warn("\t* " + action.toString(this)));
+                actions.forEach(action -> log.warn("* " + action.toString(this)));
                 return true;
             case ERROR:
                 log.error(message.getContent(), ((Throwable) message.getPayload()));
-                actions.forEach(action -> log.error("\t* " + action.toString(this)));
+                actions.forEach(action -> log.error("* " + action.toString(this)));
                 return true;
             case DEBUG:
                 System.out.println(message.getContent());
-                actions.forEach(action -> log.debug("\t* " + action.toString(this)));
+                actions.forEach(action -> log.debug("* " + action.toString(this)));
                 return true;
             case INFO:
             case SUCCESS:
             default:
                 log.info(message.getContent());
-                actions.forEach(action -> log.info("\t* " + action.toString(this)));
+                actions.forEach(action -> log.info("* " + action.toString(this)));
                 return true;
         }
     }
