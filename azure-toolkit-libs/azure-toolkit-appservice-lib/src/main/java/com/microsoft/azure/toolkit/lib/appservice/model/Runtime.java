@@ -145,7 +145,7 @@ public interface Runtime {
         if (Objects.nonNull(message)) {
             final Action<String> openUrl = AzureActionManager.getInstance().getAction(Action.OPEN_URL);
             final Action<String> action = app.exists() && Objects.nonNull(openUrl) ? openUrl.bind(String.format("%s/configuration", app.getPortalUrl())).withLabel("Configure in Azure Portal") : null;
-            AzureMessager.getMessager().warning(message, action);
+            AzureMessager.getDefaultMessager().warning(message, action);
         }
     }
 }
