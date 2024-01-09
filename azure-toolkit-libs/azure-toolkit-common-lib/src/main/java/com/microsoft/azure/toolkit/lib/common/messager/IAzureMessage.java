@@ -73,8 +73,9 @@ public interface IAzureMessage {
         }
         if (Objects.isNull(result)) {
             final Object[] params = Arrays.stream(text.getParams() != null ? text.getParams() : new Object[0])
-                    .map((p) -> this.decorateValue(p, p::toString))
-                    .toArray();
+                .filter(Objects::nonNull)
+                .map((p) -> this.decorateValue(p, p::toString))
+                .toArray();
             result = text.getString(params);
         }
         return Objects.isNull(result) && Objects.nonNull(dft) ? dft.get() : result;
