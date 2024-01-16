@@ -101,7 +101,7 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
         final DeploymentSlot.DefinitionStages.WithCreate withCreate;
         if (CONFIGURATION_SOURCE_NEW.equals(source)) {
             withCreate = blank.withBrandNewConfiguration();
-        } else if (CONFIGURATION_SOURCE_PARENT.equals(source)) {
+        } else if (StringUtils.equalsAnyIgnoreCase(source, CONFIGURATION_SOURCE_PARENT, getParent().getName())) {
             withCreate = blank.withConfigurationFromParent();
         } else {
             try {
