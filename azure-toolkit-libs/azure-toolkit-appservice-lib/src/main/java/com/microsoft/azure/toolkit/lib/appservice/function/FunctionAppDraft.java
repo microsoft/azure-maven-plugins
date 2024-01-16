@@ -193,6 +193,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         final Action<AzResource> deploy = Optional.ofNullable(AzureActionManager.getInstance().getAction(AzResource.DEPLOY))
             .map(action -> action.bind(this)).orElse(null);
         messager.success(AzureString.format("Function App({0}) is successfully created", name), deploy);
+        Optional.ofNullable(getEnvironment()).ifPresent(ContainerAppsEnvironment::refresh); // refresh container apps environment after create container hosted function app
         return functionApp;
     }
 
