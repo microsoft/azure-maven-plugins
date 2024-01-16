@@ -1,0 +1,141 @@
+# This pipeline was generated from the classic pipeline "[Maven] build-and-upload-for-endgame(release)" on 2024-01-16 with https://aka.ms/1ESPTMigration (v1.1.0): https://dev.azure.com/mseng/VSJava/_build?definitionId=11772
+#
+# The following items require attention:
+# Variables were exported from the classic pipeline, confirm that `variables` values do not contain private information. If a variable contains private information, follow the guidance on handling secret variables: https://learn.microsoft.com/en-us/azure/devops/pipelines/process/set-secret-variables
+# Secret variable 'AZCOPY_SPA_CLIENT_SECRET' detected in `variables`, follow the guidance on handling secret variables: https://learn.microsoft.com/en-us/azure/devops/pipelines/process/set-secret-variables
+# No trigger found, defaulting to 'none'. Update the trigger as needed.
+# No name found, setting the default value '$(Date:yyyyMMdd).$(Rev:r)'. This value determines how your pipeline runs are numbered. Update the name as needed: https://learn.microsoft.com/en-us/azure/devops/pipelines/process/run-number?view=azure-devops&tabs=yaml
+
+name: $(Date:yyyyMMdd).$(Rev:r)
+resources:
+  repositories:
+    - repository: self
+      type: git
+      ref: refs/heads/develop
+    - repository: 1esPipelines
+      type: git
+      name: 1ESPipelineTemplates/1ESPipelineTemplates
+      ref: refs/tags/release
+trigger: none
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1esPipelines
+  parameters:
+    pool:
+      name: 1ES_JavaTooling_Pool
+      image: 1ES_JavaTooling_Ubuntu-2004
+      os: linux
+    sdl:
+      sourceAnalysisPool:
+        name: 1ES_JavaTooling_Pool
+        image: 1ES_JavaTooling_Windows_2022
+        os: windows
+    customBuildTags:
+      - MigrationTooling-mseng-VSJava-11772-Tool
+    stages:
+      - stage: Stage
+        jobs:
+          - job: Job_1
+            displayName: Build & Upload
+            steps:
+              - checkout: self
+                clean: true
+                fetchTags: false
+              - script: |
+                  CUSTOME_BRANCH=$(BRANCH)
+                  if [[ -n ${CUSTOME_BRANCH} ]]; then
+                    git fetch origin $(BRANCH)
+                    git checkout $(BRANCH)
+                  else
+                    echo "no need to switch branch"
+                  fi
+                displayName: switch to $(BRANCH)
+              - task: Bash@3
+                displayName: Build and upload to Azure Storage
+                inputs:
+                  targetType: inline
+                  script: |
+                    # Validate storage path
+                    AzTargetPath=$(TARGET_PATH)
+                    if [[ ! "$AzTargetPath" =~ "/java/" ]]; then
+                        echo "Invlalid path, please follow pattern {product}/java/{version}"
+                        exit -1
+                    fi
+
+                    # Download AzCopy
+                    wget https://aka.ms/downloadazcopy-v10-linux -O azcopy_zip
+                    mkdir .azcopy_folder
+                    tar xvzf ./azcopy_zip -C ./.azcopy_folder
+                    cp ./.azcopy_folder/*/azcopy .
+
+                    # Install Maven
+                    mvn install -DskipTests -Dcheckstyle.skip=true -Drelease -Dmaven.repo.local=./.repository
+
+                    BuildToolkitLib=$(BUILD_TOOLKIT_LIB)
+                    BuildMavenPom=$(BUILD_MAVEN_POM)
+                    BuildMavenLib=$(BUILD_MAVEN_LIB)
+                    BuildFunction=$(BUILD_FUNCTION)
+                    BuildFunctionArchetype=$(BUILD_FUNCTION_ARCHETYPE)
+                    BuildWebApp=$(BUILD_WEB_APP)
+                    BuildSpringCloud=$(BUILD_SPRING_CLOUD)
+                    BuildSpringApps=$(BUILD_SPRING_APPS)
+
+                    mkdir .release
+
+                    if [ "$BuildToolkitLib" == "true" ]; then
+                        cp ./.repository/com/microsoft/azure/azure-toolkit-*-lib/*/*.jar ./.release
+                        cp ./.repository/com/microsoft/azure/azure-toolkit-*-lib/*/*.pom ./.release
+                        cp ./.repository/com/microsoft/azure/azure-toolkit-libs/*/*.pom ./.release
+                    fi
+
+                    if [ "$BuildFunction" == "true" ]; then
+                        # TODO Check archetype
+                        cp ./.repository/com/microsoft/azure/azure-functions-maven-plugin/*/*.jar ./.release
+                        cp ./.repository/com/microsoft/azure/azure-functions-maven-plugin/*/*.pom ./.release
+                    fi
+
+                    if [ "$BuildWebApp" == "true" ]; then
+                        cp ./.repository/com/microsoft/azure/azure-webapp-maven-plugin/*/*.jar ./.release
+                        cp ./.repository/com/microsoft/azure/azure-webapp-maven-plugin/*/*.pom ./.release
+                    fi
+
+                    if [ "$BuildSpringCloud" == "true" ]; then
+                        cp ./.repository/com/microsoft/azure/azure-spring-cloud-maven-plugin/*/*.jar ./.release
+                        cp ./.repository/com/microsoft/azure/azure-spring-cloud-maven-plugin/*/*.pom ./.release
+                    fi
+
+                    if [ "$BuildSpringApps" == "true" ]; then
+                        cp ./.repository/com/microsoft/azure/azure-spring-apps-maven-plugin/*/*.jar ./.release
+                        cp ./.repository/com/microsoft/azure/azure-spring-apps-maven-plugin/*/*.pom ./.release
+                    fi
+
+                    if [ "$BuildMavenPom" == "true" ]; then
+                        cp ./.repository/com/microsoft/azure/azure-maven-plugins/*/*.pom ./.release
+                    fi
+
+                    if [ "$BuildMavenLib" == "true" ]; then
+                        cp ./.repository/com/microsoft/azure/azure-maven-plugin-lib/*/*.jar ./.release
+                        cp ./.repository/com/microsoft/azure/azure-maven-plugin-lib/*/*.pom ./.release
+                        cp ./.repository/com/microsoft/azure/azure-appservice-maven-plugin-lib/*/*.jar ./.release
+                        cp ./.repository/com/microsoft/azure/azure-appservice-maven-plugin-lib/*/*.pom ./.release
+                    fi
+
+                    if [ "$BuildFunctionArchetype" == "true" ]; then
+                        git clone https://github.com/microsoft/azure-maven-archetypes.git
+                        mvn -f ./azure-maven-archetypes/azure-functions-archetype/pom.xml install -Dmaven.repo.local=./.repository -q
+                        cp ./.repository/com/microsoft/azure/azure-functions-archetype/*/*.jar ./.release
+                        cp ./.repository/com/microsoft/azure/azure-functions-archetype/*/*.pom ./.release
+
+                        # TODO: Validate archetype maven plugin version when release archetype with maven plugin
+                    fi
+
+                    export AZCOPY_SPA_CLIENT_SECRET=$(AZCOPY_SPA_CLIENT_SECRET)
+                    TARGET_URL="https://azuresdkpartnerdrops.blob.core.windows.net/drops/$AzTargetPath/"
+
+                    ./azcopy login --service-principal --application-id cfb5fe52-8bb2-4901-9056-70449fa2df96 --tenant-id 72f988bf-86f1-41af-91ab-2d7cd011db47
+                    ./azcopy remove "$TARGET_URL"
+                    ./azcopy copy ".release/*" "$TARGET_URL"
+
+                    echo "Resources uploaded to $TARGET_URL"
+                    ls ./.release -al
+                  failOnStderr: true
+                continueOnError: true
