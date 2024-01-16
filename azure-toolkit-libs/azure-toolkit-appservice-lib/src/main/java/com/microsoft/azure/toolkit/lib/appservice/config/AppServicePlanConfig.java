@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
 
 import javax.annotation.Nonnull;
@@ -43,7 +44,11 @@ public class AppServicePlanConfig {
     private PricingTier pricingTier;
 
     @Transient
+    @Nullable
     public static AppServicePlan getAppServicePlan(@Nonnull final AppServicePlanConfig config) {
+        if (StringUtils.isAnyBlank(config.getSubscriptionId(), config.getName(), config.getResourceGroupName())) {
+            return null;
+        }
         final AzureAppService az = Azure.az(AzureAppService.class);
         final AppServicePlanDraft draft = az.plans(config.getSubscriptionId())
             .updateOrCreate(config.getName(), config.getResourceGroupName());

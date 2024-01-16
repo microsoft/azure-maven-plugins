@@ -26,6 +26,7 @@ import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -94,7 +95,11 @@ public class AppServiceConfig {
             .build();
     }
 
+    @Nullable
     public static ResourceGroup getResourceGroup(@Nonnull final AppServiceConfig config) {
+        if (StringUtils.isAnyBlank(config.getSubscriptionId(), config.getResourceGroup())) {
+            return null;
+        }
         final ResourceGroup rg = Azure.az(AzureResources.class).groups(config.subscriptionId())
             .getOrDraft(config.resourceGroup(), config.resourceGroup());
         if (rg.isDraftForCreating()) {
