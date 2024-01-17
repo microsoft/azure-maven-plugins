@@ -20,6 +20,8 @@ public class FunctionAppConfig extends AppServiceConfig {
     private Boolean enableDistributedTracing;
     private String storageAccountName;
     private String storageAccountResourceGroup;
+    private String nativeExecutablePath;
+    private String customHandlerArgs;
     private LogAnalyticsWorkspaceConfig workspaceConfig;
     private FlexConsumptionConfiguration flexConsumptionConfiguration;
 }
