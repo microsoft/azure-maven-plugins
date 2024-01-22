@@ -10,6 +10,7 @@ import com.azure.resourcemanager.appservice.models.FunctionApps;
 import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceModule;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
+import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
@@ -54,6 +55,14 @@ public class FunctionAppModule extends AppServiceResourceModule<FunctionApp, App
     @Nonnull
     protected FunctionApp newResource(@Nonnull String name, @Nullable String resourceGroupName) {
         return new FunctionApp(name, Objects.requireNonNull(resourceGroupName), this);
+    }
+
+    @Override
+    public void delete(@Nonnull final String name, @Nullable final String rgName) {
+        final FunctionApp resource = this.get(name, rgName);
+        final ContainerAppsEnvironment environment = Optional.ofNullable(resource).map(FunctionApp::getEnvironment).orElse(null);
+        super.delete(name, rgName);
+        Optional.ofNullable(environment).ifPresent(ContainerAppsEnvironment::refresh);
     }
 
     @Nonnull
