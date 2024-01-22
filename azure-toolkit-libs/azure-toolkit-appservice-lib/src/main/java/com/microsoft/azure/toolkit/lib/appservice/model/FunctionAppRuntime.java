@@ -29,7 +29,7 @@ public interface FunctionAppRuntime extends Runtime {
         if (isDocker()) {
             return true;
         }
-        final Pattern EXCLUDE_PATTERN = Pattern.compile("\\..*\\.");
+        final Pattern EXCLUDE_PATTERN = Pattern.compile(".*\\..*\\..*");
         return !EXCLUDE_PATTERN.matcher(this.getJavaVersionNumber()).matches();
     }
 
