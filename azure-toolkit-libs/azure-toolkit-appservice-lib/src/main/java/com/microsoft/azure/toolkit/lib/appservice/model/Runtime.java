@@ -16,7 +16,7 @@ import java.util.Objects;
 
 public interface Runtime {
 
-    String FUNCTION_UPGRADE_RUNTIME_LINK = "https://learn.microsoft.com/en-us/azure/azure-functions/update-java-versions?tabs=azure-portal&pivots=platform-linux";
+    String FUNCTION_UPGRADE_RUNTIME_LINK = "https://aka.ms/javatooling/function.upgrade_runtime";
 
     OperatingSystem getOperatingSystem();
 
@@ -145,7 +145,7 @@ public interface Runtime {
         if (Objects.nonNull(message)) {
             final Action<String> openUrl = AzureActionManager.getInstance().getAction(Action.OPEN_URL);
             final Action<String> action = app.exists() && Objects.nonNull(openUrl) ? openUrl.bind(String.format("%s/configuration", app.getPortalUrl())).withLabel("Configure in Azure Portal") : null;
-            AzureMessager.getDefaultMessager().warning(message, action);
+            AzureMessager.getMessager().warning(message, action);
         }
     }
 }
