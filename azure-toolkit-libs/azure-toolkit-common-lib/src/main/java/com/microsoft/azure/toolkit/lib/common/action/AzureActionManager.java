@@ -5,6 +5,9 @@
 
 package com.microsoft.azure.toolkit.lib.common.action;
 
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage;
+import com.microsoft.azure.toolkit.lib.common.view.IView;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Iterator;
@@ -131,6 +134,10 @@ public abstract class AzureActionManager {
 
         @Override
         public <D> Action<D> getAction(Action.Id<D> id) {
+            if (id == Action.OPEN_URL) { // only open url is supported
+                //noinspection unchecked
+                return (Action<D>) new DummyOpenUrlAction();
+            }
             return null;
         }
 
@@ -142,6 +149,17 @@ public abstract class AzureActionManager {
         @Override
         public ActionGroup getGroup(String id) {
             return null;
+        }
+    }
+
+    public static class DummyOpenUrlAction extends Action<String> {
+        private DummyOpenUrlAction() {
+            super(Action.OPEN_URL);
+        }
+
+        public String toString(IAzureMessage.ValueDecorator decorator) {
+            final IView.Label view = this.getView(this.target);
+            return String.format("[%s](%s)", view.getLabel(), decorator.decorateValue(this.target, null));
         }
     }
 }

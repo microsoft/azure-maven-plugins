@@ -90,6 +90,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
     @Override
     @AzureOperation(name = "azure/function.create_deployment_slot.slot", params = {"this.getName()"})
     public FunctionDeploymentSlot createResourceInAzure() {
+        Runtime.tryWarningDeprecation(this);
         OperationContext.action().setTelemetryProperty(CREATE_NEW_DEPLOYMENT_SLOT, String.valueOf(true));
         final String name = getName();
         final Map<String, String> newAppSettings = this.getAppSettings();
@@ -159,6 +160,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
     @Override
     @AzureOperation(name = "azure/function.update_deployment_slot.slot", params = {"this.getName()"})
     public FunctionDeploymentSlot updateResourceInAzure(@Nonnull FunctionDeploymentSlot remote) {
+        Runtime.tryWarningDeprecation(this);
         final Map<String, String> oldAppSettings = Utils.normalizeAppSettings(remote.getAppSettings());
         final Map<String, String> settingsToAdd = this.ensureConfig().getAppSettings();
         if (ObjectUtils.allNotNull(oldAppSettings, settingsToAdd)) {

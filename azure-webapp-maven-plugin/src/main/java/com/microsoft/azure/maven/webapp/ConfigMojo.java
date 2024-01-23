@@ -460,7 +460,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 return null;
             }
             log.info(LONG_LOADING_HINT);
-            ((WebAppServiceSubscription) Objects.requireNonNull(Azure.az(AzureWebApp.class).get(subscriptionId, null), "You are not signed-in")).loadRuntimes();
+            WebAppRuntime.tryLoadingAllRuntimes();
             final List<WebApp> apps = az.list().stream().flatMap(m -> m.webApps().list().stream()).parallel()
                 .filter(webApp -> webApp.getRuntime() != null)
                 .filter(webApp -> {

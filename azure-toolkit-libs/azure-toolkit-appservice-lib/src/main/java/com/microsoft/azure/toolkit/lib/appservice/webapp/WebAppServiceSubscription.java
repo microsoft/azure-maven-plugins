@@ -54,9 +54,6 @@ public class WebAppServiceSubscription extends AppServiceServiceSubscription {
 
     @Nonnull
     public List<WebAppRuntime> listWebAppMajorRuntimes() {
-        if (!WebAppWindowsRuntime.isLoaded() && !WebAppLinuxRuntime.isLoaded()) {
-            loadRuntimes();
-        }
         return Stream.concat(WebAppWindowsRuntime.getMajorRuntimes().stream(), WebAppLinuxRuntime.getMajorRuntimes().stream()).collect(Collectors.toList());
     }
 

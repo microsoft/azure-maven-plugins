@@ -22,6 +22,8 @@ import org.apache.commons.lang3.reflect.MethodUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -31,6 +33,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+@Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class WebAppLinuxRuntime implements WebAppRuntime {
     public static final WebAppLinuxRuntime JAVASE_JAVA17 = new WebAppLinuxRuntime("JAVA|17-java17", "Java 17");
@@ -57,36 +60,41 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
         JBOSS7_JAVA17, JBOSS7_JAVA11, JBOSS7_JAVA8
     ));
 
-    @Getter
     @EqualsAndHashCode.Include
     private final OperatingSystem operatingSystem = OperatingSystem.LINUX;
-    @Getter
     @EqualsAndHashCode.Include
     private final String containerName;
     /**
      * container version number, e.g. 'SE', '8.5', '9.0', '10.0', '7'
      * be careful of `SE`; container version value used instead of linux fx string,
      */
-    @Getter
     @EqualsAndHashCode.Include
     private final String containerVersionNumber;
     /**
      * java major version number only, e.g. '7', '8', '11', '17'
      */
-    @Getter
     @EqualsAndHashCode.Include
     private final String javaVersionNumber;
     @Nonnull
     private final String fxString;
-    @Getter
-    private final boolean deprecatedOrHidden;
+    private final boolean deprecated;
+    private final boolean hidden;
+    private final boolean earlyAccess;
+    private final boolean autoUpdate;
+    private final boolean preview;
+    @Nullable
+    private final OffsetDateTime endOfLifeDate;
 
     private WebAppLinuxRuntime(@Nonnull WebAppMinorVersion container, @Nonnull WebAppMajorVersion javaVersion, @Nonnull String fxString) {
         final LinuxJavaContainerSettings containerSettings = container.stackSettings().linuxContainerSettings();
         final String[] parts = fxString.split("\\|", 2);
         this.fxString = fxString;
-        this.deprecatedOrHidden = BooleanUtils.isTrue(containerSettings.isHidden())
-            || BooleanUtils.isTrue(containerSettings.isDeprecated());
+        this.deprecated = BooleanUtils.isTrue(containerSettings.isDeprecated());
+        this.hidden = BooleanUtils.isTrue(containerSettings.isHidden());
+        this.earlyAccess = BooleanUtils.isTrue(containerSettings.isEarlyAccess());
+        this.autoUpdate = BooleanUtils.isTrue(containerSettings.isAutoUpdate());
+        this.preview = BooleanUtils.isTrue(containerSettings.isPreview());
+        this.endOfLifeDate = containerSettings.endOfLifeDate();
         this.containerName = parts[0].toUpperCase();
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : container.value().toUpperCase();
         // it's major version if container value is "SE", minor version otherwise, when container name is "Java"
@@ -99,8 +107,13 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
         final Map<String, Object> containerSettings = Utils.get(container, "$.stackSettings.linuxContainerSettings");
         final String[] parts = fxString.split("\\|", 2);
         this.fxString = fxString;
-        this.deprecatedOrHidden = BooleanUtils.isTrue(Utils.get(containerSettings, "$.isHidden"))
-            || BooleanUtils.isTrue(Utils.get(containerSettings, "$.isDeprecated"));
+        this.deprecated = BooleanUtils.isTrue(Utils.get(containerSettings, "$.isDeprecated"));
+        this.hidden = BooleanUtils.isTrue(Utils.get(containerSettings, "$.isHidden"));
+        this.earlyAccess = BooleanUtils.isTrue(Utils.get(containerSettings, "$.isEarlyAccess"));
+        this.autoUpdate = BooleanUtils.isTrue(Utils.get(containerSettings, "$.isAutoUpdate"));
+        this.preview = BooleanUtils.isTrue(Utils.get(containerSettings, "$.isPreview"));
+        final CharSequence endOfLifeDateStr = Utils.get(containerSettings, "$.endOfLifeDate");
+        this.endOfLifeDate = StringUtils.isBlank(endOfLifeDateStr) ? null : OffsetDateTime.parse(endOfLifeDateStr, DateTimeFormatter.ISO_ZONED_DATE_TIME);
         this.containerName = parts[0].toUpperCase();
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : ((String) Utils.get(container, "$.value")).toUpperCase();
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(StringUtils.equalsIgnoreCase(this.containerName, "Java") && !StringUtils.equalsIgnoreCase((String) container.get("value"), "SE") ?
@@ -111,7 +124,12 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
         this.fxString = fxString;
         final String[] fxStringParts = fxString.split("[|-]", 3);
         final String[] javaParts = javaVersionUserText.split(" ");
-        this.deprecatedOrHidden = false;
+        this.deprecated = false;
+        this.hidden = false;
+        this.earlyAccess = false;
+        this.autoUpdate = false;
+        this.preview = false;
+        this.endOfLifeDate = null;
         this.containerName = fxStringParts[0].toUpperCase();
         this.containerVersionNumber = StringUtils.equalsIgnoreCase(this.containerName, "Java") ? "SE" : fxStringParts[1].toUpperCase();
         this.javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(javaParts[1].toUpperCase());
@@ -124,7 +142,7 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
 
     @Nullable
     public static WebAppLinuxRuntime fromFxString(final String fxString) {
-        return RUNTIMES.stream().filter(runtime -> StringUtils.equals(runtime.fxString, fxString)).findFirst().orElse(null);
+        return getAllRuntimes().stream().filter(runtime -> StringUtils.equals(runtime.fxString, fxString)).findFirst().orElse(null);
     }
 
     @Nullable
@@ -135,22 +153,27 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
         }
         final String javaVersionNumber = Runtime.extractAndFormalizeJavaVersionNumber(pJavaVersionUserText);
         final String containerUserText = StringUtils.startsWithIgnoreCase(pContainerUserText, "java ") ? "Java SE" : pContainerUserText;
-        return RUNTIMES.stream().filter(r -> StringUtils.equalsAnyIgnoreCase(javaVersionNumber, r.javaVersionNumber) &&
+        return getAllRuntimes().stream().filter(r -> StringUtils.equalsAnyIgnoreCase(javaVersionNumber, r.javaVersionNumber) &&
                 StringUtils.equalsIgnoreCase(containerUserText, String.format("%s %s", r.containerName, r.containerVersionNumber)))
             .findFirst().orElse(null);
     }
 
     public static List<WebAppLinuxRuntime> getAllRuntimes() {
+        WebAppRuntime.tryLoadingAllRuntimes();
         return new ArrayList<>(RUNTIMES);
     }
 
     @Nonnull
     public static List<WebAppLinuxRuntime> getMajorRuntimes() {
-        return RUNTIMES.stream().filter(r -> !r.isDeprecatedOrHidden() && !r.isMinorVersion()).collect(Collectors.toList());
+        return getAllRuntimes().stream().filter(r -> !r.isDeprecated() && !r.isHidden() && r.isMajorVersion()).collect(Collectors.toList());
     }
 
     public static boolean isLoaded() {
         return loaded.get() == Boolean.TRUE;
+    }
+
+    public static boolean isLoading() {
+        return loaded.get() == null;
     }
 
     public static void loadAllWebAppLinuxRuntimes(List<WebAppMajorVersion> javaMajorVersions, List<WebAppMajorVersion> containerMajorVersions) {
@@ -206,6 +229,6 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
     }
 
     public String toString() {
-        return String.format("Linux: %s - %s (%s)", this.getContainerUserText(), this.getJavaVersionUserText(), this.fxString);
+        return String.format("Linux | %s | %s", this.getContainerUserText(), this.getJavaVersionUserText());
     }
 }

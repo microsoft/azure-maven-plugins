@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateWebAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.StreamingLogTask;
@@ -83,7 +84,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         mergeCommandLineConfig();
         // initialize library client
         az = initAzureAppServiceClient();
-        ((WebAppServiceSubscription) Objects.requireNonNull(Azure.az(AzureWebApp.class).get(subscriptionId, null), "You are not signed-in")).loadRuntimes();
+        WebAppRuntime.tryLoadingAllRuntimes();
         doValidate();
         final AppServiceConfig appServiceConfig = getConfigParser().getAppServiceConfig();
         final WebApp app = Azure.az(AzureWebApp.class).webApps(appServiceConfig.subscriptionId())
