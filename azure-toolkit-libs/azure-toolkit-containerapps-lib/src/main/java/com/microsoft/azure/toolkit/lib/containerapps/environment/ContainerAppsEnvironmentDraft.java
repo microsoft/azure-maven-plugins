@@ -82,7 +82,8 @@ public class ContainerAppsEnvironmentDraft extends ContainerAppsEnvironment impl
                 .withRegion(com.azure.core.management.Region.fromName(config.getRegion().getName()))
                 .withExistingResourceGroup(Objects.requireNonNull(config.getResourceGroup(), "Resource Group is required to create Container app.").getResourceGroupName())
                 .withAppLogsConfiguration(appLogsConfiguration).create();
-        final Action<ContainerAppsEnvironment> create = AzureActionManager.getInstance().getAction(CREATE_CONTAINER_APP).bind(this).withLabel("Create app");
+        final Action<ContainerAppsEnvironment> create = Optional.ofNullable(AzureActionManager.getInstance().getAction(CREATE_CONTAINER_APP))
+            .map(action -> action.bind(this).withLabel("Create app")).orElse(null);
         messager.success(AzureString.format("Azure Container Apps Environment({0}) is successfully created.", this.getName()), create);
         return managedEnvironment;
     }

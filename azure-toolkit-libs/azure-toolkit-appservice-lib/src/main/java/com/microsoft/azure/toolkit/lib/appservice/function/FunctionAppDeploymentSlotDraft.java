@@ -343,8 +343,8 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
             }
         }
         if (!Objects.equals(slot.innerModel().containerSize(), flexConfiguration.getInstanceSize())) {
-            webApps.updateWithResponse(slot.resourceGroupName(), name, new SitePatchResourceInner()
-                .withContainerSize(flexConfiguration.getInstanceSize()), Context.NONE);
+            webApps.updateWithResponseAsync(slot.resourceGroupName(), name, new SitePatchResourceInner()
+                .withContainerSize(flexConfiguration.getInstanceSize())).block();
         }
     }
 }

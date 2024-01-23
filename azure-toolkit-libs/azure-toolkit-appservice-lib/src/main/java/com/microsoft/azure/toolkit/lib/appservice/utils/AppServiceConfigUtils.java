@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
@@ -19,9 +20,11 @@ import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -34,6 +37,12 @@ public class AppServiceConfigUtils {
     private static final String SETTING_DOCKER_IMAGE = "DOCKER_CUSTOM_IMAGE_NAME";
     private static final String SETTING_REGISTRY_SERVER = "DOCKER_REGISTRY_SERVER_URL";
 
+    public static FunctionAppConfig fromFunctionApp(@Nonnull FunctionAppBase<?, ?, ?> app) {
+        return app instanceof FunctionApp && StringUtils.isNotBlank(((FunctionApp) app).getEnvironmentId()) ?
+            fromFunctionApp((FunctionApp) app, Objects.requireNonNull(((FunctionApp) app).getEnvironment())) :
+            fromFunctionApp(app, Objects.requireNonNull(app.getAppServicePlan()));
+    }
+
     public static FunctionAppConfig fromFunctionApp(@Nonnull FunctionAppBase<?, ?, ?> app, @Nonnull AppServicePlan servicePlan) {
         final FunctionAppConfig result = new FunctionAppConfig();
         fromAppService(app, servicePlan, result);
@@ -41,6 +50,16 @@ public class AppServiceConfigUtils {
         // todo merge application insights configurations
         final FlexConsumptionConfiguration flexConsumptionConfiguration = app.getFlexConsumptionConfiguration();
         Optional.ofNullable(flexConsumptionConfiguration).ifPresent(result::flexConsumptionConfiguration);
+        return result;
+    }
+
+    public static FunctionAppConfig fromFunctionApp(@Nonnull FunctionApp app, @Nonnull ContainerAppsEnvironment environment) {
+        final FunctionAppConfig result = new FunctionAppConfig();
+        fromAppService(app, null, result);
+        // todo merge storage account configurations
+        // todo merge application insights configurations
+        result.environment(environment.getName());
+        result.containerConfiguration(app.getContainerConfiguration());
         return result;
     }
 
@@ -59,13 +78,13 @@ public class AppServiceConfigUtils {
         final RuntimeConfig runtimeConfig = new RuntimeConfig();
         if (runtime != null && runtime.isDocker()) {
             runtimeConfig.os(OperatingSystem.DOCKER);
-            final Map<String, String> settings = app.getAppSettings();
+            final Map<String, String> settings = Optional.ofNullable(app.getAppSettings()).orElse(Collections.emptyMap());
 
             final String imageSetting = settings.get(SETTING_DOCKER_IMAGE);
             if (StringUtils.isNotBlank(imageSetting)) {
                 runtimeConfig.image(imageSetting);
             } else {
-                runtimeConfig.image(Utils.getDockerImageNameFromLinuxFxVersion(app.getLinuxFxVersion()));
+                runtimeConfig.image(Utils.getDockerImageNameFromLinuxFxVersion(Objects.requireNonNull(app.getLinuxFxVersion())));
             }
             final String registryServerSetting = settings.get(SETTING_REGISTRY_SERVER);
             if (StringUtils.isNotBlank(registryServerSetting)) {
@@ -78,9 +97,9 @@ public class AppServiceConfigUtils {
             }
         }
         config.runtime(runtimeConfig);
-        config.pricingTier(servicePlan.getPricingTier());
-        config.servicePlanName(servicePlan.getName());
-        config.servicePlanResourceGroup(servicePlan.getResourceGroupName());
+        Optional.ofNullable(servicePlan).map(AppServicePlan::getPricingTier).ifPresent(config::pricingTier);
+        Optional.ofNullable(servicePlan).map(AppServicePlan::getName).ifPresent(config::servicePlanName);
+        Optional.ofNullable(servicePlan).map(AppServicePlan::getResourceGroupName).ifPresent(config::servicePlanResourceGroup);
         return config;
     }
 

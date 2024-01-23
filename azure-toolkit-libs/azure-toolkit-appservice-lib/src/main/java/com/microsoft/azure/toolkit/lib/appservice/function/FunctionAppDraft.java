@@ -10,12 +10,14 @@ import com.azure.resourcemanager.appservice.fluent.WebAppsClient;
 import com.azure.resourcemanager.appservice.fluent.models.SiteConfigResourceInner;
 import com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages;
 import com.azure.resourcemanager.appservice.models.FunctionApp.Update;
+import com.microsoft.azure.toolkit.lib.appservice.model.ContainerAppFunctionConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppLinuxRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils;
@@ -26,8 +28,10 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
+import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import lombok.Data;
 import lombok.Getter;
@@ -61,6 +65,8 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     public static final String APP_SETTING_FUNCTION_APP_EDIT_MODE = "FUNCTION_APP_EDIT_MODE";
     public static final String APP_SETTING_FUNCTION_APP_EDIT_MODE_READONLY = "readOnly";
     public static final String APPLICATIONINSIGHTS_ENABLE_AGENT = "APPLICATIONINSIGHTS_ENABLE_AGENT";
+    public static final String SERVICE_PLAN_MISSING_MESSAGE = "'service plan' is required to create a Function App";
+    public static final String UNSUPPORTED_OPERATING_SYSTEM_FOR_CONTAINER_APP = "Unsupported operating system %s for function app on container app";
 
     @Getter
     @Nullable
@@ -94,14 +100,10 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     @AzureOperation(name = "azure/function.create_app.app", params = {"this.getName()"})
     public com.azure.resourcemanager.appservice.models.FunctionApp createResourceInAzure() {
         OperationContext.action().setTelemetryProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
-
         final String name = getName();
         final FunctionAppRuntime newRuntime = Objects.requireNonNull(getRuntime(), "'runtime' is required to create a Function App");
-        final AppServicePlan newPlan = Objects.requireNonNull(getAppServicePlan(), "'service plan' is required to create a Function App");
-        final OperatingSystem os = newRuntime.isDocker() ? OperatingSystem.LINUX : newRuntime.getOperatingSystem();
-        if (os != newPlan.getOperatingSystem()) {
-            throw new AzureToolkitRuntimeException(String.format("Could not create %s app service in %s service plan", newRuntime.getOperatingSystem(), newPlan.getOperatingSystem()));
-        }
+        @Nullable final AppServicePlan newPlan = getAppServicePlan();
+        final ContainerAppsEnvironment environment = getEnvironment();
         final Map<String, String> newAppSettings = getAppSettings();
         final DiagnosticConfig newDiagnosticConfig = getDiagnosticConfig();
         final FlexConsumptionConfiguration newFlexConsumptionConfiguration = getFlexConsumptionConfiguration();
@@ -111,20 +113,48 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         final AppServiceManager manager = Objects.requireNonNull(this.getParent().getRemote());
         final DefinitionStages.Blank blank = manager.functionApps().define(name);
         final DefinitionStages.WithCreate withCreate;
-        if (newRuntime.getOperatingSystem() == OperatingSystem.LINUX) {
-            withCreate = blank.withExistingLinuxAppServicePlan(newPlan.getRemote())
+        if (Objects.nonNull(environment)) {
+            // container app based function app
+            final ContainerAppFunctionConfiguration containerConfiguration = getContainerConfiguration();
+            final DefinitionStages.WithScaleRulesOrDockerContainerImage withImage = blank
+                .withRegion(Objects.requireNonNull(getRegion(), "'region' is required to create a container based function app").getName())
                 .withExistingResourceGroup(getResourceGroupName())
-                .withBuiltInImage(((FunctionAppLinuxRuntime) newRuntime).toFunctionRuntimeStack(funcExtVersion));
-        } else if (newRuntime.getOperatingSystem() == OperatingSystem.WINDOWS) {
-            withCreate = (DefinitionStages.WithCreate) blank
-                .withExistingAppServicePlan(newPlan.getRemote())
-                .withExistingResourceGroup(getResourceGroupName())
-                .withJavaVersion(newRuntime.getJavaVersion())
-                .withWebContainer(null);
-        } else if (newRuntime.getOperatingSystem() == OperatingSystem.DOCKER) {
-            withCreate = createDockerApp(blank, newPlan);
+                .withManagedEnvironmentId(environment.getId());
+            Optional.ofNullable(containerConfiguration).map(ContainerAppFunctionConfiguration::getMaxReplicas).ifPresent(withImage::withMaxReplicas);
+            Optional.ofNullable(containerConfiguration).map(ContainerAppFunctionConfiguration::getMinReplicas).ifPresent(withImage::withMinReplicas);
+            if (newRuntime.getOperatingSystem() != OperatingSystem.DOCKER && newRuntime.getOperatingSystem() != OperatingSystem.LINUX) {
+                throw new AzureToolkitRuntimeException(String.format(UNSUPPORTED_OPERATING_SYSTEM_FOR_CONTAINER_APP, newRuntime.getOperatingSystem()));
+            }
+            withCreate = newRuntime.getOperatingSystem() == OperatingSystem.DOCKER ?
+                defineDockerContainerImage(withImage) :
+                withImage.withBuiltInImage(((FunctionAppLinuxRuntime)newRuntime).toFunctionRuntimeStack(funcExtVersion));
         } else {
-            throw new AzureToolkitRuntimeException(String.format(UNSUPPORTED_OPERATING_SYSTEM, newRuntime.getOperatingSystem()));
+            // normal function app
+            final OperatingSystem os = newRuntime.isDocker() ? OperatingSystem.LINUX : newRuntime.getOperatingSystem();
+            if (os != Objects.requireNonNull(newPlan, SERVICE_PLAN_MISSING_MESSAGE).getOperatingSystem()) {
+                throw new AzureToolkitRuntimeException(String.format("Could not create %s app service in %s service plan", newRuntime.getOperatingSystem(), newPlan.getOperatingSystem()));
+            }
+            if (newRuntime.getOperatingSystem() == OperatingSystem.LINUX) {
+                withCreate = blank.withExistingLinuxAppServicePlan(newPlan.getRemote())
+                    .withExistingResourceGroup(getResourceGroupName())
+                    .withBuiltInImage(((FunctionAppLinuxRuntime)newRuntime).toFunctionRuntimeStack(funcExtVersion));
+            } else if (newRuntime.getOperatingSystem() == OperatingSystem.WINDOWS) {
+                withCreate = (DefinitionStages.WithCreate) blank
+                    .withExistingAppServicePlan(newPlan.getRemote())
+                    .withExistingResourceGroup(getResourceGroupName())
+                    .withJavaVersion(newRuntime.getJavaVersion())
+                    .withWebContainer(null);
+            } else if (newRuntime.getOperatingSystem() == OperatingSystem.DOCKER) {
+                if (StringUtils.equalsIgnoreCase(newPlan.getPricingTier().getTier(), "Dynamic")) {
+                    throw new AzureToolkitRuntimeException("Docker function is not supported in consumption service plan");
+                }
+                final DefinitionStages.WithDockerContainerImage withLinuxAppFramework = blank
+                    .withExistingLinuxAppServicePlan(newPlan.getRemote())
+                    .withExistingResourceGroup(getResourceGroupName());
+                withCreate = defineDockerContainerImage(withLinuxAppFramework);
+            } else {
+                throw new AzureToolkitRuntimeException(String.format(UNSUPPORTED_OPERATING_SYSTEM, newRuntime.getOperatingSystem()));
+            }
         }
         if (MapUtils.isNotEmpty(newAppSettings)) {
             // todo: support remove app settings
@@ -143,7 +173,10 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             withCreate.withAppSetting(APPLICATIONINSIGHTS_ENABLE_AGENT, "true");
         }
         final IAzureMessager messager = AzureMessager.getMessager();
-        final boolean updateFlexConsumptionConfiguration = Objects.nonNull(newFlexConsumptionConfiguration) && getAppServicePlan().getPricingTier().isFlexConsumption();
+        final boolean isFlexConsumption = Optional.ofNullable(getAppServicePlan())
+            .map(AppServicePlan::getPricingTier)
+            .map(PricingTier::isFlexConsumption).orElse(false);
+        final boolean updateFlexConsumptionConfiguration = isFlexConsumption && Objects.nonNull(newFlexConsumptionConfiguration);
         if (updateFlexConsumptionConfiguration) {
             withCreate.withContainerSize(newFlexConsumptionConfiguration.getInstanceSize());
             withCreate.withWebAppAlwaysOn(false);
@@ -162,22 +195,16 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         return functionApp;
     }
 
-    private boolean shouldEnableDistributedTracing(@Nonnull final AppServicePlan servicePlan, @Nullable final Map<String, String> appSettings) {
-        final boolean isConsumptionPlan = servicePlan.getPricingTier().isConsumption();
+    private boolean shouldEnableDistributedTracing(@Nullable final AppServicePlan servicePlan, @Nullable final Map<String, String> appSettings) {
+        final boolean isConsumptionPlan = !Objects.isNull(servicePlan) && servicePlan.getPricingTier().isConsumption();
         final boolean isSetInAppSettings = MapUtils.isNotEmpty(appSettings) && appSettings.containsKey(APPLICATIONINSIGHTS_ENABLE_AGENT);
         return !(isConsumptionPlan || isSetInAppSettings);
     }
 
-    DefinitionStages.WithCreate createDockerApp(@Nonnull DefinitionStages.Blank blank, @Nonnull AppServicePlan plan) {
+    DefinitionStages.WithCreate defineDockerContainerImage(@Nonnull DefinitionStages.WithDockerContainerImage withLinuxAppFramework) {
         // check service plan, consumption is not supported
         final String message = "Docker configuration is required to create a docker based Function app";
         final DockerConfiguration config = Objects.requireNonNull(this.getDockerConfiguration(), message);
-        if (StringUtils.equalsIgnoreCase(plan.getPricingTier().getTier(), "Dynamic")) {
-            throw new AzureToolkitRuntimeException("Docker function is not supported in consumption service plan");
-        }
-        final DefinitionStages.WithDockerContainerImage withLinuxAppFramework = blank
-            .withExistingLinuxAppServicePlan(plan.getRemote())
-            .withExistingResourceGroup(getResourceGroupName());
         final DefinitionStages.WithCreate draft;
         if (StringUtils.isAllEmpty(config.getUserName(), config.getPassword())) {
             draft = withLinuxAppFramework
@@ -217,12 +244,12 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             settingsToAdd.entrySet().removeAll(oldAppSettings.entrySet());
         }
         final Set<String> settingsToRemove = Optional.ofNullable(this.ensureConfig().getAppSettingsToRemove())
-                .map(set -> set.stream().filter(oldAppSettings::containsKey).collect(Collectors.toSet()))
-                .orElse(Collections.emptySet());
+            .map(set -> set.stream().filter(oldAppSettings::containsKey).collect(Collectors.toSet()))
+            .orElse(Collections.emptySet());
         final DiagnosticConfig oldDiagnosticConfig = super.getDiagnosticConfig();
         final DiagnosticConfig newDiagnosticConfig = this.ensureConfig().getDiagnosticConfig();
         final Runtime newRuntime = this.ensureConfig().getRuntime();
-        final AppServicePlan newPlan = this.ensureConfig().getPlan();
+        @Nullable final AppServicePlan newPlan = this.ensureConfig().getPlan();
         final DockerConfiguration newDockerConfig = this.ensureConfig().getDockerConfiguration();
         final FlexConsumptionConfiguration newFlexConsumptionConfiguration = this.ensureConfig().getFlexConsumptionConfiguration();
         final StorageAccount storageAccount = getStorageAccount();
@@ -233,19 +260,21 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         final boolean planModified = Objects.nonNull(newPlan) && !Objects.equals(newPlan, oldPlan);
         final boolean runtimeModified = !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
         final boolean dockerModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
-        final boolean flexConsumptionModified = getAppServicePlan().getPricingTier().isFlexConsumption() &&
+        final boolean isFlexConsumption = Optional.ofNullable(getAppServicePlan())
+            .map(AppServicePlan::getPricingTier).map(PricingTier::isFlexConsumption).orElse(false);
+        final boolean flexConsumptionModified = isFlexConsumption &&
             Objects.nonNull(newFlexConsumptionConfiguration) && !newFlexConsumptionConfiguration.isEmpty() && !Objects.equals(newFlexConsumptionConfiguration, oldFlexConsumptionConfiguration);
         final boolean isAppSettingsModified = MapUtils.isNotEmpty(settingsToAdd) || CollectionUtils.isNotEmpty(settingsToRemove);
         final boolean isDiagnosticConfigModified = Objects.nonNull(newDiagnosticConfig) && !Objects.equals(newDiagnosticConfig, oldDiagnosticConfig);
         final boolean modified = planModified || runtimeModified || dockerModified || flexConsumptionModified ||
             isAppSettingsModified || Objects.nonNull(newDiagnosticConfig) || Objects.nonNull(storageAccount);
-        final String funcExtVersion = Optional.ofNullable(settingsToAdd).map(map -> map.get(FUNCTIONS_EXTENSION_VERSION))
-                .orElseGet(() -> oldAppSettings.get(FUNCTIONS_EXTENSION_VERSION));
+        final String funcExtVersion = Optional.of(settingsToAdd).map(map -> map.get(FUNCTIONS_EXTENSION_VERSION))
+            .orElseGet(() -> oldAppSettings.get(FUNCTIONS_EXTENSION_VERSION));
         if (modified) {
             final Update update = remote.update();
             Optional.ofNullable(newPlan).filter(ignore -> planModified).ifPresent(p -> updateAppServicePlan(update, p));
             Optional.ofNullable(newRuntime).filter(ignore -> runtimeModified).ifPresent(p -> updateRuntime(update, p, funcExtVersion));
-            Optional.ofNullable(settingsToAdd).filter(ignore -> isAppSettingsModified).ifPresent(update::withAppSettings);
+            Optional.of(settingsToAdd).filter(ignore -> isAppSettingsModified).ifPresent(update::withAppSettings);
             Optional.of(settingsToRemove).filter(CollectionUtils::isNotEmpty).filter(ignore -> isAppSettingsModified).ifPresent(s -> s.forEach(update::withoutAppSetting));
             Optional.ofNullable(newDockerConfig).filter(ignore -> dockerModified).ifPresent(p -> updateDockerConfiguration(update, p));
             Optional.ofNullable(newDiagnosticConfig).filter(ignore -> isDiagnosticConfigModified).ifPresent(c -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, c));
@@ -255,7 +284,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             messager.info(AzureString.format("Start updating Function App({0})...", remote.name()));
             remote = update.apply();
             if (flexConsumptionModified) {
-                updateFlexConsumptionConfiguration(remote, newFlexConsumptionConfiguration);
+                updateFlexConsumptionConfiguration(remote, Objects.requireNonNull(newFlexConsumptionConfiguration));
             }
             messager.success(AzureString.format("Function App({0}) is successfully updated", remote.name()));
         }
@@ -386,6 +415,26 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         return Optional.ofNullable(config).map(Config::getFlexConsumptionConfiguration).orElseGet(super::getFlexConsumptionConfiguration);
     }
 
+    public void setEnvironment(ContainerAppsEnvironment environment) {
+        this.ensureConfig().setEnvironment(environment);
+    }
+
+    public void setContainerConfiguration(ContainerAppFunctionConfiguration containerConfiguration) {
+        this.ensureConfig().setContainerConfiguration(containerConfiguration);
+    }
+
+    public ContainerAppsEnvironment getEnvironment() {
+        return Optional.ofNullable(config).map(Config::getEnvironment).orElseGet(super::getEnvironment);
+    }
+
+    public String getEnvironmentId() {
+        return Optional.ofNullable(config).map(Config::getEnvironment).map(ContainerAppsEnvironment::getId).orElseGet(super::getEnvironmentId);
+    }
+
+    public ContainerAppFunctionConfiguration getContainerConfiguration() {
+        return Optional.ofNullable(config).map(Config::getContainerConfiguration).orElseGet(super::getContainerConfiguration);
+    }
+
     @Override
     public boolean isModified() {
         final boolean notModified = Objects.isNull(this.config) ||
@@ -398,6 +447,14 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         return !notModified;
     }
 
+    public void setRegion(Region region) {
+        this.ensureConfig().setRegion(region);
+    }
+
+    public Region getRegion() {
+        return Optional.ofNullable(config).map(Config::getRegion).orElseGet(super::getRegion);
+    }
+
     /**
      * {@code null} means not modified for properties
      */
@@ -405,8 +462,11 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     @Nullable
     private static class Config {
         private FunctionAppRuntime runtime;
+        private Region region;
         private AppServicePlan plan = null;
         private StorageAccount storageAccount = null;
+        private ContainerAppsEnvironment environment = null;
+        private ContainerAppFunctionConfiguration containerConfiguration = null;
         private Boolean enableDistributedTracing = null;
         private DiagnosticConfig diagnosticConfig = null;
         private Set<String> appSettingsToRemove = new HashSet<>();

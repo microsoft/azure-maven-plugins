@@ -4,6 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.config;
 
+import com.microsoft.azure.toolkit.lib.appservice.model.ContainerAppFunctionConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
 import com.microsoft.azure.toolkit.lib.monitor.LogAnalyticsWorkspaceConfig;
 import lombok.Getter;
@@ -20,6 +21,8 @@ public class FunctionAppConfig extends AppServiceConfig {
     private Boolean enableDistributedTracing;
     private String storageAccountName;
     private String storageAccountResourceGroup;
+    private String environment;
+    private ContainerAppFunctionConfiguration containerConfiguration;
     private LogAnalyticsWorkspaceConfig workspaceConfig;
     private FlexConsumptionConfiguration flexConsumptionConfiguration;
 }
