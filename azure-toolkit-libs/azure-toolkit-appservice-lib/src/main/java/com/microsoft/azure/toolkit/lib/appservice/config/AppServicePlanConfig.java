@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Contract;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.beans.Transient;
 import java.util.Objects;
 
 @Data
@@ -40,6 +41,17 @@ public class AppServicePlanConfig {
     private Region region;
 
     private PricingTier pricingTier;
+
+    @Transient
+    public static AppServicePlan getAppServicePlan(@Nonnull final AppServicePlanConfig config) {
+        final AzureAppService az = Azure.az(AzureAppService.class);
+        final AppServicePlanDraft draft = az.plans(config.getSubscriptionId())
+            .updateOrCreate(config.getName(), config.getResourceGroupName());
+        draft.setOperatingSystem(config.getOs());
+        draft.setRegion(config.getRegion());
+        draft.setPricingTier(config.getPricingTier());
+        return draft;
+    }
 
     @Contract("null->null")
     public static AppServicePlanConfig fromResource(@Nullable AppServicePlan plan) {

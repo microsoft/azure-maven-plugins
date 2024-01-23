@@ -6,6 +6,9 @@
 
 package com.microsoft.azure.toolkit.lib.common.model;
 
+import java.beans.Transient;
+
 public interface ExpandableParameter {
+    @Transient
     boolean isExpandedValue();
 }
