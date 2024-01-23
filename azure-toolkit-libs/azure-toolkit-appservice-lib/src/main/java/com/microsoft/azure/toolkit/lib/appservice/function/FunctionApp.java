@@ -10,6 +10,7 @@ import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
 import com.azure.resourcemanager.appservice.models.NameValuePair;
 import com.azure.resourcemanager.appservice.models.PlatformArchitecture;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
@@ -23,6 +24,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
+import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerAppsServiceSubscription;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
 import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
 import lombok.Getter;
@@ -242,13 +244,14 @@ public class FunctionApp extends FunctionAppBase<FunctionApp, AppServiceServiceS
     protected String loadStatus(@NotNull final WebAppBase remote) {
         if (remote instanceof com.azure.resourcemanager.appservice.models.FunctionApp) {
             final String environmentId = ((com.azure.resourcemanager.appservice.models.FunctionApp) remote).managedEnvironmentId();
-            if(StringUtils.isBlank(environmentId)){
+            if (StringUtils.isBlank(environmentId)) {
                 return super.loadStatus(remote);
             }
-            return Optional.ofNullable(getEnvironment())
-                .flatMap(env -> env.listContainerApps().stream().filter(app -> StringUtils.equalsIgnoreCase(app.getName(), this.getName())).findFirst())
+            final ResourceId resourceId = ResourceId.fromString(environmentId);
+            return Azure.az(AzureContainerApps.class).forSubscription(resourceId.subscriptionId()).containerApps().list().stream()
+                .filter(app -> StringUtils.equalsIgnoreCase(app.getManagedBy(), this.getId()))
                 .map(ContainerApp::getStatus)
-                .orElseGet(() -> super.loadStatus(remote));
+                .findFirst().orElseGet(() -> super.loadStatus(remote));
         }
         return super.loadStatus(remote);
     }

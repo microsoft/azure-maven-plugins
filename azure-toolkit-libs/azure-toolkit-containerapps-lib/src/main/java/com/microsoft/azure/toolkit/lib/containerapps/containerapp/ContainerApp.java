@@ -191,6 +191,16 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
         return remote.provisioningState().toString();
     }
 
+    @Nullable
+    public String getManagedBy() {
+        return remoteOptional().map(com.azure.resourcemanager.appcontainers.models.ContainerApp::managedBy).orElse(null);
+    }
+
+    @Nullable
+    public AbstractAzResource<?, ?, ?> getManagedByResource() {
+        return Optional.ofNullable(getManagedBy()).map(Azure.az()::getById).orElse(null);
+    }
+
     // refer to https://github.com/microsoft/vscode-azurecontainerapps/main/src/commands/deployImage/deployImage.ts#L111
     public boolean hasUnsupportedFeatures() {
         final Optional<Template> opTemplate = this.remoteOptional()
