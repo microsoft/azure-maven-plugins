@@ -60,7 +60,7 @@ public interface AzResourceModule<T extends AzResource> extends Refreshable, AzC
     @Getter
     final class None extends AbstractAzResourceModule<AzResource.None, AzResource.None, Void> {
         public None() {
-            super(AzResource.None.NONE, AzResource.NONE);
+            super(AzResource.None.NONE, null);
         }
 
         @Nonnull

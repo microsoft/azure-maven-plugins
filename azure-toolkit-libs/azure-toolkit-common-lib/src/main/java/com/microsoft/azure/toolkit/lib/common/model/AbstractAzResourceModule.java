@@ -83,9 +83,8 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     @EqualsAndHashCode.Include
     private final String name;
     @Getter
-    @Nonnull
     @EqualsAndHashCode.Include
-    protected final P parent;
+    protected final P parent; // null only in NONE.
     @Nonnull
     @ToString.Include
     protected final AtomicLong syncTimeRef = new AtomicLong(-1);

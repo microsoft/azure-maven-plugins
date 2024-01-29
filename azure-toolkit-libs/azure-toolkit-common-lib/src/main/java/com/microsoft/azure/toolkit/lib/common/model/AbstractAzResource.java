@@ -95,7 +95,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         final P parent = this.getParent();
         if (StringUtils.equals(this.status.get(), Status.DELETED)) {
             return false;
-        } else if (parent == AzResource.NONE || this instanceof AbstractAzServiceSubscription || this instanceof ResourceGroup) {
+        } else if (parent.equals(AzResource.NONE) || this instanceof AbstractAzServiceSubscription || this instanceof ResourceGroup) {
             return this.remoteOptional().isPresent();
         } else {
             final ResourceGroup rg = this.getResourceGroup();
