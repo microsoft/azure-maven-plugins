@@ -36,10 +36,11 @@ import java.util.stream.Collectors;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class FunctionAppLinuxRuntime implements FunctionAppRuntime {
+    public static final FunctionAppLinuxRuntime FUNCTION_JAVA21 = new FunctionAppLinuxRuntime("Java|21");
     public static final FunctionAppLinuxRuntime FUNCTION_JAVA17 = new FunctionAppLinuxRuntime("Java|17");
     public static final FunctionAppLinuxRuntime FUNCTION_JAVA11 = new FunctionAppLinuxRuntime("Java|11");
     public static final FunctionAppLinuxRuntime FUNCTION_JAVA8 = new FunctionAppLinuxRuntime("Java|8");
-    private static final LinkedHashSet<FunctionAppLinuxRuntime> RUNTIMES = new LinkedHashSet<>(Arrays.asList(FUNCTION_JAVA17, FUNCTION_JAVA11, FUNCTION_JAVA8));
+    private static final LinkedHashSet<FunctionAppLinuxRuntime> RUNTIMES = new LinkedHashSet<>(Arrays.asList(FUNCTION_JAVA17, FUNCTION_JAVA11, FUNCTION_JAVA8, FUNCTION_JAVA21));
 
     private static final AtomicReference<Boolean> loaded = new AtomicReference<>(Boolean.FALSE);
     private final String fxString;
