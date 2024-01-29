@@ -21,8 +21,10 @@ import com.microsoft.azure.toolkit.lib.auth.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Mono;
 
@@ -39,6 +41,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Getter
 public class AzureCliAccount extends Account {
     private static final String CLOUD_SHELL_ENV_KEY = "ACC_CLOUD";
@@ -84,7 +87,9 @@ public class AzureCliAccount extends Account {
     @Override
     public boolean checkAvailable() {
         try {
-            return this.getManagementToken().isPresent();
+            final boolean available = this.getManagementToken().isPresent();
+            log.trace("Auth type ({}) is {}available.", TextUtils.cyan(this.getType().name()), available ? "" : TextUtils.yellow("NOT "));
+            return available;
         } catch (Throwable e) {
             return false;
         }

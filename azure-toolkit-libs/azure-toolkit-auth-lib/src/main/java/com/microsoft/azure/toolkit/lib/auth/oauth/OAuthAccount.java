@@ -10,13 +10,16 @@ import com.azure.identity.InteractiveBrowserCredentialBuilder;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.AuthType;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import me.alexpanov.net.FreePortFinder;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
 import java.util.Optional;
 
+@Slf4j
 public class OAuthAccount extends Account {
     @Getter
     private final AuthType type = AuthType.OAUTH2;
@@ -31,7 +34,9 @@ public class OAuthAccount extends Account {
 
     @Override
     public boolean checkAvailable() {
-        return Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE);
+        final boolean available = Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE);
+        log.trace("Auth type ({}) is {}available.", TextUtils.cyan(this.getType().name()), available ? "" : TextUtils.yellow("NOT "));
+        return available;
     }
 
     @Nonnull
