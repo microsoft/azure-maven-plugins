@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -63,6 +64,8 @@ public class AppServiceConfig {
     private DeploymentSlotConfig slotConfig;
 
     private DiagnosticConfig diagnosticConfig;
+
+    private File file;
 
     public String deploymentSlotName() {
         return Optional.ofNullable(slotConfig).map(DeploymentSlotConfig::getName).orElse(null);
