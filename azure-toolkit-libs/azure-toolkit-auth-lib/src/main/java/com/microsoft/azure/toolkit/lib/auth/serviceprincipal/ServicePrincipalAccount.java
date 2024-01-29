@@ -11,11 +11,14 @@ import com.azure.identity.ClientSecretCredentialBuilder;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.AuthType;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 
+@Slf4j
 public class ServicePrincipalAccount extends Account {
     @Getter
     private final AuthType type = AuthType.SERVICE_PRINCIPAL;
@@ -27,7 +30,9 @@ public class ServicePrincipalAccount extends Account {
     @Override
     public boolean checkAvailable() {
         final AuthConfiguration config = getConfig();
-        return !StringUtils.isAllBlank(config.getCertificate(), config.getCertificatePassword(), config.getKey());
+        final boolean available = !StringUtils.isAllBlank(config.getCertificate(), config.getCertificatePassword(), config.getKey());
+        log.trace("Auth type ({}) is {}available.", TextUtils.cyan(this.getType().name()), available ? "" : TextUtils.yellow("NOT "));
+        return available;
     }
 
     @Nonnull

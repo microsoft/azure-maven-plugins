@@ -140,6 +140,7 @@ public class AzureAccount implements IAzureAccount {
                     Action.OPEN_AZURE_SETTINGS
                 );
             } else {
+                log.error(String.format("Failed to login with type '%s', refer to 'https://aka.ms/javatooling/maven.auth' for more auth types.", type));
                 throw t;
             }
         }

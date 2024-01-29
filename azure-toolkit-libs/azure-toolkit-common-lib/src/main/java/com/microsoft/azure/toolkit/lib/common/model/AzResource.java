@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.Objects;
 
 public interface AzResource extends Refreshable, AzComponent {
-    public static final Action.Id<AzResource> CONNECT_RESOURCE = Action.Id.of("user/$resource.connect_resource.resource");
-    public static final Action.Id<Object> CREATE_RESOURCE = Action.Id.of("user/$resource.create_resource.type");
-    public static final Action.Id<AzResource> DEPLOY = Action.Id.of("user/$resource.deploy_resource.resource");
+    Action.Id<AzResource> CONNECT_RESOURCE = Action.Id.of("user/$resource.connect_resource.resource");
+    Action.Id<Object> CREATE_RESOURCE = Action.Id.of("user/$resource.create_resource.type");
+    Action.Id<AzResource> DEPLOY = Action.Id.of("user/$resource.deploy_resource.resource");
 
     long CACHE_LIFETIME = 30 * 60 * 1000; // 30 minutes
 
@@ -232,10 +232,7 @@ public interface AzResource extends Refreshable, AzComponent {
 
         @Override
         public boolean equals(Object o) {
-            if (!(o instanceof None)) {
-                return false;
-            }
-            return AzResource.NONE == o;
+            return o instanceof None;
         }
 
         @Override

@@ -2,9 +2,12 @@ package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.SharedTokenCacheCredentialBuilder;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
 
+@Slf4j
 public class SharedTokenCacheAccount extends Account {
 
     public SharedTokenCacheAccount(@Nonnull AuthConfiguration config) {
@@ -29,7 +32,9 @@ public class SharedTokenCacheAccount extends Account {
 
     @Override
     public boolean checkAvailable() {
-        return this.getManagementToken().isPresent();
+        final boolean available = this.getManagementToken().isPresent();
+        log.trace("Auth type ({}) is {}available.", TextUtils.cyan(this.getType().name()), available ? "" : TextUtils.yellow("NOT "));
+        return available;
     }
 
     @Override
