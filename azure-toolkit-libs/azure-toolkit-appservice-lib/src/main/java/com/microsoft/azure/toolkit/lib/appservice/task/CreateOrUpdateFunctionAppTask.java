@@ -19,7 +19,6 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlotDraft;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDraft;
-import com.microsoft.azure.toolkit.lib.appservice.model.ApplicationInsightsConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppDockerRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppLinuxRuntime;
@@ -45,6 +44,7 @@ import com.microsoft.azure.toolkit.lib.storage.StorageAccountDraft;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccountModule;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -100,9 +100,10 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             // create new storage account when create function app
             registerSubTask(getStorageAccountTask(), result -> this.storageAccount = result);
         }
-        final ApplicationInsightsConfig insightsConfig = functionAppConfig.applicationInsightsConfig();
         // get/create AI instances only if user didn't specify AI connection string in app settings
-        if (!functionAppConfig.disableAppInsights() && !functionAppConfig.appSettings().containsKey(APPINSIGHTS_INSTRUMENTATION_KEY)) {
+        final boolean isInstrumentKeyConfigured = MapUtils.isNotEmpty(functionAppConfig.appSettings()) &&
+            functionAppConfig.appSettings().containsKey(APPINSIGHTS_INSTRUMENTATION_KEY);
+        if (!functionAppConfig.disableAppInsights() && !isInstrumentKeyConfigured) {
             if (StringUtils.isNotEmpty(functionAppConfig.appInsightsKey())) {
                 this.instrumentationKey = functionAppConfig.appInsightsKey();
             } else if (StringUtils.isNotEmpty(functionAppConfig.appInsightsInstance()) || !appDraft.exists()) {
