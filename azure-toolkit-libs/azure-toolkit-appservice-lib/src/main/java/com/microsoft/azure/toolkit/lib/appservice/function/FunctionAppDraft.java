@@ -101,6 +101,13 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
     public com.azure.resourcemanager.appservice.models.FunctionApp createResourceInAzure() {
         Runtime.tryWarningDeprecation(this);
         OperationContext.action().setTelemetryProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
+        OperationContext.action().setTelemetryProperty("subscriptionId", getSubscriptionId());
+        OperationContext.action().setTelemetryProperty("useEnvironment", String.valueOf(Objects.nonNull(getEnvironment())));
+        Optional.ofNullable(getRegion()).ifPresent(region -> OperationContext.action().setTelemetryProperty("region", region.getLabel()));
+        Optional.ofNullable(getRuntime()).ifPresent(runtime -> OperationContext.action().setTelemetryProperty("runtime", runtime.getDisplayName()));
+        Optional.ofNullable(getRuntime()).map(Runtime::getOperatingSystem).ifPresent(os -> OperationContext.action().setTelemetryProperty("os", os.getValue()));
+        Optional.ofNullable(getRuntime()).map(Runtime::getJavaVersionUserText).ifPresent(javaVersion -> OperationContext.action().setTelemetryProperty("javaVersion", javaVersion));
+
         final String name = getName();
         final FunctionAppRuntime newRuntime = Objects.requireNonNull(getRuntime(), "'runtime' is required to create a Function App");
         @Nullable final AppServicePlan newPlan = getAppServicePlan();
@@ -164,7 +171,8 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         if (Objects.nonNull(storageAccount)) {
             withCreate.withExistingStorageAccount(storageAccount.getRemote());
         }
-        if (Objects.nonNull(newDiagnosticConfig)) {
+        // diagnostic config is only available for service plan function apps
+        if (Objects.nonNull(newDiagnosticConfig) && Objects.isNull(environment)) {
             AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, newDiagnosticConfig);
         }
         final Boolean enableDistributedTracing = ensureConfig().getEnableDistributedTracing();
@@ -280,7 +288,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             Optional.of(settingsToAdd).filter(ignore -> isAppSettingsModified).ifPresent(update::withAppSettings);
             Optional.of(settingsToRemove).filter(CollectionUtils::isNotEmpty).filter(ignore -> isAppSettingsModified).ifPresent(s -> s.forEach(update::withoutAppSetting));
             Optional.ofNullable(newDockerConfig).filter(ignore -> dockerModified).ifPresent(p -> updateDockerConfiguration(update, p));
-            Optional.ofNullable(newDiagnosticConfig).filter(ignore -> isDiagnosticConfigModified).ifPresent(c -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, c));
+            Optional.ofNullable(newDiagnosticConfig).filter(ignore -> isDiagnosticConfigModified).filter(ignore -> StringUtils.isBlank(getEnvironmentId())).ifPresent(c -> AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, c));
             Optional.ofNullable(newFlexConsumptionConfiguration).filter(ignore -> flexConsumptionModified).ifPresent(c -> update.withContainerSize(c.getInstanceSize()));
             Optional.ofNullable(storageAccount).ifPresent(s -> update.withExistingStorageAccount(s.getRemote()));
             final IAzureMessager messager = AzureMessager.getMessager();

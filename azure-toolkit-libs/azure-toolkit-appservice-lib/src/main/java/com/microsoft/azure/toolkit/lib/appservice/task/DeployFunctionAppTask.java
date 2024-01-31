@@ -8,7 +8,10 @@ import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -88,6 +91,14 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
 
     private void deployArtifact() {
         messager.info(DEPLOY_START);
+        OperationContext.action().setTelemetryProperty("subscriptionId", target.getSubscriptionId());
+        OperationContext.action().setTelemetryProperty("deployType", Optional.ofNullable(deployType).map(FunctionDeployType::toString).orElse("empty"));
+        OperationContext.action().setTelemetryProperty("deployToSlot", String.valueOf(target instanceof FunctionAppDeploymentSlot));
+        Optional.ofNullable(target.getRuntime()).ifPresent(runtime -> OperationContext.action().setTelemetryProperty("runtime", runtime.getDisplayName()));
+        Optional.ofNullable(target.getRuntime()).map(Runtime::getOperatingSystem).ifPresent(os -> OperationContext.action().setTelemetryProperty("os", os.getValue()));
+        Optional.ofNullable(target.getRuntime()).map(Runtime::getJavaVersionUserText).ifPresent(javaVersion -> OperationContext.action().setTelemetryProperty("javaVersion", javaVersion));
+        Optional.ofNullable(target.getAppServicePlan()).map(AppServicePlan::getPricingTier).ifPresent(pricingTier -> OperationContext.action().setTelemetryProperty("pricingTier", pricingTier.getSize()));
+
         // For ftp deploy, we need to upload entire staging directory not the zipped package
         final File file = deployType == FunctionDeployType.FTP ? stagingDirectory : packageStagingDirectory();
         final long startTime = System.currentTimeMillis();

@@ -10,8 +10,12 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DeployOptions;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeploymentBuildStatus;
 import com.microsoft.azure.toolkit.lib.appservice.model.ErrorEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.KuduDeploymentResult;
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -100,6 +104,14 @@ public class DeployWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
         if (artifacts.stream().anyMatch(artifact -> artifact.getDeployType() == null)) {
             throw new AzureToolkitRuntimeException("missing deployment type for some artifacts.");
         }
+        OperationContext.action().setTelemetryProperty("subscriptionId", webApp.getSubscriptionId());
+        OperationContext.action().setTelemetryProperty("deployToSlot", String.valueOf(webApp instanceof WebAppDeploymentSlot));
+        Optional.ofNullable(webApp.getRuntime()).ifPresent(runtime -> OperationContext.action().setTelemetryProperty("runtime", runtime.getDisplayName()));
+        Optional.ofNullable(webApp.getRuntime()).map(Runtime::getOperatingSystem).ifPresent(os -> OperationContext.action().setTelemetryProperty("os", os.getValue()));
+        Optional.ofNullable(webApp.getRuntime()).map(Runtime::getJavaVersionUserText).ifPresent(javaVersion -> OperationContext.action().setTelemetryProperty("javaVersion", javaVersion));
+        Optional.ofNullable(webApp.getRuntime()).map(WebAppRuntime::getContainerUserText).ifPresent(webContainer -> OperationContext.action().setTelemetryProperty("webContainer", webContainer));
+        Optional.ofNullable(webApp.getAppServicePlan()).map(AppServicePlan::getPricingTier).ifPresent(pricingTier -> OperationContext.action().setTelemetryProperty("pricingTier", pricingTier.getSize()));
+
         final long startTime = System.currentTimeMillis();
         final List<WebAppArtifact> artifactsOneDeploy = this.artifacts.stream()
                 .filter(artifact -> artifact.getDeployType() != null)
