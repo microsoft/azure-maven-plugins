@@ -49,7 +49,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -219,7 +221,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
     }
 
     private Map<String, String> processAppSettingsWithDefaultValue() {
-        final Map<String, String> appSettings = functionAppConfig.appSettings();
+        final Map<String, String> appSettings = Optional.ofNullable(functionAppConfig.appSettings()).orElseGet(HashMap::new);
         setDefaultAppSetting(appSettings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
                 FUNCTIONS_WORKER_RUNTIME_VALUE, CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING);
         setDefaultAppSetting(appSettings, FUNCTIONS_EXTENSION_VERSION_NAME, SET_FUNCTIONS_EXTENSION_VERSION,
@@ -227,11 +229,11 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
         return appSettings;
     }
 
-    private void setDefaultAppSetting(Map<String, String> result, String settingName, String settingIsEmptyMessage,
-                                      String defaultValue, String warningMessage) {
+    private void setDefaultAppSetting(@Nonnull final Map<String, String> result, @Nonnull final String settingName, @Nonnull final String emptyMessage,
+                                      @Nonnull final String defaultValue, @Nullable final String warningMessage) {
         final String setting = result.get(settingName);
         if (StringUtils.isEmpty(setting)) {
-            AzureMessager.getMessager().info(settingIsEmptyMessage);
+            AzureMessager.getMessager().info(emptyMessage);
             result.put(settingName, defaultValue);
             return;
         }
