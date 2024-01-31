@@ -3,8 +3,10 @@ package com.microsoft.azure.toolkit.lib.monitor;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +18,8 @@ import java.util.Optional;
 @Setter
 @SuperBuilder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class LogAnalyticsWorkspaceConfig {
     private boolean newCreate;
     @EqualsAndHashCode.Include
