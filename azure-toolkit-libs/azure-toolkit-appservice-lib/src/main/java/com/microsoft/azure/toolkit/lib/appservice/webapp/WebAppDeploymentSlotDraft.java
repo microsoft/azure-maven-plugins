@@ -88,6 +88,12 @@ public class WebAppDeploymentSlotDraft extends WebAppDeploymentSlot implements A
     public DeploymentSlot createResourceInAzure() {
         Runtime.tryWarningDeprecation(this);
         OperationContext.action().setTelemetryProperty(CREATE_NEW_DEPLOYMENT_SLOT, String.valueOf(true));
+        OperationContext.action().setTelemetryProperty("subscriptionId", getSubscriptionId());
+        Optional.ofNullable(getRegion()).ifPresent(region -> OperationContext.action().setTelemetryProperty("region", region.getLabel()));
+        Optional.ofNullable(getRuntime()).ifPresent(runtime -> OperationContext.action().setTelemetryProperty("runtime", runtime.getDisplayName()));
+        Optional.ofNullable(getRuntime()).map(Runtime::getOperatingSystem).ifPresent(os -> OperationContext.action().setTelemetryProperty("os", os.getValue()));
+        Optional.ofNullable(getRuntime()).map(Runtime::getJavaVersionUserText).ifPresent(javaVersion -> OperationContext.action().setTelemetryProperty("javaVersion", javaVersion));
+        Optional.ofNullable(getRuntime()).map(WebAppRuntime::getContainerUserText).ifPresent(webContainer -> OperationContext.action().setTelemetryProperty("webContainer", webContainer));
 
         final String name = getName();
         final Map<String, String> newAppSettings = this.getAppSettings();
