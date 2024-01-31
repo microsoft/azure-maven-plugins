@@ -335,6 +335,10 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             AzureMessager.getMessager().info("Skip update app service plan for deployment slot");
             return null;
         }
+        if (StringUtils.isBlank(functionAppConfig.getServicePlanName())) {
+            // users could keep using old service plan when update function app, return null in this case
+            return null;
+        }
         return new AzureTask<>(() -> {
             final AzureAppService az = Azure.az(AzureAppService.class);
             final AppServicePlanConfig config = FunctionAppConfig.getServicePlanConfig(functionAppConfig);
