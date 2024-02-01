@@ -110,7 +110,7 @@ public interface Runtime {
     }
 
     /**
-     * 8u202 => 1.8.0_202, 7 => 1.7, 8 => 1.8, 11 => 11, 17 => 17, 17.0.4 => 17.0.4, java 8 => 1.8
+     * 8u202: 1.8.0_202, 7: 1.7, 8: 1.8, 11: 11, 17: 17, 17.0.4: 17.0.4, java 8: 1.8
      */
     static String extractAndFormalizeJavaVersionNumber(String javaVersion) {
         javaVersion = StringUtils.replaceIgnoreCase(javaVersion, "java", "").trim();
