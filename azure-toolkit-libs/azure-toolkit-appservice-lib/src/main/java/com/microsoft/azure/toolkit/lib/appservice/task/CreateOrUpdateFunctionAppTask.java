@@ -222,10 +222,13 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
 
     private Map<String, String> processAppSettingsWithDefaultValue() {
         final Map<String, String> appSettings = Optional.ofNullable(functionAppConfig.appSettings()).orElseGet(HashMap::new);
-        setDefaultAppSetting(appSettings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
-                FUNCTIONS_WORKER_RUNTIME_VALUE, CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING);
         setDefaultAppSetting(appSettings, FUNCTIONS_EXTENSION_VERSION_NAME, SET_FUNCTIONS_EXTENSION_VERSION,
-                FUNCTIONS_EXTENSION_VERSION_VALUE, null);
+            FUNCTIONS_EXTENSION_VERSION_VALUE, null);
+        final OperatingSystem os = Optional.ofNullable(functionAppConfig.runtime()).map(RuntimeConfig::getOs).orElse(null);
+        if (os != OperatingSystem.DOCKER) {
+            setDefaultAppSetting(appSettings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
+                FUNCTIONS_WORKER_RUNTIME_VALUE, CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING);
+        }
         return appSettings;
     }
 
@@ -333,6 +336,10 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
     private AzureTask<AppServicePlan> getServicePlanTask() {
         if (StringUtils.isNotEmpty(functionAppConfig.deploymentSlotName())) {
             AzureMessager.getMessager().info("Skip update app service plan for deployment slot");
+            return null;
+        }
+        if (StringUtils.isBlank(functionAppConfig.getServicePlanName())) {
+            // users could keep using old service plan when update function app, return null in this case
             return null;
         }
         return new AzureTask<>(() -> {
