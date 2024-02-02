@@ -264,13 +264,15 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         final DockerConfiguration newDockerConfig = this.ensureConfig().getDockerConfiguration();
         final FlexConsumptionConfiguration newFlexConsumptionConfiguration = this.ensureConfig().getFlexConsumptionConfiguration();
         final StorageAccount storageAccount = getStorageAccount();
-        final Runtime oldRuntime = Objects.requireNonNull(origin.getRuntime());
+        final Runtime oldRuntime = origin.getRuntime();
         final AppServicePlan oldPlan = origin.getAppServicePlan();
         final FlexConsumptionConfiguration oldFlexConsumptionConfiguration = origin.getFlexConsumptionConfiguration();
 
         final boolean planModified = Objects.nonNull(newPlan) && !Objects.equals(newPlan, oldPlan);
-        final boolean runtimeModified = !oldRuntime.isDocker() && Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
-        final boolean dockerModified = oldRuntime.isDocker() && Objects.nonNull(newDockerConfig);
+        final boolean runtimeModified = (Objects.isNull(oldRuntime) || !oldRuntime.isDocker()) &&
+            Objects.nonNull(newRuntime) && !Objects.equals(newRuntime, oldRuntime);
+        final boolean dockerModified = Objects.nonNull(oldRuntime) && oldRuntime.isDocker() &&
+            Objects.nonNull(newDockerConfig);
         final boolean isFlexConsumption = Optional.ofNullable(getAppServicePlan())
             .map(AppServicePlan::getPricingTier).map(PricingTier::isFlexConsumption).orElse(false);
         final boolean flexConsumptionModified = isFlexConsumption &&
