@@ -85,6 +85,7 @@
         <httpcore.version>4.4.15</httpcore.version>
         <applicationinsights.version>2.6.4</applicationinsights.version>
         <azure.resourcemanager.version>2.35.0</azure.resourcemanager.version>
+        <azure.resourcemanager-appservice-patch.version>2.35.1</azure.resourcemanager-appservice-patch.version>
         <azure-arm-client-runtime.version>1.7.14</azure-arm-client-runtime.version>
         <azure-resourcemanager-applicationinsights.version>1.0.0</azure-resourcemanager-applicationinsights.version>
         <azure-resourcemanager-appcontainers.version>1.0.0-beta.6</azure-resourcemanager-appcontainers.version>
@@ -380,7 +381,7 @@
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-appservice</artifactId>
-                <version>${azure.resourcemanager.version}</version>
+                <version>${azure.resourcemanager-appservice-patch.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>

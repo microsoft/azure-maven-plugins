@@ -11,8 +11,10 @@ import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
+import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppDockerRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppLinuxRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
@@ -38,9 +40,11 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.lib.appservice.utils.Utils.throwForbidCreateResourceWarning;
 
@@ -63,7 +67,13 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     private List<AzureTask<?>> initTasks() {
         final List<AzureTask<?>> tasks = new ArrayList<>();
         final AzureString title = AzureString.format("Create new web app({0})", this.config.appName());
-        tasks.add(new AzureTask<>(title, this::createOrUpdateResource));
+        tasks.add(new AzureTask<>(title, () -> {
+            final WebAppBase<?, ?, ?> app = this.createOrUpdateResource();
+            Optional.ofNullable(config.file())
+                .map(file -> new DeployWebAppTask(app, Collections.singletonList(WebAppArtifact.builder().file(file).deployType(DeployType.getDeployTypeFromFile(file)).build())))
+                .ifPresent(DeployWebAppTask::doExecute);
+            return app;
+        }));
         return tasks;
     }
 
@@ -121,17 +131,19 @@ public class CreateOrUpdateWebAppTask extends AzureTask<WebAppBase<?, ?, ?>> {
     @AzureOperation(name = "azure/webapp.update_app.app", params = {"this.config.appName()"})
     private WebApp update(final WebApp webApp) {
         final WebAppDraft draft = (WebAppDraft) webApp.update();
-        final AppServicePlanConfig servicePlanConfig = AppServiceConfig.getServicePlanConfig(config);
         final WebAppRuntime runtime = getRuntime(config.runtime());
+        final AppServicePlanConfig planConfig = AppServiceConfig.getServicePlanConfig(config);
 
-        final AppServicePlanDraft planDraft = Azure.az(AzureAppService.class).plans(servicePlanConfig.getSubscriptionId())
-            .updateOrCreate(servicePlanConfig.getName(), servicePlanConfig.getResourceGroupName());
-        if (skipCreateAzureResource && !planDraft.exists()) {
-            throwForbidCreateResourceWarning("Service plan", servicePlanConfig.getResourceGroupName() + "/" + servicePlanConfig.getName());
+        final AppServicePlanDraft planDraft = StringUtils.isBlank(planConfig.getName()) ? null :
+            Azure.az(AzureAppService.class).plans(planConfig.getSubscriptionId()).updateOrCreate(planConfig.getName(), planConfig.getResourceGroupName());
+        if (skipCreateAzureResource && Objects.nonNull(planDraft) && !planDraft.exists()) {
+            throwForbidCreateResourceWarning("Service plan", planConfig.getResourceGroupName() + "/" + planConfig.getName());
         }
-        planDraft.setPlanConfig(servicePlanConfig);
+        Optional.ofNullable(planDraft).ifPresent(plan -> {
+            plan.setPlanConfig(planConfig);
+            draft.setAppServicePlan(plan.commit());
+        });
 
-        draft.setAppServicePlan(planDraft.commit());
         draft.setRuntime(runtime);
         draft.setDockerConfiguration(getDockerConfiguration(config.runtime()));
         draft.setAppSettings(ObjectUtils.firstNonNull(config.appSettings(), new HashMap<>()));

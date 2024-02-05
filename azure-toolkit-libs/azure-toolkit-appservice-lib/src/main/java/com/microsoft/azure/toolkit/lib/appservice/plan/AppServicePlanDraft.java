@@ -88,6 +88,7 @@ public class AppServicePlanDraft extends AppServicePlan implements
     public com.azure.resourcemanager.appservice.models.AppServicePlan createResourceInAzure() {
         SchemaValidator.getInstance().validateAndThrow("appservice/CreateAppServicePlan", this.getPlanConfig());
         OperationContext.action().setTelemetryProperty(CREATE_NEW_APP_SERVICE_PLAN, String.valueOf(true));
+        Optional.ofNullable(getPricingTier()).ifPresent(pricingTier -> OperationContext.action().setTelemetryProperty("pricingTier", pricingTier.getSize()));
 
         final String name = this.getName();
         final OperatingSystem newOs = Objects.requireNonNull(this.getOperatingSystem(), "'operating system' is required to create App Service plan.");

@@ -129,7 +129,7 @@ public class ApplicationInsightDraft extends ApplicationInsight implements AzRes
                     .logAnalyticsWorkspaces(getSubscriptionId())
                     .create(workspaceConfig.getName(), resourceGroupName);
             draft.setRegion(this.region);
-            workspaceResourceId = draft.commit().getId();
+            workspaceResourceId = draft.createIfNotExist().getId();
         } else {
             workspaceResourceId = workspaceConfig.getResourceId();
         }

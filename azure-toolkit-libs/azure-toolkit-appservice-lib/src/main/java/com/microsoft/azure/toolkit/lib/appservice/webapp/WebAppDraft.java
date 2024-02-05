@@ -27,6 +27,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import lombok.Data;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
@@ -47,6 +48,8 @@ import java.util.stream.Collectors;
 public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.azure.resourcemanager.appservice.models.WebApp> {
     public static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     public static final String CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS = "Can not update the operation system for existing app service";
+    public static final String CREATE_NEW_WEB_APP = "createNewWebApp";
+    public static final String RUNTIME = "runtime";
 
     @Getter
     @Nullable
@@ -80,6 +83,14 @@ public class WebAppDraft extends WebApp implements AzResource.Draft<WebApp, com.
     @AzureOperation(name = "azure/webapp.create_app.app", params = {"this.getName()"})
     public com.azure.resourcemanager.appservice.models.WebApp createResourceInAzure() {
         Runtime.tryWarningDeprecation(this);
+        OperationContext.action().setTelemetryProperty(CREATE_NEW_WEB_APP, "true");
+        OperationContext.action().setTelemetryProperty("subscriptionId", getSubscriptionId());
+        Optional.ofNullable(getRegion()).ifPresent(region -> OperationContext.action().setTelemetryProperty("region", region.getLabel()));
+        Optional.ofNullable(getRuntime()).ifPresent(runtime -> OperationContext.action().setTelemetryProperty("runtime", runtime.getDisplayName()));
+        Optional.ofNullable(getRuntime()).map(Runtime::getOperatingSystem).ifPresent(os -> OperationContext.action().setTelemetryProperty("os", os.getValue()));
+        Optional.ofNullable(getRuntime()).map(Runtime::getJavaVersionUserText).ifPresent(javaVersion -> OperationContext.action().setTelemetryProperty("javaVersion", javaVersion));
+        Optional.ofNullable(getRuntime()).map(WebAppRuntime::getContainerUserText).ifPresent(webContainer -> OperationContext.action().setTelemetryProperty("webContainer", webContainer));
+
         final String name = getName();
         final Runtime newRuntime = Objects.requireNonNull(getRuntime(), "'runtime' is required to create Azure Web App");
         final AppServicePlan newPlan = Objects.requireNonNull(getAppServicePlan(), "'service plan' is required to create Azure Web App");

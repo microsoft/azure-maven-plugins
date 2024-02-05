@@ -47,8 +47,12 @@ public class AzureCognitiveServices extends AbstractAzService<CognitiveServicesS
 
     @Cacheable(cacheName = "openai/subscriptions/{}", key = "$subscriptionId")
     public boolean isOpenAIEnabled(@Nonnull String subscriptionId) {
-        final CognitiveAccountModule module = accounts(subscriptionId);
-        return CollectionUtils.isNotEmpty(module.listSkus(null));
+        try {
+            final CognitiveAccountModule module = accounts(subscriptionId);
+            return CollectionUtils.isNotEmpty(module.listSkus(null));
+        } catch (final AssertionError e) {
+            return false;
+        }
     }
 
     @Nullable
