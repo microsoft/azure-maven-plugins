@@ -10,7 +10,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.OperationBase;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -28,23 +28,34 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static com.microsoft.azure.toolkit.lib.common.action.Action.COMMON_PLACE;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
 import static com.microsoft.azure.toolkit.lib.common.action.Action.REQUIRE_AUTH;
 
 @Slf4j
-@RequiredArgsConstructor
 public class ActionInstance<D> extends OperationBase {
+    @Getter
     public final Action<D> action;
+    @Getter
     @Nullable
     private final D target;
+    @Getter
     @Nullable
     private final Object event;
+    @Getter
+    private final String place;
 
     private Function<D, String> iconProvider;
     private Function<D, String> labelProvider;
     private Function<D, AzureString> titleProvider;
     private Predicate<D> authRequiredProvider;
     private final List<Function<D, String>> titleParamProviders = new ArrayList<>();
+
+    public ActionInstance(@Nonnull final Action<D> action, @Nullable final D target, @Nullable final Object event) {
+        this.action = action;
+        this.target = target;
+        this.event = event;
+        this.place = AzureActionManager.getInstance().getPlace(this);
+    }
 
     @Nonnull
     @Override
@@ -90,7 +101,7 @@ public class ActionInstance<D> extends OperationBase {
 
     @Nonnull
     public IView.Label getView() {
-        return getView(COMMON_PLACE);
+        return getView(this.place);
     }
 
     @Nonnull
@@ -125,6 +136,7 @@ public class ActionInstance<D> extends OperationBase {
     public void perform() {
         if (isAuthRequired() && !Azure.az(IAzureAccount.class).isLoggedIn()) {
             final SettableFuture<IAccount> authorized = SettableFuture.create();
+            this.getContext().setTelemetryProperty(PLACE, this.place);
             final Action<Consumer<IAccount>> authorizeAction = AzureActionManager.getInstance().getAction(REQUIRE_AUTH);
             authorizeAction.handleSync(authorized::set, this.event);
             if (Objects.isNull(authorized.get())) {

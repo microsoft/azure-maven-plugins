@@ -19,6 +19,10 @@ import java.util.function.Predicate;
 
 public abstract class AzureActionManager {
 
+    public <D> String getPlace(final ActionInstance<D> action) {
+        return Action.EMPTY_PLACE;
+    }
+
     private static final class Holder {
         private static final AzureActionManager instance = loadActionManager();
 
