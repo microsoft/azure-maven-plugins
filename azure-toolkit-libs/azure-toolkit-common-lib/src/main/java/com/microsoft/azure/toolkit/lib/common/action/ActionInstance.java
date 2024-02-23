@@ -41,8 +41,6 @@ public class ActionInstance<D> extends OperationBase {
     @Getter
     @Nullable
     private final Object event;
-    @Getter
-    private final String place;
 
     private Function<D, String> iconProvider;
     private Function<D, String> labelProvider;
@@ -51,16 +49,20 @@ public class ActionInstance<D> extends OperationBase {
     private final List<Function<D, String>> titleParamProviders = new ArrayList<>();
 
     public ActionInstance(@Nonnull final Action<D> action, @Nullable final D target, @Nullable final Object event) {
+        super();
         this.action = action;
         this.target = target;
         this.event = event;
-        this.place = AzureActionManager.getInstance().getPlace(this);
     }
 
     @Nonnull
     @Override
     public String getId() {
         return action.getId().getId();
+    }
+
+    public String getPlace() {
+        return AzureActionManager.getInstance().getPlace(this);
     }
 
     @Override
@@ -101,7 +103,7 @@ public class ActionInstance<D> extends OperationBase {
 
     @Nonnull
     public IView.Label getView() {
-        return getView(this.place);
+        return getView(this.getPlace());
     }
 
     @Nonnull
@@ -136,7 +138,7 @@ public class ActionInstance<D> extends OperationBase {
     public void perform() {
         if (isAuthRequired() && !Azure.az(IAzureAccount.class).isLoggedIn()) {
             final SettableFuture<IAccount> authorized = SettableFuture.create();
-            this.getContext().setTelemetryProperty(PLACE, this.place);
+            this.getContext().setTelemetryProperty(PLACE, this.getPlace());
             final Action<Consumer<IAccount>> authorizeAction = AzureActionManager.getInstance().getAction(REQUIRE_AUTH);
             authorizeAction.handleSync(authorized::set, this.event);
             if (Objects.isNull(authorized.get())) {
