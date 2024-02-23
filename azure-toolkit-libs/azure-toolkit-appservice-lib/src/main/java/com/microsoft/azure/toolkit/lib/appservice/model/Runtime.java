@@ -126,7 +126,7 @@ public interface Runtime {
         final Runtime runtime = app.getRuntime();
         AzureString message = null;
         if (Objects.nonNull(runtime)) {
-            final String link = runtime instanceof FunctionAppRuntime ? String.format(" refer to %s.", FUNCTION_UPGRADE_RUNTIME_LINK) : "";
+            final String link = runtime instanceof FunctionAppRuntime ? String.format(" refer to %s", FUNCTION_UPGRADE_RUNTIME_LINK) : "";
             if (runtime.isHidden() || runtime.isDeprecated()) {
                 if (Objects.nonNull(runtime.getEndOfLifeDate())) {
                     message = AzureString.format("The runtime of your app \"%s\" has reached EOL on %s and is no longer supported, please upgrade it." + link,
