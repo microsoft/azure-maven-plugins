@@ -144,10 +144,9 @@ extends:
 
                     # Download AzCopy
                     echo "downloading azcopy..."
-                    wget https://aka.ms/downloadazcopy-v10-linux -O azcopy_zip
-                    mkdir .azcopy_folder
-                    tar xvzf ./azcopy_zip -C ./.azcopy_folder
-                    cp ./.azcopy_folder/*/azcopy .
+                    curl -L https://aka.ms/downloadazcopy-v10-windows -o azcopy.zip
+                    unzip ./azcopy.zip -d ./.azcopy_folder
+                    cp ./.azcopy_folder/*/azcopy.exe .
 
                     export AZCOPY_SPA_CLIENT_SECRET=$(AZCOPY_SPA_CLIENT_SECRET)
                     TARGET_URL="https://azuresdkpartnerdrops.blob.core.windows.net/drops/$AzTargetPath/"
@@ -157,6 +156,6 @@ extends:
                     ./azcopy remove "$TARGET_URL"
                     ./azcopy copy ".release/*" "$TARGET_URL"
 
-                    echo "Resources uploaded to $TARGET_URL"
+                    echo "Resources uploaded."
                   failOnStderr: true
                 continueOnError: true
