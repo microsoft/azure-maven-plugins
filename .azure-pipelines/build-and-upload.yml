@@ -22,8 +22,8 @@ extends:
   parameters:
     pool:
       name: 1ES_JavaTooling_Pool
-      image: 1ES_JavaTooling_Ubuntu-2004
-      os: linux
+      image: 1ES_JavaTooling_Windows_2022
+      os: windows
     sdl:
       sourceAnalysisPool:
         name: 1ES_JavaTooling_Pool
@@ -40,33 +40,11 @@ extends:
               - checkout: self
                 clean: true
                 fetchTags: false
-              - script: |
-                  CUSTOME_BRANCH=$(BRANCH)
-                  if [[ -n ${CUSTOME_BRANCH} ]]; then
-                    git fetch origin $(BRANCH)
-                    git checkout $(BRANCH)
-                  else
-                    echo "no need to switch branch"
-                  fi
-                displayName: switch to $(BRANCH)
               - task: Bash@3
-                displayName: Build and upload to Azure Storage
+                displayName: Build
                 inputs:
                   targetType: inline
                   script: |
-                    # Validate storage path
-                    AzTargetPath=$(TARGET_PATH)
-                    if [[ ! "$AzTargetPath" =~ "/java/" ]]; then
-                        echo "Invlalid path, please follow pattern {product}/java/{version}"
-                        exit -1
-                    fi
-
-                    # Download AzCopy
-                    wget https://aka.ms/downloadazcopy-v10-linux -O azcopy_zip
-                    mkdir .azcopy_folder
-                    tar xvzf ./azcopy_zip -C ./.azcopy_folder
-                    cp ./.azcopy_folder/*/azcopy .
-
                     # Install Maven
                     mvn install -DskipTests -Dcheckstyle.skip=true -Drelease -Dmaven.repo.local=./.repository
 
@@ -127,15 +105,57 @@ extends:
 
                         # TODO: Validate archetype maven plugin version when release archetype with maven plugin
                     fi
+                    ls ./.release -al
+                  failOnStderr: true
+
+              ### Copy files for APIScan
+              - task: CopyFiles@2
+                displayName: 'Copy Files for APIScan'
+                inputs:
+                  SourceFolder: $(system.defaultworkingdirectory)/.release
+                  Contents: "*.jar"
+                  TargetFolder: $(Agent.TempDirectory)/APIScanFiles
+                condition: and(succeeded(), ne(variables['DisableAPIScan'], 'true'))
+
+              ### Run latest version of APIScan listed at https://www.1eswiki.com/wiki/APIScan_Build_Task
+              - task: APIScan@2
+                displayName: Run APIScan
+                inputs:
+                  softwareFolder: $(Agent.TempDirectory)/APIScanFiles
+                  softwareName: 'azure-maven-plugins'
+                  softwareVersionNum: '$(Build.BuildId)'
+                  isLargeApp: false
+                  toolVersion: 'Latest'
+                condition: and(succeeded(), ne(variables['DisableAPIScan'], 'true'))
+                env:
+                  AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
+
+              - task: Bash@3
+                displayName: Upload to Azure Storage
+                inputs:
+                  targetType: inline
+                  script: |
+                    # Validate storage path
+                    AzTargetPath=$(TARGET_PATH)
+                    if [[ ! "$AzTargetPath" =~ "/java/" ]]; then
+                        echo "Invalid path, please follow pattern {product}/java/{version}"
+                        exit -1
+                    fi
+
+                    # Download AzCopy
+                    echo "downloading azcopy..."
+                    curl -L https://aka.ms/downloadazcopy-v10-windows -o azcopy.zip
+                    unzip ./azcopy.zip -d ./.azcopy_folder
+                    cp ./.azcopy_folder/*/azcopy.exe .
 
                     export AZCOPY_SPA_CLIENT_SECRET=$(AZCOPY_SPA_CLIENT_SECRET)
                     TARGET_URL="https://azuresdkpartnerdrops.blob.core.windows.net/drops/$AzTargetPath/"
 
+                    echo "Uploading resources to $TARGET_URL ..."
                     ./azcopy login --service-principal --application-id cfb5fe52-8bb2-4901-9056-70449fa2df96 --tenant-id 72f988bf-86f1-41af-91ab-2d7cd011db47
                     ./azcopy remove "$TARGET_URL"
                     ./azcopy copy ".release/*" "$TARGET_URL"
 
-                    echo "Resources uploaded to $TARGET_URL"
-                    ls ./.release -al
+                    echo "Resources uploaded."
                   failOnStderr: true
                 continueOnError: true
