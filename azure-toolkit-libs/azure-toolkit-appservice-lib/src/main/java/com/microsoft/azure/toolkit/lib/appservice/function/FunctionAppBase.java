@@ -110,7 +110,10 @@ public abstract class FunctionAppBase<T extends FunctionAppBase<T, P, F>, P exte
     @Nullable
     protected IFileClient getFileClient() {
         // kudu api does not applies to linux consumption, using functions admin api instead
-        return (getRuntime().isLinux() && getAppServicePlan().getPricingTier().isConsumption()) ? getAdminClient() : super.getFileClient();
+        final boolean isLinuxJavaFunction = Optional.ofNullable(getRuntime()).map(Runtime::isLinux).orElse(false);
+        final boolean isConsumption = Optional.ofNullable(getAppServicePlan()).map(AppServicePlan::getPricingTier)
+            .map(pricingTier -> pricingTier.isConsumption() || pricingTier.isFlexConsumption()).orElse(false);
+        return (isLinuxJavaFunction && isConsumption) ? this.getAdminClient() : super.getFileClient();
     }
 
     protected FunctionDeployType getDefaultDeployType() {
