@@ -117,6 +117,12 @@ public class AzureStorageAccount extends AbstractAzService<StorageServiceSubscri
         return super.getById(id);
     }
 
+    @Nonnull
+    @Override
+    public ConnectionStringStorageAccount getOrInitByConnectionString(@Nonnull final String connectionString) {
+        return (ConnectionStringStorageAccount) ConnectionStringStorageAccountModule.getInstance().getOrInit(connectionString);
+    }
+
     @Override
     public boolean isAuthRequiredForListing() {
         return false; // As storage supports emulator resource, we don't need to login to list storage accounts
