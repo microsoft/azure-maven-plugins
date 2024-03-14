@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.common.action;
 
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.model.Emulatable;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBase;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
@@ -325,7 +325,7 @@ public class Action<D> implements Cloneable {
     }
 
     public static <D> Boolean isAuthRequiredForAzureResource(@Nullable final D resource) {
-        return !(resource instanceof Emulatable && ((Emulatable) resource).isEmulatorResource());
+        return resource instanceof AbstractAzResource && ((AbstractAzResource<?, ?, ?>) resource).isAuthRequired();
     }
 }
 
