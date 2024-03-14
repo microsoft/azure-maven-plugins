@@ -16,7 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscriptio
 import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.IStorageAccount;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -25,12 +25,12 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public class QueueModule extends AbstractEmulatableAzResourceModule<Queue, StorageAccount, QueueClient> {
+public class QueueModule extends AbstractEmulatableAzResourceModule<Queue, IStorageAccount, QueueClient> {
 
     public static final String NAME = "Azure.Queue";
     private QueueServiceClient client;
 
-    public QueueModule(@Nonnull StorageAccount parent) {
+    public QueueModule(@Nonnull IStorageAccount parent) {
         super(NAME, parent);
     }
 

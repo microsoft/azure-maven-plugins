@@ -12,7 +12,7 @@ import com.azure.storage.file.share.models.ShareProperties;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
-import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.IStorageAccount;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Getter
-public class Share extends AbstractEmulatableAzResource<Share, StorageAccount, ShareClient>
+public class Share extends AbstractEmulatableAzResource<Share, IStorageAccount, ShareClient>
     implements Deletable, IShareFile {
 
     private final ShareFileModule subFileModule;

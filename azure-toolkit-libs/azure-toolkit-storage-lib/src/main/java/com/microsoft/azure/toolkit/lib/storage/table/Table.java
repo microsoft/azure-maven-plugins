@@ -9,13 +9,13 @@ import com.azure.data.tables.TableClient;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
-import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.IStorageAccount;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 
-public class Table extends AbstractEmulatableAzResource<Table, StorageAccount, TableClient>
+public class Table extends AbstractEmulatableAzResource<Table, IStorageAccount, TableClient>
     implements Deletable {
 
     protected Table(@Nonnull String name, @Nonnull TableModule module) {

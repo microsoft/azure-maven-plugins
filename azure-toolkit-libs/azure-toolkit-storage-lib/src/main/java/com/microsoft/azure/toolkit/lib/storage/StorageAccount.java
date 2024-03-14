@@ -33,7 +33,7 @@ import java.util.Objects;
 
 @Getter
 public class StorageAccount extends AbstractEmulatableAzResource<StorageAccount, StorageServiceSubscription, com.azure.resourcemanager.storage.models.StorageAccount>
-    implements Deletable {
+    implements IStorageAccount, Deletable {
 
     protected final BlobContainerModule blobContainerModule;
     protected final ShareModule shareModule;
@@ -102,6 +102,7 @@ public class StorageAccount extends AbstractEmulatableAzResource<StorageAccount,
     }
     
     @Nonnull
+    @Override
     public String getConnectionString() {
         // see https://github.com/Azure/azure-cli/blob/ac3b190d4d/src/azure-cli/azure/cli/command_modules/storage/operations/account.py#L232
         final AzureEnvironment environment = Azure.az(AzureCloud.class).get();
