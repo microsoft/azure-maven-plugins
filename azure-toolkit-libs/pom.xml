@@ -140,7 +140,7 @@
         <jjwt.version>0.9.1</jjwt.version>
         <reflections.version>0.10.2</reflections.version>
         <oauth2-oidc-sdk.version>9.38.1</oauth2-oidc-sdk.version>
-        <nimbus-jose-jwt.version>9.23</nimbus-jose-jwt.version>
+        <nimbus-jose-jwt.version>9.37.2</nimbus-jose-jwt.version>
         <joda-time.version>2.10.14</joda-time.version>
         <evo-inflector.version>1.3</evo-inflector.version>
         <jaxb.version>3.0.2-b01</jaxb.version>
