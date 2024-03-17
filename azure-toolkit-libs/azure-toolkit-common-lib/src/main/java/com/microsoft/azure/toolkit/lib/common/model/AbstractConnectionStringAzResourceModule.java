@@ -30,11 +30,12 @@ public abstract class AbstractConnectionStringAzResourceModule<T> extends Abstra
 
     @Nonnull
     public AbstractConnectionStringAzResource<T> getOrInit(@Nonnull String connectionString) {
-        return this.listCachedResources().stream().filter(r -> StringUtils.equalsIgnoreCase(connectionString, r.getConnectionString())).findFirst().orElseGet(() -> {
-            final AbstractConnectionStringAzResource<T> resource = this.newResource(connectionString);
-            this.addResourceToLocal(resource.getId(), resource);
-            return resource;
-        });
+        return this.listCachedResources().stream().filter(r -> StringUtils.equalsIgnoreCase(connectionString, r.getConnectionString()))
+            .findFirst().orElseGet(() -> {
+                final AbstractConnectionStringAzResource<T> resource = this.newResource(connectionString);
+                this.addResourceToLocal(resource.getId(), resource);
+                return resource;
+            });
     }
 
     @Nonnull

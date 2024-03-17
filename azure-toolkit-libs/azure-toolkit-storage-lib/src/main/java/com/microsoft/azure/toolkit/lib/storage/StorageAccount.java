@@ -126,7 +126,7 @@ public class StorageAccount extends AbstractEmulatableAzResource<StorageAccount,
     @Nullable
     public Performance getPerformance() {
         return remoteOptional().map(remote -> {
-            String[] replicationArr = remote.skuType().name().toString().split("_");
+            final String[] replicationArr = remote.skuType().name().toString().split("_");
             return replicationArr.length == 2 ? Performance.fromName(replicationArr[0]) : null;
         }).orElse(null);
     }

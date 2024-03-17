@@ -117,10 +117,14 @@ public class AzureStorageAccount extends AbstractAzService<StorageServiceSubscri
         return super.getById(id);
     }
 
-    @Nonnull
+    @Nullable
     @Override
     public ConnectionStringStorageAccount getOrInitByConnectionString(@Nonnull final String connectionString) {
-        return (ConnectionStringStorageAccount) ConnectionStringStorageAccountModule.getInstance().getOrInit(connectionString);
+        try {
+            return (ConnectionStringStorageAccount) ConnectionStringStorageAccountModule.getInstance().getOrInit(connectionString);
+        } catch (final Throwable t) {
+            return null;
+        }
     }
 
     @Override
