@@ -23,6 +23,7 @@ import com.microsoft.azure.toolkit.lib.storage.blob.BlobContainerModule;
 import com.microsoft.azure.toolkit.lib.storage.queue.QueueModule;
 import com.microsoft.azure.toolkit.lib.storage.share.ShareModule;
 import com.microsoft.azure.toolkit.lib.storage.table.TableModule;
+import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 
 import javax.annotation.Nonnull;
@@ -36,19 +37,30 @@ public class ConnectionStringStorageAccount extends AbstractConnectionStringAzRe
     private static final ClientLogger LOGGER = new ClientLogger(ConnectionStringStorageAccount.class);
     private static final RetryOptions TEST_CONNECTION_RETRY_OPTIONS = new RetryOptions(new FixedDelayOptions(0, Duration.ofSeconds(3))); // Duration.ZERO is not supported in RequestRetryOptions
 
+    @Getter
     protected final BlobContainerModule blobContainerModule;
+    @Getter
     protected final ShareModule shareModule;
+    @Getter
     protected final QueueModule queueModule;
+    @Getter
     protected final TableModule tableModule;
     protected final List<AbstractAzResourceModule<?, ?, ?>> subModules = new ArrayList<>();
+    private final StorageConnectionString settings;
     private boolean loaded = false;
 
     protected ConnectionStringStorageAccount(@Nonnull final String connectionString) {
         super(connectionString, extractNameFromConnectionString(connectionString), ConnectionStringStorageAccountModule.getInstance());
+        this.settings = StorageConnectionString.create(connectionString, LOGGER);
         this.blobContainerModule = new BlobContainerModule(this);
         this.shareModule = new ShareModule(this);
         this.queueModule = new QueueModule(this);
         this.tableModule = new TableModule(this);
+    }
+
+    @Override
+    public String getKey() {
+        return this.settings.getStorageAuthSettings().getAccount().getAccessKey();
     }
 
     @Override
@@ -62,7 +74,7 @@ public class ConnectionStringStorageAccount extends AbstractConnectionStringAzRe
 
     @Override
     public boolean exists() {
-        return !this.subModules.isEmpty();
+        return !this.loaded || !this.subModules.isEmpty();
     }
 
     @Nonnull
