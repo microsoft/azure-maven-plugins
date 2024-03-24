@@ -653,7 +653,11 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         return Azure.az().config().getPageSize();
     }
 
-    protected boolean isAuthRequiredForListing() {
+    public boolean isAuthRequiredForCreating() {
+        return Character.isLetterOrDigit(this.getSubscriptionId().trim().charAt(0));
+    }
+
+    public boolean isAuthRequiredForListing() {
         return Character.isLetterOrDigit(this.getSubscriptionId().trim().charAt(0));
     }
 
