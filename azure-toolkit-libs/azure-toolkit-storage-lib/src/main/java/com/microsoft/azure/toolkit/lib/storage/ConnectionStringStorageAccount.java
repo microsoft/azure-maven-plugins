@@ -59,6 +59,12 @@ public class ConnectionStringStorageAccount extends AbstractConnectionStringAzRe
     }
 
     @Override
+    public void invalidateCache() {
+        this.subModules.clear();
+        super.invalidateCache();
+    }
+
+    @Override
     public String getKey() {
         return this.settings.getStorageAuthSettings().getAccount().getAccessKey();
     }
