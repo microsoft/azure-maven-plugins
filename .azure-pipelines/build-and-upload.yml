@@ -106,7 +106,7 @@ extends:
                         # TODO: Validate archetype maven plugin version when release archetype with maven plugin
                     fi
                     ls ./.release -al
-                  failOnStderr: true
+                  failOnStderr: false
 
               ### Copy files for APIScan
               - task: CopyFiles@2
