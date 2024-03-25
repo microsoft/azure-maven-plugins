@@ -345,8 +345,7 @@ public class FunctionAppDeploymentSlotDraft extends FunctionAppDeploymentSlot
             final SiteConfigResourceInner configuration = webApps.getConfiguration(slot.resourceGroupName(), name);
             if (!Objects.equals(flexConfiguration.getMaximumInstances(), configuration.functionAppScaleLimit()) ||
                 !Objects.equals(flexConfiguration.getAlwaysReadyInstances(), configuration.minimumElasticInstanceCount())) {
-                configuration.withFunctionAppScaleLimit(flexConfiguration.getMaximumInstances())
-                    .withMinimumElasticInstanceCount(flexConfiguration.getAlwaysReadyInstances());
+                configuration.withFunctionAppScaleLimit(flexConfiguration.getMaximumInstances());
                 webApps.updateConfiguration(slot.resourceGroupName(), name, configuration);
             }
         }

@@ -190,21 +190,6 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter(property = "functions.artifact")
     protected String artifactPath;
 
-    @JsonProperty
-    @Getter
-    @Parameter
-    protected Integer alwaysReadyInstances;
-
-    @JsonProperty
-    @Getter
-    @Parameter
-    protected Integer instanceSize;
-
-    @JsonProperty
-    @Getter
-    @Parameter
-    protected Integer maximumInstances;
-
     /**
      * Name of the storage account. It will be created if it doesn't exist.
      */
@@ -244,9 +229,6 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Getter
     @Parameter
     protected Integer maxReplicas;
-
-    @Getter
-    protected final ConfigParser parser = new ConfigParser(this);
 
     //endregion
 

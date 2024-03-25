@@ -72,7 +72,8 @@ public class DeployFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
 
     @Override
     public FunctionAppBase<?, ?, ?> doExecute() {
-        if (Objects.requireNonNull(target.getRuntime()).isDocker()) {
+        final Boolean isDockerRuntime = Optional.ofNullable(target.getRuntime()).map(Runtime::isDocker).orElse(false);
+        if (isDockerRuntime) {
             messager.info(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE);
             return target;
         }

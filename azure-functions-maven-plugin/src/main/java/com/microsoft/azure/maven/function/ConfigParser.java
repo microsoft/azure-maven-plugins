@@ -13,8 +13,8 @@ import com.microsoft.azure.toolkit.lib.appservice.model.ContainerAppFunctionConf
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.appservice.model.StorageAuthenticationMethod;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.RuntimeConfiguration;
@@ -23,13 +23,13 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Optional;
 
 public class ConfigParser {
-    private final AbstractFunctionMojo mojo;
+    private final DeployMojo mojo;
 
-    public ConfigParser(AbstractFunctionMojo mojo) {
+    public ConfigParser(DeployMojo mojo) {
         this.mojo = mojo;
     }
 
-    public FunctionAppConfig parseConfig() throws AzureExecutionException {
+    public FunctionAppConfig parseConfig() {
         return (FunctionAppConfig) new FunctionAppConfig()
                 .flexConsumptionConfiguration(getFlexConsumptionConfiguration())
                 .disableAppInsights(mojo.isDisableAppInsights())
@@ -64,7 +64,14 @@ public class ConfigParser {
         return FlexConsumptionConfiguration.builder()
             .alwaysReadyInstances(mojo.getAlwaysReadyInstances())
             .instanceSize(mojo.getInstanceSize())
-            .maximumInstances(mojo.getMaximumInstances()).build();
+            .maximumInstances(mojo.getMaximumInstances())
+            .deploymentAccount(mojo.getDeploymentStorageAccount())
+            .deploymentResourceGroup(mojo.getDeploymentStorageResourceGroup())
+            .deploymentContainer(mojo.getDeploymentStorageContainer())
+            .authenticationMethod(StorageAuthenticationMethod.fromString(mojo.getStorageAuthenticationMethod()))
+            .userAssignedIdentityResourceId(mojo.getUserAssignedIdentityResourceId())
+            .storageAccountConnectionString(mojo.getStorageAccountConnectionString())
+            .build();
     }
 
     public AppServicePlan getServicePlan() {
@@ -75,7 +82,7 @@ public class ConfigParser {
                 Azure.az(AzureAppService.class).plans(subscriptionId).get(servicePlan, servicePlanGroup);
     }
 
-    public RuntimeConfig getRuntimeConfig() throws AzureExecutionException {
+    public RuntimeConfig getRuntimeConfig() {
         final RuntimeConfiguration runtime = mojo.getRuntimeConfiguration();
         if (runtime == null) {
             return null;

@@ -6,6 +6,7 @@
 package com.microsoft.azure.maven.appservice;
 
 import com.google.common.base.Preconditions;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.legacy.docker.IDockerCredentialProvider;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 
@@ -30,14 +31,14 @@ public class MavenDockerCredentialProvider implements IDockerCredentialProvider 
         return new MavenDockerCredentialProvider(settings, serverId);
     }
 
-    public String getUsername() throws AzureExecutionException {
+    public String getUsername() {
         if (server == null) {
             initializeServer();
         }
         return server != null ? server.getUsername() : null;
     }
 
-    public String getPassword() throws AzureExecutionException {
+    public String getPassword() {
         if (server == null) {
             initializeServer();
         }
@@ -50,11 +51,11 @@ public class MavenDockerCredentialProvider implements IDockerCredentialProvider 
         }
     }
 
-    private void initializeServer() throws AzureExecutionException {
+    private void initializeServer() {
         if (StringUtils.isNotBlank(serverId)) {
             server = settings.getServer(serverId);
             if (server == null) {
-                throw new AzureExecutionException(String.format("Server not found in settings.xml. ServerId=%s", serverId));
+                throw new AzureToolkitRuntimeException(String.format("Server not found in settings.xml. ServerId=%s", serverId));
             }
         }
     }

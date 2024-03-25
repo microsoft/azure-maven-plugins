@@ -17,6 +17,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.BooleanUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
@@ -69,21 +70,21 @@ public class FunctionAppConfig extends AppServiceConfig {
         return this;
     }
 
-    @Nullable
+    @Nonnull
     public FunctionAppConfig appInsightsInstance(final String appInsightsInstance) {
         this.applicationInsightsConfig = Optional.ofNullable(applicationInsightsConfig).orElseGet(ApplicationInsightsConfig::new);
         this.applicationInsightsConfig.setName(appInsightsInstance);
         return this;
     }
 
-    @Nullable
+    @Nonnull
     public FunctionAppConfig appInsightsKey(final String key) {
         this.applicationInsightsConfig = Optional.ofNullable(applicationInsightsConfig).orElseGet(ApplicationInsightsConfig::new);
         this.applicationInsightsConfig.setInstrumentationKey(key);
         return this;
     }
 
-    @Nullable
+    @Nonnull
     public FunctionAppConfig workspaceConfig(final LogAnalyticsWorkspaceConfig workspaceConfig) {
         this.applicationInsightsConfig = Optional.ofNullable(applicationInsightsConfig).orElseGet(ApplicationInsightsConfig::new);
         this.applicationInsightsConfig.setWorkspaceConfig(workspaceConfig);

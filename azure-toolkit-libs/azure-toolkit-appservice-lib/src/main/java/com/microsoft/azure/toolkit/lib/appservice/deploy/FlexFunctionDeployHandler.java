@@ -29,7 +29,7 @@ public class FlexFunctionDeployHandler implements IFunctionDeployHandler {
     public static final int HOST_STATUS_REPEAT = 15;
     public static final String INVALID_STATUS = "Deployment was successful but the app appears to be unhealthy. Please check the app logs.";
     public static final int DEPLOYMENT_REPEAT_TIMES = 450;
-    public static final Duration DEPLOYMENT_STATUS_DELAY = Duration.ofSeconds(2);
+    public static final Duration DEPLOYMENT_STATUS_DELAY = Duration.ofMillis(500);
 
     @Override
     @Deprecated
@@ -51,12 +51,12 @@ public class FlexFunctionDeployHandler implements IFunctionDeployHandler {
     }
 
     private void checkFlexAppAfterDeployment(@Nonnull final FunctionAppBase<?, ?, ?> functionAppBase) throws InterruptedException {
+        AzureMessager.getMessager().info("Waiting for sync triggers, it may take some moments...");
+        Thread.sleep(60 * 1000);
         final AzureFunctionsAdminClient adminClient = functionAppBase.getAdminClient();
         if (Objects.isNull(adminClient)) {
             return;
         }
-        AzureMessager.getMessager().info("Waiting for sync triggers, it may take some moments...");
-        Thread.sleep(60 * 1000);
         AzureMessager.getMessager().info("Checking the health of the function app...");
         final Boolean result = adminClient.getHostStatus(HOST_STATUS_DELAY, HOST_STATUS_REPEAT);
         if (BooleanUtils.isNotTrue(result)) {

@@ -20,11 +20,13 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeployment
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlotDraft;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDraft;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppDockerRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppLinuxRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppWindowsRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -36,12 +38,15 @@ import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
 import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
 import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironmentDraft;
 import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironmentModule;
+import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
 import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccountDraft;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccountModule;
+import com.microsoft.azure.toolkit.lib.storage.blob.BlobContainer;
+import com.microsoft.azure.toolkit.lib.storage.blob.BlobContainerDraft;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
 import org.apache.commons.collections4.MapUtils;
@@ -56,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 import java.util.function.Consumer;
 
 public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
@@ -67,13 +73,13 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
     private static final String FUNCTIONS_WORKER_RUNTIME_VALUE = "java";
     private static final String SET_FUNCTIONS_WORKER_RUNTIME = "Set function worker runtime to java.";
     private static final String CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING = "App setting `FUNCTIONS_WORKER_RUNTIME` doesn't " +
-            "meet the requirement of Azure Java Functions, the value should be `java`.";
+        "meet the requirement of Azure Java Functions, the value should be `java`.";
     private static final String FUNCTIONS_EXTENSION_VERSION_NAME = "FUNCTIONS_EXTENSION_VERSION";
     private static final String FUNCTIONS_EXTENSION_VERSION_VALUE = "~4";
     private static final String SET_FUNCTIONS_EXTENSION_VERSION = "Functions extension version " +
-            "isn't configured, setting up the default value.";
+        "isn't configured, setting up the default value.";
     private static final String FUNCTION_APP_NOT_EXIST_FOR_SLOT = "The Function App specified in pom.xml does not exist. " +
-            "Please make sure the Function App name is correct.";
+        "Please make sure the Function App name is correct.";
 
     public static final String FLEX_CONSUMPTION_SLOT_NOT_SUPPORT = "Deployment slot is not supported for function app with consumption plan.";
 
@@ -83,6 +89,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
     private ResourceGroup resourceGroup;
     private AppServicePlan appServicePlan;
     private StorageAccount storageAccount;
+    private StorageAccount deploymentStorageAccount;
+    private BlobContainer deploymentContainer;
     private ContainerAppsEnvironment environment;
     private String instrumentationKey;
     private ApplicationInsight applicationInsight;
@@ -100,7 +108,9 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
         registerSubTask(getResourceGroupTask(), result -> this.resourceGroup = result);
         if (appDraft.isDraftForCreating()) {
             // create new storage account when create function app
-            registerSubTask(getStorageAccountTask(), result -> this.storageAccount = result);
+            final String storageAccountName = StringUtils.firstNonBlank(functionAppConfig.storageAccountName(), getDefaultStorageAccountName(functionAppConfig.appName()));
+            final String storageResourceGroup = StringUtils.firstNonBlank(functionAppConfig.storageAccountResourceGroup(), functionAppConfig.resourceGroup());
+            registerSubTask(getStorageAccountTask(storageAccountName, storageResourceGroup), result -> this.storageAccount = result);
         }
         // get/create AI instances only if user didn't specify AI connection string in app settings
         final boolean isInstrumentKeyConfigured = MapUtils.isNotEmpty(functionAppConfig.appSettings()) &&
@@ -121,6 +131,11 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
         } else {
             registerSubTask(getServicePlanTask(), result -> this.appServicePlan = result);
         }
+        if (isFlexConsumptionFunctionApp(appDraft)) {
+            // create new storage account when create function app
+            registerSubTask(getDeploymentStorageAccount(), result -> this.deploymentStorageAccount = result);
+            registerSubTask(getDeploymentStorageContainer(), result -> this.deploymentContainer = result);
+        }
         if (StringUtils.isEmpty(functionAppConfig.deploymentSlotName())) {
             final AzureTask<FunctionApp> functionTask = appDraft.exists() ? getUpdateFunctionAppTask(appDraft) : getCreateFunctionAppTask(appDraft);
             registerSubTask(functionTask, result -> this.functionApp = result);
@@ -130,6 +145,50 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
                 getUpdateFunctionSlotTask(slotDraft) : getCreateFunctionSlotTask(slotDraft);
             registerSubTask(slotTask, result -> this.functionApp = result);
         }
+    }
+
+    private AzureTask<BlobContainer> getDeploymentStorageContainer() {
+        return new AzureTask<>(() -> {
+            final FlexConsumptionConfiguration flexConfiguration = functionAppConfig.flexConsumptionConfiguration();
+            final String prefix = "app-package";
+            final String appName = StringUtils.substringBefore(functionAppConfig.appName().replaceAll("[^a-zA-Z0-9]", ""), 32);
+            final String randomNum = String.valueOf(new Random().nextInt(1000000));
+            final String containerName = Optional.ofNullable(flexConfiguration).map(FlexConsumptionConfiguration::getDeploymentContainer)
+                .orElseGet(() -> prefix + "-" + appName + "-" + randomNum);
+            final BlobContainer container = deploymentStorageAccount.getBlobContainerModule().getOrDraft(containerName, functionAppConfig.resourceGroup());
+            if (container.isDraftForCreating()) {
+                ((BlobContainerDraft) container).commit();
+            }
+            return container;
+        });
+    }
+
+    private AzureTask<StorageAccount> getDeploymentStorageAccount() {
+        final FlexConsumptionConfiguration flexConsumptionConfiguration = functionAppConfig.flexConsumptionConfiguration();
+        final String accountName = Optional.ofNullable(flexConsumptionConfiguration)
+            .map(FlexConsumptionConfiguration::getDeploymentAccount).orElse(null);
+        final String resourceGroupName = Optional.ofNullable(flexConsumptionConfiguration)
+            .map(FlexConsumptionConfiguration::getDeploymentResourceGroup).orElse(functionAppConfig.resourceGroup());
+        if (StringUtils.isBlank(accountName)) {
+            return new AzureTask<>(() -> storageAccount);
+        }
+        final ResourceGroup resourceGroup = Azure.az(AzureResources.class).groups(functionAppConfig.subscriptionId())
+            .getOrDraft(resourceGroupName, resourceGroupName);
+        if (!resourceGroup.exists()) {
+            final Region region = getNonStageRegion(functionAppConfig.region());
+            registerSubTask(new CreateResourceGroupTask(functionAppConfig.subscriptionId(), resourceGroupName, region), null);
+        }
+        return getStorageAccountTask(accountName, resourceGroupName);
+    }
+
+    private boolean isFlexConsumptionFunctionApp(final FunctionAppDraft appDraft) {
+        if (appDraft.isDraftForCreating()) {
+            return Optional.ofNullable(functionAppConfig.getPricingTier()).map(PricingTier::isFlexConsumption).orElse(false);
+        }
+        return Optional.ofNullable(appDraft.getAppServicePlan())
+            .map(AppServicePlan::getPricingTier) // get pricing tier of the app service plan
+            .map(PricingTier::isFlexConsumption)
+            .orElse(false);
     }
 
     private AzureTask<ContainerAppsEnvironment> getContainerAppEnvironmentTask() {
@@ -152,10 +211,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
         });
     }
 
-    private AzureTask<StorageAccount> getStorageAccountTask() {
+    private AzureTask<StorageAccount> getStorageAccountTask(final String storageAccountName, final String storageResourceGroup) {
         return new AzureTask<>(() -> {
-            final String storageAccountName = StringUtils.firstNonBlank(functionAppConfig.storageAccountName(), getDefaultStorageAccountName(functionAppConfig.appName()));
-            final String storageResourceGroup = StringUtils.firstNonBlank(functionAppConfig.storageAccountResourceGroup(), functionAppConfig.resourceGroup());
             final StorageAccountModule accounts = Azure.az(AzureStorageAccount.class).accounts(functionAppConfig.subscriptionId());
             final StorageAccount existingAccount = accounts.get(storageAccountName, storageResourceGroup);
             if (existingAccount != null && existingAccount.exists()) {
@@ -211,6 +268,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
             draft.setEnableDistributedTracing(functionAppConfig.enableDistributedTracing());
             draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
+            draft.setDeploymentAccount(deploymentStorageAccount);
+            draft.setDeploymentContainer(deploymentContainer);
             draft.setStorageAccount(storageAccount);
             draft.setEnvironment(environment);
             draft.setContainerConfiguration(functionAppConfig.containerConfiguration());
@@ -262,6 +321,8 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
             draft.removeAppSettings(functionAppConfig.appSettingsToRemove());
             draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
+            draft.setDeploymentAccount(this.deploymentStorageAccount);
+            draft.setDeploymentContainer(this.deploymentContainer);
             draft.setEnableDistributedTracing(functionAppConfig.enableDistributedTracing());
             draft.setStorageAccount(storageAccount);
             return draft.updateIfExist();
@@ -320,7 +381,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             try {
                 final String name = StringUtils.firstNonEmpty(functionAppConfig.appInsightsInstance(), functionAppConfig.appName());
                 return new GetOrCreateApplicationInsightsTask(functionAppConfig.subscriptionId(),
-                        functionAppConfig.resourceGroup(), getNonStageRegion(functionAppConfig.region()), name, functionAppConfig.workspaceConfig()).getBody().call();
+                    functionAppConfig.resourceGroup(), getNonStageRegion(functionAppConfig.region()), name, functionAppConfig.workspaceConfig()).getBody().call();
             } catch (final Throwable e) {
                 final String errorMessage = Optional.ofNullable(ExceptionUtils.getRootCause(e)).orElse(e).getMessage();
                 AzureMessager.getMessager().warning(String.format(APPLICATION_INSIGHTS_CREATE_FAILED, errorMessage));
@@ -330,7 +391,10 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
     }
 
     private CreateResourceGroupTask getResourceGroupTask() {
-        return new CreateResourceGroupTask(functionAppConfig.subscriptionId(), functionAppConfig.resourceGroup(), functionAppConfig.region());
+        final Region region = functionAppConfig.region();
+        final Region resourceGroupRegion = StringUtils.endsWith(region.getAbbreviation(), "(stage)") ?
+            Region.fromName(StringUtils.removeIgnoreCase(region.getName(), "(stage)")) : region;
+        return new CreateResourceGroupTask(functionAppConfig.subscriptionId(), functionAppConfig.resourceGroup(), resourceGroupRegion);
     }
 
     private AzureTask<AppServicePlan> getServicePlanTask() {
@@ -377,12 +441,12 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
     private DockerConfiguration getDockerConfiguration(RuntimeConfig runtime) {
         if (OperatingSystem.DOCKER == runtime.os()) {
             return DockerConfiguration.builder()
-                    .userName(runtime.username())
-                    .password(runtime.password())
-                    .registryUrl(runtime.registryUrl())
-                    .image(runtime.image())
-                    .startUpCommand(runtime.startUpCommand())
-                    .build();
+                .userName(runtime.username())
+                .password(runtime.password())
+                .registryUrl(runtime.registryUrl())
+                .image(runtime.image())
+                .startUpCommand(runtime.startUpCommand())
+                .build();
         }
         return null;
     }

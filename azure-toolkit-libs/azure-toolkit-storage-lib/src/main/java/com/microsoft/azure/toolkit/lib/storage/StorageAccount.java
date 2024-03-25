@@ -118,6 +118,22 @@ public class StorageAccount extends AbstractEmulatableAzResource<StorageAccount,
         return Objects.requireNonNull(remote.getKeys().get(0).value());
     }
 
+    public String getBlobEndpoint() {
+        return remoteOptional().map(remote -> remote.endPoints().primary().blob()).orElse(null);
+    }
+
+    public String getQueueEndpoint() {
+        return remoteOptional().map(remote -> remote.endPoints().primary().queue()).orElse(null);
+    }
+
+    public String getFileEndpoint() {
+        return remoteOptional().map(remote -> remote.endPoints().primary().file()).orElse(null);
+    }
+
+    public String getTableEndpoint() {
+        return remoteOptional().map(remote -> remote.endPoints().primary().table()).orElse(null);
+    }
+
     @Nullable
     public Region getRegion() {
         return remoteOptional().map(remote -> Region.fromName(remote.regionName())).orElse(null);

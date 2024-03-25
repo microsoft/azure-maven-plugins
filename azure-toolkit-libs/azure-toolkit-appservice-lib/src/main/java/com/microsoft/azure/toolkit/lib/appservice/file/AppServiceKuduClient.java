@@ -280,7 +280,7 @@ public class AppServiceKuduClient implements IFileClient, IProcessClient {
         Mono<Response<JsonNode>> getDeploymentsLog(@HostParam("$host") String host);
 
         @Headers({"Content-Type: application/zip"})
-        @Post("api/deploy/zip?Deployer={tool}")
+        @Post("api/publish?Deployer={tool}")
         Mono<Void> flexZipDeploy(@HostParam("$host") String host, @BodyParam("application/octet-stream") Flux<ByteBuffer> zipFile,
                                  @HeaderParam("content-length") long size, @PathParam("tool") String tool);
 
