@@ -26,8 +26,8 @@ public abstract class AbstractEmulatableAzResource <T extends AbstractEmulatable
         super(origin);
     }
 
-    protected boolean isAuthRequired() {
-        return !isEmulatorResource();
+    public boolean isAuthRequired() {
+        return !isEmulatorResource() && super.isAuthRequired();
     }
 
     @Override

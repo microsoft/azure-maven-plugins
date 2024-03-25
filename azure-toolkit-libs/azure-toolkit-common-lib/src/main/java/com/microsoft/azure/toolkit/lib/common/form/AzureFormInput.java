@@ -81,12 +81,13 @@ public interface AzureFormInput<T> extends DataStore {
     default boolean fireValueChangedEvent(T val) {
         final T value = this.get(FIELD_VALUE);
         final boolean changed = !Objects.equals(val, value);
-        if (changed || AzureValidationInfo.Type.PENDING.equals(this.getValidationInfo().getType())) {
+        final AzureValidationInfo info = this.getValidationInfo();
+        if (changed || (Objects.nonNull(info) && AzureValidationInfo.Type.PENDING.equals(info.getType()))) {
             this.set(FIELD_VALUE, val);
             this.getValueChangedListeners().forEach(l -> l.accept(val, value));
         } else {
             // reset input component extension, see AzureTextInput#onDocumentChanged
-            this.setValidationInfo(this.getValidationInfo());
+            this.setValidationInfo(info);
         }
         return changed;
     }
@@ -250,6 +251,7 @@ public interface AzureFormInput<T> extends DataStore {
     /**
      * @return last saved validation info
      */
+    @Nullable
     default AzureValidationInfo getValidationInfo() {
         synchronized (this) {
             return this.get(FIELD_VALIDATION_INFO);

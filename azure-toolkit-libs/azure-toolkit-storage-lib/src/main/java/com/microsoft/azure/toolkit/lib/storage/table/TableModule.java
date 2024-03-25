@@ -14,7 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscriptio
 import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.IStorageAccount;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -23,12 +23,12 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public class TableModule extends AbstractEmulatableAzResourceModule<Table, StorageAccount, TableClient> {
+public class TableModule extends AbstractEmulatableAzResourceModule<Table, IStorageAccount, TableClient> {
 
     public static final String NAME = "Azure.Table";
     private TableServiceClient client;
 
-    public TableModule(@Nonnull StorageAccount parent) {
+    public TableModule(@Nonnull IStorageAccount parent) {
         super(NAME, parent);
     }
 

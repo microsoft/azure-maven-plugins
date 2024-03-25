@@ -14,7 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscriptio
 import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.IStorageAccount;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -23,12 +23,12 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public class ShareModule extends AbstractEmulatableAzResourceModule<Share, StorageAccount, ShareClient> {
+public class ShareModule extends AbstractEmulatableAzResourceModule<Share, IStorageAccount, ShareClient> {
 
     public static final String NAME = "Azure.FileShare";
     private ShareServiceClient client;
 
-    public ShareModule(@Nonnull StorageAccount parent) {
+    public ShareModule(@Nonnull IStorageAccount parent) {
         super(NAME, parent);
     }
 

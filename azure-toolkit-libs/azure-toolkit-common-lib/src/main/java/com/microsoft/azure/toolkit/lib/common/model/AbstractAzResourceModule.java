@@ -542,7 +542,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     protected Iterator<? extends ContinuablePage<String, R>> loadResourcePagesFromAzure() {
         log.debug("[{}]:loadPagedResourcesFromAzure()", this.getName());
         final Object client = this.getClient();
-        if (!this.parent.exists()) {
+        if (!this.parent.exists() || Objects.isNull(client)) {
             return Collections.emptyIterator();
         } else if (client instanceof SupportsListing) {
             log.debug("[{}]:loadPagedResourcesFromAzure->client.list()", this.name);
@@ -619,7 +619,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
      */
     @Nullable
     protected Object getClient() {
-        throw new AzureToolkitRuntimeException("not implemented");
+        return null;
     }
 
     @Override
@@ -653,12 +653,16 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
         return Azure.az().config().getPageSize();
     }
 
-    protected boolean isAuthRequiredForListing() {
-        return true;
+    public boolean isAuthRequiredForCreating() {
+        return Character.isLetterOrDigit(this.getSubscriptionId().trim().charAt(0));
+    }
+
+    public boolean isAuthRequiredForListing() {
+        return Character.isLetterOrDigit(this.getSubscriptionId().trim().charAt(0));
     }
 
     protected boolean isAuthRequiredForResource(@Nonnull String resourceId) {
-        return !StringUtils.equalsAnyIgnoreCase(ResourceId.fromString(resourceId).subscriptionId(), Subscription.NONE.getId());
+        return Character.isLetterOrDigit(ResourceId.fromString(resourceId).subscriptionId().charAt(0));
     }
 
     public String getServiceNameForTelemetry() {
