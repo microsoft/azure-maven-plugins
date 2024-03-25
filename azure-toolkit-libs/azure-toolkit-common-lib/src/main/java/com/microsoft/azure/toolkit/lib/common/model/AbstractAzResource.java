@@ -301,8 +301,10 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         final String rgName = this.getResourceGroupName();
         final String sid = this.getSubscriptionId();
         final boolean isSubscriptionSet = StringUtils.isNotBlank(sid) &&
+            Character.isLetterOrDigit(sid.trim().charAt(0))&&
             !StringUtils.equalsAnyIgnoreCase(sid, "<none>", NONE.getName());
         final boolean isResourceGroupSet = StringUtils.isNotBlank(rgName) &&
+            !rgName.trim().startsWith("<")&&
             !StringUtils.equalsAnyIgnoreCase(rgName, "<none>", NONE.getName(), RESOURCE_GROUP_PLACEHOLDER);
         if (!isResourceGroupSet || !isSubscriptionSet) {
             return null;
@@ -330,8 +332,8 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         return this instanceof Draft && Objects.nonNull(((Draft<?, ?>) this).getOrigin());
     }
 
-    protected boolean isAuthRequired() {
-        return true;
+    public boolean isAuthRequired() {
+        return Character.isLetterOrDigit(this.getSubscriptionId().trim().charAt(0));
     }
 
     public static boolean is404(Throwable t) {

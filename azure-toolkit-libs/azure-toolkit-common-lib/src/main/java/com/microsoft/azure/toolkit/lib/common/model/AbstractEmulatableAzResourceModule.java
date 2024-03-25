@@ -14,8 +14,12 @@ public abstract class AbstractEmulatableAzResourceModule<T extends AbstractEmula
     }
 
     @Override
-    protected boolean isAuthRequiredForListing() {
-        return !isEmulatorResource();
+    public boolean isAuthRequiredForListing() {
+        return !isEmulatorResource() && super.isAuthRequiredForListing();
+    }
+
+    public boolean isAuthRequiredForCreating() {
+        return !isEmulatorResource() && super.isAuthRequiredForListing();
     }
 
     @Override

@@ -21,6 +21,11 @@ public interface AzService {
     }
 
     @Nullable
+    default <E> E getOrInitByConnectionString(@Nonnull String connectionString) {
+        return null;
+    }
+
+    @Nullable
     default <E> E getOrInitById(@Nonnull String id) {
         throw new AzureToolkitRuntimeException("not supported");
     }

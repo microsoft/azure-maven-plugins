@@ -93,7 +93,7 @@ public interface AzResource extends Refreshable, AzComponent {
         private static final HashSet<String> failedStatus = Sets.newHashSet("failed", "error", "unhealthy");
         private static final HashSet<String> writingStatus = Sets.newHashSet("writing", "pending", "processing", "updating",
             "starting", "stopping", "activating", "deactivating", "restarting", "scaling", "deprovisioning", "provisioning", "deploying");
-        private static final HashSet<String> readingStatus = Sets.newHashSet("reading", "loading", "refreshing");
+        private static final HashSet<String> readingStatus = Sets.newHashSet("reading", "loading", "refreshing", "connecting");
         private static final HashSet<String> deletingStatus = Sets.newHashSet("deleting");
         private static final HashSet<String> deletedStatus = Sets.newHashSet("deleted", "removed", "disconnected");
 

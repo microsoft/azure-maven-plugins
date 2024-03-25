@@ -14,7 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscriptio
 import com.microsoft.azure.toolkit.lib.common.model.AbstractEmulatableAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.IStorageAccount;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -22,12 +22,12 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 
-public class BlobContainerModule extends AbstractEmulatableAzResourceModule<BlobContainer, StorageAccount, BlobContainerClient> {
+public class BlobContainerModule extends AbstractEmulatableAzResourceModule<BlobContainer, IStorageAccount, BlobContainerClient> {
 
     public static final String NAME = "Azure.BlobContainer";
     private BlobServiceClient client;
 
-    public BlobContainerModule(@Nonnull StorageAccount parent) {
+    public BlobContainerModule(@Nonnull IStorageAccount parent) {
         super(NAME, parent);
     }
 

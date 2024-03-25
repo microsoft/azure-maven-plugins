@@ -114,6 +114,24 @@ public class Azure {
         return result;
     }
 
+    @Nullable
+    @AzureOperation(name = "internal/$resource.get_by_connectionString")
+    public AbstractAzResource<?, ?, ?> getOrInitByIdAndConnectionString(String id, String connectionString) {
+        final ResourceId resourceId = ResourceId.fromString(id);
+        final String provider = Optional.ofNullable(resourceId.providerNamespace()).orElse("Microsoft.Resources");
+        final List<AzService> services = getServices(provider);
+        AbstractAzResource<?, ?, ?> result;
+        for (AzService service : services) {
+            if (service instanceof AbstractAzService) {
+                result = service.getOrInitByConnectionString(connectionString);
+                if (Objects.nonNull(result)) {
+                    return result;
+                }
+            }
+        }
+        return null;
+    }
+
     public static Azure az() {
         return defaultInstance;
     }
