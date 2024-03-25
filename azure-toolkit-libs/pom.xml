@@ -119,7 +119,7 @@
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-net.version>3.9.0</commons-net.version>
         <commons-compress.version>1.26.0</commons-compress.version>
-        <commons-configuration2.version>2.8.0</commons-configuration2.version>
+        <commons-configuration2.version>2.10.1</commons-configuration2.version>
         <dom4j.version>2.1.3</dom4j.version>
         <guava.version>32.0.1-jre</guava.version>
         <caffeine.version>2.9.3</caffeine.version>
