@@ -516,7 +516,7 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     protected void addResourceToLocalResourceGroup(@Nonnull String id, @Nonnull T resource, boolean... silent) {
         final ResourceId rId = ResourceId.fromString(id);
         final ResourceGroup resourceGroup = resource.getResourceGroup();
-        if (Objects.isNull(rId.parent()) && Objects.nonNull(resourceGroup) &&
+        if (Objects.isNull(rId.parent()) && Objects.nonNull(resourceGroup) && !this.isMocked() &&
             !(resource instanceof ResourceGroup) && !(resource instanceof ResourceDeployment)) {
             final GenericResourceModule genericResourceModule = resourceGroup.genericResources();
             final GenericResource genericResource = genericResourceModule.newResource(resource);
@@ -654,15 +654,23 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     public boolean isAuthRequiredForCreating() {
-        return Character.isLetterOrDigit(this.getSubscriptionId().trim().charAt(0));
+        return !isMocked();
     }
 
     public boolean isAuthRequiredForListing() {
-        return Character.isLetterOrDigit(this.getSubscriptionId().trim().charAt(0));
+        return !isMocked();
     }
 
     protected boolean isAuthRequiredForResource(@Nonnull String resourceId) {
-        return Character.isLetterOrDigit(ResourceId.fromString(resourceId).subscriptionId().charAt(0));
+        return !isMocked(resourceId);
+    }
+
+    public static boolean isMocked(@Nonnull String resourceId) {
+        return !Character.isLetterOrDigit(ResourceId.fromString(resourceId).subscriptionId().charAt(0));
+    }
+
+    public boolean isMocked() {
+        return !Character.isLetterOrDigit(this.getSubscriptionId().trim().charAt(0));
     }
 
     public String getServiceNameForTelemetry() {
