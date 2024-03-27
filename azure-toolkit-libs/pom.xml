@@ -78,7 +78,7 @@
 
         <azure-core.version>1.45.1</azure-core.version>
         <azure-core-management.version>1.11.9</azure-core-management.version>
-        <azure-identity.version>1.11.1</azure-identity.version>
+        <azure-identity.version>1.11.4</azure-identity.version>
         <azure-core-http-netty.version>1.13.11</azure-core-http-netty.version>
         <reactor-netty.version>1.1.13</reactor-netty.version>
         <reactor-core.version>3.6.0</reactor-core.version>
