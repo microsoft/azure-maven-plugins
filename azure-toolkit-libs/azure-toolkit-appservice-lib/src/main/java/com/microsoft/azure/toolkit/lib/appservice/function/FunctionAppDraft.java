@@ -147,8 +147,10 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         if (Objects.nonNull(environment)) {
             // container app based function app
             final ContainerAppFunctionConfiguration containerConfiguration = getContainerConfiguration();
+            final Region region = Objects.requireNonNull(getRegion(), "'region' is required to create a container based function app");
+            final String strRegion = StringUtils.endsWith(region.getAbbreviation(), "(stage)") ? region.getAbbreviation() : region.getName();
             final DefinitionStages.WithScaleRulesOrDockerContainerImage withImage = blank
-                .withRegion(Objects.requireNonNull(getRegion(), "'region' is required to create a container based function app").getAbbreviation())
+                .withRegion(strRegion)
                 .withExistingResourceGroup(getResourceGroupName())
                 .withManagedEnvironmentId(environment.getId());
             Optional.ofNullable(containerConfiguration).map(ContainerAppFunctionConfiguration::getMaxReplicas).ifPresent(withImage::withMaxReplicas);
@@ -336,7 +338,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
                 if (isFlexConsumption) {
                     final com.azure.resourcemanager.appservice.models.FunctionApp app =
                         createOrUpdateFlexConsumptionFunctionAppWithRawRequest((com.azure.resourcemanager.appservice.models.FunctionApp) update);
-                    return updateFlexFunctionAppIdentityConfiguration(app, Objects.requireNonNull(newFlexConsumptionConfiguration)) ;
+                    return updateFlexFunctionAppIdentityConfiguration(app, Objects.requireNonNull(newFlexConsumptionConfiguration));
                 } else {
                     return update.apply();
                 }
