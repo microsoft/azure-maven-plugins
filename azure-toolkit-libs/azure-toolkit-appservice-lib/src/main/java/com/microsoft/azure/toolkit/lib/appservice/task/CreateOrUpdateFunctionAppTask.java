@@ -176,7 +176,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             .getOrDraft(resourceGroupName, resourceGroupName);
         if (!resourceGroup.exists()) {
             final Region region = getNonStageRegion(functionAppConfig.region());
-            registerSubTask(new CreateResourceGroupTask(functionAppConfig.subscriptionId(), resourceGroupName, region), null);
+            registerSubTask(new CreateResourceGroupTask(functionAppConfig.subscriptionId(), resourceGroupName, region), result -> this.resourceGroup = result);
         }
         return getStorageAccountTask(accountName, resourceGroupName);
     }

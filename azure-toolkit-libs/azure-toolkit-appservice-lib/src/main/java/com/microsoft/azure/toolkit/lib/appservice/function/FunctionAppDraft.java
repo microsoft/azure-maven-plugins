@@ -132,11 +132,18 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         Optional.ofNullable(getRuntime()).map(Runtime::getOperatingSystem).ifPresent(os -> OperationContext.action().setTelemetryProperty("os", os.getValue()));
         Optional.ofNullable(getRuntime()).map(Runtime::getJavaVersionUserText).ifPresent(javaVersion -> OperationContext.action().setTelemetryProperty("javaVersion", javaVersion));
 
+        final boolean isFlexConsumption = Optional.ofNullable(getAppServicePlan())
+            .map(AppServicePlan::getPricingTier)
+            .map(PricingTier::isFlexConsumption).orElse(false);
+
         final String name = getName();
         final FunctionAppRuntime newRuntime = Objects.requireNonNull(getRuntime(), "'runtime' is required to create a Function App");
         @Nullable final AppServicePlan newPlan = getAppServicePlan();
         final ContainerAppsEnvironment environment = getEnvironment();
         final Map<String, String> newAppSettings = getAppSettings();
+        if(isFlexConsumption){
+            newAppSettings.remove("FUNCTIONS_WORKER_RUNTIME");
+        }
         final DiagnosticConfig newDiagnosticConfig = getDiagnosticConfig();
         final String funcExtVersion = Optional.ofNullable(newAppSettings).map(map -> map.get(FUNCTIONS_EXTENSION_VERSION)).orElse(null);
         final StorageAccount storageAccount = getStorageAccount();
@@ -207,9 +214,6 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
             withCreate.withAppSetting(APPLICATIONINSIGHTS_ENABLE_AGENT, "true");
         }
         final IAzureMessager messager = AzureMessager.getMessager();
-        final boolean isFlexConsumption = Optional.ofNullable(getAppServicePlan())
-            .map(AppServicePlan::getPricingTier)
-            .map(PricingTier::isFlexConsumption).orElse(false);
         messager.info(AzureString.format("Start creating Function App({0})...", name));
         com.azure.resourcemanager.appservice.models.FunctionApp functionApp = Objects.requireNonNull(this.doModify(() -> {
             if (isFlexConsumption) {
@@ -366,6 +370,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         final FunctionAppConfig flexConfig = getFlexConsumptionAppConfig();
         // clean up deprecated properties
         updateSiteConfigurations(functionApp, flexConfig);
+        siteInner.withReserved(null);
         final SerializerAdapter adapter = SerializerFactory.createDefaultManagementSerializerAdapter();
         final String originContent = adapter.serializeRaw(siteInner);
         final ObjectNode jsonNode = adapter.deserialize(originContent, ObjectNode.class, SerializerEncoding.JSON);
