@@ -23,8 +23,9 @@ import javax.annotation.Nonnull;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Subscription {
+    public static final String MOCK_SUBSCRIPTION_ID = "00000000-0000-0000-0000-000000000000";
     public static final Subscription NONE = Subscription.builder().name(AzResource.NONE.getName())
-        .id("00000000-0000-0000-0000-000000000000").tenantId("00000000-0000-0000-0000-000000000000").selected(true).build();
+        .id(MOCK_SUBSCRIPTION_ID).tenantId("00000000-0000-0000-0000-000000000000").selected(true).build();
     @Nonnull
     @JsonProperty
     @EqualsAndHashCode.Include

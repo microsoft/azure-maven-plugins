@@ -302,10 +302,9 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
         final String sid = this.getSubscriptionId();
         final boolean isSubscriptionSet = StringUtils.isNotBlank(sid) && !this.isMocked() &&
             !StringUtils.equalsAnyIgnoreCase(sid, "<none>", NONE.getName());
-        final boolean isResourceGroupSet = StringUtils.isNotBlank(rgName) &&
-            !rgName.trim().startsWith("<") &&
+        final boolean isResourceGroupSet = isSubscriptionSet && StringUtils.isNotBlank(rgName) &&
             !StringUtils.equalsAnyIgnoreCase(rgName, "<none>", NONE.getName(), RESOURCE_GROUP_PLACEHOLDER);
-        if (!isResourceGroupSet || !isSubscriptionSet) {
+        if (!isResourceGroupSet) {
             return null;
         }
         return Azure.az(AzureResources.class).groups(this.getSubscriptionId()).get(rgName, rgName);
@@ -360,6 +359,7 @@ public abstract class AbstractAzResource<T extends AbstractAzResource<T, P, R>, 
     }
 
     public boolean isMocked() {
-        return !Character.isLetterOrDigit(this.getSubscriptionId().trim().charAt(0));
+        final String subscriptionId = this.getSubscriptionId();
+        return Subscription.MOCK_SUBSCRIPTION_ID.equals(subscriptionId) || !Character.isLetterOrDigit(subscriptionId.trim().charAt(0));
     }
 }

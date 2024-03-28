@@ -666,11 +666,13 @@ public abstract class AbstractAzResourceModule<T extends AbstractAzResource<T, P
     }
 
     public static boolean isMocked(@Nonnull String resourceId) {
-        return !Character.isLetterOrDigit(ResourceId.fromString(resourceId).subscriptionId().charAt(0));
+        final String subscriptionId = ResourceId.fromString(resourceId).subscriptionId();
+        return Subscription.MOCK_SUBSCRIPTION_ID.equals(subscriptionId) || !Character.isLetterOrDigit(subscriptionId.charAt(0));
     }
 
     public boolean isMocked() {
-        return !Character.isLetterOrDigit(this.getSubscriptionId().trim().charAt(0));
+        final String subscriptionId = this.getSubscriptionId();
+        return Subscription.MOCK_SUBSCRIPTION_ID.equals(subscriptionId) || !Character.isLetterOrDigit(subscriptionId.trim().charAt(0));
     }
 
     public String getServiceNameForTelemetry() {
