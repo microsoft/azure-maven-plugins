@@ -63,6 +63,7 @@ extends:
                     BuildWebApp=$(BUILD_WEB_APP)
                     BuildSpringCloud=$(BUILD_SPRING_CLOUD)
                     BuildSpringApps=$(BUILD_SPRING_APPS)
+                    BuildContainerApps=$(BUILD_Container_APPS)
                     BuildAzureSdkPlugin=$(BUILD_AZURE_SDK_PLUGIN)
 
                     mkdir .release
@@ -93,6 +94,11 @@ extends:
                         cp ./.repository/com/microsoft/azure/azure-spring-apps-maven-plugin/*/*.jar ./.release
                         cp ./.repository/com/microsoft/azure/azure-spring-apps-maven-plugin/*/*.pom ./.release
                     fi
+
+                    if [ "$BuildContainerApps" == "true" ]; then
+                        cp ./.repository/com/microsoft/azure/azure-container-apps-maven-plugin/*/*.jar ./.release
+                        cp ./.repository/com/microsoft/azure/azure-container-apps-maven-plugin/*/*.pom ./.release
+                    fi                    
                     
                     if [ "$BuildAzureSdkPlugin" == "true" ]; then
                         cp ./.repository/com/microsoft/azure/azure-sdk-build-tool-maven-plugin/*/*.jar ./.release
