@@ -63,7 +63,7 @@ extends:
                     BuildWebApp=$(BUILD_WEB_APP)
                     BuildSpringCloud=$(BUILD_SPRING_CLOUD)
                     BuildSpringApps=$(BUILD_SPRING_APPS)
-                    BuildContainerApps=$(BUILD_Container_APPS)
+                    BuildContainerApps=$(BUILD_CONTAINER_APPS)
                     BuildAzureSdkPlugin=$(BUILD_AZURE_SDK_PLUGIN)
 
                     mkdir .release
