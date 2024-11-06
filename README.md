@@ -28,6 +28,7 @@ Maven Plugin | Maven Central Version | Build Status
 [Maven Plugin for Azure Spring Apps](https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Spring-Cloud) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-spring-apps-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-spring-apps-maven-plugin%22) |
 [Maven Plugin for Azure Container Apps](https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Container-Apps) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-container-apps-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-container-apps-maven-plugin%22) |
 
+
 ## Authentication
 
 All the Azure Maven plugins share the same authentication logic. There are 4 authentication methods by priority order:
