@@ -10,6 +10,7 @@ import com.azure.resourcemanager.appcontainers.fluent.models.ContainerAppInner;
 import com.azure.resourcemanager.appcontainers.models.Configuration;
 import com.azure.resourcemanager.appcontainers.models.Container;
 import com.azure.resourcemanager.appcontainers.models.Ingress;
+import com.azure.resourcemanager.appcontainers.models.ManagedServiceIdentity;
 import com.azure.resourcemanager.appcontainers.models.Template;
 import com.azure.resourcemanager.appcontainers.models.Volume;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
@@ -303,5 +304,10 @@ public class ContainerApp extends AbstractAzResource<ContainerApp, AzureContaine
             .filter(p -> StringUtils.equalsIgnoreCase(p.getName(), remote.workloadProfileName()))
             .findFirst().orElse(null);
         return ResourceConfiguration.builder().workloadProfile(workloadProfile).build();
+    }
+
+    @Nullable
+    public ManagedServiceIdentity getIdentity() {
+        return Optional.ofNullable(getRemote()).map(com.azure.resourcemanager.appcontainers.models.ContainerApp::identity).orElse(null);
     }
 }

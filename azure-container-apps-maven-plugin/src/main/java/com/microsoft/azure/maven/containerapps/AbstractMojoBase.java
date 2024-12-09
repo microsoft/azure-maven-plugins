@@ -62,6 +62,10 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     protected ContainerRegistryConfig registry;
 
     @Getter
+    @Parameter(property = "registryIdentity")
+    protected String registryIdentity;
+
+    @Getter
     @Parameter(property = "containers")
     protected List<AppContainerMavenConfig> containers;
 

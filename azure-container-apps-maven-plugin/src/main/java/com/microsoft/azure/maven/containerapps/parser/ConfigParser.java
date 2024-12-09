@@ -81,6 +81,9 @@ public class ConfigParser {
             buildImageConfig.setSourceBuildEnv(sourceBuildEnv);
             imageConfig.setBuildImageConfig(buildImageConfig);
         }
+        if (!StringUtils.isEmpty(mojo.getRegistryIdentity())) {
+            imageConfig.setRegistryIdentity(mojo.getRegistryIdentity());
+        }
 
         return imageConfig;
     }
