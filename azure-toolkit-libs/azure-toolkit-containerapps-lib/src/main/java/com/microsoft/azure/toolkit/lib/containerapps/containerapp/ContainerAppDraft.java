@@ -89,7 +89,6 @@ import static com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistr
 public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<ContainerApp, com.azure.resourcemanager.appcontainers.models.ContainerApp> {
     private static final String sourceDockerFilePath = "template/aca/source-dockerfile";
     private static final String artifactDockerFilePath = "template/aca/artifact-dockerfile";
-    private static final String ACR_PULL_ROLE_ASSIGNMENT_NAME = "acrpull";
     public static final String ACR_PULL_ROLE_ID = "7f951dda-4ed3-4680-a7ca-43fe172d538d";
 
     @Getter
