@@ -220,7 +220,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
                 .map(action -> action.bind(String.format("https://%s", fqdn))))
             .orElse(null);
 
-        AzureMessager.getMessager().info("To take advantage of this Java-optimized feature, please set your development stack to `Java` in the portal.", learnMore, openPortal, openApp);
+        AzureMessager.getMessager().info("To take advantage of the Java-optimized feature, please set your development stack to `Java` in the portal.", learnMore, openPortal, openApp);
     }
 
     @Nonnull
