@@ -467,11 +467,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         try {
             Identity identity = Azure.az(AzureManagedIdentity.class).getById(imageConfig.getIdentity());
             grantACRPullPermissionToIdentity(imageConfig, identity.getPrincipalId());
-            final String identityJson = String.format("{\"principalId\" : \"%s\", \"clientId\" : \"%s\"}", identity.getPrincipalId(), identity.getClientId());
-            final SerializerAdapter adapter = SerializerFactory.createDefaultManagementSerializerAdapter();
-            // todo: sync with sdk team to find a better way to create user identity object
-            final UserAssignedIdentity userAssignedIdentity = adapter.deserialize(identityJson, UserAssignedIdentity.class, SerializerEncoding.JSON);
-            return new ManagedServiceIdentity().withType(ManagedServiceIdentityType.USER_ASSIGNED).withUserAssignedIdentities(Collections.singletonMap(identity.getId(), userAssignedIdentity));
+            return new ManagedServiceIdentity().withType(ManagedServiceIdentityType.USER_ASSIGNED).withUserAssignedIdentities(Collections.singletonMap(identity.getId(), new UserAssignedIdentity()));
         } catch (Exception e) {
             throw new AzureToolkitRuntimeException("Failed to get Registry Identity.", e);
         }
