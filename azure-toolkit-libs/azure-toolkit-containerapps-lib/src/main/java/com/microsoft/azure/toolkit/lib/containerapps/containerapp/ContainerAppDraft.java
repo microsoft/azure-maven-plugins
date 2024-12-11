@@ -147,7 +147,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
             .withConfiguration(configuration)
             .withTemplate(template)
             .withWorkloadProfileName(workloadProfile)
-            .withIdentity(getManagedServiceIdentity(imageConfig))
+            .withIdentity(ensureMIAndACRPermission(imageConfig))
             .create();
         final Action<ContainerApp> updateImage = Optional.ofNullable(AzureActionManager.getInstance().getAction(ContainerApp.UPDATE_IMAGE))
             .map(action -> action.bind(this))
@@ -205,7 +205,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
             }
         }
         update.withConfiguration(configuration);
-        ManagedServiceIdentity identity = getManagedServiceIdentity(imageConfig);
+        ManagedServiceIdentity identity = ensureMIAndACRPermission(imageConfig);
         if (Objects.nonNull(identity)) {
             update.withIdentity(identity);
         }
@@ -419,7 +419,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
     private static Secret getSecret(final ImageConfig config) {
         final ContainerRegistry registry = config.getContainerRegistry();
         if (Objects.nonNull(registry)) {
-            if (StringUtils.isEmpty(config.registryIdentity)) {
+            if (StringUtils.isEmpty(config.identity)) {
                 final String password = Optional.ofNullable(registry.getPrimaryCredential()).orElseGet(registry::getSecondaryCredential);
                 final String passwordKey = Objects.equals(password, registry.getPrimaryCredential()) ? "password" : "password2";
                 final String passwordName = String.format("%s-%s", registry.getName().toLowerCase(), passwordKey);
@@ -433,27 +433,29 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
     private static RegistryCredentials getRegistryCredential(final ImageConfig config) {
         final ContainerRegistry registry = config.getContainerRegistry();
         if (Objects.nonNull(registry)) {
-            if (StringUtils.isEmpty(config.registryIdentity)) {
+            if (StringUtils.isEmpty(config.identity)) {
                 final String username = registry.getUserName();
                 final String password = Optional.ofNullable(registry.getPrimaryCredential()).orElseGet(registry::getSecondaryCredential);
                 final String passwordKey = Objects.equals(password, registry.getPrimaryCredential()) ? "password" : "password2";
                 final String passwordName = String.format("%s-%s", registry.getName().toLowerCase(), passwordKey);
                 return new RegistryCredentials().withServer(registry.getLoginServerUrl()).withUsername(username).withPasswordSecretRef(passwordName);
-            } else if (StringUtils.equalsIgnoreCase(config.registryIdentity, "system")) {
+            } else if (StringUtils.equalsIgnoreCase(config.identity, "system")) {
                 return new RegistryCredentials().withServer(registry.getLoginServerUrl()).withIdentity("system");
             } else {
-                return new RegistryCredentials().withServer(registry.getLoginServerUrl()).withIdentity(config.registryIdentity);
+                return new RegistryCredentials().withServer(registry.getLoginServerUrl()).withIdentity(config.identity);
             }
         }
         return null;
     }
 
+    // Only user assigned identity will be returned, and it will be added to the container app.
+    // System assigned identity should be enabled before using it to pull acr image. So no need to return it here.
     @Nullable
-    private ManagedServiceIdentity getManagedServiceIdentity(ImageConfig imageConfig) {
-        if (StringUtils.isBlank(imageConfig.getRegistryIdentity())) {
+    private ManagedServiceIdentity ensureMIAndACRPermission(ImageConfig imageConfig) {
+        if (StringUtils.isBlank(imageConfig.getIdentity())) {
             return null;
         }
-        if (StringUtils.equalsIgnoreCase(imageConfig.getRegistryIdentity(), "system")) {
+        if (StringUtils.equalsIgnoreCase(imageConfig.getIdentity(), "system")) {
             String principalId = Optional.ofNullable(this.origin)
                 .map(ContainerApp::getIdentity)
                 .filter(identity -> identity.type().equals(ManagedServiceIdentityType.SYSTEM_ASSIGNED) || identity.type().equals(ManagedServiceIdentityType.SYSTEM_ASSIGNED_USER_ASSIGNED))
@@ -463,7 +465,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
             return null;
         }
         try {
-            Identity identity = Azure.az(AzureManagedIdentity.class).getById(imageConfig.getRegistryIdentity());
+            Identity identity = Azure.az(AzureManagedIdentity.class).getById(imageConfig.getIdentity());
             grantACRPullPermissionToIdentity(imageConfig, identity.getPrincipalId());
             final String identityJson = String.format("{\"principalId\" : \"%s\", \"clientId\" : \"%s\"}", identity.getPrincipalId(), identity.getClientId());
             final SerializerAdapter adapter = SerializerFactory.createDefaultManagementSerializerAdapter();
@@ -597,7 +599,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         @Nullable
         private BuildImageConfig buildImageConfig;
         @Nullable
-        private String registryIdentity;
+        private String identity;
 
         public ImageConfig(@Nonnull String fullImageName) {
             this.fullImageName = fullImageName;
