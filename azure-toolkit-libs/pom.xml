@@ -77,18 +77,18 @@
         <maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
         <aspectj-maven-plugin.version>1.14.0</aspectj-maven-plugin.version>
 
-        <azure-core.version>1.47.0</azure-core.version>
-        <azure-core-management.version>1.12.0</azure-core-management.version>
+        <azure-core.version>1.54.1</azure-core.version>
+        <azure-core-management.version>1.15.6</azure-core-management.version>
         <azure-identity.version>1.12.2</azure-identity.version>
         <azure-core-http-netty.version>1.14.1</azure-core-http-netty.version>
         <reactor-netty.version>1.1.13</reactor-netty.version>
         <reactor-core.version>3.6.4</reactor-core.version>
         <httpcore.version>4.4.15</httpcore.version>
         <applicationinsights.version>2.6.4</applicationinsights.version>
-        <azure.resourcemanager.version>2.37.0</azure.resourcemanager.version>
+        <azure.resourcemanager.version>2.45.0</azure.resourcemanager.version>
         <azure-arm-client-runtime.version>1.7.14</azure-arm-client-runtime.version>
         <azure-resourcemanager-applicationinsights.version>1.0.0</azure-resourcemanager-applicationinsights.version>
-        <azure-resourcemanager-appcontainers.version>1.0.0-beta.7</azure-resourcemanager-appcontainers.version>
+        <azure-resourcemanager-appcontainers.version>1.0.0-beta.8</azure-resourcemanager-appcontainers.version>
         <azure-resourcemanager-mysqlflexibleserver.version>1.0.0-beta.4</azure-resourcemanager-mysqlflexibleserver.version>
         <azure-resourcemanager-postgresqlflexibleserver.version>1.0.0-beta.5</azure-resourcemanager-postgresqlflexibleserver.version>
         <azure-resourcemanager-mysql.version>1.0.2</azure-resourcemanager-mysql.version>

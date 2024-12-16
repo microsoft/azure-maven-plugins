@@ -18,6 +18,8 @@ import com.azure.resourcemanager.appcontainers.models.EnvironmentVar;
 import com.azure.resourcemanager.appcontainers.models.ManagedServiceIdentity;
 import com.azure.resourcemanager.appcontainers.models.ManagedServiceIdentityType;
 import com.azure.resourcemanager.appcontainers.models.RegistryCredentials;
+import com.azure.resourcemanager.appcontainers.models.Runtime;
+import com.azure.resourcemanager.appcontainers.models.RuntimeJava;
 import com.azure.resourcemanager.appcontainers.models.Scale;
 import com.azure.resourcemanager.appcontainers.models.Secret;
 import com.azure.resourcemanager.appcontainers.models.Template;
@@ -133,6 +135,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
         configuration.withSecrets(Optional.ofNullable(getSecret(imageConfig)).map(Collections::singletonList).orElse(Collections.emptyList()));
         configuration.withRegistries(Optional.ofNullable(getRegistryCredential(imageConfig)).map(Collections::singletonList).orElse(Collections.emptyList()));
         configuration.withIngress(Optional.ofNullable(ensureConfig().getIngressConfig()).map(IngressConfig::toIngress).orElse(null));
+        configuration.withRuntime(new Runtime().withJava(new RuntimeJava().withEnableMetrics(true)));
         final ResourceConfiguration resourceConfiguration = ensureConfig().getResourceConfiguration();
         final Template template = new Template()
             .withContainers(ImageConfig.toContainers(imageConfig, resourceConfiguration))
