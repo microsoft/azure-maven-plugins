@@ -3,17 +3,13 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.maven.springcloud.config;
+package com.microsoft.azure.maven.prompt;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jackson.JsonLoader;
-import com.microsoft.azure.maven.prompt.DefaultPrompter;
-import com.microsoft.azure.maven.prompt.IPrompter;
-import com.microsoft.azure.maven.prompt.InputValidateResult;
-import com.microsoft.azure.maven.prompt.SchemaValidator;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
-import com.microsoft.azure.maven.springcloud.TemplateUtils;
+import com.microsoft.azure.maven.utils.TemplateUtils;
 
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import lombok.extern.slf4j.Slf4j;
@@ -39,13 +35,15 @@ import java.util.function.Supplier;
 @Slf4j
 public class ConfigurationPrompter {
     private final ExpressionEvaluator expressionEvaluator;
+    private final String pluginName;
     private IPrompter prompt;
     private Map<String, Map<String, Object>> templates;
     private Map<String, Object> commonVariables;
     private SchemaValidator validator;
 
-    public ConfigurationPrompter(ExpressionEvaluator expressionEvaluator) {
+    public ConfigurationPrompter(ExpressionEvaluator expressionEvaluator, String pluginName) {
         this.expressionEvaluator = expressionEvaluator;
+        this.pluginName = pluginName;
     }
 
     public void initialize() throws IOException, InvalidConfigurationException {
@@ -55,7 +53,7 @@ public class ConfigurationPrompter {
         commonVariables = new HashMap<>();
         final Yaml yaml = new Yaml();
         final Set<String> resourceNames = new HashSet<>();
-        try (final InputStream inputStream = this.getClass().getResourceAsStream("/MessageTemplates.yaml")) {
+        try (final InputStream inputStream = this.getClass().getResourceAsStream(String.format("/MessageTemplates-%s.yaml", pluginName))) {
             final Iterable<Object> rules = yaml.loadAll(inputStream);
 
             for (final Object rule : rules) {
@@ -67,7 +65,7 @@ public class ConfigurationPrompter {
             }
         }
         for (final String resourceName : resourceNames) {
-            final ObjectNode resourceSchema = (ObjectNode) JsonLoader.fromResource("/schema/com/microsoft/azure/toolkit/" + resourceName + ".json");
+            final ObjectNode resourceSchema = (ObjectNode) JsonLoader.fromResource(String.format("/schema/com/microsoft/azure/toolkit/maven/%s/%s.json", pluginName, resourceName));
             if (!resourceSchema.has("properties")) {
                 throw new InvalidConfigurationException(String.format("Bad schema for %s: missing properties field.", resourceName));
             }

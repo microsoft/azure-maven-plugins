@@ -10,7 +10,7 @@ import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentRawConfig;
 import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
 import com.microsoft.azure.maven.springcloud.config.ClusterRawConfig;
-import com.microsoft.azure.maven.springcloud.config.ConfigurationPrompter;
+import com.microsoft.azure.maven.prompt.ConfigurationPrompter;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -157,7 +157,7 @@ public class ConfigMojo extends AbstractMojoBase {
         }
         final ExpressionEvaluator expressionEvaluator = new PluginParameterExpressionEvaluator(session, mojoExecution);
         try {
-            this.wrapper = new ConfigurationPrompter(expressionEvaluator);
+            this.wrapper = new ConfigurationPrompter(expressionEvaluator, "asa");
             this.wrapper.initialize();
             this.wrapper.putCommonVariable("project", this.project);
 

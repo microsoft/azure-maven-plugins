@@ -27,7 +27,7 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
     public static final String TELEMETRY_KEY_PLUGIN_NAME = "pluginName";
     public static final String TELEMETRY_KEY_PLUGIN_VERSION = "pluginVersion";
     public static final String TELEMETRY_KEY_JAVA_VERSION = "javaVersion";
-
+    public static final String TELEMETRY_KEY_POM_FILE_MODIFIED = "isPomFileModified";
     /**
      * Name of the resource group
      */

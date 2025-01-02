@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.maven.springcloud;
+package com.microsoft.azure.maven.utils;
 
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import groovy.lang.MissingPropertyException;

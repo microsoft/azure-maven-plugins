@@ -5,7 +5,7 @@
 package com.microsoft.azure.maven.springcloud.prompt;
 
 import com.microsoft.azure.maven.prompt.IPrompter;
-import com.microsoft.azure.maven.springcloud.config.ConfigurationPrompter;
+import com.microsoft.azure.maven.prompt.ConfigurationPrompter;
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.keyvalue.DefaultMapEntry;
@@ -46,7 +46,7 @@ public class ConfigurationPrompterTest {
     @Before
     public void setup() throws Exception {
         mockEval = mock(ExpressionEvaluator.class);
-        wrapper = new ConfigurationPrompter(mockEval);
+        wrapper = new ConfigurationPrompter(mockEval, "asa");
 
         wrapper.initialize();
         final Object prompt = FieldUtils.readField(wrapper, "prompt", true);
@@ -57,7 +57,7 @@ public class ConfigurationPrompterTest {
 
     @Test
     public void testCtor() {
-        wrapper = new ConfigurationPrompter(mockEval);
+        wrapper = new ConfigurationPrompter(mockEval, "asa");
         assertNotNull(wrapper);
     }
 

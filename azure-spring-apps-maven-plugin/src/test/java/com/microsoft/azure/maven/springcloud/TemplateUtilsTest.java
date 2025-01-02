@@ -12,9 +12,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.microsoft.azure.maven.springcloud.TemplateUtils.evalBoolean;
-import static com.microsoft.azure.maven.springcloud.TemplateUtils.evalPlainText;
-import static com.microsoft.azure.maven.springcloud.TemplateUtils.evalText;
+import static com.microsoft.azure.maven.utils.TemplateUtils.evalBoolean;
+import static com.microsoft.azure.maven.utils.TemplateUtils.evalPlainText;
+import static com.microsoft.azure.maven.utils.TemplateUtils.evalText;
 import static org.junit.Assert.assertEquals;
 
 public class TemplateUtilsTest {

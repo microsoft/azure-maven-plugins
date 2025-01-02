@@ -1,0 +1,64 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "App",
+	"description": "An app in Azure Container Apps",
+	"type": "object",
+	"properties": {
+		"appName": {
+			"description": "The app name",
+			"type": "string",
+			"pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])$",
+			"minLength": 2,
+			"maxLength": 32
+		},
+		"registryName": {
+			"description": "The registry name",
+			"type": "string",
+			"pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])$",
+			"minLength": 5,
+			"maxLength": 50
+		},
+		"deploymentType": {
+			"description": "deployment type",
+			"type": "string",
+			"default": "code",
+			"enum": [
+				"code",
+				"artifact",
+				"image"
+			]
+		},
+		"directory": {
+			"description": "The directory of the code",
+			"type": "string",
+			"default": "${project.basedir}"
+		},
+		"image": {
+			"description": "The image",
+			"type": "string",
+			"pattern": "^([a-z0-9]+[.]{0,1})+[a-z0-9]+/([a-z0-9]+[.]{0,1})+[a-z0-9]+$",
+			"default": "mcr.microsoft.com/azurespringapps/samples/hello-world:0.0.1"
+		},
+		"minReplicas": {
+			"description": "Minimum replicas",
+			"type": "integer",
+			"default": 0,
+			"minimum": 0,
+			"maximum": 1000
+		},
+		"maxReplicas": {
+			"description": "Maximum replicas",
+			"type": "integer",
+			"default": 10,
+			"minimum": 1,
+			"maximum": 1000
+		},
+		"ingressPort": {
+			"description": "Ingress port",
+			"type": "integer",
+			"default": 8080,
+			"minimum": 1,
+			"maximum": 65535
+		}
+	}
+}
