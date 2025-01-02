@@ -8,8 +8,8 @@
 			"description": "The name of your Azure Container App Environment",
 			"type": "string",
 			"pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])$",
-			"minLength": 4,
-			"maxLength": 32
+			"minLength": 2,
+			"maxLength": 60
 		},
 		"resourceGroup": {
 			"description": "Name for Azure Resource Group",

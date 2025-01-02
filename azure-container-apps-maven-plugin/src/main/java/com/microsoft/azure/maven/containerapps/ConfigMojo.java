@@ -91,7 +91,7 @@ public class ConfigMojo extends AbstractMojoBase {
             this.wrapper.initialize();
             this.wrapper.putCommonVariable("project", this.project);
 
-            // select subscription in spring apps -> config is different from other goals since it is prompted after select project.
+            // select subscription in container apps
             // set up account and select subscription here
             loginAzure();
             promptAndSelectSubscription();
@@ -142,7 +142,7 @@ public class ConfigMojo extends AbstractMojoBase {
         this.wrapper.putCommonVariable("resourceGroup", resourceGroup);
     }
 
-    private Region configureRegion() throws IOException, InvalidConfigurationException {
+    private void configureRegion() throws IOException, InvalidConfigurationException {
         final List<Region> regions = Azure.az(AzureContainerApps.class)
             .forSubscription(getSubscriptionId()).listSupportedRegions("Container App");
         assert CollectionUtils.isNotEmpty(regions) : "No valid region found for Container App.";
@@ -150,7 +150,6 @@ public class ConfigMojo extends AbstractMojoBase {
         final Region defaultRegion = regions.contains(Region.US_EAST) ? Region.US_EAST : regions.get(0);
         final Region result = this.wrapper.handleSelectOne("configure-region", regions, defaultRegion, Region::getName);
         this.region = result.getName();
-        return result;
     }
 
     private void configureAppName() throws IOException, InvalidConfigurationException {
