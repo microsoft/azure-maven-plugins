@@ -7,14 +7,14 @@
 		"appName": {
 			"description": "The app name",
 			"type": "string",
-			"pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])$",
+			"pattern": "^(?!.*--)[a-z0-9]([-a-z0-9]*[a-z0-9])$",
 			"minLength": 2,
 			"maxLength": 32
 		},
 		"registryName": {
 			"description": "The registry name",
 			"type": "string",
-			"pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])$",
+			"pattern": "^(?!.*--)[a-z0-9]([-a-z0-9]*[a-z0-9])$",
 			"minLength": 5,
 			"maxLength": 50
 		},

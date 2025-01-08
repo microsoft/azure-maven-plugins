@@ -157,7 +157,7 @@ public class ConfigMojo extends AbstractMojoBase {
         }
         final ExpressionEvaluator expressionEvaluator = new PluginParameterExpressionEvaluator(session, mojoExecution);
         try {
-            this.wrapper = new ConfigurationPrompter(expressionEvaluator, "asa");
+            this.wrapper = new ConfigurationPrompter(expressionEvaluator, "spring-apps");
             this.wrapper.initialize();
             this.wrapper.putCommonVariable("project", this.project);
 

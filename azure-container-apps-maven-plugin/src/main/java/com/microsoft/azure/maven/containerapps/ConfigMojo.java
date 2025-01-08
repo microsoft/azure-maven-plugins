@@ -87,7 +87,7 @@ public class ConfigMojo extends AbstractMojoBase {
         }
         final ExpressionEvaluator expressionEvaluator = new PluginParameterExpressionEvaluator(session, mojoExecution);
         try {
-            this.wrapper = new ConfigurationPrompter(expressionEvaluator, "aca");
+            this.wrapper = new ConfigurationPrompter(expressionEvaluator, "container-apps");
             this.wrapper.initialize();
             this.wrapper.putCommonVariable("project", this.project);
 
@@ -167,7 +167,7 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private void configureRegistry() throws IOException, InvalidConfigurationException {
-        final boolean useExistingRegistry = this.wrapper.handleConfirm("Use existing Azure Container Registry (Y/n):", false, true);
+        final boolean useExistingRegistry = this.wrapper.handleConfirm("Use existing Azure Container Registry (Y/n):", true, true);
         if (useExistingRegistry) {
             selectRegistry();
         } else {
@@ -195,7 +195,7 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private void configureIdentity() throws IOException, InvalidConfigurationException {
-        final boolean useExistingIdentity = this.wrapper.handleConfirm("Use existing User Assigned Identity (Y/n):", false, true);
+        final boolean useExistingIdentity = this.wrapper.handleConfirm("Use existing User Assigned Identity (y/N):", false, true);
         if (useExistingIdentity) {
             log.info("It may take a few minutes to list User Assigned Identities in your account, please be patient.");
             final List<Identity> identities = Azure.az(AzureManagedIdentity.class).identities();
@@ -210,21 +210,12 @@ public class ConfigMojo extends AbstractMojoBase {
 
     private void configureContainers() throws IOException, InvalidConfigurationException {
         final String deploymentType = this.wrapper.handle("configure-deployment-type", false);
-        AppContainerMavenConfig container = AppContainerMavenConfig.builder().type(deploymentType).build();
+        AppContainerMavenConfig container = new AppContainerMavenConfig();
+        container.setType(deploymentType);
         this.containers = Collections.singletonList(container);
         this.wrapper.putCommonVariable("container", container);
-        switch (container.getDeploymentType()) {
-            case CODE:
-                container.setDirectory(this.wrapper.handle("configure-code-dir", false));
-                break;
-            case ARTIFACT:
-                container.setDirectory(this.wrapper.handle("configure-artifact-dir", false));
-                break;
-            case IMAGE:
-                container.setImage(this.wrapper.handle("configure-image", false));
-                break;
-            default:
-                throw new UnsupportedOperationException("Unsupported deployment type: " + container.getDeploymentType());
+        if (container.getDeploymentType() == DeploymentType.IMAGE) {
+            container.setImage(this.wrapper.handle("configure-image", false));
         }
     }
 
@@ -241,7 +232,7 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private void configureScale() throws IOException, InvalidConfigurationException {
-        final boolean scaleEnabled = this.wrapper.handleConfirm("Configure scale (Y/n):", true, true);
+        final boolean scaleEnabled = this.wrapper.handleConfirm("Configure scale (y/N):", false, true);
         if (scaleEnabled) {
             final String minReplicas = this.wrapper.handle("configure-min-replicas", false);
             final String maxReplicas = this.wrapper.handle("configure-max-replicas", false);
@@ -263,7 +254,7 @@ public class ConfigMojo extends AbstractMojoBase {
         }
         final List<ContainerAppsEnvironment> appsEnvironments = module.list();
         this.wrapper.putCommonVariable("appsEnvironments", appsEnvironments);
-        final ContainerAppsEnvironment targetAppEnv = this.wrapper.handleSelectOne("select-ACA-env", appsEnvironments, null, AbstractAzResource::getName);
+        final ContainerAppsEnvironment targetAppEnv = this.wrapper.handleSelectOne("select-container-apps-env", appsEnvironments, null, AbstractAzResource::getName);
         if (targetAppEnv != null) {
             log.info(String.format("Using Azure Container Apps: %s", TextUtils.blue(targetAppEnv.getName())));
         }
@@ -309,7 +300,7 @@ public class ConfigMojo extends AbstractMojoBase {
             changesToConfirm.put("Ingress target port", String.valueOf(ingress.getTargetPort()));
             changesToConfirm.put("Ingress external", String.valueOf(ingress.getExternal()));
         }
-        if (Objects.nonNull(scale)) {
+        if (Objects.nonNull(scale.getMaxReplicas())) {
             changesToConfirm.put("Min replicas", String.valueOf(scale.getMinReplicas()));
             changesToConfirm.put("Max replicas", String.valueOf(scale.getMaxReplicas()));
         }
@@ -364,7 +355,7 @@ public class ConfigMojo extends AbstractMojoBase {
                 new DefaultMapEntry<>("external", ingress.getExternal())
             }));
         }
-        if (Objects.nonNull(scale)) {
+        if (Objects.nonNull(scale.getMaxReplicas())) {
             final Element scaleNode = PomUtils.getOrCreateNode(appConfigNode, "scale");
             PomUtils.updateNode(scaleNode, MapUtils.putAll(new LinkedHashMap<>(), new Map.Entry[]{
                 new DefaultMapEntry<>("minReplicas", scale.getMinReplicas()),

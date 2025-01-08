@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.config.ContainerRegistryConfig;
 import org.apache.commons.lang3.StringUtils;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
@@ -65,7 +66,19 @@ public class ConfigParser {
         }
         if (containers.get(0).getDeploymentType() == DeploymentType.CODE || containers.get(0).getDeploymentType() == DeploymentType.ARTIFACT) {
             ContainerAppDraft.BuildImageConfig buildImageConfig = new ContainerAppDraft.BuildImageConfig();
-            buildImageConfig.setSource(Paths.get(containers.get(0).getDirectory()));
+            Path source = null;
+            if (containers.get(0).getDirectory() == null) {
+                if (containers.get(0).getDeploymentType() == DeploymentType.CODE) {
+                    source = Paths.get(mojo.getProject().getBasedir().getAbsolutePath());
+                }
+                if (containers.get(0).getDeploymentType() == DeploymentType.ARTIFACT) {
+                    source = Paths.get(mojo.getProject().getBuild().getDirectory()).resolve(mojo.getProject().getBuild().getFinalName() + ".jar");
+                }
+            }
+            else {
+                source = Paths.get(containers.get(0).getDirectory());
+            }
+            buildImageConfig.setSource(source);
             //Check if we can generate dockerfile for this project. Currently only support spring boot project
             if (!imageConfig.sourceHasDockerFile()) {
                 if (!MavenUtils.isSpringBootProject(mojo.getProject())) {

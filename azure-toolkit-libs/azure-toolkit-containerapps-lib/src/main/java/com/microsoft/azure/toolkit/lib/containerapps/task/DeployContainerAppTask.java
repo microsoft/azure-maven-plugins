@@ -97,6 +97,9 @@ public class DeployContainerAppTask extends AzureTask<ContainerApp> {
                 config.getImageConfig().setContainerRegistry(draft.commit());
             }));
         }
+        else {
+            config.getImageConfig().setContainerRegistry(registry);
+        }
     }
 
     private void addCreateOrUpdateContainerAppTask() {
