@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -98,7 +99,12 @@ public class ConfigMojo extends AbstractMojoBase {
 
             // prompt to select existing appEnv or create a new one
             useExistingAppEnv = this.wrapper.handleConfirm("Use existing Azure Container Apps Environment in Azure (Y/n):", true, true);
-            final ContainerAppsEnvironment appEnv = useExistingAppEnv ? selectAppEnv() : configAppEnv();
+            ContainerAppsEnvironment appEnv = null;
+            if (useExistingAppEnv) {
+                appEnv = selectAppEnv();
+            } else {
+                configAppEnv();
+            }
             final boolean useExistingApp = Objects.nonNull(appEnv) &&
                 this.wrapper.handleConfirm(String.format("Use existing app in Azure Container App Environment %s (y/N):", appEnv.getName()), false, true);
             if (useExistingApp) {
@@ -109,7 +115,7 @@ public class ConfigMojo extends AbstractMojoBase {
             configCommon();
             confirmAndSave();
         } catch (IOException | InvalidConfigurationException | UnsupportedOperationException | MavenDecryptException | AzureToolkitAuthenticationException e) {
-            throw new AzureExecutionException(e.getMessage());
+            throw new AzureToolkitRuntimeException(e.getMessage());
         } finally {
             if (this.wrapper != null) {
                 try {
@@ -122,12 +128,10 @@ public class ConfigMojo extends AbstractMojoBase {
         }
     }
 
-    private ContainerAppsEnvironment configAppEnv() throws IOException, InvalidConfigurationException {
+    private void configAppEnv() throws IOException, InvalidConfigurationException {
         configureAppEnvName();
         configureResourceGroup();
         configureRegion();
-
-        return null;
     }
 
     private void configureAppEnvName() throws IOException, InvalidConfigurationException {
