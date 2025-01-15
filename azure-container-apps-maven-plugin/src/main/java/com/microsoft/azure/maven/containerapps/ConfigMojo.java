@@ -213,7 +213,9 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private void configureContainers() throws IOException, InvalidConfigurationException {
-        final String deploymentType = this.wrapper.handle("configure-deployment-type", false);
+        //final String deploymentType = this.wrapper.handle("configure-deployment-type", false);
+        List<String> deploymentTypes = Arrays.asList(DeploymentType.CODE.name(), DeploymentType.ARTIFACT.name(), DeploymentType.IMAGE.name());
+        final String deploymentType = this.wrapper.handleSelectOne("select-deployment-type", deploymentTypes, null, String::toString);
         AppContainerMavenConfig container = new AppContainerMavenConfig();
         container.setType(deploymentType);
         this.containers = Collections.singletonList(container);
@@ -300,9 +302,9 @@ public class ConfigMojo extends AbstractMojoBase {
                 changesToConfirm.put("Image", containers.get(0).getImage());
             }
         }
-        if (Objects.nonNull(ingress)) {
-            changesToConfirm.put("Ingress target port", String.valueOf(ingress.getTargetPort()));
+        if (Objects.nonNull(ingress.getExternal())) {
             changesToConfirm.put("Ingress external", String.valueOf(ingress.getExternal()));
+            changesToConfirm.put("Ingress target port", String.valueOf(ingress.getTargetPort()));
         }
         if (Objects.nonNull(scale.getMaxReplicas())) {
             changesToConfirm.put("Min replicas", String.valueOf(scale.getMinReplicas()));
@@ -352,7 +354,7 @@ public class ConfigMojo extends AbstractMojoBase {
             }
             PomUtils.updateNode(registryNode, registryMap);
         }
-        if (Objects.nonNull(ingress)) {
+        if (Objects.nonNull(ingress.getExternal())) {
             final Element ingressNode = PomUtils.getOrCreateNode(appConfigNode, "ingress");
             PomUtils.updateNode(ingressNode, MapUtils.putAll(new LinkedHashMap<>(), new Map.Entry[]{
                 new DefaultMapEntry<>("targetPort", ingress.getTargetPort()),

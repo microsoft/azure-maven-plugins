@@ -94,6 +94,15 @@ auto_select:      true
 default_index:    0
 
 ---
+id:               select-deployment-type
+promote:
+  header:         "Available deployment types:"
+  many:           "Select deployment type:"
+required:         true
+auto_select:      true
+default_index:    0
+
+---
 id:               configure-app-name
 promote:          "Input the app name (***${default_val}***):"
 resource:         App

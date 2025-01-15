@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.containerapps.model.ResourceConfiguration
 import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.config.ContainerRegistryConfig;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Path;
@@ -23,6 +24,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public class ConfigParser {
@@ -78,6 +80,9 @@ public class ConfigParser {
             else {
                 source = Paths.get(containers.get(0).getDirectory());
             }
+            if (!source.toFile().exists()) {
+                throw new AzureToolkitRuntimeException("Code/Artifact directory does not exist");
+            }
             buildImageConfig.setSource(source);
             //Check if we can generate dockerfile for this project. Currently only support spring boot project
             if (!imageConfig.sourceHasDockerFile()) {
@@ -115,13 +120,18 @@ public class ConfigParser {
     }
 
     public IngressConfig getIngressConfig(IngressMavenConfig ingressMavenConfig) {
-        if (ingressMavenConfig == null) {
+        if (Objects.isNull(ingressMavenConfig) ||
+            (Objects.isNull(ingressMavenConfig.getExternal()) && Objects.isNull(ingressMavenConfig.getTargetPort()))) {
             return null;
         }
         IngressConfig ingressConfig = new IngressConfig();
         ingressConfig.setEnableIngress(true);
-        ingressConfig.setExternal(ingressMavenConfig.getExternal());
-        ingressConfig.setTargetPort(ingressMavenConfig.getTargetPort());
+        if (Objects.nonNull(ingressMavenConfig.getExternal())) {
+            ingressConfig.setExternal(ingressMavenConfig.getExternal());
+        }
+        if (Objects.nonNull(ingressMavenConfig.getTargetPort())) {
+            ingressConfig.setTargetPort(ingressMavenConfig.getTargetPort());
+        }
         return ingressConfig;
     }
 

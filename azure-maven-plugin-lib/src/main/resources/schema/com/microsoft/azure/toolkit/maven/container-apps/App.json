@@ -14,7 +14,7 @@
 		"registryName": {
 			"description": "The registry name",
 			"type": "string",
-			"pattern": "^(?!.*--)[a-z0-9]([-a-z0-9]*[a-z0-9])$",
+			"pattern": "^[a-zA-Z0-9]{5,50}$",
 			"minLength": 5,
 			"maxLength": 50
 		},
@@ -36,7 +36,7 @@
 		"image": {
 			"description": "The image",
 			"type": "string",
-			"pattern": "^([a-z0-9]+[.]{0,1})+[a-z0-9]+/([a-z0-9]+[.]{0,1})+[a-z0-9]+$",
+			"pattern": "^(?:(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}(?::\\d+)?\\/)?[a-zA-Z0-9-]+(?:\\/[a-zA-Z0-9-]+)*(?::[a-zA-Z0-9-\\.]+)?(?:@sha256:[a-fA-F0-9]{64})?$",
 			"default": "mcr.microsoft.com/azurespringapps/samples/hello-world:0.0.1"
 		},
 		"minReplicas": {
