@@ -60,25 +60,29 @@ public class ConfigParser {
         if (containers == null || containers.isEmpty()) {
             return null;
         }
-        final String defaultImageName = String.format("%s%s/%s:%s", config.getRegistryConfig().getRegistryName(), ContainerRegistry.ACR_IMAGE_SUFFIX, mojo.getAppName(), timestamp);
-        final String fullImageName = Optional.ofNullable(containers.get(0).getImage()).orElse(defaultImageName);
-        final ContainerAppDraft.ImageConfig imageConfig = new ContainerAppDraft.ImageConfig(fullImageName);
-        if (containers.get(0).getEnvironment() != null) {
-            imageConfig.setEnvironmentVariables(containers.get(0).getEnvironment());
+        AppContainerMavenConfig container = containers.get(0);
+        if (container.getDeploymentType() == DeploymentType.IMAGE && Objects.isNull(container.getImage())) {
+            throw new AzureToolkitRuntimeException("Image is required for image type deployment");
         }
-        if (containers.get(0).getDeploymentType() == DeploymentType.CODE || containers.get(0).getDeploymentType() == DeploymentType.ARTIFACT) {
+        final String defaultImageName = String.format("%s%s/%s:%s", config.getRegistryConfig().getRegistryName(), ContainerRegistry.ACR_IMAGE_SUFFIX, mojo.getAppName(), timestamp);
+        final String fullImageName = Optional.ofNullable(container.getImage()).orElse(defaultImageName);
+        final ContainerAppDraft.ImageConfig imageConfig = new ContainerAppDraft.ImageConfig(fullImageName);
+        if (container.getEnvironment() != null) {
+            imageConfig.setEnvironmentVariables(container.getEnvironment());
+        }
+        if (container.getDeploymentType() == DeploymentType.CODE || container.getDeploymentType() == DeploymentType.ARTIFACT) {
             ContainerAppDraft.BuildImageConfig buildImageConfig = new ContainerAppDraft.BuildImageConfig();
             Path source = null;
-            if (containers.get(0).getDirectory() == null) {
-                if (containers.get(0).getDeploymentType() == DeploymentType.CODE) {
+            if (container.getDirectory() == null) {
+                if (container.getDeploymentType() == DeploymentType.CODE) {
                     source = Paths.get(mojo.getProject().getBasedir().getAbsolutePath());
                 }
-                if (containers.get(0).getDeploymentType() == DeploymentType.ARTIFACT) {
+                if (container.getDeploymentType() == DeploymentType.ARTIFACT) {
                     source = Paths.get(mojo.getProject().getBuild().getDirectory()).resolve(mojo.getProject().getBuild().getFinalName() + ".jar");
                 }
             }
             else {
-                source = Paths.get(containers.get(0).getDirectory());
+                source = Paths.get(container.getDirectory());
             }
             if (!source.toFile().exists()) {
                 throw new AzureToolkitRuntimeException("Code/Artifact directory does not exist");
@@ -110,12 +114,13 @@ public class ConfigParser {
         if (containers == null || containers.isEmpty()) {
             return null;
         }
-        if (containers.get(0).getCpu() == null && containers.get(0).getMemory() == null) {
+        AppContainerMavenConfig container = containers.get(0);
+        if (container.getCpu() == null && container.getMemory() == null) {
             return null;
         }
         final ResourceConfiguration resourceConfiguration = new ResourceConfiguration();
-        resourceConfiguration.setCpu(containers.get(0).getCpu());
-        resourceConfiguration.setMemory(containers.get(0).getMemory());
+        resourceConfiguration.setCpu(container.getCpu());
+        resourceConfiguration.setMemory(container.getMemory());
         return resourceConfiguration;
     }
 

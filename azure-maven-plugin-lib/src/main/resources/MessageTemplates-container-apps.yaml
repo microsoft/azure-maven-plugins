@@ -149,7 +149,7 @@ property:         minReplicas
 
 ---
 id:               configure-max-replicas
-promote:          "Input max replicas for apps of standard consumption plan [***${schema.minimum}***-***${schema.maximum}***] (***${schema.default}***):"
+promote:          "Input max replicas for apps [***${schema.minimum}***-***${schema.maximum}***] (***${schema.default}***):"
 resource:         App
 property:         maxReplicas
 
