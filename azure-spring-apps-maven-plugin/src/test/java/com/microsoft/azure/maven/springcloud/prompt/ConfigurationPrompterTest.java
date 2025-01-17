@@ -46,7 +46,7 @@ public class ConfigurationPrompterTest {
     @Before
     public void setup() throws Exception {
         mockEval = mock(ExpressionEvaluator.class);
-        wrapper = new ConfigurationPrompter(mockEval, "asa");
+        wrapper = new ConfigurationPrompter(mockEval, "spring-apps");
 
         wrapper.initialize();
         final Object prompt = FieldUtils.readField(wrapper, "prompt", true);
@@ -57,7 +57,7 @@ public class ConfigurationPrompterTest {
 
     @Test
     public void testCtor() {
-        wrapper = new ConfigurationPrompter(mockEval, "asa");
+        wrapper = new ConfigurationPrompter(mockEval, "spring-apps");
         assertNotNull(wrapper);
     }
 
