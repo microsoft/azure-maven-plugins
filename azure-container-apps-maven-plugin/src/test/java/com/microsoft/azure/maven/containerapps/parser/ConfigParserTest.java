@@ -2,7 +2,9 @@ package com.microsoft.azure.maven.containerapps.parser;
 
 import com.microsoft.azure.maven.containerapps.AbstractMojoBase;
 import com.microsoft.azure.maven.containerapps.config.AppContainerMavenConfig;
+import com.microsoft.azure.maven.containerapps.config.DeploymentType;
 import com.microsoft.azure.maven.containerapps.config.IngressMavenConfig;
+import com.microsoft.azure.maven.utils.MavenUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.containerapps.config.ContainerAppConfig;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
@@ -24,6 +26,7 @@ import java.util.Collections;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -129,15 +132,20 @@ public class ConfigParserTest {
 
     @Test
     public void testGetContainerAppConfigCode() {
-        AppContainerMavenConfig containerConfig = new AppContainerMavenConfig();
-        containerConfig.setDirectory(".");
-        containerConfig.setEnvironment(Collections.emptyList());
-        when(mojo.getContainers()).thenReturn(Collections.singletonList(containerConfig));
+        try (MockedStatic<MavenUtils> mavenUtilsMockedStatic = mockStatic(MavenUtils.class)) {
+            mavenUtilsMockedStatic.when(() -> MavenUtils.isSpringBootProject(any())).thenReturn(true);
 
-        ContainerAppConfig config = configParser.getContainerAppConfig();
+            AppContainerMavenConfig containerConfig = new AppContainerMavenConfig();
+            containerConfig.setType(DeploymentType.CODE.name());
+            containerConfig.setDirectory(".");
+            containerConfig.setEnvironment(Collections.emptyList());
+            when(mojo.getContainers()).thenReturn(Collections.singletonList(containerConfig));
 
-        ContainerAppDraft.ImageConfig imageConfig = config.getImageConfig();
-        assertNotNull(imageConfig);
-        assertTrue(imageConfig.getFullImageName().contains("/app-name:"));
+            ContainerAppConfig config = configParser.getContainerAppConfig();
+
+            ContainerAppDraft.ImageConfig imageConfig = config.getImageConfig();
+            assertNotNull(imageConfig);
+            assertTrue(imageConfig.getFullImageName().contains("/app-name:"));
+        }
     }
 }
