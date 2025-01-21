@@ -15,6 +15,7 @@ import com.azure.resourcemanager.appcontainers.models.Container;
 import com.azure.resourcemanager.appcontainers.models.ContainerApps;
 import com.azure.resourcemanager.appcontainers.models.ContainerResources;
 import com.azure.resourcemanager.appcontainers.models.EnvironmentVar;
+import com.azure.resourcemanager.appcontainers.models.Ingress;
 import com.azure.resourcemanager.appcontainers.models.ManagedServiceIdentity;
 import com.azure.resourcemanager.appcontainers.models.ManagedServiceIdentityType;
 import com.azure.resourcemanager.appcontainers.models.RegistryCredentials;
@@ -160,7 +161,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
             .orElse(null);
 
         AzureMessager.getMessager().success(AzureString.format("Azure Container App({0}) is successfully created.", this.getName()), browse, updateImage);
-        printSuccessMessages();
+        printSuccessMessages(result);
         return result;
     }
 
@@ -218,29 +219,35 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
             .map(action -> action.bind(this))
             .orElse(null);
         messager.success(AzureString.format("Container App({0}) is successfully updated.", getName()), browse);
-        printSuccessMessages();
+        printSuccessMessages(result);
         if (isImageModified) {
             AzureTaskManager.getInstance().runOnPooledThread(() -> this.getRevisionModule().refresh());
         }
         return result;
     }
 
-    private void printSuccessMessages() {
+    private void printSuccessMessages(com.azure.resourcemanager.appcontainers.models.ContainerApp result) {
         final Action<String> learnMore = Optional.ofNullable(AzureActionManager.getInstance().getAction(Action.OPEN_URL).withLabel("Learn More"))
             .map(action -> action.bind("https://aka.ms/azuretools-aca-stack"))
             .orElse(null);
         final Action<String> openPortal = Optional.ofNullable(AzureActionManager.getInstance().getAction(Action.OPEN_URL).withLabel("Open Portal"))
             .map(action -> action.bind(this.getPortalUrl()))
             .orElse(null);
-        final Action<String> openApp = Optional.ofNullable(this.getIngressFqdn())
+        final Action<String> openApp = Optional.ofNullable(result)
+            .map(com.azure.resourcemanager.appcontainers.models.ContainerApp::configuration)
+            .map(Configuration::ingress)
+            .map(Ingress::fqdn)
             .filter(fqdn -> !StringUtils.isEmpty(fqdn))
             .flatMap(fqdn -> Optional.ofNullable(AzureActionManager.getInstance()
                     .getAction(Action.OPEN_URL)
                     .withLabel("Open Application"))
                 .map(action -> action.bind(String.format("https://%s", fqdn))))
             .orElse(null);
+        final Action<String> openLogStream = Optional.ofNullable(AzureActionManager.getInstance().getAction(Action.OPEN_URL).withLabel("Open Log Stream"))
+            .map(action -> action.bind(String.format("%s/logstream", this.getPortalUrl())))
+            .orElse(null);
 
-        AzureMessager.getMessager().info("To take advantage of the Java-optimized feature, please set your development stack to `Java` in the portal.", learnMore, openPortal, openApp);
+        AzureMessager.getMessager().info("To take advantage of the Java-optimized feature, please set your development stack to `Java` in the portal.", learnMore, openPortal, openApp, openLogStream);
     }
 
     @Nonnull
