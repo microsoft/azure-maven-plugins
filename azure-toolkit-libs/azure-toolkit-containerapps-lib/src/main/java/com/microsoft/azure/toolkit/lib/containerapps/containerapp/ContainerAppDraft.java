@@ -247,7 +247,7 @@ public class ContainerAppDraft extends ContainerApp implements AzResource.Draft<
             .map(action -> action.bind(String.format("%s/logstream", this.getPortalUrl())))
             .orElse(null);
 
-        AzureMessager.getMessager().info("To take advantage of the Java-optimized feature, please set your development stack to `Java` in the portal.", learnMore, openPortal, openApp, openLogStream);
+        AzureMessager.getMessager().info("To take advantage of the Java-optimized feature, please refer to Java on Azure Container Apps documents.", learnMore, openPortal, openApp, openLogStream);
     }
 
     @Nonnull
