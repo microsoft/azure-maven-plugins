@@ -46,6 +46,7 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
     public static final WebAppLinuxRuntime TOMCAT10_JAVA17 = new WebAppLinuxRuntime("TOMCAT|10.0-java17", "Java 17");
     public static final WebAppLinuxRuntime TOMCAT10_JAVA11 = new WebAppLinuxRuntime("TOMCAT|10.0-java11", "Java 11");
     public static final WebAppLinuxRuntime TOMCAT10_JAVA8 = new WebAppLinuxRuntime("TOMCAT|10.0-jre8", "Java 1.8");
+    public static final WebAppLinuxRuntime TOMCAT9_JAVA21 = new WebAppLinuxRuntime("TOMCAT|9.0-java21", "Java 21");
     public static final WebAppLinuxRuntime TOMCAT9_JAVA17 = new WebAppLinuxRuntime("TOMCAT|9.0-java17", "Java 17");
     public static final WebAppLinuxRuntime TOMCAT9_JAVA11 = new WebAppLinuxRuntime("TOMCAT|9.0-java11", "Java 11");
     public static final WebAppLinuxRuntime TOMCAT9_JAVA8 = new WebAppLinuxRuntime("TOMCAT|9.0-jre8", "Java 1.8");
@@ -54,15 +55,17 @@ public class WebAppLinuxRuntime implements WebAppRuntime {
     public static final WebAppLinuxRuntime JBOSS7_JAVA17 = new WebAppLinuxRuntime("JBOSSEAP|7-java17", "Java 17");
     public static final WebAppLinuxRuntime JBOSS7_JAVA11 = new WebAppLinuxRuntime("JBOSSEAP|7-java11", "Java 11");
     public static final WebAppLinuxRuntime JBOSS7_JAVA8 = new WebAppLinuxRuntime("JBOSSEAP|7-java8", "Java 1.8");
+    public static final WebAppLinuxRuntime JBOSS8_JAVA17 = new WebAppLinuxRuntime("JBOSSEAP|8-java17", "Java 17");
+    public static final WebAppLinuxRuntime JBOSS8_JAVA11 = new WebAppLinuxRuntime("JBOSSEAP|8-java11", "Java 11");
 
     private static final AtomicReference<Boolean> loaded = new AtomicReference<>(Boolean.FALSE);
     private static final LinkedHashSet<WebAppLinuxRuntime> RUNTIMES = Sets.newLinkedHashSet(Arrays.asList(
         JAVASE_JAVA21, JAVASE_JAVA17, JAVASE_JAVA11, JAVASE_JAVA8,
         TOMCAT101_JAVA21, TOMCAT101_JAVA17, TOMCAT101_JAVA11,
         TOMCAT10_JAVA17, TOMCAT10_JAVA11, TOMCAT10_JAVA8,
-        TOMCAT9_JAVA17, TOMCAT9_JAVA11, TOMCAT9_JAVA8,
+        TOMCAT9_JAVA17, TOMCAT9_JAVA11, TOMCAT9_JAVA8, TOMCAT9_JAVA21,
         TOMCAT85_JAVA11, TOMCAT85_JAVA8,
-        JBOSS7_JAVA17, JBOSS7_JAVA11, JBOSS7_JAVA8
+        JBOSS7_JAVA17, JBOSS7_JAVA11, JBOSS7_JAVA8, JBOSS8_JAVA11, JBOSS8_JAVA17
     ));
 
     @EqualsAndHashCode.Include

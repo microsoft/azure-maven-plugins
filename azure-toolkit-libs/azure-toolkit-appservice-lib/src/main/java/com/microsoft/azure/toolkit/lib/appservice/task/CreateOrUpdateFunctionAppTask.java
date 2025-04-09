@@ -94,12 +94,11 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
     private AppServicePlan appServicePlan;
     private StorageAccount storageAccount;
     private StorageAccount deploymentStorageAccount;
-    private BlobContainer deploymentContainer;
+    private String deploymentContainerUrl;
     private ContainerAppsEnvironment environment;
     private String instrumentationKey;
     private ApplicationInsight applicationInsight;
     private FunctionAppBase<?, ?, ?> functionApp;
-
 
     public CreateOrUpdateFunctionAppTask(@Nonnull final FunctionAppConfig config) {
         this.functionAppConfig = config;
@@ -138,7 +137,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
         if (isFlexConsumptionFunctionApp(appDraft)) {
             // create new storage account when create function app
             registerSubTask(getDeploymentStorageAccount(appDraft), result -> this.deploymentStorageAccount = result);
-            registerSubTask(getDeploymentStorageContainer(appDraft), result -> this.deploymentContainer = result);
+            registerSubTask(getDeploymentStorageContainerUrl(appDraft), result -> this.deploymentContainerUrl = result);
         }
         if (StringUtils.isEmpty(functionAppConfig.deploymentSlotName())) {
             final AzureTask<FunctionApp> functionTask = appDraft.exists() ? getUpdateFunctionAppTask(appDraft) : getCreateFunctionAppTask(appDraft);
@@ -151,17 +150,23 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
         }
     }
 
-    private AzureTask<BlobContainer> getDeploymentStorageContainer(final FunctionAppDraft appDraft) {
+    private AzureTask<String> getDeploymentStorageContainerUrl(final FunctionAppDraft appDraft) {
         return new AzureTask<>(() -> {
-            final FlexConsumptionConfiguration flexConfiguration = functionAppConfig.flexConsumptionConfiguration();
-            final String containerName = Optional.ofNullable(flexConfiguration)
+            final String containerName =  Optional.ofNullable(functionAppConfig.flexConsumptionConfiguration())
                 .map(FlexConsumptionConfiguration::getDeploymentContainer)
                 .orElseGet(() -> getDeploymentContainerNameFromApp(appDraft));
-            final BlobContainer container = deploymentStorageAccount.getBlobContainerModule().getOrDraft(containerName, functionAppConfig.resourceGroup());
-            if (container.isDraftForCreating()) {
-                ((BlobContainerDraft) container).commit();
+            try {
+                final BlobContainer container = deploymentStorageAccount.getBlobContainerModule().getOrDraft(containerName, functionAppConfig.resourceGroup());
+                if (container.isDraftForCreating()) {
+                    ((BlobContainerDraft) container).commit();
+                }
+                return container.getUrl();
+            } catch (Exception e) {
+                // sometimes plugin may not have access to container of the storage account, e.g. the container disabled connection string access
+                AzureMessager.getMessager().warning(String.format("Failed to get/create deployment container %s for function app %s, " +
+                    "please make sure the container has been created successfully.", containerName, functionAppConfig.appName()));
+                return String.format("https://%s.blob.core.windows.net/%s", deploymentStorageAccount.getName(), containerName);
             }
-            return container;
         });
     }
 
@@ -299,7 +304,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.setEnableDistributedTracing(functionAppConfig.enableDistributedTracing());
             draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
             draft.setDeploymentAccount(deploymentStorageAccount);
-            draft.setDeploymentContainer(deploymentContainer);
+            draft.setDeploymentContainerUrl(this.deploymentContainerUrl);
             draft.setStorageAccount(storageAccount);
             draft.setEnvironment(environment);
             draft.setContainerConfiguration(functionAppConfig.containerConfiguration());
@@ -353,7 +358,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             draft.removeAppSettings(functionAppConfig.appSettingsToRemove());
             draft.setFlexConsumptionConfiguration(functionAppConfig.flexConsumptionConfiguration());
             draft.setDeploymentAccount(this.deploymentStorageAccount);
-            draft.setDeploymentContainer(this.deploymentContainer);
+            draft.setDeploymentContainerUrl(this.deploymentContainerUrl);
             draft.setEnableDistributedTracing(functionAppConfig.enableDistributedTracing());
             draft.setStorageAccount(storageAccount);
             draft.setContainerConfiguration(functionAppConfig.containerConfiguration());

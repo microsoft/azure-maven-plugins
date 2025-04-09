@@ -60,7 +60,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
 import com.microsoft.azure.toolkit.lib.containerapps.model.EnvironmentType;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
-import com.microsoft.azure.toolkit.lib.storage.blob.BlobContainer;
 import lombok.Data;
 import lombok.Getter;
 import org.apache.commons.codec.binary.Hex;
@@ -591,7 +590,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         final FunctionAppConfig.Storage storage = Optional.ofNullable(deployment.getStorage()).orElseGet(FunctionAppConfig.Storage::new);
         // Create FunctionsDeployment.Storage.Authentication
         Optional.ofNullable(FunctionAppConfig.Storage.Authentication.fromConfiguration(configuration)).ifPresent(storage::setAuthentication);
-        Optional.ofNullable(ensureConfig().getDeploymentContainer()).map(BlobContainer::getUrl).ifPresent(storage::setValue);
+        Optional.ofNullable(ensureConfig().getDeploymentContainerUrl()).ifPresent(storage::setValue);
         deployment.setStorage(storage);
         result.setDeployment(deployment);
         // Create FunctionsRuntime
@@ -778,8 +777,8 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         ensureConfig().setDeploymentAccount(deploymentStorageAccount);
     }
 
-    public void setDeploymentContainer(final BlobContainer deploymentContainer) {
-        ensureConfig().setDeploymentContainer(deploymentContainer);
+    public void setDeploymentContainerUrl(final String containerName) {
+        ensureConfig().setDeploymentContainerUrl(containerName);
     }
 
     public void setSkipEndOfLifeValidation(Boolean enableEOFChecking) {
@@ -809,7 +808,7 @@ public class FunctionAppDraft extends FunctionApp implements AzResource.Draft<Fu
         private DockerConfiguration dockerConfiguration = null;
         private FlexConsumptionConfiguration flexConsumptionConfiguration;
         private StorageAccount deploymentAccount = null;
-        private BlobContainer deploymentContainer = null;
+        private String deploymentContainerUrl = null;
         // validate eof of function
         private Boolean skipEndOfLifeValidation = Boolean.TRUE;
     }

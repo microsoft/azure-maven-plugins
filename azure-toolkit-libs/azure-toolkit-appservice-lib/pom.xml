@@ -5,13 +5,13 @@
     <parent>
         <artifactId>azure-toolkit-libs</artifactId>
         <groupId>com.microsoft.azure</groupId>
-        <version>0.52.0</version>
+        <version>0.52.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-appservice-lib</artifactId>
-    <version>0.52.0</version>
+    <version>0.52.1</version>
 
     <dependencies>
         <dependency>
@@ -116,6 +116,11 @@
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-toolkit-servicelinker-lib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure.functions</groupId>
+            <artifactId>azure-functions-java-sdktypes</artifactId>
+            <version>1.0.1</version>
         </dependency>
     </dependencies>
     <build>
