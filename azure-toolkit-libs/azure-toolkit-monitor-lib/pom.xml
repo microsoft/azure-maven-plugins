@@ -10,6 +10,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-monitor-lib</artifactId>
+    <name>Libs for Azure Monitor</name>
     <version>0.54.0</version>
     <dependencies>
         <dependency>

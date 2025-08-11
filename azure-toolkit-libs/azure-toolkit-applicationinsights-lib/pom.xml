@@ -11,6 +11,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-applicationinsights-lib</artifactId>
+    <name>Azure Toolkit Application Insights Library</name>
     <version>0.54.0</version>
     <dependencies>
         <dependency>

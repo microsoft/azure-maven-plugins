@@ -11,6 +11,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-servicebus-lib</artifactId>
+    <name>Libs for Azure Service Bus</name>
     <version>0.54.0</version>
     <dependencies>
         <dependency>

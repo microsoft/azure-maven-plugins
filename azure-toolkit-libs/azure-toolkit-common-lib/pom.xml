@@ -11,6 +11,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-common-lib</artifactId>
+    <name>Azure Toolkit Common Library</name>
     <version>0.54.0</version>
 
     <dependencies>
