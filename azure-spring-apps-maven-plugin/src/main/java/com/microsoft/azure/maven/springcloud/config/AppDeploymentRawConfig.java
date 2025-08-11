@@ -11,7 +11,7 @@ import lombok.Data;
 import javax.annotation.Nonnull;
 
 /**
- * The string version of <class>Deployment</class> which is used in `config` goal due to the reason that users may use
+ * The string version of `Deployment` which is used in `config` goal due to the reason that users may use
  * an expression(string) to represent a cpu(integer).
  */
 @Data

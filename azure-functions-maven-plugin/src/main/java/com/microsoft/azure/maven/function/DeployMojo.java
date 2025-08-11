@@ -124,7 +124,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     /**
      * The storage account which is used to store deployment artifacts.
-     * If not specified, will use account defined with <storageAccountName> for deployment
+     * If not specified, will use account defined with `storageAccountName` for deployment
      */
     @JsonProperty
     @Getter
