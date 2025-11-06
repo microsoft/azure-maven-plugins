@@ -12,6 +12,7 @@
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-containerregistry-lib</artifactId>
     <version>0.55.0</version>
+    <name>Azure Toolkit Container Registry Library</name>
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>

@@ -12,6 +12,7 @@
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-cognitiveservices-lib</artifactId>
     <version>0.55.0</version>
+    <name>Azure Toolkit Cognitive Services Library</name>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

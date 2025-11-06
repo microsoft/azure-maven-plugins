@@ -12,6 +12,7 @@
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-redis-lib</artifactId>
     <version>0.55.0</version>
+    <name>Azure Toolkit Redis Library</name>
 
     <dependencies>
 

@@ -12,6 +12,7 @@
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-auth-lib</artifactId>
     <version>0.55.0</version>
+    <name>Azure Toolkit Auth Library</name>
     <dependencies>
         <dependency>
             <groupId>com.azure</groupId>

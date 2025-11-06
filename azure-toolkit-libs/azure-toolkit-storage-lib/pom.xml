@@ -12,6 +12,7 @@
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-storage-lib</artifactId>
     <version>0.55.0</version>
+    <name>Azure Toolkit Storage Library</name>
 
     <dependencies>
         <dependency>

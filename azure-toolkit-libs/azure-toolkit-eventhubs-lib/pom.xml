@@ -12,6 +12,7 @@
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-eventhubs-lib</artifactId>
     <version>0.55.0</version>
+    <name>Azure Toolkit Event Hubs Library</name>
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
