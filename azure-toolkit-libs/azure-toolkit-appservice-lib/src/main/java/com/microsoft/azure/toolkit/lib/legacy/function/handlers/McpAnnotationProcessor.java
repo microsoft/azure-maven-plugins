@@ -10,10 +10,16 @@ import com.microsoft.azure.toolkit.lib.legacy.function.bindings.Binding;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingEnum;
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Processor for handling MCP (Model Context Protocol) annotations in Azure Functions.
@@ -200,5 +206,171 @@ public class McpAnnotationProcessor {
                 }
             }
         }
+    }
+
+    // Fully-qualified class names of types that require useResultSchema=true in function.json.
+    // For MCP SDK types, we check if the return type implements the Content interface rather
+    // than listing every concrete type — this automatically covers TextContent, ImageContent,
+    // AudioContent, ResourceLink, EmbeddedResource, and any future Content implementations.
+    private static final Set<String> RICH_RESULT_TYPE_FQCNS = Set.of(
+        "com.microsoft.azure.functions.mcp.McpToolResult",
+        "io.modelcontextprotocol.spec.McpSchema.CallToolResult"
+    );
+
+    // The sealed Content interface that all MCP SDK content types implement.
+    private static final String MCP_CONTENT_INTERFACE_FQCN = "io.modelcontextprotocol.spec.McpSchema.Content";
+
+    private static final String MCP_CONTENT_ANNOTATION_FQCN = "com.microsoft.azure.functions.mcp.McpContent";
+
+    /**
+     * Inspects the function method's return type and sets {@code useResultSchema=true}
+     * on the McpToolTrigger binding when the return type requires middleware wrapping.
+     *
+     * <p>This flag tells the host extension to use {@code ToolReturnValueBinder} (which
+     * understands the {@code McpToolResult} envelope) instead of {@code SimpleToolReturnValueBinder}
+     * (which just calls {@code .toString()}).</p>
+     *
+     * <p>The flag is only set when:</p>
+     * <ul>
+     *   <li>There is an McpToolTrigger binding</li>
+     *   <li>The function has no output bindings</li>
+     *   <li>The return type is a known rich result type or annotated with {@code @McpContent}</li>
+     * </ul>
+     *
+     * @param method   the function method to inspect
+     * @param bindings the list of bindings for this function
+     */
+    public static void setUseResultSchemaIfNeeded(final Method method, final List<Binding> bindings) {
+        // Find the MCP tool trigger binding
+        final Optional<Binding> mcpToolTrigger = bindings.stream()
+                .filter(b -> b.getBindingEnum() == BindingEnum.McpToolTrigger)
+                .findFirst();
+
+        if (mcpToolTrigger.isEmpty()) {
+            return;
+        }
+
+        // Don't set useResultSchema when there are output bindings
+        final boolean hasOutputBindings = bindings.stream()
+                .anyMatch(b -> b.getBindingEnum().getDirection() == BindingEnum.Direction.OUT);
+        if (hasOutputBindings) {
+            return;
+        }
+
+        final Class<?> returnType = method.getReturnType();
+        if (returnType.equals(Void.TYPE)) {
+            return;
+        }
+
+        if (needsResultSchema(returnType, method.getGenericReturnType())) {
+            mcpToolTrigger.get().setAttribute("useResultSchema", true);
+        }
+    }
+
+    /**
+     * Determines whether the given return type requires {@code useResultSchema=true}.
+     *
+     * @param returnType        the raw return type class
+     * @param genericReturnType the generic return type (for inspecting List type arguments)
+     * @return true if the return type needs middleware wrapping
+     */
+    private static boolean needsResultSchema(final Class<?> returnType, final Type genericReturnType) {
+        // Check if return type is a known rich result type (by FQCN)
+        final String fqcn = returnType.getCanonicalName();
+        if (fqcn != null && RICH_RESULT_TYPE_FQCNS.contains(fqcn)) {
+            return true;
+        }
+
+        // Check if return type implements MCP SDK Content interface
+        if (implementsInterface(returnType, MCP_CONTENT_INTERFACE_FQCN)) {
+            return true;
+        }
+
+        // Check if return type is annotated with @McpContent
+        if (hasAnnotationByFqcn(returnType, MCP_CONTENT_ANNOTATION_FQCN)) {
+            return true;
+        }
+
+        // Check if return type is a subclass of a known rich result type
+        if (isSubclassOfRichType(returnType)) {
+            return true;
+        }
+
+        // Check List<Content> or List<? extends Content> via generic return type
+        if (List.class.isAssignableFrom(returnType) && genericReturnType instanceof ParameterizedType) {
+            final ParameterizedType pt = (ParameterizedType) genericReturnType;
+            final Type[] typeArgs = pt.getActualTypeArguments();
+            if (typeArgs.length > 0 && typeArgs[0] instanceof Class<?>) {
+                final Class<?> elemClass = (Class<?>) typeArgs[0];
+                final String elemFqcn = elemClass.getCanonicalName();
+                if (elemFqcn != null && RICH_RESULT_TYPE_FQCNS.contains(elemFqcn)) {
+                    return true;
+                }
+                if (implementsInterface(elemClass, MCP_CONTENT_INTERFACE_FQCN)) {
+                    return true;
+                }
+                if (isSubclassOfRichType(elemClass)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks whether a class has an annotation with the given fully-qualified class name.
+     * Uses FQCN string comparison to avoid requiring the annotation class on the plugin's classpath.
+     */
+    private static boolean hasAnnotationByFqcn(final Class<?> clazz, final String annotationFqcn) {
+        for (final Annotation a : clazz.getAnnotations()) {
+            if (annotationFqcn.equals(a.annotationType().getCanonicalName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether a class implements or extends any known rich result type by walking
+     * both the superclass chain and the implemented interfaces.
+     */
+    private static boolean isSubclassOfRichType(final Class<?> clazz) {
+        // Check superclass chain
+        Class<?> current = clazz.getSuperclass();
+        while (current != null && !current.equals(Object.class)) {
+            final String superFqcn = current.getCanonicalName();
+            if (superFqcn != null && RICH_RESULT_TYPE_FQCNS.contains(superFqcn)) {
+                return true;
+            }
+            current = current.getSuperclass();
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether a class is, or implements (directly or transitively), an interface
+     * with the given fully-qualified class name.
+     */
+    private static boolean implementsInterface(final Class<?> clazz, final String interfaceFqcn) {
+        // Check if the class itself is the interface
+        if (interfaceFqcn.equals(clazz.getCanonicalName())) {
+            return true;
+        }
+        // Check interfaces on this class and all superclasses
+        Class<?> current = clazz;
+        while (current != null) {
+            for (final Class<?> iface : current.getInterfaces()) {
+                if (interfaceFqcn.equals(iface.getCanonicalName())) {
+                    return true;
+                }
+                // Check super-interfaces recursively
+                if (implementsInterface(iface, interfaceFqcn)) {
+                    return true;
+                }
+            }
+            current = current.getSuperclass();
+        }
+        return false;
     }
 }

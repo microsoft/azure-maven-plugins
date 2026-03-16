@@ -108,6 +108,9 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
         // Process MCP annotations (McpToolTrigger and McpToolProperty)
         McpAnnotationProcessor.processMcpAnnotations(bindings);
 
+        // Set useResultSchema for MCP tool triggers when return type needs middleware wrapping
+        McpAnnotationProcessor.setUseResultSchemaIfNeeded(method, bindings);
+
         patchStorageBinding(method, bindings);
 
         // Validate all bindings for duplicate names after all processing is complete
