@@ -472,7 +472,6 @@ public class McpAnnotationProcessorTest {
     private Binding createMcpPromptArgumentBinding(String name, String description, boolean isRequired) {
         Binding binding = new Binding(BindingEnum.McpPromptArgument);
         binding.setAttribute("name", name);
-        binding.setAttribute("argumentName", name);
         binding.setAttribute("description", description);
         binding.setAttribute("isRequired", isRequired);
         return binding;
