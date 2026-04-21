@@ -920,6 +920,32 @@
       "files": {
         "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.ExecutionContext;\nimport com.microsoft.azure.functions.annotation.FunctionName;\nimport com.microsoft.azure.functions.annotation.McpMetadata;\nimport com.microsoft.azure.functions.annotation.McpResourceTrigger;\n\n/**\n * Demonstrates an MCP Resource with metadata.\n * The metadata is surfaced in the MCP protocol's _meta field when clients\n * call resources/list.\n */\npublic class $className$ {\n    @FunctionName(\"$functionName$\")\n    public String getResource(\n            @McpResourceTrigger(\n                    name = \"context\",\n                    uri = \"$uri$\",\n                    resourceName = \"$resourceName$\",\n                    description = \"An MCP Resource with metadata\",\n                    mimeType = \"text/plain\")\n            @McpMetadata(\n                    name = \"context\",\n                    json = \"{\\\"author\\\": \\\"My Name\\\", \\\"version\\\": 1.0}\")\n            String context,\n            final ExecutionContext executionContext\n    ) {\n        executionContext.getLogger().info(\"MCP Resource trigger fired\");\n        return \"Hello from MCP Resource with metadata!\";\n    }\n}\n"
       }
+    },
+    {
+      "id": "McpPromptTrigger-Java",
+      "metadata": {
+        "name": "McpPromptTrigger",
+        "description": "$McpPromptTrigger_description",
+        "defaultFunctionName": "mcpPromptTriggerJava",
+        "language": "Java",
+        "userPrompt": [
+          "promptName",
+          "description"
+        ]
+      },
+      "bundle": ["~4"],
+      "function": {
+        "disabled": false,
+        "bindings": [
+          {
+          "type": "mcpPromptTrigger",
+          "direction": "trigger"
+          }
+        ]
+      },
+      "files": {
+        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.ExecutionContext;\nimport com.microsoft.azure.functions.annotation.FunctionName;\nimport com.microsoft.azure.functions.annotation.McpPromptArgument;\nimport com.microsoft.azure.functions.annotation.McpPromptTrigger;\n\n/**\n * Demonstrates an MCP Prompt that exposes a prompt template to MCP clients.\n * Clients discover prompts via prompts/list and invoke them via prompts/get.\n * Return a plain string (auto-wrapped into a user message by the host)\n * or a JSON-serialized GetPromptResult for multi-message responses.\n */\npublic class $className$ {\n    @FunctionName(\"$functionName$\")\n    public String runPrompt(\n            @McpPromptTrigger(\n                    name = \"$promptName$\",\n                    description = \"$description$\")\n            String context,\n            @McpPromptArgument(\n                    name = \"input\",\n                    description = \"The input to process\",\n                    isRequired = true)\n            String input,\n            final ExecutionContext executionContext\n    ) {\n        executionContext.getLogger().info(\"MCP Prompt trigger fired\");\n        String text = (input != null && !input.isEmpty()) ? input : \"No input provided\";\n        return \"Please process the following input:\\n\\n\" + text;\n    }\n}\n"
+      }
     }
   ]
 }

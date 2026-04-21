@@ -1130,6 +1130,70 @@
           "help": "$mcp_metadata_json_help"
         }
       ]
+    },
+    {
+      "type": "mcpPromptTrigger",
+      "displayName": "$mcp_prompt_trigger_displayName",
+      "direction": "trigger",
+      "enabledInTryMode": true,
+      "settings": [
+        {
+          "name": "promptName",
+          "value": "string",
+          "defaultValue": "MyMcpPrompt",
+          "required": true,
+          "label": "$mcp_prompt_trigger_promptName_label",
+          "help": "$mcp_prompt_trigger_promptName_help"
+        },
+        {
+          "name": "description",
+          "value": "string",
+          "defaultValue": "A simple MCP Prompt that generates a prompt template.",
+          "required": false,
+          "label": "$mcp_prompt_trigger_description_label",
+          "help": "$mcp_prompt_trigger_description_help"
+        },
+        {
+          "name": "title",
+          "value": "string",
+          "defaultValue": "",
+          "required": false,
+          "label": "$mcp_prompt_trigger_title_label",
+          "help": "$mcp_prompt_trigger_title_help"
+        }
+      ]
+    },
+    {
+      "type": "mcpPromptArgument",
+      "displayName": "$mcp_prompt_argument_displayName",
+      "direction": "in",
+      "enabledInTryMode": true,
+      "settings": [
+        {
+          "name": "argumentName",
+          "value": "string",
+          "defaultValue": "myArgument",
+          "required": true,
+          "label": "$mcp_prompt_argument_argumentName_label",
+          "help": "$mcp_prompt_argument_argumentName_help"
+        },
+        {
+          "name": "description",
+          "value": "string",
+          "defaultValue": "",
+          "required": false,
+          "label": "$mcp_prompt_argument_description_label",
+          "help": "$mcp_prompt_argument_description_help"
+        },
+        {
+          "name": "isRequired",
+          "value": "boolean",
+          "defaultValue": "false",
+          "required": false,
+          "label": "$mcp_prompt_argument_isRequired_label",
+          "help": "$mcp_prompt_argument_isRequired_help"
+        }
+      ]
     }
   ]
 }
