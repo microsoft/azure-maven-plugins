@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.legacy.function.bindings.Binding;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingEnum;
 import org.junit.Test;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -329,6 +330,151 @@ public class McpAnnotationProcessorTest {
     private Binding createMcpToolTriggerBinding(String name) {
         Binding binding = new Binding(BindingEnum.McpToolTrigger);
         binding.setAttribute("name", name);
+        return binding;
+    }
+
+    // ========== Tests for setUseResultSchemaIfNeeded ==========
+
+    // Test fixture classes with various return types for reflection
+    @SuppressWarnings("unused")
+    static class ReturnTypeFixtures {
+        public String returnsString() { return ""; }
+        public void returnsVoid() { }
+    }
+
+    private Method getFixtureMethod(String methodName) throws NoSuchMethodException {
+        return ReturnTypeFixtures.class.getMethod(methodName);
+    }
+
+    @Test
+    public void testSetUseResultSchema_WithStringReturn_ShouldNotSet() throws Exception {
+        List<Binding> bindings = new ArrayList<>();
+        Binding trigger = createMcpToolTriggerBinding("myTool");
+        bindings.add(trigger);
+
+        McpAnnotationProcessor.setUseResultSchemaIfNeeded(
+                getFixtureMethod("returnsString"), bindings);
+
+        assertNull("useResultSchema should not be set for String return",
+                trigger.getAttribute("useResultSchema"));
+    }
+
+    @Test
+    public void testSetUseResultSchema_WithVoidReturn_ShouldNotSet() throws Exception {
+        List<Binding> bindings = new ArrayList<>();
+        Binding trigger = createMcpToolTriggerBinding("myTool");
+        bindings.add(trigger);
+
+        McpAnnotationProcessor.setUseResultSchemaIfNeeded(
+                getFixtureMethod("returnsVoid"), bindings);
+
+        assertNull("useResultSchema should not be set for void return",
+                trigger.getAttribute("useResultSchema"));
+    }
+
+    @Test
+    public void testSetUseResultSchema_WithOutputBindings_ShouldNotSet() throws Exception {
+        List<Binding> bindings = new ArrayList<>();
+        Binding trigger = createMcpToolTriggerBinding("myTool");
+        Binding output = new Binding(BindingEnum.HttpOutput);
+        bindings.add(trigger);
+        bindings.add(output);
+
+        McpAnnotationProcessor.setUseResultSchemaIfNeeded(
+                getFixtureMethod("returnsString"), bindings);
+
+        assertNull("useResultSchema should not be set when output bindings exist",
+                trigger.getAttribute("useResultSchema"));
+    }
+
+    @Test
+    public void testSetUseResultSchema_WithNoToolTrigger_ShouldNotThrow() throws Exception {
+        List<Binding> bindings = new ArrayList<>();
+        Binding httpTrigger = new Binding(BindingEnum.HttpTrigger);
+        bindings.add(httpTrigger);
+
+        // Should not throw
+        McpAnnotationProcessor.setUseResultSchemaIfNeeded(
+                getFixtureMethod("returnsString"), bindings);
+    }
+
+    @Test
+    public void testSetUseResultSchema_WithEmptyBindings_ShouldNotThrow() throws Exception {
+        List<Binding> bindings = new ArrayList<>();
+
+        McpAnnotationProcessor.setUseResultSchemaIfNeeded(
+                getFixtureMethod("returnsString"), bindings);
+    }
+
+    // ========== Tests for prompt annotation processing ==========
+
+    @Test
+    public void testProcessMcpAnnotations_WithPromptTriggerAndArguments_ShouldSetPromptArguments() throws Exception {
+        List<Binding> bindings = new ArrayList<>();
+
+        Binding arg1 = createMcpPromptArgumentBinding("code", "The code to review", true);
+        Binding arg2 = createMcpPromptArgumentBinding("language", "The programming language", false);
+        Binding trigger = createMcpPromptTriggerBinding("code_review");
+
+        bindings.add(arg1);
+        bindings.add(arg2);
+        bindings.add(trigger);
+
+        McpAnnotationProcessor.processMcpAnnotations(bindings);
+
+        // Check trigger is patched
+        assertEquals("code_review", trigger.getAttribute("promptName"));
+
+        // Check promptArguments is set
+        String promptArgsJson = (String) trigger.getAttribute("promptArguments");
+        assertNotNull(promptArgsJson);
+
+        List<Map<String, Object>> promptArgs = OBJECT_MAPPER.readValue(
+                promptArgsJson,
+                new TypeReference<List<Map<String, Object>>>() {}
+        );
+        assertEquals(2, promptArgs.size());
+        assertEquals("code", promptArgs.get(0).get("name"));
+        assertEquals(true, promptArgs.get(0).get("required"));
+        assertEquals("language", promptArgs.get(1).get("name"));
+        assertEquals(false, promptArgs.get(1).get("required"));
+    }
+
+    @Test
+    public void testProcessMcpAnnotations_WithPromptTriggerOnly_ShouldNotSetPromptArguments() {
+        List<Binding> bindings = new ArrayList<>();
+        Binding trigger = createMcpPromptTriggerBinding("my_prompt");
+        bindings.add(trigger);
+
+        McpAnnotationProcessor.processMcpAnnotations(bindings);
+
+        assertEquals("my_prompt", trigger.getAttribute("promptName"));
+        assertNull(trigger.getAttribute("promptArguments"));
+    }
+
+    @Test
+    public void testProcessMcpAnnotations_WithPromptArgumentsOnly_ShouldPatchArguments() {
+        List<Binding> bindings = new ArrayList<>();
+        Binding arg = createMcpPromptArgumentBinding("text", "Some text", true);
+        bindings.add(arg);
+
+        McpAnnotationProcessor.processMcpAnnotations(bindings);
+
+        assertEquals("text", arg.getAttribute("argumentName"));
+    }
+
+    private Binding createMcpPromptTriggerBinding(String name) {
+        Binding binding = new Binding(BindingEnum.McpPromptTrigger);
+        binding.setAttribute("name", name);
+        return binding;
+    }
+
+    private Binding createMcpPromptArgumentBinding(String name, String description, boolean isRequired) {
+        Binding binding = new Binding(BindingEnum.McpPromptArgument);
+        binding.setAttribute("name", name);
+        binding.setAttribute("argumentName", name);
+        binding.setAttribute("description", description);
+        binding.setAttribute("isRequired", isRequired);
         return binding;
     }
 }

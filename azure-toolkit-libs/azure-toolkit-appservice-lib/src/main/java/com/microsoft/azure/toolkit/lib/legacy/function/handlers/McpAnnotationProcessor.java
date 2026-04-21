@@ -14,8 +14,12 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -291,9 +295,11 @@ public class McpAnnotationProcessor {
     // For MCP SDK types, we check if the return type implements the Content interface rather
     // than listing every concrete type — this automatically covers TextContent, ImageContent,
     // AudioContent, ResourceLink, EmbeddedResource, and any future Content implementations.
-    private static final Set<String> RICH_RESULT_TYPE_FQCNS = Set.of(
-        "com.microsoft.azure.functions.mcp.McpToolResult",
-        "io.modelcontextprotocol.spec.McpSchema.CallToolResult"
+    private static final Set<String> RICH_RESULT_TYPE_FQCNS = Collections.unmodifiableSet(
+        new HashSet<>(Arrays.asList(
+            "com.microsoft.azure.functions.mcp.McpToolResult",
+            "io.modelcontextprotocol.spec.McpSchema.CallToolResult"
+        ))
     );
 
     // The sealed Content interface that all MCP SDK content types implement.
@@ -325,7 +331,7 @@ public class McpAnnotationProcessor {
                 .filter(b -> b.getBindingEnum() == BindingEnum.McpToolTrigger)
                 .findFirst();
 
-        if (mcpToolTrigger.isEmpty()) {
+        if (!mcpToolTrigger.isPresent()) {
             return;
         }
 
@@ -379,17 +385,12 @@ public class McpAnnotationProcessor {
         if (List.class.isAssignableFrom(returnType) && genericReturnType instanceof ParameterizedType) {
             final ParameterizedType pt = (ParameterizedType) genericReturnType;
             final Type[] typeArgs = pt.getActualTypeArguments();
-            if (typeArgs.length > 0 && typeArgs[0] instanceof Class<?>) {
-                final Class<?> elemClass = (Class<?>) typeArgs[0];
-                final String elemFqcn = elemClass.getCanonicalName();
-                if (elemFqcn != null && RICH_RESULT_TYPE_FQCNS.contains(elemFqcn)) {
-                    return true;
-                }
-                if (implementsInterface(elemClass, MCP_CONTENT_INTERFACE_FQCN)) {
-                    return true;
-                }
-                if (isSubclassOfRichType(elemClass)) {
-                    return true;
+            if (typeArgs.length > 0) {
+                final Class<?> elemClass = resolveTypeArgClass(typeArgs[0]);
+                if (elemClass != null) {
+                    if (isRichElementType(elemClass)) {
+                        return true;
+                    }
                 }
             }
         }
@@ -411,8 +412,50 @@ public class McpAnnotationProcessor {
     }
 
     /**
-     * Checks whether a class implements or extends any known rich result type by walking
-     * both the superclass chain and the implemented interfaces.
+     * Resolves the concrete {@code Class<?>} from a generic type argument.
+     * Handles both direct {@code Class<?>} arguments (e.g., {@code List<Content>})
+     * and wildcard types (e.g., {@code List<? extends Content>}).
+     *
+     * @param typeArg the type argument to resolve
+     * @return the resolved class, or null if it cannot be determined
+     */
+    private static Class<?> resolveTypeArgClass(final Type typeArg) {
+        if (typeArg instanceof Class<?>) {
+            return (Class<?>) typeArg;
+        }
+        if (typeArg instanceof WildcardType) {
+            final Type[] upperBounds = ((WildcardType) typeArg).getUpperBounds();
+            if (upperBounds.length > 0 && upperBounds[0] instanceof Class<?>) {
+                return (Class<?>) upperBounds[0];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Checks whether a list element class is a known rich result type by FQCN,
+     * interface implementation, annotation, or superclass.
+     */
+    private static boolean isRichElementType(final Class<?> elemClass) {
+        final String elemFqcn = elemClass.getCanonicalName();
+        if (elemFqcn != null && RICH_RESULT_TYPE_FQCNS.contains(elemFqcn)) {
+            return true;
+        }
+        if (implementsInterface(elemClass, MCP_CONTENT_INTERFACE_FQCN)) {
+            return true;
+        }
+        if (hasAnnotationByFqcn(elemClass, MCP_CONTENT_ANNOTATION_FQCN)) {
+            return true;
+        }
+        if (isSubclassOfRichType(elemClass)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether a class extends any known rich result type by walking
+     * up the superclass chain.
      */
     private static boolean isSubclassOfRichType(final Class<?> clazz) {
         // Check superclass chain
