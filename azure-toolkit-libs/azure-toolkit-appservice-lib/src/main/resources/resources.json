@@ -248,6 +248,23 @@
 
     "mcp_metadata_displayName": "MCP Metadata",
     "mcp_metadata_json_label": "MCP Metadata JSON",
-    "mcp_metadata_json_help": "A JSON string containing arbitrary metadata to attach to the MCP trigger. Surfaced in the _meta field of the MCP protocol."
+    "mcp_metadata_json_help": "A JSON string containing arbitrary metadata to attach to the MCP trigger. Surfaced in the _meta field of the MCP protocol.",
+
+    "McpPromptTrigger_description": "A function that creates an MCP Prompt exposed through a MCP Server managed by the platform and triggers when an MCP Client invokes the prompt.",
+    "mcp_prompt_trigger_displayName": "MCP Prompt Trigger",
+    "mcp_prompt_trigger_promptName_label": "MCP Prompt Name",
+    "mcp_prompt_trigger_promptName_help": "The name of the MCP Prompt.",
+    "mcp_prompt_trigger_title_label": "MCP Prompt Title",
+    "mcp_prompt_trigger_title_help": "An optional human-readable title for display purposes.",
+    "mcp_prompt_trigger_description_label": "MCP Prompt Description",
+    "mcp_prompt_trigger_description_help": "A description of the MCP Prompt's purpose.",
+
+    "mcp_prompt_argument_displayName": "MCP Prompt Argument",
+    "mcp_prompt_argument_argumentName_label": "MCP Prompt Argument Name",
+    "mcp_prompt_argument_argumentName_help": "The name of the prompt argument.",
+    "mcp_prompt_argument_description_label": "MCP Prompt Argument Description",
+    "mcp_prompt_argument_description_help": "A description of the prompt argument.",
+    "mcp_prompt_argument_isRequired_label": "Is Required",
+    "mcp_prompt_argument_isRequired_help": "Whether the prompt argument is required."
   }
 }

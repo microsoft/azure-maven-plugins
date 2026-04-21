@@ -24,11 +24,14 @@ import java.util.Set;
 /**
  * Processor for handling MCP (Model Context Protocol) annotations in Azure Functions.
  * This class is responsible for processing McpToolTrigger, McpToolProperty, McpResourceTrigger,
- * and McpMetadata annotations and generating the appropriate binding configurations for function.json.
+ * McpPromptTrigger, McpPromptArgument, and McpMetadata annotations and generating the
+ * appropriate binding configurations for function.json.
  * 
  * McpToolTrigger annotations define tool invocation triggers with a toolName.
  * McpToolProperty annotations define tool properties that are aggregated into toolProperties JSON.
  * McpResourceTrigger annotations define resource triggers that expose content via MCP.
+ * McpPromptTrigger annotations define prompt triggers with a promptName.
+ * McpPromptArgument annotations define prompt arguments that are aggregated into promptArguments JSON.
  * McpMetadata annotations attach arbitrary JSON metadata to a trigger, surfaced in the MCP protocol's _meta field.
  */
 public class McpAnnotationProcessor {
@@ -57,6 +60,7 @@ public class McpAnnotationProcessor {
         }
         
         final List<Map<String, Object>> allProperties = new ArrayList<>();
+        final List<Map<String, Object>> allPromptArguments = new ArrayList<>();
         final List<Binding> mcpTriggers = new ArrayList<>();
         final List<Binding> mcpMetadataBindings = new ArrayList<>();
         
@@ -72,6 +76,11 @@ public class McpAnnotationProcessor {
             } else if (bindingType == BindingEnum.McpResourceTrigger) {
                 patchMcpResourceTrigger(binding);
                 mcpTriggers.add(binding);
+            } else if (bindingType == BindingEnum.McpPromptTrigger) {
+                patchMcpPromptTrigger(binding);
+                mcpTriggers.add(binding);
+            } else if (bindingType == BindingEnum.McpPromptArgument) {
+                processPromptArgumentBinding(binding, allPromptArguments);
             } else if (bindingType == BindingEnum.McpMetadata) {
                 mcpMetadataBindings.add(binding);
             }
@@ -83,6 +92,16 @@ public class McpAnnotationProcessor {
             for (final Binding trigger : mcpTriggers) {
                 if (trigger.getBindingEnum() == BindingEnum.McpToolTrigger) {
                     trigger.setAttribute("toolProperties", toolPropertiesJson);
+                }
+            }
+        }
+
+        // Apply promptArguments to prompt triggers
+        if (!allPromptArguments.isEmpty()) {
+            final String promptArgumentsJson = JsonUtils.toJson(allPromptArguments);
+            for (final Binding trigger : mcpTriggers) {
+                if (trigger.getBindingEnum() == BindingEnum.McpPromptTrigger) {
+                    trigger.setAttribute("promptArguments", promptArgumentsJson);
                 }
             }
         }
@@ -120,6 +139,66 @@ public class McpAnnotationProcessor {
         // No patching needed for McpResourceTrigger — unlike McpToolTrigger where
         // 'name' maps to 'toolName', the McpResourceTrigger annotation has explicit
         // 'resourceName' and 'uri' properties that are already correctly named.
+    }
+
+    /**
+     * Extracts the 'name' attribute from an McpPromptTrigger binding and sets it as 'promptName'
+     * on the binding for function.json generation.
+     *
+     * @param binding the binding to update
+     */
+    private static void patchMcpPromptTrigger(final Binding binding) {
+        final String name = (String) binding.getAttribute("name");
+        if (StringUtils.isNotEmpty(name)) {
+            binding.setAttribute("promptName", name);
+        }
+    }
+
+    /**
+     * Extracts the 'name' attribute from an McpPromptArgument binding and sets it as 'argumentName'
+     * on the binding.
+     *
+     * @param binding the binding to update
+     */
+    private static void patchMcpPromptArgument(final Binding binding) {
+        final String name = (String) binding.getAttribute("name");
+        if (StringUtils.isNotEmpty(name)) {
+            binding.setAttribute("argumentName", name);
+        }
+    }
+
+    /**
+     * Processes a single McpPromptArgument binding: patches it and adds its attributes
+     * to the prompt arguments collection. The output format matches the host extension's
+     * expected promptArguments schema: [{name, description, required}].
+     *
+     * @param binding the prompt argument binding to process
+     * @param allPromptArguments the collection to add processed attributes to
+     */
+    private static void processPromptArgumentBinding(final Binding binding,
+                                                     final List<Map<String, Object>> allPromptArguments) {
+        patchMcpPromptArgument(binding);
+
+        final Map<String, Object> bindingAttributes = binding.getBindingAttributes();
+        final Map<String, Object> argDef = new HashMap<>();
+
+        // Map to the host extension's expected schema: name, description, required
+        final Object argumentName = bindingAttributes.get("argumentName");
+        if (argumentName != null && StringUtils.isNotEmpty(argumentName.toString())) {
+            argDef.put("name", argumentName);
+        }
+
+        final Object description = bindingAttributes.get("description");
+        if (description != null && StringUtils.isNotEmpty(description.toString())) {
+            argDef.put("description", description);
+        }
+
+        final Object isRequired = bindingAttributes.get("isRequired");
+        if (isRequired instanceof Boolean) {
+            argDef.put("required", isRequired);
+        }
+
+        allPromptArguments.add(argDef);
     }
 
     /**
