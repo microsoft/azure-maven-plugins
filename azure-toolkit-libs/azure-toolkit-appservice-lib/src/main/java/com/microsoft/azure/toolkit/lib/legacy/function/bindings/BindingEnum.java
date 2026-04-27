@@ -27,6 +27,8 @@ public enum BindingEnum {
     McpToolProperty("mcpToolProperty", Direction.IN),
     McpResourceTrigger("mcpResourceTrigger", Direction.IN),
     McpMetadata("mcpMetadata", Direction.IN),
+    McpPromptTrigger("mcpPromptTrigger", Direction.IN),
+    McpPromptArgument("mcpPromptArgument", Direction.IN),
     QueueTrigger("queueTrigger", Direction.IN, true),
     QueueOutput("queue", Direction.OUT, true),
     SendGridOutput("sendGrid", Direction.OUT),

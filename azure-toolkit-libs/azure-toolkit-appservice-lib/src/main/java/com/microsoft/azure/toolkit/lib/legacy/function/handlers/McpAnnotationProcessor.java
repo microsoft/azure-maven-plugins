@@ -10,19 +10,32 @@ import com.microsoft.azure.toolkit.lib.legacy.function.bindings.Binding;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingEnum;
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Processor for handling MCP (Model Context Protocol) annotations in Azure Functions.
  * This class is responsible for processing McpToolTrigger, McpToolProperty, McpResourceTrigger,
- * and McpMetadata annotations and generating the appropriate binding configurations for function.json.
+ * McpPromptTrigger, McpPromptArgument, and McpMetadata annotations and generating the
+ * appropriate binding configurations for function.json.
  * 
  * McpToolTrigger annotations define tool invocation triggers with a toolName.
  * McpToolProperty annotations define tool properties that are aggregated into toolProperties JSON.
  * McpResourceTrigger annotations define resource triggers that expose content via MCP.
+ * McpPromptTrigger annotations define prompt triggers with a promptName.
+ * McpPromptArgument annotations define prompt arguments that are aggregated into promptArguments JSON.
  * McpMetadata annotations attach arbitrary JSON metadata to a trigger, surfaced in the MCP protocol's _meta field.
  */
 public class McpAnnotationProcessor {
@@ -51,6 +64,7 @@ public class McpAnnotationProcessor {
         }
         
         final List<Map<String, Object>> allProperties = new ArrayList<>();
+        final List<Map<String, Object>> allPromptArguments = new ArrayList<>();
         final List<Binding> mcpTriggers = new ArrayList<>();
         final List<Binding> mcpMetadataBindings = new ArrayList<>();
         
@@ -66,6 +80,11 @@ public class McpAnnotationProcessor {
             } else if (bindingType == BindingEnum.McpResourceTrigger) {
                 patchMcpResourceTrigger(binding);
                 mcpTriggers.add(binding);
+            } else if (bindingType == BindingEnum.McpPromptTrigger) {
+                patchMcpPromptTrigger(binding);
+                mcpTriggers.add(binding);
+            } else if (bindingType == BindingEnum.McpPromptArgument) {
+                processPromptArgumentBinding(binding, allPromptArguments);
             } else if (bindingType == BindingEnum.McpMetadata) {
                 mcpMetadataBindings.add(binding);
             }
@@ -77,6 +96,16 @@ public class McpAnnotationProcessor {
             for (final Binding trigger : mcpTriggers) {
                 if (trigger.getBindingEnum() == BindingEnum.McpToolTrigger) {
                     trigger.setAttribute("toolProperties", toolPropertiesJson);
+                }
+            }
+        }
+
+        // Apply promptArguments to prompt triggers
+        if (!allPromptArguments.isEmpty()) {
+            final String promptArgumentsJson = JsonUtils.toJson(allPromptArguments);
+            for (final Binding trigger : mcpTriggers) {
+                if (trigger.getBindingEnum() == BindingEnum.McpPromptTrigger) {
+                    trigger.setAttribute("promptArguments", promptArgumentsJson);
                 }
             }
         }
@@ -114,6 +143,66 @@ public class McpAnnotationProcessor {
         // No patching needed for McpResourceTrigger — unlike McpToolTrigger where
         // 'name' maps to 'toolName', the McpResourceTrigger annotation has explicit
         // 'resourceName' and 'uri' properties that are already correctly named.
+    }
+
+    /**
+     * Extracts the 'name' attribute from an McpPromptTrigger binding and sets it as 'promptName'
+     * on the binding for function.json generation.
+     *
+     * @param binding the binding to update
+     */
+    private static void patchMcpPromptTrigger(final Binding binding) {
+        final String name = (String) binding.getAttribute("name");
+        if (StringUtils.isNotEmpty(name)) {
+            binding.setAttribute("promptName", name);
+        }
+    }
+
+    /**
+     * Extracts the 'name' attribute from an McpPromptArgument binding and sets it as 'argumentName'
+     * on the binding.
+     *
+     * @param binding the binding to update
+     */
+    private static void patchMcpPromptArgument(final Binding binding) {
+        final String name = (String) binding.getAttribute("name");
+        if (StringUtils.isNotEmpty(name)) {
+            binding.setAttribute("argumentName", name);
+        }
+    }
+
+    /**
+     * Processes a single McpPromptArgument binding: patches it and adds its attributes
+     * to the prompt arguments collection. The output format matches the host extension's
+     * expected promptArguments schema: [{name, description, required}].
+     *
+     * @param binding the prompt argument binding to process
+     * @param allPromptArguments the collection to add processed attributes to
+     */
+    private static void processPromptArgumentBinding(final Binding binding,
+                                                     final List<Map<String, Object>> allPromptArguments) {
+        patchMcpPromptArgument(binding);
+
+        final Map<String, Object> bindingAttributes = binding.getBindingAttributes();
+        final Map<String, Object> argDef = new HashMap<>();
+
+        // Map to the host extension's expected schema: name, description, required
+        final Object argumentName = bindingAttributes.get("argumentName");
+        if (argumentName != null && StringUtils.isNotEmpty(argumentName.toString())) {
+            argDef.put("name", argumentName);
+        }
+
+        final Object description = bindingAttributes.get("description");
+        if (description != null && StringUtils.isNotEmpty(description.toString())) {
+            argDef.put("description", description);
+        }
+
+        final Object isRequired = bindingAttributes.get("isRequired");
+        if (isRequired instanceof Boolean) {
+            argDef.put("required", isRequired);
+        }
+
+        allPromptArguments.add(argDef);
     }
 
     /**
@@ -200,5 +289,210 @@ public class McpAnnotationProcessor {
                 }
             }
         }
+    }
+
+    // Fully-qualified class names of types that require useResultSchema=true in function.json.
+    // For MCP SDK types, we check if the return type implements the Content interface rather
+    // than listing every concrete type — this automatically covers TextContent, ImageContent,
+    // AudioContent, ResourceLink, EmbeddedResource, and any future Content implementations.
+    private static final Set<String> RICH_RESULT_TYPE_FQCNS = Collections.unmodifiableSet(
+        new HashSet<>(Arrays.asList(
+            "com.microsoft.azure.functions.mcp.McpToolResult",
+            "io.modelcontextprotocol.spec.McpSchema.CallToolResult"
+        ))
+    );
+
+    // The sealed Content interface that all MCP SDK content types implement.
+    private static final String MCP_CONTENT_INTERFACE_FQCN = "io.modelcontextprotocol.spec.McpSchema.Content";
+
+    private static final String MCP_CONTENT_ANNOTATION_FQCN = "com.microsoft.azure.functions.mcp.McpContent";
+
+    /**
+     * Inspects the function method's return type and sets {@code useResultSchema=true}
+     * on the McpToolTrigger binding when the return type requires middleware wrapping.
+     *
+     * <p>This flag tells the host extension to use {@code ToolReturnValueBinder} (which
+     * understands the {@code McpToolResult} envelope) instead of {@code SimpleToolReturnValueBinder}
+     * (which just calls {@code .toString()}).</p>
+     *
+     * <p>The flag is only set when:</p>
+     * <ul>
+     *   <li>There is an McpToolTrigger binding</li>
+     *   <li>The function has no output bindings</li>
+     *   <li>The return type is a known rich result type or annotated with {@code @McpContent}</li>
+     * </ul>
+     *
+     * @param method   the function method to inspect
+     * @param bindings the list of bindings for this function
+     */
+    public static void setUseResultSchemaIfNeeded(final Method method, final List<Binding> bindings) {
+        // Find the MCP tool trigger binding
+        final Optional<Binding> mcpToolTrigger = bindings.stream()
+                .filter(b -> b.getBindingEnum() == BindingEnum.McpToolTrigger)
+                .findFirst();
+
+        if (!mcpToolTrigger.isPresent()) {
+            return;
+        }
+
+        // Don't set useResultSchema when there are output bindings
+        final boolean hasOutputBindings = bindings.stream()
+                .anyMatch(b -> b.getBindingEnum().getDirection() == BindingEnum.Direction.OUT);
+        if (hasOutputBindings) {
+            return;
+        }
+
+        final Class<?> returnType = method.getReturnType();
+        if (returnType.equals(Void.TYPE)) {
+            return;
+        }
+
+        if (needsResultSchema(returnType, method.getGenericReturnType())) {
+            mcpToolTrigger.get().setAttribute("useResultSchema", true);
+        }
+    }
+
+    /**
+     * Determines whether the given return type requires {@code useResultSchema=true}.
+     *
+     * @param returnType        the raw return type class
+     * @param genericReturnType the generic return type (for inspecting List type arguments)
+     * @return true if the return type needs middleware wrapping
+     */
+    private static boolean needsResultSchema(final Class<?> returnType, final Type genericReturnType) {
+        // Check if return type is a known rich result type (by FQCN)
+        final String fqcn = returnType.getCanonicalName();
+        if (fqcn != null && RICH_RESULT_TYPE_FQCNS.contains(fqcn)) {
+            return true;
+        }
+
+        // Check if return type implements MCP SDK Content interface
+        if (implementsInterface(returnType, MCP_CONTENT_INTERFACE_FQCN)) {
+            return true;
+        }
+
+        // Check if return type is annotated with @McpContent
+        if (hasAnnotationByFqcn(returnType, MCP_CONTENT_ANNOTATION_FQCN)) {
+            return true;
+        }
+
+        // Check if return type is a subclass of a known rich result type
+        if (isSubclassOfRichType(returnType)) {
+            return true;
+        }
+
+        // Check List<Content> or List<? extends Content> via generic return type
+        if (List.class.isAssignableFrom(returnType) && genericReturnType instanceof ParameterizedType) {
+            final ParameterizedType pt = (ParameterizedType) genericReturnType;
+            final Type[] typeArgs = pt.getActualTypeArguments();
+            if (typeArgs.length > 0) {
+                final Class<?> elemClass = resolveTypeArgClass(typeArgs[0]);
+                if (elemClass != null) {
+                    if (isRichElementType(elemClass)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks whether a class has an annotation with the given fully-qualified class name.
+     * Uses FQCN string comparison to avoid requiring the annotation class on the plugin's classpath.
+     */
+    private static boolean hasAnnotationByFqcn(final Class<?> clazz, final String annotationFqcn) {
+        for (final Annotation a : clazz.getAnnotations()) {
+            if (annotationFqcn.equals(a.annotationType().getCanonicalName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Resolves the concrete {@code Class<?>} from a generic type argument.
+     * Handles both direct {@code Class<?>} arguments (e.g., {@code List<Content>})
+     * and wildcard types (e.g., {@code List<? extends Content>}).
+     *
+     * @param typeArg the type argument to resolve
+     * @return the resolved class, or null if it cannot be determined
+     */
+    private static Class<?> resolveTypeArgClass(final Type typeArg) {
+        if (typeArg instanceof Class<?>) {
+            return (Class<?>) typeArg;
+        }
+        if (typeArg instanceof WildcardType) {
+            final Type[] upperBounds = ((WildcardType) typeArg).getUpperBounds();
+            if (upperBounds.length > 0 && upperBounds[0] instanceof Class<?>) {
+                return (Class<?>) upperBounds[0];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Checks whether a list element class is a known rich result type by FQCN,
+     * interface implementation, annotation, or superclass.
+     */
+    private static boolean isRichElementType(final Class<?> elemClass) {
+        final String elemFqcn = elemClass.getCanonicalName();
+        if (elemFqcn != null && RICH_RESULT_TYPE_FQCNS.contains(elemFqcn)) {
+            return true;
+        }
+        if (implementsInterface(elemClass, MCP_CONTENT_INTERFACE_FQCN)) {
+            return true;
+        }
+        if (hasAnnotationByFqcn(elemClass, MCP_CONTENT_ANNOTATION_FQCN)) {
+            return true;
+        }
+        if (isSubclassOfRichType(elemClass)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether a class extends any known rich result type by walking
+     * up the superclass chain.
+     */
+    private static boolean isSubclassOfRichType(final Class<?> clazz) {
+        // Check superclass chain
+        Class<?> current = clazz.getSuperclass();
+        while (current != null && !current.equals(Object.class)) {
+            final String superFqcn = current.getCanonicalName();
+            if (superFqcn != null && RICH_RESULT_TYPE_FQCNS.contains(superFqcn)) {
+                return true;
+            }
+            current = current.getSuperclass();
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether a class is, or implements (directly or transitively), an interface
+     * with the given fully-qualified class name.
+     */
+    private static boolean implementsInterface(final Class<?> clazz, final String interfaceFqcn) {
+        // Check if the class itself is the interface
+        if (interfaceFqcn.equals(clazz.getCanonicalName())) {
+            return true;
+        }
+        // Check interfaces on this class and all superclasses
+        Class<?> current = clazz;
+        while (current != null) {
+            for (final Class<?> iface : current.getInterfaces()) {
+                if (interfaceFqcn.equals(iface.getCanonicalName())) {
+                    return true;
+                }
+                // Check super-interfaces recursively
+                if (implementsInterface(iface, interfaceFqcn)) {
+                    return true;
+                }
+            }
+            current = current.getSuperclass();
+        }
+        return false;
     }
 }
