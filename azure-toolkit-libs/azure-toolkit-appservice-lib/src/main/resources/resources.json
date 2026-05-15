@@ -238,7 +238,7 @@
     "McpResourceTrigger_description": "A function that creates an MCP Resource exposed through a MCP Server managed by the platform and triggers when an MCP Client reads the resource.",
     "mcp_resource_trigger_displayName": "MCP Resource Trigger",
     "mcp_resource_trigger_uri_label": "MCP Resource URI",
-    "mcp_resource_trigger_uri_help": "The URI of the MCP Resource (e.g., file://readme.md).",
+    "mcp_resource_trigger_uri_help": "The URI of the MCP Resource (e.g., <project name>://readme.md).",
     "mcp_resource_trigger_resourceName_label": "MCP Resource Name",
     "mcp_resource_trigger_resourceName_help": "The display name of the MCP Resource.",
     "mcp_resource_trigger_description_label": "MCP Resource Description",

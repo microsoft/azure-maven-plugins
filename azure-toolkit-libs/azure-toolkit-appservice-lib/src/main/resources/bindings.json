@@ -1084,7 +1084,7 @@
         {
           "name": "uri",
           "value": "string",
-          "defaultValue": "file://readme.md",
+          "defaultValue": "<project name>://readme.md",
           "required": true,
           "label": "$mcp_resource_trigger_uri_label",
           "help": "$mcp_resource_trigger_uri_help"
