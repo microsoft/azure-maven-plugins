@@ -216,6 +216,30 @@ public class AppServiceKuduClient implements IFileClient, IProcessClient {
         return value.isArray() && !value.isEmpty() ? value.get(0).toPrettyString() : value.toPrettyString();
     }
 
+    public ExtensionInfo getPackageFromRemoteStore(final @Nonnull String id) {
+        Response<ExtensionInfo> response = Objects.requireNonNull(kuduService.getPackageFromRemoteStore(host, id).block());
+        if (response.getStatusCode() == 404) return null;
+        return response.getValue();
+    }
+
+    public ExtensionInfo getInstalledPackage(final @Nonnull String id) {
+        Response<ExtensionInfo> response = Objects.requireNonNull(kuduService.getInstalledPackage(host, id).block());
+        if (response.getStatusCode() == 404) return null;
+        return response.getValue();
+    }
+
+    public ExtensionInfo installOrUpdatePackage(final @Nonnull String id) {
+        return Objects.requireNonNull(kuduService.installOrUpdatePackage(host, id).block()).getValue();
+    }
+
+    public void killKuduProcess() {
+        killProcess(0);
+    }
+
+    public void killProcess(final int id) {
+        this.kuduService.killProcess(host, id).block();
+    }
+
     @Host("{$host}")
     @ServiceInterface(name = "KuduService")
     private interface KuduService {
@@ -290,6 +314,24 @@ public class AppServiceKuduClient implements IFileClient, IProcessClient {
         })
         @Get("AppServiceTunnel/Tunnel.ashx?GetStatus&GetStatusAPIVer=2")
         Mono<Response<TunnelStatus>> getAppServiceTunnelStatus(@HostParam("$host") String host);
+
+        @Headers("Content-Type: application/json; charset=utf-8")
+        @Get("/api/extensionfeed/{id}")
+        @ExpectedResponses({200, 404})
+        Mono<Response<ExtensionInfo>> getPackageFromRemoteStore(@HostParam("$host") String host, @PathParam("id") String id);
+
+        @Headers("Content-Type: application/json; charset=utf-8")
+        @Get("/api/siteextensions/{id}")
+        @ExpectedResponses({200, 404})
+        Mono<Response<ExtensionInfo>> getInstalledPackage(@HostParam("$host") String host, @PathParam("id") String id);
+
+        @Headers("Content-Type: application/json; charset=utf-8")
+        @Put("/api/siteextensions/{id}")
+        Mono<Response<ExtensionInfo>> installOrUpdatePackage(@HostParam("$host") String host, @PathParam("id") String id);
+
+        @Delete("/api/processes/{id}")
+        @ExpectedResponses({502})
+        Mono<Void> killProcess(@HostParam("$host") String host, @PathParam("id") int id);
     }
 
     @Data
@@ -297,5 +339,30 @@ public class AppServiceKuduClient implements IFileClient, IProcessClient {
     public static class CommandRequest {
         private String command;
         private String dir;
+    }
+
+    @Data
+    public static class ExtensionInfo {
+        public String id;
+        public String title;
+        public String type;
+        public String summary;
+        public String description;
+        public String version;
+        public String extensionUrl;
+        public String projectUrl;
+        public String iconUrl;
+        public String licenseUrl;
+        public String feedUrl;
+        public List<String> authors;
+        public String installerCommandLineParams;
+        public String publishedDateTime;
+        public int downloadCount;
+        public boolean localIsLatestVersion;
+        public String localPath;
+        public String installedDateTime;
+        public String provisioningState;
+        public String comment;
+        public String packageUri;
     }
 }
