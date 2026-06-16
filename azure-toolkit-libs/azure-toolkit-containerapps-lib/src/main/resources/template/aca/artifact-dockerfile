@@ -2,4 +2,4 @@ ARG JAVA_VERSION=17
 FROM mcr.microsoft.com/openjdk/jdk:${JAVA_VERSION}-mariner
 WORKDIR /app
 COPY app.jar app.jar
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["jaz", "-jar", "app.jar"]
