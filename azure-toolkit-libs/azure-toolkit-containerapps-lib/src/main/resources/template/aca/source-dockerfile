@@ -12,4 +12,4 @@ RUN mvn clean package -DskipTests
 FROM mcr.microsoft.com/openjdk/jdk:${JAVA_VERSION}-mariner
 WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["jaz", "-jar", "app.jar"]
