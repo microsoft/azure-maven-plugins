@@ -49,6 +49,12 @@ public class DeviceCodeAccount extends Account {
             .tokenCachePersistenceOptions(this.getPersistenceOptions())
             .executorService(config.getExecutorService())
             .challengeConsumer(config.getDeviceCodeConsumer())
+            .disableAutomaticAuthentication()
             .build();
+    }
+
+    @Override
+    protected boolean supportsInteractiveAuthentication() {
+        return true;
     }
 }

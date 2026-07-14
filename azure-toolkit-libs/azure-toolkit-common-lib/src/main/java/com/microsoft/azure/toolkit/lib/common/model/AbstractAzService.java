@@ -36,6 +36,7 @@ public abstract class AbstractAzService<T extends AbstractAzServiceSubscription<
         super(name, AzResource.NONE);
         AzureEventBus.on("account.logged_out.account", new AzureEventBus.EventListener((e) -> this.clear()));
         AzureEventBus.on("account.subscription_changed.account", new AzureEventBus.EventListener((e) -> refreshOnSubscriptionChanged()));
+        AzureEventBus.on("account.reauthenticated.account", new AzureEventBus.EventListener((e) -> refreshOnSubscriptionChanged()));
     }
 
     @Nullable

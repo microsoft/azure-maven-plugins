@@ -13,8 +13,7 @@ import com.azure.core.http.policy.RetryPolicy;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.core.util.logging.ClientLogger;
-import com.azure.identity.DeviceCodeCredential;
-import com.azure.identity.InteractiveBrowserCredential;
+import com.azure.identity.AuthenticationRequiredException;
 import com.azure.identity.TokenCachePersistenceOptions;
 import com.azure.identity.implementation.MsalToken;
 import com.azure.identity.implementation.util.ScopeUtil;
@@ -22,6 +21,8 @@ import com.azure.resourcemanager.resources.ResourceManager;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.Preloader;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
@@ -37,17 +38,14 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,6 +56,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Getter
@@ -72,12 +71,18 @@ public abstract class Account implements IAccount {
     @Setter(AccessLevel.PACKAGE)
     protected boolean persistenceEnabled = true;
     @Getter(AccessLevel.PACKAGE)
-    private TokenCredential defaultTokenCredential;
+    private volatile TokenCredential defaultTokenCredential;
     @Getter(AccessLevel.NONE)
-    private List<Subscription> subscriptions;
+    private volatile InteractiveAuthenticationController interactiveAuthenticationController;
+    @Getter(AccessLevel.NONE)
+    private volatile List<Subscription> subscriptions;
 
     @Nonnull
     protected abstract TokenCredential buildDefaultTokenCredential();
+
+    protected boolean supportsInteractiveAuthentication() {
+        return false;
+    }
 
     public TokenCredential getTokenCredential(String subscriptionId) {
         final Subscription subscription = getSubscription(subscriptionId);
@@ -95,16 +100,27 @@ public abstract class Account implements IAccount {
 
     void login() {
         this.defaultTokenCredential = this.buildDefaultTokenCredential();
-        this.reloadSubscriptions();
-        this.setupAfterLogin(this.defaultTokenCredential);
-        this.config.setType(this.getType());
-        this.config.setClient(this.getClientId());
-        final List<String> tenantIds = this.getTenantIds();
-        if (StringUtils.isEmpty(this.config.getTenant())) {
-            this.config.setTenant(CollectionUtils.isEmpty(tenantIds) ? null : tenantIds.get(0));
+        this.interactiveAuthenticationController = this.supportsInteractiveAuthentication() ?
+            new InteractiveAuthenticationController(this.defaultTokenCredential) : null;
+        if (Objects.nonNull(this.interactiveAuthenticationController)) {
+            this.interactiveAuthenticationController.enableAutomaticAuthentication();
         }
-        this.config.setEnvironment(AzureEnvironmentUtils.azureEnvironmentToString(this.getEnvironment()));
-        this.config.setUsername(this.getUsername());
+        try {
+            this.reloadSubscriptions();
+            this.setupAfterLogin(this.defaultTokenCredential);
+            this.config.setType(this.getType());
+            this.config.setClient(this.getClientId());
+            final List<String> tenantIds = this.getTenantIds();
+            if (StringUtils.isEmpty(this.config.getTenant())) {
+                this.config.setTenant(CollectionUtils.isEmpty(tenantIds) ? null : tenantIds.get(0));
+            }
+            this.config.setEnvironment(AzureEnvironmentUtils.azureEnvironmentToString(this.getEnvironment()));
+            this.config.setUsername(this.getUsername());
+        } finally {
+            if (Objects.nonNull(this.interactiveAuthenticationController)) {
+                this.interactiveAuthenticationController.disableAutomaticAuthentication();
+            }
+        }
     }
 
     public abstract boolean checkAvailable();
@@ -123,8 +139,7 @@ public abstract class Account implements IAccount {
     }
 
     protected void setupAfterLogin(TokenCredential defaultTokenCredential) {
-        final String[] scopes = ScopeUtil.resourceToScopes(this.getEnvironment().getManagementEndpoint());
-        final TokenRequestContext request = new TokenRequestContext().addScopes(scopes);
+        final TokenRequestContext request = this.getManagementTokenRequest();
         final AccessToken token = defaultTokenCredential.getToken(request).blockOptional()
             .orElseThrow(() -> new AzureToolkitAuthenticationException("Failed to retrieve token."));
         if (token instanceof MsalToken) {
@@ -140,6 +155,8 @@ public abstract class Account implements IAccount {
     void logout() {
         this.subscriptions = null;
         this.defaultTokenCredential = null;
+        this.interactiveAuthenticationController = null;
+        this.tenantCredentialCache.clear();
     }
 
     @AzureOperation(name = "azure/account.reload_subscriptions")
@@ -259,6 +276,12 @@ public abstract class Account implements IAccount {
         return isPersistenceEnabled() ? PERSISTENCE_OPTIONS : null;
     }
 
+    @Nonnull
+    private TokenRequestContext getManagementTokenRequest() {
+        final String[] scopes = ScopeUtil.resourceToScopes(this.getEnvironment().getManagementEndpoint());
+        return new TokenRequestContext().addScopes(scopes);
+    }
+
     private static ResourceManager.Configurable configureAzure() {
         // disable retry for getting tenant and subscriptions
         return ResourceManager.configure()
@@ -282,11 +305,12 @@ public abstract class Account implements IAccount {
     }
 
     @RequiredArgsConstructor
-    private static class TenantTokenCredential implements TokenCredential {
+    private class TenantTokenCredential implements TokenCredential {
         // cache for different resources on the same tenant
         // private final Map<String, SimpleTokenCache> resourceTokenCache = new ConcurrentHashMap<>();
         private final String tenantId;
         private final TokenCredential defaultCredential;
+        private final AtomicReference<ReauthenticationRequest> reauthenticationRequest = new AtomicReference<>();
 
         @Override
         public Mono<AccessToken> getToken(TokenRequestContext request) {
@@ -296,20 +320,51 @@ public abstract class Account implements IAccount {
             // return resourceTokenCache.computeIfAbsent(resource, func).getToken();
             // final Mono<AccessToken> token = defaultCredential.getToken(request);
             // final String resource = ScopeUtil.scopesToResource(request.getScopes());
-            return defaultCredential.getToken(request).doOnTerminate(() -> {
-                if (defaultCredential instanceof InteractiveBrowserCredential || defaultCredential instanceof DeviceCodeCredential) {
-                    disableAutomaticAuthentication(); // disable after first success.
-                }
-            });
+            return Account.this.getToken(this.defaultCredential, request)
+                .doOnSuccess(token -> this.reauthenticationRequest.set(null))
+                .onErrorMap(AuthenticationRequiredException.class, e -> this.createReauthenticationException(e, request));
         }
 
-        @SneakyThrows
-        private void disableAutomaticAuthentication() {
-            final Field automaticField = FieldUtils.getField(this.defaultCredential.getClass(), "automaticAuthentication", true);
-            if (Objects.nonNull(automaticField) && ((boolean) FieldUtils.readField(automaticField, this.defaultCredential))) {
-                FieldUtils.writeField(automaticField, this.defaultCredential, false);
+        private RuntimeException createReauthenticationException(AuthenticationRequiredException cause, TokenRequestContext context) {
+            if (!Account.this.supportsInteractiveAuthentication()) {
+                return cause;
+            }
+            final ReauthenticationRequest request = this.getOrCreateReauthenticationRequest(context);
+            final Action<ReauthenticationRequest> registered = AzureActionManager.getInstance().getAction(IAccountActions.REAUTHENTICATE);
+            final Object action = Objects.nonNull(registered) ?
+                registered.bind(request).withLabel("Reauthenticate") : IAccountActions.REAUTHENTICATE;
+            return new AzureToolkitReauthenticationException(cause, request, action);
+        }
+
+        @Nonnull
+        private ReauthenticationRequest getOrCreateReauthenticationRequest(TokenRequestContext context) {
+            while (true) {
+                final ReauthenticationRequest current = this.reauthenticationRequest.get();
+                if (Objects.nonNull(current) && !current.isCompleted()) {
+                    return current;
+                }
+                final ReauthenticationRequest created = new ReauthenticationRequest(this.tenantId, context, r -> {
+                    final InteractiveAuthenticationController controller = Account.this.interactiveAuthenticationController;
+                    if (Objects.isNull(controller)) {
+                        throw new AzureToolkitRuntimeException(String.format(
+                            "Auth type '%s' does not support interactive reauthentication.", Account.this.getType()));
+                    }
+                    controller.authenticate(r.getTokenRequestContext());
+                    this.reauthenticationRequest.compareAndSet(r, null);
+                    AzureEventBus.emit("account.reauthenticated.account", Account.this);
+                });
+                if (this.reauthenticationRequest.compareAndSet(current, created)) {
+                    return created;
+                }
             }
         }
+    }
+
+    @Nonnull
+    private Mono<AccessToken> getToken(@Nonnull TokenCredential credential, @Nonnull TokenRequestContext request) {
+        final InteractiveAuthenticationController controller = this.interactiveAuthenticationController;
+        return Objects.nonNull(controller) && controller.isFor(credential) ?
+            controller.getToken(request) : credential.getToken(request);
     }
 
     public abstract AuthType getType();

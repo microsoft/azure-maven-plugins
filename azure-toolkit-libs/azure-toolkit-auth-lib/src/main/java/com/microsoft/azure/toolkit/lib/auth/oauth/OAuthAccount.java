@@ -50,6 +50,12 @@ public class OAuthAccount extends Account {
             .tokenCachePersistenceOptions(getPersistenceOptions())
             .redirectUrl("http://localhost:" + FreePortFinder.findFreeLocalPort())
             .executorService(this.getConfig().getExecutorService())
+            .disableAutomaticAuthentication()
             .build();
+    }
+
+    @Override
+    protected boolean supportsInteractiveAuthentication() {
+        return true;
     }
 }
