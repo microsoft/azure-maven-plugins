@@ -11,6 +11,7 @@ public interface IAccountActions {
     Action.Id<Object> TRY_AZURE = Action.TRY_AZURE;
     Action.Id<Object> SELECT_SUBS = Action.SELECT_SUBS;
     Action.Id<Object> AUTHENTICATE = Action.AUTHENTICATE;
+    Action.Id<ReauthenticationRequest> REAUTHENTICATE = Action.Id.of("user/account.reauthenticate");
     Action.Id<Object> SIGN_IN = Action.SIGN_IN;
     Action.Id<Object> SIGN_OUT = Action.SIGN_OUT;
 }
