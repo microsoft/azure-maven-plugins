@@ -10,8 +10,8 @@ jobs:
   richnav:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: microsoft/RichCodeNavIndexer@v0.1
+    - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2.8.0
+    - uses: microsoft/RichCodeNavIndexer@c8b97bc908f7bc0151fe4872aa029e99b2a0b96b # v0.1
       with:
         languages: java
         repo-token: ${{ github.token }}
