@@ -101,4 +101,9 @@ public class WebApp extends WebAppBase<WebApp, AppServiceServiceSubscription, co
         AzureMessager.getMessager().info(String.format("Updating identity configuration for web app %s...", this.getName()));
         update.apply();
     }
+
+    @Override
+    protected void toggleWebSockets(final boolean enabled) {
+        doModify(() -> Objects.requireNonNull(getRemote()).update().withWebSocketsEnabled(enabled).apply(), Status.UPDATING);
+    }
 }

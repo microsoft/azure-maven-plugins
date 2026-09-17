@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class WebAppDeploymentSlot extends WebAppBase<WebAppDeploymentSlot, WebApp, DeploymentSlot> {
 
@@ -34,5 +35,10 @@ public class WebAppDeploymentSlot extends WebAppBase<WebAppDeploymentSlot, WebAp
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
+    }
+
+    @Override
+    protected void toggleWebSockets(final boolean enabled) {
+        doModify(() -> Objects.requireNonNull(getRemote()).update().withWebSocketsEnabled(enabled).apply(), Status.UPDATING);
     }
 }

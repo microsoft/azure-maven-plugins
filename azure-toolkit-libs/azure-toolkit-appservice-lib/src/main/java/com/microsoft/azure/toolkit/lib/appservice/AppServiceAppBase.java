@@ -279,4 +279,14 @@ public abstract class AppServiceAppBase<
     public void updateIdentityConfiguration(@Nonnull final IdentityConfiguration configuration) {
         throw new AzureToolkitRuntimeException("not supported");
     }
+
+    public void enableWebSockets() {
+        toggleWebSockets(true);
+    }
+
+    public void disableWebSockets() {
+        toggleWebSockets(false);
+    }
+
+    protected abstract void toggleWebSockets(boolean enabled);
 }
