@@ -13,12 +13,12 @@ Please go through [Quickstart](https://docs.microsoft.com/en-us/azure/app-servic
 :book: You can also visit our [Wiki](https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Web-App) for detailed documentation about Maven Webapp plugin.
 
 ## Authentication
-For the easiest way, you can install [Azure Cli](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest), and sign-in using:
+For the easiest way, you can install [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest), and sign-in using:
 
 ```shell
 az login
 ```
-Maven plugins supports Azure Cli and some other auth methods, see [Authentication](https://github.com/microsoft/azure-maven-plugins/wiki/Authentication) for details.
+Maven plugins supports Azure CLI and some other auth methods, see [Authentication](https://github.com/microsoft/azure-maven-plugins/wiki/Authentication) for details.
 
 
 ## Quickstart
