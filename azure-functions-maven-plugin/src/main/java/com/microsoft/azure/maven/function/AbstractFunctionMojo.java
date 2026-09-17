@@ -143,12 +143,23 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     protected String appInsightsInstance;
 
     /**
-     * Instrumentation key of the application insights instance
+     * Instrumentation key of the application insights instance.
+     * Will be skipped if `appInsightsConnectionString` is specified
      *
      * @since 1.6.0
      */
+    @Deprecated
     @Parameter(property = "functions.appInsightsKey")
     protected String appInsightsKey;
+
+    /**
+     * Connection string of the application insights instance.
+     *
+     * @since 1.46.0
+     */
+    @Getter
+    @Parameter(property = "functions.appInsightsConnectionString")
+    protected String appInsightsConnectionString;
 
     /**
      * Boolean flag to monitor the Function App with application insights

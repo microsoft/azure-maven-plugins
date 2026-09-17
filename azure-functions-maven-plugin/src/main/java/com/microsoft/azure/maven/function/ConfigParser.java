@@ -36,6 +36,7 @@ public class ConfigParser {
                 .disableAppInsights(mojo.isDisableAppInsights())
                 .enableDistributedTracing(mojo.getEnableDistributedTracing())
                 .appInsightsKey(mojo.getAppInsightsKey())
+                .appInsightsConnectionString(mojo.getAppInsightsConnectionString())
                 .appInsightsInstance(mojo.getAppInsightsInstance())
                 .storageAccountName(mojo.getStorageAccountName())
                 .storageAccountResourceGroup(StringUtils.firstNonBlank(mojo.getStorageAccountResourceGroup(), mojo.getResourceGroup()))

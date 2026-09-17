@@ -60,6 +60,7 @@ public class ApplicationInsight extends AbstractAzResource<ApplicationInsight, A
         return Optional.ofNullable(getRemote()).map(ApplicationInsightsComponent::instrumentationKey).orElse(null);
     }
 
+    @Nullable
     public String getConnectionString() {
         return Optional.ofNullable(getRemote()).map(ApplicationInsightsComponent::connectionString).orElse(null);
     }
