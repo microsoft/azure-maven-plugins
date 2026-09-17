@@ -110,7 +110,7 @@
 
         <azure-functions-java-library.version>2.2.0</azure-functions-java-library.version>
         <aspectj.version>1.9.22</aspectj.version>
-        <plexus-utils.version>3.4.2</plexus-utils.version>
+        <plexus-utils.version>4.0.3</plexus-utils.version>
         <commons-codec.version>1.16.1</commons-codec.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <commons-exec.version>1.4.0</commons-exec.version>
