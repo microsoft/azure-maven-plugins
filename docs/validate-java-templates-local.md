@@ -35,8 +35,8 @@ mvn clean install  archetype:update-local-catalog
 ```
 
 5. From above installation, copy the version number as shown below
-![Alt text](./images/archtype-version.png) and use in below command to create the function app. Replace DaprPublishOutputBinding with your trigger or binding template name.
+![Alt text](./images/archtype-version.png) and use in below command to create the function app. Replace HttpTrigger with your trigger or binding template name.
 
 ```
-mvn archetype:generate -DarchetypeGroupId="com.microsoft.azure" -DarchetypeArtifactId=azure-functions-archetype -DarchetypeVersion="1.55" -DarchetypeCatalog=local -Dtrigger=DaprPublishOutputBinding
+mvn archetype:generate -DarchetypeGroupId="com.microsoft.azure" -DarchetypeArtifactId=azure-functions-archetype -DarchetypeVersion="1.55" -DarchetypeCatalog=local -Dtrigger=HttpTrigger
 ```
