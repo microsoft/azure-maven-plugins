@@ -69,6 +69,7 @@ import java.util.function.Consumer;
 
 public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, ?, ?>> {
     public static final String APPINSIGHTS_INSTRUMENTATION_KEY = "APPINSIGHTS_INSTRUMENTATIONKEY";
+    public static final String APPLICATIONINSIGHTS_CONNECTION_STRING = "APPLICATIONINSIGHTS_CONNECTION_STRING";
     private static final String APPLICATION_INSIGHTS_CREATE_FAILED = "Unable to create the Application Insights " +
         "for the Function App due to error %s. Please use the Azure Portal to manually create and configure the " +
         "Application Insights if needed.";
@@ -97,6 +98,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
     private String deploymentContainerUrl;
     private ContainerAppsEnvironment environment;
     private String instrumentationKey;
+    private String instrumentationConnectionString;
     private ApplicationInsight applicationInsight;
     private FunctionAppBase<?, ?, ?> functionApp;
 
@@ -115,17 +117,26 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             final String storageResourceGroup = StringUtils.firstNonBlank(functionAppConfig.storageAccountResourceGroup(), functionAppConfig.resourceGroup());
             registerSubTask(getStorageAccountTask(storageAccountName, storageResourceGroup), result -> this.storageAccount = result);
         }
-        // get/create AI instances only if user didn't specify AI connection string in app settings
-        final boolean isInstrumentKeyConfigured = MapUtils.isNotEmpty(functionAppConfig.appSettings()) &&
-            functionAppConfig.appSettings().containsKey(APPINSIGHTS_INSTRUMENTATION_KEY);
-        if (!functionAppConfig.disableAppInsights() && !isInstrumentKeyConfigured) {
-            if (StringUtils.isNotEmpty(functionAppConfig.appInsightsKey())) {
+
+        // get/create AI instances only if user didn't specify AI config in app settings
+        if (!functionAppConfig.disableAppInsights()) {
+            // Give precedence to app insights connection string and only fall back to the instrumentation key.
+            if (StringUtils.isNotEmpty(functionAppConfig.appInsightsConnectionString())) {
+                this.instrumentationConnectionString = functionAppConfig.appInsightsConnectionString();
+            } else if (StringUtils.isNotEmpty(functionAppConfig.appInsightsKey())) {
                 this.instrumentationKey = functionAppConfig.appInsightsKey();
-            } else if (StringUtils.isNotEmpty(functionAppConfig.appInsightsInstance()) || !appDraft.exists()) {
-                // create AI instance by default when create new function
+            } else {
+                // Always create/resolve the AI instance to automatically migrate to connection-string wiring
                 registerSubTask(getApplicationInsightsTask(), result -> {
+                    if (result == null) {
+                        return;
+                    }
                     this.applicationInsight = result;
-                    this.instrumentationKey = Optional.ofNullable(result).map(ApplicationInsight::getInstrumentationKey).orElse(null);
+                    if (StringUtils.isNotEmpty(result.getConnectionString())) {
+                        this.instrumentationConnectionString = result.getConnectionString();
+                    } else {
+                        this.instrumentationKey = result.getInstrumentationKey();
+                    }
                 });
             }
         }
@@ -152,7 +163,7 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
 
     private AzureTask<String> getDeploymentStorageContainerUrl(final FunctionAppDraft appDraft) {
         return new AzureTask<>(() -> {
-            final String containerName =  Optional.ofNullable(functionAppConfig.flexConsumptionConfiguration())
+            final String containerName = Optional.ofNullable(functionAppConfig.flexConsumptionConfiguration())
                 .map(FlexConsumptionConfiguration::getDeploymentContainer)
                 .orElseGet(() -> getDeploymentContainerNameFromApp(appDraft));
             try {
@@ -293,8 +304,12 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             functionAppConfig.appName(), functionAppConfig.subscriptionId());
         return new AzureTask<>(title, () -> {
             final Map<String, String> appSettings = processAppSettingsWithDefaultValue();
-            Optional.ofNullable(instrumentationKey).filter(StringUtils::isNoneEmpty).ifPresent(key ->
-                appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, key));
+            if (StringUtils.isNotEmpty(instrumentationConnectionString)) {
+                appSettings.put(APPLICATIONINSIGHTS_CONNECTION_STRING, instrumentationConnectionString);
+                appSettings.remove(APPINSIGHTS_INSTRUMENTATION_KEY);
+            } else if (StringUtils.isNotEmpty(instrumentationKey)) {
+                appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, instrumentationKey);
+            }
             draft.setAppServicePlan(appServicePlan);
             draft.setRegion(functionAppConfig.region());
             draft.setRuntime(getRuntime(functionAppConfig.runtime()));
@@ -347,6 +362,11 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             final Map<String, String> appSettings = processAppSettingsWithDefaultValue();
             if (functionAppConfig.disableAppInsights()) {
                 draft.removeAppSetting(APPINSIGHTS_INSTRUMENTATION_KEY);
+                draft.removeAppSetting(APPLICATIONINSIGHTS_CONNECTION_STRING);
+            } else if (StringUtils.isNotEmpty(instrumentationConnectionString)) {
+                appSettings.put(APPLICATIONINSIGHTS_CONNECTION_STRING, instrumentationConnectionString);
+                appSettings.remove(APPINSIGHTS_INSTRUMENTATION_KEY);
+                draft.removeAppSetting(APPINSIGHTS_INSTRUMENTATION_KEY);
             } else if (StringUtils.isNotEmpty(instrumentationKey)) {
                 appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, instrumentationKey);
             }
@@ -371,8 +391,12 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
             functionAppConfig.deploymentSlotName(), functionAppConfig.appName());
         return new AzureTask<>(title, () -> {
             final Map<String, String> appSettings = processAppSettingsWithDefaultValue();
-            Optional.ofNullable(instrumentationKey).filter(StringUtils::isNoneEmpty).ifPresent(key ->
-                appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, key));
+            if (StringUtils.isNotEmpty(instrumentationConnectionString)) {
+                appSettings.put(APPLICATIONINSIGHTS_CONNECTION_STRING, instrumentationConnectionString);
+                appSettings.remove(APPINSIGHTS_INSTRUMENTATION_KEY);
+            } else if (StringUtils.isNotEmpty(instrumentationKey)) {
+                appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, instrumentationKey);
+            }
             draft.setAppSettings(appSettings);
             draft.setRuntime(getRuntime(functionAppConfig.runtime()));
             draft.setDiagnosticConfig(functionAppConfig.diagnosticConfig());
@@ -389,6 +413,11 @@ public class CreateOrUpdateFunctionAppTask extends AzureTask<FunctionAppBase<?, 
         return new AzureTask<>(title, () -> {
             final Map<String, String> appSettings = processAppSettingsWithDefaultValue();
             if (functionAppConfig.disableAppInsights()) {
+                draft.removeAppSetting(APPINSIGHTS_INSTRUMENTATION_KEY);
+                draft.removeAppSetting(APPLICATIONINSIGHTS_CONNECTION_STRING);
+            } else if (StringUtils.isNotEmpty(instrumentationConnectionString)) {
+                appSettings.put(APPLICATIONINSIGHTS_CONNECTION_STRING, instrumentationConnectionString);
+                appSettings.remove(APPINSIGHTS_INSTRUMENTATION_KEY);
                 draft.removeAppSetting(APPINSIGHTS_INSTRUMENTATION_KEY);
             } else if (StringUtils.isNotEmpty(instrumentationKey)) {
                 appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, instrumentationKey);

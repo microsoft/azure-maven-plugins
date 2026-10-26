@@ -75,6 +75,13 @@ public class FunctionAppConfig extends AppServiceConfig {
     }
 
     @Nullable
+    public String appInsightsConnectionString() {
+        return Optional.ofNullable(applicationInsightsConfig)
+            .filter(c -> BooleanUtils.isNotTrue(c.getDisableAppInsights()))
+            .map(ApplicationInsightsConfig::getConnectionString).orElse(null);
+    }
+
+    @Nullable
     public LogAnalyticsWorkspaceConfig workspaceConfig() {
         return Optional.ofNullable(applicationInsightsConfig)
             .filter(c -> BooleanUtils.isNotTrue(c.getDisableAppInsights()))
@@ -95,9 +102,17 @@ public class FunctionAppConfig extends AppServiceConfig {
     }
 
     @Nonnull
+    @Deprecated
     public FunctionAppConfig appInsightsKey(final String key) {
         this.applicationInsightsConfig = Optional.ofNullable(applicationInsightsConfig).orElseGet(ApplicationInsightsConfig::new);
         this.applicationInsightsConfig.setInstrumentationKey(key);
+        return this;
+    }
+
+    @Nonnull
+    public FunctionAppConfig appInsightsConnectionString(final String connectionString) {
+        this.applicationInsightsConfig = Optional.ofNullable(applicationInsightsConfig).orElseGet(ApplicationInsightsConfig::new);
+        this.applicationInsightsConfig.setConnectionString(connectionString);
         return this;
     }
 

@@ -20,8 +20,11 @@ import lombok.experimental.SuperBuilder;
 public class ApplicationInsightsConfig {
     @EqualsAndHashCode.Include
     private String name;
+    @Deprecated
     @EqualsAndHashCode.Include
     private String instrumentationKey;
+    @EqualsAndHashCode.Include
+    private String connectionString;
     private Boolean createNewInstance;
     private Boolean disableAppInsights;
     private LogAnalyticsWorkspaceConfig workspaceConfig;

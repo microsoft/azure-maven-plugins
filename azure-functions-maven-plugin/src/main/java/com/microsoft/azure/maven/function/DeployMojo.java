@@ -58,8 +58,10 @@ import static com.microsoft.azure.toolkit.lib.common.utils.Utils.selectFirstOpti
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
     private static final String APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT = "Contradictory configurations for application insights," +
-            " specify 'appInsightsKey' or 'appInsightsInstance' if you want to enable it, and specify " +
-            "'disableAppInsights=true' if you want to disable it.";
+        " specify 'appInsightsKey', 'appInsightsInstance' or 'appInsightsConnectionString' if you want to enable it, and specify " +
+        "'disableAppInsights=true' if you want to disable it.";
+    private static final String APPLICATION_INSIGHTS_KEY_AND_CONNECTION_STRING_CONFLICT = "Contradictory configurations for application insights," +
+        " specify either 'appInsightsKey' or 'appInsightsConnectionString', but not both.";
     private static final String APP_NAME_PATTERN = "[a-zA-Z0-9\\-]{2,60}";
     private static final String RESOURCE_GROUP_PATTERN = "[a-zA-Z0-9._\\-()]{1,90}";
     private static final String SLOT_NAME_PATTERN = "[A-Za-z0-9-]{1,60}";
@@ -69,18 +71,18 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String INVALID_APP_NAME = "The <appName> only allow alphanumeric characters, hyphens and cannot start or end in a hyphen.";
     private static final String EMPTY_RESOURCE_GROUP = "Please config the <resourceGroup> in pom.xml.";
     private static final String INVALID_RESOURCE_GROUP_NAME = "The <resourceGroup> only allow alphanumeric characters, periods, underscores, " +
-            "hyphens and parenthesis and cannot end in a period.";
+        "hyphens and parenthesis and cannot end in a period.";
     private static final String INVALID_SERVICE_PLAN_NAME = "Invalid value for <appServicePlanName>, it need to match the pattern %s";
     private static final String INVALID_SERVICE_PLAN_RESOURCE_GROUP_NAME = "Invalid value for <appServicePlanResourceGroup>, " +
-            "it only allow alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period.";
+        "it only allow alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period.";
     private static final String EMPTY_SLOT_NAME = "Please config the <name> of <deploymentSlot> in pom.xml";
     private static final String INVALID_SLOT_NAME = "Invalid value of <name> inside <deploymentSlot> in pom.xml, it needs to match the pattern '%s'";
     private static final String EMPTY_IMAGE_NAME = "Please config the <image> of <runtime> in pom.xml.";
     private static final String INVALID_OS = "The value of <os> is not correct, supported values are: windows, linux and docker.";
     private static final String EXPANDABLE_PRICING_TIER_WARNING = "'%s' may not be a valid pricing tier, " +
-            "please refer to https://aka.ms/maven_function_configuration#supported-pricing-tiers for valid values";
+        "please refer to https://aka.ms/maven_function_configuration#supported-pricing-tiers for valid values";
     private static final String EXPANDABLE_REGION_WARNING = "'%s' may not be a valid region, " +
-            "please refer to https://aka.ms/maven_function_configuration#supported-regions for valid values";
+        "please refer to https://aka.ms/maven_function_configuration#supported-regions for valid values";
     private static final String CV2_INVALID_CONTAINER_SIZE = "Invalid container size for flex consumption plan, valid values are: %s";
     public static final int MAX_MAX_INSTANCES = 1000;
     public static final int MIN_MAX_INSTANCES = 40;
@@ -95,6 +97,7 @@ public class DeployMojo extends AbstractFunctionMojo {
      * For Windows Function Apps, the default deployment method is RUN_FROM_ZIP <p>
      * For Linux Function Apps, RUN_FROM_BLOB will be used for apps with Consumption and Premium App Service Plan,
      * RUN_FROM_ZIP will be used for apps with Dedicated App Service Plan.
+     *
      * @since 0.1.0
      */
     @JsonProperty
@@ -102,10 +105,10 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected String deploymentType;
 
     /**
-     *  Set the amount of memory allocated to each instance of the function app in MB.
-     *  CPU and network bandwidth are allocated proportionally.
-     *  Values must be one of 512, 2048, 4096
-     *  Default value is 2048
+     * Set the amount of memory allocated to each instance of the function app in MB.
+     * CPU and network bandwidth are allocated proportionally.
+     * Values must be one of 512, 2048, 4096
+     * Default value is 2048
      */
     @JsonProperty
     @Getter
@@ -184,7 +187,7 @@ public class DeployMojo extends AbstractFunctionMojo {
      * </alwaysReadyInstances>
      * }
      * </pre>
-     *
+     * <p>
      * For additional information see https://aka.ms/flexconsumption/alwaysready.
      */
     @JsonProperty
@@ -340,7 +343,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         if (Objects.nonNull(instanceMemory) && !VALID_CONTAINER_SIZE.contains(instanceMemory)) {
             throw new AzureToolkitRuntimeException(String.format(CV2_INVALID_CONTAINER_SIZE, VALID_CONTAINER_SIZE.stream().map(String::valueOf).collect(Collectors.joining(","))));
         }
-        if (Objects.nonNull(maximumInstances) && (maximumInstances > MAX_MAX_INSTANCES || maximumInstances < MIN_MAX_INSTANCES)){
+        if (Objects.nonNull(maximumInstances) && (maximumInstances > MAX_MAX_INSTANCES || maximumInstances < MIN_MAX_INSTANCES)) {
             throw new AzureToolkitRuntimeException("Invalid value for <maximumInstances>, it should be in range [40, 1000]");
         }
         if (Objects.nonNull(httpInstanceConcurrency) && (httpInstanceConcurrency < MIN_HTTP_INSTANCE_CONCURRENCY || httpInstanceConcurrency > MAX_HTTP_INSTANCE_CONCURRENCY)) {
@@ -376,7 +379,7 @@ public class DeployMojo extends AbstractFunctionMojo {
             throw new AzureToolkitRuntimeException(String.format(INVALID_SERVICE_PLAN_NAME, APP_SERVICE_PLAN_NAME_PATTERN));
         }
         if (StringUtils.isNotEmpty(appServicePlanResourceGroup) &&
-                (appServicePlanResourceGroup.endsWith(".") || !appServicePlanResourceGroup.matches(RESOURCE_GROUP_PATTERN))) {
+            (appServicePlanResourceGroup.endsWith(".") || !appServicePlanResourceGroup.matches(RESOURCE_GROUP_PATTERN))) {
             throw new AzureToolkitRuntimeException(INVALID_SERVICE_PLAN_RESOURCE_GROUP_NAME);
         }
         // slot name
@@ -410,12 +413,29 @@ public class DeployMojo extends AbstractFunctionMojo {
         final FunctionAppConfig defaultConfig = !newFunctionApp ?
             fromFunctionApp(app) : buildDefaultConfig(config.subscriptionId(), config.resourceGroup(), config.appName());
         mergeAppServiceConfig(config, defaultConfig);
-        if (!newFunctionApp && !config.disableAppInsights() && StringUtils.isEmpty(config.appInsightsKey())) {
-            // fill ai key from existing app settings
+        if (!newFunctionApp && !config.disableAppInsights()) {
+            applyExistingInsightsSettings(config, app);
+        }
+        return executeDeploymentTask(config);
+    }
+
+    static void applyExistingInsightsSettings(final FunctionAppConfig config, final FunctionApp app) {
+        if (StringUtils.isEmpty(config.appInsightsConnectionString())) {
+            // fill ai connection string from existing app settings
+            Optional.ofNullable(app.getAppSettings())
+                .map(map -> map.get(CreateOrUpdateFunctionAppTask.APPLICATIONINSIGHTS_CONNECTION_STRING))
+                .ifPresent(config::appInsightsConnectionString);
+        }
+        if (StringUtils.isEmpty(config.appInsightsKey()) && StringUtils.isEmpty(config.appInsightsConnectionString())
+            && StringUtils.isEmpty(config.appInsightsInstance())) {
+            // fill ai key from existing app settings only when no other ai config is available
             Optional.ofNullable(app.getAppSettings())
                 .map(map -> map.get(CreateOrUpdateFunctionAppTask.APPINSIGHTS_INSTRUMENTATION_KEY))
                 .ifPresent(config::appInsightsKey);
         }
+    }
+
+    protected FunctionAppBase<?, ?, ?> executeDeploymentTask(final FunctionAppConfig config) throws Exception {
         return new CreateOrUpdateFunctionAppTask(config).doExecute();
     }
 
@@ -436,8 +456,12 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     private void validateApplicationInsightsConfiguration() {
-        if (isDisableAppInsights() && (StringUtils.isNotEmpty(getAppInsightsKey()) || StringUtils.isNotEmpty(getAppInsightsInstance()))) {
+        if (isDisableAppInsights() && (StringUtils.isNotEmpty(getAppInsightsKey()) || StringUtils.isNotEmpty(getAppInsightsInstance())
+            || StringUtils.isNotEmpty(getAppInsightsConnectionString()))) {
             throw new AzureToolkitRuntimeException(APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT);
+        }
+        if (!isDisableAppInsights() && StringUtils.isNotEmpty(getAppInsightsKey()) && StringUtils.isNotEmpty(getAppInsightsConnectionString())) {
+            throw new AzureToolkitRuntimeException(APPLICATION_INSIGHTS_KEY_AND_CONNECTION_STRING_CONFLICT);
         }
     }
 }
