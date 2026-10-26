@@ -86,14 +86,14 @@ public class AnnotationHandlerImplTest {
     public static final String EXTENDING_CUSTOM_BINDING_WITHOUT_NAME_METHOD = "extendingCustomBindingWithoutNameMethod";
 
     public static final String[] COSMOSDB_TRIGGER_REQUIRED_ATTRIBUTES = new String[]{"name", "dataType",
-        "databaseName", "collectionName", "leaseConnectionStringSetting", "leaseCollectionName",
-        "leaseDatabaseName", "createLeaseCollectionIfNotExists", "leasesCollectionThroughput",
-        "leaseCollectionPrefix", "checkpointInterval", "checkpointDocumentCount", "feedPollDelay",
-        "connectionStringSetting", "leaseRenewInterval", "leaseAcquireInterval", "leaseExpirationInterval",
+        "databaseName", "containerName", "leaseConnectionStringSetting", "leaseContainerName",
+        "leaseDatabaseName", "createLeaseContainerIfNotExists", "leasesContainerThroughput",
+        "leaseContainerPrefix", "checkpointInterval", "checkpointDocumentCount", "feedPollDelay",
+        "connection", "leaseRenewInterval", "leaseAcquireInterval", "leaseExpirationInterval",
         "maxItemsPerInvocation", "startFromBeginning", "preferredLocations"};
 
     public static final String[] COSMOSDB_OUTPUT_REQUIRED_ATTRIBUTES = new String[]{"name", "type",
-        "direction", "databaseName", "collectionName", "connectionStringSetting"};
+        "direction", "databaseName", "containerName", "connection"};
 
     public static final String[] EVENTHUB_TRIGGER_REQUIRED_ATTRIBUTES = new String[]{"name", "type", "direction",
         "connection", "eventHubName", "cardinality", "consumerGroup"};
@@ -150,14 +150,14 @@ public class AnnotationHandlerImplTest {
         public void cosmosDBTriggerMethod(@CosmosDBTrigger(name = "cosmos",
                 dataType = "string",
                 databaseName = "db",
-                collectionName = "cl",
-                connectionStringSetting = "conn",
-                leaseCollectionName = "lease",
+                containerName = "cl",
+                connection = "conn",
+                leaseContainerName = "lease",
                 leaseConnectionStringSetting = "leaseconnectionstringsetting",
                 leaseDatabaseName = "leasedatabasename",
-                createLeaseCollectionIfNotExists = true,
-                leasesCollectionThroughput = 1,
-                leaseCollectionPrefix = "prefix",
+                createLeaseContainerIfNotExists = true,
+                leasesContainerThroughput = 1,
+                leaseContainerPrefix = "prefix",
                 checkpointInterval = 1,
                 checkpointDocumentCount = 1,
                 feedPollDelay = 1,
@@ -168,8 +168,8 @@ public class AnnotationHandlerImplTest {
                 preferredLocations = "location",
                 leaseExpirationInterval = 1
         ) String in,
-            @CosmosDBOutput(name = "itemOut", databaseName = "CosmosDBDatabaseName", collectionName = "out",
-                connectionStringSetting = "conn") OutputBinding<String> outPutItem) {
+            @CosmosDBOutput(name = "itemOut", databaseName = "CosmosDBDatabaseName", containerName = "out",
+                connection = "conn") OutputBinding<String> outPutItem) {
         }
 
         @FunctionName(EVENTGRID_TRIGGER_FUNCTION)
@@ -177,14 +177,14 @@ public class AnnotationHandlerImplTest {
         }
 
         @FunctionName(TIMER_TRIGGER_FUNCTION)
-        @CosmosDBOutput(name = "$return", databaseName = "db", collectionName = "col", connectionStringSetting = "conn")
+        @CosmosDBOutput(name = "$return", databaseName = "db", containerName = "col", connection = "conn")
         @SendGridOutput(name = "$return", apiKey = "key", to = "to", from = "from", subject = "sub", text = "text")
         @TwilioSmsOutput(name = "$return", accountSid = "sid", authToken = "auth", to = "to", from = "from", body = "b")
         public String timerTriggerMethod(@TimerTrigger(name = "timer", schedule = "") String timer,
                                          @CosmosDBOutput(name = "in1",
                                                  databaseName = "db",
-                                                 collectionName = "col",
-                                                 connectionStringSetting = "conn") String in1
+                                                 containerName = "col",
+                                                 connection = "conn") String in1
                                          ) {
             return "Hello!";
         }
