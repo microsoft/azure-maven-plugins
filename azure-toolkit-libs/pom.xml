@@ -121,7 +121,7 @@
         <commons-compress.version>1.26.1</commons-compress.version>
         <commons-configuration2.version>2.10.1</commons-configuration2.version>
         <dom4j.version>2.1.4</dom4j.version>
-        <guava.version>33.1.0-jre</guava.version>
+        <guava.version>33.7.1-jre</guava.version>
         <caffeine.version>2.9.3</caffeine.version>
         <httpclient.version>4.5.14</httpclient.version>
         <jackson.version>2.17.0</jackson.version>
