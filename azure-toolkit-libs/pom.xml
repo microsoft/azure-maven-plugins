@@ -148,7 +148,7 @@
         <jakarta.xml.bind-api.version>3.0.1</jakarta.xml.bind-api.version>
         <semver.version>0.9.0</semver.version>
         <text-io.version>3.4.1</text-io.version>
-        <zt-zip.version>1.15</zt-zip.version>
+        <zt-zip.version>1.18.1</zt-zip.version>
         <plexus-interpolation.version>1.26</plexus-interpolation.version>
         <powermock.version>2.0.9</powermock.version>
         <github.json-schema-validator.version>2.2.14</github.json-schema-validator.version>
