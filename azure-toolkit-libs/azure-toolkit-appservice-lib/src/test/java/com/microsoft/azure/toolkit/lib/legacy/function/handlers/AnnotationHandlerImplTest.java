@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.legacy.function.handlers;
 
+import com.azure.storage.blob.BlobClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -47,13 +48,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class AnnotationHandlerImplTest {
@@ -221,6 +225,26 @@ public class AnnotationHandlerImplTest {
                 subscriptionName = "subs", connection = "conn") String in) {
             return "Hello!";
         }
+    }
+
+    public static class DeferredBindingEntryPoints {
+        public void blobMethod(@BlobTrigger(name = "client", path = "path") BlobClient client,
+                               @BlobInput(name = "text", path = "path") String text) {
+        }
+    }
+
+    @Test
+    public void sdkTypeParameterSupportsDeferredBinding() throws Exception {
+        final Method method = DeferredBindingEntryPoints.class.getMethod("blobMethod", BlobClient.class, String.class);
+        final List<Binding> bindings = new ArrayList<>();
+
+        getAnnotationHandler().processParameterAnnotations(method, bindings);
+
+        assertEquals(2, bindings.size());
+        final Binding client = bindings.stream().filter(b -> b.getName().equals("client")).findFirst().get();
+        final Binding text = bindings.stream().filter(b -> b.getName().equals("text")).findFirst().get();
+        assertEquals(Collections.singletonMap("supportsDeferredBinding", "true"), client.getAttribute("properties"));
+        assertNull(text.getAttribute("properties"));
     }
 
     @Test
