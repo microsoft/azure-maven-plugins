@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.legacy.function.handlers;
 import com.microsoft.azure.functions.sdktype.SdkType;
 import com.microsoft.azure.functions.sdktype.SdkParameterAnalyzer;
 import com.microsoft.azure.functions.sdktype.SdkParameterAnalysisResult;
-import com.microsoft.azure.functions.sdktype.SdkTypeMetaData;
+import com.microsoft.azure.functions.sdktype.SdkTypeDescriptor;
 import com.microsoft.azure.toolkit.lib.appservice.function.core.FunctionAnnotation;
 import com.microsoft.azure.toolkit.lib.appservice.function.core.FunctionMethod;
 import com.microsoft.azure.toolkit.lib.appservice.function.impl.DefaultFunctionProject;
@@ -141,8 +141,8 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
         SdkParameterAnalyzer analyzer = new SdkParameterAnalyzer();
         SdkParameterAnalysisResult result = analyzer.analyze(method);
         Set<Parameter> sdkTypeParams = new HashSet<>();
-        for (final SdkTypeMetaData sdkTypeMetaData : result.getSdkTypesMetaData()) {
-            sdkTypeParams.add(sdkTypeMetaData.getParam());
+        for (final SdkTypeDescriptor sdkTypeDescriptor : result.getSdkTypeDescriptors()) {
+            sdkTypeParams.add(sdkTypeDescriptor.getParam());
         }
 
         for (final Parameter param : method.getParameters()) {
