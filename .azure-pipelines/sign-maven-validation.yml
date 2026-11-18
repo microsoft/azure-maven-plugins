@@ -1,0 +1,144 @@
+name: $(Date:yyyyMMdd).$(Rev:r)
+
+trigger: none
+pr: none
+
+parameters:
+  - name: module
+    displayName: Maven module to build and sign
+    type: string
+    default: azure-functions-maven-plugin
+    values:
+      - azure-functions-maven-plugin
+      - azure-webapp-maven-plugin
+      - azure-spring-apps-maven-plugin
+      - azure-container-apps-maven-plugin
+      - azure-sdk-build-tool-maven-plugin
+      - azure-maven-plugin-lib
+      - azure-appservice-maven-plugin-lib
+
+resources:
+  repositories:
+    - repository: 1esPipelines
+      type: git
+      name: 1ESPipelineTemplates/1ESPipelineTemplates
+      ref: refs/tags/release
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1esPipelines
+  parameters:
+    pool:
+      os: linux
+      name: 1ES_JavaTooling_Pool
+      image: 1ES_JavaTooling_Ubuntu-2004
+    sdl:
+      sourceAnalysisPool:
+        name: 1ES_JavaTooling_Pool
+        image: 1ES_JavaTooling_Windows_2022
+        os: windows
+    stages:
+      - stage: BuildAndSign
+        displayName: Build and verify signed Maven artifacts
+        jobs:
+          - job: SignMaven
+            timeoutInMinutes: 120
+            templateContext:
+              outputs:
+                - output: pipelineArtifact
+                  artifactName: signing-validation
+                  targetPath: $(Build.ArtifactStagingDirectory)/signing-validation
+            steps:
+              - checkout: self
+                clean: true
+                fetchTags: false
+              - task: UseDotNet@2
+                inputs:
+                  packageType: sdk
+                  version: 3.1.x
+              - task: UseDotNet@2
+                inputs:
+                  packageType: sdk
+                  version: 8.0.x
+              - task: MicroBuildSigningPlugin@4
+                displayName: Install signing plugin
+                inputs:
+                  signType: real
+                  azureSubscription: 'MicroBuild Signing Task (MSEng)'
+                  useEsrpCli: true
+                  ConnectedPMEServiceName: 0e38ce24-f885-4c86-b997-5887b97a1899
+                  feedSource: 'https://mseng.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
+                env:
+                  SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+                  MicroBuildOutputFolderOverride: $(Agent.TempDirectory)
+              - task: JavaToolInstaller@0
+                displayName: Use Java 8
+                inputs:
+                  versionSpec: '8'
+                  jdkArchitectureOption: x64
+                  jdkSourceOption: PreInstalled
+              - task: Bash@3
+                displayName: Build and stage selected Maven module
+                inputs:
+                  targetType: inline
+                  script: |
+                    set -euo pipefail
+                    mvn --batch-mode --no-transfer-progress \
+                      -pl "$MODULE" -am install -DskipTests -Dcheckstyle.skip=true \
+                      -Drelease -Dmaven.repo.local="$MAVEN_REPOSITORY"
+
+                    evaluate() {
+                      mvn --quiet --no-transfer-progress -f "$MODULE/pom.xml" \
+                        -Dmaven.repo.local="$MAVEN_REPOSITORY" -Drelease \
+                        -DforceStdout -Dexpression="$1" help:evaluate
+                    }
+                    group_id=$(evaluate project.groupId)
+                    artifact_id=$(evaluate project.artifactId)
+                    version=$(evaluate project.version)
+                    if [[ "$group_id" != com.microsoft.azure || "$artifact_id" != "$MODULE" || -z "$version" ]]; then
+                      echo "Unexpected Maven coordinates: $group_id:$artifact_id:$version" >&2
+                      exit 1
+                    fi
+
+                    source_dir="$MAVEN_REPOSITORY/com/microsoft/azure/$artifact_id/$version"
+                    mkdir -p "$STAGING_DIR"
+                    for suffix in .pom .jar -sources.jar; do
+                      cp "$source_dir/$artifact_id-$version$suffix" "$STAGING_DIR/"
+                    done
+                    javadoc="$source_dir/$artifact_id-$version-javadoc.jar"
+                    if [[ -f "$javadoc" ]]; then
+                      cp "$javadoc" "$STAGING_DIR/"
+                    else
+                      echo "##vso[task.logissue type=warning]Javadoc JAR is absent; these artifacts are not ready for Maven Central."
+                    fi
+                    ls -l "$STAGING_DIR"
+                env:
+                  MODULE: ${{ parameters.module }}
+                  MAVEN_REPOSITORY: $(Agent.TempDirectory)/maven-validation-$(Build.BuildId)
+                  STAGING_DIR: $(Build.ArtifactStagingDirectory)/signing-validation
+              - task: Bash@3
+                displayName: Sign and verify staged JARs
+                inputs:
+                  targetType: inline
+                  script: |
+                    set -euo pipefail
+                    shopt -s nullglob
+                    jars=("$STAGING_DIR"/*.jar)
+                    if (( ${#jars[@]} == 0 )); then
+                      echo "No JARs to sign" >&2
+                      exit 1
+                    fi
+                    for file in "${jars[@]}"; do
+                      dotnet "$MBSIGN_APPFOLDER/DDSignFiles.dll" -- /file:"$file" /certs:100010171
+                      verification=$(jarsigner -verify -verbose -certs "$file" 2>&1) || {
+                        echo "$verification" >&2
+                        exit 1
+                      }
+                      echo "$verification"
+                      if ! grep -Fq 'jar verified.' <<< "$verification"; then
+                        echo "JAR signature verification failed: $file" >&2
+                        exit 1
+                      fi
+                    done
+                env:
+                  SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+                  STAGING_DIR: $(Build.ArtifactStagingDirectory)/signing-validation
