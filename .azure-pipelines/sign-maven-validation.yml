@@ -3,6 +3,10 @@ name: $(Date:yyyyMMdd).$(Rev:r)
 trigger: none
 pr: none
 
+variables:
+  - name: TeamName
+    value: VSCodeJava
+
 parameters:
   - name: module
     displayName: Maven module to build and sign
